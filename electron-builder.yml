@@ -1,0 +1,11 @@
+appId: dev.pi.pidesk
+productName: PiDesk
+directories:
+  output: dist/release
+files:
+  - out/**
+mac:
+  category: public.app-category.developer-tools
+  target:
+    - dmg
+artifactName: ${productName}-${version}-${arch}.${ext}

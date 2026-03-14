@@ -1,0 +1,50 @@
+import { fileURLToPath } from "node:url";
+import tailwindcss from "@tailwindcss/vite";
+import react from "@vitejs/plugin-react";
+import { defineConfig } from "electron-vite";
+
+const mainEntry = fileURLToPath(
+  new URL("./src/main/index.ts", import.meta.url),
+);
+
+export default defineConfig({
+  main: {
+    build: {
+      externalizeDeps: true,
+      outDir: "out/main",
+      rollupOptions: {
+        external: ["electron"],
+        input: {
+          index: mainEntry,
+        },
+        treeshake: false,
+      },
+    },
+  },
+  preload: {
+    build: {
+      externalizeDeps: false,
+      outDir: "out/preload",
+      rollupOptions: {
+        external: ["electron"],
+        input: "src/preload/index.ts",
+        output: {
+          format: "cjs",
+          inlineDynamicImports: true,
+        },
+      },
+    },
+  },
+  renderer: {
+    root: "src/renderer",
+    resolve: {
+      alias: {
+        "@": fileURLToPath(new URL("./src/renderer/src", import.meta.url)),
+      },
+    },
+    build: {
+      outDir: "out/renderer",
+    },
+    plugins: [react(), tailwindcss()],
+  },
+});

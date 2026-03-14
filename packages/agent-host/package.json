@@ -1,0 +1,16 @@
+{
+  "name": "@pidesk/agent-host",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc --project tsconfig.build.json --declaration false",
+    "dev": "tsc --project tsconfig.build.json --declaration false --watch --preserveWatchOutput",
+    "typecheck": "tsc --project tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@mariozechner/pi-coding-agent": "0.57.1",
+    "@pidesk/shared": "workspace:*"
+  }
+}
