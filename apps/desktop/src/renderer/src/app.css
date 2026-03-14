@@ -168,29 +168,29 @@ body {
 }
 
 :root {
-  /* Deep navy-slate base — noticeably richer than flat gray */
-  --background: 222 32% 9.5%;
-  --foreground: 210 18% 93%;
-  --card: 222 24% 12%;
-  --card-foreground: 210 18% 93%;
-  --popover: 222 28% 10.5%;
-  --popover-foreground: 210 18% 93%;
+  /* Dark grey monochrome theme */
+  --background: 0 0% 6%;
+  --foreground: 0 0% 94%;
+  --card: 0 0% 9%;
+  --card-foreground: 0 0% 94%;
+  --popover: 0 0% 10%;
+  --popover-foreground: 0 0% 94%;
 
-  /* Warm amber accent — the one color that makes everything pop */
-  --primary: 39 90% 62%;
-  --primary-foreground: 25 22% 10%;
+  /* Neutral grey accent */
+  --primary: 0 0% 82%;
+  --primary-foreground: 0 0% 8%;
 
-  --secondary: 222 14% 17%;
-  --secondary-foreground: 210 14% 88%;
-  --muted: 222 12% 15%;
-  --muted-foreground: 222 8% 50%;
-  --accent: 222 14% 19%;
-  --accent-foreground: 210 18% 93%;
-  --destructive: 2 65% 52%;
+  --secondary: 0 0% 16%;
+  --secondary-foreground: 0 0% 88%;
+  --muted: 0 0% 14%;
+  --muted-foreground: 0 0% 50%;
+  --accent: 0 0% 20%;
+  --accent-foreground: 0 0% 94%;
+  --destructive: 0 65% 52%;
   --destructive-foreground: 0 0% 97%;
-  --border: 222 12% 20%;
-  --input: 222 12% 15%;
-  --ring: 39 90% 62%;
+  --border: 0 0% 20%;
+  --input: 0 0% 14%;
+  --ring: 0 0% 70%;
   --radius: 0.875rem;
 
   --app-font-sans:
@@ -212,7 +212,7 @@ samp {
 }
 
 ::selection {
-  background: color-mix(in oklab, white 16%, transparent);
+  background: color-mix(in oklab, white 20%, transparent);
 }
 
 .prose {
