@@ -55,6 +55,18 @@ export function createAgentHostCommandHandler(runtime: CommandHandlerRuntime) {
               kind: "ack",
             },
           };
+        default: {
+          const unknownRequest = request as { type: string; requestId: string };
+          const _exhaustiveCheck: never = request;
+          return {
+            type: "response",
+            response: {
+              requestId: unknownRequest.requestId,
+              kind: "error",
+              message: `Unknown request type: ${unknownRequest.type}`,
+            },
+          };
+        }
       }
     } catch (error) {
       return {

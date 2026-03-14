@@ -220,6 +220,7 @@ function useTextStream({
         console.error("Error processing text stream:", error)
         markComplete()
         onError?.(error)
+        throw error
       }
     },
     [updateSegments, markComplete, onError]
@@ -378,9 +379,6 @@ function ResponseStream({
             </div>
           </>
         )
-
-      default:
-        return <>{displayedText}</>
     }
   }
 

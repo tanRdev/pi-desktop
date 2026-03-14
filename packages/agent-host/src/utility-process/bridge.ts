@@ -18,7 +18,6 @@ export interface WireAgentHostParentPortDependencies {
   parentPort: ParentPortLike;
   runtime: CommandHandlerRuntime & {
     subscribe(listener: (event: PiDeskAgentEvent) => void): () => void;
-    reset?(): Promise<void>;
   };
 }
 
@@ -63,28 +62,17 @@ export function wireAgentHostParentPort({
           .catch(respondWithError);
         return;
       case "reset":
-        if (typeof (runtime as any).reset === "function") {
-          void Promise.resolve((runtime as any).reset())
-            .then(() => {
-              parentPort.postMessage({
-                type: "response",
-                response: {
-                  requestId: request.requestId,
-                  kind: "ack",
-                },
-              });
-            })
-            .catch(respondWithError);
-        } else {
-          parentPort.postMessage({
-            type: "response",
-            response: {
-              requestId: request.requestId,
-              kind: "error",
-              message: "Runtime does not support reset",
-            },
-          });
-        }
+        void Promise.resolve(runtime.reset())
+          .then(() => {
+            parentPort.postMessage({
+              type: "response",
+              response: {
+                requestId: request.requestId,
+                kind: "ack",
+              },
+            });
+          })
+          .catch(respondWithError);
         return;
       case "getSnapshot":
         parentPort.postMessage({

@@ -11,6 +11,7 @@ import type {
 } from "@pidesk/shared";
 
 import { normalizeAgentSessionEvent } from "../events/normalize-agent-session-event.js";
+import { applyEventToSnapshot } from "../state/state-helpers.js";
 
 type AgentListener = (event: PiDeskAgentEvent) => void;
 
@@ -90,68 +91,6 @@ function toSnapshotMessages(messages: unknown[]): AgentMessageSnapshot[] {
       },
     ];
   });
-}
-
-function upsertMessage(
-  messages: AgentMessageSnapshot[],
-  nextMessage: AgentMessageSnapshot,
-): AgentMessageSnapshot[] {
-  const index = messages.findIndex((message) => message.id === nextMessage.id);
-
-  if (index === -1) {
-    return [...messages, nextMessage];
-  }
-
-  return messages.map((message, currentIndex) =>
-    currentIndex === index ? nextMessage : message,
-  );
-}
-
-function applyEventToSnapshot(
-  snapshot: AgentSnapshot,
-  event: PiDeskAgentEvent,
-): AgentSnapshot {
-  switch (event.type) {
-    case "agent_start":
-      return { ...snapshot, status: "streaming" };
-    case "agent_end":
-      return { ...snapshot, status: "ready" };
-    case "message_start":
-      return {
-        ...snapshot,
-        messages: upsertMessage(snapshot.messages, {
-          id: event.messageId,
-          role: event.role,
-          text: event.text,
-          status: "streaming",
-          timestamp: event.timestamp,
-        }),
-      };
-    case "message_update":
-      return {
-        ...snapshot,
-        messages: upsertMessage(snapshot.messages, {
-          id: event.messageId,
-          role: event.role,
-          text: event.text,
-          status: "streaming",
-          timestamp: event.timestamp,
-        }),
-      };
-    case "message_end":
-      return {
-        ...snapshot,
-        messages: upsertMessage(snapshot.messages, {
-          id: event.messageId,
-          role: event.role,
-          text: event.text,
-          status: "complete",
-          timestamp: event.timestamp,
-        }),
-      };
-    default:
-      return snapshot;
-  }
 }
 
 export class PiSdkAgentRuntime {

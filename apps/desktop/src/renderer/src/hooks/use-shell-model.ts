@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useSyncExternalStore } from "react";
 import { createShellModel, type ShellModelState } from "../lib/shell-model";
 
-const model = createShellModel(window.pidesk);
-
 export function useShellModel() {
+  const model = useMemo(() => createShellModel(window.pidesk), []);
   const state = useSyncExternalStore<ShellModelState>(
     model.subscribe,
     model.getState,
@@ -26,20 +25,26 @@ export function useShellModel() {
   const reset = useCallback(async () => {
     try {
       await window.pidesk.agent.reset();
-    } catch {
+    } catch (error) {
       // A failed reset should still attempt to refresh snapshot state so the
       // renderer can surface the latest runtime status without a full reload.
+      model.setAgentError(
+        error instanceof Error ? error.message : "Reset failed",
+      );
     }
 
     try {
       await model.load();
-    } catch {
-      // Ignore snapshot refresh failures here; the existing model state remains
-      // visible and any future successful load will reconcile the session.
+    } catch (error) {
+      // Snapshot refresh failures are surfaced to the UI so users can see
+      // that the session state may be stale.
+      model.setAgentError(
+        error instanceof Error ? error.message : "Failed to load snapshot",
+      );
     }
 
     model.setDraft("");
-  }, []);
+  }, [model]);
 
   return {
     state,

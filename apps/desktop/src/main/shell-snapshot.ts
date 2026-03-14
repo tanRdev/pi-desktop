@@ -1,6 +1,6 @@
 import { spawnSync } from "node:child_process";
 import path from "node:path";
-import type { ShellAgentMode, ShellSnapshot } from "@pidesk/shared";
+import type { ShellAgentMode, ShellGitSnapshot, ShellSnapshot } from "@pidesk/shared";
 
 export interface CreateShellSnapshotOptions {
   appName: string;
@@ -41,7 +41,7 @@ export function createShellSnapshot({
   // Detect git repository state for the renderer. This is intentionally
   // synchronous because snapshot creation is sync. Keep parsing defensive and
   // fail gracefully if git is unavailable or the cwd is not a repository.
-  function detectGitSnapshot(repoPath: string): any {
+  function detectGitSnapshot(repoPath: string): ShellGitSnapshot {
     // Default not_repo state
     const notRepo = {
       status: "not_repo",
@@ -173,7 +173,7 @@ export function createShellSnapshot({
 
       const hasChanges = stagedCount + modifiedCount + untrackedCount > 0;
 
-      const snapshot: any = {
+      const snapshot: ShellGitSnapshot = {
         status: "repository",
         rootPath: repoRoot,
         branch,
@@ -198,7 +198,7 @@ export function createShellSnapshot({
 
   const git = detectGitSnapshot(rootPath);
 
-  const snapshot: any = {
+  const snapshot = {
     appName,
     appVersion,
     chromeVersion: chromeVersion ?? "unknown",

@@ -105,6 +105,36 @@ function pickPreferredMessage(
   return incoming.text.length >= current.text.length ? incoming : current;
 }
 
+function determineAgentStatus(
+  current: AgentSnapshot,
+  incoming: AgentSnapshot,
+  preserveLiveState: boolean,
+  hasStreamingMessages: boolean,
+): AgentSnapshot["status"] {
+  // Priority 1: Error status always wins
+  if (incoming.status === "error") {
+    return incoming.status;
+  }
+
+  // Priority 2: Streaming messages take precedence
+  if (hasStreamingMessages) {
+    return "streaming";
+  }
+
+  // Priority 3: Preserve existing live state when requested
+  if (preserveLiveState) {
+    // When current status is "starting", use incoming status
+    // Otherwise preserve the current (live) status
+    if (current.status === "starting") {
+      return incoming.status;
+    }
+    return current.status;
+  }
+
+  // Default: use incoming status
+  return incoming.status;
+}
+
 function mergeAgentSnapshots(
   current: AgentSnapshot,
   incoming: AgentSnapshot,
@@ -130,18 +160,12 @@ function mergeAgentSnapshots(
   const hasStreamingMessages = messages.some(
     (message) => message.status === "streaming",
   );
-  const status =
-    incoming.status === "error"
-      ? incoming.status
-      : preserveLiveState
-        ? hasStreamingMessages
-          ? "streaming"
-          : current.status === "starting"
-            ? incoming.status
-            : current.status
-        : hasStreamingMessages
-          ? "streaming"
-          : incoming.status;
+  const status = determineAgentStatus(
+    current,
+    incoming,
+    preserveLiveState,
+    hasStreamingMessages,
+  );
 
   return {
     sessionId: incoming.sessionId || current.sessionId,
@@ -254,6 +278,18 @@ export function createShellModel(api: PiDeskApi) {
         live: {
           ...state.live,
           snapshotLoadedAt: Date.now(),
+        },
+      };
+      notify();
+    },
+
+    setAgentError(message: string): void {
+      state = {
+        ...state,
+        agent: {
+          ...state.agent,
+          status: "error",
+          lastError: message,
         },
       };
       notify();

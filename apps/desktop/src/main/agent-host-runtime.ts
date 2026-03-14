@@ -3,7 +3,7 @@ import type { AgentSnapshot } from "@pidesk/shared";
 import {
   type CreateAgentRuntimeOptions,
   createAgentRuntime,
-} from "../../../../packages/agent-host/src/runtime/create-agent-runtime";
+} from "@pidesk/agent-host";
 
 type AgentRuntimeEnvironment = Partial<
   Record<

@@ -1,7 +1,7 @@
 import {
   type ParentPortLike,
   wireAgentHostParentPort,
-} from "../../../../packages/agent-host/src/utility-process/bridge";
+} from "@pidesk/agent-host";
 
 import { createAgentRuntimeForEntry } from "./agent-host-runtime";
 
