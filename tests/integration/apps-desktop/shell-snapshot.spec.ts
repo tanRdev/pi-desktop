@@ -4,20 +4,20 @@ import { createShellSnapshot } from "../../../apps/desktop/src/main/shell-snapsh
 
 describe("createShellSnapshot", () => {
   it("builds runtime, workspace, and capability metadata for the shell", () => {
-    expect(
-      createShellSnapshot({
-        appName: "PiDesk",
-        appVersion: "0.1.0",
-        chromeVersion: "141.0.0.0",
-        electronVersion: "41.0.1",
-        platform: "darwin",
-        env: { NODE_ENV: "test" },
-        isPackaged: false,
-        cwd: "/Users/tester/Dev/PiDesk",
-        agentDir: "/Users/tester/Dev/PiDesk/.pidesk-agent",
-        agentMode: "mock",
-      }),
-    ).toEqual({
+    const snapshot = createShellSnapshot({
+      appName: "PiDesk",
+      appVersion: "0.1.0",
+      chromeVersion: "141.0.0.0",
+      electronVersion: "41.0.1",
+      platform: "darwin",
+      env: { NODE_ENV: "test" },
+      isPackaged: false,
+      cwd: "/Users/tester/Dev/PiDesk",
+      agentDir: "/Users/tester/Dev/PiDesk/.pidesk-agent",
+      agentMode: "mock",
+    });
+
+    expect(snapshot).toMatchObject({
       appName: "PiDesk",
       appVersion: "0.1.0",
       chromeVersion: "141.0.0.0",
@@ -46,5 +46,10 @@ describe("createShellSnapshot", () => {
         supportsParallelSessions: false,
       },
     });
+
+    expect(snapshot.git).toBeDefined();
+    expect(["repository", "not_repo", "unavailable"]).toContain(
+      snapshot.git?.status,
+    );
   });
 });

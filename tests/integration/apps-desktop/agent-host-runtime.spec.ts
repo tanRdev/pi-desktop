@@ -6,8 +6,6 @@ import {
   resolveAgentRuntimeLaunchOptions,
   resolveAgentRuntimeOptions,
 } from "../../../apps/desktop/src/main/agent-host-runtime";
-import { MockAgentRuntime } from "../../../packages/agent-host/src/mock/mock-agent-runtime";
-import { PiSdkAgentRuntime } from "../../../packages/agent-host/src/pi/pi-sdk-agent-runtime";
 
 describe("resolveAgentRuntimeOptions", () => {
   test("defaults to mock mode in test environments", () => {
@@ -48,24 +46,39 @@ describe("resolveAgentRuntimeOptions", () => {
 
 describe("createAgentRuntimeForEntry", () => {
   test("creates the mock runtime in test mode", () => {
-    expect(
-      createAgentRuntimeForEntry({ NODE_ENV: "test" }, "/tmp/pidesk-workspace"),
-    ).toBeInstanceOf(MockAgentRuntime);
+    const runtime = createAgentRuntimeForEntry(
+      { NODE_ENV: "test" },
+      "/tmp/pidesk-workspace",
+    );
+
+    expect(runtime).toBeTruthy();
+    if (!runtime) {
+      throw new Error("Expected a runtime instance");
+    }
+    expect(runtime.constructor.name).toBe("MockAgentRuntime");
   });
 
   test("creates the Pi SDK runtime outside test mode", () => {
-    expect(
-      createAgentRuntimeForEntry({}, "/tmp/pidesk-workspace"),
-    ).toBeInstanceOf(PiSdkAgentRuntime);
+    const runtime = createAgentRuntimeForEntry({}, "/tmp/pidesk-workspace");
+
+    expect(runtime).toBeTruthy();
+    if (!runtime) {
+      throw new Error("Expected a runtime instance");
+    }
+    expect(runtime.constructor.name).toBe("PiSdkAgentRuntime");
   });
 
   test("honors explicit mock mode for packaged smoke tests", () => {
-    expect(
-      createAgentRuntimeForEntry(
-        { PIDESK_AGENT_MODE: "mock" },
-        "/tmp/pidesk-workspace",
-      ),
-    ).toBeInstanceOf(MockAgentRuntime);
+    const runtime = createAgentRuntimeForEntry(
+      { PIDESK_AGENT_MODE: "mock" },
+      "/tmp/pidesk-workspace",
+    );
+
+    expect(runtime).toBeTruthy();
+    if (!runtime) {
+      throw new Error("Expected a runtime instance");
+    }
+    expect(runtime.constructor.name).toBe("MockAgentRuntime");
   });
 });
 

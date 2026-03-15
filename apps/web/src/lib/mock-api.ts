@@ -1,185 +1,245 @@
 import type {
+  AgentMessageSnapshot,
   AgentSnapshot,
   PiDeskAgentEvent,
   PiDeskApi,
   ShellSnapshot,
 } from "@pidesk/shared";
 
-// Mock agent responses for demo purposes
-const MOCK_RESPONSES: string[] = [
-  "I can help you with that! Let me analyze your request and provide a comprehensive solution.",
-  "Here's what I found: The issue appears to be related to configuration. Try checking your settings.",
-  "I'll help you refactor this code. First, let's identify the key patterns...",
-  "Great question! There are several approaches to solve this:",
-];
+type AgentListener = (event: PiDeskAgentEvent) => void;
 
-const MOCK_TOOL_CALLS = [
-  { name: "read_file", args: { path: "src/config.ts" } },
-  { name: "search_code", args: { query: "function handleRequest" } },
-  { name: "edit_file", args: { path: "src/utils.ts", changes: "refactor" } },
-];
+const SESSION_ID = "web-mock-session";
+const WORKSPACE_ROOT = "/Users/tan/Dev/PiDesk";
+
+function detectChromeVersion() {
+  if (typeof navigator === "undefined") {
+    return "unknown";
+  }
+
+  if (!navigator.userAgent.includes("Chrome")) {
+    return "unknown";
+  }
+
+  return navigator.userAgent.match(/Chrome\/(\d+\.\d+)/)?.[1] || "unknown";
+}
+
+function createShellSnapshot(): ShellSnapshot {
+  return {
+    appName: "PiDesk",
+    appVersion: "0.1.0",
+    chromeVersion: detectChromeVersion(),
+    platform: typeof navigator === "undefined" ? "unknown" : navigator.platform,
+    mode: "development",
+    runtime: {
+      agentMode: "mock",
+    },
+    workspace: {
+      rootPath: WORKSPACE_ROOT,
+      agentDirectory: `${WORKSPACE_ROOT}/.opencode`,
+      projects: [
+        {
+          id: "pidesk",
+          name: "PiDesk",
+          path: WORKSPACE_ROOT,
+          isActive: true,
+        },
+      ],
+    },
+    capabilities: {
+      supportsTurns: true,
+      supportsTools: true,
+      supportsActivity: true,
+      supportsParallelSessions: false,
+    },
+    git: {
+      status: "repository",
+      rootPath: WORKSPACE_ROOT,
+      branch: "main",
+      commit: "mock-web",
+      hasChanges: false,
+      ahead: 0,
+      behind: 0,
+      stagedCount: 0,
+      modifiedCount: 0,
+      untrackedCount: 0,
+      message: null,
+    },
+  };
+}
 
 class MockAgentRuntime {
-  private listeners: Set<(event: PiDeskAgentEvent) => void> = new Set();
-  private sessionId: string;
-  private messageCounter = 0;
-  private isStreaming = false;
+  private listeners = new Set<AgentListener>();
 
-  constructor() {
-    this.sessionId = `web-session-${Date.now()}`;
-  }
-
-  subscribe(listener: (event: PiDeskAgentEvent) => void): () => void {
-    this.listeners.add(listener);
-    return () => this.listeners.delete(listener);
-  }
-
-  private emit(event: PiDeskAgentEvent) {
-    for (const listener of this.listeners) {
-      listener(event);
-    }
-  }
-
-  async prompt(userText: string): Promise<void> {
-    if (this.isStreaming) return;
-    this.isStreaming = true;
-
-    const messageId = `msg-${++this.messageCounter}`;
-    const turnId = `turn-${Date.now()}`;
-
-    // Emit agent_start
-    this.emit({ type: "agent_start", timestamp: Date.now() });
-
-    // Emit turn_start
-    this.emit({ type: "turn_start", turnId, timestamp: Date.now() });
-
-    // Simulate user message
-    this.emit({
-      type: "message_start",
-      messageId: `user-${messageId}`,
-      role: "user",
-      text: userText,
-      timestamp: Date.now(),
-    });
-
-    this.emit({
-      type: "message_end",
-      messageId: `user-${messageId}`,
-      role: "user",
-      text: userText,
-      timestamp: Date.now(),
-    });
-
-    // Small delay before assistant response
-    await delay(300);
-
-    // Simulate tool execution
-    const toolCallId = `tool-${Date.now()}`;
-    const toolCall = MOCK_TOOL_CALLS[Math.floor(Math.random() * MOCK_TOOL_CALLS.length)];
-
-    if (Math.random() > 0.5) {
-      this.emit({
-        type: "tool_execution_start",
-        toolCallId,
-        toolName: toolCall.name,
-        args: toolCall.args,
-        timestamp: Date.now(),
-      });
-
-      await delay(800);
-
-      this.emit({
-        type: "tool_execution_end",
-        toolCallId,
-        toolName: toolCall.name,
-        result: { success: true, data: "mock result" },
-        isError: false,
-        timestamp: Date.now(),
-      });
-
-      await delay(200);
-    }
-
-    // Simulate assistant streaming response
-    const responseText = MOCK_RESPONSES[Math.floor(Math.random() * MOCK_RESPONSES.length)];
-    const words = responseText.split(" ");
-
-    this.emit({
-      type: "message_start",
-      messageId,
-      role: "assistant",
-      text: "",
-      timestamp: Date.now(),
-    });
-
-    let currentText = "";
-    for (let i = 0; i < words.length; i++) {
-      await delay(50 + Math.random() * 100);
-      currentText += (i > 0 ? " " : "") + words[i];
-      this.emit({
-        type: "message_update",
-        messageId,
-        role: "assistant",
-        text: currentText,
-        delta: words[i] + " ",
-        timestamp: Date.now(),
-      });
-    }
-
-    this.emit({
-      type: "message_end",
-      messageId,
-      role: "assistant",
-      text: currentText,
-      timestamp: Date.now(),
-    });
-
-    // Emit turn_end
-    this.emit({ type: "turn_end", turnId, timestamp: Date.now() });
-
-    // Emit agent_end
-    this.emit({ type: "agent_end", timestamp: Date.now() });
-
-    this.isStreaming = false;
-  }
+  private snapshot: AgentSnapshot = {
+    sessionId: SESSION_ID,
+    status: "starting",
+    messages: [],
+    lastError: null,
+  };
 
   async reset(): Promise<void> {
-    this.sessionId = `web-session-${Date.now()}`;
-    this.messageCounter = 0;
-    this.isStreaming = false;
+    this.snapshot = {
+      sessionId: `${SESSION_ID}-${Date.now()}`,
+      status: "ready",
+      messages: [],
+      lastError: null,
+    };
+    this.emit({ type: "agent_end" });
+    this.emit({ type: "agent_start" });
+  }
+
+  async bootstrap(): Promise<void> {
+    this.snapshot = {
+      ...this.snapshot,
+      sessionId: SESSION_ID,
+      status: "ready",
+      lastError: null,
+    };
+  }
+
+  subscribe(listener: AgentListener): () => void {
+    this.listeners.add(listener);
+
+    return () => {
+      this.listeners.delete(listener);
+    };
   }
 
   getSnapshot(): AgentSnapshot {
     return {
-      sessionId: this.sessionId,
-      status: this.isStreaming ? "streaming" : "ready",
-      messages: [],
-      lastError: null,
+      ...this.snapshot,
+      messages: this.snapshot.messages.map((message: AgentMessageSnapshot) => ({
+        ...message,
+      })),
     };
+  }
+
+  async prompt(text: string): Promise<void> {
+    if (this.snapshot.status === "starting") {
+      await this.bootstrap();
+    }
+
+    const timestamp = Date.now();
+    const userMessage: AgentMessageSnapshot = {
+      id: `user-${timestamp}`,
+      role: "user",
+      text,
+      status: "complete",
+      timestamp,
+    };
+
+    const assistantTimestamp = timestamp + 1;
+    const assistantText = `PiDesk mock assistant received: ${text}`;
+    const assistantMessage: AgentMessageSnapshot = {
+      id: `assistant-${assistantTimestamp}`,
+      role: "assistant",
+      text: assistantText,
+      status: "streaming",
+      timestamp: assistantTimestamp,
+    };
+
+    this.snapshot = {
+      ...this.snapshot,
+      status: "streaming",
+      messages: [...this.snapshot.messages, userMessage, assistantMessage],
+    };
+
+    this.emit({ type: "agent_start" });
+    this.emit({ type: "turn_start" });
+    this.emit({
+      type: "tool_execution_start",
+      toolCallId: `tool-inspect-${timestamp}`,
+      toolName: "workspace.inspect",
+      args: { prompt: text },
+    });
+    this.emit({
+      type: "tool_execution_update",
+      toolCallId: `tool-inspect-${timestamp}`,
+      toolName: "workspace.inspect",
+      args: { prompt: text },
+      partialResult: { status: "collecting-context" },
+    });
+    this.emit({
+      type: "tool_execution_end",
+      toolCallId: `tool-inspect-${timestamp}`,
+      toolName: "workspace.inspect",
+      result: { status: "ok" },
+      isError: false,
+    });
+    this.emit({
+      type: "message_start",
+      messageId: assistantMessage.id,
+      role: assistantMessage.role,
+      text: "",
+      timestamp: assistantMessage.timestamp,
+    });
+    this.emit({
+      type: "message_update",
+      messageId: assistantMessage.id,
+      role: assistantMessage.role,
+      text: assistantText,
+      delta: assistantText,
+      timestamp: assistantMessage.timestamp,
+    });
+    this.emit({
+      type: "tool_execution_start",
+      toolCallId: `tool-compose-${timestamp}`,
+      toolName: "reply.compose",
+      args: { prompt: text, response: assistantText },
+    });
+    this.emit({
+      type: "tool_execution_update",
+      toolCallId: `tool-compose-${timestamp}`,
+      toolName: "reply.compose",
+      args: { prompt: text, response: assistantText },
+      partialResult: { status: "drafting" },
+    });
+
+    this.snapshot = {
+      ...this.snapshot,
+      status: "ready",
+      messages: this.snapshot.messages.map((message: AgentMessageSnapshot) =>
+        message.id === assistantMessage.id
+          ? {
+              ...message,
+              status: "complete",
+            }
+          : message,
+      ),
+    };
+
+    this.emit({
+      type: "message_end",
+      messageId: assistantMessage.id,
+      role: assistantMessage.role,
+      text: assistantText,
+      timestamp: assistantMessage.timestamp,
+    });
+    this.emit({
+      type: "tool_execution_end",
+      toolCallId: `tool-compose-${timestamp}`,
+      toolName: "reply.compose",
+      result: { messageId: assistantMessage.id },
+      isError: false,
+    });
+    this.emit({ type: "turn_end" });
+    this.emit({ type: "agent_end" });
+  }
+
+  private emit(event: PiDeskAgentEvent): void {
+    for (const listener of this.listeners) {
+      listener(event);
+    }
   }
 }
 
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-// Create singleton runtime
 const mockRuntime = new MockAgentRuntime();
 
-// Create the mock API
 export function createMockPiDeskApi(): PiDeskApi {
   return {
     shell: {
       getSnapshot(): Promise<ShellSnapshot> {
-        return Promise.resolve({
-          appName: "PiDesk Web",
-          appVersion: "0.1.0",
-          chromeVersion: navigator.userAgent.includes("Chrome")
-            ? navigator.userAgent.match(/Chrome\/(\d+\.\d+)/)?.[1] || "unknown"
-            : "unknown",
-          platform: navigator.platform,
-          mode: "development",
-        });
+        return Promise.resolve(createShellSnapshot());
       },
     },
     agent: {

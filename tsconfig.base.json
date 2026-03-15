@@ -22,7 +22,11 @@
       "@pidesk/shared": ["packages/shared/src/index.ts"],
       "@pidesk/shared/*": ["packages/shared/src/*"],
       "@pidesk/agent-host": ["packages/agent-host/src/index.ts"],
-      "@pidesk/agent-host/*": ["packages/agent-host/src/*"]
+      "@pidesk/agent-host/*": ["packages/agent-host/src/*"],
+      "@pidesk/shell-model": ["packages/shell-model/src/index.ts"],
+      "@pidesk/shell-model/*": ["packages/shell-model/src/*"],
+      "@pidesk/ui": ["packages/ui/src/index.ts"],
+      "@pidesk/ui/*": ["packages/ui/src/*"]
     }
   }
 }

@@ -27,6 +27,8 @@
   "dependencies": {
     "@pidesk/agent-host": "workspace:*",
     "@pidesk/shared": "workspace:*",
+    "@pidesk/shell-model": "workspace:*",
+    "@pidesk/ui": "workspace:*",
     "@radix-ui/react-avatar": "^1.1.11",
     "@radix-ui/react-collapsible": "^1.1.0",
     "@radix-ui/react-dialog": "^1.1.15",

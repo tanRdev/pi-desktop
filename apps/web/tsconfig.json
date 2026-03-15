@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2020",
     "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": ["ES2020", "ES2022.Intl", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
     "moduleResolution": "bundler",
@@ -17,7 +17,11 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@pidesk/ui": ["../../packages/ui/src/index.ts"],
+      "@pidesk/ui/*": ["../../packages/ui/src/*"],
+      "@pidesk/shell-model": ["../../packages/shell-model/src/index.ts"],
+      "@pidesk/shell-model/*": ["../../packages/shell-model/src/*"]
     }
   },
   "include": ["src"],

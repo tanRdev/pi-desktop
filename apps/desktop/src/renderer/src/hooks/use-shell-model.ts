@@ -1,5 +1,5 @@
+import { createShellModel, type ShellModelState } from "@pidesk/shell-model";
 import { useCallback, useEffect, useMemo, useSyncExternalStore } from "react";
-import { createShellModel, type ShellModelState } from "../lib/shell-model";
 
 export function useShellModel() {
   const model = useMemo(() => createShellModel(window.pidesk), []);

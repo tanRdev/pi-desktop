@@ -23,7 +23,7 @@ export function createMainWindowOptions({
     show: false,
     backgroundColor: "#0a0a0a",
     titleBarStyle: "hiddenInset",
-    trafficLightPosition: { x: 20, y: 18 },
+    trafficLightPosition: { x: 20, y: 12 },
     webPreferences: {
       preload: preloadPath,
       contextIsolation: true,

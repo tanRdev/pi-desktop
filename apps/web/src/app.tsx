@@ -1,14 +1,26 @@
 "use client";
 
+import type { AgentMessageSnapshot, ShellGitSnapshot } from "@pidesk/shared";
+import {
+  ChatContainerContent,
+  ChatContainerRoot,
+  ChatContainerScrollAnchor,
+  PromptInput,
+  PromptInputAction,
+  PromptInputActions,
+  PromptInputTextarea,
+  Todo,
+  type TodoItem,
+  TooltipProvider,
+} from "@pidesk/ui";
 import {
   ArrowUp,
-  Check,
   ChevronDown,
   ChevronRight,
-  GitBranch,
-  History,
   FolderGit,
   FolderTree,
+  GitBranch,
+  History,
   Plus,
   Settings2,
 } from "lucide-react";
@@ -16,13 +28,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "./components/ui/button";
 import {
-  ChatContainerContent,
-  ChatContainerRoot,
-  ChatContainerScrollAnchor,
-} from "./components/ui/chat-container";
-import {
   Message,
-  MessageActions,
   MessageAvatar,
   MessageContent,
 } from "./components/ui/message";
@@ -31,33 +37,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "./components/ui/popover";
-import {
-  PromptInput,
-  PromptInputAction,
-  PromptInputActions,
-  PromptInputTextarea,
-} from "./components/ui/prompt-input";
 import { ScrollArea } from "./components/ui/scroll-area";
 import { Separator } from "./components/ui/separator";
-import { Todo } from "./components/ui/todo";
-import { TooltipProvider } from "./components/ui/tooltip";
-
-// Types for conversation instances
-interface AgentMessage {
-  id: string;
-  role: "user" | "assistant" | "system" | "tool";
-  text: string;
-  timestamp: number;
-  status?: "complete" | "streaming" | "error";
-}
-
-interface ConversationInstance {
-  id: string;
-  title: string;
-  messages: AgentMessage[];
-  timestamp: number;
-  model: string;
-}
+import { useShellModel } from "./hooks/use-shell-model";
 
 const UI_FONT_OPTIONS = [
   {
@@ -95,53 +77,13 @@ const PROMPT_SUGGESTIONS = [
   "Outline the active agent capabilities in this web shell.",
 ];
 
-// Model options for selector
-const MODEL_OPTIONS = [
-  { value: "claude-3-5-sonnet", label: "Claude 3.5 Sonnet" },
-  { value: "claude-3-5-haiku", label: "Claude 3.5 Haiku" },
-  { value: "claude-4-sonnet", label: "Claude 4 Sonnet" },
-  { value: "claude-4-opus", label: "Claude 4 Opus" },
-];
+type InspectorView = "git" | "files" | "context" | "history";
 
-// Agent mode options for selector
-const AGENT_MODES = [
-  { value: "general", label: "General" },
-  { value: "plan", label: "Plan" },
-  { value: "code", label: "Code" },
-  { value: "debug", label: "Debug" },
-];
-
-type ViewType = "git" | "files" | "context" | "history";
-
-// Mock instances for UI testing
-const MOCK_INSTANCES: ConversationInstance[] = [
-  {
-    id: "instance-1",
-    title: "Fix authentication bug",
-    messages: [],
-    timestamp: Date.now() - 2 * 60 * 1000, // 2 minutes ago
-    model: "claude-3-5-sonnet",
-  },
-  {
-    id: "instance-2",
-    title: "Review API changes",
-    messages: [],
-    timestamp: Date.now() - 60 * 60 * 1000, // 1 hour ago
-    model: "claude-3-5-sonnet",
-  },
-  {
-    id: "instance-3",
-    title: "New conversation",
-    messages: [],
-    timestamp: Date.now() - 24 * 60 * 60 * 1000, // 1 day ago
-    model: "claude-3-5-sonnet",
-  },
-];
-
-// System resource mocks
-const MOCK_MEMORY_USAGE = "142 MB";
-const MOCK_CPU_USAGE = "2%";
-const MOCK_CONTEXT_PERCENTAGE = 45;
+const timeFormatter = new Intl.DateTimeFormat("en", {
+  hour: "numeric",
+  minute: "2-digit",
+  hour12: true,
+});
 
 function readStoredValue(key: string, fallback: string) {
   try {
@@ -151,10 +93,13 @@ function readStoredValue(key: string, fallback: string) {
   }
 }
 
-function formatRelativeTime(timestamp: number): string {
+function formatRelativeTime(timestamp?: number) {
+  if (!timestamp) {
+    return "Just now";
+  }
+
   const now = Date.now();
   const diff = now - timestamp;
-
   const minutes = Math.floor(diff / (60 * 1000));
   const hours = Math.floor(diff / (60 * 60 * 1000));
   const days = Math.floor(diff / (24 * 60 * 60 * 1000));
@@ -168,10 +113,85 @@ function formatRelativeTime(timestamp: number): string {
   if (hours < 24) {
     return `${hours}h ago`;
   }
+
   return `${days}d ago`;
 }
 
-function getMessageLabel(message: AgentMessage) {
+function formatTimestamp(timestamp?: number) {
+  if (!timestamp) {
+    return "Just now";
+  }
+
+  return timeFormatter.format(new Date(timestamp));
+}
+
+function getStatusClass(status: string) {
+  switch (status) {
+    case "streaming":
+      return "border-amber-400/30 bg-amber-400/12 text-amber-200";
+    case "error":
+      return "border-rose-400/30 bg-rose-400/12 text-rose-200";
+    case "starting":
+      return "border-white/10 bg-white/[0.05] text-zinc-300";
+    default:
+      return "border-emerald-400/25 bg-emerald-400/10 text-emerald-300";
+  }
+}
+
+function getStatusDotClass(status: string) {
+  switch (status) {
+    case "streaming":
+      return "bg-amber-300 animate-pulse";
+    case "error":
+      return "bg-rose-300";
+    case "starting":
+      return "bg-zinc-400 animate-pulse";
+    default:
+      return "bg-emerald-400";
+  }
+}
+
+function getPathTail(value?: string | null) {
+  if (!value) {
+    return "Unavailable";
+  }
+
+  const segments = value.split(/[\\/]/).filter(Boolean);
+  return segments[segments.length - 1] ?? value;
+}
+
+function getActiveProject(
+  projects:
+    | {
+        id: string;
+        isActive: boolean;
+        name: string;
+        path: string;
+      }[]
+    | undefined,
+) {
+  return projects?.find((project) => project.isActive) ?? projects?.[0] ?? null;
+}
+
+function getThreadTitle(messages: AgentMessageSnapshot[]) {
+  const firstUserMessage = messages.find(
+    (message) => message.role === "user" && message.text.trim().length > 0,
+  );
+
+  if (!firstUserMessage) {
+    return "New conversation";
+  }
+
+  const title =
+    firstUserMessage.text.trim().split("\n")[0] ?? "New conversation";
+  return title.length > 40 ? `${title.slice(0, 40)}...` : title;
+}
+
+function getLatestMessageTimestamp(messages: AgentMessageSnapshot[]) {
+  return messages[messages.length - 1]?.timestamp;
+}
+
+function getMessageLabel(message: AgentMessageSnapshot) {
   switch (message.role) {
     case "assistant":
       return "PiDesk";
@@ -184,7 +204,7 @@ function getMessageLabel(message: AgentMessage) {
   }
 }
 
-function getMessageFallback(message: AgentMessage) {
+function getMessageFallback(message: AgentMessageSnapshot) {
   switch (message.role) {
     case "assistant":
       return "π";
@@ -197,36 +217,65 @@ function getMessageFallback(message: AgentMessage) {
   }
 }
 
-function generateInstanceTitle(messages: AgentMessage[]): string {
-  const firstUserMessage = messages.find((m) => m.role === "user");
-  if (firstUserMessage && typeof firstUserMessage.text === "string") {
-    const content = firstUserMessage.text;
-    // Truncate to first 40 chars or first line
-    const title = content.split("\n")[0].slice(0, 40);
-    return title.length < content.length ? `${title}...` : title;
+function formatActivityType(type: string) {
+  return type.replace(/_/g, " ");
+}
+
+function buildTodoItems(options: {
+  activityCount: number;
+  hasAssistantReply: boolean;
+  hasWorkspace: boolean;
+  gitStatus?: ShellGitSnapshot["status"];
+  status: string;
+}): TodoItem[] {
+  const { activityCount, gitStatus, hasAssistantReply, hasWorkspace, status } =
+    options;
+
+  if (activityCount === 0 && !hasAssistantReply && status !== "streaming") {
+    return [];
   }
-  return "New conversation";
+
+  return [
+    {
+      id: "workspace",
+      text: "Load workspace metadata",
+      completed: hasWorkspace,
+    },
+    {
+      id: "git",
+      text: "Attach repository context",
+      completed: gitStatus === "repository",
+    },
+    {
+      id: "reply",
+      text:
+        status === "streaming"
+          ? "Respond to current prompt"
+          : "Prompt response available",
+      completed: hasAssistantReply && status !== "streaming",
+    },
+  ];
 }
 
 function SettingsSelect({
   label,
-  value,
   onChange,
   options,
+  value,
 }: {
   label: string;
-  value: string;
   onChange: (value: string) => void;
-  options: { value: string; label: string }[];
+  options: { label: string; value: string }[];
+  value: string;
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-[0.6rem] uppercase tracking-[0.15em] text-zinc-500">
+      <span className="text-[0.6rem] uppercase tracking-[0.15em] text-zinc-500">
         {label}
-      </label>
+      </span>
       <select
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(event) => onChange(event.target.value)}
         className="w-full rounded-lg border border-white/10 bg-white/[0.05] px-2 py-1.5 text-xs text-zinc-200 outline-none transition hover:border-white/20"
       >
         {options.map((option) => (
@@ -239,27 +288,239 @@ function SettingsSelect({
   );
 }
 
+function ReadOnlySelector({
+  description,
+  label,
+}: {
+  description: string;
+  label: string;
+}) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="inline-flex items-center gap-1.5 rounded-md border border-white/[0.06] bg-white/[0.02] px-2 py-1 text-xs text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-300"
+        >
+          {label}
+          <ChevronDown className="size-3" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        className="w-52 rounded-lg border border-white/[0.08] bg-[hsl(222,24%,8%)] p-3"
+      >
+        <p className="text-[0.6rem] uppercase tracking-[0.18em] text-zinc-500">
+          Read only
+        </p>
+        <p className="mt-2 text-xs leading-5 text-zinc-300">{description}</p>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function GitInspector({ git }: { git?: ShellGitSnapshot }) {
+  if (!git || git.status === "not_repo") {
+    return (
+      <section className="space-y-2">
+        <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3">
+          <div className="flex items-center gap-2">
+            <GitBranch className="size-3.5 text-zinc-400" />
+            <span className="text-xs font-medium text-zinc-300">
+              No repository
+            </span>
+          </div>
+          <p className="mt-1 text-[11px] leading-4 text-zinc-500">
+            This workspace is not inside a git repository.
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+  if (git.status === "unavailable") {
+    return (
+      <section className="space-y-2">
+        <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3">
+          <div className="flex items-center gap-2">
+            <GitBranch className="size-3.5 text-zinc-400" />
+            <span className="text-xs font-medium text-zinc-300">
+              Git unavailable
+            </span>
+          </div>
+          <p className="mt-1 text-[11px] leading-4 text-zinc-500">
+            {git.message ?? "The web shell could not inspect git state."}
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="space-y-2">
+      <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3">
+        <div className="flex items-center gap-2">
+          <GitBranch className="size-3.5 text-zinc-400" />
+          <span className="text-xs font-medium text-zinc-300">
+            {getPathTail(git.rootPath)}
+          </span>
+        </div>
+        <p className="mt-1 text-[11px] text-zinc-500">
+          {git.branch ?? "detached"} • {git.hasChanges ? "changed" : "clean"}
+        </p>
+        <div className="mt-3 space-y-1 text-[11px] text-zinc-500">
+          <div className="flex justify-between gap-2">
+            <span>Commit</span>
+            <span className="truncate text-zinc-300">{git.commit ?? "—"}</span>
+          </div>
+          <div className="flex justify-between gap-2">
+            <span>Changes</span>
+            <span className="text-zinc-300">
+              {git.stagedCount ?? 0}/{git.modifiedCount ?? 0}/
+              {git.untrackedCount ?? 0}
+            </span>
+          </div>
+          <div className="flex justify-between gap-2">
+            <span>Sync</span>
+            <span className="text-zinc-300">
+              +{git.ahead ?? 0} / -{git.behind ?? 0}
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function FilesInspector({
+  agentDirectory,
+  projectPath,
+  rootPath,
+}: {
+  agentDirectory?: string | null;
+  projectPath?: string;
+  rootPath?: string;
+}) {
+  return (
+    <section className="space-y-2">
+      <p className="text-[11px] font-medium text-zinc-500">Files</p>
+      <div className="space-y-2 rounded-lg border border-white/[0.06] bg-white/[0.02] p-3 text-[11px] text-zinc-400">
+        <div>
+          <p className="uppercase tracking-[0.16em] text-zinc-600">Root</p>
+          <p className="mt-1 break-words text-zinc-300">
+            {rootPath ?? "Unavailable"}
+          </p>
+        </div>
+        <div>
+          <p className="uppercase tracking-[0.16em] text-zinc-600">Project</p>
+          <p className="mt-1 break-words text-zinc-300">
+            {projectPath ?? rootPath ?? "Unavailable"}
+          </p>
+        </div>
+        <div>
+          <p className="uppercase tracking-[0.16em] text-zinc-600">Agent dir</p>
+          <p className="mt-1 break-words text-zinc-300">
+            {agentDirectory ?? "Unavailable"}
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ContextInspector({
+  lastError,
+  runtimeMode,
+  supportsActivity,
+  supportsParallelSessions,
+  supportsTools,
+  supportsTurns,
+}: {
+  lastError: string | null;
+  runtimeMode?: string;
+  supportsActivity?: boolean;
+  supportsParallelSessions?: boolean;
+  supportsTools?: boolean;
+  supportsTurns?: boolean;
+}) {
+  return (
+    <section className="space-y-2">
+      <p className="text-[11px] font-medium text-zinc-500">Context</p>
+      <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3 text-[11px] text-zinc-400">
+        <div className="flex justify-between gap-2">
+          <span>Agent mode</span>
+          <span className="capitalize text-zinc-300">
+            {runtimeMode ?? "unknown"}
+          </span>
+        </div>
+        <div className="mt-2 flex justify-between gap-2">
+          <span>Turns</span>
+          <span className="text-zinc-300">{supportsTurns ? "on" : "off"}</span>
+        </div>
+        <div className="mt-1 flex justify-between gap-2">
+          <span>Tools</span>
+          <span className="text-zinc-300">{supportsTools ? "on" : "off"}</span>
+        </div>
+        <div className="mt-1 flex justify-between gap-2">
+          <span>Activity</span>
+          <span className="text-zinc-300">
+            {supportsActivity ? "on" : "off"}
+          </span>
+        </div>
+        <div className="mt-1 flex justify-between gap-2">
+          <span>Parallel</span>
+          <span className="text-zinc-300">
+            {supportsParallelSessions ? "on" : "off"}
+          </span>
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3 text-xs leading-5 text-zinc-400">
+        {lastError ?? "No additional context loaded"}
+      </div>
+    </section>
+  );
+}
+
+function HistoryInspector({
+  items,
+}: {
+  items: { id: string; timestamp: number; type: string }[];
+}) {
+  return (
+    <section className="space-y-2">
+      <p className="text-[11px] font-medium text-zinc-500">History</p>
+      {items.length > 0 ? (
+        <div className="space-y-1">
+          {items.map((item) => (
+            <div
+              key={item.id}
+              className="rounded px-2 py-1 text-xs text-zinc-400"
+            >
+              <div>{formatActivityType(item.type)}</div>
+              <div className="text-[10px] text-zinc-600">
+                {formatTimestamp(item.timestamp)}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3 text-xs text-zinc-400">
+          No activity yet
+        </div>
+      )}
+    </section>
+  );
+}
+
 export default function App() {
-  // Active view state for right sidebar
-  const [activeView, setActiveView] = React.useState<ViewType>("git");
+  const { reset, sendPrompt, setDraft, state } = useShellModel();
+  const shell = state.shell;
+  const agent = state.agent;
+  const live = state.live;
+  const draft = state.draft;
 
-  // Conversation instances state
-  const [instances, setInstances] =
-    React.useState<ConversationInstance[]>(MOCK_INSTANCES);
-  const [activeInstanceId, setActiveInstanceId] = React.useState<string>(
-    MOCK_INSTANCES[0]!.id,
-  );
-  const [draft, setDraft] = React.useState("");
-
-  // Model and agent mode state
-  const [selectedModel, setSelectedModel] = React.useState(MODEL_OPTIONS[0]!.value);
-  const [agentMode, setAgentMode] = React.useState(AGENT_MODES[0]!.value);
-
-  const activeInstance = React.useMemo(
-    () => instances.find((i) => i.id === activeInstanceId) ?? instances[0],
-    [instances, activeInstanceId],
-  );
-
+  const [activeView, setActiveView] = React.useState<InspectorView>("git");
   const [interfaceFont, setInterfaceFont] = React.useState(() =>
     readStoredValue("pidesk-font-sans", UI_FONT_OPTIONS[0]!.value),
   );
@@ -267,7 +528,49 @@ export default function App() {
     readStoredValue("pidesk-font-mono", CODE_FONT_OPTIONS[0]!.value),
   );
 
-  const canSend = draft.trim().length > 0;
+  const activeProject = React.useMemo(
+    () => getActiveProject(shell.workspace?.projects),
+    [shell.workspace?.projects],
+  );
+  const activityItems = React.useMemo(
+    () => [...live.activity].slice(-6).reverse(),
+    [live.activity],
+  );
+  const threadTitle = React.useMemo(
+    () => getThreadTitle(agent.messages),
+    [agent.messages],
+  );
+  const latestMessageTimestamp = React.useMemo(
+    () => getLatestMessageTimestamp(agent.messages),
+    [agent.messages],
+  );
+  const todoItems = React.useMemo(
+    () =>
+      buildTodoItems({
+        activityCount: live.activity.length,
+        gitStatus: shell.git?.status,
+        hasAssistantReply: agent.messages.some(
+          (message) => message.role === "assistant",
+        ),
+        hasWorkspace: Boolean(shell.workspace?.rootPath),
+        status: agent.status,
+      }),
+    [
+      agent.messages,
+      agent.status,
+      live.activity.length,
+      shell.git?.status,
+      shell.workspace?.rootPath,
+    ],
+  );
+
+  const canSend =
+    draft.trim().length > 0 &&
+    agent.status !== "starting" &&
+    agent.status !== "streaming";
+  const appTitle = shell.appName || "PiDesk";
+  const runtimeMode = shell.runtime?.agentMode ?? "unknown";
+  const runtimeModeLabel = `${runtimeMode} mode`;
 
   React.useEffect(() => {
     document.documentElement.style.setProperty(
@@ -284,62 +587,25 @@ export default function App() {
       return;
     }
 
-    // Create a new user message
-    const newMessage: AgentMessage = {
-      id: `msg-${Date.now()}`,
-      role: "user",
-      text: draft,
-      status: "complete",
-      timestamp: Date.now(),
-    };
-
-    // Update the active instance with the new message
-    setInstances((prev) =>
-      prev.map((instance) =>
-        instance.id === activeInstanceId
-          ? {
-              ...instance,
-              messages: [...instance.messages, newMessage],
-              title:
-                instance.title === "New conversation"
-                  ? generateInstanceTitle([...instance.messages, newMessage])
-                  : instance.title,
-              timestamp: Date.now(),
-            }
-          : instance,
-      ),
-    );
-
-    setDraft("");
-  }, [canSend, draft, activeInstanceId]);
+    sendPrompt();
+  }, [canSend, sendPrompt]);
 
   const handleNewThread = React.useCallback(() => {
-    const newInstance: ConversationInstance = {
-      id: `instance-${Date.now()}`,
-      title: "New conversation",
-      messages: [],
-      timestamp: Date.now(),
-      model: "claude-3-5-sonnet",
-    };
-    setInstances((prev) => [newInstance, ...prev]);
-    setActiveInstanceId(newInstance.id);
-    setDraft("");
-  }, []);
-
-  const handleInstanceClick = React.useCallback((instanceId: string) => {
-    setActiveInstanceId(instanceId);
-  }, []);
+    void reset();
+  }, [reset]);
 
   return (
     <TooltipProvider>
-      <div className="relative flex h-screen overflow-hidden bg-background text-foreground">
+      <div
+        data-testid="app-ready"
+        className="relative flex h-screen overflow-hidden bg-background text-foreground"
+      >
         <div className="pointer-events-none absolute inset-0 opacity-10">
           <div className="absolute inset-0 [background-image:linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] [background-size:100px_100px]" />
         </div>
 
-        {/* Left Sidebar */}
         <aside className="relative z-10 flex w-[15rem] shrink-0 flex-col border-r border-white/8 bg-black/15 backdrop-blur-2xl">
-          <div className="px-4 pt-4" data-no-drag="true">
+          <div className="px-4 pt-4">
             <Button
               onClick={handleNewThread}
               className="h-10 w-full justify-between rounded-md border border-white/10 bg-white/[0.06] px-3 text-[0.75rem] font-medium text-zinc-100 shadow-sm transition hover:border-white/15 hover:bg-white/[0.10]"
@@ -354,105 +620,94 @@ export default function App() {
 
           <ScrollArea className="min-h-0 flex-1">
             <div className="flex flex-col gap-6 px-4 py-4">
-              {/* Workspace Section */}
               <section className="space-y-2">
                 <div className="space-y-1">
                   <p className="text-[0.6rem] uppercase tracking-[0.25em] text-zinc-500">
                     Workspace
                   </p>
-                  <h1 className="text-sm font-medium tracking-[-0.01em] text-zinc-100">
-                    PiDesk Web
+                  <h1
+                    data-testid="app-title"
+                    className="text-sm font-medium tracking-[-0.01em] text-zinc-100"
+                  >
+                    {appTitle}
                   </h1>
                 </div>
 
-                {/* System Resource Usage */}
                 <div className="space-y-1">
                   <div className="flex justify-between text-[11px]">
-                    <span className="text-zinc-400">Memory</span>
-                    <span className="text-zinc-300">{MOCK_MEMORY_USAGE}</span>
+                    <span className="text-zinc-400">Project</span>
+                    <span className="truncate text-zinc-300">
+                      {activeProject?.name ?? "Unavailable"}
+                    </span>
                   </div>
                   <div className="flex justify-between text-[11px]">
-                    <span className="text-zinc-400">CPU</span>
-                    <span className="text-zinc-300">{MOCK_CPU_USAGE}</span>
+                    <span className="text-zinc-400">Mode</span>
+                    <span className="capitalize text-zinc-300">
+                      {runtimeMode}
+                    </span>
                   </div>
                 </div>
 
-                <p className="text-[11px] leading-4 text-zinc-500 truncate">
-                  /Users/tan/projects/pidesk
+                <p className="truncate text-[11px] leading-4 text-zinc-500">
+                  {shell.workspace?.rootPath ??
+                    "Workspace metadata unavailable"}
                 </p>
               </section>
 
-              {/* Session Section */}
               <section className="space-y-1.5">
                 <p className="text-[0.6rem] uppercase tracking-[0.25em] text-zinc-500">
                   Session
                 </p>
                 <div className="space-y-1">
-                  <div className="flex justify-between items-center">
+                  <div className="flex items-center justify-between">
                     <span className="text-[11px] uppercase tracking-wide text-zinc-500">
                       Messages
                     </span>
                     <span className="text-[11px] text-zinc-300">
-                      {activeInstance?.messages.length ?? 0}
+                      {agent.messages.length}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center">
+                  <div className="flex items-center justify-between">
                     <span className="text-[11px] uppercase tracking-wide text-zinc-500">
-                      Context
+                      Turns
                     </span>
                     <span className="text-[11px] text-zinc-300">
-                      {MOCK_CONTEXT_PERCENTAGE}%
+                      {live.turns.length}
                     </span>
                   </div>
-                  <p className="text-[11px] text-zinc-500 pt-0.5">
-                    {activeInstance?.model ?? "claude-3-5-sonnet"}
+                  <p className="pt-0.5 text-[11px] text-zinc-500">
+                    {runtimeModeLabel}
                   </p>
                 </div>
               </section>
 
-              {/* Instances/Threads Section */}
               <section className="space-y-2">
                 <p className="text-[0.6rem] uppercase tracking-[0.25em] text-zinc-500">
                   Threads
                 </p>
                 <div className="space-y-1">
-                  {instances.map((instance) => (
-                    <button
-                      key={instance.id}
-                      onClick={() => handleInstanceClick(instance.id)}
-                      className={cn(
-                        "w-full rounded-lg border px-2.5 py-2 text-left transition",
-                        "border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04]",
-                        activeInstanceId === instance.id &&
-                          "border-white/20 bg-white/[0.08]",
-                      )}
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <p
-                          className={cn(
-                            "truncate text-[13px]",
-                            activeInstanceId === instance.id
-                              ? "text-zinc-100"
-                              : "text-zinc-400",
-                          )}
-                        >
-                          {instance.title}
-                        </p>
-                        <span className="shrink-0 text-[10px] text-zinc-500">
-                          {formatRelativeTime(instance.timestamp)}
-                        </span>
-                      </div>
-                    </button>
-                  ))}
+                  <button
+                    type="button"
+                    className={cn(
+                      "w-full rounded-lg border px-2.5 py-2 text-left transition",
+                      "border-white/20 bg-white/[0.08]",
+                    )}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="truncate text-[13px] text-zinc-100">
+                        {threadTitle}
+                      </p>
+                      <span className="shrink-0 text-[10px] text-zinc-500">
+                        {formatRelativeTime(latestMessageTimestamp)}
+                      </span>
+                    </div>
+                  </button>
                 </div>
               </section>
             </div>
           </ScrollArea>
 
-          <div
-            className="mt-auto border-t border-white/8 px-4 py-4"
-            data-no-drag="true"
-          >
+          <div className="mt-auto border-t border-white/8 px-4 py-4">
             <div className="flex items-end justify-between gap-3">
               <Popover>
                 <PopoverTrigger asChild>
@@ -498,7 +753,7 @@ export default function App() {
 
               <div className="min-w-0 flex-1 text-right">
                 <p className="text-[0.6rem] uppercase tracking-[0.3em] text-zinc-600">
-                  v0.1.0
+                  v{shell.appVersion || "0.1.0"}
                 </p>
                 <p className="mt-0.5 text-[11px] leading-4 text-zinc-500">
                   Web shell
@@ -508,14 +763,10 @@ export default function App() {
           </div>
         </aside>
 
-        {/* Main Content */}
         <main className="relative z-10 flex min-w-0 flex-1 flex-col">
-          {/* Header - Redesigned for Mac window bar styling */}
           <header className="relative flex h-16 shrink-0 items-center justify-between border-b border-white/8 px-6 backdrop-blur-xl">
-            {/* Left section - empty for Mac traffic lights */}
             <div className="min-w-0 w-32" />
 
-            {/* Center - Pi logo (muted) */}
             <div className="pointer-events-none absolute inset-x-0 flex justify-center">
               <div
                 aria-hidden="true"
@@ -525,82 +776,110 @@ export default function App() {
               </div>
             </div>
 
-            {/* Right section - MCP dropdown placeholder */}
-            <div className="flex items-center gap-2" data-no-drag="true">
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 text-[0.68rem] uppercase tracking-[0.18em] text-zinc-400">
-                <span className="size-1.5 rounded-full bg-emerald-400/80" />
-                Ready
-              </div>
+            <div className="flex items-center gap-2">
+              <output
+                data-testid="agent-status"
+                aria-live="polite"
+                className={cn(
+                  "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[0.68rem] uppercase tracking-[0.18em]",
+                  getStatusClass(agent.status),
+                )}
+              >
+                <span
+                  className={cn(
+                    "size-1.5 rounded-full",
+                    getStatusDotClass(agent.status),
+                  )}
+                />
+                {agent.status}
+              </output>
             </div>
           </header>
 
           <ChatContainerRoot className="relative min-h-0 flex-1">
-            <ChatContainerContent className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-6 pb-40 pt-10">
-              {(activeInstance?.messages.length ?? 0) === 0 ? (
-                // Empty State
+            <ChatContainerContent
+              data-testid="chat-transcript"
+              className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-6 pb-40 pt-10"
+            >
+              {agent.messages.length === 0 ? (
                 <section className="flex flex-1 flex-col items-center justify-center">
-                  {/* Centered Pi logo */}
-                  <div className="text-5xl font-semibold tracking-[-0.08em] text-zinc-600 mb-8">
+                  <div className="mb-8 text-5xl font-semibold tracking-[-0.08em] text-zinc-600">
                     π
                   </div>
                 </section>
               ) : (
                 <>
-                  {activeInstance?.messages.map((message) => {
-                    const isUser = message.role === "user";
+                  {agent.messages.map((message) => {
                     const isSystem = message.role === "system";
 
                     return (
                       <Message
                         key={message.id}
-                        className={cn(
-                          "[--message-bg:transparent]",
-                          isUser && "[--message-bg:transparent]",
-                          isSystem &&
-                            "my-6 rounded-2xl border border-dashed border-zinc-700/60 bg-zinc-800/30 px-4 py-3 [--message-bg:transparent]",
-                        )}
+                        className={cn(isSystem && "my-6 justify-center")}
                       >
                         {!isSystem && (
                           <MessageAvatar
-                            src={undefined}
+                            src=""
                             alt={getMessageLabel(message)}
                             fallback={getMessageFallback(message)}
                           />
                         )}
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            {!isSystem && (
-                              <span className="text-xs font-medium text-zinc-400">
-                                {getMessageLabel(message)}
-                              </span>
-                            )}
-                          </div>
-                          <MessageContent
-                            className="mt-1"
-                            content={message.text}
-                          />
+
+                        <div
+                          className={cn(
+                            "min-w-0 flex-1",
+                            isSystem && "flex-initial",
+                          )}
+                        >
+                          {!isSystem && (
+                            <span className="text-xs font-medium text-zinc-400">
+                              {getMessageLabel(message)}
+                            </span>
+                          )}
+
+                          {isSystem ? (
+                            <div className="mt-1 rounded-2xl border border-dashed border-zinc-700/60 bg-zinc-800/30 px-4 py-3 text-sm text-zinc-400">
+                              {message.text}
+                            </div>
+                          ) : (
+                            <MessageContent
+                              markdown={message.role !== "user"}
+                              className="mt-1 max-w-none bg-transparent p-0 text-sm leading-6 text-zinc-100 shadow-none"
+                            >
+                              {message.text || " "}
+                            </MessageContent>
+                          )}
                         </div>
-                        <MessageActions>
-                          <div className="flex items-center gap-2" />
-                        </MessageActions>
                       </Message>
                     );
                   })}
                 </>
               )}
+
+              {agent.status === "streaming" && (
+                <div className="pl-11 text-xs uppercase tracking-[0.18em] text-zinc-500">
+                  PiDesk is responding
+                </div>
+              )}
+
+              {agent.lastError && (
+                <div className="rounded-lg border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">
+                  {agent.lastError}
+                </div>
+              )}
+
               <ChatContainerScrollAnchor />
             </ChatContainerContent>
           </ChatContainerRoot>
 
-          {/* Input Area */}
           <div className="relative z-20 border-t border-white/6 bg-gradient-to-t from-background to-transparent pb-6 pt-4">
             <div className="mx-auto max-w-4xl px-6">
-              {/* Prompt suggestions above input */}
-              {(activeInstance?.messages.length ?? 0) === 0 && (
-                <div className="flex flex-wrap gap-2 mb-3">
+              {agent.messages.length === 0 && (
+                <div className="mb-3 flex flex-wrap gap-2">
                   {PROMPT_SUGGESTIONS.map((suggestion) => (
                     <button
                       key={suggestion}
+                      type="button"
                       onClick={() => setDraft(suggestion)}
                       className="rounded-md border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-400 transition hover:border-white/20 hover:bg-white/[0.08] hover:text-zinc-200"
                     >
@@ -609,77 +888,28 @@ export default function App() {
                   ))}
                 </div>
               )}
+
               <PromptInput
                 value={draft}
-                onValueChange={(value) => setDraft(value)}
+                onValueChange={setDraft}
                 onSubmit={handleSend}
-                className="rounded-2xl border border-white/8 bg-white/[0.04] p-4 shadow-[0_8px_32px_rgba(0,0,0,0.28)] backdrop-blur-xl transition focus-within:border-amber-400/20 focus-within:bg-white/[0.06] focus-within:shadow-[0_12px_48px_rgba(0,0,0,0.35)]"
+                className="rounded-2xl border border-white/8 bg-white/[0.04] p-4 shadow-[0_8px_32px_rgba(0,0,0,0.28)] backdrop-blur-xl transition focus-within:border-white/14 focus-within:bg-white/[0.06] focus-within:shadow-[0_12px_48px_rgba(0,0,0,0.35)]"
               >
                 <PromptInputTextarea
+                  data-testid="chat-input"
                   placeholder="Ask PiDesk to read the room..."
                   className="min-h-[4.5rem] resize-none border-0 bg-transparent text-sm leading-6 text-zinc-100 placeholder:text-zinc-500 focus-visible:ring-0"
                 />
                 <PromptInputActions className="mt-3 items-center justify-between">
                   <div className="flex items-center gap-2">
-                    {/* Model Selector */}
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <button className="inline-flex items-center gap-1.5 rounded-md border border-white/[0.06] bg-white/[0.02] px-2 py-1 text-xs text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-300">
-                          {MODEL_OPTIONS.find((m) => m.value === selectedModel)?.label ?? "Select model"}
-                          <ChevronDown className="size-3" />
-                        </button>
-                      </PopoverTrigger>
-                      <PopoverContent
-                        align="start"
-                        className="w-48 rounded-lg border border-white/[0.08] bg-[hsl(222,24%,8%)] p-1"
-                      >
-                        {MODEL_OPTIONS.map((model) => (
-                          <button
-                            key={model.value}
-                            onClick={() => setSelectedModel(model.value)}
-                            className={cn(
-                              "flex w-full items-center justify-between rounded-md px-2 py-1.5 text-xs",
-                              selectedModel === model.value
-                                ? "bg-white/[0.08] text-zinc-200"
-                                : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-300"
-                            )}
-                          >
-                            {model.label}
-                            {selectedModel === model.value && <Check className="size-3" />}
-                          </button>
-                        ))}
-                      </PopoverContent>
-                    </Popover>
-
-                    {/* Agent Mode Selector */}
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <button className="inline-flex items-center gap-1.5 rounded-md border border-white/[0.06] bg-white/[0.02] px-2 py-1 text-xs text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-300">
-                          {AGENT_MODES.find((m) => m.value === agentMode)?.label}
-                          <ChevronDown className="size-3" />
-                        </button>
-                      </PopoverTrigger>
-                      <PopoverContent
-                        align="start"
-                        className="w-36 rounded-lg border border-white/[0.08] bg-[hsl(222,24%,8%)] p-1"
-                      >
-                        {AGENT_MODES.map((mode) => (
-                          <button
-                            key={mode.value}
-                            onClick={() => setAgentMode(mode.value)}
-                            className={cn(
-                              "flex w-full items-center justify-between rounded-md px-2 py-1.5 text-xs",
-                              agentMode === mode.value
-                                ? "bg-white/[0.08] text-zinc-200"
-                                : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-300"
-                            )}
-                          >
-                            {mode.label}
-                            {agentMode === mode.value && <Check className="size-3" />}
-                          </button>
-                        ))}
-                      </PopoverContent>
-                    </Popover>
+                    <ReadOnlySelector
+                      label="runtime managed"
+                      description="The web shell mirrors the desktop runtime surface. Direct model switching is not exposed yet."
+                    />
+                    <ReadOnlySelector
+                      label={runtimeModeLabel}
+                      description="Agent mode is derived from the mock Pi runtime and reflects the current shared shell-model session."
+                    />
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-[0.7rem] text-zinc-500">
@@ -687,6 +917,8 @@ export default function App() {
                     </span>
                     <PromptInputAction tooltip="Send message">
                       <Button
+                        data-testid="chat-send"
+                        type="button"
                         variant="ghost"
                         size="icon"
                         className="size-8 rounded-lg border border-white/8 bg-white/[0.06] text-zinc-200 hover:bg-white/[0.10] disabled:opacity-50"
@@ -703,54 +935,73 @@ export default function App() {
           </div>
         </main>
 
-        {/* Right Sidebar - Inspector */}
         <aside className="relative z-10 flex w-48 shrink-0 flex-col border-l border-white/[0.06] bg-black/20">
-          {/* Icon Header */}
           <header className="flex h-11 shrink-0 items-center justify-between border-b border-white/[0.06] px-2">
             <div className="flex items-center">
               <button
+                type="button"
+                aria-label="Open Git inspector"
+                aria-pressed={activeView === "git"}
                 onClick={() => setActiveView("git")}
                 className={cn(
                   "flex h-8 w-8 items-center justify-center rounded-md transition",
                   activeView === "git"
                     ? "bg-white/[0.08] text-zinc-200"
-                    : "text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-200"
+                    : "text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-200",
                 )}
               >
                 <GitBranch className="size-4" />
               </button>
-              <Separator orientation="vertical" className="mx-1 h-4 bg-white/[0.08]" />
+              <Separator
+                orientation="vertical"
+                className="mx-1 h-4 bg-white/[0.08]"
+              />
               <button
+                type="button"
+                aria-label="Open files inspector"
+                aria-pressed={activeView === "files"}
                 onClick={() => setActiveView("files")}
                 className={cn(
                   "flex h-8 w-8 items-center justify-center rounded-md transition",
                   activeView === "files"
                     ? "bg-white/[0.08] text-zinc-200"
-                    : "text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-200"
+                    : "text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-200",
                 )}
               >
                 <FolderTree className="size-4" />
               </button>
-              <Separator orientation="vertical" className="mx-1 h-4 bg-white/[0.08]" />
+              <Separator
+                orientation="vertical"
+                className="mx-1 h-4 bg-white/[0.08]"
+              />
               <button
+                type="button"
+                aria-label="Open context inspector"
+                aria-pressed={activeView === "context"}
                 onClick={() => setActiveView("context")}
                 className={cn(
                   "flex h-8 w-8 items-center justify-center rounded-md transition",
                   activeView === "context"
                     ? "bg-white/[0.08] text-zinc-200"
-                    : "text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-200"
+                    : "text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-200",
                 )}
               >
                 <FolderGit className="size-4" />
               </button>
-              <Separator orientation="vertical" className="mx-1 h-4 bg-white/[0.08]" />
+              <Separator
+                orientation="vertical"
+                className="mx-1 h-4 bg-white/[0.08]"
+              />
               <button
+                type="button"
+                aria-label="Open history inspector"
+                aria-pressed={activeView === "history"}
                 onClick={() => setActiveView("history")}
                 className={cn(
                   "flex h-8 w-8 items-center justify-center rounded-md transition",
                   activeView === "history"
                     ? "bg-white/[0.08] text-zinc-200"
-                    : "text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-200"
+                    : "text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-200",
                 )}
               >
                 <History className="size-4" />
@@ -760,86 +1011,48 @@ export default function App() {
 
           <ScrollArea className="min-h-0 flex-1">
             <div className="space-y-4 p-3">
-              {/* Repository - Git View */}
-              {activeView === "git" && (
-                <section className="space-y-2">
-                  <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3">
-                    <div className="flex items-center gap-2">
-                      <GitBranch className="size-3.5 text-zinc-400" />
-                      <span className="text-xs font-medium text-zinc-300">pidesk-web</span>
-                    </div>
-                    <p className="mt-1 text-[11px] text-zinc-500">main • clean</p>
-                  </div>
-                </section>
-              )}
+              {activeView === "git" && <GitInspector git={shell.git} />}
 
-              {/* Files View */}
               {activeView === "files" && (
-                <section className="space-y-2">
-                  <p className="text-[11px] font-medium text-zinc-500">Files</p>
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2 rounded px-2 py-1 text-xs text-zinc-400">
-                      <FolderTree className="size-3.5" />
-                      <span>src/</span>
-                    </div>
-                    <div className="flex items-center gap-2 rounded px-2 py-1 text-xs text-zinc-400">
-                      <FolderTree className="size-3.5" />
-                      <span>components/</span>
-                    </div>
-                    <div className="flex items-center gap-2 rounded px-2 py-1 text-xs text-zinc-400">
-                      <FolderTree className="size-3.5" />
-                      <span>lib/</span>
-                    </div>
-                  </div>
-                </section>
+                <FilesInspector
+                  rootPath={shell.workspace?.rootPath}
+                  projectPath={activeProject?.path}
+                  agentDirectory={shell.workspace?.agentDirectory}
+                />
               )}
 
-              {/* Context View */}
               {activeView === "context" && (
-                <section className="space-y-2">
-                  <p className="text-[11px] font-medium text-zinc-500">Context</p>
-                  <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3">
-                    <p className="text-xs text-zinc-400">No additional context loaded</p>
-                  </div>
-                </section>
+                <ContextInspector
+                  lastError={agent.lastError}
+                  runtimeMode={runtimeMode}
+                  supportsTurns={shell.capabilities?.supportsTurns}
+                  supportsTools={shell.capabilities?.supportsTools}
+                  supportsActivity={shell.capabilities?.supportsActivity}
+                  supportsParallelSessions={
+                    shell.capabilities?.supportsParallelSessions
+                  }
+                />
               )}
 
-              {/* History View */}
               {activeView === "history" && (
-                <section className="space-y-2">
-                  <p className="text-[11px] font-medium text-zinc-500">History</p>
-                  <div className="space-y-1">
-                    <div className="rounded px-2 py-1 text-xs text-zinc-400">
-                      Initial commit
-                    </div>
-                    <div className="rounded px-2 py-1 text-xs text-zinc-400">
-                      Setup project
-                    </div>
-                  </div>
-                </section>
+                <HistoryInspector items={activityItems} />
               )}
 
-              {/* TODO - Only shows during active session */}
-              {(activeInstance?.messages.length ?? 0) > 0 && (
+              {todoItems.length > 0 && (
                 <section className="space-y-2">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Tasks</p>
-                  <Todo
-                    items={[
-                      { id: "1", text: "Read workspace context", completed: true },
-                      { id: "2", text: "Analyze repository structure", completed: activeInstance?.messages.length ?? 0 > 1 },
-                      { id: "3", text: "Implement requested changes", completed: false },
-                    ]}
-                  />
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
+                    Tasks
+                  </p>
+                  <Todo items={todoItems} />
                 </section>
               )}
             </div>
           </ScrollArea>
 
-          {/* Footer */}
           <div className="border-t border-white/[0.06] px-3 py-2">
             <div className="flex items-center justify-between text-[10px] text-zinc-600">
-              <span>v0.1.0</span>
-              <span className="uppercase">{activeInstance?.model ?? "claude-3-5-sonnet"}</span>
+              <span>v{shell.appVersion || "0.1.0"}</span>
+              <span className="uppercase">{runtimeMode}</span>
             </div>
           </div>
         </aside>

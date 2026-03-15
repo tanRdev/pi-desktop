@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
+import type {
+  AgentSnapshot,
+  PiDeskAgentEvent,
+} from "../../../packages/shared/src";
 import {
   applyAgentEvent,
   applyLiveAgentEvent,
   createAgentLiveFeedFromSnapshot,
   createInitialAgentLiveFeed,
-} from "../../../apps/desktop/src/renderer/src/lib/agent-feed";
-import type {
-  AgentSnapshot,
-  PiDeskAgentEvent,
-} from "../../../packages/shared/src";
+} from "../../../packages/shell-model/src";
 
 describe("applyAgentEvent", () => {
   it("creates and completes streaming assistant messages", () => {

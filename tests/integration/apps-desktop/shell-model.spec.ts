@@ -1,11 +1,11 @@
 import { describe, expect, test, vi } from "vitest";
-import { createShellModel } from "../../../apps/desktop/src/renderer/src/lib/shell-model";
 import type {
   AgentSnapshot,
   PiDeskAgentEvent,
   PiDeskApi,
   ShellSnapshot,
 } from "../../../packages/shared/src";
+import { createShellModel } from "../../../packages/shell-model/src";
 
 type LegacyMessageEnvelopeEvent = {
   type: "message_end" | "message_start" | "message_update";
@@ -75,6 +75,7 @@ describe("createShellModel", () => {
       agent: {
         getSnapshot: vi.fn(async () => createAgentSnapshotFixture()),
         prompt: vi.fn(async () => {}),
+        reset: vi.fn(async () => {}),
         subscribe: vi.fn((listener) => {
           eventListener = listener as unknown as typeof eventListener;
           return () => {

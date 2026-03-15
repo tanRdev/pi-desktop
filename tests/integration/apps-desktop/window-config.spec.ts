@@ -16,7 +16,7 @@ describe("createMainWindowOptions", () => {
     expect(options.show).toBe(false);
     expect(options.minWidth).toBe(1180);
     expect(options.minHeight).toBe(720);
-    expect(options.backgroundColor).toBe("#0b1020");
+    expect(options.backgroundColor).toBe("#0a0a0a");
     expect(options.titleBarStyle).toBe("hiddenInset");
     expect(options.webPreferences).toMatchObject({
       preload: "/tmp/pidesk/preload.js",

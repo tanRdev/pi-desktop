@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@pidesk/shared": "workspace:*",
+    "@pidesk/shell-model": "workspace:*",
+    "@pidesk/ui": "workspace:*",
     "@radix-ui/react-avatar": "^1.1.11",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
