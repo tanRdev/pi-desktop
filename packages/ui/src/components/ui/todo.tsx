@@ -20,27 +20,27 @@ export function Todo({ items, className }: TodoProps) {
   }
 
   return (
-    <div className={cn("space-y-2", className)}>
+    <div className={cn("space-y-1.5", className)}>
       {items.map((item) => (
         <div
           key={item.id}
           className={cn(
-            "flex items-start gap-3 rounded-lg border border-white/6 px-3 py-2.5 transition-colors",
+            "flex items-start gap-2 rounded-md border border-border-subtle px-2.5 py-2 transition-colors",
             item.completed
-              ? "bg-white/[0.02] text-zinc-500"
-              : "bg-white/[0.04] text-zinc-200",
+              ? "bg-surface-1 text-muted-foreground/70"
+              : "bg-surface-2 text-foreground",
           )}
         >
           <div className="mt-0.5 shrink-0">
             {item.completed ? (
-              <CheckSquare className="size-4 text-emerald-400" />
+              <CheckSquare className="size-4 text-success" />
             ) : (
-              <Square className="size-4 text-zinc-500" />
+              <Square className="size-4 text-muted-foreground" />
             )}
           </div>
           <span
             className={cn(
-              "text-sm leading-5",
+              "text-sm leading-relaxed",
               item.completed && "line-through",
             )}
           >
