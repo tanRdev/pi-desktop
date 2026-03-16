@@ -1,11 +1,10 @@
-import { describe, expect, it, afterEach } from "vitest";
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-
-import type { AgentSnapshot } from "../../../packages/shared/src";
+import { afterEach, describe, expect, it } from "vitest";
 import { createShellSnapshot } from "../../../apps/desktop/src/main/shell-snapshot";
+import type { AgentSnapshot } from "../../../packages/shared/src";
 
 const tempDirs: string[] = [];
 
@@ -23,7 +22,9 @@ function runGit(cwd: string, args: string[]): string {
 
   if (result.status !== 0) {
     throw new Error(
-      [`git ${args.join(" ")}`, result.stdout, result.stderr].filter(Boolean).join("\n"),
+      [`git ${args.join(" ")}`, result.stdout, result.stderr]
+        .filter(Boolean)
+        .join("\n"),
     );
   }
 
@@ -101,7 +102,13 @@ describe("createShellSnapshot", () => {
   it("builds a repo-wide worktree catalog and selects the current linked worktree thread", () => {
     const { sandbox, repoRoot } = initRepository("catalog");
     const featureWorktree = path.join(sandbox, "feature-worktree");
-    runGit(repoRoot, ["worktree", "add", "-b", "feature/worktree", featureWorktree]);
+    runGit(repoRoot, [
+      "worktree",
+      "add",
+      "-b",
+      "feature/worktree",
+      featureWorktree,
+    ]);
     const expectedRepoRoot = fs.realpathSync(repoRoot);
     const expectedFeatureWorktree = fs.realpathSync(featureWorktree);
     fs.mkdirSync(path.join(featureWorktree, "nested"), { recursive: true });

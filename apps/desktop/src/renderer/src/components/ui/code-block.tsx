@@ -212,7 +212,7 @@ function CodeBlockCode({
     highlightTimeoutRef.current = setTimeout(() => {
       void runHighlight();
     }, HIGHLIGHT_DEBOUNCE_MS);
-  }, [code, language, theme, runHighlight]);
+  }, [code, runHighlight]);
 
   useEffect(() => {
     if (containerRef.current && highlightedHtml) {

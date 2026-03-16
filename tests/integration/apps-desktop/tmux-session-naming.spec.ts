@@ -17,7 +17,9 @@ describe("tmux thread session naming", () => {
   });
 
   it("sanitizes arbitrary thread ids and detects managed tmux sessions", () => {
-    const sessionName = createTmuxThreadSessionName("Repo Thread: Feature/Settings #1");
+    const sessionName = createTmuxThreadSessionName(
+      "Repo Thread: Feature/Settings #1",
+    );
 
     expect(sessionName).toMatch(/^pidesk-thread-[a-z0-9-]+$/);
     expect(isManagedTmuxThreadSession(sessionName)).toBe(true);

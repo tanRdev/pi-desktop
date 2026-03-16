@@ -46,6 +46,9 @@ export class PersistentJsonFile<T> {
 
   private save(): void {
     mkdirSync(path.dirname(this.options.filePath), { recursive: true });
-    writeFileSync(this.options.filePath, `${JSON.stringify(this.value, null, 2)}\n`);
+    writeFileSync(
+      this.options.filePath,
+      `${JSON.stringify(this.value, null, 2)}\n`,
+    );
   }
 }

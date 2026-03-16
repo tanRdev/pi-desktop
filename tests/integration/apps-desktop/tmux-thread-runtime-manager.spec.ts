@@ -1,10 +1,10 @@
-import { afterEach, describe, expect, it } from "vitest";
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { TmuxThreadRuntimeManager } from "../../../apps/desktop/src/main/tmux-thread-runtime-manager";
+import { afterEach, describe, expect, it } from "vitest";
 import { createTmuxThreadSessionName } from "../../../apps/desktop/src/main/tmux-session-naming";
+import { TmuxThreadRuntimeManager } from "../../../apps/desktop/src/main/tmux-thread-runtime-manager";
 
 const tempDirs: string[] = [];
 const socketNames: string[] = [];
@@ -57,14 +57,20 @@ describe("TmuxThreadRuntimeManager", () => {
       status: "ready",
       lastError: null,
     });
-    expect(runTmux(socketName, ["has-session", "-t", created.sessionName]).status).toBe(0);
+    expect(
+      runTmux(socketName, ["has-session", "-t", created.sessionName]).status,
+    ).toBe(0);
 
     const restarted = await manager.restartThreadRuntime(launch);
     expect(restarted.sessionName).toBe(created.sessionName);
-    expect(runTmux(socketName, ["has-session", "-t", restarted.sessionName]).status).toBe(0);
+    expect(
+      runTmux(socketName, ["has-session", "-t", restarted.sessionName]).status,
+    ).toBe(0);
 
     await manager.terminateThreadRuntime("thread-alpha");
-    expect(runTmux(socketName, ["has-session", "-t", restarted.sessionName]).status).not.toBe(0);
+    expect(
+      runTmux(socketName, ["has-session", "-t", restarted.sessionName]).status,
+    ).not.toBe(0);
 
     const state = await manager.getRuntimeState({
       threadId: "thread-alpha",
@@ -160,6 +166,4 @@ describe("TmuxThreadRuntimeManager", () => {
       status: "ready",
     });
   });
-
-
 });

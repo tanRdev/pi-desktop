@@ -1,12 +1,19 @@
+import { homedir } from "node:os";
+import path from "node:path";
 import {
   type AgentSession,
   type AgentSessionEvent,
+  AuthStorage,
   createAgentSession as createPiAgentSession,
+  ModelRegistry,
+  SettingsManager,
 } from "@mariozechner/pi-coding-agent";
 
 import type {
   AgentMessageSnapshot,
   AgentSnapshot,
+  ModelSnapshot,
+  ModelSwitchRequest,
   PiDeskAgentEvent,
   ProviderSnapshot,
   SettingsSnapshot,
@@ -108,6 +115,10 @@ export class PiSdkAgentRuntime {
 
   private unsubscribeSession: (() => void) | null = null;
 
+  private modelRegistry: ModelRegistry | null = null;
+
+  private settingsManager: SettingsManager | null = null;
+
   private snapshot: AgentSnapshot = {
     sessionId: "",
     status: "starting",
@@ -123,6 +134,24 @@ export class PiSdkAgentRuntime {
     this.cwd = cwd;
     this.agentDir = agentDir;
     this.createAgentSession = createAgentSession;
+
+    // Initialize Pi SDK components
+    const globalAgentDir = path.join(homedir(), ".pi", "agent");
+    const resolvedAgentDir = agentDir ?? globalAgentDir;
+
+    // Create auth storage for model registry
+    const authStorage = AuthStorage.create(
+      path.join(resolvedAgentDir, "auth.json"),
+    );
+
+    // Initialize model registry with auth storage
+    this.modelRegistry = new ModelRegistry(
+      authStorage,
+      path.join(resolvedAgentDir, "models.json"),
+    );
+
+    // Initialize settings manager
+    this.settingsManager = SettingsManager.create(cwd, resolvedAgentDir);
   }
 
   async bootstrap(): Promise<void> {
@@ -191,31 +220,103 @@ export class PiSdkAgentRuntime {
   }
 
   async getProviders(): Promise<ProviderSnapshot[]> {
-    return [
-      {
-        id: "google",
-        name: "Google",
-        models: [
-          { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro" },
-          { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash" },
-        ],
-      },
-      {
-        id: "anthropic",
-        name: "Anthropic",
-        models: [
-          { id: "claude-sonnet-4-5-20251101", name: "Claude Sonnet 4.5" },
-          { id: "claude-3-7-sonnet-20250219", name: "Claude 3.7 Sonnet" },
-        ],
-      },
-    ];
+    if (!this.modelRegistry) {
+      return [];
+    }
+
+    // Get all available models
+    const models = this.modelRegistry.getAvailable();
+
+    // Group by provider
+    const providerMap = new Map<string, ModelSnapshot[]>();
+
+    for (const model of models) {
+      const providerId = model.provider;
+      if (!providerMap.has(providerId)) {
+        providerMap.set(providerId, []);
+      }
+
+      providerMap.get(providerId)?.push({
+        id: model.id,
+        name: model.name ?? model.id,
+        providerId,
+        supportsThinking: model.reasoning,
+        supportsVision: model.input?.includes("image") ?? false,
+        contextWindow: model.contextWindow,
+      });
+    }
+
+    // Convert to ProviderSnapshot array
+    const result: ProviderSnapshot[] = [];
+
+    for (const [providerId, providerModels] of providerMap) {
+      result.push({
+        id: providerId,
+        name: providerId, // TODO: get provider display name
+        models: providerModels,
+        isConfigured: true, // getAvailable only returns configured models
+      });
+    }
+
+    return result;
   }
 
   async getSettings(): Promise<SettingsSnapshot> {
+    if (!this.settingsManager) {
+      return {};
+    }
+
+    const globalSettings = this.settingsManager.getGlobalSettings();
+    const projectSettings = this.settingsManager.getProjectSettings();
+
     return {
-      defaultProvider: "google",
-      defaultModel: "gemini-2.5-pro",
+      currentProviderId:
+        projectSettings.defaultProvider ?? globalSettings.defaultProvider,
+      currentModelId:
+        projectSettings.defaultModel ?? globalSettings.defaultModel,
+      defaultProvider: globalSettings.defaultProvider,
+      defaultModel: globalSettings.defaultModel,
+      thinkingLevel: this.mapThinkingLevel(
+        projectSettings.defaultThinkingLevel ??
+          globalSettings.defaultThinkingLevel,
+      ),
     };
+  }
+
+  private mapThinkingLevel(
+    level: "off" | "minimal" | "low" | "medium" | "high" | "xhigh" | undefined,
+  ): SettingsSnapshot["thinkingLevel"] {
+    switch (level) {
+      case "off":
+        return "none";
+      case "minimal":
+      case "low":
+        return "low";
+      case "medium":
+        return "medium";
+      case "high":
+      case "xhigh":
+        return "high";
+      default:
+        return undefined;
+    }
+  }
+
+  async switchModel(request: ModelSwitchRequest): Promise<void> {
+    if (!this.settingsManager) {
+      throw new Error("Settings manager not initialized");
+    }
+
+    // Update settings
+    this.settingsManager.setDefaultProvider(request.providerId);
+    this.settingsManager.setDefaultModel(request.modelId);
+
+    // Emit model change event
+    this.emit({
+      type: "model_changed",
+      providerId: request.providerId,
+      modelId: request.modelId,
+    });
   }
 
   subscribe(listener: AgentListener): () => void {

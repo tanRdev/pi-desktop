@@ -1,8 +1,8 @@
-import { afterEach, describe, expect, it } from "vitest";
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { afterEach, describe, expect, it } from "vitest";
 import { GitWorktreeService } from "../../../apps/desktop/src/main/git-worktree-service";
 
 const tempDirs: string[] = [];
@@ -21,14 +21,19 @@ function runGit(cwd: string, args: string[]): string {
 
   if (result.status !== 0) {
     throw new Error(
-      [`git ${args.join(" ")}`, result.stdout, result.stderr].filter(Boolean).join("\n"),
+      [`git ${args.join(" ")}`, result.stdout, result.stderr]
+        .filter(Boolean)
+        .join("\n"),
     );
   }
 
   return result.stdout.trim();
 }
 
-function initRepository(name: string, options: { withRemoteHead?: boolean } = {}) {
+function initRepository(
+  name: string,
+  options: { withRemoteHead?: boolean } = {},
+) {
   const sandbox = createTempDir(`pidesk-git-${name}-`);
   const repoRoot = path.join(sandbox, name);
   fs.mkdirSync(repoRoot, { recursive: true });
@@ -69,9 +74,17 @@ describe("GitWorktreeService", () => {
   });
 
   it("discovers the repository root, remote default branch, and all worktrees from a linked worktree path", () => {
-    const { sandbox, repoRoot } = initRepository("linked", { withRemoteHead: true });
+    const { sandbox, repoRoot } = initRepository("linked", {
+      withRemoteHead: true,
+    });
     const featureWorktree = path.join(sandbox, "feature-worktree");
-    runGit(repoRoot, ["worktree", "add", "-b", "feature/worktree", featureWorktree]);
+    runGit(repoRoot, [
+      "worktree",
+      "add",
+      "-b",
+      "feature/worktree",
+      featureWorktree,
+    ]);
     const expectedRepoRoot = fs.realpathSync(repoRoot);
     const expectedFeatureWorktree = fs.realpathSync(featureWorktree);
     fs.mkdirSync(path.join(featureWorktree, "nested"), { recursive: true });
@@ -122,7 +135,9 @@ describe("GitWorktreeService", () => {
   });
 
   it("creates a linked worktree from the requested default branch", () => {
-    const { sandbox, repoRoot } = initRepository("create", { withRemoteHead: true });
+    const { sandbox, repoRoot } = initRepository("create", {
+      withRemoteHead: true,
+    });
     const worktreePath = path.join(sandbox, "feature-runtime");
     const service = new GitWorktreeService();
 
@@ -146,7 +161,6 @@ describe("GitWorktreeService", () => {
       isMain: false,
     });
   });
-
 
   it("falls back to the main worktree branch when no remote default branch exists and marks detached worktrees", () => {
     const { sandbox, repoRoot } = initRepository("detached");

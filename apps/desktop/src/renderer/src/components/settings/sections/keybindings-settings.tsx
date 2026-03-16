@@ -1,13 +1,13 @@
-import { useSettings } from "../settings-context";
+import { KEYBINDING_PRESETS } from "../defaults";
 import {
-  SettingsSection,
+  ResetButton,
+  SettingsDivider,
   SettingsRow,
+  SettingsSection,
   SettingsSelect,
   SettingsSwitch,
-  SettingsDivider,
-  ResetButton,
 } from "../form-components";
-import { KEYBINDING_PRESETS } from "../defaults";
+import { useSettings } from "../settings-context";
 
 const COMMON_KEYBINDINGS = [
   { key: "toggleSidebar", label: "Toggle Sidebar", default: "Cmd+B" },
@@ -37,7 +37,11 @@ export function KeybindingsSettingsSection() {
         <SettingsRow label="Preset" description="Keybinding preset">
           <SettingsSelect
             value={keybindings.preset}
-            onChange={(value) => updateSettings("keybindings", { preset: value as typeof keybindings.preset })}
+            onChange={(value) =>
+              updateSettings("keybindings", {
+                preset: value as typeof keybindings.preset,
+              })
+            }
             options={KEYBINDING_PRESETS}
           />
         </SettingsRow>
@@ -45,7 +49,9 @@ export function KeybindingsSettingsSection() {
         <SettingsRow label="Vim Mode" description="Enable Vim-style navigation">
           <SettingsSwitch
             checked={keybindings.vimMode}
-            onChange={(checked) => updateSettings("keybindings", { vimMode: checked })}
+            onChange={(checked) =>
+              updateSettings("keybindings", { vimMode: checked })
+            }
           />
         </SettingsRow>
       </SettingsSection>
@@ -69,7 +75,8 @@ export function KeybindingsSettingsSection() {
               <span className="text-foreground">{binding.label}</span>
               <div className="flex items-center gap-1">
                 <kbd className="rounded border border-border bg-surface-2 px-1.5 py-0.5 text-xs font-mono">
-                  {keybindings.customKeybindings[binding.key] || binding.default}
+                  {keybindings.customKeybindings[binding.key] ||
+                    binding.default}
                 </kbd>
               </div>
             </div>
@@ -84,8 +91,8 @@ export function KeybindingsSettingsSection() {
         description="Click on a shortcut to customize it"
       >
         <p className="text-xs text-muted-foreground">
-          Custom keybinding editing will be available in a future update. 
-          For now, you can select a preset or enable Vim mode.
+          Custom keybinding editing will be available in a future update. For
+          now, you can select a preset or enable Vim mode.
         </p>
       </SettingsSection>
 

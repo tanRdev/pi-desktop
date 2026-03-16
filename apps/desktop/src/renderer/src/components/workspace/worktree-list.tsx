@@ -73,7 +73,8 @@ export function WorktreeList({
               </div>
               <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
                 <span>
-                  {liveThreadCount} live thread{liveThreadCount === 1 ? "" : "s"}
+                  {liveThreadCount} live thread
+                  {liveThreadCount === 1 ? "" : "s"}
                 </span>
                 <span>{worktree.git.branch ?? "detached"}</span>
               </div>

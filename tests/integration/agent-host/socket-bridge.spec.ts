@@ -1,15 +1,21 @@
-import { afterEach, describe, expect, it } from "vitest";
-import net from "node:net";
 import fs from "node:fs";
+import net from "node:net";
 import os from "node:os";
 import path from "node:path";
-import type { AgentHostEnvelope, AgentSnapshot, PiDeskAgentEvent } from "../../../packages/shared/src";
+import { afterEach, describe, expect, it } from "vitest";
 import { startAgentHostSocketServer } from "../../../packages/agent-host/src/session-server/socket-bridge";
+import type {
+  AgentHostEnvelope,
+  AgentSnapshot,
+  PiDeskAgentEvent,
+} from "../../../packages/shared/src";
 
 const tempDirs: string[] = [];
 
 function createSocketPath(): string {
-  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "pidesk-socket-server-"));
+  const directory = fs.mkdtempSync(
+    path.join(os.tmpdir(), "pidesk-socket-server-"),
+  );
   tempDirs.push(directory);
   return path.join(directory, "agent-host.sock");
 }

@@ -42,7 +42,7 @@ Write your notes here...
               "rounded px-2 py-1 text-xs font-medium transition",
               isEditing
                 ? "bg-surface-3 text-foreground"
-                : "text-muted-foreground hover:bg-surface-2 hover:text-foreground"
+                : "text-muted-foreground hover:bg-surface-2 hover:text-foreground",
             )}
           >
             Edit
@@ -54,7 +54,7 @@ Write your notes here...
               "rounded px-2 py-1 text-xs font-medium transition",
               !isEditing
                 ? "bg-surface-3 text-foreground"
-                : "text-muted-foreground hover:bg-surface-2 hover:text-foreground"
+                : "text-muted-foreground hover:bg-surface-2 hover:text-foreground",
             )}
           >
             Preview

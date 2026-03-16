@@ -1,6 +1,13 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import type { Settings, SettingsContextValue, SettingsSection } from "./types";
+import type React from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { DEFAULT_SETTINGS, STORAGE_KEY } from "./defaults";
+import type { Settings, SettingsContextValue, SettingsSection } from "./types";
 
 const SettingsContext = createContext<SettingsContextValue | null>(null);
 
@@ -39,19 +46,22 @@ function loadSettings(): Settings {
 
 export function SettingsProvider({ children }: SettingsProviderProps) {
   const [settings, setSettings] = useState<Settings>(loadSettings);
-  const [originalSettings, setOriginalSettings] = useState<Settings>(() => loadSettings());
+  const [originalSettings, setOriginalSettings] = useState<Settings>(() =>
+    loadSettings(),
+  );
 
-  const hasUnsavedChanges = JSON.stringify(settings) !== JSON.stringify(originalSettings);
+  const hasUnsavedChanges =
+    JSON.stringify(settings) !== JSON.stringify(originalSettings);
 
-  const updateSettings = useCallback(<K extends keyof Settings>(
-    section: K,
-    updates: Partial<Settings[K]>
-  ) => {
-    setSettings((prev) => ({
-      ...prev,
-      [section]: { ...prev[section], ...updates },
-    }));
-  }, []);
+  const updateSettings = useCallback(
+    <K extends keyof Settings>(section: K, updates: Partial<Settings[K]>) => {
+      setSettings((prev) => ({
+        ...prev,
+        [section]: { ...prev[section], ...updates },
+      }));
+    },
+    [],
+  );
 
   const resetSection = useCallback((section: SettingsSection) => {
     setSettings((prev) => ({

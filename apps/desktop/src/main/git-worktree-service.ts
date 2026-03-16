@@ -170,7 +170,11 @@ export class GitWorktreeService {
       };
     }
 
-    const worktreeList = this.runGit(currentWorktreeRoot, ["worktree", "list", "--porcelain"]);
+    const worktreeList = this.runGit(currentWorktreeRoot, [
+      "worktree",
+      "list",
+      "--porcelain",
+    ]);
     if (worktreeList.error) {
       return {
         status: "unavailable",
@@ -186,7 +190,9 @@ export class GitWorktreeService {
 
     const parsedWorktrees = parseWorktreeBlocks(worktreeList.stdout);
     const worktrees = parsedWorktrees
-      .map((entry) => this.inspectWorktree(entry, currentWorktreeRoot, commonGitDir))
+      .map((entry) =>
+        this.inspectWorktree(entry, currentWorktreeRoot, commonGitDir),
+      )
       .sort((left, right) => {
         if (left.isMain !== right.isMain) {
           return left.isMain ? -1 : 1;
@@ -196,9 +202,14 @@ export class GitWorktreeService {
 
     const mainWorktree = worktrees.find((worktree) => worktree.isMain);
     const currentWorktree =
-      worktrees.find((worktree) => worktree.path === currentWorktreeRoot) ?? worktrees[0] ?? null;
+      worktrees.find((worktree) => worktree.path === currentWorktreeRoot) ??
+      worktrees[0] ??
+      null;
     const rootPath = mainWorktree?.path ?? currentWorktreeRoot;
-    const defaultBranch = this.detectDefaultBranch(currentWorktreeRoot, mainWorktree?.branch ?? null);
+    const defaultBranch = this.detectDefaultBranch(
+      currentWorktreeRoot,
+      mainWorktree?.branch ?? null,
+    );
 
     return {
       status: "repository",
@@ -210,7 +221,9 @@ export class GitWorktreeService {
         ? {
             status: "repository",
             rootPath,
-            branch: currentWorktree.isDetached ? "HEAD" : currentWorktree.branch ?? undefined,
+            branch: currentWorktree.isDetached
+              ? "HEAD"
+              : (currentWorktree.branch ?? undefined),
             commit: currentWorktree.commit ?? undefined,
             hasChanges: currentWorktree.git.hasChanges,
             ahead: currentWorktree.git.ahead ?? 0,
@@ -293,7 +306,9 @@ export class GitWorktreeService {
         branch: isDetached ? null : branch,
         commit,
         git: {
-          ...createMissingGitSummary(entry.prunableReason ?? "Worktree path missing"),
+          ...createMissingGitSummary(
+            entry.prunableReason ?? "Worktree path missing",
+          ),
           branch: isDetached ? null : branch,
           commit,
         },
@@ -323,9 +338,17 @@ export class GitWorktreeService {
 
   private inspectWorktreeGit(
     worktreePath: string,
-    fallback: { branch: string | null; commit: string | null; message: string | null },
+    fallback: {
+      branch: string | null;
+      commit: string | null;
+      message: string | null;
+    },
   ): WorktreeGitSnapshot {
-    const statusResult = this.runGit(worktreePath, ["status", "--porcelain=2", "--branch"]);
+    const statusResult = this.runGit(worktreePath, [
+      "status",
+      "--porcelain=2",
+      "--branch",
+    ]);
     if (statusResult.error) {
       return createUnavailableGitSummary(statusResult.error.message);
     }
@@ -365,7 +388,10 @@ export class GitWorktreeService {
     let stagedCount = 0;
     let modifiedCount = 0;
     let untrackedCount = 0;
-    const porcelainResult = this.runGit(worktreePath, ["status", "--porcelain"]);
+    const porcelainResult = this.runGit(worktreePath, [
+      "status",
+      "--porcelain",
+    ]);
     if (porcelainResult.error) {
       return createUnavailableGitSummary(porcelainResult.error.message);
     }
@@ -408,14 +434,19 @@ export class GitWorktreeService {
     };
   }
 
-  private detectDefaultBranch(currentWorktreeRoot: string, fallbackBranch: string | null): string | null {
+  private detectDefaultBranch(
+    currentWorktreeRoot: string,
+    fallbackBranch: string | null,
+  ): string | null {
     const remotesResult = this.runGit(currentWorktreeRoot, ["remote"]);
     if (!remotesResult.error && remotesResult.status === 0) {
       const remotes = remotesResult.stdout
         .split(/\r?\n/)
         .map((line) => line.trim())
         .filter(Boolean);
-      const preferredRemote = remotes.includes("origin") ? "origin" : remotes[0];
+      const preferredRemote = remotes.includes("origin")
+        ? "origin"
+        : remotes[0];
 
       if (preferredRemote) {
         const symbolicRef = this.runGit(currentWorktreeRoot, [
@@ -423,7 +454,11 @@ export class GitWorktreeService {
           "--quiet",
           `refs/remotes/${preferredRemote}/HEAD`,
         ]);
-        if (!symbolicRef.error && symbolicRef.status === 0 && symbolicRef.stdout.trim()) {
+        if (
+          !symbolicRef.error &&
+          symbolicRef.status === 0 &&
+          symbolicRef.stdout.trim()
+        ) {
           return parseRemoteHeadBranch(symbolicRef.stdout.trim());
         }
       }
@@ -459,7 +494,10 @@ export class GitWorktreeService {
   }
 
   private resolveAbsoluteGitDir(worktreePath: string): string | null {
-    const result = this.runGit(worktreePath, ["rev-parse", "--absolute-git-dir"]);
+    const result = this.runGit(worktreePath, [
+      "rev-parse",
+      "--absolute-git-dir",
+    ]);
     if (result.error || result.status !== 0 || !result.stdout.trim()) {
       return null;
     }

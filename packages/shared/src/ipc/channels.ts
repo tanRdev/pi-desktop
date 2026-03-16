@@ -9,6 +9,9 @@ export const IPC_CHANNELS = {
     getSnapshot: "agent:getSnapshot",
     prompt: "agent:prompt",
     reset: "agent:reset",
+    switchModel: "agent:switchModel",
+    getDiscovery: "agent:getDiscovery",
+    getSlashSuggestions: "agent:getSlashSuggestions",
   },
   repositories: {
     add: "repositories:add",
@@ -21,6 +24,7 @@ export const IPC_CHANNELS = {
   threads: {
     create: "threads:create",
     select: "threads:select",
+    routeToTerminal: "threads:routeToTerminal",
   },
   dialog: {
     showOpenDialog: "dialog:showOpenDialog",
@@ -29,12 +33,29 @@ export const IPC_CHANNELS = {
     readDirectory: "fs:readDirectory",
     readFile: "fs:readFile",
     writeFile: "fs:writeFile",
+    getImageMetadata: "fs:getImageMetadata",
+    getImagePreview: "fs:getImagePreview",
   },
   terminal: {
     create: "terminal:create",
     write: "terminal:write",
     resize: "terminal:resize",
     destroy: "terminal:destroy",
+    getSessions: "terminal:getSessions",
+  },
+  search: {
+    searchFiles: "search:searchFiles",
+  },
+  window: {
+    create: "window:create",
+    close: "window:close",
+    focus: "window:focus",
+    move: "window:move",
+    resize: "window:resize",
+    minimize: "window:minimize",
+    maximize: "window:maximize",
+    restore: "window:restore",
+    getLayout: "window:getLayout",
   },
 } as const;
 

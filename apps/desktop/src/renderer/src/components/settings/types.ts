@@ -1,7 +1,13 @@
 // Settings Types for PiDesk
 
 export type Theme = "system" | "light" | "dark";
-export type AccentColor = "blue" | "purple" | "green" | "orange" | "red" | "pink";
+export type AccentColor =
+  | "blue"
+  | "purple"
+  | "green"
+  | "orange"
+  | "red"
+  | "pink";
 export type SidebarPosition = "left" | "right";
 export type UpdateChannel = "stable" | "beta" | "nightly";
 export type LogLevel = "debug" | "info" | "warn" | "error";
@@ -88,7 +94,7 @@ export interface SettingsContextValue {
   settings: Settings;
   updateSettings: <K extends keyof Settings>(
     section: K,
-    updates: Partial<Settings[K]>
+    updates: Partial<Settings[K]>,
   ) => void;
   resetSection: (section: keyof Settings) => void;
   resetAll: () => void;

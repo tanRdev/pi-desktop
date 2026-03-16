@@ -91,7 +91,7 @@ function PromptInput({
           role="presentation"
           onClick={handleClick}
           className={cn(
-"border border-border-subtle bg-transparent cursor-text rounded-3xl p-2 shadow-xs transition-colors hover:border-border focus-within:ring-1 focus-within:ring-neutral-500/20",
+            "border border-border-subtle bg-transparent cursor-text rounded-3xl p-2 shadow-xs transition-colors focus-within:ring-0",
             disabled && "cursor-not-allowed opacity-60",
             className,
           )}
@@ -153,11 +153,14 @@ function PromptInputTextarea({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    onKeyDown?.(e);
+    if (e.defaultPrevented) {
+      return;
+    }
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       onSubmit?.();
     }
-    onKeyDown?.(e);
   };
 
   return (
@@ -167,7 +170,7 @@ function PromptInputTextarea({
       onChange={handleChange}
       onKeyDown={handleKeyDown}
       className={cn(
-        "text-primary min-h-[44px] w-full resize-none border-none bg-transparent shadow-none outline-none focus-visible:ring-0 focus-visible:ring-offset-0",
+        "min-h-[44px] w-full resize-none border-none bg-transparent shadow-none outline-none focus-visible:ring-0 focus-visible:ring-offset-0",
         className,
       )}
       rows={1}

@@ -85,7 +85,9 @@ export interface ShellGitSnapshot {
   message?: string | null;
 }
 
-function getCatalog(snapshot: Pick<ShellSnapshot, "catalog">): ShellCatalogSnapshot {
+function getCatalog(
+  snapshot: Pick<ShellSnapshot, "catalog">,
+): ShellCatalogSnapshot {
   return snapshot.catalog;
 }
 
@@ -99,7 +101,9 @@ export function getActiveRepository(
   }
 
   return (
-    repositories.find((repository) => repository.id === selection.repositoryId) ??
+    repositories.find(
+      (repository) => repository.id === selection.repositoryId,
+    ) ??
     repositories[0] ??
     null
   );
@@ -134,7 +138,8 @@ export function getActiveThread(
 
   const selectedThread = worktree.threads.find(
     (thread) =>
-      thread.id === snapshot.catalog.selection.threadId && thread.isArchived === false,
+      thread.id === snapshot.catalog.selection.threadId &&
+      thread.isArchived === false,
   );
 
   return (

@@ -364,7 +364,6 @@ function ResponseStream({
 
                 return (
                   <span
-                    // biome-ignore lint/suspicious/noArrayIndexKey: stable text fragments
                     key={`${segment.text}-${idx}`}
                     className={cn(
                       "fade-segment",

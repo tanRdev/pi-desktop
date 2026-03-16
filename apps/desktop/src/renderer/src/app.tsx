@@ -1,15 +1,23 @@
-"use client";
-
-import type { AgentMessageSnapshot } from "@pidesk/shared";
+import type {
+  AgentMessageSnapshot,
+  ChatWindow,
+  FileWindow,
+  GitWindow,
+  MentionSuggestion,
+  ProviderSnapshot,
+  SearchMatch,
+  SearchWindow,
+  SettingsSnapshot,
+  SlashSuggestion,
+  TerminalWindow,
+  ThreadSnapshot,
+} from "@pidesk/shared";
 import {
   getActiveRepository,
   getActiveThread,
   getActiveWorktree,
 } from "@pidesk/shared";
 import {
-  ChatContainerContent,
-  ChatContainerRoot,
-  ChatContainerScrollAnchor,
   PromptInput,
   PromptInputAction,
   PromptInputActions,
@@ -25,6 +33,15 @@ import {
 } from "lucide-react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import {
+  CanvasContainer,
+  ChatWindowContent,
+  FileWindowContent,
+  GraphWindowContent,
+  NoteWindowContent,
+  SearchWindowContent,
+  TerminalWindowContent,
+} from "./components/canvas";
 import { SettingsModal, SettingsProvider } from "./components/settings";
 import { Button } from "./components/ui/button";
 import {
@@ -35,85 +52,75 @@ import {
   DialogTitle,
 } from "./components/ui/dialog";
 import { FileTree } from "./components/ui/file-tree";
-import {
-  Message,
-  MessageAvatar,
-  MessageContent,
-} from "./components/ui/message";
-import {
-  MultiFileViewer,
-  type OpenFile,
-} from "./components/ui/multi-file-viewer";
+import PromptAutocomplete from "./components/ui/prompt-autocomplete";
 import { ScrollArea } from "./components/ui/scroll-area";
-import { WorkspaceNotes } from "./components/ui/workspace-notes";
 import { LeftRail } from "./components/workspace/left-rail";
 import { LeftSidebar } from "./components/workspace/left-sidebar";
 import { useShellModel } from "./hooks/use-shell-model";
+import { useWindowStore } from "./hooks/use-window-store";
+import { getLinkColorForId, getLinkColorHex } from "./lib/link-colors";
+import {
+  buildFileMention,
+  buildTerminalMention,
+  expandFileMentions,
+  extractTerminalRoute,
+  getPromptAutocompleteMatch,
+  replacePromptToken,
+} from "./lib/prompt-routing";
 
-function getMessageLabel(message: AgentMessageSnapshot) {
-  switch (message.role) {
-    case "assistant":
-      return "PiDesk";
-    case "tool":
-      return "Tool";
-    case "system":
-      return "System";
-    default:
-      return "You";
-  }
-}
+type ThreadConversationState = {
+  messages: AgentMessageSnapshot[];
+  status: string;
+  lastError: string | null;
+};
 
-function getMessageFallback(message: AgentMessageSnapshot) {
-  switch (message.role) {
-    case "assistant":
-      return "π";
-    case "tool":
-      return "{}";
-    case "system":
-      return "•";
-    default:
-      return "U";
-  }
+function getThreadWindowTitle(thread: ThreadSnapshot | null | undefined): string {
+  const title = thread?.title.trim();
+  return title && title.length > 0 ? title : "Untitled thread";
 }
 
 interface TitleBarProps {
   sidebarView: "files" | "git" | "notes" | null;
   setSidebarView: (view: "files" | "git" | "notes" | null) => void;
-  isNotesOpen: boolean;
-  setIsNotesOpen: (open: boolean) => void;
-  isTerminalOpen: boolean;
-  setIsTerminalOpen: (open: boolean) => void;
-  setIsTerminalActive: (active: boolean) => void;
+  hasOpenNotes: boolean;
+  onOpenLauncher: () => void;
+  onOpenNote: () => void;
+  onOpenGit: () => void;
+  onOpenTerminal: () => void;
 }
 
 function TitleBar({
   sidebarView,
   setSidebarView,
-  isNotesOpen,
-  setIsNotesOpen,
-  isTerminalOpen,
-  setIsTerminalOpen,
-  setIsTerminalActive,
+  hasOpenNotes,
+  onOpenLauncher,
+  onOpenNote,
+  onOpenGit,
+  onOpenTerminal,
 }: TitleBarProps) {
   return (
     <div
       data-drag-region="true"
       className="titlebar relative flex h-10 shrink-0 items-center justify-between bg-surface-1 px-3"
     >
-      {/* Left - App title */}
       <div className="w-16" />
-      <div
-        aria-hidden="true"
+      <button
+        type="button"
+        data-no-drag="true"
         data-testid="app-title"
-        className="text-lg font-semibold tracking-tight text-muted-foreground"
+        onClick={onOpenLauncher}
+        className="rounded px-2 py-1 text-lg font-semibold tracking-tight text-muted-foreground transition hover:bg-surface-2 hover:text-foreground"
+        title="Pi launcher"
       >
         π
-      </div>
-      {/* Right - Icon buttons */}
+      </button>
       <div className="flex items-center gap-1">
         <button
           type="button"
-          onClick={() => setSidebarView(sidebarView === "files" ? null : "files")}
+          data-no-drag="true"
+          onClick={() =>
+            setSidebarView(sidebarView === "files" ? null : "files")
+          }
           className={cn(
             "flex h-7 w-7 items-center justify-center rounded-md transition",
             sidebarView === "files"
@@ -126,42 +133,32 @@ function TitleBar({
         </button>
         <button
           type="button"
-          onClick={() => setSidebarView(sidebarView === "git" ? null : "git")}
-          className={cn(
-            "flex h-7 w-7 items-center justify-center rounded-md transition",
-            sidebarView === "git"
-              ? "bg-surface-3 text-foreground"
-              : "text-muted-foreground hover:bg-surface-2 hover:text-foreground",
-          )}
+          data-no-drag="true"
+          onClick={onOpenGit}
+          className="flex h-7 w-7 items-center justify-center rounded-md transition text-muted-foreground hover:bg-surface-2 hover:text-foreground"
           title="Git"
         >
           <GitBranch className="size-3.5" />
         </button>
         <button
           type="button"
-          onClick={() => setIsNotesOpen(true)}
+          data-no-drag="true"
+          onClick={onOpenNote}
           className={cn(
             "flex h-7 w-7 items-center justify-center rounded-md transition",
-            isNotesOpen
+            hasOpenNotes
               ? "bg-surface-3 text-foreground"
               : "text-muted-foreground hover:bg-surface-2 hover:text-foreground",
           )}
-          title="Workspace Notes"
+          title="Notes"
         >
           <StickyNote className="size-3.5" />
         </button>
         <button
           type="button"
-          onClick={() => {
-            setIsTerminalOpen(true);
-            setIsTerminalActive(true);
-          }}
-          className={cn(
-            "flex h-7 w-7 items-center justify-center rounded-md transition",
-            isTerminalOpen
-              ? "bg-surface-3 text-foreground"
-              : "text-muted-foreground hover:bg-surface-2 hover:text-foreground",
-          )}
+          data-no-drag="true"
+          onClick={onOpenTerminal}
+          className="flex h-7 w-7 items-center justify-center rounded-md transition text-muted-foreground hover:bg-surface-2 hover:text-foreground"
           title="Terminal"
         >
           <Terminal className="size-3.5" />
@@ -174,6 +171,7 @@ function TitleBar({
 export default function App() {
   const { reload, sendPrompt, setDraft, state } = useShellModel();
   const { agent, draft, shell } = state;
+  const { state: windowState, store: windowStore } = useWindowStore();
   const activeRepository = React.useMemo(
     () => getActiveRepository(shell),
     [shell],
@@ -186,34 +184,162 @@ export default function App() {
   const activeWorktreePath = activeWorktree?.path ?? null;
   const activeThreadId = activeThread?.id ?? null;
 
-  const [openFiles, setOpenFiles] = React.useState<OpenFile[]>([]);
-  const [activeFilePath, setActiveFilePath] = React.useState<string | null>(
-    null,
-  );
-  const [isTerminalOpen, setIsTerminalOpen] = React.useState(false);
-  const [isTerminalActive, setIsTerminalActive] = React.useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = React.useState(false);
   const [isCreateWorktreeOpen, setIsCreateWorktreeOpen] = React.useState(false);
   const [newWorktreeBranch, setNewWorktreeBranch] = React.useState("");
   const [worktreeCreateError, setWorktreeCreateError] = React.useState<
     string | null
   >(null);
-  const [terminalId] = React.useState(() => `terminal-${Date.now()}`);
   const [sidebarView, setSidebarView] = React.useState<
     "files" | "git" | "notes" | null
   >(null);
-  const [workspaceNotes, setWorkspaceNotes] = React.useState("");
-  const [isNotesOpen, setIsNotesOpen] = React.useState(false);
   const [leftSidebarWidth, setLeftSidebarWidth] = React.useState(() => {
     if (typeof window === "undefined") return 180;
     const saved = localStorage.getItem("pidesk.leftSidebarWidth");
     return saved ? Math.max(140, Math.min(400, Number(saved))) : 180;
   });
 
+  const [fileContents, setFileContents] = React.useState<
+    Map<
+      string,
+      {
+        content: import("@pidesk/shared").FileContent | null;
+        isLoading: boolean;
+        error: string | null;
+      }
+    >
+  >(new Map());
+  const [noteContents, setNoteContents] = React.useState<
+    Map<string, { content: string; error: string | null }>
+  >(new Map());
+  const [searchUiState, setSearchUiState] = React.useState<
+    Map<string, { isLoading: boolean; selectedIndex: number }>
+  >(new Map());
+  const searchRequestVersionsRef = React.useRef(new Map<string, number>());
+  const [autocompleteSuggestions, setAutocompleteSuggestions] = React.useState<
+    (SlashSuggestion | MentionSuggestion)[]
+  >([]);
+  const [autocompleteSelectedIndex, setAutocompleteSelectedIndex] =
+    React.useState(0);
+  const [providerSnapshots, setProviderSnapshots] = React.useState<
+    ProviderSnapshot[]
+  >([]);
+  const [settingsSnapshot, setSettingsSnapshot] =
+    React.useState<SettingsSnapshot>({});
+  const [isSwitchingModel, setIsSwitchingModel] = React.useState(false);
+  const [threadConversations, setThreadConversations] = React.useState<
+    Map<string, ThreadConversationState>
+  >(new Map());
+
+  const threadLookup = React.useMemo(() => {
+    const lookup = new Map<string, ThreadSnapshot>();
+    for (const repository of repositories) {
+      for (const worktree of repository.worktrees) {
+        for (const thread of worktree.threads) {
+          lookup.set(thread.id, thread);
+        }
+      }
+    }
+    return lookup;
+  }, [repositories]);
+
   const handleLeftSidebarResize = React.useCallback((width: number) => {
     setLeftSidebarWidth(width);
     localStorage.setItem("pidesk.leftSidebarWidth", String(width));
   }, []);
+
+  React.useEffect(() => {
+    if (!activeThreadId) {
+      return;
+    }
+    setThreadConversations((prev) => {
+      const next = new Map(prev);
+      next.set(activeThreadId, {
+        messages: agent.messages,
+        status: agent.status,
+        lastError: agent.lastError,
+      });
+      return next;
+    });
+  }, [activeThreadId, agent.lastError, agent.messages, agent.status]);
+
+  const openOrFocusChatWindow = React.useCallback(
+    (threadId: string) => {
+      const thread = threadLookup.get(threadId);
+      const title = getThreadWindowTitle(thread);
+      const existingChatWindow = windowState.layout.windows.find(
+        (window): window is ChatWindow =>
+          window.kind === "chat" && window.threadId === threadId,
+      );
+
+      if (existingChatWindow) {
+        windowStore.updateWindow(existingChatWindow.id, {
+          title,
+          state:
+            existingChatWindow.state === "minimized"
+              ? "normal"
+              : existingChatWindow.state,
+          linkColor: getLinkColorForId(threadId),
+          linkTargetIds: [threadId],
+        });
+        windowStore.focusWindow(existingChatWindow.id);
+        return existingChatWindow.id;
+      }
+
+      const chatWindow = windowStore.createWindow(
+        { kind: "chat", threadId, title },
+        activeWorktreePath ?? undefined,
+      );
+      windowStore.updateWindow(chatWindow.id, {
+        title,
+        linkColor: getLinkColorForId(threadId),
+        linkTargetIds: [threadId],
+      });
+      return chatWindow.id;
+    },
+    [activeWorktreePath, threadLookup, windowState.layout.windows, windowStore],
+  );
+
+  React.useEffect(() => {
+    for (const window of windowState.layout.windows) {
+      if (window.kind !== "chat") {
+        continue;
+      }
+      const thread = threadLookup.get(window.threadId);
+      if (!thread) {
+        continue;
+      }
+      const nextTitle = getThreadWindowTitle(thread);
+      const nextLinkColor = getLinkColorForId(window.threadId);
+      const hasExactThreadLink =
+        window.linkTargetIds?.length === 1 &&
+        window.linkTargetIds[0] === window.threadId;
+
+      if (
+        window.title === nextTitle &&
+        window.linkColor === nextLinkColor &&
+        hasExactThreadLink
+      ) {
+        continue;
+      }
+
+      windowStore.updateWindow(window.id, {
+        title: nextTitle,
+        linkColor: nextLinkColor,
+        linkTargetIds: [window.threadId],
+      });
+    }
+  }, [threadLookup, windowState.layout.windows, windowStore]);
+
+  React.useEffect(() => {
+    if (shell.catalog.repositories.length > 0) {
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      void reload();
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [reload, shell.catalog.repositories.length]);
 
   const canSend =
     draft.trim().length > 0 &&
@@ -221,86 +347,395 @@ export default function App() {
     agent.status !== "starting" &&
     agent.status !== "streaming";
 
-  const loadFile = React.useCallback(
+  // Open a file in a new window or focus existing window
+  const handleFileClick = React.useCallback(
     async (filePath: string) => {
-      const existingFile = openFiles.find((file) => file.path === filePath);
-      if (existingFile) {
-        setActiveFilePath(filePath);
-        setIsTerminalActive(false);
+      // Check if file is already open
+      const existingWindow = windowState.layout.windows.find(
+        (w): w is FileWindow => w.kind === "file" && w.filePath === filePath,
+      );
+      if (existingWindow) {
+        windowStore.focusWindow(existingWindow.id);
         return;
       }
-      setOpenFiles((prev) => [
-        ...prev,
-        { path: filePath, content: null, isLoading: true, error: null },
-      ]);
-      setActiveFilePath(filePath);
-      setIsTerminalActive(false);
+
+      // Create new file window
+      const win = windowStore.createWindow(
+        { kind: "file", filePath },
+        activeWorktreePath ?? undefined,
+      );
+
+      // Load file content
+      setFileContents((prev) => {
+        const next = new Map(prev);
+        next.set(win.id, { content: null, isLoading: true, error: null });
+        return next;
+      });
+
       try {
         const result = await window.pidesk.fs.readFile(filePath);
-        setOpenFiles((prev) =>
-          prev.map((file) =>
-            file.path === filePath
-              ? { ...file, content: result, isLoading: false }
-              : file,
-          ),
-        );
+        setFileContents((prev) => {
+          const next = new Map(prev);
+          const existing = next.get(win.id);
+          if (existing) {
+            next.set(win.id, {
+              ...existing,
+              content: result,
+              isLoading: false,
+            });
+          }
+          return next;
+        });
       } catch (error) {
-        setOpenFiles((prev) =>
-          prev.map((file) =>
-            file.path === filePath
-              ? {
-                  ...file,
-                  error:
-                    error instanceof Error
-                      ? error.message
-                      : "Failed to load file",
-                  isLoading: false,
-                }
-              : file,
-          ),
-        );
+        setFileContents((prev) => {
+          const next = new Map(prev);
+          const existing = next.get(win.id);
+          if (existing) {
+            next.set(win.id, {
+              ...existing,
+              error:
+                error instanceof Error ? error.message : "Failed to load file",
+              isLoading: false,
+            });
+          }
+          return next;
+        });
       }
     },
-    [openFiles],
+    [windowState.layout.windows, windowStore, activeWorktreePath],
   );
 
-  const handleFileClick = React.useCallback(
-    (filePath: string) => {
-      void loadFile(filePath);
-    },
-    [loadFile],
-  );
-  const handleTabClick = React.useCallback((filePath: string) => {
-    setActiveFilePath(filePath);
-    setIsTerminalActive(false);
-  }, []);
-  const handleTabClose = React.useCallback(
-    (filePath: string) => {
-      setOpenFiles((prev) => {
-        const nextFiles = prev.filter((file) => file.path !== filePath);
-        if (activeFilePath === filePath && nextFiles.length > 0) {
-          const index = prev.findIndex((file) => file.path === filePath);
-          setActiveFilePath(nextFiles[Math.max(0, index - 1)]?.path ?? null);
-        } else if (nextFiles.length === 0) {
-          setActiveFilePath(null);
+  const handleOpenTerminal = React.useCallback(() => {
+    const existingTerminal = windowState.layout.windows.find(
+      (w): w is TerminalWindow => w.kind === "terminal",
+    );
+    if (existingTerminal) {
+      windowStore.focusWindow(existingTerminal.id);
+      return;
+    }
+
+    const terminalWindow = windowStore.createWindow(
+      {
+        kind: "terminal",
+        backend: "shell",
+        cwd: activeWorktreePath ?? undefined,
+      },
+      activeWorktreePath ?? undefined,
+    );
+    if (activeThreadId) {
+      windowStore.updateWindow(terminalWindow.id, {
+        linkedThreadId: activeThreadId,
+        linkColor: getLinkColorForId(activeThreadId),
+        linkTargetIds: [activeThreadId],
+      });
+    }
+  }, [
+    activeThreadId,
+    activeWorktreePath,
+    windowState.layout.windows,
+    windowStore,
+  ]);
+
+  const handleOpenGit = React.useCallback(() => {
+    if (!activeWorktreePath) {
+      return;
+    }
+
+    const existingGitWindow = windowState.layout.windows.find(
+      (w): w is GitWindow =>
+        w.kind === "git" && w.repositoryPath === activeWorktreePath,
+    );
+    if (existingGitWindow) {
+      windowStore.focusWindow(existingGitWindow.id);
+      return;
+    }
+
+    const gitWindow = windowStore.createWindow(
+      { kind: "git", repositoryPath: activeWorktreePath },
+      activeWorktreePath,
+    );
+    windowStore.updateWindow(gitWindow.id, {
+      title: `Git · ${activeRepository?.name ?? "Repository"}`,
+    });
+    if (activeThreadId) {
+      windowStore.updateWindow(gitWindow.id, {
+        linkColor: getLinkColorForId(activeThreadId),
+        linkTargetIds: [activeThreadId],
+      });
+    }
+  }, [
+    activeRepository?.name,
+    activeThreadId,
+    activeWorktreePath,
+    windowState.layout.windows,
+    windowStore,
+  ]);
+
+  const handleOpenNote = React.useCallback(() => {
+    const noteWindow = windowStore.createWindow(
+      { kind: "note" },
+      activeWorktreePath ?? undefined,
+    );
+    const noteCount =
+      windowState.layout.windows.filter((w) => w.kind === "note").length + 1;
+    const storagePath = activeWorktreePath
+      ? `${activeWorktreePath.replace(/[\\/]+$/, "")}/.pidesk/notes/${noteWindow.id}.md`
+      : undefined;
+
+    windowStore.updateWindow(noteWindow.id, {
+      title: `Note ${noteCount}`,
+      storagePath,
+    });
+    setNoteContents((prev) => {
+      const next = new Map(prev);
+      next.set(noteWindow.id, { content: "", error: null });
+      return next;
+    });
+    if (activeThreadId) {
+      windowStore.updateWindow(noteWindow.id, {
+        linkColor: getLinkColorForId(activeThreadId),
+        linkTargetIds: [activeThreadId],
+      });
+    }
+  }, [
+    activeThreadId,
+    activeWorktreePath,
+    windowState.layout.windows,
+    windowStore,
+  ]);
+
+  const handleOpenLauncher = React.useCallback(() => {
+    const existingSearchWindow = windowState.layout.windows.find(
+      (w): w is SearchWindow => w.kind === "search",
+    );
+    if (existingSearchWindow) {
+      windowStore.focusWindow(existingSearchWindow.id);
+      return;
+    }
+
+    const searchWindow = windowStore.createWindow(
+      { kind: "search" },
+      activeWorktreePath ?? undefined,
+    );
+    windowStore.updateWindow(searchWindow.id, { title: "Pi Launcher" });
+    setSearchUiState((prev) => {
+      const next = new Map(prev);
+      next.set(searchWindow.id, { isLoading: false, selectedIndex: -1 });
+      return next;
+    });
+  }, [activeWorktreePath, windowState.layout.windows, windowStore]);
+
+  const handleOpenGraph = React.useCallback(() => {
+    const existingGraphWindow = windowState.layout.windows.find(
+      (w) => w.kind === "graph",
+    );
+    if (existingGraphWindow) {
+      windowStore.focusWindow(existingGraphWindow.id);
+      return;
+    }
+
+    windowStore.createWindow(
+      { kind: "graph" },
+      activeWorktreePath ?? undefined,
+    );
+  }, [activeWorktreePath, windowState.layout.windows, windowStore]);
+
+  const handleFileContentChange = React.useCallback(
+    (windowId: string, newContent: string) => {
+      setFileContents((prev) => {
+        const next = new Map(prev);
+        const existing = next.get(windowId);
+        if (existing && existing.content?.type === "text") {
+          next.set(windowId, {
+            ...existing,
+            content: { ...existing.content, content: newContent },
+          });
         }
-        return nextFiles;
+        return next;
+      });
+      windowStore.setDirty(windowId, true);
+    },
+    [windowStore],
+  );
+
+  const handleFileSave = React.useCallback(
+    async (windowId: string, filePath: string) => {
+      const fileData = fileContents.get(windowId);
+      if (!fileData?.content || fileData.content.type !== "text") return;
+
+      try {
+        await window.pidesk.fs.writeFile(filePath, fileData.content.content);
+        windowStore.setDirty(windowId, false);
+      } catch (error) {
+        console.error("Failed to save file:", error);
+      }
+    },
+    [fileContents, windowStore],
+  );
+
+  const handleNoteContentChange = React.useCallback(
+    (windowId: string, newContent: string) => {
+      setNoteContents((prev) => {
+        const next = new Map(prev);
+        const existing = next.get(windowId) ?? { content: "", error: null };
+        next.set(windowId, { ...existing, content: newContent });
+        return next;
+      });
+      windowStore.setDirty(windowId, true);
+    },
+    [windowStore],
+  );
+
+  const handleNoteSave = React.useCallback(
+    async (windowId: string, storagePath?: string) => {
+      if (!storagePath) {
+        return;
+      }
+      const noteData = noteContents.get(windowId);
+      if (!noteData) {
+        return;
+      }
+
+      try {
+        await window.pidesk.fs.writeFile(storagePath, noteData.content);
+        windowStore.setDirty(windowId, false);
+      } catch (error) {
+        console.error("Failed to save note:", error);
+      }
+    },
+    [noteContents, windowStore],
+  );
+
+  const handleSearchQueryChange = React.useCallback(
+    async (windowId: string, query: string) => {
+      windowStore.updateWindow(windowId, { query, results: [] });
+      const requestVersion =
+        (searchRequestVersionsRef.current.get(windowId) ?? 0) + 1;
+      searchRequestVersionsRef.current.set(windowId, requestVersion);
+      setSearchUiState((prev) => {
+        const next = new Map(prev);
+        next.set(windowId, { isLoading: true, selectedIndex: -1 });
+        return next;
+      });
+
+      if (!query.trim() || !activeWorktreePath) {
+        setSearchUiState((prev) => {
+          const next = new Map(prev);
+          next.set(windowId, { isLoading: false, selectedIndex: -1 });
+          return next;
+        });
+        return;
+      }
+
+      try {
+        const response = await window.pidesk.search.searchFiles({
+          query,
+          rootPath: activeWorktreePath,
+          maxResults: 20,
+        });
+        if (searchRequestVersionsRef.current.get(windowId) !== requestVersion) {
+          return;
+        }
+        windowStore.updateWindow(windowId, {
+          query,
+          results: response.results,
+        });
+        setSearchUiState((prev) => {
+          const next = new Map(prev);
+          next.set(windowId, {
+            isLoading: false,
+            selectedIndex: response.results.length > 0 ? 0 : -1,
+          });
+          return next;
+        });
+      } catch (error) {
+        console.error("Failed to search workspace:", error);
+        setSearchUiState((prev) => {
+          const next = new Map(prev);
+          next.set(windowId, { isLoading: false, selectedIndex: -1 });
+          return next;
+        });
+      }
+    },
+    [activeWorktreePath, windowStore],
+  );
+
+  const handleSearchSelect = React.useCallback(
+    (match: SearchMatch) => {
+      if (match.type === "file") {
+        void handleFileClick(match.path);
+        return;
+      }
+      setSidebarView("files");
+    },
+    [handleFileClick],
+  );
+
+  const handleSearchHover = React.useCallback(
+    (windowId: string, index: number) => {
+      setSearchUiState((prev) => {
+        const next = new Map(prev);
+        const existing = next.get(windowId) ?? {
+          isLoading: false,
+          selectedIndex: -1,
+        };
+        next.set(windowId, { ...existing, selectedIndex: index });
+        return next;
       });
     },
-    [activeFilePath],
+    [],
   );
-  const handleCloseAllFiles = React.useCallback(() => {
-    setOpenFiles([]);
-    setActiveFilePath(null);
-  }, []);
 
-  React.useEffect(() => {
-    setOpenFiles([]);
-    setActiveFilePath(null);
-    setIsTerminalOpen(false);
-    setIsTerminalActive(false);
-  }, [activeWorktreePath]);
+  const handleSearchKeyDown = React.useCallback(
+    (windowId: string) => (event: React.KeyboardEvent<HTMLInputElement>) => {
+      const searchWindow = windowState.layout.windows.find(
+        (w): w is SearchWindow => w.id === windowId && w.kind === "search",
+      );
+      if (!searchWindow) {
+        return;
+      }
+      const selectedIndex = searchUiState.get(windowId)?.selectedIndex ?? -1;
 
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        setSearchUiState((prev) => {
+          const next = new Map(prev);
+          const nextIndex =
+            searchWindow.results.length === 0
+              ? -1
+              : (selectedIndex + 1) % searchWindow.results.length;
+          next.set(windowId, { isLoading: false, selectedIndex: nextIndex });
+          return next;
+        });
+        return;
+      }
+
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        setSearchUiState((prev) => {
+          const next = new Map(prev);
+          const nextIndex =
+            searchWindow.results.length === 0
+              ? -1
+              : (selectedIndex - 1 + searchWindow.results.length) %
+                searchWindow.results.length;
+          next.set(windowId, { isLoading: false, selectedIndex: nextIndex });
+          return next;
+        });
+        return;
+      }
+
+      if (event.key === "Enter") {
+        const selectedMatch =
+          selectedIndex >= 0 ? searchWindow.results[selectedIndex] : undefined;
+        if (selectedMatch) {
+          event.preventDefault();
+          handleSearchSelect(selectedMatch);
+        }
+      }
+    },
+    [handleSearchSelect, searchUiState, windowState.layout.windows],
+  );
   const handleAddRepository = React.useCallback(async () => {
     const paths = await window.pidesk.dialog.showOpenDialog({
       properties: ["openDirectory", "multiSelections"],
@@ -328,10 +763,19 @@ export default function App() {
   }, []);
 
   const submitCreateWorktree = React.useCallback(async () => {
-    if (!activeRepositoryId || !newWorktreeBranch.trim()) return;
+    if (!newWorktreeBranch.trim()) return;
+
+    let repositoryId = activeRepositoryId;
+    if (!repositoryId) {
+      const freshShell = await window.pidesk.shell.getSnapshot();
+      repositoryId = getActiveRepository(freshShell)?.id ?? null;
+    }
+
+    if (!repositoryId) return;
+
     try {
       await window.pidesk.worktrees.create(
-        activeRepositoryId,
+        repositoryId,
         newWorktreeBranch.trim(),
       );
       setIsCreateWorktreeOpen(false);
@@ -348,7 +792,6 @@ export default function App() {
   const handleSelectWorktree = React.useCallback(
     async (worktreeId: string) => {
       await window.pidesk.worktrees.select(worktreeId);
-      setIsTerminalActive(false);
       await reload();
     },
     [reload],
@@ -365,19 +808,402 @@ export default function App() {
   const handleSelectThread = React.useCallback(
     async (threadId: string) => {
       await window.pidesk.threads.select(threadId);
-      setIsTerminalActive(false);
       await reload();
+      openOrFocusChatWindow(threadId);
     },
-    [reload],
+    [openOrFocusChatWindow, reload],
   );
 
-  const handleSend = React.useCallback(() => {
-    if (!canSend) return;
+  const handleWindowFocus = React.useCallback(
+    async (focusedWindow: import("@pidesk/shared").CanvasWindow) => {
+      if (
+        focusedWindow.kind !== "chat" ||
+        focusedWindow.threadId === activeThreadId
+      ) {
+        return;
+      }
+      await window.pidesk.threads.select(focusedWindow.threadId);
+      await reload();
+    },
+    [activeThreadId, reload],
+  );
+
+  const hasOpenNotes = React.useMemo(
+    () => windowState.layout.windows.some((window) => window.kind === "note"),
+    [windowState.layout.windows],
+  );
+  const autocompleteMatch = React.useMemo(
+    () => getPromptAutocompleteMatch(draft),
+    [draft],
+  );
+
+  const loadModelState = React.useCallback(async () => {
+    try {
+      const [providers, settings] = await Promise.all([
+        window.pidesk.agent.getProviders(),
+        window.pidesk.agent.getSettings(),
+      ]);
+      setProviderSnapshots(providers);
+      setSettingsSnapshot(settings);
+    } catch (error) {
+      console.error("Failed to load model state:", error);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    void loadModelState();
+  }, [loadModelState]);
+
+  React.useEffect(() => {
+    let disposed = false;
+
+    async function loadAutocomplete() {
+      if (!autocompleteMatch) {
+        setAutocompleteSuggestions([]);
+        setAutocompleteSelectedIndex(0);
+        return;
+      }
+
+      if (autocompleteMatch.trigger === "/") {
+        try {
+          const response = await window.pidesk.agent.getSlashSuggestions({
+            text: draft,
+            cursorPosition: draft.length,
+            trigger: "/",
+            query: autocompleteMatch.query,
+          });
+          if (!disposed) {
+            setAutocompleteSuggestions(response.suggestions);
+            setAutocompleteSelectedIndex(
+              response.suggestions.length > 0 ? 0 : -1,
+            );
+          }
+        } catch (error) {
+          console.error("Failed to load slash suggestions:", error);
+          if (!disposed) {
+            setAutocompleteSuggestions([]);
+            setAutocompleteSelectedIndex(-1);
+          }
+        }
+        return;
+      }
+
+      const query = autocompleteMatch.query.toLowerCase();
+      const mentionSuggestions: MentionSuggestion[] = [];
+      const seenIds = new Set<string>();
+
+      const terminalMentions: MentionSuggestion[] = windowState.layout.windows.flatMap(
+        (window) => {
+          if (window.kind === "terminal") {
+            return [
+              {
+                kind: "terminal",
+                id: window.terminalId,
+                name: window.title,
+                context: window.cwd,
+                linkColor: window.linkColor,
+              },
+            ];
+          }
+          if (window.kind === "git") {
+            return [
+              {
+                kind: "terminal",
+                id: window.terminalId,
+                name: window.title,
+                context: window.repositoryPath,
+                linkColor: window.linkColor,
+              },
+            ];
+          }
+          return [];
+        },
+      );
+
+      for (const suggestion of terminalMentions) {
+        if (
+          query.length === 0 ||
+          suggestion.name.toLowerCase().includes(query) ||
+          suggestion.context?.toLowerCase().includes(query)
+        ) {
+          mentionSuggestions.push(suggestion);
+          seenIds.add(`terminal:${suggestion.id}`);
+        }
+      }
+
+      const openFileMentions: MentionSuggestion[] = windowState.layout.windows.flatMap(
+        (window) => {
+          if (window.kind !== "file") {
+            return [];
+          }
+          return [
+            {
+              kind: "file",
+              id: window.filePath,
+              name: window.title,
+              context: window.filePath,
+            },
+          ];
+        },
+      );
+
+      for (const suggestion of openFileMentions) {
+        if (
+          query.length === 0 ||
+          suggestion.name.toLowerCase().includes(query) ||
+          suggestion.context?.toLowerCase().includes(query)
+        ) {
+          const key = `file:${suggestion.id}`;
+          if (!seenIds.has(key)) {
+            mentionSuggestions.push(suggestion);
+            seenIds.add(key);
+          }
+        }
+      }
+
+      if (activeWorktreePath && autocompleteMatch.query.trim().length > 0) {
+        try {
+          const searchResponse = await window.pidesk.search.searchFiles({
+            query: autocompleteMatch.query,
+            rootPath: activeWorktreePath,
+            maxResults: 8,
+          });
+          for (const match of searchResponse.results) {
+            if (match.type !== "file") {
+              continue;
+            }
+            const key = `file:${match.path}`;
+            if (seenIds.has(key)) {
+              continue;
+            }
+            mentionSuggestions.push({
+              kind: "file",
+              id: match.path,
+              name: match.name,
+              context: match.path,
+            });
+            seenIds.add(key);
+          }
+        } catch (error) {
+          console.error("Failed to load file mentions:", error);
+        }
+      }
+
+      if (!disposed) {
+        setAutocompleteSuggestions(mentionSuggestions);
+        setAutocompleteSelectedIndex(mentionSuggestions.length > 0 ? 0 : -1);
+      }
+    }
+
+    void loadAutocomplete();
+
+    return () => {
+      disposed = true;
+    };
+  }, [
+    autocompleteMatch,
+    activeWorktreePath,
+    draft,
+    windowState.layout.windows,
+  ]);
+
+  const handleAutocompleteSelect = React.useCallback(
+    (suggestion: SlashSuggestion | MentionSuggestion) => {
+      if (!autocompleteMatch) {
+        return;
+      }
+
+      let replacement = "";
+      if (suggestion.kind === "skill" || suggestion.kind === "command") {
+        replacement = `${suggestion.slash} `;
+      } else if (suggestion.kind === "terminal") {
+        replacement = buildTerminalMention(suggestion.id);
+      } else if (suggestion.kind === "file") {
+        replacement = buildFileMention(suggestion.id);
+      } else {
+        replacement = `${suggestion.name} `;
+      }
+
+      setDraft(replacePromptToken(draft, autocompleteMatch, replacement));
+      setAutocompleteSuggestions([]);
+      setAutocompleteSelectedIndex(-1);
+    },
+    [autocompleteMatch, draft, setDraft],
+  );
+
+  const handlePromptKeyDown = React.useCallback(
+    (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (!autocompleteMatch || autocompleteSuggestions.length === 0) {
+        return;
+      }
+
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        setAutocompleteSelectedIndex((current) =>
+          current < autocompleteSuggestions.length - 1 ? current + 1 : 0,
+        );
+        return;
+      }
+
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        setAutocompleteSelectedIndex((current) =>
+          current > 0 ? current - 1 : autocompleteSuggestions.length - 1,
+        );
+        return;
+      }
+
+      if (event.key === "Enter" || event.key === "Tab") {
+        const selectedSuggestion =
+          autocompleteSelectedIndex >= 0
+            ? autocompleteSuggestions[autocompleteSelectedIndex]
+            : undefined;
+        if (selectedSuggestion) {
+          event.preventDefault();
+          handleAutocompleteSelect(selectedSuggestion);
+        }
+        return;
+      }
+
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setAutocompleteSuggestions([]);
+        setAutocompleteSelectedIndex(-1);
+      }
+    },
+    [
+      autocompleteMatch,
+      autocompleteSelectedIndex,
+      autocompleteSuggestions,
+      handleAutocompleteSelect,
+    ],
+  );
+
+  const handleModelSelection = React.useCallback(
+    async (event: React.ChangeEvent<HTMLSelectElement>) => {
+      const [providerId, modelId] = event.target.value.split("::");
+      if (!providerId || !modelId) {
+        return;
+      }
+
+      setIsSwitchingModel(true);
+      try {
+        await window.pidesk.agent.switchModel({ providerId, modelId });
+        await loadModelState();
+        await reload();
+      } catch (error) {
+        console.error("Failed to switch model:", error);
+      } finally {
+        setIsSwitchingModel(false);
+      }
+    },
+    [loadModelState, reload],
+  );
+
+  const handleSend = React.useCallback(async () => {
+    if (!canSend || !activeThreadId) return;
+
+    const expandedPrompt = expandFileMentions(draft);
+    const routedPrompt = extractTerminalRoute(expandedPrompt);
+    if (routedPrompt.terminalIds.length > 0) {
+      const terminalId = routedPrompt.terminalIds[0];
+      if (!terminalId || !routedPrompt.prompt.trim()) {
+        return;
+      }
+      try {
+        await window.pidesk.threads.routeToTerminal({
+          terminalId,
+          prompt: routedPrompt.prompt,
+          startPiIfNotLinked: true,
+        });
+        setDraft("");
+      } catch (error) {
+        console.error("Failed to route prompt to terminal:", error);
+      }
+      return;
+    }
+
+    if (expandedPrompt !== draft) {
+      setDraft(expandedPrompt);
+    }
+
+    openOrFocusChatWindow(activeThreadId);
     sendPrompt();
-  }, [canSend, sendPrompt]);
+  }, [activeThreadId, canSend, draft, openOrFocusChatWindow, sendPrompt, setDraft]);
 
   const runtimeMode = shell.runtime?.agentMode ?? "unknown";
   const runtimeModeLabel = `${runtimeMode} mode`;
+  const displayAgentStatus =
+    agent.status === "starting" ? "ready" : agent.status;
+  const currentModelValue = React.useMemo(() => {
+    const providerId =
+      settingsSnapshot.currentProviderId ??
+      settingsSnapshot.defaultProvider ??
+      providerSnapshots[0]?.id;
+    const provider = providerSnapshots.find((entry) => entry.id === providerId);
+    const modelId =
+      settingsSnapshot.currentModelId ??
+      settingsSnapshot.defaultModel ??
+      provider?.models[0]?.id;
+
+    return providerId && modelId ? `${providerId}::${modelId}` : "";
+  }, [providerSnapshots, settingsSnapshot]);
+
+  const graphNodes = React.useMemo(() => {
+    const nodes = windowState.layout.windows.map((window) => ({
+      id: window.id,
+      label: window.title,
+      color: window.linkColor ? getLinkColorHex(window.linkColor) : "#737373",
+      radius: 18,
+    }));
+
+    if (activeThreadId) {
+      nodes.push({
+        id: activeThreadId,
+        label: activeThread?.title ?? "Active Thread",
+        color: getLinkColorHex(getLinkColorForId(activeThreadId)),
+        radius: 22,
+      });
+    }
+
+    return nodes;
+  }, [activeThread?.title, activeThreadId, windowState.layout.windows]);
+
+  const graphLinks = React.useMemo(() => {
+    const links: Array<{
+      source: string;
+      target: string;
+      color?: string;
+      label?: string;
+    }> = [];
+
+    for (const window of windowState.layout.windows) {
+      for (const targetId of window.linkTargetIds ?? []) {
+        const color = window.linkColor
+          ? getLinkColorHex(window.linkColor)
+          : "#525252";
+        links.push({
+          source: window.id,
+          target: targetId,
+          color,
+          label: "linked",
+        });
+      }
+
+      if (window.kind === "terminal" && window.linkedThreadId) {
+        links.push({
+          source: window.id,
+          target: window.linkedThreadId,
+          color: window.linkColor
+            ? getLinkColorHex(window.linkColor)
+            : getLinkColorHex(getLinkColorForId(window.linkedThreadId)),
+          label: "thread",
+        });
+      }
+    }
+
+    return links;
+  }, [windowState.layout.windows]);
 
   return (
     <SettingsProvider>
@@ -389,11 +1215,11 @@ export default function App() {
           <TitleBar
             sidebarView={sidebarView}
             setSidebarView={setSidebarView}
-            isNotesOpen={isNotesOpen}
-            setIsNotesOpen={setIsNotesOpen}
-            isTerminalOpen={isTerminalOpen}
-            setIsTerminalOpen={setIsTerminalOpen}
-            setIsTerminalActive={setIsTerminalActive}
+            hasOpenNotes={hasOpenNotes}
+            onOpenLauncher={handleOpenLauncher}
+            onOpenNote={handleOpenNote}
+            onOpenGit={handleOpenGit}
+            onOpenTerminal={handleOpenTerminal}
           />
 
           <div className="relative flex min-h-0 flex-1">
@@ -402,8 +1228,8 @@ export default function App() {
               className="pointer-events-none absolute inset-0 z-0 opacity-[0.25]"
               style={{
                 backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.15) 1px, transparent 1px), radial-gradient(circle, rgba(0,0,0,0.3) 1px, transparent 1px)`,
-                backgroundSize: '16px 16px',
-                backgroundPosition: '0 0, 8px 8px',
+                backgroundSize: "16px 16px",
+                backgroundPosition: "0 0, 8px 8px",
               }}
             />
             {/* Three-panel layout */}
@@ -415,7 +1241,7 @@ export default function App() {
               onOpenSettings={() => setIsSettingsOpen(true)}
             />
 
-<LeftSidebar
+            <LeftSidebar
               repository={activeRepository}
               activeWorktreeId={activeWorktreeId}
               activeThreadId={activeThreadId}
@@ -432,87 +1258,164 @@ export default function App() {
             {/* Main panel */}
             <main className="relative z-10 flex min-w-0 flex-1 flex-col">
               {/* Content area */}
-              {openFiles.length > 0 || isTerminalOpen ? (
-                <MultiFileViewer
-                  openFiles={openFiles}
-                  activeFilePath={activeFilePath}
-                  onTabClick={handleTabClick}
-                  onTabClose={handleTabClose}
-                  onCloseAll={handleCloseAllFiles}
-                  className="min-h-0 flex-1"
-                  isTerminalOpen={isTerminalOpen}
-                  isTerminalActive={isTerminalActive}
-                  onTerminalClick={() => setIsTerminalActive(true)}
-                  onTerminalClose={() => {
-                    setIsTerminalOpen(false);
-                    setIsTerminalActive(false);
+              <div className="relative min-h-0 flex-1">
+                <CanvasContainer
+                  className="h-full"
+                  onWindowFocus={(window) => {
+                    void handleWindowFocus(window);
                   }}
-                  terminalCwd={activeWorktreePath ?? undefined}
-                  terminalId={terminalId}
+                  renderWindowContent={(win) => {
+                    if (win.kind === "file") {
+                      const fileData = fileContents.get(win.id);
+                      return (
+                        <FileWindowContent
+                          filePath={win.filePath}
+                          content={fileData?.content ?? null}
+                          isLoading={fileData?.isLoading}
+                          error={fileData?.error}
+                          isDirty={win.isDirty}
+                          isReadOnly={win.isReadOnly}
+                          onContentChange={(content) =>
+                            handleFileContentChange(win.id, content)
+                          }
+                          onSave={() => handleFileSave(win.id, win.filePath)}
+                        />
+                      );
+                    }
+                    if (win.kind === "chat") {
+                      const conversation =
+                        win.threadId === activeThreadId
+                          ? {
+                              messages: agent.messages,
+                              status: agent.status,
+                              lastError: agent.lastError,
+                            }
+                          : (threadConversations.get(win.threadId) ?? {
+                              messages: [],
+                              status: "idle",
+                              lastError: null,
+                            });
+
+                      return (
+                        <ChatWindowContent
+                          threadTitle={getThreadWindowTitle(
+                            threadLookup.get(win.threadId),
+                          )}
+                          isActiveThread={win.threadId === activeThreadId}
+                          messages={conversation.messages}
+                          isStreaming={
+                            win.threadId === activeThreadId &&
+                            conversation.status === "streaming"
+                          }
+                          lastError={conversation.lastError}
+                          className="h-full"
+                        />
+                      );
+                    }
+                    if (win.kind === "note") {
+                      const noteData = noteContents.get(win.id);
+                      return (
+                        <NoteWindowContent
+                          window={win}
+                          content={noteData?.content ?? ""}
+                          onContentChange={(content) =>
+                            handleNoteContentChange(win.id, content)
+                          }
+                          onSave={() => handleNoteSave(win.id, win.storagePath)}
+                        />
+                      );
+                    }
+                    if (win.kind === "terminal") {
+                      return (
+                        <TerminalWindowContent
+                          terminalId={win.terminalId}
+                          cwd={win.cwd}
+                          backend={win.backend}
+                          linkedThreadId={win.linkedThreadId}
+                          ownerWindowId={win.id}
+                        />
+                      );
+                    }
+                    if (win.kind === "git") {
+                      return (
+                        <TerminalWindowContent
+                          terminalId={win.terminalId}
+                          cwd={win.repositoryPath}
+                          backend="lazygit"
+                          ownerWindowId={win.id}
+                        />
+                      );
+                    }
+                    if (win.kind === "search") {
+                      const uiState = searchUiState.get(win.id);
+                      return (
+                        <SearchWindowContent
+                          query={win.query}
+                          results={win.results}
+                          isLoading={uiState?.isLoading}
+                          selectedIndex={uiState?.selectedIndex}
+                          onQueryChange={(query) =>
+                            void handleSearchQueryChange(win.id, query)
+                          }
+                          onSelect={handleSearchSelect}
+                          onHover={(index) => handleSearchHover(win.id, index)}
+                          onKeyDown={handleSearchKeyDown(win.id)}
+                          autoFocus={win.isFocused}
+                          actions={[
+                            {
+                              id: "terminal",
+                              label: "Terminal",
+                              onSelect: handleOpenTerminal,
+                            },
+                            {
+                              id: "git",
+                              label: "Git",
+                              onSelect: handleOpenGit,
+                            },
+                            {
+                              id: "note",
+                              label: "Note",
+                              onSelect: handleOpenNote,
+                            },
+                            {
+                              id: "graph",
+                              label: "Graph",
+                              onSelect: handleOpenGraph,
+                            },
+                          ]}
+                        />
+                      );
+                    }
+                    if (win.kind === "graph") {
+                      return (
+                        <GraphWindowContent
+                          nodes={graphNodes}
+                          links={graphLinks}
+                        />
+                      );
+                    }
+                    return (
+                      <div className="p-4 text-muted-foreground">
+                        Window type: {win.kind}
+                      </div>
+                    );
+                  }}
                 />
-              ) : (
-                <ChatContainerRoot className="relative min-h-0 flex-1">
-                  <ChatContainerContent
-                    data-testid="chat-transcript"
-                    className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-6 pb-40 pt-10"
-                  >
-                    {agent.messages.length > 0 && (
-                      agent.messages.map((message) => {
-                        const isSystem = message.role === "system";
-                        return (
-                          <Message
-                            key={message.id}
-                            className={cn(isSystem && "my-6 justify-center")}
-                          >
-                            {!isSystem && (
-                              <MessageAvatar
-                                src=""
-                                alt={getMessageLabel(message)}
-                                fallback={getMessageFallback(message)}
-                              />
-                            )}
-                            <div
-                              className={cn(
-                                "min-w-0 flex-1",
-                                isSystem && "flex-initial",
-                              )}
-                            >
-                              {!isSystem && (
-                                <span className="text-sm font-medium text-muted-foreground">
-                                  {getMessageLabel(message)}
-                                </span>
-                              )}
-                              {isSystem ? (
-                                <div className="mt-1 rounded border border-dashed border-border bg-surface-2 px-4 py-3 text-sm text-muted-foreground">
-                                  {message.text}
-                                </div>
-                              ) : (
-                                <MessageContent
-                                  markdown={message.role !== "user"}
-                                  className="mt-1 max-w-none bg-transparent p-0 text-base leading-relaxed text-foreground shadow-none"
-                                >
-                                  {message.text || " "}
-                                </MessageContent>
-                              )}
-                            </div>
-                          </Message>
-                        );
-                      })
-                    )}
-                    {agent.status === "streaming" && (
-                      <div className="pl-11 text-xs uppercase tracking-[0.18em] text-zinc-500">
-                        PiDesk is responding
-                      </div>
-                    )}
-                    {agent.lastError && (
-                      <div className="rounded-lg border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">
-                        {agent.lastError}
-                      </div>
-                    )}
-                    <ChatContainerScrollAnchor />
-                  </ChatContainerContent>
-                </ChatContainerRoot>
-              )}
+                {windowState.layout.windows.length === 0 ? (
+                  <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-8">
+                    <div className="max-w-md rounded-2xl border border-dashed border-border bg-surface-1/80 px-6 py-5 text-center shadow-sm backdrop-blur-sm">
+                      <h2 className="text-base font-semibold text-foreground">
+                        Open threads in their own windows
+                      </h2>
+                      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                        {activeThreadId
+                          ? "Click a thread in the left sidebar, or send a message, to open or refocus its chat window here."
+                          : "Select a thread in the left sidebar to open its dedicated chat window."}
+                      </p>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
 
               {/* Input area */}
               <div className="relative z-20 bg-gradient-to-t from-background to-transparent pb-6 pt-4">
@@ -520,24 +1423,65 @@ export default function App() {
                   <PromptInput
                     value={draft}
                     onValueChange={setDraft}
-                    onSubmit={handleSend}
-                    className="rounded-xl bg-transparent p-4 shadow-lg transition outline-none focus-within:ring-1 focus-within:ring-neutral-500/20"
+                    onSubmit={() => void handleSend()}
+                    className="rounded-xl bg-surface-1/80 p-4 shadow-sm backdrop-blur-sm"
                   >
                     <PromptInputTextarea
                       data-testid="chat-input"
                       placeholder={
                         activeThreadId
-                          ? "Ask Pi..."
+                          ? "Ask Pi, use / for skills, @ for files or terminals..."
                           : "Select a thread to start..."
                       }
                       disabled={!activeThreadId}
+                      onKeyDown={handlePromptKeyDown}
                       className="min-h-24 resize-none border-0 bg-transparent text-base leading-relaxed text-foreground placeholder:text-muted-foreground outline-none focus-visible:ring-0 disabled:opacity-50"
+                    />
+                    <PromptAutocomplete
+                      visible={autocompleteSuggestions.length > 0}
+                      suggestions={autocompleteSuggestions}
+                      selectedIndex={autocompleteSelectedIndex}
+                      onSelect={handleAutocompleteSelect}
+                      onHover={setAutocompleteSelectedIndex}
+                      className="absolute left-6 right-6 top-full mt-2"
                     />
                     <PromptInputActions className="mt-3 items-center justify-between">
                       <div className="flex items-center gap-2">
+                        <span
+                          data-testid="agent-status"
+                          className="rounded border border-border bg-surface-1 px-2 py-1 text-[10px] text-muted-foreground"
+                        >
+                          {displayAgentStatus}
+                        </span>
+                        {activeThread ? (
+                          <span className="rounded border border-border bg-surface-1 px-2 py-1 text-[10px] text-muted-foreground">
+                            Chat · {getThreadWindowTitle(activeThread)}
+                          </span>
+                        ) : null}
                         <span className="rounded border border-border bg-surface-1 px-2 py-1 text-[10px] text-muted-foreground">
                           {runtimeModeLabel}
                         </span>
+                        <select
+                          value={currentModelValue}
+                          onChange={(event) => void handleModelSelection(event)}
+                          disabled={
+                            isSwitchingModel || providerSnapshots.length === 0
+                          }
+                          className="rounded border border-border bg-surface-1 px-2 py-1 text-[10px] text-muted-foreground outline-none"
+                        >
+                          {providerSnapshots.map((provider) => (
+                            <optgroup key={provider.id} label={provider.name}>
+                              {provider.models.map((model) => (
+                                <option
+                                  key={`${provider.id}:${model.id}`}
+                                  value={`${provider.id}::${model.id}`}
+                                >
+                                  {model.name}
+                                </option>
+                              ))}
+                            </optgroup>
+                          ))}
+                        </select>
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="text-[0.7rem] text-zinc-500">
@@ -550,7 +1494,7 @@ export default function App() {
                             variant="ghost"
                             size="icon"
                             disabled={!canSend}
-                            onClick={handleSend}
+                            onClick={() => void handleSend()}
                             className="size-8 rounded-lg border border-white/8 bg-white/[0.06] text-zinc-200 hover:bg-white/[0.10] disabled:opacity-50"
                           >
                             <ArrowUp className="size-4" />
@@ -564,53 +1508,18 @@ export default function App() {
             </main>
 
             {/* Right sidebar */}
-            {sidebarView && (
+            {sidebarView === "files" ? (
               <aside className="relative z-10 flex h-full w-64 shrink-0 flex-col border-l border-border bg-surface-1">
                 <ScrollArea className="min-h-0 flex-1">
-                  {sidebarView === "files" && (
-                    <div className="p-2">
-                      <FileTree
-                        rootPath={activeWorktreePath}
-                        onFileClick={handleFileClick}
-                      />
-                    </div>
-                  )}
-                  {sidebarView === "git" && (
-                    <div className="flex h-full flex-col items-center justify-center p-4 text-center">
-                      <GitBranch className="mb-2 size-8 text-muted-foreground/30" />
-                      <p className="text-sm text-muted-foreground">
-                        Git integration coming soon
-                      </p>
-                    </div>
-                  )}
+                  <div className="p-2">
+                    <FileTree
+                      rootPath={activeWorktreePath}
+                      onFileClick={handleFileClick}
+                    />
+                  </div>
                 </ScrollArea>
               </aside>
-            )}
-
-            {/* Workspace Notes Tab */}
-            {isNotesOpen && (
-              <div className="absolute right-64 top-10 bottom-0 z-20 w-96 border-l border-border bg-background shadow-xl">
-                <div className="flex h-full flex-col">
-                  <header className="flex h-11 shrink-0 items-center justify-between border-b border-border bg-surface-1 px-3">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                      Workspace Notes
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setIsNotesOpen(false)}
-                      className="rounded px-2 py-1 text-xs text-muted-foreground transition hover:bg-surface-2 hover:text-foreground"
-                    >
-                      Close
-                    </button>
-                  </header>
-                  <WorkspaceNotes
-                    content={workspaceNotes}
-                    onChange={setWorkspaceNotes}
-                    className="min-h-0 flex-1"
-                  />
-                </div>
-              </div>
-            )}
+            ) : null}
 
             {/* Create worktree dialog */}
             <Dialog

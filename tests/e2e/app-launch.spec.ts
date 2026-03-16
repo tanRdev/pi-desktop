@@ -22,14 +22,18 @@ test("launches the shell and streams a mock agent reply", async () => {
 
     await expect(page.getByTestId("app-ready")).toBeVisible();
     await expect(page.getByTestId("app-title")).toHaveText("π");
-    await expect(page.getByTestId("agent-status")).toHaveText("ready", { timeout: 10_000 });
+    await expect(page.getByTestId("agent-status")).toHaveText("ready", {
+      timeout: 10_000,
+    });
 
     await page
       .getByTestId("chat-input")
       .fill("Summarize the current workspace");
     await page.getByTestId("chat-send").click();
 
-    await expect(page.getByTestId("agent-status")).toHaveText("ready", { timeout: 10_000 });
+    await expect(page.getByTestId("agent-status")).toHaveText("ready", {
+      timeout: 10_000,
+    });
     await expect(page.getByTestId("chat-transcript")).toContainText(
       "PiDesk mock assistant received: Summarize the current workspace",
     );

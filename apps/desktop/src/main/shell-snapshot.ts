@@ -7,7 +7,10 @@ import type {
   ShellSnapshot,
   ThreadSnapshot,
 } from "@pidesk/shared";
-import type { GitRepositoryInspection, GitWorktreeSummary } from "./git-worktree-service";
+import type {
+  GitRepositoryInspection,
+  GitWorktreeSummary,
+} from "./git-worktree-service";
 import { GitWorktreeService } from "./git-worktree-service";
 
 export interface CreateShellSnapshotOptions {
@@ -52,7 +55,9 @@ function createEmptyCatalog(): ShellCatalogSnapshot {
   };
 }
 
-function toShellGitSnapshot(inspection: GitRepositoryInspection): ShellGitSnapshot {
+function toShellGitSnapshot(
+  inspection: GitRepositoryInspection,
+): ShellGitSnapshot {
   if (inspection.status === "repository") {
     return (
       inspection.currentGit ?? {
@@ -78,13 +83,15 @@ function createThreadSnapshot(options: {
   };
 }): ThreadSnapshot {
   const { agentSnapshot, selectedThread } = options;
-  const lastMessage = agentSnapshot?.messages[agentSnapshot.messages.length - 1];
+  const lastMessage =
+    agentSnapshot?.messages[agentSnapshot.messages.length - 1];
 
   return {
     id: selectedThread?.id ?? DEFAULT_THREAD_ID,
     title: selectedThread?.title ?? "Current thread",
     isArchived: false,
-    lastActivityAt: selectedThread?.lastActivityAt ?? lastMessage?.timestamp ?? null,
+    lastActivityAt:
+      selectedThread?.lastActivityAt ?? lastMessage?.timestamp ?? null,
     runtime: {
       status: agentSnapshot?.status ?? "starting",
       lastError: agentSnapshot?.lastError ?? null,
@@ -92,7 +99,10 @@ function createThreadSnapshot(options: {
   };
 }
 
-function createWorktreeLabel(worktree: GitWorktreeSummary, appName: string): string {
+function createWorktreeLabel(
+  worktree: GitWorktreeSummary,
+  appName: string,
+): string {
   if (worktree.branch) {
     return worktree.branch;
   }

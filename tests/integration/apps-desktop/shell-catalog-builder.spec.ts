@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { AgentSnapshot } from "../../../packages/shared/src";
 import { buildShellCatalog } from "../../../apps/desktop/src/main/shell-catalog-builder";
+import type { AgentSnapshot } from "../../../packages/shared/src";
 
 describe("buildShellCatalog", () => {
   it("merges repository catalog entries, git worktrees, thread catalog entries, and selected runtime state", async () => {

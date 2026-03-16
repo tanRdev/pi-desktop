@@ -5,7 +5,9 @@ async function bootstrapSessionServer() {
   const socketPath = process.env.PIDESK_AGENT_SOCKET_PATH;
 
   if (!socketPath) {
-    throw new Error("PiDesk agent session server requires PIDESK_AGENT_SOCKET_PATH");
+    throw new Error(
+      "PiDesk agent session server requires PIDESK_AGENT_SOCKET_PATH",
+    );
   }
 
   const server = await startAgentHostSocketServer({

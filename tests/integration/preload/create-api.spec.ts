@@ -210,12 +210,18 @@ describe("createPiDeskApi", () => {
     await api.repositories.select("/tmp/work/repo-one");
     await api.worktrees.create("/tmp/work/repo-one", "feature/runtime");
     await api.worktrees.select("/tmp/work/repo-one-feature");
-    await api.threads.create("/tmp/work/repo-one-feature", "Investigate runtime");
+    await api.threads.create(
+      "/tmp/work/repo-one-feature",
+      "Investigate runtime",
+    );
     await api.threads.select("thread-123");
 
     expect(invokeCalls).toEqual([
       [IPC_CHANNELS.repositories.add, { path: "/tmp/work/repo-one" }],
-      [IPC_CHANNELS.repositories.select, { repositoryId: "/tmp/work/repo-one" }],
+      [
+        IPC_CHANNELS.repositories.select,
+        { repositoryId: "/tmp/work/repo-one" },
+      ],
       [
         IPC_CHANNELS.worktrees.create,
         {
@@ -223,7 +229,10 @@ describe("createPiDeskApi", () => {
           branchName: "feature/runtime",
         },
       ],
-      [IPC_CHANNELS.worktrees.select, { worktreeId: "/tmp/work/repo-one-feature" }],
+      [
+        IPC_CHANNELS.worktrees.select,
+        { worktreeId: "/tmp/work/repo-one-feature" },
+      ],
       [
         IPC_CHANNELS.threads.create,
         {

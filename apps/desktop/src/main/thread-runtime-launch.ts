@@ -34,7 +34,8 @@ export function createThreadRuntimeLaunchDetails({
   agentDirectory,
 }: CreateThreadRuntimeLaunchDetailsOptions): ThreadRuntimeLaunchDetails {
   const sessionName = createTmuxThreadSessionName(threadId);
-  const socketPath = path.join(socketDirectory, `${sessionName}.sock`);
+  const socketFileName = `pd-${threadId.slice(0, 8) || "thread"}.sock`;
+  const socketPath = path.join(socketDirectory, socketFileName);
   const resolvedAgentDirectory =
     agentDirectory ?? path.join(worktreePath, ".pi", "agent");
 

@@ -1,15 +1,15 @@
-import { useSettings } from "../settings-context";
+import { LOG_LEVELS, UPDATE_CHANNELS } from "../defaults";
 import {
-  SettingsSection,
-  SettingsRow,
-  SettingsSelect,
-  SettingsSwitch,
+  ResetButton,
+  SettingsDivider,
   SettingsInput,
   SettingsNumberInput,
-  SettingsDivider,
-  ResetButton,
+  SettingsRow,
+  SettingsSection,
+  SettingsSelect,
+  SettingsSwitch,
 } from "../form-components";
-import { LOG_LEVELS, UPDATE_CHANNELS } from "../defaults";
+import { useSettings } from "../settings-context";
 
 export function AdvancedSettingsSection() {
   const { settings, updateSettings, resetSection } = useSettings();
@@ -27,7 +27,9 @@ export function AdvancedSettingsSection() {
         >
           <SettingsSwitch
             checked={advanced.telemetryEnabled}
-            onChange={(checked) => updateSettings("advanced", { telemetryEnabled: checked })}
+            onChange={(checked) =>
+              updateSettings("advanced", { telemetryEnabled: checked })
+            }
           />
         </SettingsRow>
       </SettingsSection>
@@ -44,7 +46,9 @@ export function AdvancedSettingsSection() {
         >
           <SettingsSwitch
             checked={advanced.experimentalFeatures}
-            onChange={(checked) => updateSettings("advanced", { experimentalFeatures: checked })}
+            onChange={(checked) =>
+              updateSettings("advanced", { experimentalFeatures: checked })
+            }
           />
         </SettingsRow>
 
@@ -54,14 +58,20 @@ export function AdvancedSettingsSection() {
         >
           <SettingsSwitch
             checked={advanced.debugMode}
-            onChange={(checked) => updateSettings("advanced", { debugMode: checked })}
+            onChange={(checked) =>
+              updateSettings("advanced", { debugMode: checked })
+            }
           />
         </SettingsRow>
 
         <SettingsRow label="Log Level" description="Console logging verbosity">
           <SettingsSelect
             value={advanced.logLevel}
-            onChange={(value) => updateSettings("advanced", { logLevel: value as typeof advanced.logLevel })}
+            onChange={(value) =>
+              updateSettings("advanced", {
+                logLevel: value as typeof advanced.logLevel,
+              })
+            }
             options={LOG_LEVELS}
           />
         </SettingsRow>
@@ -73,10 +83,17 @@ export function AdvancedSettingsSection() {
         title="Updates"
         description="Application update settings"
       >
-        <SettingsRow label="Update Channel" description="Which version to update to">
+        <SettingsRow
+          label="Update Channel"
+          description="Which version to update to"
+        >
           <SettingsSelect
             value={advanced.updateChannel}
-            onChange={(value) => updateSettings("advanced", { updateChannel: value as typeof advanced.updateChannel })}
+            onChange={(value) =>
+              updateSettings("advanced", {
+                updateChannel: value as typeof advanced.updateChannel,
+              })
+            }
             options={UPDATE_CHANNELS}
           />
         </SettingsRow>
@@ -88,13 +105,12 @@ export function AdvancedSettingsSection() {
         title="Network"
         description="Network and connection settings"
       >
-        <SettingsRow
-          label="Proxy URL"
-          description="HTTP/HTTPS proxy server"
-        >
+        <SettingsRow label="Proxy URL" description="HTTP/HTTPS proxy server">
           <SettingsInput
             value={advanced.proxyUrl}
-            onChange={(value) => updateSettings("advanced", { proxyUrl: value })}
+            onChange={(value) =>
+              updateSettings("advanced", { proxyUrl: value })
+            }
             placeholder="http://proxy:8080"
             className="w-[200px]"
           />
@@ -120,7 +136,9 @@ export function AdvancedSettingsSection() {
         >
           <SettingsNumberInput
             value={advanced.maxConcurrentRequests}
-            onChange={(value) => updateSettings("advanced", { maxConcurrentRequests: value })}
+            onChange={(value) =>
+              updateSettings("advanced", { maxConcurrentRequests: value })
+            }
             min={1}
             max={20}
           />
@@ -129,14 +147,14 @@ export function AdvancedSettingsSection() {
 
       <SettingsDivider />
 
-      <SettingsSection
-        title="Danger Zone"
-        description="Irreversible actions"
-      >
+      <SettingsSection title="Danger Zone" description="Irreversible actions">
         <div className="rounded-md border border-destructive/50 bg-destructive/10 p-4">
-          <h4 className="text-sm font-medium text-destructive">Reset All Settings</h4>
+          <h4 className="text-sm font-medium text-destructive">
+            Reset All Settings
+          </h4>
           <p className="mt-1 text-xs text-muted-foreground">
-            This will reset all settings to their default values. This action cannot be undone.
+            This will reset all settings to their default values. This action
+            cannot be undone.
           </p>
           <ResetButton
             onClick={() => resetSection("advanced")}

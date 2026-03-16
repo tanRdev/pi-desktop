@@ -1,4 +1,3 @@
-// biome-ignore lint/suspicious/noAssignInExpressions: allow in test while loops
 import fs from "node:fs";
 import path from "node:path";
 import { describe, it } from "vitest";

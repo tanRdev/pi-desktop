@@ -69,7 +69,7 @@
   /* Root variables - developer console dark theme */
   :root {
     /* Base colors - unified dark theme */
-    --background: #121212;
+    --background: oklch(12% 0.01 270);
     --foreground: oklch(92% 0.01 100);
 
     /* Surface layers - subtle depth progression */
@@ -84,9 +84,9 @@
     --popover: #1c1c1c;
     --popover-foreground: oklch(92% 0.01 100);
 
-    /* Primary - neon cyan for interactive elements */
-    --primary: oklch(70% 0.15 195);
-    --primary-foreground: oklch(8% 0.005 270);
+    /* Primary - warm neutral emphasis for interactive elements */
+    --primary: oklch(78% 0.018 95);
+    --primary-foreground: oklch(10% 0.005 270);
 
     /* Secondary - muted surface */
     --secondary: #252525;
@@ -96,9 +96,9 @@
     --muted: #2d2d2d;
     --muted-foreground: oklch(60% 0.01 270);
 
-    /* Accent - neon green for highlights/activity */
-    --accent: oklch(75% 0.18 145);
-    --accent-foreground: oklch(8% 0.005 270);
+    /* Accent - subdued neutral surface highlight */
+    --accent: oklch(28% 0.01 270);
+    --accent-foreground: oklch(92% 0.01 100);
 
     /* Destructive - muted red */
     --destructive: oklch(60% 0.18 25);
@@ -109,19 +109,19 @@
     --border-subtle: oklch(35% 0.008 270 / 0.3);
     --border-hover: oklch(50% 0.012 270 / 0.5);
     --input: oklch(38% 0.01 270 / 0.35);
-    --ring: oklch(70% 0.15 195 / 0.5);
+    --ring: oklch(78% 0.018 95 / 0.35);
 
-    /* Status colors - neon accents */
-    --success: oklch(75% 0.18 145);
+    /* Status colors - subdued semantic accents */
+    --success: oklch(68% 0.1 145);
     --success-foreground: oklch(8% 0.005 270);
-    --warning: oklch(75% 0.14 85);
+    --warning: oklch(75% 0.12 85);
     --warning-foreground: oklch(8% 0.005 270);
-    --info: oklch(70% 0.15 250);
-    --info-foreground: oklch(95% 0.01 100);
+    --info: oklch(72% 0.04 95);
+    --info-foreground: oklch(10% 0.005 270);
 
     /* Typography */
     /* Typography - Inter for UI, IBM Plex Mono for code */
-    --app-font-sans: "Inter", system-ui, -apple-system, sans-serif;
+    --app-font-sans: "Space Grotesk", system-ui, -apple-system, sans-serif;
     --app-font-mono: "IBM Plex Mono", "JetBrains Mono", "SF Mono", ui-monospace, monospace;
 
     /* Spacing scale - compact, efficient */
@@ -179,9 +179,9 @@
     letter-spacing: -0.01em;
   }
 
-  /* Selection - cyan tint */
+  /* Selection - neutral tint */
   ::selection {
-    background: oklch(70% 0.15 195 / 0.3);
+    background: oklch(78% 0.018 95 / 0.25);
     color: var(--foreground);
   }
 
@@ -213,7 +213,7 @@
     background: oklch(55% 0.015 270 / 0.6);
   }
 
-  /* Focus visible - cyan ring */
+  /* Focus visible - neutral ring */
   :focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 2px;

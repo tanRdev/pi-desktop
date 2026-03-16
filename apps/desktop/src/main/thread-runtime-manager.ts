@@ -22,9 +22,13 @@ export interface ThreadRuntimeReconcileReport {
 }
 
 export interface ThreadRuntimeManager {
-  ensureThreadRuntime(spec: ThreadRuntimeLaunchSpec): Promise<ThreadRuntimeDescriptor>;
+  ensureThreadRuntime(
+    spec: ThreadRuntimeLaunchSpec,
+  ): Promise<ThreadRuntimeDescriptor>;
   getRuntimeState(thread: ThreadRuntimeRef): Promise<ThreadRuntimeDescriptor>;
-  restartThreadRuntime(spec: ThreadRuntimeLaunchSpec): Promise<ThreadRuntimeDescriptor>;
+  restartThreadRuntime(
+    spec: ThreadRuntimeLaunchSpec,
+  ): Promise<ThreadRuntimeDescriptor>;
   terminateThreadRuntime(threadId: string): Promise<void>;
   reconcile(threads: ThreadRuntimeRef[]): Promise<ThreadRuntimeReconcileReport>;
 }

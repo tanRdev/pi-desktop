@@ -1,11 +1,38 @@
 import type {
   AgentSnapshot,
+  ModelSwitchRequest,
   PiDeskAgentEvent,
+  PiDiscoveryResult,
   ProviderSnapshot,
   SettingsSnapshot,
 } from "./agent.js";
 import type { OpenDialogOptions } from "./dialog.js";
+import type {
+  DirectoryListing,
+  FileContent,
+  ImageMetadata,
+  ImagePreview,
+  ImagePreviewOptions,
+} from "./fs.js";
+import type {
+  AutocompleteContext,
+  AutocompleteSuggestions,
+  SearchRequest,
+  SearchResponse,
+} from "./search.js";
 import type { ShellSnapshot } from "./shell.js";
+import type {
+  PiTerminalRouteRequest,
+  PiTerminalRouteResult,
+  TerminalCreateOptions,
+  TerminalSession,
+} from "./terminal.js";
+import type {
+  CanvasWindow,
+  CreateWindowAction,
+  WindowLayoutState,
+  WindowPosition,
+} from "./window.js";
 
 export interface PiDeskApi {
   shell: {
@@ -17,6 +44,11 @@ export interface PiDeskApi {
     getSnapshot(): Promise<AgentSnapshot>;
     prompt(text: string): Promise<void>;
     reset(): Promise<void>;
+    switchModel(request: ModelSwitchRequest): Promise<void>;
+    getDiscovery(): Promise<PiDiscoveryResult>;
+    getSlashSuggestions(
+      context: AutocompleteContext,
+    ): Promise<AutocompleteSuggestions>;
     subscribe(listener: (event: PiDeskAgentEvent) => void): () => void;
   };
   repositories: {
@@ -30,23 +62,29 @@ export interface PiDeskApi {
   threads: {
     create(worktreeId: string, title?: string): Promise<void>;
     select(threadId: string): Promise<void>;
+    routeToTerminal(
+      request: PiTerminalRouteRequest,
+    ): Promise<PiTerminalRouteResult>;
   };
   dialog: {
     showOpenDialog(options: OpenDialogOptions): Promise<string[] | null>;
   };
   fs: {
-    readDirectory(path: string): Promise<import("./fs.js").DirectoryListing>;
-    readFile(path: string): Promise<import("./fs.js").FileContent>;
+    readDirectory(path: string): Promise<DirectoryListing>;
+    readFile(path: string): Promise<FileContent>;
     writeFile(path: string, content: string): Promise<void>;
+    getImageMetadata(path: string): Promise<ImageMetadata>;
+    getImagePreview(
+      path: string,
+      options?: ImagePreviewOptions,
+    ): Promise<ImagePreview>;
   };
   terminal: {
-    create(
-      id: string,
-      options: { cols: number; rows: number; cwd?: string },
-    ): Promise<void>;
+    create(options: TerminalCreateOptions): Promise<TerminalSession>;
     write(id: string, data: string): Promise<void>;
     resize(id: string, cols: number, rows: number): Promise<void>;
     destroy(id: string): Promise<void>;
+    getSessions(): Promise<TerminalSession[]>;
     onEvent(
       listener: (event: {
         type: string;
@@ -55,5 +93,19 @@ export interface PiDeskApi {
         exitCode?: number;
       }) => void,
     ): () => void;
+  };
+  search: {
+    searchFiles(request: SearchRequest): Promise<SearchResponse>;
+  };
+  window: {
+    create(action: CreateWindowAction): Promise<CanvasWindow>;
+    close(windowId: string): Promise<void>;
+    focus(windowId: string): Promise<void>;
+    move(windowId: string, position: WindowPosition): Promise<void>;
+    resize(windowId: string, position: WindowPosition): Promise<void>;
+    minimize(windowId: string): Promise<void>;
+    maximize(windowId: string): Promise<void>;
+    restore(windowId: string): Promise<void>;
+    getLayout(): Promise<WindowLayoutState>;
   };
 }

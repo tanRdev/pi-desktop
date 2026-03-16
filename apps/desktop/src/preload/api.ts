@@ -1,11 +1,28 @@
 import {
   type AgentSnapshot,
+  type AutocompleteContext,
+  type AutocompleteSuggestions,
+  type CanvasWindow,
+  type CreateWindowAction,
+  type ImageMetadata,
+  type ImagePreview,
+  type ImagePreviewOptions,
   IPC_CHANNELS,
+  type ModelSwitchRequest,
   type PiDeskAgentEvent,
   type PiDeskApi,
+  type PiDiscoveryResult,
+  type PiTerminalRouteRequest,
+  type PiTerminalRouteResult,
   type ProviderSnapshot,
+  type SearchRequest,
+  type SearchResponse,
   type SettingsSnapshot,
   type ShellSnapshot,
+  type TerminalCreateOptions,
+  type TerminalSession,
+  type WindowLayoutState,
+  type WindowPosition,
 } from "@pidesk/shared";
 
 export type PreloadInvoke = <TReturn>(
@@ -55,6 +72,21 @@ export function createPiDeskApi({
       reset() {
         return invoke<void>(IPC_CHANNELS.agent.reset, undefined);
       },
+      switchModel(request: ModelSwitchRequest) {
+        return invoke<void>(IPC_CHANNELS.agent.switchModel, request);
+      },
+      getDiscovery() {
+        return invoke<PiDiscoveryResult>(
+          IPC_CHANNELS.agent.getDiscovery,
+          undefined,
+        );
+      },
+      getSlashSuggestions(context: AutocompleteContext) {
+        return invoke<AutocompleteSuggestions>(
+          IPC_CHANNELS.agent.getSlashSuggestions,
+          context,
+        );
+      },
       subscribe(listener: (event: PiDeskAgentEvent) => void) {
         return on<PiDeskAgentEvent>(IPC_CHANNELS.agent.event, listener);
       },
@@ -85,6 +117,12 @@ export function createPiDeskApi({
       select(threadId: string) {
         return invoke<void>(IPC_CHANNELS.threads.select, { threadId });
       },
+      routeToTerminal(request: PiTerminalRouteRequest) {
+        return invoke<PiTerminalRouteResult>(
+          IPC_CHANNELS.threads.routeToTerminal,
+          request,
+        );
+      },
     },
     dialog: {
       showOpenDialog(options: Electron.OpenDialogOptions) {
@@ -110,13 +148,21 @@ export function createPiDeskApi({
       writeFile(path: string, content: string) {
         return invoke<void>(IPC_CHANNELS.fs.writeFile, { path, content });
       },
+      getImageMetadata(path: string) {
+        return invoke<ImageMetadata>(IPC_CHANNELS.fs.getImageMetadata, {
+          path,
+        });
+      },
+      getImagePreview(path: string, options?: ImagePreviewOptions) {
+        return invoke<ImagePreview>(IPC_CHANNELS.fs.getImagePreview, {
+          path,
+          options,
+        });
+      },
     },
     terminal: {
-      create(
-        id: string,
-        options: { cols: number; rows: number; cwd?: string },
-      ) {
-        return invoke<void>(IPC_CHANNELS.terminal.create, { id, ...options });
+      create(options: TerminalCreateOptions) {
+        return invoke<TerminalSession>(IPC_CHANNELS.terminal.create, options);
       },
       write(id: string, data: string) {
         return invoke<void>(IPC_CHANNELS.terminal.write, { id, data });
@@ -127,6 +173,12 @@ export function createPiDeskApi({
       destroy(id: string) {
         return invoke<void>(IPC_CHANNELS.terminal.destroy, { id });
       },
+      getSessions() {
+        return invoke<TerminalSession[]>(
+          IPC_CHANNELS.terminal.getSessions,
+          undefined,
+        );
+      },
       onEvent(
         listener: (event: {
           type: string;
@@ -136,6 +188,43 @@ export function createPiDeskApi({
         }) => void,
       ) {
         return on(IPC_CHANNELS.terminal.create, listener);
+      },
+    },
+    search: {
+      searchFiles(request: SearchRequest) {
+        return invoke<SearchResponse>(IPC_CHANNELS.search.searchFiles, request);
+      },
+    },
+    window: {
+      create(action: CreateWindowAction) {
+        return invoke<CanvasWindow>(IPC_CHANNELS.window.create, action);
+      },
+      close(windowId: string) {
+        return invoke<void>(IPC_CHANNELS.window.close, { windowId });
+      },
+      focus(windowId: string) {
+        return invoke<void>(IPC_CHANNELS.window.focus, { windowId });
+      },
+      move(windowId: string, position: WindowPosition) {
+        return invoke<void>(IPC_CHANNELS.window.move, { windowId, position });
+      },
+      resize(windowId: string, position: WindowPosition) {
+        return invoke<void>(IPC_CHANNELS.window.resize, { windowId, position });
+      },
+      minimize(windowId: string) {
+        return invoke<void>(IPC_CHANNELS.window.minimize, { windowId });
+      },
+      maximize(windowId: string) {
+        return invoke<void>(IPC_CHANNELS.window.maximize, { windowId });
+      },
+      restore(windowId: string) {
+        return invoke<void>(IPC_CHANNELS.window.restore, { windowId });
+      },
+      getLayout() {
+        return invoke<WindowLayoutState>(
+          IPC_CHANNELS.window.getLayout,
+          undefined,
+        );
       },
     },
   };

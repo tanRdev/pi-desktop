@@ -97,7 +97,7 @@ function FileTreeItem({
         <Icon
           className={cn(
             "size-3.5 shrink-0",
-            isDirectory ? "text-amber-400" : "text-cyan-400",
+            isDirectory ? "text-amber-400" : "text-muted-foreground",
           )}
         />
         <span className="truncate">{entry.name}</span>

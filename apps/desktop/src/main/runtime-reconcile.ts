@@ -12,7 +12,9 @@ export function reconcileThreadRuntimeStates({
   managedSessionNames,
   threadStates,
 }: ReconcileThreadRuntimeStatesInput): ThreadRuntimeReconcileReport {
-  const knownSessionNames = new Set(threadStates.map((thread) => thread.sessionName));
+  const knownSessionNames = new Set(
+    threadStates.map((thread) => thread.sessionName),
+  );
 
   return {
     active: threadStates,

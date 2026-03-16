@@ -1,6 +1,13 @@
 import path from "node:path";
-import type { AgentSnapshot, ShellCatalogSnapshot, ThreadSnapshot } from "@pidesk/shared";
-import type { GitRepositoryInspection, GitWorktreeSummary } from "./git-worktree-service";
+import type {
+  AgentSnapshot,
+  ShellCatalogSnapshot,
+  ThreadSnapshot,
+} from "@pidesk/shared";
+import type {
+  GitRepositoryInspection,
+  GitWorktreeSummary,
+} from "./git-worktree-service";
 import type { RepositoryCatalogEntry } from "./repository-catalog";
 import type { AppSelectionState } from "./selection-state";
 import type { ThreadCatalogEntry } from "./thread-catalog";
@@ -18,7 +25,10 @@ export interface BuildShellCatalogOptions {
   selectedAgentSnapshot?: AgentSnapshot | null;
 }
 
-function createWorktreeLabel(worktree: GitWorktreeSummary, fallbackName: string): string {
+function createWorktreeLabel(
+  worktree: GitWorktreeSummary,
+  fallbackName: string,
+): string {
   if (worktree.branch) {
     return worktree.branch;
   }
@@ -96,7 +106,8 @@ export async function buildShellCatalog({
   const repositorySnapshots = await Promise.all(
     repositories.map(async (repository) => {
       const inspection = inspectRepository(repository.rootPath);
-      const fallbackName = repository.label ?? path.basename(repository.rootPath);
+      const fallbackName =
+        repository.label ?? path.basename(repository.rootPath);
 
       if (
         inspection.status !== "repository" ||

@@ -1,4 +1,4 @@
-import type { RepositorySnapshot, WorktreeSnapshot } from "@pidesk/shared";
+import type { RepositorySnapshot } from "@pidesk/shared";
 import { Plus } from "lucide-react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
@@ -34,9 +34,9 @@ export function LeftSidebar({
   className,
 }: LeftSidebarProps) {
   // Track expanded worktree - only one can be expanded at a time
-  const [expandedWorktreeId, setExpandedWorktreeId] = React.useState<string | null>(
-    activeWorktreeId
-  );
+  const [expandedWorktreeId, setExpandedWorktreeId] = React.useState<
+    string | null
+  >(activeWorktreeId);
 
   // Update expanded worktree when active changes
   React.useEffect(() => {
@@ -89,7 +89,7 @@ export function LeftSidebar({
     <aside
       className={cn(
         "relative z-10 flex h-full shrink-0 flex-col border-r border-border bg-surface-1",
-        className
+        className,
       )}
       style={{ width }}
     >
@@ -130,6 +130,7 @@ export function LeftSidebar({
           type="button"
           variant="ghost"
           size="sm"
+          aria-label="Create worktree"
           className="h-7 w-full justify-start gap-1.5 px-2 text-[11px] text-muted-foreground hover:text-foreground"
           onClick={onCreateWorktree}
         >
@@ -147,9 +148,7 @@ export function LeftSidebar({
       </div>
       {/* Resize handle */}
       <div
-        className={cn(
-          "absolute right-0 top-0 bottom-0 w-1 cursor-col-resize"
-        )}
+        className={cn("absolute right-0 top-0 bottom-0 w-1 cursor-col-resize")}
         onMouseDown={() => setIsResizing(true)}
         title="Drag to resize"
       />

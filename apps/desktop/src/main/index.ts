@@ -2,27 +2,39 @@ import { mkdirSync } from "node:fs";
 import path from "node:path";
 import type {
   AgentSnapshot,
+  AutocompleteContext,
+  AutocompleteSuggestions,
+  ModelSwitchRequest,
   PiDeskAgentEvent,
+  PiDiscoveryResult,
+  PiTerminalRouteRequest,
+  PiTerminalRouteResult,
   ProviderSnapshot,
+  SearchRequest,
+  SearchResponse,
   SettingsSnapshot,
 } from "@pidesk/shared";
 import { IPC_CHANNELS } from "@pidesk/shared";
 import { app, BrowserWindow, ipcMain } from "electron";
 import { createAgentHostClient } from "./agent-host-client";
 import {
-  createAgentHostSocketTransport,
-  type AgentHostSocketTransport,
-} from "./agent-host-socket-transport";
-import agentHostSessionServerEntryPath from "./agent-host-session-server-entry?modulePath";
-import {
   createUnavailableAgentHost,
   resolveAgentRuntimeOptions,
 } from "./agent-host-runtime";
+import agentHostSessionServerEntryPath from "./agent-host-session-server-entry?modulePath";
 import {
-  GitWorktreeService,
+  type AgentHostSocketTransport,
+  createAgentHostSocketTransport,
+} from "./agent-host-socket-transport";
+import {
   type GitRepositoryInspection,
+  GitWorktreeService,
 } from "./git-worktree-service";
 import { registerIpcHandlers } from "./ipc-router";
+import {
+  discoverPiResources,
+  getPiSlashSuggestions,
+} from "./pi-resource-discovery";
 import { RepositoryCatalog } from "./repository-catalog";
 import { SelectionState } from "./selection-state";
 import { buildShellCatalog } from "./shell-catalog-builder";
@@ -36,6 +48,7 @@ import {
   resolvePreloadTarget,
   resolveRendererTarget,
 } from "./window-config";
+import { WorkspaceSearchService } from "./workspace-search-service";
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -136,11 +149,13 @@ async function bootstrapDesktop() {
   await app.whenReady();
   app.setName("PiDesk");
 
-  mainWindow = await createMainWindow();
-  terminalManager.setMainWindow(mainWindow);
-  mainWindow.on("closed", () => {
-    mainWindow = null;
-  });
+  const explicitUserDataPath = process.env.PIDESK_USER_DATA_DIR;
+  if (explicitUserDataPath) {
+    app.setPath("userData", explicitUserDataPath);
+  } else if (process.env.NODE_ENV === "test") {
+    const testHomePath = process.env.HOME ?? app.getPath("home");
+    app.setPath("userData", path.join(testHomePath, ".pidesk-test-user-data"));
+  }
 
   const userDataPath = app.getPath("userData");
   const gitService = new GitWorktreeService();
@@ -148,7 +163,7 @@ async function bootstrapDesktop() {
   const threadCatalog = new ThreadCatalog(userDataPath);
   const selectionState = new SelectionState(userDataPath);
   const runtimeManager = new TmuxThreadRuntimeManager();
-  const runtimeSocketDirectory = path.join(userDataPath, "runtime");
+  const runtimeSocketDirectory = path.join(app.getPath("temp"), "pd");
   mkdirSync(runtimeSocketDirectory, { recursive: true });
 
   let currentContext: SelectedThreadContext | null = null;
@@ -156,6 +171,8 @@ async function bootstrapDesktop() {
   let currentHost: AgentDesktopHost = createBootstrapErrorHost(
     "PiDesk agent host has not been attached yet",
   );
+  const workspaceSearchService = new WorkspaceSearchService();
+  const defaultAgentDirectory = path.join(app.getPath("home"), ".pi", "agent");
 
   const subscribeToHost = (
     host: AgentDesktopHost,
@@ -170,6 +187,93 @@ async function bootstrapDesktop() {
     });
 
   let unsubscribe = subscribeToHost(currentHost, null);
+
+  function resolveAgentDirectory(): string {
+    return currentContext?.agentDirectory ?? defaultAgentDirectory;
+  }
+
+  function resolveContextCwd(): string {
+    return currentContext?.worktreePath ?? process.cwd();
+  }
+
+  async function handleSwitchModel(request: ModelSwitchRequest): Promise<void> {
+    if (!currentContext) {
+      throw new Error("No active Pi context is selected");
+    }
+
+    const { SettingsManager } = await import("@mariozechner/pi-coding-agent");
+    const agentDirectory = resolveAgentDirectory();
+    const settingsManager = SettingsManager.create(
+      currentContext.worktreePath,
+      agentDirectory,
+    );
+    settingsManager.setDefaultProvider(request.providerId);
+    settingsManager.setDefaultModel(request.modelId);
+
+    await runtimeManager.restartThreadRuntime({
+      threadId: currentContext.thread.id,
+      worktreePath: currentContext.worktreePath,
+      command: currentContext.command,
+    });
+    commitAttachment(await attachContext(currentContext));
+  }
+
+  async function handleGetDiscovery(): Promise<PiDiscoveryResult> {
+    return discoverPiResources(resolveAgentDirectory(), resolveContextCwd());
+  }
+
+  async function handleGetSlashSuggestions(
+    context: AutocompleteContext,
+  ): Promise<AutocompleteSuggestions> {
+    return getPiSlashSuggestions({
+      agentDir: resolveAgentDirectory(),
+      cwd: resolveContextCwd(),
+      context,
+    });
+  }
+
+  async function handleSearchFiles(
+    request: SearchRequest,
+  ): Promise<SearchResponse> {
+    return workspaceSearchService.search(request);
+  }
+
+  async function handleRouteToTerminal(
+    request: PiTerminalRouteRequest,
+  ): Promise<PiTerminalRouteResult> {
+    const prompt = request.prompt.trim();
+    if (!prompt) {
+      return { success: false, error: "Prompt must not be empty" };
+    }
+
+    const session = terminalManager
+      .getSessions()
+      .find((candidate) => candidate.id === request.terminalId);
+    if (!session) {
+      return {
+        success: false,
+        error: `Unknown terminal session: ${request.terminalId}`,
+      };
+    }
+
+    if (session.backend === "lazygit") {
+      return {
+        success: false,
+        error: "Cannot route prompts into a lazygit session",
+      };
+    }
+
+    if (request.startPiIfNotLinked && !session.linkedThreadId) {
+      terminalManager.write(session.id, "pi\n");
+      await delay(150);
+    }
+
+    terminalManager.write(session.id, `${prompt}\n`);
+    return {
+      success: true,
+      threadId: session.linkedThreadId,
+    };
+  }
 
   async function connectSocketHost(socketPath: string): Promise<{
     host: AgentDesktopHost;
@@ -323,8 +427,9 @@ async function bootstrapDesktop() {
     return resolveDefaultThreadContext(createdWorktreePath);
   }
 
-
-  async function resolveThreadContext(threadId: string): Promise<SelectedThreadContext> {
+  async function resolveThreadContext(
+    threadId: string,
+  ): Promise<SelectedThreadContext> {
     const thread = threadCatalog.get(threadId);
     if (!thread) {
       throw new Error(`Unknown thread: ${threadId}`);
@@ -397,11 +502,8 @@ async function bootstrapDesktop() {
     repositoryId: string,
     branchName: string,
   ) {
-    return attachContext(
-      await createWorktreeContext(repositoryId, branchName),
-    );
+    return attachContext(await createWorktreeContext(repositoryId, branchName));
   }
-
 
   function commitAttachment(attached: {
     context: SelectedThreadContext;
@@ -420,7 +522,8 @@ async function bootstrapDesktop() {
     previousTransport?.close();
   }
 
-  const preferredWorktreePath = selectionState.get().worktreeId ?? process.cwd();
+  const preferredWorktreePath =
+    selectionState.get().worktreeId ?? process.cwd();
 
   try {
     commitAttachment(await attachToPath(preferredWorktreePath));
@@ -468,7 +571,8 @@ async function bootstrapDesktop() {
         repositories: repositoryCatalog.list(),
         selection,
         inspectRepository: (rootPath) => gitService.inspect(rootPath),
-        listThreadsByWorktree: (worktreeId) => threadCatalog.listByWorktree(worktreeId),
+        listThreadsByWorktree: (worktreeId) =>
+          threadCatalog.listByWorktree(worktreeId),
         getRuntimeState: (thread) => runtimeManager.getRuntimeState(thread),
         selectedAgentSnapshot: agentSnapshot,
       });
@@ -517,6 +621,17 @@ async function bootstrapDesktop() {
       },
     },
     mainWindow: null,
+    searchFiles: handleSearchFiles,
+    switchModel: handleSwitchModel,
+    getDiscovery: handleGetDiscovery,
+    getSlashSuggestions: handleGetSlashSuggestions,
+    routeToTerminal: handleRouteToTerminal,
+  });
+
+  mainWindow = await createMainWindow();
+  terminalManager.setMainWindow(mainWindow);
+  mainWindow.on("closed", () => {
+    mainWindow = null;
   });
 
   app.once("will-quit", () => {

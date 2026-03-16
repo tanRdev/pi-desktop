@@ -1,19 +1,19 @@
-import { useSettings } from "../settings-context";
 import {
-  SettingsSection,
-  SettingsRow,
-  SettingsSelect,
-  SettingsSwitch,
-  SettingsSlider,
-  SettingsNumberInput,
-  SettingsDivider,
-  ResetButton,
-} from "../form-components";
-import {
-  WORD_WRAP_OPTIONS,
-  LINE_NUMBER_OPTIONS,
   CURSOR_BLINKING_OPTIONS,
+  LINE_NUMBER_OPTIONS,
+  WORD_WRAP_OPTIONS,
 } from "../defaults";
+import {
+  ResetButton,
+  SettingsDivider,
+  SettingsNumberInput,
+  SettingsRow,
+  SettingsSection,
+  SettingsSelect,
+  SettingsSlider,
+  SettingsSwitch,
+} from "../form-components";
+import { useSettings } from "../settings-context";
 
 export function EditorSettingsSection() {
   const { settings, updateSettings, resetSection } = useSettings();
@@ -28,7 +28,9 @@ export function EditorSettingsSection() {
         <SettingsRow label="Font Family" description="Editor font">
           <select
             value={editor.fontFamily}
-            onChange={(e) => updateSettings("editor", { fontFamily: e.target.value })}
+            onChange={(e) =>
+              updateSettings("editor", { fontFamily: e.target.value })
+            }
             className="flex h-9 w-[180px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
             <option value="JetBrains Mono">JetBrains Mono</option>
@@ -51,7 +53,9 @@ export function EditorSettingsSection() {
         <SettingsRow label="Line Height" description="Line height multiplier">
           <SettingsSlider
             value={editor.lineHeight}
-            onChange={(value) => updateSettings("editor", { lineHeight: value })}
+            onChange={(value) =>
+              updateSettings("editor", { lineHeight: value })
+            }
             min={1}
             max={2}
             step={0.1}
@@ -70,14 +74,15 @@ export function EditorSettingsSection() {
 
       <SettingsDivider />
 
-      <SettingsSection
-        title="Display"
-        description="Visual editor settings"
-      >
+      <SettingsSection title="Display" description="Visual editor settings">
         <SettingsRow label="Word Wrap" description="Line wrapping behavior">
           <SettingsSelect
             value={editor.wordWrap}
-            onChange={(value) => updateSettings("editor", { wordWrap: value as typeof editor.wordWrap })}
+            onChange={(value) =>
+              updateSettings("editor", {
+                wordWrap: value as typeof editor.wordWrap,
+              })
+            }
             options={WORD_WRAP_OPTIONS}
           />
         </SettingsRow>
@@ -85,7 +90,11 @@ export function EditorSettingsSection() {
         <SettingsRow label="Line Numbers" description="Show line numbers">
           <SettingsSelect
             value={editor.lineNumbers}
-            onChange={(value) => updateSettings("editor", { lineNumbers: value as typeof editor.lineNumbers })}
+            onChange={(value) =>
+              updateSettings("editor", {
+                lineNumbers: value as typeof editor.lineNumbers,
+              })
+            }
             options={LINE_NUMBER_OPTIONS}
           />
         </SettingsRow>
@@ -93,14 +102,21 @@ export function EditorSettingsSection() {
         <SettingsRow label="Minimap" description="Show code minimap">
           <SettingsSwitch
             checked={editor.minimap}
-            onChange={(checked) => updateSettings("editor", { minimap: checked })}
+            onChange={(checked) =>
+              updateSettings("editor", { minimap: checked })
+            }
           />
         </SettingsRow>
 
-        <SettingsRow label="Bracket Colorization" description="Color matching brackets">
+        <SettingsRow
+          label="Bracket Colorization"
+          description="Color matching brackets"
+        >
           <SettingsSwitch
             checked={editor.bracketPairColorization}
-            onChange={(checked) => updateSettings("editor", { bracketPairColorization: checked })}
+            onChange={(checked) =>
+              updateSettings("editor", { bracketPairColorization: checked })
+            }
           />
         </SettingsRow>
       </SettingsSection>
@@ -111,10 +127,17 @@ export function EditorSettingsSection() {
         title="Cursor"
         description="Cursor appearance and behavior"
       >
-        <SettingsRow label="Cursor Blinking" description="Cursor animation style">
+        <SettingsRow
+          label="Cursor Blinking"
+          description="Cursor animation style"
+        >
           <SettingsSelect
             value={editor.cursorBlinking}
-            onChange={(value) => updateSettings("editor", { cursorBlinking: value as typeof editor.cursorBlinking })}
+            onChange={(value) =>
+              updateSettings("editor", {
+                cursorBlinking: value as typeof editor.cursorBlinking,
+              })
+            }
             options={CURSOR_BLINKING_OPTIONS}
           />
         </SettingsRow>
@@ -122,22 +145,26 @@ export function EditorSettingsSection() {
 
       <SettingsDivider />
 
-      <SettingsSection
-        title="Auto Save"
-        description="Automatic file saving"
-      >
+      <SettingsSection title="Auto Save" description="Automatic file saving">
         <SettingsRow label="Auto Save" description="Enable auto save">
           <SettingsSwitch
             checked={editor.autoSave}
-            onChange={(checked) => updateSettings("editor", { autoSave: checked })}
+            onChange={(checked) =>
+              updateSettings("editor", { autoSave: checked })
+            }
           />
         </SettingsRow>
 
         {editor.autoSave && (
-          <SettingsRow label="Auto Save Delay" description="Delay in milliseconds">
+          <SettingsRow
+            label="Auto Save Delay"
+            description="Delay in milliseconds"
+          >
             <SettingsNumberInput
               value={editor.autoSaveDelay}
-              onChange={(value) => updateSettings("editor", { autoSaveDelay: value })}
+              onChange={(value) =>
+                updateSettings("editor", { autoSaveDelay: value })
+              }
               min={100}
               max={10000}
               step={100}
@@ -146,10 +173,15 @@ export function EditorSettingsSection() {
           </SettingsRow>
         )}
 
-        <SettingsRow label="Format on Save" description="Auto-format when saving">
+        <SettingsRow
+          label="Format on Save"
+          description="Auto-format when saving"
+        >
           <SettingsSwitch
             checked={editor.formatOnSave}
-            onChange={(checked) => updateSettings("editor", { formatOnSave: checked })}
+            onChange={(checked) =>
+              updateSettings("editor", { formatOnSave: checked })
+            }
           />
         </SettingsRow>
       </SettingsSection>

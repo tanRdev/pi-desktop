@@ -1,6 +1,6 @@
 import type { WorktreeGitSnapshot } from "@pidesk/shared";
 import { AlertCircle, Loader2, Pencil, RefreshCw } from "lucide-react";
-import * as React from "react";
+import type * as React from "react";
 import { cn } from "@/lib/utils";
 
 export interface GitStatusChipProps {
@@ -26,7 +26,9 @@ export function GitStatusChip({ git, className }: GitStatusChipProps) {
     };
     return (
       <span className={cn("shrink-0", className)}>
-        {statusIcons[git.status] ?? <RefreshCw className="h-3 w-3 text-amber-400" />}
+        {statusIcons[git.status] ?? (
+          <RefreshCw className="h-3 w-3 text-amber-400" />
+        )}
       </span>
     );
   }

@@ -1,7 +1,7 @@
-import { afterEach, describe, expect, it } from "vitest";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { afterEach, describe, expect, it } from "vitest";
 import { SelectionState } from "../../../apps/desktop/src/main/selection-state";
 
 const tempDirs: string[] = [];

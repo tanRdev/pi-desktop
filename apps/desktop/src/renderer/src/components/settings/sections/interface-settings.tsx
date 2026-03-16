@@ -2,7 +2,6 @@ import { ACCENT_COLORS, SIDEBAR_POSITIONS, THEME_OPTIONS } from "../defaults";
 import {
   ResetButton,
   SettingsDivider,
-  SettingsNumberInput,
   SettingsRow,
   SettingsSection,
   SettingsSelect,

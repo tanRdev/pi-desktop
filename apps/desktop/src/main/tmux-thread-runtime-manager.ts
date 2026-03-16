@@ -58,11 +58,18 @@ export class TmuxThreadRuntimeManager implements ThreadRuntimeManager {
     const sessionName = createTmuxThreadSessionName(spec.threadId);
 
     if (!fs.existsSync(worktreePath)) {
-      throw new Error(`Cannot start thread runtime in missing worktree: ${worktreePath}`);
+      throw new Error(
+        `Cannot start thread runtime in missing worktree: ${worktreePath}`,
+      );
     }
 
     if (this.hasSession(sessionName)) {
-      return this.createDescriptor(spec.threadId, worktreePath, sessionName, "ready");
+      return this.createDescriptor(
+        spec.threadId,
+        worktreePath,
+        sessionName,
+        "ready",
+      );
     }
 
     const result = this.runTmux(
@@ -80,14 +87,23 @@ export class TmuxThreadRuntimeManager implements ThreadRuntimeManager {
 
     if (result.error || result.status !== 0) {
       throw new Error(
-        result.error?.message || result.stderr.trim() || "Failed to create tmux session",
+        result.error?.message ||
+          result.stderr.trim() ||
+          "Failed to create tmux session",
       );
     }
 
-    return this.createDescriptor(spec.threadId, worktreePath, sessionName, "ready");
+    return this.createDescriptor(
+      spec.threadId,
+      worktreePath,
+      sessionName,
+      "ready",
+    );
   }
 
-  async getRuntimeState(thread: ThreadRuntimeRef): Promise<ThreadRuntimeDescriptor> {
+  async getRuntimeState(
+    thread: ThreadRuntimeRef,
+  ): Promise<ThreadRuntimeDescriptor> {
     const worktreePath = normalizeWorktreePath(thread.worktreePath);
     const sessionName = createTmuxThreadSessionName(thread.threadId);
 
@@ -116,7 +132,9 @@ export class TmuxThreadRuntimeManager implements ThreadRuntimeManager {
     const result = this.runTmux(["kill-session", "-t", sessionName]);
     if (result.error || result.status !== 0) {
       throw new Error(
-        result.error?.message || result.stderr.trim() || "Failed to terminate tmux session",
+        result.error?.message ||
+          result.stderr.trim() ||
+          "Failed to terminate tmux session",
       );
     }
   }
@@ -164,7 +182,9 @@ export class TmuxThreadRuntimeManager implements ThreadRuntimeManager {
     }
     if (result.error || result.status !== 0) {
       throw new Error(
-        result.error?.message || result.stderr.trim() || "Failed to list tmux sessions",
+        result.error?.message ||
+          result.stderr.trim() ||
+          "Failed to list tmux sessions",
       );
     }
 
@@ -176,7 +196,9 @@ export class TmuxThreadRuntimeManager implements ThreadRuntimeManager {
 
   private runTmux(args: string[], cwd?: string): TmuxCommandResult {
     try {
-      const prefixedArgs = this.socketName ? ["-L", this.socketName, ...args] : args;
+      const prefixedArgs = this.socketName
+        ? ["-L", this.socketName, ...args]
+        : args;
       const result = spawnSync(this.tmuxBinary, prefixedArgs, {
         cwd,
         encoding: "utf8",

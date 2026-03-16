@@ -1,6 +1,5 @@
 import type { WorktreeSnapshot } from "@pidesk/shared";
 import { ChevronDown, ChevronRight, GitBranch, Plus } from "lucide-react";
-import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { GitStatusChip } from "./git-status-chip";
@@ -26,9 +25,11 @@ export function WorktreeSection({
   onCreateThread,
 }: WorktreeSectionProps) {
   const isActive = worktree.id === activeWorktreeId;
-  const activeThreadCount = worktree.threads.filter((t) => !t.isArchived).length;
+  const activeThreadCount = worktree.threads.filter(
+    (t) => !t.isArchived,
+  ).length;
   const runningThreads = worktree.threads.filter(
-    (t) => !t.isArchived && (t.runtime.status === "streaming")
+    (t) => !t.isArchived && t.runtime.status === "streaming",
   ).length;
 
   return (
@@ -39,7 +40,9 @@ export function WorktreeSection({
         onClick={onToggleExpand}
         className={cn(
           "flex w-full items-center gap-2 px-3 py-2.5 text-left transition",
-          isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+          isActive
+            ? "text-foreground"
+            : "text-muted-foreground hover:text-foreground",
         )}
       >
         <span className="flex h-4 w-4 shrink-0 items-center justify-center">
@@ -55,14 +58,19 @@ export function WorktreeSection({
         <div className="min-w-0 flex-1">
           {/* Single line: name + git badge */}
           <div className="flex items-center gap-2">
-            <span className="truncate text-xs font-medium">
+            <span
+              data-testid={isActive ? "current-worktree-label" : undefined}
+              className="truncate text-xs font-medium"
+            >
               {worktree.label}
             </span>
             <GitStatusChip git={worktree.git} />
           </div>
           {/* Second line: thread count */}
           <div className="flex items-center gap-2 text-[10px] opacity-60">
-            <span>{activeThreadCount} thread{activeThreadCount !== 1 ? "s" : ""}</span>
+            <span>
+              {activeThreadCount} thread{activeThreadCount !== 1 ? "s" : ""}
+            </span>
             {runningThreads > 0 && (
               <span className="text-emerald-500">{runningThreads} running</span>
             )}
@@ -98,6 +106,7 @@ export function WorktreeSection({
               type="button"
               variant="ghost"
               size="sm"
+              aria-label="Create thread"
               className="h-6 w-full justify-start gap-1.5 px-2 text-[10px] text-muted-foreground hover:text-foreground"
               onClick={(e) => {
                 e.stopPropagation();

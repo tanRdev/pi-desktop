@@ -1,22 +1,21 @@
-import { useSettings } from "../settings-context";
-import {
-  SettingsSection,
-  SettingsRow,
-  SettingsSelect,
-  SettingsSwitch,
-  SettingsSlider,
-  SettingsInput,
-  SettingsNumberInput,
-  SettingsDivider,
-  ResetButton,
-  SettingsTextarea,
-} from "../form-components";
 import {
   AI_PROVIDERS,
-  GOOGLE_MODELS,
   ANTHROPIC_MODELS,
+  GOOGLE_MODELS,
   OPENAI_MODELS,
 } from "../defaults";
+import {
+  ResetButton,
+  SettingsDivider,
+  SettingsInput,
+  SettingsNumberInput,
+  SettingsRow,
+  SettingsSection,
+  SettingsSelect,
+  SettingsSlider,
+  SettingsTextarea,
+} from "../form-components";
+import { useSettings } from "../settings-context";
 
 export function AISettingsSection() {
   const { settings, updateSettings, resetSection } = useSettings();
@@ -47,9 +46,14 @@ export function AISettingsSection() {
             onChange={(value) => {
               updateSettings("ai", {
                 provider: value as typeof ai.provider,
-                model: value === "google" ? "gemini-2.0-flash" : 
-                       value === "anthropic" ? "claude-sonnet-4-20250514" : 
-                       value === "openai" ? "gpt-4o" : "",
+                model:
+                  value === "google"
+                    ? "gemini-2.0-flash"
+                    : value === "anthropic"
+                      ? "claude-sonnet-4-20250514"
+                      : value === "openai"
+                        ? "gpt-4o"
+                        : "",
               });
             }}
             options={AI_PROVIDERS}
@@ -84,7 +88,10 @@ export function AISettingsSection() {
         title="API Configuration"
         description="Authentication and connection settings"
       >
-        <SettingsRow label="API Key" description="Your API key (stored locally)">
+        <SettingsRow
+          label="API Key"
+          description="Your API key (stored locally)"
+        >
           <SettingsInput
             value={ai.apiKey}
             onChange={(value) => updateSettings("ai", { apiKey: value })}
@@ -101,7 +108,10 @@ export function AISettingsSection() {
         title="Model Parameters"
         description="Fine-tune model behavior"
       >
-        <SettingsRow label="Temperature" description="Randomness of output (0-2)">
+        <SettingsRow
+          label="Temperature"
+          description="Randomness of output (0-2)"
+        >
           <SettingsSlider
             value={ai.temperature}
             onChange={(value) => updateSettings("ai", { temperature: value })}

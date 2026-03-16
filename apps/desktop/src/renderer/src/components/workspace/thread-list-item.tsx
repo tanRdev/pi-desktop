@@ -1,7 +1,6 @@
 import type { ThreadSnapshot } from "@pidesk/shared";
 import { MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { RuntimeStatusChip } from "./runtime-status-chip";
 
 export interface ThreadListItemProps {
   thread: ThreadSnapshot;
@@ -36,7 +35,11 @@ function formatPreview(timestamp: number | null): string {
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
-export function ThreadListItem({ thread, isActive, onClick }: ThreadListItemProps) {
+export function ThreadListItem({
+  thread,
+  isActive,
+  onClick,
+}: ThreadListItemProps) {
   const isRunning = thread.runtime.status === "streaming";
 
   return (
@@ -47,7 +50,7 @@ export function ThreadListItem({ thread, isActive, onClick }: ThreadListItemProp
         "group flex w-full items-start gap-2 rounded-lg px-2 py-2 text-left transition",
         isActive
           ? "bg-surface-3 text-foreground"
-          : "text-muted-foreground hover:bg-surface-2 hover:text-foreground"
+          : "text-muted-foreground hover:bg-surface-2 hover:text-foreground",
       )}
     >
       {/* Status indicator */}
@@ -57,7 +60,7 @@ export function ThreadListItem({ thread, isActive, onClick }: ThreadListItemProp
             "h-2 w-2 rounded-full transition-all",
             isRunning
               ? "bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]"
-              : "bg-zinc-500"
+              : "bg-zinc-500",
           )}
         />
       </div>
@@ -66,7 +69,10 @@ export function ThreadListItem({ thread, isActive, onClick }: ThreadListItemProp
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
           <MessageSquare className="h-3 w-3 shrink-0 opacity-70" />
-          <span className="truncate text-xs font-medium">
+          <span
+            data-testid={isActive ? "current-thread-title" : undefined}
+            className="truncate text-xs font-medium"
+          >
             {thread.title || "Untitled thread"}
           </span>
         </div>

@@ -29,9 +29,14 @@ export function RepositorySwitcher({
   onSelect,
   onAdd,
 }: RepositorySwitcherProps) {
-  const activeRepository = getActiveRepository(repositories, activeRepositoryId);
+  const activeRepository = getActiveRepository(
+    repositories,
+    activeRepositoryId,
+  );
   const activeWorktree =
-    activeRepository?.worktrees.find((worktree) => worktree.id === activeRepositoryId) ??
+    activeRepository?.worktrees.find(
+      (worktree) => worktree.id === activeRepositoryId,
+    ) ??
     activeRepository?.worktrees[0] ??
     null;
 
@@ -43,7 +48,9 @@ export function RepositorySwitcher({
           className="h-auto w-full justify-between rounded border border-border bg-surface-2 px-3 py-2 text-left text-sm font-medium text-foreground shadow-sm transition hover:border-border-hover hover:bg-surface-3"
         >
           <div className="min-w-0 flex-1">
-            <div className="truncate">{activeRepository?.name ?? "Add a repository"}</div>
+            <div className="truncate">
+              {activeRepository?.name ?? "Add a repository"}
+            </div>
             <div className="mt-1 truncate text-xs text-muted-foreground">
               {activeWorktree?.path ?? "No repository selected"}
             </div>
@@ -78,7 +85,9 @@ export function RepositorySwitcher({
                     {repository.rootPath}
                   </div>
                 </div>
-                {repositoryWorktree && <GitStatusChip git={repositoryWorktree.git} />}
+                {repositoryWorktree && (
+                  <GitStatusChip git={repositoryWorktree.git} />
+                )}
               </button>
             );
           })}

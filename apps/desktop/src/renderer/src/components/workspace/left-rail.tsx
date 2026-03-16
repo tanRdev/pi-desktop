@@ -22,7 +22,7 @@ export function LeftRail({
   return (
     <aside
       className={cn(
-        "flex h-full w-16 shrink-0 flex-col border-r border-border bg-surface-1"
+        "flex h-full w-16 shrink-0 flex-col border-r border-border bg-surface-1",
       )}
     >
       {/* Project avatars area */}

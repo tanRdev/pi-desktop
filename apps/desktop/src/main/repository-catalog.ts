@@ -36,7 +36,7 @@ function normalizePathId(value: string): string {
 }
 
 function hasLabel(input: UpsertRepositoryInput): boolean {
-  return Object.prototype.hasOwnProperty.call(input, "label");
+  return Object.hasOwn(input, "label");
 }
 
 export class RepositoryCatalog {
@@ -60,7 +60,9 @@ export class RepositoryCatalog {
 
   get(repositoryId: string): RepositoryCatalogEntry | null {
     const normalizedId = normalizePathId(repositoryId);
-    return this.list().find((repository) => repository.id === normalizedId) ?? null;
+    return (
+      this.list().find((repository) => repository.id === normalizedId) ?? null
+    );
   }
 
   upsert(input: UpsertRepositoryInput): RepositoryCatalogEntry {
@@ -73,10 +75,13 @@ export class RepositoryCatalog {
       );
 
       if (existingIndex >= 0) {
-        const existing = repositories[existingIndex]!;
+        const existing = repositories[existingIndex];
+        if (!existing) {
+          return state;
+        }
         repositories[existingIndex] = {
           ...existing,
-          label: hasLabel(input) ? input.label ?? null : existing.label,
+          label: hasLabel(input) ? (input.label ?? null) : existing.label,
           updatedAt: currentTime,
         };
 
@@ -110,7 +115,9 @@ export class RepositoryCatalog {
       nextState.repositories.find((repository) => repository.id === rootPath) ??
       this.get(rootPath) ??
       (() => {
-        throw new Error(`Repository catalog entry missing after upsert: ${rootPath}`);
+        throw new Error(
+          `Repository catalog entry missing after upsert: ${rootPath}`,
+        );
       })()
     );
   }
@@ -120,7 +127,9 @@ export class RepositoryCatalog {
     worktreeId: string | null,
   ): RepositoryCatalogEntry | null {
     const normalizedRepositoryId = normalizePathId(repositoryId);
-    const normalizedWorktreeId = worktreeId ? normalizePathId(worktreeId) : null;
+    const normalizedWorktreeId = worktreeId
+      ? normalizePathId(worktreeId)
+      : null;
     const currentTime = this.now();
     const nextState = this.store.update((state) => ({
       ...state,

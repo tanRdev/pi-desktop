@@ -38,13 +38,18 @@ function normalizePathId(value: string): string {
   return resolved.replace(/[\\/]+$/, "") || resolved;
 }
 
-function sortThreads(left: ThreadCatalogEntry, right: ThreadCatalogEntry): number {
-  const archiveWeight = Number(left.archivedAt !== null) - Number(right.archivedAt !== null);
+function sortThreads(
+  left: ThreadCatalogEntry,
+  right: ThreadCatalogEntry,
+): number {
+  const archiveWeight =
+    Number(left.archivedAt !== null) - Number(right.archivedAt !== null);
   if (archiveWeight !== 0) {
     return archiveWeight;
   }
 
-  const activityWeight = (right.lastActivityAt ?? -1) - (left.lastActivityAt ?? -1);
+  const activityWeight =
+    (right.lastActivityAt ?? -1) - (left.lastActivityAt ?? -1);
   if (activityWeight !== 0) {
     return activityWeight;
   }
@@ -77,7 +82,9 @@ export class ThreadCatalog {
   }
 
   get(threadId: string): ThreadCatalogEntry | null {
-    return this.store.get().threads.find((thread) => thread.id === threadId) ?? null;
+    return (
+      this.store.get().threads.find((thread) => thread.id === threadId) ?? null
+    );
   }
 
   create(input: CreateThreadInput): ThreadCatalogEntry {
@@ -110,7 +117,10 @@ export class ThreadCatalog {
     return openThread ?? this.create(input);
   }
 
-  touch(threadId: string, lastActivityAt: number | null): ThreadCatalogEntry | null {
+  touch(
+    threadId: string,
+    lastActivityAt: number | null,
+  ): ThreadCatalogEntry | null {
     return this.updateThread(threadId, (thread, currentTime) => ({
       ...thread,
       lastActivityAt,
@@ -139,7 +149,10 @@ export class ThreadCatalog {
 
   private updateThread(
     threadId: string,
-    updater: (thread: ThreadCatalogEntry, currentTime: number) => ThreadCatalogEntry,
+    updater: (
+      thread: ThreadCatalogEntry,
+      currentTime: number,
+    ) => ThreadCatalogEntry,
   ): ThreadCatalogEntry | null {
     const currentTime = this.now();
     let updatedThread: ThreadCatalogEntry | null = null;

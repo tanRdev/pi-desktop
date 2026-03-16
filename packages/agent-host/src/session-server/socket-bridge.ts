@@ -1,10 +1,14 @@
 import fs from "node:fs";
 import net from "node:net";
 import path from "node:path";
-import type { AgentHostEnvelope, AgentHostRequest, PiDeskAgentEvent } from "@pidesk/shared";
+import type {
+  AgentHostEnvelope,
+  AgentHostRequest,
+  PiDeskAgentEvent,
+} from "@pidesk/shared";
 import {
-  createAgentHostCommandHandler,
   type CommandHandlerRuntime,
+  createAgentHostCommandHandler,
 } from "../utility-process/command-handler.js";
 
 export interface SocketAgentHostRuntime extends CommandHandlerRuntime {

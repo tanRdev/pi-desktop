@@ -39,16 +39,32 @@ export class MockAgentRuntime {
         id: "google",
         name: "Google",
         models: [
-          { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro" },
-          { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash" },
+          {
+            id: "gemini-2.5-pro",
+            name: "Gemini 2.5 Pro",
+            providerId: "google",
+          },
+          {
+            id: "gemini-2.5-flash",
+            name: "Gemini 2.5 Flash",
+            providerId: "google",
+          },
         ],
       },
       {
         id: "anthropic",
         name: "Anthropic",
         models: [
-          { id: "claude-sonnet-4-5-20251101", name: "Claude Sonnet 4.5" },
-          { id: "claude-3-7-sonnet-20250219", name: "Claude 3.7 Sonnet" },
+          {
+            id: "claude-sonnet-4-5-20251101",
+            name: "Claude Sonnet 4.5",
+            providerId: "anthropic",
+          },
+          {
+            id: "claude-3-7-sonnet-20250219",
+            name: "Claude 3.7 Sonnet",
+            providerId: "anthropic",
+          },
         ],
       },
     ];

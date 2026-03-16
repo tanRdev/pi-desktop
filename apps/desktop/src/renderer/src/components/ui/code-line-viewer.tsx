@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, MessageSquare } from "lucide-react";
+import { MessageSquare, Plus } from "lucide-react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { CodeBlockCode } from "./code-block";
@@ -46,10 +46,15 @@ export function CodeLineViewer({
   const [selection, setSelection] = React.useState<LineSelection | null>(null);
   const [hoveredLine, setHoveredLine] = React.useState<number | null>(null);
   const [showPopover, setShowPopover] = React.useState(false);
-  const [popoverPosition, setPopoverPosition] = React.useState({ top: 0, left: 0 });
+  const [popoverPosition, setPopoverPosition] = React.useState({
+    top: 0,
+    left: 0,
+  });
   const [dragState, setDragState] = React.useState<DragState | null>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
-  const popoverTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const popoverTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const lineRefsRef = React.useRef<Map<number, HTMLDivElement>>(new Map());
 
   // Clear selection when clicking outside
@@ -58,8 +63,11 @@ export function CodeLineViewer({
       // Don't clear if clicking inside popover
       const popover = containerRef.current?.querySelector('[class*="z-20"]');
       if (popover?.contains(e.target as Node)) return;
-      
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
         setSelection(null);
         setShowPopover(false);
       }
@@ -95,30 +103,38 @@ export function CodeLineViewer({
       const currentDrag = dragState;
       if (!currentDrag?.isDragging) return;
       const target = e.target as HTMLElement;
-      const lineRow = target.closest('.line-row');
+      const lineRow = target.closest(".line-row");
       if (lineRow) {
-        const lineNumber = parseInt(lineRow.getAttribute('data-line-number') || '0', 10);
+        const lineNumber = parseInt(
+          lineRow.getAttribute("data-line-number") || "0",
+          10,
+        );
         if (lineNumber && lineNumber !== currentDrag.currentLine) {
           const startLine = Math.min(currentDrag.startLine, lineNumber);
           const endLine = Math.max(currentDrag.startLine, lineNumber);
           setSelection({ startLine, endLine });
-          setDragState(prev => prev ? { ...prev, currentLine: lineNumber } : null);
+          setDragState((prev) =>
+            prev ? { ...prev, currentLine: lineNumber } : null,
+          );
         }
       }
     }
 
     function handleMouseUp(e: MouseEvent) {
       if (!dragState?.isDragging) return;
-      
+
       const target = e.target as HTMLElement;
-      const lineRow = target.closest('.line-row');
+      const lineRow = target.closest(".line-row");
       if (lineRow) {
-        const lineNumber = parseInt(lineRow.getAttribute('data-line-number') || '0', 10);
+        const lineNumber = parseInt(
+          lineRow.getAttribute("data-line-number") || "0",
+          10,
+        );
         if (lineNumber) {
           const startLine = Math.min(dragState.startLine, lineNumber);
           const endLine = Math.max(dragState.startLine, lineNumber);
           setSelection({ startLine, endLine });
-          
+
           // Calculate popover position at the middle of selection
           const midLine = Math.floor((startLine + endLine) / 2);
           const lineElement = lineRefsRef.current.get(midLine);
@@ -132,16 +148,16 @@ export function CodeLineViewer({
           }
         }
       }
-      
+
       setDragState(null);
     }
 
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-    
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
     };
   }, [dragState]);
 
@@ -160,7 +176,7 @@ export function CodeLineViewer({
   // Handle click on Plus button - toggle or extend selection
   function handleLineClick(lineNumber: number, e: React.MouseEvent) {
     e.stopPropagation();
-    
+
     if (e.shiftKey && selection) {
       // Extend selection
       const startLine = Math.min(selection.startLine, lineNumber);
@@ -168,7 +184,10 @@ export function CodeLineViewer({
       setSelection({ startLine, endLine });
     } else {
       // Toggle selection
-      if (selection?.startLine === lineNumber && selection.endLine === lineNumber) {
+      if (
+        selection?.startLine === lineNumber &&
+        selection.endLine === lineNumber
+      ) {
         setSelection(null);
         setShowPopover(false);
       } else {
@@ -231,16 +250,21 @@ export function CodeLineViewer({
               return (
                 <div
                   key={lineNumber}
-                  ref={(el) => { if (el) lineRefsRef.current.set(lineNumber, el); }}
+                  ref={(el) => {
+                    if (el) lineRefsRef.current.set(lineNumber, el);
+                  }}
                   data-line-number={lineNumber}
                   className={cn(
                     "line-row group relative flex h-[1.625rem] cursor-pointer items-center",
-                    isDragging && "cursor-grabbing"
+                    isDragging && "cursor-grabbing",
                   )}
                   onMouseEnter={() => {
                     setHoveredLine(lineNumber);
                     if (dragState?.isDragging) {
-                      const startLine = Math.min(dragState.startLine, lineNumber);
+                      const startLine = Math.min(
+                        dragState.startLine,
+                        lineNumber,
+                      );
                       const endLine = Math.max(dragState.startLine, lineNumber);
                       setSelection({ startLine, endLine });
                     }
@@ -270,7 +294,7 @@ export function CodeLineViewer({
                       "absolute left-0 flex size-5 items-center justify-center rounded text-muted-foreground transition",
                       isHovered || isSelected
                         ? "opacity-100 hover:bg-surface-3 hover:text-foreground"
-                        : "opacity-0"
+                        : "opacity-0",
                     )}
                     aria-label={`Select line ${lineNumber}`}
                   >
@@ -281,7 +305,9 @@ export function CodeLineViewer({
                   <span
                     className={cn(
                       "ml-5 text-right text-xs",
-                      isSelected ? "text-primary font-medium" : "text-muted-foreground/50 hover:text-muted-foreground"
+                      isSelected
+                        ? "text-primary font-medium"
+                        : "text-muted-foreground/50 hover:text-muted-foreground",
                     )}
                     style={{ width: `${lineNumberWidth - 1.5}rem` }}
                   >
@@ -295,7 +321,11 @@ export function CodeLineViewer({
 
         {/* Code content */}
         <div className="relative min-w-0 flex-1 overflow-x-auto">
-          <CodeBlockCode code={code} language={language} className="min-h-full" />
+          <CodeBlockCode
+            code={code}
+            language={language}
+            className="min-h-full"
+          />
         </div>
       </div>
 

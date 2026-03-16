@@ -1,30 +1,26 @@
-import React, { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "../ui/dialog";
-import { Button } from "../ui/button";
-import { ScrollArea } from "../ui/scroll-area";
 import {
   Bot,
-  Palette,
   Code2,
-  Terminal,
   Keyboard,
+  Palette,
   Settings2,
+  Terminal,
   X,
 } from "lucide-react";
-import { useSettings } from "./settings-context";
+import type React from "react";
+import { useState } from "react";
+import { Button } from "../ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
+import { ScrollArea } from "../ui/scroll-area";
 import {
-  AISettingsSection,
-  InterfaceSettingsSection,
-  EditorSettingsSection,
-  TerminalSettingsSection,
-  KeybindingsSettingsSection,
   AdvancedSettingsSection,
+  AISettingsSection,
+  EditorSettingsSection,
+  InterfaceSettingsSection,
+  KeybindingsSettingsSection,
+  TerminalSettingsSection,
 } from "./sections";
+import { useSettings } from "./settings-context";
 import type { SettingsSection as SettingsSectionType } from "./types";
 
 interface SettingsModalProps {
@@ -40,11 +36,23 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { id: "ai", label: "AI & Models", icon: <Bot className="h-4 w-4" /> },
-  { id: "interface", label: "Interface", icon: <Palette className="h-4 w-4" /> },
+  {
+    id: "interface",
+    label: "Interface",
+    icon: <Palette className="h-4 w-4" />,
+  },
   { id: "editor", label: "Editor", icon: <Code2 className="h-4 w-4" /> },
   { id: "terminal", label: "Terminal", icon: <Terminal className="h-4 w-4" /> },
-  { id: "keybindings", label: "Keybindings", icon: <Keyboard className="h-4 w-4" /> },
-  { id: "advanced", label: "Advanced", icon: <Settings2 className="h-4 w-4" /> },
+  {
+    id: "keybindings",
+    label: "Keybindings",
+    icon: <Keyboard className="h-4 w-4" />,
+  },
+  {
+    id: "advanced",
+    label: "Advanced",
+    icon: <Settings2 className="h-4 w-4" />,
+  },
 ];
 
 function renderSection(section: SettingsSectionType) {
@@ -89,6 +97,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
             <div className="flex flex-col gap-1 p-3">
               {NAV_ITEMS.map((item) => (
                 <button
+                  type="button"
                   key={item.id}
                   onClick={() => setActiveSection(item.id)}
                   className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${
@@ -106,9 +115,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 
           {/* Content Area */}
           <ScrollArea className="flex-1">
-            <div className="p-6">
-              {renderSection(activeSection)}
-            </div>
+            <div className="p-6">{renderSection(activeSection)}</div>
           </ScrollArea>
         </div>
 

@@ -1,6 +1,6 @@
-import React from "react";
-import { Button } from "../ui/button";
 import { RotateCcw } from "lucide-react";
+import type React from "react";
+import { Button } from "../ui/button";
 
 interface SelectOption {
   value: string;
@@ -14,7 +14,11 @@ interface SettingsSectionProps {
   children: React.ReactNode;
 }
 
-export function SettingsSection({ title, description, children }: SettingsSectionProps) {
+export function SettingsSection({
+  title,
+  description,
+  children,
+}: SettingsSectionProps) {
   return (
     <div className="space-y-4">
       <div className="border-b border-border pb-3">
@@ -35,11 +39,15 @@ interface SettingsRowProps {
   children: React.ReactNode;
 }
 
-export function SettingsRow({ label, description, children }: SettingsRowProps) {
+export function SettingsRow({
+  label,
+  description,
+  children,
+}: SettingsRowProps) {
   return (
     <div className="flex items-center justify-between gap-4 py-2">
       <div className="flex-1">
-        <label className="text-sm font-medium text-foreground">{label}</label>
+        <div className="text-sm font-medium text-foreground">{label}</div>
         {description && (
           <p className="text-xs text-muted-foreground">{description}</p>
         )}

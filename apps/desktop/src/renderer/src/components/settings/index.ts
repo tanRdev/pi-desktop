@@ -1,67 +1,63 @@
 // Settings Context
-export { SettingsProvider, useSettings } from "./settings-context";
-
-// Settings Modal
-export { SettingsModal } from "./settings-modal";
-
-// Types
-export type {
-  Settings,
-  AISettings,
-  InterfaceSettings,
-  EditorSettings,
-  TerminalSettings,
-  KeybindingSettings,
-  AdvancedSettings,
-  SettingsContextValue,
-  SettingsSection as SettingsSectionKey,
-  Theme,
-  AccentColor,
-  SidebarPosition,
-  UpdateChannel,
-  LogLevel,
-} from "./types";
 
 // Defaults
 export {
-  DEFAULT_SETTINGS,
-  STORAGE_KEY,
-  AI_PROVIDERS,
-  GOOGLE_MODELS,
-  ANTHROPIC_MODELS,
-  OPENAI_MODELS,
-  THEME_OPTIONS,
   ACCENT_COLORS,
-  SIDEBAR_POSITIONS,
-  KEYBINDING_PRESETS,
-  LOG_LEVELS,
-  UPDATE_CHANNELS,
-  CURSOR_STYLES,
+  AI_PROVIDERS,
+  ANTHROPIC_MODELS,
   CURSOR_BLINKING_OPTIONS,
-  WORD_WRAP_OPTIONS,
+  CURSOR_STYLES,
+  DEFAULT_SETTINGS,
+  GOOGLE_MODELS,
+  KEYBINDING_PRESETS,
   LINE_NUMBER_OPTIONS,
+  LOG_LEVELS,
+  OPENAI_MODELS,
+  SIDEBAR_POSITIONS,
+  STORAGE_KEY,
+  THEME_OPTIONS,
+  UPDATE_CHANNELS,
+  WORD_WRAP_OPTIONS,
 } from "./defaults";
-
 // Form Components
 export {
-  SettingsSection,
-  SettingsRow,
-  SettingsSelect,
-  SettingsSwitch,
-  SettingsSlider,
+  ResetButton,
+  SettingsDivider,
   SettingsInput,
   SettingsNumberInput,
+  SettingsRow,
+  SettingsSection,
+  SettingsSelect,
+  SettingsSlider,
+  SettingsSwitch,
   SettingsTextarea,
-  SettingsDivider,
-  ResetButton,
 } from "./form-components";
-
 // Section Components
 export {
-  AISettingsSection,
-  InterfaceSettingsSection,
-  EditorSettingsSection,
-  TerminalSettingsSection,
-  KeybindingsSettingsSection,
   AdvancedSettingsSection,
+  AISettingsSection,
+  EditorSettingsSection,
+  InterfaceSettingsSection,
+  KeybindingsSettingsSection,
+  TerminalSettingsSection,
 } from "./sections";
+export { SettingsProvider, useSettings } from "./settings-context";
+// Settings Modal
+export { SettingsModal } from "./settings-modal";
+// Types
+export type {
+  AccentColor,
+  AdvancedSettings,
+  AISettings,
+  EditorSettings,
+  InterfaceSettings,
+  KeybindingSettings,
+  LogLevel,
+  Settings,
+  SettingsContextValue,
+  SettingsSection as SettingsSectionKey,
+  SidebarPosition,
+  TerminalSettings,
+  Theme,
+  UpdateChannel,
+} from "./types";

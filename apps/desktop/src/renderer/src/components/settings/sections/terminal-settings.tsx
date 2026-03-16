@@ -1,15 +1,15 @@
-import { useSettings } from "../settings-context";
-import {
-  SettingsSection,
-  SettingsRow,
-  SettingsSelect,
-  SettingsSwitch,
-  SettingsSlider,
-  SettingsNumberInput,
-  SettingsDivider,
-  ResetButton,
-} from "../form-components";
 import { CURSOR_STYLES } from "../defaults";
+import {
+  ResetButton,
+  SettingsDivider,
+  SettingsNumberInput,
+  SettingsRow,
+  SettingsSection,
+  SettingsSelect,
+  SettingsSlider,
+  SettingsSwitch,
+} from "../form-components";
+import { useSettings } from "../settings-context";
 
 export function TerminalSettingsSection() {
   const { settings, updateSettings, resetSection } = useSettings();
@@ -24,7 +24,9 @@ export function TerminalSettingsSection() {
         <SettingsRow label="Shell" description="Default shell to use">
           <select
             value={terminal.shell}
-            onChange={(e) => updateSettings("terminal", { shell: e.target.value })}
+            onChange={(e) =>
+              updateSettings("terminal", { shell: e.target.value })
+            }
             className="flex h-9 w-[180px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
             <option value="zsh">zsh</option>
@@ -44,7 +46,9 @@ export function TerminalSettingsSection() {
         <SettingsRow label="Font Family" description="Terminal font">
           <select
             value={terminal.fontFamily}
-            onChange={(e) => updateSettings("terminal", { fontFamily: e.target.value })}
+            onChange={(e) =>
+              updateSettings("terminal", { fontFamily: e.target.value })
+            }
             className="flex h-9 w-[180px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
             <option value="JetBrains Mono">JetBrains Mono</option>
@@ -57,7 +61,9 @@ export function TerminalSettingsSection() {
         <SettingsRow label="Font Size" description="Terminal font size">
           <SettingsSlider
             value={terminal.fontSize}
-            onChange={(value) => updateSettings("terminal", { fontSize: value })}
+            onChange={(value) =>
+              updateSettings("terminal", { fontSize: value })
+            }
             min={10}
             max={24}
             step={1}
@@ -67,7 +73,9 @@ export function TerminalSettingsSection() {
         <SettingsRow label="Line Height" description="Line height multiplier">
           <SettingsSlider
             value={terminal.lineHeight}
-            onChange={(value) => updateSettings("terminal", { lineHeight: value })}
+            onChange={(value) =>
+              updateSettings("terminal", { lineHeight: value })
+            }
             min={1}
             max={2}
             step={0.1}
@@ -77,14 +85,15 @@ export function TerminalSettingsSection() {
 
       <SettingsDivider />
 
-      <SettingsSection
-        title="Cursor"
-        description="Cursor appearance"
-      >
+      <SettingsSection title="Cursor" description="Cursor appearance">
         <SettingsRow label="Cursor Style" description="Cursor shape">
           <SettingsSelect
             value={terminal.cursorStyle}
-            onChange={(value) => updateSettings("terminal", { cursorStyle: value as typeof terminal.cursorStyle })}
+            onChange={(value) =>
+              updateSettings("terminal", {
+                cursorStyle: value as typeof terminal.cursorStyle,
+              })
+            }
             options={CURSOR_STYLES}
           />
         </SettingsRow>
@@ -92,7 +101,9 @@ export function TerminalSettingsSection() {
         <SettingsRow label="Cursor Blink" description="Enable cursor blinking">
           <SettingsSwitch
             checked={terminal.cursorBlink}
-            onChange={(checked) => updateSettings("terminal", { cursorBlink: checked })}
+            onChange={(checked) =>
+              updateSettings("terminal", { cursorBlink: checked })
+            }
           />
         </SettingsRow>
       </SettingsSection>
@@ -106,7 +117,9 @@ export function TerminalSettingsSection() {
         <SettingsRow label="Scrollback" description="Lines to keep in history">
           <SettingsNumberInput
             value={terminal.scrollback}
-            onChange={(value) => updateSettings("terminal", { scrollback: value })}
+            onChange={(value) =>
+              updateSettings("terminal", { scrollback: value })
+            }
             min={100}
             max={100000}
             step={1000}
@@ -117,7 +130,9 @@ export function TerminalSettingsSection() {
         <SettingsRow label="Bell Sound" description="Play sound on bell">
           <SettingsSwitch
             checked={terminal.bellSound}
-            onChange={(checked) => updateSettings("terminal", { bellSound: checked })}
+            onChange={(checked) =>
+              updateSettings("terminal", { bellSound: checked })
+            }
           />
         </SettingsRow>
       </SettingsSection>

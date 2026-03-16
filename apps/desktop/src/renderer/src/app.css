@@ -35,13 +35,13 @@ select {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Focus states - cyan glow */
+/* Focus states - neutral subtle outline */
 button:focus-visible,
 a:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
-  outline: 2px solid var(--ring);
+  outline: 2px solid rgba(0,0,0,0.06);
   outline-offset: 2px;
 }
 
@@ -79,9 +79,8 @@ code:not(.shiki code):not(pre code) {
   color: var(--foreground);
 }
 
-/* Selection in code blocks - cyan accent */
 .shiki ::selection {
-  background: oklch(70% 0.15 195 / 0.4);
+  background: rgba(0,0,0,0.06);
   color: var(--foreground);
 }
 
@@ -95,15 +94,13 @@ code:not(.shiki code):not(pre code) {
   animation: cursor-blink 1s step-end infinite;
 }
 
-/* Activity indicator - subtle green glow */
 .activity-indicator {
-  box-shadow: 0 0 8px oklch(75% 0.18 145 / 0.6);
+  box-shadow: 0 0 6px rgba(0,0,0,0.06);
 }
 
-/* Status dot - neon green pulse */
 .status-active {
-  background: oklch(75% 0.18 145);
-  box-shadow: 0 0 6px oklch(75% 0.18 145 / 0.8);
+  background: var(--surface-3);
+  box-shadow: 0 0 4px rgba(0,0,0,0.06);
 }
 
 /* Panel elevation - layered dark glass */
@@ -114,15 +111,13 @@ code:not(.shiki code):not(pre code) {
     0 4px 12px oklch(0% 0 0 / 0.4);
 }
 
-/* Console row highlight - subtle cyan tint */
 .row-active {
-  background: oklch(70% 0.15 195 / 0.08);
+  background: rgba(0,0,0,0.02);
 }
 
-/* Border glow on hover - cyan */
 .hover-glow:hover {
-  border-color: oklch(70% 0.15 195 / 0.5);
-  box-shadow: 0 0 0 1px oklch(70% 0.15 195 / 0.2);
+  border-color: var(--border-subtle);
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.04);
 }
 
 /* Monospace typography utilities */

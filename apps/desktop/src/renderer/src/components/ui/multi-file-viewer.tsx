@@ -19,6 +19,7 @@ import { CodeLineViewer } from "./code-line-viewer";
 import { Markdown } from "./markdown";
 import { ScrollArea } from "./scroll-area";
 import { Terminal as TerminalComponent } from "./terminal";
+
 const EXTENSION_TO_LANGUAGE: Record<string, string> = {
   ".js": "javascript",
   ".jsx": "jsx",
@@ -158,14 +159,7 @@ function FileTab({
 
   return (
     <div
-      role="button"
-      tabIndex={0}
-      onClick={onClick}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          onClick();
-        }
-      }}
+      onMouseDown={onClick}
       className={cn(
         "group relative flex h-9 min-w-0 max-w-[200px] shrink-0 cursor-pointer items-center gap-2 border-r border-border px-3 transition-all",
         isActive
@@ -208,14 +202,7 @@ function TerminalTab({
 }) {
   return (
     <div
-      role="button"
-      tabIndex={0}
-      onClick={onClick}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          onClick();
-        }
-      }}
+      onMouseDown={onClick}
       className={cn(
         "group relative flex h-9 min-w-0 max-w-[200px] shrink-0 cursor-pointer items-center gap-2 border-r border-border px-3 transition-all",
         isActive
@@ -332,7 +319,6 @@ function FileContentViewer({
       handleSave();
     }
   }
-
 
   if (file.isLoading) {
     return (
@@ -564,11 +550,11 @@ export function MultiFileViewer({
       el.removeEventListener("scroll", checkScroll);
       window.removeEventListener("resize", checkScroll);
     };
-  }, [checkScroll, openFiles.length]);
+  }, [checkScroll]);
 
   React.useEffect(() => {
     setIsEditing(false);
-  }, [activeFilePath]);
+  }, []);
 
   function scrollTabs(direction: "left" | "right"): void {
     const el = tabsRef.current;
@@ -604,7 +590,10 @@ export function MultiFileViewer({
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
+                role="img"
+                aria-label="Scroll left"
               >
+                <title>Scroll left</title>
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -655,7 +644,10 @@ export function MultiFileViewer({
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
+                role="img"
+                aria-label="Scroll right"
               >
+                <title>Scroll right</title>
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"

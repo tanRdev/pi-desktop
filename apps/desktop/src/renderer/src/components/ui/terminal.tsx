@@ -7,16 +7,27 @@ import "@xterm/xterm/css/xterm.css";
 interface TerminalProps {
   id: string;
   cwd?: string;
+  backend?: "shell" | "lazygit" | "pi-linked" | "tmux-attach";
+  linkedThreadId?: string;
+  ownerWindowId?: string;
   className?: string;
   onExit?: () => void;
 }
 
-export function Terminal({ id, cwd, className, onExit }: TerminalProps) {
+export function Terminal({
+  id,
+  cwd,
+  backend = "shell",
+  linkedThreadId,
+  ownerWindowId,
+  className,
+  onExit,
+}: TerminalProps) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const terminalRef = React.useRef<XTerm | null>(null);
   const fitAddonRef = React.useRef<FitAddon | null>(null);
   const [error, setError] = React.useState<string | null>(null);
-  const [isInitialized, setIsInitialized] = React.useState(false);
+  const [_isInitialized, setIsInitialized] = React.useState(false);
 
   React.useEffect(() => {
     if (!containerRef.current || terminalRef.current) return;
@@ -32,17 +43,17 @@ export function Terminal({ id, cwd, className, onExit }: TerminalProps) {
         red: "#ef4444",
         green: "#22c55e",
         yellow: "#eab308",
-        blue: "#3b82f6",
+        blue: "#a3a3a3",
         magenta: "#a855f7",
-        cyan: "#06b6d4",
+        cyan: "#d4d4d4",
         white: "#e5e5e5",
         brightBlack: "#525252",
         brightRed: "#f87171",
         brightGreen: "#4ade80",
         brightYellow: "#facc15",
-        brightBlue: "#60a5fa",
+        brightBlue: "#d4d4d4",
         brightMagenta: "#c084fc",
-        brightCyan: "#22d3ee",
+        brightCyan: "#e5e5e5",
         brightWhite: "#fafafa",
       },
       fontFamily:
@@ -66,15 +77,33 @@ export function Terminal({ id, cwd, className, onExit }: TerminalProps) {
 
     // Create PTY via main process
     const { cols, rows } = terminal;
-    window.pidesk.terminal.create(id, { cols, rows, cwd }).catch((err) => {
-      const errorMessage =
-        err instanceof Error ? err.message : "Failed to create terminal";
-      setError(errorMessage);
-      terminal.write(`\x1b[31mError: ${errorMessage}\x1b[0m\r\n`);
-      terminal.write(
-        "Terminal functionality may require rebuilding native modules.\r\n",
-      );
-    });
+    (async () => {
+      try {
+        const session = await window.pidesk.terminal.create({
+          id,
+          cols,
+          rows,
+          cwd,
+          ownerWindowId: ownerWindowId ?? `terminal-${id}`,
+          backend,
+          linkedThreadId,
+        });
+        // The API returns a rich TerminalSession descriptor; surface any immediate errors
+        if (session?.status === "error") {
+          const errorMessage = "Failed to create terminal session";
+          setError(errorMessage);
+          terminal.write(`\x1b[31mError: ${errorMessage}\x1b[0m\r\n`);
+        }
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to create terminal";
+        setError(errorMessage);
+        terminal.write(`\x1b[31mError: ${errorMessage}\x1b[0m\r\n`);
+        terminal.write(
+          "Terminal functionality may require rebuilding native modules.\r\n",
+        );
+      }
+    })();
 
     // Handle terminal input
     terminal.onData((data) => {
@@ -114,7 +143,7 @@ export function Terminal({ id, cwd, className, onExit }: TerminalProps) {
       terminalRef.current = null;
       fitAddonRef.current = null;
     };
-  }, [id, cwd, onExit]);
+  }, [id, cwd, backend, linkedThreadId, ownerWindowId, onExit]);
 
   if (error) {
     return (

@@ -1,12 +1,22 @@
 import {
   type AgentSnapshot,
+  type AutocompleteContext,
+  type AutocompleteSuggestions,
   IPC_CHANNELS,
+  type ModelSwitchRequest,
+  type PiDiscoveryResult,
+  type PiTerminalRouteRequest,
+  type PiTerminalRouteResult,
   type ProviderSnapshot,
+  type SearchRequest,
+  type SearchResponse,
   type SettingsSnapshot,
   type ShellSnapshot,
+  type TerminalCreateOptions,
 } from "@pidesk/shared";
 import { type BrowserWindow, dialog } from "electron";
 import { terminalManager } from "./terminal-manager";
+
 export interface AgentIpcHost {
   getProviders(): Promise<ProviderSnapshot[]>;
   getSettings(): Promise<SettingsSnapshot>;
@@ -36,6 +46,139 @@ export interface RegisterIpcHandlersDependencies {
   getShellSnapshot(): Promise<ShellSnapshot> | ShellSnapshot;
   agentHost: AgentIpcHost;
   mainWindow: BrowserWindow | null;
+  terminalManager?: typeof terminalManager;
+  searchFiles?(request: SearchRequest): Promise<SearchResponse>;
+  switchModel?(request: ModelSwitchRequest): Promise<void>;
+  getDiscovery?(): Promise<PiDiscoveryResult>;
+  getSlashSuggestions?(
+    context: AutocompleteContext,
+  ): Promise<AutocompleteSuggestions>;
+  routeToTerminal?(
+    request: PiTerminalRouteRequest,
+  ): Promise<PiTerminalRouteResult>;
+}
+
+function isPayloadRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function getStringField(payload: unknown, key: string): string | undefined {
+  if (!isPayloadRecord(payload)) {
+    return undefined;
+  }
+  const value = payload[key];
+  return typeof value === "string" ? value : undefined;
+}
+
+function getNumberField(payload: unknown, key: string): number | undefined {
+  if (!isPayloadRecord(payload)) {
+    return undefined;
+  }
+  const value = payload[key];
+  return typeof value === "number" ? value : undefined;
+}
+
+function getBooleanField(payload: unknown, key: string): boolean | undefined {
+  if (!isPayloadRecord(payload)) {
+    return undefined;
+  }
+  const value = payload[key];
+  return typeof value === "boolean" ? value : undefined;
+}
+
+function getStringArrayField(
+  payload: unknown,
+  key: string,
+): string[] | undefined {
+  if (!isPayloadRecord(payload)) {
+    return undefined;
+  }
+  const value = payload[key];
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+  return value.filter((entry): entry is string => typeof entry === "string");
+}
+
+function parseDialogOptions(payload: unknown): Electron.OpenDialogOptions {
+  const options: Electron.OpenDialogOptions = {};
+  const title = getStringField(payload, "title");
+  if (title) {
+    options.title = title;
+  }
+
+  const properties = getStringArrayField(payload, "properties");
+  if (properties) {
+    options.properties = properties.filter(
+      (
+        property,
+      ): property is NonNullable<
+        Electron.OpenDialogOptions["properties"]
+      >[number] =>
+        property === "openFile" ||
+        property === "openDirectory" ||
+        property === "multiSelections" ||
+        property === "showHiddenFiles" ||
+        property === "createDirectory" ||
+        property === "promptToCreate" ||
+        property === "noResolveAliases" ||
+        property === "treatPackageAsDirectory" ||
+        property === "dontAddToRecent",
+    );
+  }
+
+  return options;
+}
+
+function parseSearchRequest(payload: unknown): SearchRequest | null {
+  const query = getStringField(payload, "query");
+  const rootPath = getStringField(payload, "rootPath");
+  if (!query || !rootPath) {
+    return null;
+  }
+
+  return {
+    query,
+    rootPath,
+    maxResults: getNumberField(payload, "maxResults"),
+    includePatterns: getStringArrayField(payload, "includePatterns"),
+    excludePatterns: getStringArrayField(payload, "excludePatterns"),
+  };
+}
+
+function parseTerminalCreateOptions(
+  payload: unknown,
+): TerminalCreateOptions | null {
+  const id = getStringField(payload, "id");
+  const cols = getNumberField(payload, "cols");
+  const rows = getNumberField(payload, "rows");
+  const ownerWindowId = getStringField(payload, "ownerWindowId");
+  if (
+    !id ||
+    typeof cols !== "number" ||
+    typeof rows !== "number" ||
+    !ownerWindowId
+  ) {
+    return null;
+  }
+
+  const backend = getStringField(payload, "backend");
+
+  return {
+    id,
+    cols,
+    rows,
+    ownerWindowId,
+    cwd: getStringField(payload, "cwd"),
+    backend:
+      backend === "shell" ||
+      backend === "lazygit" ||
+      backend === "pi-linked" ||
+      backend === "tmux-attach"
+        ? backend
+        : undefined,
+    linkedThreadId: getStringField(payload, "linkedThreadId"),
+  };
 }
 
 export function registerIpcHandlers({
@@ -43,122 +186,172 @@ export function registerIpcHandlers({
   getShellSnapshot,
   agentHost,
   mainWindow,
+  terminalManager: terminalManagerOverride,
+  searchFiles,
+  switchModel,
+  getDiscovery,
+  getSlashSuggestions,
+  routeToTerminal,
 }: RegisterIpcHandlersDependencies): void {
+  const tm = terminalManagerOverride ?? terminalManager;
+
   if (mainWindow) {
-    terminalManager.setMainWindow(mainWindow);
+    tm.setMainWindow(mainWindow);
   }
-  // Initialize terminal manager (loads native module)
-  terminalManager.initialize();
+  tm.initialize();
+
   handle(IPC_CHANNELS.shell.getSnapshot, async () => getShellSnapshot());
   handle(IPC_CHANNELS.agent.getProviders, async () => agentHost.getProviders());
   handle(IPC_CHANNELS.agent.getSettings, async () => agentHost.getSettings());
   handle(IPC_CHANNELS.agent.getSnapshot, async () => agentHost.getSnapshot());
+
+  handle(IPC_CHANNELS.agent.switchModel, async (_event, payload) => {
+    if (!switchModel) {
+      throw new Error("Model switching is unavailable");
+    }
+    const providerId = getStringField(payload, "providerId");
+    const modelId = getStringField(payload, "modelId");
+    if (!providerId || !modelId) {
+      throw new Error(
+        "Model switch payload must include providerId and modelId",
+      );
+    }
+    await switchModel({ providerId, modelId });
+  });
+
+  handle(IPC_CHANNELS.agent.getDiscovery, async () =>
+    getDiscovery
+      ? getDiscovery()
+      : { isInstalled: false, skills: [], commands: [] },
+  );
+
+  handle(IPC_CHANNELS.agent.getSlashSuggestions, async (_event, payload) => {
+    if (!getSlashSuggestions) {
+      return {
+        kind: "slash",
+        suggestions: [],
+        hasMore: false,
+      } satisfies AutocompleteSuggestions;
+    }
+
+    const text = getStringField(payload, "text");
+    const cursorPosition = getNumberField(payload, "cursorPosition");
+    const query = getStringField(payload, "query");
+    const trigger = getStringField(payload, "trigger");
+    if (!text || typeof cursorPosition !== "number" || query === undefined) {
+      throw new Error(
+        "Slash suggestions payload must include text, cursorPosition, and query",
+      );
+    }
+
+    return getSlashSuggestions({
+      text,
+      cursorPosition,
+      query,
+      trigger: trigger === "/" || trigger === "@" ? trigger : undefined,
+    });
+  });
+
   handle(IPC_CHANNELS.repositories.add, async (_event, payload) => {
-    const path =
-      typeof payload === "object" && payload !== null && "path" in payload
-        ? payload.path
-        : undefined;
-    if (typeof path !== "string") {
+    const repositoryPath = getStringField(payload, "path");
+    if (!repositoryPath) {
       throw new Error("Repository add payload must include path");
     }
-    await agentHost.addRepository(path);
+    await agentHost.addRepository(repositoryPath);
   });
+
   handle(IPC_CHANNELS.repositories.select, async (_event, payload) => {
-    const repositoryId =
-      typeof payload === "object" && payload !== null && "repositoryId" in payload
-        ? payload.repositoryId
-        : undefined;
-    if (typeof repositoryId !== "string") {
+    const repositoryId = getStringField(payload, "repositoryId");
+    if (!repositoryId) {
       throw new Error("Repository select payload must include repositoryId");
     }
     await agentHost.selectRepository(repositoryId);
   });
+
   handle(IPC_CHANNELS.worktrees.create, async (_event, payload) => {
-    const repositoryId =
-      typeof payload === "object" && payload !== null && "repositoryId" in payload
-        ? payload.repositoryId
-        : undefined;
-    const branchName =
-      typeof payload === "object" && payload !== null && "branchName" in payload
-        ? payload.branchName
-        : undefined;
-    if (typeof repositoryId !== "string" || typeof branchName !== "string") {
+    const repositoryId = getStringField(payload, "repositoryId");
+    const branchName = getStringField(payload, "branchName");
+    if (!repositoryId || !branchName) {
       throw new Error(
         "Worktree create payload must include repositoryId and branchName",
       );
     }
     await agentHost.createWorktree(repositoryId, branchName);
   });
+
   handle(IPC_CHANNELS.worktrees.select, async (_event, payload) => {
-    const worktreeId =
-      typeof payload === "object" && payload !== null && "worktreeId" in payload
-        ? payload.worktreeId
-        : undefined;
-    if (typeof worktreeId !== "string") {
+    const worktreeId = getStringField(payload, "worktreeId");
+    if (!worktreeId) {
       throw new Error("Worktree select payload must include worktreeId");
     }
     await agentHost.selectWorktree(worktreeId);
   });
+
   handle(IPC_CHANNELS.threads.create, async (_event, payload) => {
-    const worktreeId =
-      typeof payload === "object" && payload !== null && "worktreeId" in payload
-        ? payload.worktreeId
-        : undefined;
-    const title =
-      typeof payload === "object" && payload !== null && "title" in payload
-        ? payload.title
-        : undefined;
-    if (typeof worktreeId !== "string") {
+    const worktreeId = getStringField(payload, "worktreeId");
+    const title = getStringField(payload, "title");
+    if (!worktreeId) {
       throw new Error("Thread create payload must include worktreeId");
     }
-    await agentHost.createThread(
-      worktreeId,
-      typeof title === "string" ? title : undefined,
-    );
+    await agentHost.createThread(worktreeId, title);
   });
+
   handle(IPC_CHANNELS.threads.select, async (_event, payload) => {
-    const threadId =
-      typeof payload === "object" && payload !== null && "threadId" in payload
-        ? payload.threadId
-        : undefined;
-    if (typeof threadId !== "string") {
+    const threadId = getStringField(payload, "threadId");
+    if (!threadId) {
       throw new Error("Thread select payload must include threadId");
     }
     await agentHost.selectThread(threadId);
   });
+
+  handle(IPC_CHANNELS.threads.routeToTerminal, async (_event, payload) => {
+    if (!routeToTerminal) {
+      return {
+        success: false,
+        error: "Terminal routing is unavailable",
+      } satisfies PiTerminalRouteResult;
+    }
+
+    const terminalId = getStringField(payload, "terminalId");
+    const prompt = getStringField(payload, "prompt");
+    const startPiIfNotLinked =
+      getBooleanField(payload, "startPiIfNotLinked") ?? false;
+    if (!terminalId || prompt === undefined) {
+      throw new Error(
+        "Terminal routing payload must include terminalId and prompt",
+      );
+    }
+    return routeToTerminal({ terminalId, prompt, startPiIfNotLinked });
+  });
+
   handle(IPC_CHANNELS.agent.prompt, async (_event, payload) => {
-    const text =
-      typeof payload === "object" && payload !== null && "text" in payload
-        ? payload.text
-        : undefined;
-    if (typeof text !== "string" || text.length === 0) {
+    const text = getStringField(payload, "text");
+    if (!text || text.length === 0) {
       throw new Error("Agent prompt payload must include text");
     }
     await agentHost.prompt(text);
   });
+
   handle(IPC_CHANNELS.agent.reset, async () => {
     await agentHost.reset();
   });
+
   handle(IPC_CHANNELS.dialog.showOpenDialog, async (_event, payload) => {
-    const options = payload as Electron.OpenDialogOptions;
-    const result = await dialog.showOpenDialog(options);
+    const result = await dialog.showOpenDialog(parseDialogOptions(payload));
     return result.canceled ? null : result.filePaths;
   });
+
   handle(IPC_CHANNELS.fs.readDirectory, async (_event, payload) => {
-    const dirPath =
-      typeof payload === "object" && payload !== null && "path" in payload
-        ? payload.path
-        : undefined;
-    if (typeof dirPath !== "string") {
+    const dirPath = getStringField(payload, "path");
+    if (!dirPath) {
       throw new Error("readDirectory payload must include path");
     }
-    const { readdirSync, statSync } = await import("node:fs");
+    const { readdirSync } = await import("node:fs");
     const { join } = await import("node:path");
     const entries = readdirSync(dirPath, { withFileTypes: true });
     const result = entries
       .filter((entry) => !entry.name.startsWith("."))
       .sort((a, b) => {
-        // Directories first, then files, alphabetically within each group
         if (a.isDirectory() && !b.isDirectory()) return -1;
         if (!a.isDirectory() && b.isDirectory()) return 1;
         return a.name.localeCompare(b.name);
@@ -171,18 +364,15 @@ export function registerIpcHandlers({
       }));
     return { path: dirPath, entries: result };
   });
+
   handle(IPC_CHANNELS.fs.readFile, async (_event, payload) => {
-    const filePath =
-      typeof payload === "object" && payload !== null && "path" in payload
-        ? payload.path
-        : undefined;
-    if (typeof filePath !== "string") {
+    const filePath = getStringField(payload, "path");
+    if (!filePath) {
       throw new Error("readFile payload must include path");
     }
     const { readFileSync, statSync } = await import("node:fs");
     const { extname } = await import("node:path");
 
-    // List of text file extensions we support
     const imageExtensions = new Set([
       ".png",
       ".jpg",
@@ -193,7 +383,6 @@ export function registerIpcHandlers({
       ".bmp",
       ".ico",
     ]);
-
     const textExtensions = new Set([
       ".txt",
       ".md",
@@ -278,10 +467,8 @@ export function registerIpcHandlers({
 
     try {
       const stats = statSync(filePath);
-
-      // 1MB size limit for text files
-      const MAX_FILE_SIZE = 1024 * 1024;
-      if (stats.size > MAX_FILE_SIZE) {
+      const maxFileSize = 1024 * 1024;
+      if (stats.size > maxFileSize) {
         return {
           path: filePath,
           content: "",
@@ -293,9 +480,8 @@ export function registerIpcHandlers({
       }
 
       const buffer = readFileSync(filePath);
-      // Check for null bytes which indicate binary content
-      for (let i = 0; i < Math.min(buffer.length, 8192); i++) {
-        if (buffer[i] === 0) {
+      for (let index = 0; index < Math.min(buffer.length, 8192); index += 1) {
+        if (buffer[index] === 0) {
           return {
             path: filePath,
             content: "",
@@ -304,10 +490,10 @@ export function registerIpcHandlers({
           };
         }
       }
-      const content = buffer.toString("utf-8");
+
       return {
         path: filePath,
-        content,
+        content: buffer.toString("utf-8"),
         type: "text" as const,
         encoding: "utf-8",
         size: stats.size,
@@ -320,84 +506,73 @@ export function registerIpcHandlers({
   });
 
   handle(IPC_CHANNELS.fs.writeFile, async (_event, payload) => {
-    const filePath =
-      typeof payload === "object" && payload !== null && "path" in payload
-        ? payload.path
-        : undefined;
-    const content =
-      typeof payload === "object" && payload !== null && "content" in payload
-        ? payload.content
-        : undefined;
-
-    if (typeof filePath !== "string") {
+    const filePath = getStringField(payload, "path");
+    const content = getStringField(payload, "content");
+    if (!filePath) {
       throw new Error("writeFile payload must include path");
     }
-    if (typeof content !== "string") {
+    if (content === undefined) {
       throw new Error("writeFile payload must include content");
     }
-
-    const { writeFile } = await import("node:fs/promises");
-
-    // Warn about large files (>1MB)
-    const MAX_WRITE_SIZE = 1024 * 1024;
-    if (content.length > MAX_WRITE_SIZE) {
+    const { mkdir, writeFile } = await import("node:fs/promises");
+    const { dirname } = await import("node:path");
+    const maxWriteSize = 1024 * 1024;
+    if (content.length > maxWriteSize) {
       console.warn(`Writing large file (${content.length} bytes): ${filePath}`);
     }
-
+    await mkdir(dirname(filePath), { recursive: true });
     await writeFile(filePath, content, "utf-8");
   });
 
-  // Terminal handlers
+  handle(IPC_CHANNELS.search.searchFiles, async (_event, payload) => {
+    if (!searchFiles) {
+      throw new Error("Workspace search is unavailable");
+    }
+    const request = parseSearchRequest(payload);
+    if (!request) {
+      throw new Error("searchFiles payload must include query and rootPath");
+    }
+    return searchFiles(request);
+  });
+
   handle(IPC_CHANNELS.terminal.create, async (_event, payload) => {
-    const opts = payload as {
-      id: string;
-      cols: number;
-      rows: number;
-      cwd?: string;
-    };
-    if (
-      !opts.id ||
-      typeof opts.cols !== "number" ||
-      typeof opts.rows !== "number"
-    ) {
+    const options = parseTerminalCreateOptions(payload);
+    if (!options) {
       throw new Error("terminal.create payload must include id, cols, rows");
     }
-    if (!terminalManager.isAvailable()) {
-      const error = terminalManager.getError();
+    if (!tm.isAvailable()) {
+      const error = tm.getError();
       throw new Error(error?.message || "Terminal is not available");
     }
-    terminalManager.create(opts.id, {
-      cols: opts.cols,
-      rows: opts.rows,
-      cwd: opts.cwd,
-    });
-    return { id: opts.id };
+    return tm.create(options.id ?? "", options);
   });
+
+  handle(IPC_CHANNELS.terminal.getSessions, async () => tm.getSessions());
+
   handle(IPC_CHANNELS.terminal.write, async (_event, payload) => {
-    const opts = payload as { id: string; data: string };
-    if (!opts.id || typeof opts.data !== "string") {
+    const id = getStringField(payload, "id");
+    const data = getStringField(payload, "data");
+    if (!id || data === undefined) {
       throw new Error("terminal.write payload must include id and data");
     }
-    terminalManager.write(opts.id, opts.data);
+    tm.write(id, data);
   });
 
   handle(IPC_CHANNELS.terminal.resize, async (_event, payload) => {
-    const opts = payload as { id: string; cols: number; rows: number };
-    if (
-      !opts.id ||
-      typeof opts.cols !== "number" ||
-      typeof opts.rows !== "number"
-    ) {
+    const id = getStringField(payload, "id");
+    const cols = getNumberField(payload, "cols");
+    const rows = getNumberField(payload, "rows");
+    if (!id || typeof cols !== "number" || typeof rows !== "number") {
       throw new Error("terminal.resize payload must include id, cols, rows");
     }
-    terminalManager.resize(opts.id, opts.cols, opts.rows);
+    tm.resize(id, cols, rows);
   });
 
   handle(IPC_CHANNELS.terminal.destroy, async (_event, payload) => {
-    const opts = payload as { id: string };
-    if (!opts.id) {
+    const id = getStringField(payload, "id");
+    if (!id) {
       throw new Error("terminal.destroy payload must include id");
     }
-    terminalManager.destroy(opts.id);
+    tm.destroy(id);
   });
 }

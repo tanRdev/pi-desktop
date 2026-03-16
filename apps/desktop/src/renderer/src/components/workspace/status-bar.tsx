@@ -7,7 +7,11 @@ export interface StatusBarProps {
   agentStatus: string;
 }
 
-export function StatusBar({ tmuxSessionName, activeThread, agentStatus }: StatusBarProps) {
+export function StatusBar({
+  tmuxSessionName,
+  activeThread,
+  agentStatus,
+}: StatusBarProps) {
   // Determine running state
   const isRunning = activeThread
     ? activeThread.runtime.status === "streaming"
@@ -19,7 +23,9 @@ export function StatusBar({ tmuxSessionName, activeThread, agentStatus }: Status
         {tmuxSessionName && (
           <>
             <span className="opacity-50">tmux:</span>
-            <span className="font-mono text-foreground/70">{tmuxSessionName}</span>
+            <span className="font-mono text-foreground/70">
+              {tmuxSessionName}
+            </span>
           </>
         )}
       </div>
@@ -31,7 +37,7 @@ export function StatusBar({ tmuxSessionName, activeThread, agentStatus }: Status
             "h-2 w-2 rounded-full",
             isRunning
               ? "bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.5)]"
-              : "bg-zinc-400"
+              : "bg-zinc-400",
           )}
         />
         <span className="text-[11px] text-muted-foreground">
