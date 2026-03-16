@@ -13,7 +13,7 @@ export default defineConfig({
       externalizeDeps: true,
       outDir: "out/main",
       rollupOptions: {
-        external: ["electron"],
+        external: ["electron", "node-pty"],
         input: {
           index: mainEntry,
         },
