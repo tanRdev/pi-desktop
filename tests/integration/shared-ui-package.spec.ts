@@ -1,6 +1,7 @@
-import fs from "fs";
-import path from "path";
-import { describe, expect, it } from "vitest";
+// biome-ignore lint/suspicious/noAssignInExpressions: allow in test while loops
+import fs from "node:fs";
+import path from "node:path";
+import { describe, it } from "vitest";
 
 const ROOT = path.resolve(__dirname, "../../");
 
@@ -25,15 +26,18 @@ describe("shared ui package foundation (chunk-2a-ui-foundation)", () => {
     const content = read(p);
     if (content === null) throw new Error(`Missing ${p}`);
     if (!content.includes("--background: oklch(12% 0.01 270);"))
-      throw new Error("Expected --background: oklch(12% 0.01 270); in pidesk-shell.css");
+      throw new Error(
+        "Expected --background: oklch(12% 0.01 270); in pidesk-shell.css",
+      );
     if (!content.includes("--radius-sm: 0.125rem;"))
       throw new Error("Expected --radius-sm: 0.125rem; in pidesk-shell.css");
     if (!content.includes("::-webkit-scrollbar"))
       throw new Error("Expected ::-webkit-scrollbar in pidesk-shell.css");
     if (!/--app-font-sans:\s*"Space Grotesk"/m.test(content))
-      throw new Error("Expected --app-font-sans token with Space Grotesk in pidesk-shell.css");
+      throw new Error(
+        "Expected --app-font-sans token with Space Grotesk in pidesk-shell.css",
+      );
   });
-
 
   it("apps/desktop/src/renderer/src/app.css imports shared styles and retains drag-region rules", () => {
     const p = path.join(ROOT, "apps/desktop/src/renderer/src/app.css");

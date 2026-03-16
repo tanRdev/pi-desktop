@@ -14,7 +14,7 @@ describe("resolveAgentRuntimeOptions", () => {
     ).toEqual({
       mode: "mock",
       cwd: "/tmp/pidesk-workspace",
-      agentDir: "/tmp/pidesk-workspace/.pidesk-agent",
+      agentDir: "/tmp/pidesk-workspace/.pi/agent",
     });
   });
 
@@ -22,7 +22,7 @@ describe("resolveAgentRuntimeOptions", () => {
     expect(resolveAgentRuntimeOptions({}, "/tmp/pidesk-workspace")).toEqual({
       mode: "sdk",
       cwd: "/tmp/pidesk-workspace",
-      agentDir: "/tmp/pidesk-workspace/.pidesk-agent",
+      agentDir: "/tmp/pidesk-workspace/.pi/agent",
     });
   });
 
@@ -90,13 +90,14 @@ describe("resolveAgentRuntimeLaunchOptions", () => {
         "/tmp/random-cwd",
         "/tmp/pidesk-user-data",
         true,
+        "/tmp/pidesk-home",
       ),
     ).toEqual({
-      cwd: "/tmp/pidesk-user-data/workspace",
+      cwd: "/tmp/pidesk-home",
       env: expect.objectContaining({
         PIDESK_AGENT_MODE: "sdk",
-        PIDESK_AGENT_CWD: "/tmp/pidesk-user-data/workspace",
-        PIDESK_AGENT_DIR: "/tmp/pidesk-user-data/workspace/.pidesk-agent",
+        PIDESK_AGENT_CWD: "/tmp/pidesk-home",
+        PIDESK_AGENT_DIR: "/tmp/pidesk-home/.pi/agent",
       }),
     });
   });
@@ -108,13 +109,14 @@ describe("resolveAgentRuntimeLaunchOptions", () => {
         "/tmp/pidesk-workspace",
         "/tmp/pidesk-user-data",
         false,
+        "/tmp/pidesk-home",
       ),
     ).toEqual({
       cwd: "/tmp/pidesk-workspace",
       env: expect.objectContaining({
         PIDESK_AGENT_MODE: "mock",
         PIDESK_AGENT_CWD: "/tmp/pidesk-workspace",
-        PIDESK_AGENT_DIR: "/tmp/pidesk-workspace/.pidesk-agent",
+        PIDESK_AGENT_DIR: "/tmp/pidesk-workspace/.pi/agent",
       }),
     });
   });
@@ -127,24 +129,22 @@ describe("resolveAgentRuntimeLaunchOptions", () => {
       "/tmp/random-cwd",
       "/tmp/pidesk-user-data",
       true,
+      "/tmp/pidesk-home",
       createDirectory,
     );
 
     expect(launchOptions).toEqual({
-      cwd: "/tmp/pidesk-user-data/workspace",
+      cwd: "/tmp/pidesk-home",
       env: expect.objectContaining({
         PIDESK_AGENT_MODE: "sdk",
-        PIDESK_AGENT_CWD: "/tmp/pidesk-user-data/workspace",
-        PIDESK_AGENT_DIR: "/tmp/pidesk-user-data/workspace/.pidesk-agent",
+        PIDESK_AGENT_CWD: "/tmp/pidesk-home",
+        PIDESK_AGENT_DIR: "/tmp/pidesk-home/.pi/agent",
       }),
     });
-    expect(createDirectory).toHaveBeenNthCalledWith(
-      1,
-      "/tmp/pidesk-user-data/workspace",
-    );
+    expect(createDirectory).toHaveBeenNthCalledWith(1, "/tmp/pidesk-home");
     expect(createDirectory).toHaveBeenNthCalledWith(
       2,
-      "/tmp/pidesk-user-data/workspace/.pidesk-agent",
+      "/tmp/pidesk-home/.pi/agent",
     );
   });
 });

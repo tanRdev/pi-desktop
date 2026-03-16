@@ -21,7 +21,7 @@ test("launches the shell and streams a mock agent reply", async () => {
     const page = await app.firstWindow();
 
     await expect(page.getByTestId("app-ready")).toBeVisible();
-    await expect(page.getByTestId("app-title")).toHaveText("PiDesk");
+    await expect(page.getByTestId("app-title")).toHaveText("π");
     await expect(page.getByTestId("agent-status")).toHaveText("ready");
 
     await page
