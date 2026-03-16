@@ -105,6 +105,7 @@ export function ChainOfThought({ children, className }: ChainOfThoughtProps) {
   return (
     <div className={cn("space-y-0", className)}>
       {childrenArray.map((child, index) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: stable array of children
         <React.Fragment key={index}>
           {React.isValidElement(child) &&
             React.cloneElement(

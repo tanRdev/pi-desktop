@@ -88,6 +88,7 @@ function PromptInput({
         }}
       >
         <div
+          role="presentation"
           onClick={handleClick}
           className={cn(
             "border-input bg-background cursor-text rounded-3xl border p-2 shadow-xs",
@@ -144,7 +145,7 @@ function PromptInputTextarea({
     } else {
       el.style.height = `min(${el.scrollHeight}px, ${maxHeight})`;
     }
-  }, [value, maxHeight, disableAutosize, textareaRef]);
+  }, [maxHeight, disableAutosize, textareaRef]);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     adjustHeight(e.target);
@@ -211,7 +212,7 @@ function PromptInputAction({
       <TooltipTrigger
         asChild
         disabled={disabled}
-        onClick={(event) => event.stopPropagation()}
+        onClick={(event: React.MouseEvent) => event.stopPropagation()}
       >
         {children}
       </TooltipTrigger>
@@ -224,7 +225,7 @@ function PromptInputAction({
 
 export {
   PromptInput,
-  PromptInputTextarea,
-  PromptInputActions,
   PromptInputAction,
+  PromptInputActions,
+  PromptInputTextarea,
 };

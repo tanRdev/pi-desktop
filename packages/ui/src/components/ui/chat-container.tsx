@@ -63,4 +63,4 @@ function ChatContainerScrollAnchor({
   );
 }
 
-export { ChatContainerRoot, ChatContainerContent, ChatContainerScrollAnchor };
+export { ChatContainerContent, ChatContainerRoot, ChatContainerScrollAnchor };

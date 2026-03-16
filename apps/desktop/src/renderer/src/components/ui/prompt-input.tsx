@@ -88,6 +88,7 @@ function PromptInput({
         }}
       >
         <div
+          role="presentation"
           onClick={handleClick}
           className={cn(
             "border border-border-subtle bg-surface-2 cursor-text rounded-md p-3 shadow-sm transition-colors hover:border-border focus-within:border-border-hover focus-within:ring-1 focus-within:ring-ring",
@@ -145,7 +146,7 @@ function PromptInputTextarea({
       el.style.height = `min(${el.scrollHeight}px, ${maxHeight})`;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value, maxHeight, disableAutosize]);
+  }, [maxHeight, disableAutosize, textareaRef.current]);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     adjustHeight(e.target);
@@ -225,7 +226,7 @@ function PromptInputAction({
 
 export {
   PromptInput,
-  PromptInputTextarea,
-  PromptInputActions,
   PromptInputAction,
+  PromptInputActions,
+  PromptInputTextarea,
 };

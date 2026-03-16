@@ -174,4 +174,4 @@ function ReasoningContent({
   );
 }
 
-export { Reasoning, ReasoningTrigger, ReasoningContent };
+export { Reasoning, ReasoningContent, ReasoningTrigger };
