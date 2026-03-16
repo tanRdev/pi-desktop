@@ -4,7 +4,7 @@ import ReactMarkdown, { type Components } from "react-markdown";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
-import { CodeBlock, CodeBlockCode } from "./code-block";
+import { CodeBlockCode } from "./code-block";
 
 export type MarkdownProps = {
   children: string;
@@ -42,7 +42,153 @@ function extractLanguage(className?: string): string {
   return language ?? "plaintext";
 }
 
+// Enhanced prose styles for rich markdown rendering
 const INITIAL_COMPONENTS: Partial<Components> = {
+  h1: function H1Component({ children, ...props }) {
+    return (
+      <h1
+        className="mt-8 mb-4 text-2xl font-semibold tracking-tight text-foreground"
+        {...props}
+      >
+        {children}
+      </h1>
+    );
+  },
+  h2: function H2Component({ children, ...props }) {
+    return (
+      <h2
+        className="mt-8 mb-4 text-xl font-semibold tracking-tight text-foreground"
+        {...props}
+      >
+        {children}
+      </h2>
+    );
+  },
+  h3: function H3Component({ children, ...props }) {
+    return (
+      <h3
+        className="mt-6 mb-3 text-lg font-semibold tracking-tight text-foreground"
+        {...props}
+      >
+        {children}
+      </h3>
+    );
+  },
+  h4: function H4Component({ children, ...props }) {
+    return (
+      <h4
+        className="mt-6 mb-2 text-base font-semibold tracking-tight text-foreground"
+        {...props}
+      >
+        {children}
+      </h4>
+    );
+  },
+  h5: function H5Component({ children, ...props }) {
+    return (
+      <h5
+        className="mt-4 mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground"
+        {...props}
+      >
+        {children}
+      </h5>
+    );
+  },
+  h6: function H6Component({ children, ...props }) {
+    return (
+      <h6
+        className="mt-4 mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+        {...props}
+      >
+        {children}
+      </h6>
+    );
+  },
+  p: function PComponent({ children, ...props }) {
+    return (
+      <p
+        className="my-4 text-sm leading-7 text-foreground/90"
+        {...props}
+      >
+        {children}
+      </p>
+    );
+  },
+  a: function AComponent({ children, href, ...props }) {
+    return (
+      <a
+        href={href}
+        className="text-sm text-primary underline underline-offset-4 decoration-primary/30 hover:decoration-primary transition-colors"
+        {...props}
+      >
+        {children}
+      </a>
+    );
+  },
+  strong: function StrongComponent({ children, ...props }) {
+    return (
+      <strong className="font-semibold text-foreground" {...props}>
+        {children}
+      </strong>
+    );
+  },
+  em: function EmComponent({ children, ...props }) {
+    return (
+      <em className="italic text-foreground/80" {...props}>
+        {children}
+      </em>
+    );
+  },
+  del: function DelComponent({ children, ...props }) {
+    return (
+      <del className="line-through text-muted-foreground" {...props}>
+        {children}
+      </del>
+    );
+  },
+  hr: function HrComponent() {
+    return <hr className="my-8 border-t border-border" />;
+  },
+  br: function BrComponent() {
+    return <br className="block content-['']" />;
+  },
+  ul: function UlComponent({ children, ...props }) {
+    return (
+      <ul
+        className="my-4 ml-6 list-disc text-sm leading-7 text-foreground/90"
+        {...props}
+      >
+        {children}
+      </ul>
+    );
+  },
+  ol: function OlComponent({ children, ...props }) {
+    return (
+      <ol
+        className="my-4 ml-6 list-decimal text-sm leading-7 text-foreground/90"
+        {...props}
+      >
+        {children}
+      </ol>
+    );
+  },
+  li: function LiComponent({ children, ...props }) {
+    return (
+      <li className="my-1.5 pl-1 marker:text-muted-foreground" {...props}>
+        {children}
+      </li>
+    );
+  },
+  blockquote: function BlockquoteComponent({ children, ...props }) {
+    return (
+      <blockquote
+        className="my-6 border-l-2 border-primary/30 pl-4 italic text-foreground/80"
+        {...props}
+      >
+        {children}
+      </blockquote>
+    );
+  },
   code: function CodeComponent({ className, children, ...props }) {
     const isInline =
       !props.node?.position?.start.line ||
@@ -50,28 +196,84 @@ const INITIAL_COMPONENTS: Partial<Components> = {
 
     if (isInline) {
       return (
-        <span
+        <code
           className={cn(
-            "bg-primary-foreground rounded-sm px-1 font-mono text-sm",
+            "rounded bg-surface-3 px-1.5 py-0.5 font-mono text-xs",
+            "text-foreground",
             className,
           )}
           {...props}
         >
           {children}
-        </span>
+        </code>
       );
     }
 
     const language = extractLanguage(className);
 
     return (
-      <CodeBlock className={className}>
-        <CodeBlockCode code={children as string} language={language} />
-      </CodeBlock>
+      <CodeBlockCode code={children as string} language={language} className="my-6" />
     );
   },
   pre: function PreComponent({ children }) {
     return <>{children}</>;
+  },
+  table: function TableComponent({ children, ...props }) {
+    return (
+      <div className="my-6 overflow-x-auto">
+        <table className="w-full border-collapse text-sm" {...props}>
+          {children}
+        </table>
+      </div>
+    );
+  },
+  thead: function TheadComponent({ children, ...props }) {
+    return (
+      <thead className="border-b border-border bg-surface-2/50" {...props}>
+        {children}
+      </thead>
+    );
+  },
+  tbody: function TbodyComponent({ children, ...props }) {
+    return (
+      <tbody className="divide-y divide-border" {...props}>
+        {children}
+      </tbody>
+    );
+  },
+  tr: function TrComponent({ children, ...props }) {
+    return (
+      <tr className="transition-colors hover:bg-surface-2/30" {...props}>
+        {children}
+      </tr>
+    );
+  },
+  th: function ThComponent({ children, ...props }) {
+    return (
+      <th
+        className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+        {...props}
+      >
+        {children}
+      </th>
+    );
+  },
+  td: function TdComponent({ children, ...props }) {
+    return (
+      <td className="px-3 py-2 text-sm text-foreground/80" {...props}>
+        {children}
+      </td>
+    );
+  },
+  img: function ImgComponent({ src, alt, ...props }) {
+    return (
+      <img
+        src={src}
+        alt={alt}
+        className="my-6 rounded-lg border border-border shadow-sm max-w-full"
+        {...props}
+      />
+    );
   },
 };
 

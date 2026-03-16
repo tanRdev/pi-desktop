@@ -1,24 +1,35 @@
 "use client";
 
 import type React from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { codeToHtml } from "shiki";
 import { cn } from "@/lib/utils";
 
+// Skip highlighting for files larger than this (50KB)
+const MAX_HIGHLIGHT_SIZE = 50 * 1024;
+
+// Debounce highlighting to not block the main thread
+const HIGHLIGHT_DEBOUNCE_MS = 50;
+
+// Allowed HTML tags from shiki output
 const ALLOWED_TAGS = new Set(["pre", "code", "span", "br"]);
+
+// Allowed attributes
 const ALLOWED_ATTRIBUTES = new Set([
   "class",
   "style",
   "tabindex",
   "aria-hidden",
 ]);
+
+// Style properties we allow (removed background-color to let app theme show through)
 const ALLOWED_STYLE_PROPERTIES = new Set([
-  "background-color",
   "color",
   "font-style",
   "font-weight",
   "text-decoration",
 ]);
+
 const SAFE_STYLE_VALUE =
   /^(#[0-9a-fA-F]{3,8}|rgba?\([^)]*\)|hsla?\([^)]*\)|oklch\([^)]*\)|var\(--[\w-]+\)|transparent|inherit|initial|normal|italic|oblique|underline|none|bold|[1-9]00)$/;
 
@@ -72,14 +83,22 @@ function sanitizeHighlightedHtml(html: string): string | null {
         }
 
         if (name === "style") {
-          const safeStyle = sanitizeStyleAttribute(attribute.value);
+          // Remove background-color styles to let app theme show through
+          let styleValue = attribute.value;
+          styleValue = styleValue.replace(/background-color:[^;]+;?/gi, "");
+          styleValue = styleValue.replace(/background:[^;]+;?/gi, "");
+          styleValue = styleValue.trim();
 
-          if (safeStyle) {
-            element.setAttribute("style", safeStyle);
+          if (styleValue) {
+            const safeStyle = sanitizeStyleAttribute(styleValue);
+            if (safeStyle) {
+              element.setAttribute("style", safeStyle);
+            } else {
+              element.removeAttribute(attribute.name);
+            }
           } else {
             element.removeAttribute(attribute.name);
           }
-
           continue;
         }
 
@@ -104,8 +123,7 @@ function CodeBlock({ children, className, ...props }: CodeBlockProps) {
   return (
     <div
       className={cn(
-        "not-prose flex w-full flex-col overflow-clip border",
-        "border-border bg-card text-card-foreground rounded-xl",
+        "not-prose flex w-full flex-col",
         className,
       )}
       {...props}
@@ -125,25 +143,80 @@ export type CodeBlockCodeProps = {
 function CodeBlockCode({
   code,
   language = "tsx",
-  theme = "github-light",
+  theme = "github-dark",
   className,
   ...props
 }: CodeBlockCodeProps) {
   const [highlightedHtml, setHighlightedHtml] = useState<string | null>(null);
+  const [isHighlighting, setIsHighlighting] = useState(false);
+  const [isTooLarge, setIsTooLarge] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const highlightTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isMountedRef = useRef(true);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      if (highlightTimeoutRef.current) {
+        clearTimeout(highlightTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const runHighlight = useCallback(async () => {
+    if (!code || !isMountedRef.current) return;
+
+    // Skip highlighting for large files
+    if (code.length > MAX_HIGHLIGHT_SIZE) {
+      setIsTooLarge(true);
+      setIsHighlighting(false);
+      return;
+    }
+
+    setIsHighlighting(true);
+
+    try {
+      const html = await codeToHtml(code, { 
+        lang: language, 
+        theme,
+      });
+      if (isMountedRef.current) {
+        setHighlightedHtml(sanitizeHighlightedHtml(html));
+      }
+    } catch {
+      // Fallback to plain text on error
+      if (isMountedRef.current) {
+        setHighlightedHtml(null);
+      }
+    } finally {
+      if (isMountedRef.current) {
+        setIsHighlighting(false);
+      }
+    }
+  }, [code, language, theme]);
 
   useEffect(() => {
-    async function highlight() {
-      if (!code) {
-        setHighlightedHtml("<pre><code></code></pre>");
-        return;
-      }
+    // Reset state when code changes
+    setHighlightedHtml(null);
+    setIsTooLarge(false);
+    setIsHighlighting(false);
 
-      const html = await codeToHtml(code, { lang: language, theme });
-      setHighlightedHtml(sanitizeHighlightedHtml(html));
+    if (!code) {
+      setHighlightedHtml("<pre><code></code></pre>");
+      return;
     }
-    highlight();
-  }, [code, language, theme]);
+
+    // Debounce highlighting to not block the main thread
+    if (highlightTimeoutRef.current) {
+      clearTimeout(highlightTimeoutRef.current);
+    }
+
+    highlightTimeoutRef.current = setTimeout(() => {
+      void runHighlight();
+    }, HIGHLIGHT_DEBOUNCE_MS);
+  }, [code, language, theme, runHighlight]);
 
   useEffect(() => {
     if (containerRef.current && highlightedHtml) {
@@ -152,18 +225,43 @@ function CodeBlockCode({
   }, [highlightedHtml]);
 
   const classNames = cn(
-    "w-full overflow-x-auto text-[13px] [&>pre]:px-4 [&>pre]:py-4",
+    "relative w-full overflow-x-auto font-mono text-[13px] leading-relaxed",
     className,
   );
 
-  // SSR fallback: render plain code if not hydrated yet
-  return highlightedHtml ? (
-    <div ref={containerRef} className={classNames} {...props} />
-  ) : (
+  // If file is too large, show plain text with a notice
+  if (isTooLarge) {
+    return (
+      <div className={classNames} {...props}>
+        <div className="sticky top-0 z-10 border-b border-border-subtle bg-surface-2/80 px-4 py-2 text-xs text-muted-foreground backdrop-blur">
+          File too large for syntax highlighting
+        </div>
+        <div className="p-4">
+          <pre className="whitespace-pre-wrap break-words">
+            <code>{code}</code>
+          </pre>
+        </div>
+      </div>
+    );
+  }
+
+  // Show plain text immediately while highlighting loads
+  return (
     <div className={classNames} {...props}>
-      <pre>
-        <code>{code}</code>
-      </pre>
+      {isHighlighting && (
+        <div className="sticky top-0 z-10 border-b border-border-subtle bg-surface-2/80 px-4 py-2 text-xs text-muted-foreground backdrop-blur">
+          Loading syntax highlighting...
+        </div>
+      )}
+      {highlightedHtml ? (
+        <div ref={containerRef} className="p-4" />
+      ) : (
+        <div className="p-4">
+          <pre className="whitespace-pre-wrap break-words">
+            <code>{code}</code>
+          </pre>
+        </div>
+      )}
     </div>
   );
 }
@@ -185,4 +283,4 @@ function CodeBlockGroup({
   );
 }
 
-export { CodeBlockGroup, CodeBlockCode, CodeBlock };
+export { CodeBlock, CodeBlockCode, CodeBlockGroup };

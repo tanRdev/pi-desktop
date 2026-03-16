@@ -1,13 +1,14 @@
 import type { FileContent } from "@pidesk/shared";
-import { FileText, X } from "lucide-react";
+import { Binary, FileIcon, FileText, FileWarning, Terminal, X } from "lucide-react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { CodeBlock, CodeBlockCode } from "./code-block";
+import { CodeBlockCode } from "./code-block";
 import { Markdown } from "./markdown";
 
 interface FileViewerProps {
   filePath: string | null;
   onClose?: () => void;
+  onOpenTerminal?: () => void;
   className?: string;
 }
 
@@ -49,6 +50,33 @@ const EXTENSION_TO_LANGUAGE: Record<string, string> = {
   ".sql": "sql",
   ".md": "markdown",
   ".markdown": "markdown",
+  ".php": "php",
+  ".vue": "vue",
+  ".svelte": "svelte",
+  ".lua": "lua",
+  ".r": "r",
+  ".dart": "dart",
+  ".ex": "elixir",
+  ".exs": "elixir",
+  ".hs": "haskell",
+  ".jl": "julia",
+  ".pl": "perl",
+  ".scala": "scala",
+  ".clj": "clojure",
+  ".erl": "erlang",
+  ".f": "fortran",
+  ".f90": "fortran",
+  ".groovy": "groovy",
+  ".m": "objc",
+  ".mm": "objc",
+  ".vim": "vim",
+  ".nix": "nix",
+  ".prisma": "prisma",
+  ".graphql": "graphql",
+  ".gql": "graphql",
+  ".dockerfile": "dockerfile",
+  ".makefile": "makefile",
+  ".mk": "makefile",
 };
 
 function getLanguageFromPath(path: string): string {
@@ -65,7 +93,7 @@ function isMarkdownFile(path: string): boolean {
   return ext === ".md" || ext === ".markdown";
 }
 
-export function FileViewer({ filePath, onClose, className }: FileViewerProps) {
+export function FileViewer({ filePath, onClose, onOpenTerminal, className }: FileViewerProps) {
   const [fileContent, setFileContent] = React.useState<FileContent | null>(
     null,
   );
@@ -116,16 +144,28 @@ export function FileViewer({ filePath, onClose, className }: FileViewerProps) {
             </span>
           )}
         </div>
-        {onClose && (
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded p-1 text-muted-foreground transition hover:bg-surface-3 hover:text-foreground"
-            aria-label="Close file"
-          >
-            <X className="size-4" />
-          </button>
-        )}
+        <div className="flex items-center gap-1">
+          {onOpenTerminal && (
+            <button
+              type="button"
+              onClick={onOpenTerminal}
+              className="rounded p-1 text-muted-foreground transition hover:bg-surface-3 hover:text-foreground"
+              aria-label="Open terminal"
+            >
+              <Terminal className="size-4" />
+            </button>
+          )}
+          {onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded p-1 text-muted-foreground transition hover:bg-surface-3 hover:text-foreground"
+              aria-label="Close file"
+            >
+              <X className="size-4" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Content */}
@@ -143,32 +183,67 @@ export function FileViewer({ filePath, onClose, className }: FileViewerProps) {
         )}
 
         {fileContent?.type === "binary" && (
-          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-            Binary file - cannot display
+          <div className="flex h-full flex-col items-center justify-center gap-3 p-8 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-surface-2">
+              <Binary className="size-8 text-muted-foreground" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-foreground">Binary file</p>
+              <p className="text-xs text-muted-foreground">
+                This file cannot be displayed in the text viewer
+              </p>
+            </div>
           </div>
         )}
 
         {fileContent?.type === "unsupported" && (
-          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-            Unsupported file type
+          <div className="flex h-full flex-col items-center justify-center gap-3 p-8 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-surface-2">
+              <FileWarning className="size-8 text-muted-foreground" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-foreground">Unsupported file type</p>
+              <p className="text-xs text-muted-foreground">
+                This file format cannot be displayed
+              </p>
+            </div>
           </div>
         )}
 
         {fileContent?.type === "text" && fileContent.content && (
-          <div className="p-4">
+          <div className="h-full">
+            {fileContent.truncated && (
+              <div className="flex items-start gap-3 border-b border-warning/30 bg-warning/10 px-4 py-3 text-sm">
+                <FileWarning className="mt-0.5 size-4 shrink-0 text-warning" />
+                <div>
+                  <p className="font-medium text-warning-foreground">Large file</p>
+                  <p className="text-muted-foreground">
+                    This file exceeds 1MB and has been truncated. Showing first portion only.
+                  </p>
+                </div>
+              </div>
+            )}
             {isMarkdown ? (
-              <Markdown>{fileContent.content}</Markdown>
+              <div className="p-4">
+                <Markdown>{fileContent.content}</Markdown>
+              </div>
             ) : (
-              <CodeBlock className="border-0 bg-transparent">
-                <CodeBlockCode code={fileContent.content} language={language} />
-              </CodeBlock>
+              <CodeBlockCode code={fileContent.content} language={language} className="h-full" />
             )}
           </div>
         )}
 
         {fileContent?.type === "text" && !fileContent.content && (
-          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-            Empty file
+          <div className="flex h-full flex-col items-center justify-center gap-3 p-8 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-surface-2">
+              <FileIcon className="size-8 text-muted-foreground" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-foreground">Empty file</p>
+              <p className="text-xs text-muted-foreground">
+                This file has no content
+              </p>
+            </div>
           </div>
         )}
       </div>
