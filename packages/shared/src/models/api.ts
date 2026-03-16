@@ -27,5 +27,6 @@ export interface PiDeskApi {
   };
   fs: {
     readDirectory(path: string): Promise<import("./fs.js").DirectoryListing>;
+    readFile(path: string): Promise<import("./fs.js").FileContent>;
   };
 }

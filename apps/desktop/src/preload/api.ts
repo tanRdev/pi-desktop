@@ -77,6 +77,12 @@ export function createPiDeskApi({
           { path },
         );
       },
+      readFile(path: string) {
+        return invoke<import("@pidesk/shared").FileContent>(
+          IPC_CHANNELS.fs.readFile,
+          { path },
+        );
+      },
     },
   };
 }

@@ -97,4 +97,49 @@ export function registerIpcHandlers({
       }));
     return { path: dirPath, entries: result };
   });
+  handle(IPC_CHANNELS.fs.readFile, async (_event, payload) => {
+    const filePath =
+      typeof payload === "object" && payload !== null && "path" in payload
+        ? payload.path
+        : undefined;
+    if (typeof filePath !== "string") {
+      throw new Error("readFile payload must include path");
+    }
+    const { readFileSync } = await import("node:fs");
+    const { extname } = await import("node:path");
+
+    // List of text file extensions we support
+    const textExtensions = new Set([
+      ".txt", ".md", ".markdown", ".json", ".yaml", ".yml", ".toml",
+      ".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs",
+      ".py", ".rb", ".go", ".rs", ".java", ".kt", ".swift", ".c", ".cpp", ".h", ".hpp",
+      ".sh", ".bash", ".zsh", ".fish", ".ps1",
+      ".html", ".htm", ".css", ".scss", ".sass", ".less",
+      ".xml", ".svg", ".sql",
+      ".env", ".gitignore", ".dockerignore", ".editorconfig",
+      ".conf", ".config", ".cfg", ".ini",
+      ".log", ".csv", ".tsv",
+    ]);
+
+    const ext = extname(filePath).toLowerCase();
+    const isText = textExtensions.has(ext) || !ext; // Files without extension treated as text
+
+    if (!isText) {
+      return { path: filePath, content: "", type: "unsupported" as const };
+    }
+
+    try {
+      const buffer = readFileSync(filePath);
+      // Check for null bytes which indicate binary content
+      for (let i = 0; i < Math.min(buffer.length, 8192); i++) {
+        if (buffer[i] === 0) {
+          return { path: filePath, content: "", type: "binary" as const };
+        }
+      }
+      const content = buffer.toString("utf-8");
+      return { path: filePath, content, type: "text" as const, encoding: "utf-8" };
+    } catch (error) {
+      throw new Error(`Failed to read file: ${error instanceof Error ? error.message : "Unknown error"}`);
+    }
+  });
 }

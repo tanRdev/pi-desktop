@@ -16,6 +16,7 @@ export const IPC_CHANNELS = {
   },
   fs: {
     readDirectory: "fs:readDirectory",
+    readFile: "fs:readFile",
   },
 } as const;
 

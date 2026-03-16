@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 
 interface FileTreeProps {
   rootPath: string | null | undefined;
+  onFileClick?: (path: string) => void;
   className?: string;
 }
 
@@ -12,6 +13,7 @@ interface FileTreeItemProps {
   entry: FileEntry;
   depth: number;
   onToggle: (path: string) => void;
+  onFileClick?: (path: string) => void;
   expandedPaths: Set<string>;
   loadDirectory: (path: string) => Promise<DirectoryListing | null>;
   cache: Map<string, DirectoryListing>;
@@ -21,6 +23,7 @@ function FileTreeItem({
   entry,
   depth,
   onToggle,
+  onFileClick,
   expandedPaths,
   loadDirectory,
   cache,
@@ -33,8 +36,10 @@ function FileTreeItem({
   const handleClick = React.useCallback(() => {
     if (isDirectory) {
       onToggle(entry.path);
+    } else {
+      onFileClick?.(entry.path);
     }
-  }, [isDirectory, onToggle, entry.path]);
+  }, [isDirectory, onToggle, onFileClick, entry.path]);
 
   React.useEffect(() => {
     if (isDirectory && isExpanded && !children && !isLoading) {
@@ -89,6 +94,7 @@ function FileTreeItem({
               entry={child}
               depth={depth + 1}
               onToggle={onToggle}
+              onFileClick={onFileClick}
               expandedPaths={expandedPaths}
               loadDirectory={loadDirectory}
               cache={cache}
@@ -108,7 +114,7 @@ function FileTreeItem({
   );
 }
 
-export function FileTree({ rootPath, className }: FileTreeProps) {
+export function FileTree({ rootPath, onFileClick, className }: FileTreeProps) {
   const [rootListing, setRootListing] = React.useState<DirectoryListing | null>(
     null,
   );
@@ -187,6 +193,7 @@ export function FileTree({ rootPath, className }: FileTreeProps) {
           entry={entry}
           depth={0}
           onToggle={handleToggle}
+          onFileClick={onFileClick}
           expandedPaths={expandedPaths}
           loadDirectory={loadDirectory}
           cache={cache.current}

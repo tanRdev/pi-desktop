@@ -33,6 +33,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "./components/ui/button";
 import { FileTree } from "./components/ui/file-tree";
+import { FileViewer } from "./components/ui/file-viewer";
 import {
   Message,
   MessageAvatar,
@@ -106,33 +107,6 @@ function formatTimestamp(timestamp?: number) {
 
   return timeFormatter.format(new Date(timestamp));
 }
-
-function getStatusClass(status: string) {
-  switch (status) {
-    case "streaming":
-      return "border-amber-700/40 bg-amber-700/15 text-amber-300";
-    case "error":
-      return "border-red-700/40 bg-red-700/15 text-red-300";
-    case "starting":
-      return "border-stone-600/30 bg-stone-600/10 text-stone-400";
-    default:
-      return "border-lime-700/30 bg-lime-700/10 text-lime-400";
-  }
-}
-
-function getStatusDotClass(status: string) {
-  switch (status) {
-    case "streaming":
-      return "bg-amber-500 animate-pulse";
-    case "error":
-      return "bg-red-500";
-    case "starting":
-      return "bg-stone-500 animate-pulse";
-    default:
-      return "bg-lime-500";
-  }
-}
-
 function getPathTail(value?: string | null) {
   if (!value) {
     return "Unavailable";
@@ -562,6 +536,9 @@ export default function App() {
       }
     },
   );
+  const [selectedFilePath, setSelectedFilePath] = React.useState<string | null>(
+    null,
+  );
 
   // Persist projects to localStorage
   React.useEffect(() => {
@@ -725,12 +702,14 @@ export default function App() {
         );
       }
 
-      const newProjects: ShellProjectSnapshot[] = uniqueNewPaths.map((path) => ({
-        id: `project-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
-        name: path.split(/[\\/]/).filter(Boolean).pop() ?? path,
-        path,
-        isActive: false,
-      }));
+      const newProjects: ShellProjectSnapshot[] = uniqueNewPaths.map(
+        (path) => ({
+          id: `project-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
+          name: path.split(/[\\/]/).filter(Boolean).pop() ?? path,
+          path,
+          isActive: false,
+        }),
+      );
 
       setProjects((prev) => [...prev, ...newProjects]);
       if (!activeProjectId) {
@@ -888,7 +867,10 @@ export default function App() {
             </div>
 
             <ScrollArea className="min-h-0 flex-1" data-no-drag="true">
-              <FileTree rootPath={activeProject?.path} />
+              <FileTree
+                rootPath={activeProject?.path}
+                onFileClick={setSelectedFilePath}
+              />
             </ScrollArea>
 
             <div
@@ -951,104 +933,87 @@ export default function App() {
           </aside>
 
           <main className="relative z-10 flex min-w-0 flex-1 flex-col">
-            <header
-              data-drag-region="true"
-              className="relative flex h-16 shrink-0 items-center justify-between border-b border-border px-6 bg-surface-1"
-            >
-              <div className="min-w-0 w-32" />
-
-              <div className="flex items-center gap-2" data-no-drag="true">
-                <div
-                  data-testid="agent-status"
-                  className={cn(
-                    "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[0.68rem] uppercase tracking-[0.18em]",
-                    getStatusClass(agent.status),
-                  )}
+            {selectedFilePath ? (
+              <FileViewer
+                filePath={selectedFilePath}
+                onClose={() => setSelectedFilePath(null)}
+                className="min-h-0 flex-1"
+              />
+            ) : (
+              <ChatContainerRoot className="relative min-h-0 flex-1">
+                <ChatContainerContent
+                  data-testid="chat-transcript"
+                  className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-6 pb-40 pt-10"
                 >
-                  <span
-                    className={cn(
-                      "size-1.5 rounded-full",
-                      getStatusDotClass(agent.status),
-                    )}
-                  />
-                  {agent.status}
-                </div>
-              </div>
-            </header>
+                  {agent.messages.length === 0 ? (
+                    <section className="flex flex-1 flex-col items-center justify-center">
+                      <div className="mb-8 text-5xl font-semibold tracking-tight text-muted-foreground/30">
+                        π
+                      </div>
+                    </section>
+                  ) : (
+                    agent.messages.map((message) => {
+                      const isSystem = message.role === "system";
 
-            <ChatContainerRoot className="relative min-h-0 flex-1">
-              <ChatContainerContent
-                data-testid="chat-transcript"
-                className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-6 pb-40 pt-10"
-              >
-                {agent.messages.length === 0 ? (
-                  <section className="flex flex-1 flex-col items-center justify-center">
-                    <div className="mb-8 text-5xl font-semibold tracking-tight text-muted-foreground/30">
-                      π
-                    </div>
-                  </section>
-                ) : (
-                  agent.messages.map((message) => {
-                    const isSystem = message.role === "system";
-
-                    return (
-                      <Message
-                        key={message.id}
-                        className={cn(isSystem && "my-6 justify-center")}
-                      >
-                        {!isSystem && (
-                          <MessageAvatar
-                            src=""
-                            alt={getMessageLabel(message)}
-                            fallback={getMessageFallback(message)}
-                          />
-                        )}
-
-                        <div
-                          className={cn(
-                            "min-w-0 flex-1",
-                            isSystem && "flex-initial",
-                          )}
+                      return (
+                        <Message
+                          key={message.id}
+                          className={cn(isSystem && "my-6 justify-center")}
                         >
                           {!isSystem && (
-                            <span className="text-sm font-medium text-muted-foreground">
-                              {getMessageLabel(message)}
-                            </span>
+                            <MessageAvatar
+                              src=""
+                              alt={getMessageLabel(message)}
+                              fallback={getMessageFallback(message)}
+                            />
                           )}
 
-                          {isSystem ? (
-                            <div className="mt-1 rounded border border-dashed border-border bg-surface-2 px-4 py-3 text-sm text-muted-foreground">
-                              {message.text}
-                            </div>
-                          ) : (
-                            <MessageContent
-                              markdown={message.role !== "user"}
-                              className="mt-1 max-w-none bg-transparent p-0 text-base leading-relaxed text-foreground shadow-none"
-                            >
-                              {message.text || " "}
-                            </MessageContent>
-                          )}
-                        </div>
-                      </Message>
-                    );
-                  })
-                )}
+                          <div
+                            className={cn(
+                              "min-w-0 flex-1",
+                              isSystem && "flex-initial",
+                            )}
+                          >
+                            {!isSystem && (
+                              <span className="text-sm font-medium text-muted-foreground">
+                                {getMessageLabel(message)}
+                              </span>
+                            )}
 
-                {agent.status === "streaming" && (
-                  <div className="pl-11 text-xs uppercase tracking-[0.18em] text-zinc-500">
-                    PiDesk is responding
-                  </div>
-                )}
+                            {isSystem ? (
+                              <div className="mt-1 rounded border border-dashed border-border bg-surface-2 px-4 py-3 text-sm text-muted-foreground">
+                                {message.text}
+                              </div>
+                            ) : (
+                              <MessageContent
+                                markdown={message.role !== "user"}
+                                className="mt-1 max-w-none bg-transparent p-0 text-base leading-relaxed text-foreground shadow-none"
+                              >
+                                {message.text || " "}
+                              </MessageContent>
+                            )}
+                          </div>
+                        </Message>
+                      );
+                    })
+                  )}
 
-                {agent.lastError && (
-                  <div className="rounded-lg border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">
-                    {agent.lastError}
-                  </div>
-                )}
+                  {agent.status === "streaming" && (
+                    <div className="pl-11 text-xs uppercase tracking-[0.18em] text-zinc-500">
+                      PiDesk is responding
+                    </div>
+                  )}
 
-                <ChatContainerScrollAnchor />
-              </ChatContainerContent>
-            </ChatContainerRoot>
+                  {agent.lastError && (
+                    <div className="rounded-lg border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">
+                      {agent.lastError}
+                    </div>
+                  )}
+
+                  <ChatContainerScrollAnchor />
+                </ChatContainerContent>
+              </ChatContainerRoot>
+            )}
 
             <div className="relative z-20 border-t border-border bg-gradient-to-t from-background to-transparent pb-6 pt-4">
               <div className="mx-auto max-w-4xl px-6">
@@ -1075,7 +1040,7 @@ export default function App() {
                 >
                   <PromptInputTextarea
                     data-testid="chat-input"
-                    placeholder="Ask PiDesk to read the room..."
+                    placeholder="Ask Pi..."
                     className="min-h-24 resize-none border-0 bg-transparent text-base leading-relaxed text-foreground placeholder:text-muted-foreground focus-visible:ring-0"
                   />
                   <PromptInputActions className="mt-3 items-center justify-between">
