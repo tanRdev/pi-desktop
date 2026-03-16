@@ -4,6 +4,8 @@
 /* Desktop-specific styles */
 body {
   -webkit-app-region: drag;
+  font-family: var(--app-font-sans);
+  letter-spacing: -0.01em;
 }
 
 * {
@@ -33,7 +35,7 @@ select {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Focus states */
+/* Focus states - cyan glow */
 button:focus-visible,
 a:focus-visible,
 input:focus-visible,
@@ -42,7 +44,6 @@ select:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
-
 
 /* Code highlighting - seamless integration with app theme */
 .shiki {
@@ -67,7 +68,7 @@ select:focus-visible {
   background: transparent !important;
 }
 
-/* Inline code styling */
+/* Inline code styling - console-like */
 code:not(.shiki code):not(pre code) {
   background: var(--surface-3);
   border: 1px solid var(--border-subtle);
@@ -78,8 +79,82 @@ code:not(.shiki code):not(pre code) {
   color: var(--foreground);
 }
 
-/* Selection in code blocks */
+/* Selection in code blocks - cyan accent */
 .shiki ::selection {
-  background: var(--primary);
-  color: var(--primary-foreground);
+  background: oklch(70% 0.15 195 / 0.4);
+  color: var(--foreground);
+}
+
+/* Terminal-like cursor blink animation */
+@keyframes cursor-blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.cursor-blink {
+  animation: cursor-blink 1s step-end infinite;
+}
+
+/* Activity indicator - subtle green glow */
+.activity-indicator {
+  box-shadow: 0 0 8px oklch(75% 0.18 145 / 0.6);
+}
+
+/* Status dot - neon green pulse */
+.status-active {
+  background: oklch(75% 0.18 145);
+  box-shadow: 0 0 6px oklch(75% 0.18 145 / 0.8);
+}
+
+/* Panel elevation - layered dark glass */
+.panel-elevated {
+  background: var(--surface-2);
+  box-shadow:
+    0 1px 0 oklch(100% 0 0 / 0.03) inset,
+    0 4px 12px oklch(0% 0 0 / 0.4);
+}
+
+/* Console row highlight - subtle cyan tint */
+.row-active {
+  background: oklch(70% 0.15 195 / 0.08);
+}
+
+/* Border glow on hover - cyan */
+.hover-glow:hover {
+  border-color: oklch(70% 0.15 195 / 0.5);
+  box-shadow: 0 0 0 1px oklch(70% 0.15 195 / 0.2);
+}
+
+/* Monospace typography utilities */
+.text-mono-xs {
+  font-family: var(--app-font-mono);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.text-mono-sm {
+  font-family: var(--app-font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.text-mono-base {
+  font-family: var(--app-font-mono);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* Tabular numbers for alignment */
+.tabular-nums {
+  font-feature-settings: "tnum" 1, "zero" 1;
+}
+
+/* Dimmed text - for secondary info */
+.text-dimmed {
+  color: oklch(65% 0.015 270);
+}
+
+/* Muted border - for subtle separators */
+.border-subtle {
+  border-color: oklch(40% 0.012 270 / 0.3);
 }

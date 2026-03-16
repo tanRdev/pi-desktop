@@ -7,12 +7,8 @@ export interface GitStatusChipProps {
 }
 
 export function GitStatusChip({ git, className }: GitStatusChipProps) {
-  const label =
-    git.status !== "ready"
-      ? git.status
-      : git.hasChanges
-        ? "dirty"
-        : "clean";
+  // Show status text only for non-ready states (loading, error, etc.)
+  // For ready state, use color to indicate clean/dirty
 
   return (
     <span
@@ -26,9 +22,9 @@ export function GitStatusChip({ git, className }: GitStatusChipProps) {
         className,
       )}
     >
-      {label}
+      {git.status !== "ready" && git.status}
       {git.status === "ready" && (
-        <span className="ml-1 text-[10px] text-foreground/70">
+        <span className="text-[10px] text-foreground/70">
           +{git.ahead ?? 0}/-{git.behind ?? 0}
         </span>
       )}

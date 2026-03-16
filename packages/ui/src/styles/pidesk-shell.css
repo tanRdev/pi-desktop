@@ -1,10 +1,10 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  /* Border radius - architectural, minimal */
-  --radius-sm: 0.125rem;   /* 2px - precise, technical */
+  /* Border radius - minimal, precise */
+  --radius-sm: 0.125rem;   /* 2px - tight, technical */
   --radius-md: 0.25rem;    /* 4px - subtle containers */
-  --radius-lg: 0.375rem;   /* 6px - cards */
+  --radius-lg: 0.375rem;   /* 6px - panels */
   --radius-xl: 0.5rem;     /* 8px - modals */
 
   /* Core semantic colors */
@@ -42,7 +42,7 @@
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
 
-  /* Status colors - refined amber/olive instead of bright primaries */
+  /* Status colors - neon accents for activity */
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
@@ -66,66 +66,65 @@
 }
 
 @layer base {
-  /* Root variables - industrial dark theme */
+  /* Root variables - developer console dark theme */
   :root {
-    /* Base - warm charcoal, not pure black */
-    --background: oklch(12% 0.01 270);
-    --foreground: oklch(95% 0.01 100);
+    /* Base - Material dark: #121212 */
+    --background: #121212;
+    --foreground: oklch(92% 0.01 100);
 
-    /* Surface layers - subtle warmth progression */
-    --surface-1: oklch(15% 0.008 270);
-    --surface-2: oklch(18% 0.01 270);
-    --surface-3: oklch(22% 0.012 270);
-    --surface-4: oklch(26% 0.015 270);
+    /* Surface layers - subtle depth progression */
+    --surface-1: #1a1a1a;
+    --surface-2: #1e1e1e;
+    --surface-3: #252525;
+    --surface-4: #2a2a2a;
 
     /* Card and popover surfaces */
-    --card: oklch(14% 0.008 270);
-    --card-foreground: oklch(95% 0.01 100);
-    --popover: oklch(20% 0.01 270);
-    --popover-foreground: oklch(95% 0.01 100);
+    --card: #161616;
+    --card-foreground: oklch(92% 0.01 100);
+    --popover: #1c1c1c;
+    --popover-foreground: oklch(92% 0.01 100);
 
-    /* Primary - warm amber/stone accent */
-    --primary: oklch(75% 0.08 85);
-    --primary-foreground: oklch(12% 0.01 270);
+    /* Primary - neon cyan for interactive elements */
+    --primary: oklch(70% 0.15 195);
+    --primary-foreground: oklch(8% 0.005 270);
 
     /* Secondary - muted surface */
-    --secondary: oklch(22% 0.01 270);
-    --secondary-foreground: oklch(85% 0.01 100);
+    --secondary: #252525;
+    --secondary-foreground: oklch(82% 0.01 100);
 
     /* Muted - subtle emphasis */
-    --muted: oklch(28% 0.01 270);
+    --muted: #2d2d2d;
     --muted-foreground: oklch(60% 0.01 270);
 
-    /* Accent - olive/warm for interactive highlights */
-    --accent: oklch(65% 0.06 120);
-    --accent-foreground: oklch(12% 0.01 270);
+    /* Accent - neon green for highlights/activity */
+    --accent: oklch(75% 0.18 145);
+    --accent-foreground: oklch(8% 0.005 270);
 
-    /* Destructive - muted brick red */
-    --destructive: oklch(55% 0.15 25);
+    /* Destructive - muted red */
+    --destructive: oklch(60% 0.18 25);
     --destructive-foreground: oklch(95% 0.01 100);
 
-    /* Border system - warm subtle borders */
-    --border: oklch(30% 0.01 270 / 0.4);
-    --border-subtle: oklch(25% 0.01 270 / 0.25);
-    --border-hover: oklch(40% 0.015 270 / 0.5);
-    --input: oklch(25% 0.01 270 / 0.3);
-    --ring: oklch(75% 0.08 85 / 0.4);
+    /* Border system - visible but subtle borders */
+    --border: oklch(40% 0.01 270 / 0.4);
+    --border-subtle: oklch(35% 0.008 270 / 0.3);
+    --border-hover: oklch(50% 0.012 270 / 0.5);
+    --input: oklch(38% 0.01 270 / 0.35);
+    --ring: oklch(70% 0.15 195 / 0.5);
 
-    /* Status colors - earthy, not neon */
-    --success: oklch(65% 0.08 145);
-    --success-foreground: oklch(12% 0.01 270);
-    --warning: oklch(70% 0.1 85);
-    --warning-foreground: oklch(12% 0.01 270);
-    --info: oklch(65% 0.05 250);
+    /* Status colors - neon accents */
+    --success: oklch(75% 0.18 145);
+    --success-foreground: oklch(8% 0.005 270);
+    --warning: oklch(75% 0.14 85);
+    --warning-foreground: oklch(8% 0.005 270);
+    --info: oklch(70% 0.15 250);
     --info-foreground: oklch(95% 0.01 100);
 
-    /* Typography - distinctive pairing */
-    /* Space Grotesk for UI: geometric, technical, distinctive */
-    --app-font-sans: "Space Grotesk", "DM Sans", system-ui, sans-serif;
-    /* JetBrains Mono for code: technical, readable */
-    --app-font-mono: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
+    /* Typography */
+    /* Typography - Inter for UI, IBM Plex Mono for code */
+    --app-font-sans: "Inter", system-ui, -apple-system, sans-serif;
+    --app-font-mono: "IBM Plex Mono", "JetBrains Mono", "SF Mono", ui-monospace, monospace;
 
-    /* Spacing scale - architectural rhythm */
+    /* Spacing scale - compact, efficient */
     --space-1: 0.25rem; /* 4px */
     --space-2: 0.5rem; /* 8px */
     --space-3: 0.75rem; /* 12px */
@@ -136,14 +135,14 @@
     --space-10: 2.5rem; /* 40px */
     --space-12: 3rem; /* 48px */
 
-    /* Shadows - atmospheric depth */
-    --shadow-sm: 0 1px 2px 0 oklch(0% 0 0 / 0.4);
+    /* Shadows - subtle depth for layered panels */
+    --shadow-sm: 0 1px 2px 0 oklch(0% 0 0 / 0.5);
     --shadow-md:
-      0 4px 6px -1px oklch(0% 0 0 / 0.5), 0 2px 4px -2px oklch(0% 0 0 / 0.4);
+      0 4px 6px -1px oklch(0% 0 0 / 0.6), 0 2px 4px -2px oklch(0% 0 0 / 0.5);
     --shadow-lg:
-      0 10px 15px -3px oklch(0% 0 0 / 0.5), 0 4px 6px -4px oklch(0% 0 0 / 0.4);
+      0 10px 15px -3px oklch(0% 0 0 / 0.6), 0 4px 6px -4px oklch(0% 0 0 / 0.5);
     --shadow-xl:
-      0 20px 25px -5px oklch(0% 0 0 / 0.5), 0 8px 10px -6px oklch(0% 0 0 / 0.4);
+      0 20px 25px -5px oklch(0% 0 0 / 0.6), 0 8px 10px -6px oklch(0% 0 0 / 0.5);
   }
 }
 
@@ -157,9 +156,9 @@
     border-color: var(--border);
   }
 
-  /* Base styles */
+  /* Base styles - developer console aesthetic */
   html {
-    font-size: 14px;
+    font-size: 13px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background-color: var(--background);
@@ -168,7 +167,7 @@
       "rlig" 1,
       "calt" 1,
       "ss01" 1,
-      "ss02" 1;
+      "zero" 1;
   }
 
   body {
@@ -177,11 +176,12 @@
     font-family: var(--app-font-sans);
     line-height: 1.5;
     font-weight: 400;
+    letter-spacing: -0.01em;
   }
 
-  /* Selection - warm amber tint */
+  /* Selection - cyan tint */
   ::selection {
-    background: oklch(75% 0.08 85 / 0.25);
+    background: oklch(70% 0.15 195 / 0.3);
     color: var(--foreground);
   }
 
@@ -191,13 +191,13 @@
   kbd,
   samp {
     font-family: var(--app-font-mono);
-    font-feature-settings: "liga" 0;
+    font-feature-settings: "liga" 0, "calt" 1;
   }
 
-  /* Scrollbar - refined minimal */
+  /* Scrollbar - minimal, console-like */
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
   }
 
   ::-webkit-scrollbar-track {
@@ -205,15 +205,15 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: oklch(40% 0.01 270 / 0.4);
-    border-radius: 3px;
+    background: oklch(45% 0.01 270 / 0.5);
+    border-radius: 2px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: oklch(50% 0.015 270 / 0.5);
+    background: oklch(55% 0.015 270 / 0.6);
   }
 
-  /* Focus visible - warm ring */
+  /* Focus visible - cyan ring */
   :focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
@@ -239,14 +239,14 @@
   color: var(--foreground);
 }
 
-/* Prose styles for markdown */
+/* Prose styles for markdown - console-like */
 .prose {
   color: var(--foreground);
-  line-height: 1.65;
+  line-height: 1.6;
 }
 
 .prose code {
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   background: var(--surface-2);
   border-radius: var(--radius-sm);
   padding: 0.125rem 0.375rem;
@@ -255,8 +255,8 @@
 }
 
 .prose pre {
-  background: var(--surface-2);
-  border: 1px solid var(--border);
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   padding: 1rem;
   overflow-x: auto;
@@ -280,3 +280,11 @@
 .tracking-wide-custom {
   letter-spacing: 0.05em;
 }
+
+/* Terminal/console-like text styling */
+.font-mono-ui {
+  font-family: var(--app-font-mono);
+  font-feature-settings: "zero" 1, "ss01" 1;
+}
+
+/* Subtle glow

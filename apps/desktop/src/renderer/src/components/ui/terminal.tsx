@@ -23,10 +23,10 @@ export function Terminal({ id, cwd, className, onExit }: TerminalProps) {
 
     const terminal = new XTerm({
       theme: {
-        background: "#0a0a0a",
+        background: "#121212",
         foreground: "#e5e5e5",
         cursor: "#e5e5e5",
-        cursorAccent: "#0a0a0a",
+        cursorAccent: "#121212",
         selectionBackground: "#404040",
         black: "#171717",
         red: "#ef4444",
@@ -45,7 +45,8 @@ export function Terminal({ id, cwd, className, onExit }: TerminalProps) {
         brightCyan: "#22d3ee",
         brightWhite: "#fafafa",
       },
-      fontFamily: '"SF Mono", "JetBrains Mono", ui-monospace, monospace',
+      fontFamily:
+        '"IBM Plex Mono", "JetBrains Mono", "SF Mono", ui-monospace, monospace',
       fontSize: 13,
       lineHeight: 1.4,
       cursorBlink: true,

@@ -174,7 +174,7 @@ function FileTab({
       )}
     >
       {isActive && (
-        <div className="absolute inset-x-0 top-0 h-[2px] bg-primary" />
+        <div className="absolute inset-x-0 top-0 h-[2px] bg-cyan-500" />
       )}
       {getIcon()}
       <span className="min-w-0 flex-1 truncate text-xs font-medium">
@@ -224,7 +224,7 @@ function TerminalTab({
       )}
     >
       {isActive && (
-        <div className="absolute inset-x-0 top-0 h-[2px] bg-primary" />
+        <div className="absolute inset-x-0 top-0 h-[2px] bg-amber-500" />
       )}
       <TerminalIcon className="size-3.5 shrink-0" />
       <span className="min-w-0 flex-1 truncate text-xs font-medium">
