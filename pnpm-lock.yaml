@@ -260,7 +260,11 @@ importers:
         specifier: workspace:*
         version: link:../shared
 
-  packages/shared: {}
+  packages/shared:
+    devDependencies:
+      electron:
+        specifier: 41.0.1
+        version: 41.0.1
 
   packages/shell-model:
     dependencies:
