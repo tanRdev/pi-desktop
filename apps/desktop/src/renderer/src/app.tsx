@@ -2,8 +2,13 @@
 import type {
   AgentMessageSnapshot,
   FileContent,
+  RepositorySnapshot,
   ShellGitSnapshot,
-  ShellProjectSnapshot,
+} from "@pidesk/shared";
+import {
+  getActiveRepository,
+  getActiveThread,
+  getActiveWorktree,
 } from "@pidesk/shared";
 import {
   ChatContainerContent,
@@ -54,14 +59,15 @@ import {
   MultiFileViewer,
   type OpenFile,
 } from "./components/ui/multi-file-viewer";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "./components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "./components/ui/popover";
 import { ScrollArea } from "./components/ui/scroll-area";
 import { Separator } from "./components/ui/separator";
 import { Terminal } from "./components/ui/terminal";
+import { GitStatusChip } from "./components/workspace/git-status-chip";
+import { RepositorySwitcher } from "./components/workspace/repository-switcher";
+import { RuntimeStatusChip } from "./components/workspace/runtime-status-chip";
+import { ThreadList } from "./components/workspace/thread-list";
+import { WorktreeList } from "./components/workspace/worktree-list";
 import { useShellModel } from "./hooks/use-shell-model";
 
 const UI_FONT_OPTIONS = [
@@ -94,9 +100,7 @@ const CODE_FONT_OPTIONS = [
   },
 ];
 
-type InspectorView = "git" | "files" | "context" | "history";
-
-type SidebarView = "files" | "threads";
+type InspectorView = "git" | "worktrees" | "context" | "history";
 
 const timeFormatter = new Intl.DateTimeFormat("en", {
   hour: "numeric",
@@ -333,43 +337,60 @@ function GitInspector({ git }: { git?: ShellGitSnapshot }) {
   );
 }
 
-function FilesInspector({
-  agentDirectory,
-  projectPath,
-  rootPath,
+function WorktreeInspector({
+  repositories,
+  activeRepositoryId,
+  activeWorktreeId,
 }: {
-  agentDirectory?: string | null;
-  projectPath?: string;
-  rootPath?: string;
+  repositories: RepositorySnapshot[];
+  activeRepositoryId: string | null;
+  activeWorktreeId: string | null;
 }) {
   return (
     <section className="space-y-2">
-      <p className="text-xs font-medium text-muted-foreground">Files</p>
-      <div className="space-y-3 rounded border border-border bg-surface-2 p-3 text-sm text-muted-foreground">
-        <div>
-          <p className="text-xs uppercase tracking-wide text-foreground/50">
-            Root
-          </p>
-          <p className="mt-1 break-words text-foreground/80">
-            {rootPath ?? "Unavailable"}
-          </p>
-        </div>
-        <div>
-          <p className="text-xs uppercase tracking-wide text-foreground/50">
-            Project
-          </p>
-          <p className="mt-1 break-words text-foreground/80">
-            {projectPath ?? rootPath ?? "Unavailable"}
-          </p>
-        </div>
-        <div>
-          <p className="text-xs uppercase tracking-wide text-foreground/50">
-            Agent dir
-          </p>
-          <p className="mt-1 break-words text-foreground/80">
-            {agentDirectory ?? "Unavailable"}
-          </p>
-        </div>
+      <p className="text-xs font-medium text-muted-foreground">Worktrees</p>
+      <div className="space-y-3">
+        {repositories.map((repository) => (
+          <div
+            key={repository.id}
+            className={cn(
+              "rounded border p-3 text-sm",
+              repository.id === activeRepositoryId
+                ? "border-border-hover bg-surface-2"
+                : "border-border bg-surface-1",
+            )}
+          >
+            <div className="font-medium text-foreground">{repository.name}</div>
+            <div className="mt-0.5 break-words text-xs text-muted-foreground">
+              {repository.rootPath}
+            </div>
+            <div className="mt-3 space-y-2">
+              {repository.worktrees.map((worktree) => (
+                <div
+                  key={worktree.id}
+                  className={cn(
+                    "rounded border px-3 py-2",
+                    worktree.id === activeWorktreeId
+                      ? "border-border-hover bg-surface-3"
+                      : "border-border bg-surface-1",
+                  )}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="truncate text-sm text-foreground">
+                        {worktree.label}
+                      </div>
+                      <div className="mt-0.5 truncate text-xs text-muted-foreground">
+                        {worktree.path}
+                      </div>
+                    </div>
+                    <GitStatusChip git={worktree.git} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
     </section>
   );
@@ -382,6 +403,9 @@ function ContextInspector({
   supportsParallelSessions,
   supportsTools,
   supportsTurns,
+  repositoryName,
+  threadTitle,
+  worktreePath,
 }: {
   lastError: string | null;
   runtimeMode?: string;
@@ -389,6 +413,9 @@ function ContextInspector({
   supportsParallelSessions?: boolean;
   supportsTools?: boolean;
   supportsTurns?: boolean;
+  repositoryName?: string | null;
+  threadTitle?: string | null;
+  worktreePath?: string | null;
 }) {
   return (
     <section className="space-y-2">
@@ -398,6 +425,24 @@ function ContextInspector({
           <span>Agent mode</span>
           <span className="capitalize text-foreground/80">
             {runtimeMode ?? "unknown"}
+          </span>
+        </div>
+        <div className="mt-2 flex justify-between gap-2">
+          <span>Repository</span>
+          <span className="truncate text-foreground/80">
+            {repositoryName ?? "—"}
+          </span>
+        </div>
+        <div className="mt-1 flex justify-between gap-2">
+          <span>Worktree</span>
+          <span className="truncate text-foreground/80">
+            {worktreePath ?? "—"}
+          </span>
+        </div>
+        <div className="mt-1 flex justify-between gap-2">
+          <span>Thread</span>
+          <span className="truncate text-foreground/80">
+            {threadTitle ?? "—"}
           </span>
         </div>
         <div className="mt-2 flex justify-between gap-2">
@@ -482,20 +527,20 @@ function TitleBar() {
 }
 
 export default function App() {
-  const { sendPrompt, setDraft, state } = useShellModel();
+  const { reload, sendPrompt, setDraft, state } = useShellModel();
   const { agent, draft, live, shell } = state;
+  const activeRepository = React.useMemo(() => getActiveRepository(shell), [shell]);
+  const activeWorktree = React.useMemo(() => getActiveWorktree(shell), [shell]);
+  const activeThread = React.useMemo(() => getActiveThread(shell), [shell]);
+  const repositories = shell.catalog.repositories;
+  const worktrees = activeRepository?.worktrees ?? [];
+  const threads = activeWorktree?.threads ?? [];
+  const activeRepositoryId = activeRepository?.id ?? null;
+  const activeWorktreeId = activeWorktree?.id ?? null;
+  const activeWorktreePath = activeWorktree?.path ?? null;
+  const activeThreadId = activeThread?.id ?? null;
 
   const [activeView, setActiveView] = React.useState<InspectorView>("git");
-  const [sidebarView, setSidebarView] = React.useState<SidebarView>(() => {
-    try {
-      return (
-        (window.localStorage.getItem("pidesk-sidebar-view") as SidebarView) ??
-        "files"
-      );
-    } catch {
-      return "files";
-    }
-  });
   const [interfaceFont, setInterfaceFont] = React.useState(() =>
     readStoredValue("pidesk-font-sans", UI_FONT_OPTIONS[0]?.value ?? "Inter"),
   );
@@ -505,6 +550,19 @@ export default function App() {
       CODE_FONT_OPTIONS[0]?.value ?? "JetBrains Mono",
     ),
   );
+  const [openFiles, setOpenFiles] = React.useState<OpenFile[]>([]);
+  const [activeFilePath, setActiveFilePath] = React.useState<string | null>(
+    null,
+  );
+  const [isTerminalOpen, setIsTerminalOpen] = React.useState(false);
+  const [isTerminalActive, setIsTerminalActive] = React.useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = React.useState(false);
+  const [isCreateWorktreeOpen, setIsCreateWorktreeOpen] = React.useState(false);
+  const [newWorktreeBranch, setNewWorktreeBranch] = React.useState("");
+  const [worktreeCreateError, setWorktreeCreateError] = React.useState<string | null>(
+    null,
+  );
+  const [terminalId] = React.useState(() => `terminal-${Date.now()}`);
 
   const activityItems = React.useMemo(
     () => [...live.activity].slice(-6).reverse(),
@@ -514,72 +572,40 @@ export default function App() {
     () =>
       buildTodoItems({
         activityCount: live.activity.length,
-        gitStatus: shell.git?.status,
+        gitStatus: activeWorktree ? "repository" : shell.git?.status,
         hasAssistantReply: agent.messages.some(
           (message) => message.role === "assistant",
         ),
-        hasWorkspace: Boolean(shell.workspace?.rootPath),
+        hasWorkspace: Boolean(activeWorktreePath),
         status: agent.status,
       }),
     [
+      activeWorktree,
+      activeWorktreePath,
       agent.messages,
       agent.status,
       live.activity.length,
       shell.git?.status,
-      shell.workspace?.rootPath,
     ],
   );
 
   const canSend =
     draft.trim().length > 0 &&
+    activeThreadId !== null &&
     agent.status !== "starting" &&
     agent.status !== "streaming";
   const runtimeMode = shell.runtime?.agentMode ?? "unknown";
   const runtimeModeLabel = `${runtimeMode} mode`;
-  // Project management state with localStorage persistence
-  const [projects, setProjects] = React.useState<ShellProjectSnapshot[]>(() => {
-    try {
-      const stored = window.localStorage.getItem("pidesk-projects");
-      if (stored) {
-        return JSON.parse(stored) as ShellProjectSnapshot[];
-      }
-    } catch {
-      // Ignore parse errors
-    }
-    // Default: use current workspace project if available
-    return shell.workspace?.projects ?? [];
-  });
-  const [activeProjectId, setActiveProjectId] = React.useState<string | null>(
-    () => {
-      try {
-        return window.localStorage.getItem("pidesk-active-project");
-      } catch {
-        return null;
-      }
-    },
-  );
-  // Multi-file viewer state
-  const [openFiles, setOpenFiles] = React.useState<OpenFile[]>([]);
-  const [activeFilePath, setActiveFilePath] = React.useState<string | null>(
-    null,
-  );
-  const [isTerminalOpen, setIsTerminalOpen] = React.useState(false);
-  const [isTerminalActive, setIsTerminalActive] = React.useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = React.useState(false);
-  const [terminalId] = React.useState(() => `terminal-${Date.now()}`);
 
-  // Load file content when a file is opened
   const loadFile = React.useCallback(
     async (filePath: string) => {
-      // Check if file is already open
-      const existingFile = openFiles.find((f) => f.path === filePath);
+      const existingFile = openFiles.find((file) => file.path === filePath);
       if (existingFile) {
         setActiveFilePath(filePath);
         setIsTerminalActive(false);
         return;
       }
 
-      // Add file to open files with loading state
       setOpenFiles((prev) => [
         ...prev,
         { path: filePath, content: null, isLoading: true, error: null },
@@ -587,27 +613,26 @@ export default function App() {
       setActiveFilePath(filePath);
       setIsTerminalActive(false);
 
-      // Load file content
       try {
         const result = await window.pidesk.fs.readFile(filePath);
         setOpenFiles((prev) =>
-          prev.map((f) =>
-            f.path === filePath
-              ? { ...f, content: result, isLoading: false }
-              : f,
+          prev.map((file) =>
+            file.path === filePath
+              ? { ...file, content: result, isLoading: false }
+              : file,
           ),
         );
-      } catch (err) {
+      } catch (error) {
         setOpenFiles((prev) =>
-          prev.map((f) =>
-            f.path === filePath
+          prev.map((file) =>
+            file.path === filePath
               ? {
-                  ...f,
+                  ...file,
                   error:
-                    err instanceof Error ? err.message : "Failed to load file",
+                    error instanceof Error ? error.message : "Failed to load file",
                   isLoading: false,
                 }
-              : f,
+              : file,
           ),
         );
       }
@@ -615,7 +640,6 @@ export default function App() {
     [openFiles],
   );
 
-  // Handle file click from file tree
   const handleFileClick = React.useCallback(
     (filePath: string) => {
       void loadFile(filePath);
@@ -623,32 +647,28 @@ export default function App() {
     [loadFile],
   );
 
-  // Handle tab click
   const handleTabClick = React.useCallback((filePath: string) => {
     setActiveFilePath(filePath);
     setIsTerminalActive(false);
   }, []);
 
-  // Handle tab close
   const handleTabClose = React.useCallback(
     (filePath: string) => {
       setOpenFiles((prev) => {
-        const newFiles = prev.filter((f) => f.path !== filePath);
-        // If closing the active file, switch to another file
-        if (activeFilePath === filePath && newFiles.length > 0) {
-          const index = prev.findIndex((f) => f.path === filePath);
-          const nextFile = newFiles[Math.max(0, index - 1)];
+        const nextFiles = prev.filter((file) => file.path !== filePath);
+        if (activeFilePath === filePath && nextFiles.length > 0) {
+          const index = prev.findIndex((file) => file.path === filePath);
+          const nextFile = nextFiles[Math.max(0, index - 1)];
           setActiveFilePath(nextFile?.path ?? null);
-        } else if (newFiles.length === 0) {
+        } else if (nextFiles.length === 0) {
           setActiveFilePath(null);
         }
-        return newFiles;
+        return nextFiles;
       });
     },
     [activeFilePath],
   );
 
-  // Handle close all files
   const handleCloseAllFiles = React.useCallback(() => {
     setOpenFiles([]);
     setActiveFilePath(null);
@@ -669,42 +689,27 @@ export default function App() {
     setDraft(draft ? `${draft}\n\n${formatted}` : formatted);
   }
 
-  const [isWorkspacePopoverOpen, setIsWorkspacePopoverOpen] =
-    React.useState(false);
-  // Persist projects to localStorage
   React.useEffect(() => {
-    try {
-      window.localStorage.setItem("pidesk-projects", JSON.stringify(projects));
-    } catch {
-      // Ignore storage errors
-    }
-  }, [projects]);
+    setOpenFiles([]);
+    setActiveFilePath(null);
+    setIsTerminalOpen(false);
+    setIsTerminalActive(false);
+  }, [activeWorktreePath]);
 
-  // Persist active project
-  React.useEffect(() => {
-    try {
-      if (activeProjectId) {
-        window.localStorage.setItem("pidesk-active-project", activeProjectId);
-      } else {
-        window.localStorage.removeItem("pidesk-active-project");
-      }
-    } catch {
-      // Ignore storage errors
-    }
-  }, [activeProjectId]);
 
-  // Persist sidebar view preference
   React.useEffect(() => {
-    try {
-      window.localStorage.setItem("pidesk-sidebar-view", sidebarView);
-    } catch {
-      // Ignore storage errors
-    }
-  }, [sidebarView]);
-  // Sidebar width state with localStorage persistence
+    document.documentElement.style.setProperty(
+      "--app-font-sans",
+      interfaceFont,
+    );
+    document.documentElement.style.setProperty("--app-font-mono", codeFont);
+    window.localStorage.setItem("pidesk-font-sans", interfaceFont);
+    window.localStorage.setItem("pidesk-font-mono", codeFont);
+  }, [codeFont, interfaceFont]);
+
   const MIN_SIDEBAR_WIDTH = 180;
   const MAX_SIDEBAR_WIDTH = 400;
-  const DEFAULT_LEFT_WIDTH = 240;
+  const DEFAULT_LEFT_WIDTH = 320;
   const DEFAULT_RIGHT_WIDTH = 250;
 
   const [leftSidebarWidth, setLeftSidebarWidth] = React.useState(() => {
@@ -734,11 +739,6 @@ export default function App() {
     }
   });
 
-  // Resize drag state
-  const [isResizingLeft, setIsResizingLeft] = React.useState(false);
-  const [isResizingRight, setIsResizingRight] = React.useState(false);
-
-  // Persist sidebar widths
   React.useEffect(() => {
     try {
       window.localStorage.setItem(
@@ -761,14 +761,19 @@ export default function App() {
     }
   }, [rightSidebarWidth]);
 
-  // Handle resize drag
+  const [isResizingLeft, setIsResizingLeft] = React.useState(false);
+  const [isResizingRight, setIsResizingRight] = React.useState(false);
+
   React.useEffect(() => {
     if (!isResizingLeft && !isResizingRight) return;
 
-    const handleMouseMove = (e: MouseEvent) => {
+    const handleMouseMove = (event: MouseEvent) => {
       if (isResizingLeft) {
         setLeftSidebarWidth(() =>
-          Math.max(MIN_SIDEBAR_WIDTH, Math.min(MAX_SIDEBAR_WIDTH, e.clientX)),
+          Math.max(
+            MIN_SIDEBAR_WIDTH,
+            Math.min(MAX_SIDEBAR_WIDTH, event.clientX),
+          ),
         );
       }
       if (isResizingRight) {
@@ -776,7 +781,7 @@ export default function App() {
         setRightSidebarWidth(() =>
           Math.max(
             MIN_SIDEBAR_WIDTH,
-            Math.min(MAX_SIDEBAR_WIDTH, windowWidth - e.clientX),
+            Math.min(MAX_SIDEBAR_WIDTH, windowWidth - event.clientX),
           ),
         );
       }
@@ -799,132 +804,85 @@ export default function App() {
       document.body.style.userSelect = "";
     };
   }, [isResizingLeft, isResizingRight]);
-  // Handle adding a project via file picker
-  const handleAddProject = React.useCallback(async () => {
-    setIsWorkspacePopoverOpen(false);
-    console.log("handleAddProject called, window.pidesk:", window.pidesk);
-    if (!window.pidesk) {
-      console.error("window.pidesk is not defined!");
-      alert("API not available - check console");
+
+  const handleAddRepository = React.useCallback(async () => {
+    const paths = await window.pidesk.dialog.showOpenDialog({
+      properties: ["openDirectory", "multiSelections"],
+      title: "Add Repository",
+    });
+
+    if (!paths || paths.length === 0) {
       return;
     }
-    if (!window.pidesk.dialog) {
-      console.error("window.pidesk.dialog is not defined!");
-      alert("Dialog API not available - check console");
+
+    for (const repositoryPath of paths) {
+      await window.pidesk.repositories.add(repositoryPath);
+    }
+
+    await reload();
+  }, [reload]);
+
+  const handleSelectRepository = React.useCallback(
+    async (repositoryId: string) => {
+      await window.pidesk.repositories.select(repositoryId);
+      await reload();
+    },
+    [reload],
+  );
+
+  const handleSelectWorktree = React.useCallback(
+    async (worktreeId: string) => {
+      await window.pidesk.worktrees.select(worktreeId);
+      setIsTerminalActive(false);
+      await reload();
+    },
+    [reload],
+  );
+
+  const handleCreateWorktree = React.useCallback(() => {
+    setWorktreeCreateError(null);
+    setNewWorktreeBranch("");
+    setIsCreateWorktreeOpen(true);
+  }, []);
+
+  const submitCreateWorktree = React.useCallback(async () => {
+    if (!activeRepositoryId || !newWorktreeBranch.trim()) {
       return;
     }
+
     try {
-      console.log("Calling showOpenDialog...");
-      const paths = await window.pidesk.dialog.showOpenDialog({
-        properties: ["openDirectory", "multiSelections"],
-        title: "Add Project Folder",
-      });
-      console.log("showOpenDialog returned:", paths);
-      if (!paths || paths.length === 0) return;
-
-      // Normalize paths for comparison (resolve to absolute, remove trailing slashes)
-      const normalizePath = (p: string) => p.replace(/[\\/]+$/, "");
-      const existingPaths = new Set(projects.map((p) => normalizePath(p.path)));
-
-      // Filter out duplicates and paths already in the workspace
-      const uniqueNewPaths = paths.filter(
-        (path) => !existingPaths.has(normalizePath(path)),
+      await window.pidesk.worktrees.create(
+        activeRepositoryId,
+        newWorktreeBranch.trim(),
       );
-
-      if (uniqueNewPaths.length === 0) {
-        console.log("All selected directories are already in the workspace");
-        return;
-      }
-
-      if (uniqueNewPaths.length < paths.length) {
-        console.log(
-          `Skipped ${paths.length - uniqueNewPaths.length} duplicate director` +
-            "ies",
-        );
-      }
-
-      const newProjects: ShellProjectSnapshot[] = uniqueNewPaths.map(
-        (path) => ({
-          id: `project-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
-          name: path.split(/[\\/]/).filter(Boolean).pop() ?? path,
-          path,
-          isActive: false,
-        }),
-      );
-
-      setProjects((prev) => [...prev, ...newProjects]);
-      if (!activeProjectId) {
-        const firstProject = newProjects[0];
-        if (firstProject) {
-          setActiveProjectId(firstProject.id);
-        }
-      }
+      setIsCreateWorktreeOpen(false);
+      setNewWorktreeBranch("");
+      setWorktreeCreateError(null);
+      await reload();
     } catch (error) {
-      console.error("Failed to add project:", error);
-    }
-  }, [activeProjectId, projects]);
-
-  // Handle removing a project
-  const handleRemoveProject = React.useCallback(
-    (id: string) => {
-      setProjects((prev) => prev.filter((p) => p.id !== id));
-      if (activeProjectId === id) {
-        setActiveProjectId(null);
-      }
-    },
-    [activeProjectId],
-  );
-
-  // Handle selecting a project
-  const handleSelectProject = React.useCallback(
-    async (id: string) => {
-      setIsWorkspacePopoverOpen(false);
-      setActiveProjectId(id);
-      setProjects((prev) =>
-        prev.map((p) => ({
-          ...p,
-          isActive: p.id === id,
-        })),
+      setWorktreeCreateError(
+        error instanceof Error ? error.message : "Failed to create worktree",
       );
-
-      const project = projects.find((p) => p.id === id);
-      if (project) {
-        try {
-          await window.pidesk.agent.switchWorkspace(project.path);
-        } catch (error) {
-          console.error("Failed to switch workspace:", error);
-        }
-      }
-    },
-    [projects],
-  );
-
-  // Computed active project from state
-  const activeProject = React.useMemo(
-    () => projects.find((p) => p.id === activeProjectId) ?? projects[0] ?? null,
-    [projects, activeProjectId],
-  );
-  React.useEffect(() => {
-    document.documentElement.style.setProperty(
-      "--app-font-sans",
-      interfaceFont,
-    );
-    document.documentElement.style.setProperty("--app-font-mono", codeFont);
-    window.localStorage.setItem("pidesk-font-sans", interfaceFont);
-    window.localStorage.setItem("pidesk-font-mono", codeFont);
-  }, [codeFont, interfaceFont]);
-
-  React.useEffect(() => {
-    if (
-      activeProject &&
-      shell.workspace?.rootPath &&
-      activeProject.path !== shell.workspace.rootPath
-    ) {
-      window.pidesk.agent
-        .switchWorkspace(activeProject.path)
-        .catch(console.error);
     }
-  }, [activeProject, shell.workspace?.rootPath]);
+  }, [activeRepositoryId, newWorktreeBranch, reload]);
+
+  const handleCreateThread = React.useCallback(async () => {
+    if (!activeWorktreeId) {
+      return;
+    }
+
+    await window.pidesk.threads.create(activeWorktreeId);
+    await reload();
+  }, [activeWorktreeId, reload]);
+
+  const handleSelectThread = React.useCallback(
+    async (threadId: string) => {
+      await window.pidesk.threads.select(threadId);
+      setIsTerminalActive(false);
+      await reload();
+    },
+    [reload],
+  );
 
   const handleSend = React.useCallback(() => {
     if (!canSend) {
@@ -952,140 +910,40 @@ export default function App() {
             className="relative z-10 flex shrink-0 flex-col border-r border-border bg-surface-1"
           >
             <div className="px-4 pt-4" data-no-drag="true">
-              <Popover
-                open={isWorkspacePopoverOpen}
-                onOpenChange={setIsWorkspacePopoverOpen}
-              >
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="h-10 w-full justify-between rounded border border-border bg-surface-2 px-3 text-sm font-medium text-foreground shadow-sm transition hover:border-border-hover hover:bg-surface-3"
-                  >
-                    <span className="truncate">
-                      {activeProject ? activeProject.path : "Workspace"}
-                    </span>
-                    <ChevronDown className="size-4 shrink-0 text-muted-foreground" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent
-                  align="start"
-                  className="w-[var(--radix-popover-trigger-width)] rounded border border-border bg-popover p-2 shadow-lg"
-                >
-                  <div className="space-y-1">
-                    {projects.map((project) => (
-                      <div
-                        key={project.id}
-                        className="group flex items-center justify-between rounded px-2 py-1.5 text-sm transition hover:bg-surface-3"
-                      >
-                        <button
-                          type="button"
-                          onClick={() => handleSelectProject(project.id)}
-                          className="flex min-w-0 flex-1 items-center gap-2 text-left"
-                        >
-                          <Folder className="size-4 shrink-0 text-muted-foreground" />
-                          <span className="truncate text-foreground">
-                            {project.name}
-                          </span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveProject(project.id)}
-                          className="opacity-0 transition hover:text-destructive group-hover:opacity-100"
-                          aria-label="Remove project"
-                        >
-                          <Trash2 className="size-3.5" />
-                        </button>
-                      </div>
-                    ))}
-                    {projects.length > 0 && <Separator className="my-1" />}
-                    <button
-                      type="button"
-                      onClick={handleAddProject}
-                      className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-sm text-foreground transition hover:bg-surface-3"
-                    >
-                      <Plus className="size-4 shrink-0 text-muted-foreground" />
-                      Add Directory
-                    </button>
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            {/* Sidebar view toggle */}
-            <div className="px-4 py-2" data-no-drag="true">
-              <div className="flex rounded-lg border border-border p-0.5">
-                <button
-                  type="button"
-                  onClick={() => setSidebarView("files")}
-                  className={cn(
-                    "flex flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium transition",
-                    sidebarView === "files"
-                      ? "bg-surface-3 text-foreground"
-                      : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  <FileText className="size-3.5" />
-                  <span>FILES</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSidebarView("threads")}
-                  className={cn(
-                    "flex flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium transition",
-                    sidebarView === "threads"
-                      ? "bg-surface-3 text-foreground"
-                      : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  <MessageSquare className="size-3.5" />
-                  <span>THREADS</span>
-                </button>
-              </div>
+              <RepositorySwitcher
+                repositories={repositories}
+                activeRepositoryId={activeRepositoryId}
+                onSelect={handleSelectRepository}
+                onAdd={handleAddRepository}
+              />
             </div>
 
             <ScrollArea className="min-h-0 flex-1" data-no-drag="true">
-              {sidebarView === "files" ? (
-                <FileTree
-                  rootPath={activeProject?.path}
-                  onFileClick={handleFileClick}
+              <div className="space-y-4 py-3">
+                <WorktreeList
+                  worktrees={worktrees}
+                  activeWorktreeId={activeWorktreeId}
+                  onSelect={handleSelectWorktree}
+                  onCreate={handleCreateWorktree}
                 />
-              ) : (
-                <div className="space-y-1 p-2">
-                  {/* Current thread */}
-                  <button
-                    type="button"
-                    className="w-full rounded-lg border border-border bg-surface-2 p-3 text-left transition hover:bg-surface-3"
-                  >
-                    <div className="flex items-start gap-2">
-                      <div className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded bg-primary/10">
-                        <MessageSquare className="size-3 text-primary" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium text-foreground">
-                          {agent.messages.length > 0
-                            ? (() => {
-                                const firstUserMsg = agent.messages.find(
-                                  (m) => m.role === "user",
-                                );
-                                if (firstUserMsg?.text) {
-                                  return (
-                                    firstUserMsg.text.slice(0, 50) +
-                                    (firstUserMsg.text.length > 50 ? "..." : "")
-                                  );
-                                }
-                                return "New conversation";
-                              })()
-                            : "New conversation"}
-                        </p>
-                        <p className="mt-0.5 text-xs text-muted-foreground">
-                          {agent.messages.length} message
-                          {agent.messages.length !== 1 ? "s" : ""}
-                        </p>
-                      </div>
-                    </div>
-                  </button>
-                </div>
-              )}
+                <ThreadList
+                  threads={threads}
+                  activeThreadId={activeThreadId}
+                  onSelect={handleSelectThread}
+                  onCreate={handleCreateThread}
+                />
+                <section className="space-y-2 px-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
+                    Files
+                  </p>
+                  <div className="rounded-lg border border-border bg-surface-1">
+                    <FileTree
+                      rootPath={activeWorktreePath}
+                      onFileClick={handleFileClick}
+                    />
+                  </div>
+                </section>
+              </div>
             </ScrollArea>
 
             <div
@@ -1093,6 +951,48 @@ export default function App() {
               data-no-drag="true"
             >
               <div className="flex items-end justify-between gap-3">
+                <Dialog
+                  open={isCreateWorktreeOpen}
+                  onOpenChange={setIsCreateWorktreeOpen}
+                >
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Create worktree</DialogTitle>
+                      <DialogDescription>
+                        Start a new git worktree from the active repository branch.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-3 pt-4">
+                      <input
+                        data-testid="worktree-branch-input"
+                        value={newWorktreeBranch}
+                        onChange={(event) => setNewWorktreeBranch(event.target.value)}
+                        placeholder="feature/my-task"
+                        className="w-full rounded border border-border bg-surface-2 px-3 py-2 text-sm text-foreground outline-none transition focus:border-border-hover"
+                      />
+                      {worktreeCreateError && (
+                        <p className="text-sm text-destructive">{worktreeCreateError}</p>
+                      )}
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() => setIsCreateWorktreeOpen(false)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          type="button"
+                          onClick={() => void submitCreateWorktree()}
+                          disabled={!newWorktreeBranch.trim()}
+                        >
+                          Create
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
                 <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
                   <DialogTrigger asChild>
                     <Button
@@ -1141,6 +1041,41 @@ export default function App() {
           </aside>
 
           <main className="relative z-10 flex min-w-0 flex-1 flex-col">
+            <header className="flex items-center justify-between border-b border-border bg-surface-2 px-5 py-3">
+              <div className="min-w-0">
+                <div className="truncate text-sm font-medium text-foreground">
+                  {activeRepository ? (
+                    <>
+                      <span data-testid="current-repository-name">
+                        {activeRepository.name}
+                      </span>
+                      <span className="px-1 text-muted-foreground">/</span>
+                      <span data-testid="current-worktree-label">
+                        {activeWorktree?.label ?? "No worktree"}
+                      </span>
+                      <span className="px-1 text-muted-foreground">/</span>
+                      <span data-testid="current-thread-title">
+                        {activeThread?.title ?? "No thread"}
+                      </span>
+                    </>
+                  ) : (
+                    "No repository selected"
+                  )}
+                </div>
+                <div className="mt-1 truncate text-xs text-muted-foreground">
+                  {activeWorktree?.git.branch ??
+                    activeWorktree?.path ??
+                    "Add a repository to begin"}
+                </div>
+              </div>
+              <div className="ml-4 flex items-center gap-2">
+                {activeWorktree && <GitStatusChip git={activeWorktree.git} />}
+                <RuntimeStatusChip
+                  status={activeThread?.runtime.status ?? agent.status}
+                  testId="agent-status"
+                />
+              </div>
+            </header>
             {openFiles.length > 0 || isTerminalOpen ? (
               <MultiFileViewer
                 openFiles={openFiles}
@@ -1154,7 +1089,7 @@ export default function App() {
                 isTerminalActive={isTerminalActive}
                 onTerminalClick={() => setIsTerminalActive(true)}
                 onTerminalClose={() => { setIsTerminalOpen(false); setIsTerminalActive(false); }}
-                terminalCwd={activeProject?.path}
+                terminalCwd={activeWorktreePath ?? undefined}
                 terminalId={terminalId}
               />
             ) : (
@@ -1304,10 +1239,10 @@ export default function App() {
               />
               <button
                 type="button"
-                onClick={() => setActiveView("files")}
+                onClick={() => setActiveView("worktrees")}
                 className={cn(
                   "flex h-8 w-8 items-center justify-center rounded transition",
-                  activeView === "files"
+                  activeView === "worktrees"
                     ? "bg-surface-3 text-foreground"
                     : "text-muted-foreground hover:bg-surface-3 hover:text-foreground",
                 )}
@@ -1368,11 +1303,11 @@ export default function App() {
               <div className="space-y-4 p-3">
                 {activeView === "git" && <GitInspector git={shell.git} />}
 
-                {activeView === "files" && (
-                  <FilesInspector
-                    rootPath={shell.workspace?.rootPath}
-                    projectPath={activeProject?.path}
-                    agentDirectory={shell.workspace?.agentDirectory}
+                {activeView === "worktrees" && (
+                  <WorktreeInspector
+                    repositories={repositories}
+                    activeRepositoryId={activeRepositoryId}
+                    activeWorktreeId={activeWorktreeId}
                   />
                 )}
 
@@ -1380,6 +1315,9 @@ export default function App() {
                   <ContextInspector
                     lastError={agent.lastError}
                     runtimeMode={runtimeMode}
+                    repositoryName={activeRepository?.name ?? null}
+                    worktreePath={activeWorktreePath}
+                    threadTitle={activeThread?.title ?? null}
                     supportsTurns={shell.capabilities?.supportsTurns}
                     supportsTools={shell.capabilities?.supportsTools}
                     supportsActivity={shell.capabilities?.supportsActivity}

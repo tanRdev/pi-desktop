@@ -55,11 +55,35 @@ export function createPiDeskApi({
       reset() {
         return invoke<void>(IPC_CHANNELS.agent.reset, undefined);
       },
-      switchWorkspace(path: string) {
-        return invoke<void>(IPC_CHANNELS.agent.switchWorkspace, { path });
-      },
       subscribe(listener: (event: PiDeskAgentEvent) => void) {
         return on<PiDeskAgentEvent>(IPC_CHANNELS.agent.event, listener);
+      },
+    },
+    repositories: {
+      add(path: string) {
+        return invoke<void>(IPC_CHANNELS.repositories.add, { path });
+      },
+      select(repositoryId: string) {
+        return invoke<void>(IPC_CHANNELS.repositories.select, { repositoryId });
+      },
+    },
+    worktrees: {
+      create(repositoryId: string, branchName: string) {
+        return invoke<void>(IPC_CHANNELS.worktrees.create, {
+          repositoryId,
+          branchName,
+        });
+      },
+      select(worktreeId: string) {
+        return invoke<void>(IPC_CHANNELS.worktrees.select, { worktreeId });
+      },
+    },
+    threads: {
+      create(worktreeId: string, title?: string) {
+        return invoke<void>(IPC_CHANNELS.threads.create, { worktreeId, title });
+      },
+      select(threadId: string) {
+        return invoke<void>(IPC_CHANNELS.threads.select, { threadId });
       },
     },
     dialog: {

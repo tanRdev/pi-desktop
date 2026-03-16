@@ -21,6 +21,7 @@ describe("registerIpcHandlers", () => {
       runtime: {
         agentMode: "mock",
         electronVersion: "41.0.1",
+        agentDirectory: "/tmp/pidesk/.pidesk-agent",
       },
       workspace: {
         rootPath: "/tmp/pidesk",
@@ -31,6 +32,54 @@ describe("registerIpcHandlers", () => {
             name: "pidesk",
             path: "/tmp/pidesk",
             isActive: true,
+          },
+        ],
+      },
+      catalog: {
+        selection: {
+          repositoryId: "/tmp/pidesk",
+          worktreeId: "/tmp/pidesk",
+          threadId: "default-thread",
+        },
+        repositories: [
+          {
+            id: "/tmp/pidesk",
+            name: "pidesk",
+            rootPath: "/tmp/pidesk",
+            defaultBranch: "main",
+            worktrees: [
+              {
+                id: "/tmp/pidesk",
+                label: "main",
+                path: "/tmp/pidesk",
+                isMain: true,
+                isDetached: false,
+                git: {
+                  status: "ready",
+                  branch: "main",
+                  commit: "abc1234",
+                  hasChanges: false,
+                  ahead: 0,
+                  behind: 0,
+                  stagedCount: 0,
+                  modifiedCount: 0,
+                  untrackedCount: 0,
+                  message: null,
+                },
+                threads: [
+                  {
+                    id: "default-thread",
+                    title: "Current thread",
+                    isArchived: false,
+                    lastActivityAt: null,
+                    runtime: {
+                      status: "ready",
+                      lastError: null,
+                    },
+                  },
+                ],
+              },
+            ],
           },
         ],
       },
@@ -52,16 +101,21 @@ describe("registerIpcHandlers", () => {
     const agentHost = {
       getSnapshot: vi.fn(async () => agentSnapshot),
       prompt: vi.fn(async () => undefined),
+      addRepository: vi.fn(async () => undefined),
+      selectRepository: vi.fn(async () => undefined),
+      createWorktree: vi.fn(async () => undefined),
+      selectWorktree: vi.fn(async () => undefined),
+      createThread: vi.fn(async () => undefined),
+      selectThread: vi.fn(async () => undefined),
     };
 
     registerIpcHandlers({
       handle: (channel, listener) => {
-        handlers.set(channel, async (event, payload) =>
-          listener(event, payload),
-        );
+        handlers.set(channel, async (event, payload) => listener(event, payload));
       },
       getShellSnapshot,
       agentHost,
+      mainWindow: null,
     });
 
     await expect(
@@ -76,8 +130,52 @@ describe("registerIpcHandlers", () => {
       { text: "Inspect the workspace" },
     );
 
+    await handlers.get(IPC_CHANNELS.repositories.add)?.(
+      { sender: "electron-ipc-event" },
+      { path: "/tmp/pidesk" },
+    );
+    await handlers.get(IPC_CHANNELS.repositories.select)?.(
+      { sender: "electron-ipc-event" },
+      { repositoryId: "/tmp/pidesk" },
+    );
+    await handlers.get(IPC_CHANNELS.worktrees.create)?.(
+      { sender: "electron-ipc-event" },
+      {
+        repositoryId: "/tmp/pidesk",
+        branchName: "feature/runtime",
+      },
+    );
+    await handlers.get(IPC_CHANNELS.worktrees.select)?.(
+      { sender: "electron-ipc-event" },
+      { worktreeId: "/tmp/pidesk-feature" },
+    );
+    await handlers.get(IPC_CHANNELS.threads.create)?.(
+      { sender: "electron-ipc-event" },
+      {
+        worktreeId: "/tmp/pidesk-feature",
+        title: "Investigate runtime",
+      },
+    );
+    await handlers.get(IPC_CHANNELS.threads.select)?.(
+      { sender: "electron-ipc-event" },
+      { threadId: "thread-123" },
+    );
+
+
     expect(getShellSnapshot).toHaveBeenCalledTimes(1);
     expect(agentHost.getSnapshot).toHaveBeenCalledTimes(1);
     expect(agentHost.prompt).toHaveBeenCalledWith("Inspect the workspace");
+    expect(agentHost.addRepository).toHaveBeenCalledWith("/tmp/pidesk");
+    expect(agentHost.selectRepository).toHaveBeenCalledWith("/tmp/pidesk");
+    expect(agentHost.createWorktree).toHaveBeenCalledWith(
+      "/tmp/pidesk",
+      "feature/runtime",
+    );
+    expect(agentHost.selectWorktree).toHaveBeenCalledWith("/tmp/pidesk-feature");
+    expect(agentHost.createThread).toHaveBeenCalledWith(
+      "/tmp/pidesk-feature",
+      "Investigate runtime",
+    );
+    expect(agentHost.selectThread).toHaveBeenCalledWith("thread-123");
   });
 });

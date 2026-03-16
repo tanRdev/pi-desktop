@@ -2,7 +2,7 @@ import { createRequire } from "node:module";
 import { IPC_CHANNELS } from "@pidesk/shared";
 import type { BrowserWindow } from "electron";
 
-const require = createRequire(import.meta.url);
+const nodeRequire = createRequire(import.meta.url);
 
 export interface TerminalInstance {
   id: string;
@@ -19,7 +19,7 @@ class TerminalManager {
   initialize(): void {
     try {
       // Use require for native modules with electron-vite
-      this.ptyModule = require("node-pty");
+      this.ptyModule = nodeRequire("node-pty");
     } catch (error) {
       this.initError =
         error instanceof Error ? error : new Error("Failed to load node-pty");

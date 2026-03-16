@@ -9,7 +9,18 @@ export const IPC_CHANNELS = {
     getSnapshot: "agent:getSnapshot",
     prompt: "agent:prompt",
     reset: "agent:reset",
-    switchWorkspace: "agent:switchWorkspace",
+  },
+  repositories: {
+    add: "repositories:add",
+    select: "repositories:select",
+  },
+  worktrees: {
+    create: "worktrees:create",
+    select: "worktrees:select",
+  },
+  threads: {
+    create: "threads:create",
+    select: "threads:select",
   },
   dialog: {
     showOpenDialog: "dialog:showOpenDialog",
