@@ -2,10 +2,14 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "noEmit": false,
-    "rootDir": "src",
     "outDir": "dist",
     "declaration": true,
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext"
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "baseUrl": ".",
+    "paths": {
+      "@pidesk/shared": ["../shared/dist/index.d.ts"],
+      "@pidesk/shared/*": ["../shared/dist/*"]
+    }
   }
 }

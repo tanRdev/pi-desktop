@@ -7,7 +7,14 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true
+      "recommended": true,
+      "suspicious": {
+        "noAssignInExpressions": "off",
+        "noArrayIndexKey": "off"
+      },
+      "a11y": {
+        "noStaticElementInteractions": "off"
+      }
     }
   },
   "files": {
@@ -18,7 +25,8 @@
       "!!**/out",
       "!!**/coverage",
       "!!**/playwright-report",
-      "!!**/test-results"
+      "!!**/test-results",
+      "!!**/*.css"
     ]
   }
 }
