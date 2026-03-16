@@ -18,6 +18,12 @@ export const IPC_CHANNELS = {
     readDirectory: "fs:readDirectory",
     readFile: "fs:readFile",
   },
+  terminal: {
+    create: "terminal:create",
+    write: "terminal:write",
+    resize: "terminal:resize",
+    destroy: "terminal:destroy",
+  },
 } as const;
 
 export type IpcChannels = typeof IPC_CHANNELS;

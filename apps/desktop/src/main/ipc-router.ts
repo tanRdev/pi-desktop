@@ -5,8 +5,8 @@ import {
   type SettingsSnapshot,
   type ShellSnapshot,
 } from "@pidesk/shared";
-import { dialog } from "electron";
-
+import { dialog, type BrowserWindow } from "electron";
+import { terminalManager } from "./terminal-manager";
 export interface AgentIpcHost {
   getProviders(): Promise<ProviderSnapshot[]>;
   getSettings(): Promise<SettingsSnapshot>;
@@ -30,13 +30,20 @@ export interface RegisterIpcHandlersDependencies {
   handle: IpcRegistrar["handle"];
   getShellSnapshot(): ShellSnapshot;
   agentHost: AgentIpcHost;
+  mainWindow: BrowserWindow | null;
 }
 
 export function registerIpcHandlers({
   handle,
   getShellSnapshot,
   agentHost,
+  mainWindow,
 }: RegisterIpcHandlersDependencies): void {
+  if (mainWindow) {
+    terminalManager.setMainWindow(mainWindow);
+  }
+  // Initialize terminal manager (loads native module)
+  terminalManager.initialize();
   handle(IPC_CHANNELS.shell.getSnapshot, async () => getShellSnapshot());
   handle(IPC_CHANNELS.agent.getProviders, async () => agentHost.getProviders());
   handle(IPC_CHANNELS.agent.getSettings, async () => agentHost.getSettings());
@@ -129,17 +136,63 @@ export function registerIpcHandlers({
     }
 
     try {
+      const { statSync } = await import("node:fs");
+      const stats = statSync(filePath);
+
+      // 1MB size limit for text files
+      const MAX_FILE_SIZE = 1024 * 1024;
+      if (stats.size > MAX_FILE_SIZE) {
+        return { path: filePath, content: "", type: "text" as const, encoding: "utf-8", truncated: true, size: stats.size };
+      }
+
       const buffer = readFileSync(filePath);
       // Check for null bytes which indicate binary content
       for (let i = 0; i < Math.min(buffer.length, 8192); i++) {
         if (buffer[i] === 0) {
-          return { path: filePath, content: "", type: "binary" as const };
+          return { path: filePath, content: "", type: "binary" as const, size: stats.size };
         }
       }
       const content = buffer.toString("utf-8");
-      return { path: filePath, content, type: "text" as const, encoding: "utf-8" };
+      return { path: filePath, content, type: "text" as const, encoding: "utf-8", size: stats.size };
     } catch (error) {
       throw new Error(`Failed to read file: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
+  });
+
+  // Terminal handlers
+  handle(IPC_CHANNELS.terminal.create, async (_event, payload) => {
+    const opts = payload as { id: string; cols: number; rows: number; cwd?: string };
+    if (!opts.id || typeof opts.cols !== "number" || typeof opts.rows !== "number") {
+      throw new Error("terminal.create payload must include id, cols, rows");
+    }
+    if (!terminalManager.isAvailable()) {
+      const error = terminalManager.getError();
+      throw new Error(error?.message || "Terminal is not available");
+    }
+    terminalManager.create(opts.id, { cols: opts.cols, rows: opts.rows, cwd: opts.cwd });
+    return { id: opts.id };
+  });
+  handle(IPC_CHANNELS.terminal.write, async (_event, payload) => {
+    const opts = payload as { id: string; data: string };
+    if (!opts.id || typeof opts.data !== "string") {
+      throw new Error("terminal.write payload must include id and data");
+    }
+    terminalManager.write(opts.id, opts.data);
+  });
+
+  handle(IPC_CHANNELS.terminal.resize, async (_event, payload) => {
+    const opts = payload as { id: string; cols: number; rows: number };
+    if (!opts.id || typeof opts.cols !== "number" || typeof opts.rows !== "number") {
+      throw new Error("terminal.resize payload must include id, cols, rows");
+    }
+    terminalManager.resize(opts.id, opts.cols, opts.rows);
+  });
+
+  handle(IPC_CHANNELS.terminal.destroy, async (_event, payload) => {
+    const opts = payload as { id: string };
+    if (!opts.id) {
+      throw new Error("terminal.destroy payload must include id");
+    }
+    terminalManager.destroy(opts.id);
   });
 }

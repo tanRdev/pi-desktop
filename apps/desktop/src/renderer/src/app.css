@@ -42,3 +42,44 @@ select:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
+
+
+/* Code highlighting - seamless integration with app theme */
+.shiki {
+  background: transparent !important;
+}
+
+.shiki code {
+  background: transparent !important;
+  font-family: var(--app-font-mono);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.shiki pre {
+  background: transparent !important;
+  margin: 0;
+  padding: 0;
+}
+
+/* Ensure code blocks use app surface colors */
+[class*="shiki"] {
+  background: transparent !important;
+}
+
+/* Inline code styling */
+code:not(.shiki code):not(pre code) {
+  background: var(--surface-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 0.125rem 0.375rem;
+  font-family: var(--app-font-mono);
+  font-size: 0.875em;
+  color: var(--foreground);
+}
+
+/* Selection in code blocks */
+.shiki ::selection {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}

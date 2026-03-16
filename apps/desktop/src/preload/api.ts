@@ -84,5 +84,22 @@ export function createPiDeskApi({
         );
       },
     },
+    terminal: {
+      create(id: string, options: { cols: number; rows: number; cwd?: string }) {
+        return invoke<void>(IPC_CHANNELS.terminal.create, { id, ...options });
+      },
+      write(id: string, data: string) {
+        return invoke<void>(IPC_CHANNELS.terminal.write, { id, data });
+      },
+      resize(id: string, cols: number, rows: number) {
+        return invoke<void>(IPC_CHANNELS.terminal.resize, { id, cols, rows });
+      },
+      destroy(id: string) {
+        return invoke<void>(IPC_CHANNELS.terminal.destroy, { id });
+      },
+      onEvent(listener: (event: { type: string; id: string; data?: string; exitCode?: number }) => void) {
+        return on(IPC_CHANNELS.terminal.create, listener);
+      },
+    },
   };
 }

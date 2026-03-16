@@ -15,4 +15,6 @@ export interface FileContent {
   content: string;
   type: "text" | "binary" | "unsupported";
   encoding?: string;
+  size?: number;
+  truncated?: boolean;
 }
