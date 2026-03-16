@@ -28,12 +28,15 @@ import {
   Plus,
   Settings2,
   Trash2,
+  X,
 } from "lucide-react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "./components/ui/button";
 import { FileTree } from "./components/ui/file-tree";
-import { FileViewer } from "./components/ui/file-viewer";
+import { Terminal } from "./components/ui/terminal";
+import type { FileContent } from "@pidesk/shared";
+import { MultiFileViewer, type OpenFile } from "./components/ui/multi-file-viewer";
 import {
   Message,
   MessageAvatar,
@@ -536,10 +539,86 @@ export default function App() {
       }
     },
   );
-  const [selectedFilePath, setSelectedFilePath] = React.useState<string | null>(
-    null,
+  // Multi-file viewer state
+  const [openFiles, setOpenFiles] = React.useState<OpenFile[]>([]);
+  const [activeFilePath, setActiveFilePath] = React.useState<string | null>(null);
+  const [isTerminalOpen, setIsTerminalOpen] = React.useState(false);
+  const [terminalId] = React.useState(() => `terminal-${Date.now()}`);
+
+  // Load file content when a file is opened
+  const loadFile = React.useCallback(async (filePath: string) => {
+    // Check if file is already open
+    const existingFile = openFiles.find((f) => f.path === filePath);
+    if (existingFile) {
+      setActiveFilePath(filePath);
+      return;
+    }
+
+    // Add file to open files with loading state
+    setOpenFiles((prev) => [
+      ...prev,
+      { path: filePath, content: null, isLoading: true, error: null },
+    ]);
+    setActiveFilePath(filePath);
+
+    // Load file content
+    try {
+      const result = await window.pidesk.fs.readFile(filePath);
+      setOpenFiles((prev) =>
+        prev.map((f) =>
+          f.path === filePath ? { ...f, content: result, isLoading: false } : f
+        )
+      );
+    } catch (err) {
+      setOpenFiles((prev) =>
+        prev.map((f) =>
+          f.path === filePath
+            ? {
+                ...f,
+                error: err instanceof Error ? err.message : "Failed to load file",
+                isLoading: false,
+              }
+            : f
+        )
+      );
+    }
+  }, [openFiles]);
+
+  // Handle file click from file tree
+  const handleFileClick = React.useCallback(
+    (filePath: string) => {
+      void loadFile(filePath);
+    },
+    [loadFile]
   );
 
+  // Handle tab click
+  const handleTabClick = React.useCallback((filePath: string) => {
+    setActiveFilePath(filePath);
+  }, []);
+
+  // Handle tab close
+  const handleTabClose = React.useCallback((filePath: string) => {
+    setOpenFiles((prev) => {
+      const newFiles = prev.filter((f) => f.path !== filePath);
+      // If closing the active file, switch to another file
+      if (activeFilePath === filePath && newFiles.length > 0) {
+        const index = prev.findIndex((f) => f.path === filePath);
+        const nextFile = newFiles[Math.max(0, index - 1)];
+        setActiveFilePath(nextFile?.path ?? null);
+      } else if (newFiles.length === 0) {
+        setActiveFilePath(null);
+      }
+      return newFiles;
+    });
+  }, [activeFilePath]);
+
+  // Handle close all files
+  const handleCloseAllFiles = React.useCallback(() => {
+    setOpenFiles([]);
+    setActiveFilePath(null);
+  }, []);
+  const [isWorkspacePopoverOpen, setIsWorkspacePopoverOpen] = React.useState(false);
   // Persist projects to localStorage
   React.useEffect(() => {
     try {
@@ -661,6 +740,7 @@ export default function App() {
   }, [isResizingLeft, isResizingRight]);
   // Handle adding a project via file picker
   const handleAddProject = React.useCallback(async () => {
+    setIsWorkspacePopoverOpen(false);
     console.log("handleAddProject called, window.pidesk:", window.pidesk);
     if (!window.pidesk) {
       console.error("window.pidesk is not defined!");
@@ -721,7 +801,7 @@ export default function App() {
     } catch (error) {
       console.error("Failed to add project:", error);
     }
-  }, [activeProjectId]);
+  }, [activeProjectId, projects]);
 
   // Handle removing a project
   const handleRemoveProject = React.useCallback(
@@ -737,6 +817,7 @@ export default function App() {
   // Handle selecting a project
   const handleSelectProject = React.useCallback(
     async (id: string) => {
+      setIsWorkspacePopoverOpen(false);
       setActiveProjectId(id);
       setProjects((prev) =>
         prev.map((p) => ({
@@ -810,7 +891,7 @@ export default function App() {
             className="relative z-10 flex shrink-0 flex-col border-r border-border bg-surface-1"
           >
             <div className="px-4 pt-4" data-no-drag="true">
-              <Popover>
+              <Popover open={isWorkspacePopoverOpen} onOpenChange={setIsWorkspacePopoverOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="ghost"
@@ -869,7 +950,7 @@ export default function App() {
             <ScrollArea className="min-h-0 flex-1" data-no-drag="true">
               <FileTree
                 rootPath={activeProject?.path}
-                onFileClick={setSelectedFilePath}
+                onFileClick={handleFileClick}
               />
             </ScrollArea>
 
@@ -933,10 +1014,13 @@ export default function App() {
           </aside>
 
           <main className="relative z-10 flex min-w-0 flex-1 flex-col">
-            {selectedFilePath ? (
-              <FileViewer
-                filePath={selectedFilePath}
-                onClose={() => setSelectedFilePath(null)}
+            {openFiles.length > 0 ? (
+              <MultiFileViewer
+                openFiles={openFiles}
+                activeFilePath={activeFilePath}
+                onTabClick={handleTabClick}
+                onTabClose={handleTabClose}
+                onCloseAll={handleCloseAllFiles}
                 className="min-h-0 flex-1"
               />
             ) : (
@@ -1076,6 +1160,29 @@ export default function App() {
                 </PromptInput>
               </div>
             </div>
+
+            {/* Terminal Panel */}
+            {isTerminalOpen && (
+              <div className="border-t border-border bg-surface-1" style={{ height: "200px" }}>
+                <div className="flex h-8 items-center justify-between border-b border-border bg-surface-2 px-3">
+                  <span className="text-xs font-medium text-muted-foreground">Terminal</span>
+                  <button
+                    type="button"
+                    onClick={() => setIsTerminalOpen(false)}
+                    className="rounded p-1 text-muted-foreground transition hover:bg-surface-3 hover:text-foreground"
+                    aria-label="Close terminal"
+                  >
+                    <X className="size-3.5" />
+                  </button>
+                </div>
+                <Terminal
+                  id={terminalId}
+                  cwd={activeProject?.path}
+                  className="h-[calc(100%-32px)]"
+                  onExit={() => setIsTerminalOpen(false)}
+                />
+              </div>
+            )}
           </main>
 
           <aside

@@ -12,15 +12,18 @@ export function useShellModel() {
   useEffect(() => {
     void model.load();
     return () => model.dispose();
-  }, []);
+  }, [model.dispose, model.load]);
 
   const sendPrompt = useCallback(() => {
     model.sendPrompt();
-  }, []);
+  }, [model.sendPrompt]);
 
-  const setDraft = useCallback((draft: string) => {
-    model.setDraft(draft);
-  }, []);
+  const setDraft = useCallback(
+    (draft: string) => {
+      model.setDraft(draft);
+    },
+    [model.setDraft],
+  );
 
   const reset = useCallback(async () => {
     try {
