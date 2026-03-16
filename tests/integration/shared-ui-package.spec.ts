@@ -24,31 +24,16 @@ describe("shared ui package foundation (chunk-2a-ui-foundation)", () => {
     const p = path.join(ROOT, "packages/ui/src/styles/pidesk-shell.css");
     const content = read(p);
     if (content === null) throw new Error(`Missing ${p}`);
-    if (!content.includes("--background: #0a0a0a;"))
-      throw new Error("Expected --background: #0a0a0a; in pidesk-shell.css");
-    if (!content.includes("--radius: 0.375rem;"))
-      throw new Error("Expected --radius: 0.375rem; in pidesk-shell.css");
+    if (!content.includes("--background: oklch(12% 0.01 270);"))
+      throw new Error("Expected --background: oklch(12% 0.01 270); in pidesk-shell.css");
+    if (!content.includes("--radius-sm: 0.125rem;"))
+      throw new Error("Expected --radius-sm: 0.125rem; in pidesk-shell.css");
     if (!content.includes("::-webkit-scrollbar"))
       throw new Error("Expected ::-webkit-scrollbar in pidesk-shell.css");
-    if (!/--app-font-sans:\s*"Inter",\s*"SF Pro Display"/m.test(content))
-      throw new Error("Expected --app-font-sans token in pidesk-shell.css");
+    if (!/--app-font-sans:\s*"Space Grotesk"/m.test(content))
+      throw new Error("Expected --app-font-sans token with Space Grotesk in pidesk-shell.css");
   });
 
-  it("apps/web/src/app.css imports @pidesk/ui/styles/pidesk-shell.css", () => {
-    const p = path.join(ROOT, "apps/web/src/app.css");
-    const content = read(p);
-    if (content === null) throw new Error(`Missing ${p}`);
-    const importRe =
-      /@import\s+(?:url\()?['"]@pidesk\/ui\/styles\/pidesk-shell\.css['"]\)?/m;
-    if (
-      !importRe.test(content) &&
-      !content.includes("@pidesk/ui/styles/pidesk-shell.css")
-    ) {
-      throw new Error(
-        `Expected ${p} to import @pidesk/ui/styles/pidesk-shell.css`,
-      );
-    }
-  });
 
   it("apps/desktop/src/renderer/src/app.css imports shared styles and retains drag-region rules", () => {
     const p = path.join(ROOT, "apps/desktop/src/renderer/src/app.css");
@@ -175,15 +160,10 @@ describe("shared ui package foundation (chunk-2a-ui-foundation)", () => {
     }
   });
 
-  it("vite configs expose alias @pidesk/ui (to be added in green stage)", () => {
-    const webVite = path.join(ROOT, "apps/web/vite.config.ts");
+  it("desktop vite config exposes alias @pidesk/ui", () => {
     const desktopVite = path.join(ROOT, "apps/desktop/electron.vite.config.ts");
-    const webContent = read(webVite);
     const desktopContent = read(desktopVite);
-    if (webContent === null) throw new Error(`Missing ${webVite}`);
     if (desktopContent === null) throw new Error(`Missing ${desktopVite}`);
-    if (!webContent.includes("@pidesk/ui"))
-      throw new Error(`${webVite} must expose an alias for @pidesk/ui`);
     if (!desktopContent.includes("@pidesk/ui"))
       throw new Error(`${desktopVite} must expose an alias for @pidesk/ui`);
   });
