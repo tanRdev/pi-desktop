@@ -15,6 +15,7 @@ import {
 } from "./agent-host-runtime";
 import { registerIpcHandlers } from "./ipc-router";
 import { createShellSnapshot } from "./shell-snapshot";
+import { terminalManager } from "./terminal-manager";
 import {
   createMainWindowOptions,
   resolvePreloadTarget,
@@ -138,6 +139,14 @@ async function bootstrapDesktop() {
 
   app.setName("PiDesk");
 
+  // Create window FIRST so user sees something immediately
+  mainWindow = await createMainWindow();
+  terminalManager.setMainWindow(mainWindow);
+  mainWindow.on("closed", () => {
+    mainWindow = null;
+  });
+
+  // Bootstrap agent host AFTER window is visible
   const { child, host, launchOptions } = await bootstrapAgentHost();
   agentHostChild = child;
 
@@ -183,16 +192,13 @@ async function bootstrapDesktop() {
         });
       },
     },
+    mainWindow: null,
   });
 
   app.once("will-quit", () => {
     unsubscribe();
     agentHostChild?.kill();
-  });
-
-  mainWindow = await createMainWindow();
-  mainWindow.on("closed", () => {
-    mainWindow = null;
+    terminalManager.destroyAll();
   });
 
   app.on("activate", async () => {
