@@ -1,6 +1,10 @@
 import { spawnSync } from "node:child_process";
 import path from "node:path";
-import type { ShellAgentMode, ShellGitSnapshot, ShellSnapshot } from "@pidesk/shared";
+import type {
+  ShellAgentMode,
+  ShellGitSnapshot,
+  ShellSnapshot,
+} from "@pidesk/shared";
 
 export interface CreateShellSnapshotOptions {
   appName: string;

@@ -45,5 +45,10 @@ export function createPiDeskApi({
         return on<PiDeskAgentEvent>(IPC_CHANNELS.agent.event, listener);
       },
     },
+    dialog: {
+      showOpenDialog(options) {
+        return invoke<string[] | null>(IPC_CHANNELS.dialog.showOpenDialog, options);
+      },
+    },
   };
 }

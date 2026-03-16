@@ -1,9 +1,9 @@
 import path from "node:path";
-import type { AgentSnapshot } from "@pidesk/shared";
 import {
   type CreateAgentRuntimeOptions,
   createAgentRuntime,
 } from "@pidesk/agent-host";
+import type { AgentSnapshot } from "@pidesk/shared";
 
 type AgentRuntimeEnvironment = Partial<
   Record<

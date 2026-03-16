@@ -3,6 +3,7 @@ import {
   IPC_CHANNELS,
   type ShellSnapshot,
 } from "@pidesk/shared";
+import { dialog } from "electron";
 
 export interface AgentIpcHost {
   getSnapshot(): Promise<AgentSnapshot>;
@@ -47,5 +48,10 @@ export function registerIpcHandlers({
   });
   handle(IPC_CHANNELS.agent.reset, async () => {
     await agentHost.reset();
+  });
+  handle(IPC_CHANNELS.dialog.showOpenDialog, async (_event, payload) => {
+    const options = payload as Electron.OpenDialogOptions;
+    const result = await dialog.showOpenDialog(options);
+    return result.canceled ? null : result.filePaths;
   });
 }
