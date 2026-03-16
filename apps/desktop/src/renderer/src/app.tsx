@@ -76,18 +76,96 @@ function getMessageFallback(message: AgentMessageSnapshot) {
   }
 }
 
-function TitleBar() {
+interface TitleBarProps {
+  sidebarView: "files" | "git" | "notes" | null;
+  setSidebarView: (view: "files" | "git" | "notes" | null) => void;
+  isNotesOpen: boolean;
+  setIsNotesOpen: (open: boolean) => void;
+  isTerminalOpen: boolean;
+  setIsTerminalOpen: (open: boolean) => void;
+  setIsTerminalActive: (active: boolean) => void;
+}
+
+function TitleBar({
+  sidebarView,
+  setSidebarView,
+  isNotesOpen,
+  setIsNotesOpen,
+  isTerminalOpen,
+  setIsTerminalOpen,
+  setIsTerminalActive,
+}: TitleBarProps) {
   return (
     <div
       data-drag-region="true"
-      className="titlebar relative flex h-10 shrink-0 items-center justify-center bg-surface-1"
+      className="titlebar relative flex h-10 shrink-0 items-center justify-between bg-surface-1 px-3"
     >
+      {/* Left - App title */}
+      <div className="w-16" />
       <div
         aria-hidden="true"
         data-testid="app-title"
         className="text-lg font-semibold tracking-tight text-muted-foreground"
       >
         π
+      </div>
+      {/* Right - Icon buttons */}
+      <div className="flex items-center gap-1">
+        <button
+          type="button"
+          onClick={() => setSidebarView(sidebarView === "files" ? null : "files")}
+          className={cn(
+            "flex h-7 w-7 items-center justify-center rounded-md transition",
+            sidebarView === "files"
+              ? "bg-surface-3 text-foreground"
+              : "text-muted-foreground hover:bg-surface-2 hover:text-foreground",
+          )}
+          title="Files"
+        >
+          <FolderTree className="size-3.5" />
+        </button>
+        <button
+          type="button"
+          onClick={() => setSidebarView(sidebarView === "git" ? null : "git")}
+          className={cn(
+            "flex h-7 w-7 items-center justify-center rounded-md transition",
+            sidebarView === "git"
+              ? "bg-surface-3 text-foreground"
+              : "text-muted-foreground hover:bg-surface-2 hover:text-foreground",
+          )}
+          title="Git"
+        >
+          <GitBranch className="size-3.5" />
+        </button>
+        <button
+          type="button"
+          onClick={() => setIsNotesOpen(true)}
+          className={cn(
+            "flex h-7 w-7 items-center justify-center rounded-md transition",
+            isNotesOpen
+              ? "bg-surface-3 text-foreground"
+              : "text-muted-foreground hover:bg-surface-2 hover:text-foreground",
+          )}
+          title="Workspace Notes"
+        >
+          <StickyNote className="size-3.5" />
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setIsTerminalOpen(true);
+            setIsTerminalActive(true);
+          }}
+          className={cn(
+            "flex h-7 w-7 items-center justify-center rounded-md transition",
+            isTerminalOpen
+              ? "bg-surface-3 text-foreground"
+              : "text-muted-foreground hover:bg-surface-2 hover:text-foreground",
+          )}
+          title="Terminal"
+        >
+          <Terminal className="size-3.5" />
+        </button>
       </div>
     </div>
   );
@@ -122,8 +200,8 @@ export default function App() {
   >(null);
   const [terminalId] = React.useState(() => `terminal-${Date.now()}`);
   const [sidebarView, setSidebarView] = React.useState<
-    "files" | "git" | "notes"
-  >("files");
+    "files" | "git" | "notes" | null
+  >(null);
   const [workspaceNotes, setWorkspaceNotes] = React.useState("");
   const [isNotesOpen, setIsNotesOpen] = React.useState(false);
   const [leftSidebarWidth, setLeftSidebarWidth] = React.useState(() => {
@@ -308,7 +386,15 @@ export default function App() {
           data-testid="app-ready"
           className="relative flex h-screen flex-col overflow-hidden bg-background text-foreground"
         >
-          <TitleBar />
+          <TitleBar
+            sidebarView={sidebarView}
+            setSidebarView={setSidebarView}
+            isNotesOpen={isNotesOpen}
+            setIsNotesOpen={setIsNotesOpen}
+            isTerminalOpen={isTerminalOpen}
+            setIsTerminalOpen={setIsTerminalOpen}
+            setIsTerminalActive={setIsTerminalActive}
+          />
 
           <div className="relative flex min-h-0 flex-1">
             {/* Extended grid background - covers full viewport */}
@@ -435,7 +521,7 @@ export default function App() {
                     value={draft}
                     onValueChange={setDraft}
                     onSubmit={handleSend}
-                    className="rounded-xl border border-border bg-transparent p-4 shadow-lg transition focus-within:border-border-hover focus-within:bg-surface-3 focus-within:shadow-xl"
+                    className="rounded-xl bg-transparent p-4 shadow-lg transition outline-none focus-within:ring-1 focus-within:ring-neutral-500/20"
                   >
                     <PromptInputTextarea
                       data-testid="chat-input"
@@ -445,7 +531,7 @@ export default function App() {
                           : "Select a thread to start..."
                       }
                       disabled={!activeThreadId}
-                      className="min-h-24 resize-none border-0 bg-transparent text-base leading-relaxed text-foreground placeholder:text-muted-foreground focus-visible:ring-0 disabled:opacity-50"
+                      className="min-h-24 resize-none border-0 bg-transparent text-base leading-relaxed text-foreground placeholder:text-muted-foreground outline-none focus-visible:ring-0 disabled:opacity-50"
                     />
                     <PromptInputActions className="mt-3 items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -477,85 +563,29 @@ export default function App() {
               </div>
             </main>
 
-            {/* Right sidebar - File tree - floating style */}
-            <aside className="relative z-10 m-3 flex w-64 shrink-0 flex-col rounded-xl border border-border shadow-xl">
-              {/* Icon header */}
-              <header className="flex h-11 shrink-0 items-center justify-center gap-1 border-b border-border bg-surface-2 px-2">
-                <button
-                  type="button"
-                  onClick={() => setSidebarView("files")}
-                  className={cn(
-                    "flex h-8 w-8 items-center justify-center rounded-md transition",
-                    sidebarView === "files"
-                      ? "bg-surface-3 text-foreground"
-                      : "text-muted-foreground hover:bg-surface-3/50 hover:text-foreground",
+            {/* Right sidebar */}
+            {sidebarView && (
+              <aside className="relative z-10 flex h-full w-64 shrink-0 flex-col border-l border-border bg-surface-1">
+                <ScrollArea className="min-h-0 flex-1">
+                  {sidebarView === "files" && (
+                    <div className="p-2">
+                      <FileTree
+                        rootPath={activeWorktreePath}
+                        onFileClick={handleFileClick}
+                      />
+                    </div>
                   )}
-                  title="Files"
-                >
-                  <FolderTree className="size-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSidebarView("git")}
-                  className={cn(
-                    "flex h-8 w-8 items-center justify-center rounded-md transition",
-                    sidebarView === "git"
-                      ? "bg-surface-3 text-foreground"
-                      : "text-muted-foreground hover:bg-surface-3/50 hover:text-foreground",
+                  {sidebarView === "git" && (
+                    <div className="flex h-full flex-col items-center justify-center p-4 text-center">
+                      <GitBranch className="mb-2 size-8 text-muted-foreground/30" />
+                      <p className="text-sm text-muted-foreground">
+                        Git integration coming soon
+                      </p>
+                    </div>
                   )}
-                  title="Git"
-                >
-                  <GitBranch className="size-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsNotesOpen(true)}
-                  className={cn(
-                    "flex h-8 w-8 items-center justify-center rounded-md transition",
-                    isNotesOpen
-                      ? "bg-surface-3 text-foreground"
-                      : "text-muted-foreground hover:bg-surface-3/50 hover:text-foreground",
-                  )}
-                  title="Workspace Notes"
-                >
-                  <StickyNote className="size-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsTerminalOpen(true);
-                    setIsTerminalActive(true);
-                  }}
-                  className={cn(
-                    "flex h-8 w-8 items-center justify-center rounded-md transition",
-                    isTerminalOpen
-                      ? "bg-surface-3 text-foreground"
-                      : "text-muted-foreground hover:bg-surface-3/50 hover:text-foreground",
-                  )}
-                  title="Terminal"
-                >
-                  <Terminal className="size-4" />
-                </button>
-              </header>
-              <ScrollArea className="min-h-0 flex-1">
-                {sidebarView === "files" && (
-                  <div className="p-2">
-                    <FileTree
-                      rootPath={activeWorktreePath}
-                      onFileClick={handleFileClick}
-                    />
-                  </div>
-                )}
-                {sidebarView === "git" && (
-                  <div className="flex h-full flex-col items-center justify-center p-4 text-center">
-                    <GitBranch className="mb-2 size-8 text-muted-foreground/30" />
-                    <p className="text-sm text-muted-foreground">
-                      Git integration coming soon
-                    </p>
-                  </div>
-                )}
-              </ScrollArea>
-            </aside>
+                </ScrollArea>
+              </aside>
+            )}
 
             {/* Workspace Notes Tab */}
             {isNotesOpen && (

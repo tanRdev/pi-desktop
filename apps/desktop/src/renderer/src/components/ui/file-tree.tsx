@@ -79,6 +79,7 @@ function FileTreeItem({
         className={cn(
           "flex w-full items-center gap-1.5 rounded px-1.5 py-0.5 text-left text-sm transition",
           "text-muted-foreground hover:bg-surface-2 hover:text-foreground",
+          "font-[var(--app-font-mono)]",
           isExpanded && "bg-surface-2/50",
           isDirectory && "font-medium text-foreground/90",
         )}
@@ -96,7 +97,7 @@ function FileTreeItem({
         <Icon
           className={cn(
             "size-3.5 shrink-0",
-            isDirectory ? "text-amber-500/80" : "text-blue-400/80",
+            isDirectory ? "text-amber-400" : "text-cyan-400",
           )}
         />
         <span className="truncate">{entry.name}</span>
