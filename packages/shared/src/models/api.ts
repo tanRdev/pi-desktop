@@ -1,5 +1,6 @@
 import type { AgentSnapshot, PiDeskAgentEvent } from "./agent.js";
 import type { ShellSnapshot } from "./shell.js";
+import type { OpenDialogOptions } from "./dialog.js";
 
 export interface PiDeskApi {
   shell: {
@@ -12,5 +13,8 @@ export interface PiDeskApi {
     prompt(text: string): Promise<void>;
     reset(): Promise<void>;
     subscribe(listener: (event: PiDeskAgentEvent) => void): () => void;
+  },
+  dialog: {
+    showOpenDialog(options: OpenDialogOptions): Promise<string[] | null>;
   };
 }

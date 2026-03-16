@@ -247,7 +247,8 @@ export function createShellModel(api: PiDeskApi) {
 
       try {
         await api.agent.prompt(prompt);
-      } catch {
+      } catch (error) {
+        console.debug("[shell-model] prompt failed:", error);
         // Refresh snapshot below so renderer can surface runtime error state.
       }
 

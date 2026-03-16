@@ -3,3 +3,5 @@ export * from "./ipc/channels.js";
 export * from "./models/agent.js";
 export * from "./models/api.js";
 export * from "./models/shell.js";
+
+export * from "./models/dialog.js";

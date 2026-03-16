@@ -8,6 +8,9 @@ export const IPC_CHANNELS = {
     prompt: "agent:prompt",
     reset: "agent:reset",
   },
+  dialog: {
+    showOpenDialog: "dialog:showOpenDialog",
+  },
 } as const;
 
 export type IpcChannels = typeof IPC_CHANNELS;
