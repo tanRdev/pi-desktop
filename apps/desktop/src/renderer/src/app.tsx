@@ -63,6 +63,7 @@ import { ScrollArea } from "./components/ui/scroll-area";
 import { Separator } from "./components/ui/separator";
 import { Terminal } from "./components/ui/terminal";
 import { useShellModel } from "./hooks/use-shell-model";
+import { SettingsProvider, SettingsModal } from "./components/settings";
 
 const UI_FONT_OPTIONS = [
   {
@@ -935,7 +936,8 @@ export default function App() {
   }, [canSend, sendPrompt]);
 
   return (
-    <TooltipProvider>
+    <SettingsProvider>
+      <TooltipProvider>
       <div
         data-testid="app-ready"
         className="relative flex h-screen flex-col overflow-hidden bg-background text-foreground"
@@ -1093,40 +1095,16 @@ export default function App() {
               data-no-drag="true"
             >
               <div className="flex items-end justify-between gap-3">
-                <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-                  <DialogTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="size-9 rounded border border-border bg-surface-2 text-foreground hover:bg-surface-3 hover:text-foreground"
-                      aria-label="Open settings"
-                    >
-                      <Settings2 className="size-4" />
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>Settings</DialogTitle>
-                      <DialogDescription>
-                        Customize the interface typography and appearance.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4 pt-4">
-                      <SettingsSelect
-                        label="Interface font"
-                        value={interfaceFont}
-                        onChange={setInterfaceFont}
-                        options={UI_FONT_OPTIONS}
-                      />
-                      <SettingsSelect
-                        label="Code font"
-                        value={codeFont}
-                        onChange={setCodeFont}
-                        options={CODE_FONT_OPTIONS}
-                      />
-                    </div>
-                  </DialogContent>
-                </Dialog>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsSettingsOpen(true)}
+                  className="size-9 rounded border border-border bg-surface-2 text-foreground hover:bg-surface-3 hover:text-foreground"
+                  aria-label="Open settings"
+                >
+                  <Settings2 className="size-4" />
+                </Button>
+                <SettingsModal open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
 
                 <div className="min-w-0 flex-1 text-right">
                   <p className="text-xs uppercase tracking-wide text-muted-foreground">
@@ -1414,5 +1392,6 @@ export default function App() {
         </div>
       </div>
     </TooltipProvider>
+    </SettingsProvider>
   );
 }
