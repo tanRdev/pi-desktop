@@ -45,7 +45,7 @@ export function resolveAgentRuntimeOptions(
 ): CreateAgentRuntimeOptions {
   const resolvedCwd = environment.PIDESK_AGENT_CWD || cwd;
   const resolvedAgentDir =
-    environment.PIDESK_AGENT_DIR || path.join(resolvedCwd, ".pidesk-agent");
+    environment.PIDESK_AGENT_DIR || path.join(resolvedCwd, ".pi", "agent");
 
   return {
     mode: resolveAgentRuntimeMode(environment),
@@ -57,10 +57,11 @@ export function resolveAgentRuntimeOptions(
 export function resolveAgentRuntimeLaunchOptions(
   environment: AgentRuntimeEnvironment,
   cwd: string,
-  userDataPath: string,
+  _userDataPath: string,
   isPackaged: boolean,
+  homePath: string,
 ): AgentRuntimeLaunchOptions {
-  const fallbackCwd = isPackaged ? path.join(userDataPath, "workspace") : cwd;
+  const fallbackCwd = isPackaged ? homePath : cwd;
   const runtimeOptions = resolveAgentRuntimeOptions(environment, fallbackCwd);
 
   return {
@@ -77,15 +78,17 @@ export function resolveAgentRuntimeLaunchOptions(
 export function prepareAgentRuntimeLaunchOptions(
   environment: AgentRuntimeEnvironment,
   cwd: string,
-  userDataPath: string,
+  _userDataPath: string,
   isPackaged: boolean,
+  homePath: string,
   ensureDirectory: EnsureDirectory,
 ): AgentRuntimeLaunchOptions {
   const launchOptions = resolveAgentRuntimeLaunchOptions(
     environment,
     cwd,
-    userDataPath,
+    _userDataPath,
     isPackaged,
+    homePath,
   );
 
   ensureDirectory(launchOptions.cwd);

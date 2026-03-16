@@ -4,6 +4,8 @@ import type {
   AgentHostResponse,
   AgentSnapshot,
   PiDeskAgentEvent,
+  ProviderSnapshot,
+  SettingsSnapshot,
 } from "@pidesk/shared";
 
 type AgentEventListener = (event: PiDeskAgentEvent) => void;
@@ -32,6 +34,8 @@ interface AgentHostClientOptions {
 
 export interface AgentHostClient {
   bootstrap(): Promise<void>;
+  getProviders(): Promise<ProviderSnapshot[]>;
+  getSettings(): Promise<SettingsSnapshot>;
   getSnapshot(): Promise<AgentSnapshot>;
   prompt(text: string): Promise<void>;
   reset(): Promise<void>;
@@ -123,6 +127,24 @@ export function createAgentHostClient(
       });
 
       return response.snapshot;
+    },
+    async getProviders() {
+      const response = await send<
+        Extract<AgentHostResponse, { kind: "providers" }>
+      >({
+        type: "getProviders",
+      });
+
+      return response.providers;
+    },
+    async getSettings() {
+      const response = await send<
+        Extract<AgentHostResponse, { kind: "settings" }>
+      >({
+        type: "getSettings",
+      });
+
+      return response.settings;
     },
     async prompt(text) {
       await send({ type: "prompt", text });
