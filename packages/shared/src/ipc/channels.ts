@@ -17,6 +17,7 @@ export const IPC_CHANNELS = {
   fs: {
     readDirectory: "fs:readDirectory",
     readFile: "fs:readFile",
+    writeFile: "fs:writeFile",
   },
   terminal: {
     create: "terminal:create",

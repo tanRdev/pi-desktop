@@ -66,10 +66,13 @@ export function Terminal({ id, cwd, className, onExit }: TerminalProps) {
     // Create PTY via main process
     const { cols, rows } = terminal;
     window.pidesk.terminal.create(id, { cols, rows, cwd }).catch((err) => {
-      const errorMessage = err instanceof Error ? err.message : "Failed to create terminal";
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to create terminal";
       setError(errorMessage);
       terminal.write(`\x1b[31mError: ${errorMessage}\x1b[0m\r\n`);
-      terminal.write("Terminal functionality may require rebuilding native modules.\r\n");
+      terminal.write(
+        "Terminal functionality may require rebuilding native modules.\r\n",
+      );
     });
 
     // Handle terminal input
@@ -119,7 +122,11 @@ export function Terminal({ id, cwd, className, onExit }: TerminalProps) {
           <div className="text-sm text-destructive">Terminal Error</div>
           <div className="text-xs text-muted-foreground">{error}</div>
           <div className="text-xs text-muted-foreground">
-            Run <code className="rounded bg-surface-2 px-1">pnpm rebuild node-pty</code> to rebuild native modules.
+            Run{" "}
+            <code className="rounded bg-surface-2 px-1">
+              pnpm rebuild node-pty
+            </code>{" "}
+            to rebuild native modules.
           </div>
         </div>
       </div>

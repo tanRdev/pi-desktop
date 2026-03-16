@@ -13,8 +13,9 @@ export interface DirectoryListing {
 export interface FileContent {
   path: string;
   content: string;
-  type: "text" | "binary" | "unsupported";
+  type: "text" | "binary" | "image" | "unsupported";
   encoding?: string;
   size?: number;
   truncated?: boolean;
+  mimeType?: string; // For image files
 }

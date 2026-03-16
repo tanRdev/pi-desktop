@@ -83,9 +83,15 @@ export function createPiDeskApi({
           { path },
         );
       },
+      writeFile(path: string, content: string) {
+        return invoke<void>(IPC_CHANNELS.fs.writeFile, { path, content });
+      },
     },
     terminal: {
-      create(id: string, options: { cols: number; rows: number; cwd?: string }) {
+      create(
+        id: string,
+        options: { cols: number; rows: number; cwd?: string },
+      ) {
         return invoke<void>(IPC_CHANNELS.terminal.create, { id, ...options });
       },
       write(id: string, data: string) {
@@ -97,7 +103,14 @@ export function createPiDeskApi({
       destroy(id: string) {
         return invoke<void>(IPC_CHANNELS.terminal.destroy, { id });
       },
-      onEvent(listener: (event: { type: string; id: string; data?: string; exitCode?: number }) => void) {
+      onEvent(
+        listener: (event: {
+          type: string;
+          id: string;
+          data?: string;
+          exitCode?: number;
+        }) => void,
+      ) {
         return on(IPC_CHANNELS.terminal.create, listener);
       },
     },

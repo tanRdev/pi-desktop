@@ -1,10 +1,10 @@
 "use client";
 import type {
   AgentMessageSnapshot,
+  FileContent,
   ShellGitSnapshot,
   ShellProjectSnapshot,
 } from "@pidesk/shared";
-
 import {
   ChatContainerContent,
   ChatContainerRoot,
@@ -20,28 +20,40 @@ import {
 import {
   ArrowUp,
   ChevronDown,
+  FileText,
   Folder,
   FolderGit,
   FolderTree,
   GitBranch,
   History,
+  MessageSquare,
   Plus,
   Settings2,
+  Terminal as TerminalIcon,
   Trash2,
   X,
 } from "lucide-react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "./components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./components/ui/dialog";
 import { FileTree } from "./components/ui/file-tree";
-import { Terminal } from "./components/ui/terminal";
-import type { FileContent } from "@pidesk/shared";
-import { MultiFileViewer, type OpenFile } from "./components/ui/multi-file-viewer";
 import {
   Message,
   MessageAvatar,
   MessageContent,
 } from "./components/ui/message";
+import {
+  MultiFileViewer,
+  type OpenFile,
+} from "./components/ui/multi-file-viewer";
 import {
   Popover,
   PopoverContent,
@@ -49,6 +61,7 @@ import {
 } from "./components/ui/popover";
 import { ScrollArea } from "./components/ui/scroll-area";
 import { Separator } from "./components/ui/separator";
+import { Terminal } from "./components/ui/terminal";
 import { useShellModel } from "./hooks/use-shell-model";
 
 const UI_FONT_OPTIONS = [
@@ -81,13 +94,9 @@ const CODE_FONT_OPTIONS = [
   },
 ];
 
-const PROMPT_SUGGESTIONS = [
-  "Summarize this workspace and tell me what matters most.",
-  "Inspect the current repository state and explain the next safest move.",
-  "Outline the active agent capabilities in this desktop shell.",
-];
-
 type InspectorView = "git" | "files" | "context" | "history";
+
+type SidebarView = "files" | "threads";
 
 const timeFormatter = new Intl.DateTimeFormat("en", {
   hour: "numeric",
@@ -477,6 +486,16 @@ export default function App() {
   const { agent, draft, live, shell } = state;
 
   const [activeView, setActiveView] = React.useState<InspectorView>("git");
+  const [sidebarView, setSidebarView] = React.useState<SidebarView>(() => {
+    try {
+      return (
+        (window.localStorage.getItem("pidesk-sidebar-view") as SidebarView) ??
+        "files"
+      );
+    } catch {
+      return "files";
+    }
+  });
   const [interfaceFont, setInterfaceFont] = React.useState(() =>
     readStoredValue("pidesk-font-sans", UI_FONT_OPTIONS[0]?.value ?? "Inter"),
   );
@@ -541,84 +560,117 @@ export default function App() {
   );
   // Multi-file viewer state
   const [openFiles, setOpenFiles] = React.useState<OpenFile[]>([]);
-  const [activeFilePath, setActiveFilePath] = React.useState<string | null>(null);
+  const [activeFilePath, setActiveFilePath] = React.useState<string | null>(
+    null,
+  );
   const [isTerminalOpen, setIsTerminalOpen] = React.useState(false);
+  const [isTerminalActive, setIsTerminalActive] = React.useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = React.useState(false);
   const [terminalId] = React.useState(() => `terminal-${Date.now()}`);
 
   // Load file content when a file is opened
-  const loadFile = React.useCallback(async (filePath: string) => {
-    // Check if file is already open
-    const existingFile = openFiles.find((f) => f.path === filePath);
-    if (existingFile) {
+  const loadFile = React.useCallback(
+    async (filePath: string) => {
+      // Check if file is already open
+      const existingFile = openFiles.find((f) => f.path === filePath);
+      if (existingFile) {
+        setActiveFilePath(filePath);
+        setIsTerminalActive(false);
+        return;
+      }
+
+      // Add file to open files with loading state
+      setOpenFiles((prev) => [
+        ...prev,
+        { path: filePath, content: null, isLoading: true, error: null },
+      ]);
       setActiveFilePath(filePath);
-      return;
-    }
+      setIsTerminalActive(false);
 
-    // Add file to open files with loading state
-    setOpenFiles((prev) => [
-      ...prev,
-      { path: filePath, content: null, isLoading: true, error: null },
-    ]);
-    setActiveFilePath(filePath);
-
-    // Load file content
-    try {
-      const result = await window.pidesk.fs.readFile(filePath);
-      setOpenFiles((prev) =>
-        prev.map((f) =>
-          f.path === filePath ? { ...f, content: result, isLoading: false } : f
-        )
-      );
-    } catch (err) {
-      setOpenFiles((prev) =>
-        prev.map((f) =>
-          f.path === filePath
-            ? {
-                ...f,
-                error: err instanceof Error ? err.message : "Failed to load file",
-                isLoading: false,
-              }
-            : f
-        )
-      );
-    }
-  }, [openFiles]);
+      // Load file content
+      try {
+        const result = await window.pidesk.fs.readFile(filePath);
+        setOpenFiles((prev) =>
+          prev.map((f) =>
+            f.path === filePath
+              ? { ...f, content: result, isLoading: false }
+              : f,
+          ),
+        );
+      } catch (err) {
+        setOpenFiles((prev) =>
+          prev.map((f) =>
+            f.path === filePath
+              ? {
+                  ...f,
+                  error:
+                    err instanceof Error ? err.message : "Failed to load file",
+                  isLoading: false,
+                }
+              : f,
+          ),
+        );
+      }
+    },
+    [openFiles],
+  );
 
   // Handle file click from file tree
   const handleFileClick = React.useCallback(
     (filePath: string) => {
       void loadFile(filePath);
     },
-    [loadFile]
+    [loadFile],
   );
 
   // Handle tab click
   const handleTabClick = React.useCallback((filePath: string) => {
     setActiveFilePath(filePath);
+    setIsTerminalActive(false);
   }, []);
 
   // Handle tab close
-  const handleTabClose = React.useCallback((filePath: string) => {
-    setOpenFiles((prev) => {
-      const newFiles = prev.filter((f) => f.path !== filePath);
-      // If closing the active file, switch to another file
-      if (activeFilePath === filePath && newFiles.length > 0) {
-        const index = prev.findIndex((f) => f.path === filePath);
-        const nextFile = newFiles[Math.max(0, index - 1)];
-        setActiveFilePath(nextFile?.path ?? null);
-      } else if (newFiles.length === 0) {
-        setActiveFilePath(null);
-      }
-      return newFiles;
-    });
-  }, [activeFilePath]);
+  const handleTabClose = React.useCallback(
+    (filePath: string) => {
+      setOpenFiles((prev) => {
+        const newFiles = prev.filter((f) => f.path !== filePath);
+        // If closing the active file, switch to another file
+        if (activeFilePath === filePath && newFiles.length > 0) {
+          const index = prev.findIndex((f) => f.path === filePath);
+          const nextFile = newFiles[Math.max(0, index - 1)];
+          setActiveFilePath(nextFile?.path ?? null);
+        } else if (newFiles.length === 0) {
+          setActiveFilePath(null);
+        }
+        return newFiles;
+      });
+    },
+    [activeFilePath],
+  );
 
   // Handle close all files
   const handleCloseAllFiles = React.useCallback(() => {
     setOpenFiles([]);
     setActiveFilePath(null);
   }, []);
-  const [isWorkspacePopoverOpen, setIsWorkspacePopoverOpen] = React.useState(false);
+
+  function handleTextSelect(selection: {
+    text: string;
+    startLine: number;
+    endLine: number;
+    filename: string;
+    filePath: string;
+  }): void {
+    const lineRef =
+      selection.startLine === selection.endLine
+        ? `L${selection.startLine}`
+        : `L${selection.startLine}-L${selection.endLine}`;
+    const formatted = `${selection.filePath}:${lineRef}\n\`\`\`\n${selection.text}\n\`\`\``;
+    setDraft(draft ? `${draft}\n\n${formatted}` : formatted);
+  }
+
+  const [isWorkspacePopoverOpen, setIsWorkspacePopoverOpen] =
+    React.useState(false);
   // Persist projects to localStorage
   React.useEffect(() => {
     try {
@@ -640,6 +692,15 @@ export default function App() {
       // Ignore storage errors
     }
   }, [activeProjectId]);
+
+  // Persist sidebar view preference
+  React.useEffect(() => {
+    try {
+      window.localStorage.setItem("pidesk-sidebar-view", sidebarView);
+    } catch {
+      // Ignore storage errors
+    }
+  }, [sidebarView]);
   // Sidebar width state with localStorage persistence
   const MIN_SIDEBAR_WIDTH = 180;
   const MAX_SIDEBAR_WIDTH = 400;
@@ -891,7 +952,10 @@ export default function App() {
             className="relative z-10 flex shrink-0 flex-col border-r border-border bg-surface-1"
           >
             <div className="px-4 pt-4" data-no-drag="true">
-              <Popover open={isWorkspacePopoverOpen} onOpenChange={setIsWorkspacePopoverOpen}>
+              <Popover
+                open={isWorkspacePopoverOpen}
+                onOpenChange={setIsWorkspacePopoverOpen}
+              >
                 <PopoverTrigger asChild>
                   <Button
                     variant="ghost"
@@ -947,11 +1011,81 @@ export default function App() {
               </Popover>
             </div>
 
+            {/* Sidebar view toggle */}
+            <div className="px-4 py-2" data-no-drag="true">
+              <div className="flex rounded-lg border border-border p-0.5">
+                <button
+                  type="button"
+                  onClick={() => setSidebarView("files")}
+                  className={cn(
+                    "flex flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium transition",
+                    sidebarView === "files"
+                      ? "bg-surface-3 text-foreground"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  <FileText className="size-3.5" />
+                  <span>FILES</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSidebarView("threads")}
+                  className={cn(
+                    "flex flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium transition",
+                    sidebarView === "threads"
+                      ? "bg-surface-3 text-foreground"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  <MessageSquare className="size-3.5" />
+                  <span>THREADS</span>
+                </button>
+              </div>
+            </div>
+
             <ScrollArea className="min-h-0 flex-1" data-no-drag="true">
-              <FileTree
-                rootPath={activeProject?.path}
-                onFileClick={handleFileClick}
-              />
+              {sidebarView === "files" ? (
+                <FileTree
+                  rootPath={activeProject?.path}
+                  onFileClick={handleFileClick}
+                />
+              ) : (
+                <div className="space-y-1 p-2">
+                  {/* Current thread */}
+                  <button
+                    type="button"
+                    className="w-full rounded-lg border border-border bg-surface-2 p-3 text-left transition hover:bg-surface-3"
+                  >
+                    <div className="flex items-start gap-2">
+                      <div className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded bg-primary/10">
+                        <MessageSquare className="size-3 text-primary" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-foreground">
+                          {agent.messages.length > 0
+                            ? (() => {
+                                const firstUserMsg = agent.messages.find(
+                                  (m) => m.role === "user",
+                                );
+                                if (firstUserMsg?.text) {
+                                  return (
+                                    firstUserMsg.text.slice(0, 50) +
+                                    (firstUserMsg.text.length > 50 ? "..." : "")
+                                  );
+                                }
+                                return "New conversation";
+                              })()
+                            : "New conversation"}
+                        </p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                          {agent.messages.length} message
+                          {agent.messages.length !== 1 ? "s" : ""}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              )}
             </ScrollArea>
 
             <div
@@ -959,8 +1093,8 @@ export default function App() {
               data-no-drag="true"
             >
               <div className="flex items-end justify-between gap-3">
-                <Popover>
-                  <PopoverTrigger asChild>
+                <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+                  <DialogTrigger asChild>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -969,22 +1103,15 @@ export default function App() {
                     >
                       <Settings2 className="size-4" />
                     </Button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    align="start"
-                    side="top"
-                    className="w-56 rounded border border-border bg-popover p-4 text-popover-foreground shadow-lg"
-                  >
-                    <div className="space-y-3">
-                      <div>
-                        <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                          Settings
-                        </p>
-                        <p className="mt-2 text-sm text-muted-foreground">
-                          Refine the interface typography.
-                        </p>
-                      </div>
-
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Settings</DialogTitle>
+                      <DialogDescription>
+                        Customize the interface typography and appearance.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 pt-4">
                       <SettingsSelect
                         label="Interface font"
                         value={interfaceFont}
@@ -998,8 +1125,8 @@ export default function App() {
                         options={CODE_FONT_OPTIONS}
                       />
                     </div>
-                  </PopoverContent>
-                </Popover>
+                  </DialogContent>
+                </Dialog>
 
                 <div className="min-w-0 flex-1 text-right">
                   <p className="text-xs uppercase tracking-wide text-muted-foreground">
@@ -1014,14 +1141,21 @@ export default function App() {
           </aside>
 
           <main className="relative z-10 flex min-w-0 flex-1 flex-col">
-            {openFiles.length > 0 ? (
+            {openFiles.length > 0 || isTerminalOpen ? (
               <MultiFileViewer
                 openFiles={openFiles}
                 activeFilePath={activeFilePath}
                 onTabClick={handleTabClick}
                 onTabClose={handleTabClose}
                 onCloseAll={handleCloseAllFiles}
+                onTextSelect={handleTextSelect}
                 className="min-h-0 flex-1"
+                isTerminalOpen={isTerminalOpen}
+                isTerminalActive={isTerminalActive}
+                onTerminalClick={() => setIsTerminalActive(true)}
+                onTerminalClose={() => { setIsTerminalOpen(false); setIsTerminalActive(false); }}
+                terminalCwd={activeProject?.path}
+                terminalId={terminalId}
               />
             ) : (
               <ChatContainerRoot className="relative min-h-0 flex-1">
@@ -1101,21 +1235,6 @@ export default function App() {
 
             <div className="relative z-20 border-t border-border bg-gradient-to-t from-background to-transparent pb-6 pt-4">
               <div className="mx-auto max-w-4xl px-6">
-                {agent.messages.length === 0 && (
-                  <div className="mb-3 flex flex-wrap gap-2">
-                    {PROMPT_SUGGESTIONS.map((suggestion) => (
-                      <button
-                        key={suggestion}
-                        type="button"
-                        onClick={() => setDraft(suggestion)}
-                        className="rounded border border-border bg-surface-2 px-3 py-1.5 text-sm text-muted-foreground transition hover:border-border-hover hover:bg-surface-3 hover:text-foreground"
-                      >
-                        {suggestion}
-                      </button>
-                    ))}
-                  </div>
-                )}
-
                 <PromptInput
                   value={draft}
                   onValueChange={setDraft}
@@ -1160,29 +1279,6 @@ export default function App() {
                 </PromptInput>
               </div>
             </div>
-
-            {/* Terminal Panel */}
-            {isTerminalOpen && (
-              <div className="border-t border-border bg-surface-1" style={{ height: "200px" }}>
-                <div className="flex h-8 items-center justify-between border-b border-border bg-surface-2 px-3">
-                  <span className="text-xs font-medium text-muted-foreground">Terminal</span>
-                  <button
-                    type="button"
-                    onClick={() => setIsTerminalOpen(false)}
-                    className="rounded p-1 text-muted-foreground transition hover:bg-surface-3 hover:text-foreground"
-                    aria-label="Close terminal"
-                  >
-                    <X className="size-3.5" />
-                  </button>
-                </div>
-                <Terminal
-                  id={terminalId}
-                  cwd={activeProject?.path}
-                  className="h-[calc(100%-32px)]"
-                  onExit={() => setIsTerminalOpen(false)}
-                />
-              </div>
-            )}
           </main>
 
           <aside
@@ -1249,6 +1345,22 @@ export default function App() {
                 )}
               >
                 <History className="size-4" />
+              </button>
+              <Separator
+                orientation="vertical"
+                className="mx-2 h-4 bg-border"
+              />
+              <button
+                type="button"
+                onClick={() => { setIsTerminalOpen(true); setIsTerminalActive(true); }}
+                className={cn(
+                  "flex h-8 w-8 items-center justify-center rounded transition",
+                  isTerminalOpen
+                    ? "bg-surface-3 text-foreground"
+                    : "text-muted-foreground hover:bg-surface-3 hover:text-foreground",
+                )}
+              >
+                <TerminalIcon className="size-4" />
               </button>
             </header>
 

@@ -106,10 +106,7 @@ const INITIAL_COMPONENTS: Partial<Components> = {
   },
   p: function PComponent({ children, ...props }) {
     return (
-      <p
-        className="my-4 text-sm leading-7 text-foreground/90"
-        {...props}
-      >
+      <p className="my-4 text-sm leading-7 text-foreground/90" {...props}>
         {children}
       </p>
     );
@@ -212,7 +209,11 @@ const INITIAL_COMPONENTS: Partial<Components> = {
     const language = extractLanguage(className);
 
     return (
-      <CodeBlockCode code={children as string} language={language} className="my-6" />
+      <CodeBlockCode
+        code={children as string}
+        language={language}
+        className="my-6"
+      />
     );
   },
   pre: function PreComponent({ children }) {

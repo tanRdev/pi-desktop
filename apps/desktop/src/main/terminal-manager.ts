@@ -1,6 +1,6 @@
-import type { BrowserWindow } from "electron";
 import { createRequire } from "node:module";
 import { IPC_CHANNELS } from "@pidesk/shared";
+import type { BrowserWindow } from "electron";
 
 const require = createRequire(import.meta.url);
 
@@ -21,7 +21,8 @@ class TerminalManager {
       // Use require for native modules with electron-vite
       this.ptyModule = require("node-pty");
     } catch (error) {
-      this.initError = error instanceof Error ? error : new Error("Failed to load node-pty");
+      this.initError =
+        error instanceof Error ? error : new Error("Failed to load node-pty");
       console.error("Failed to load node-pty:", this.initError.message);
     }
   }
@@ -38,12 +39,20 @@ class TerminalManager {
     this.mainWindow = window;
   }
 
-  create(id: string, options: { cols: number; rows: number; cwd?: string }): TerminalInstance | null {
+  create(
+    id: string,
+    options: { cols: number; rows: number; cwd?: string },
+  ): TerminalInstance | null {
     if (!this.ptyModule) {
-      throw new Error("node-pty is not available. Terminal functionality is disabled.");
+      throw new Error(
+        "node-pty is not available. Terminal functionality is disabled.",
+      );
     }
 
-    const shell = process.platform === "win32" ? "powershell.exe" : process.env.SHELL || "/bin/zsh";
+    const shell =
+      process.platform === "win32"
+        ? "powershell.exe"
+        : process.env.SHELL || "/bin/zsh";
     const cwd = options.cwd || process.cwd();
 
     const pty = this.ptyModule.spawn(shell, [], {

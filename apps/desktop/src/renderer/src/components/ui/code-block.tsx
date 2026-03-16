@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { codeToHtml } from "shiki";
 import { cn } from "@/lib/utils";
 
@@ -121,13 +121,7 @@ export type CodeBlockProps = {
 
 function CodeBlock({ children, className, ...props }: CodeBlockProps) {
   return (
-    <div
-      className={cn(
-        "not-prose flex w-full flex-col",
-        className,
-      )}
-      {...props}
-    >
+    <div className={cn("not-prose flex w-full flex-col", className)} {...props}>
       {children}
     </div>
   );
@@ -151,7 +145,9 @@ function CodeBlockCode({
   const [isHighlighting, setIsHighlighting] = useState(false);
   const [isTooLarge, setIsTooLarge] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const highlightTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const highlightTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const isMountedRef = useRef(true);
 
   // Cleanup on unmount
@@ -178,8 +174,8 @@ function CodeBlockCode({
     setIsHighlighting(true);
 
     try {
-      const html = await codeToHtml(code, { 
-        lang: language, 
+      const html = await codeToHtml(code, {
+        lang: language,
         theme,
       });
       if (isMountedRef.current) {

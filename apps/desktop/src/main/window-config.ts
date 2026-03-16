@@ -55,9 +55,7 @@ export function resolveRendererTarget(
   };
 }
 
-export function resolvePreloadTarget(
-  mainEntryUrl: string,
-): string {
+export function resolvePreloadTarget(mainEntryUrl: string): string {
   const mainEntryPath = fileURLToPath(mainEntryUrl);
   const outDirectory = path.dirname(path.dirname(mainEntryPath));
 

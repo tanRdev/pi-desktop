@@ -1,14 +1,24 @@
 "use client";
 
 import type { FileContent } from "@pidesk/shared";
-import { Binary, FileIcon, FileText, FileWarning, Terminal, X } from "lucide-react";
+import {
+  Binary,
+  Check,
+  FileIcon,
+  FileText,
+  FileWarning,
+  Image,
+  Loader2,
+  Pencil,
+  Terminal as TerminalIcon,
+  X,
+} from "lucide-react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { CodeBlockCode } from "./code-block";
+import { CodeLineViewer } from "./code-line-viewer";
 import { Markdown } from "./markdown";
 import { ScrollArea } from "./scroll-area";
-
-// Map file extensions to language identifiers for syntax highlighting
+import { Terminal as TerminalComponent } from "./terminal";
 const EXTENSION_TO_LANGUAGE: Record<string, string> = {
   ".js": "javascript",
   ".jsx": "jsx",
@@ -107,7 +117,22 @@ export interface MultiFileViewerProps {
   onTabClose: (path: string) => void;
   onCloseAll?: () => void;
   onOpenTerminal?: () => void;
+  onFileUpdated?: (path: string, content: string) => void;
+  onTextSelect?: (selection: {
+    text: string;
+    startLine: number;
+    endLine: number;
+    filename: string;
+    filePath: string;
+  }) => void;
   className?: string;
+  // Terminal tab props
+  isTerminalOpen?: boolean;
+  isTerminalActive?: boolean;
+  onTerminalClick?: () => void;
+  onTerminalClose?: () => void;
+  terminalCwd?: string;
+  terminalId?: string;
 }
 
 function FileTab({
@@ -123,6 +148,13 @@ function FileTab({
 }) {
   const fileName = getFileNameFromPath(file.path);
   const isMarkdown = isMarkdownFile(file.path);
+  const isImage = file.content?.type === "image";
+
+  function getIcon(): React.ReactNode {
+    if (isMarkdown) return <FileText className="size-3.5 shrink-0" />;
+    if (isImage) return <Image className="size-3.5 shrink-0" />;
+    return <FileIcon className="size-3.5 shrink-0" />;
+  }
 
   return (
     <div
@@ -141,24 +173,13 @@ function FileTab({
           : "bg-surface-1 text-muted-foreground hover:bg-surface-2/50 hover:text-foreground/80",
       )}
     >
-      {/* Active indicator */}
       {isActive && (
         <div className="absolute inset-x-0 top-0 h-[2px] bg-primary" />
       )}
-
-      {/* File icon */}
-      {isMarkdown ? (
-        <FileText className="size-3.5 shrink-0" />
-      ) : (
-        <FileIcon className="size-3.5 shrink-0" />
-      )}
-
-      {/* File name */}
+      {getIcon()}
       <span className="min-w-0 flex-1 truncate text-xs font-medium">
         {fileName}
       </span>
-
-      {/* Close button */}
       <button
         type="button"
         onClick={onClose}
@@ -169,6 +190,56 @@ function FileTab({
             : "group-hover:opacity-100 hover:bg-surface-2",
         )}
         aria-label={`Close ${fileName}`}
+      >
+        <X className="size-3" />
+      </button>
+    </div>
+  );
+}
+
+function TerminalTab({
+  isActive,
+  onClick,
+  onClose,
+}: {
+  isActive: boolean;
+  onClick: () => void;
+  onClose: (e: React.MouseEvent) => void;
+}) {
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          onClick();
+        }
+      }}
+      className={cn(
+        "group relative flex h-9 min-w-0 max-w-[200px] shrink-0 cursor-pointer items-center gap-2 border-r border-border px-3 transition-all",
+        isActive
+          ? "bg-surface-2 text-foreground"
+          : "bg-surface-1 text-muted-foreground hover:bg-surface-2/50 hover:text-foreground/80",
+      )}
+    >
+      {isActive && (
+        <div className="absolute inset-x-0 top-0 h-[2px] bg-primary" />
+      )}
+      <TerminalIcon className="size-3.5 shrink-0" />
+      <span className="min-w-0 flex-1 truncate text-xs font-medium">
+        Terminal
+      </span>
+      <button
+        type="button"
+        onClick={onClose}
+        className={cn(
+          "flex size-4 shrink-0 items-center justify-center rounded opacity-0 transition",
+          isActive
+            ? "opacity-100 hover:bg-surface-3"
+            : "group-hover:opacity-100 hover:bg-surface-2",
+        )}
+        aria-label="Close terminal"
       >
         <X className="size-3" />
       </button>
@@ -203,10 +274,65 @@ function EmptyState({ onCloseAll }: { onCloseAll?: () => void }) {
   );
 }
 
-function FileContentViewer({ file }: { file: OpenFile }) {
-  const fileName = getFileNameFromPath(file.path);
+type SaveStatus = "idle" | "saving" | "success" | "error";
+
+function FileContentViewer({
+  file,
+  filename,
+  isEditing,
+  onSave,
+  onTextSelect,
+}: {
+  file: OpenFile;
+  filename: string;
+  isEditing: boolean;
+  onSave: (content: string) => Promise<void>;
+  onTextSelect?: (selection: {
+    text: string;
+    startLine: number;
+    endLine: number;
+    filename: string;
+    filePath: string;
+  }) => void;
+}) {
   const language = getLanguageFromPath(file.path);
   const isMarkdown = isMarkdownFile(file.path);
+  const [editContent, setEditContent] = React.useState("");
+  const [saveStatus, setSaveStatus] = React.useState<SaveStatus>("idle");
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+
+  React.useEffect(() => {
+    if (isEditing && file.content?.type === "text" && file.content.content) {
+      setEditContent(file.content.content);
+      setSaveStatus("idle");
+    }
+  }, [isEditing, file.content]);
+
+  React.useEffect(() => {
+    if (isEditing && textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, [isEditing]);
+
+  async function handleSave(): Promise<void> {
+    setSaveStatus("saving");
+    try {
+      await onSave(editContent);
+      setSaveStatus("success");
+      setTimeout(() => setSaveStatus("idle"), 2000);
+    } catch {
+      setSaveStatus("error");
+      setTimeout(() => setSaveStatus("idle"), 3000);
+    }
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent): void {
+    if (e.key === "s" && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      handleSave();
+    }
+  }
+
 
   if (file.isLoading) {
     return (
@@ -277,10 +403,24 @@ function FileContentViewer({ file }: { file: OpenFile }) {
     );
   }
 
-  if (file.content.type === "text" && file.content.content) {
+  if (file.content.type === "image" && file.content.content) {
     return (
-      <div className="h-full">
-        {file.content.truncated && (
+      <div className="flex h-full items-center justify-center p-8">
+        <img
+          src={file.content.content}
+          alt={getFileNameFromPath(file.path)}
+          className="max-h-full max-w-full object-contain"
+        />
+      </div>
+    );
+  }
+
+  if (file.content.type === "text") {
+    const isTruncated = file.content.truncated;
+
+    return (
+      <div className="flex h-full flex-col">
+        {isTruncated && (
           <div className="flex items-start gap-3 border-b border-warning/30 bg-warning/10 px-4 py-3 text-sm">
             <FileWarning className="mt-0.5 size-4 shrink-0 text-warning" />
             <div>
@@ -288,24 +428,78 @@ function FileContentViewer({ file }: { file: OpenFile }) {
               <p className="text-muted-foreground">
                 This file exceeds 1MB and has been truncated. Showing first
                 portion only.
+                {isEditing && " Editing is disabled for truncated files."}
               </p>
             </div>
           </div>
         )}
 
-        {isMarkdown ? (
+        {isEditing && !isTruncated ? (
+          <div className="flex flex-1 flex-col">
+            <div className="flex items-center justify-between border-b border-border bg-surface-1 px-4 py-2">
+              <span className="text-xs text-muted-foreground">
+                Editing mode (Cmd/Ctrl+S to save)
+              </span>
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={saveStatus === "saving"}
+                className={cn(
+                  "flex items-center gap-1.5 rounded px-2 py-1 text-xs font-medium transition",
+                  saveStatus === "success" &&
+                    "bg-success/10 text-success hover:bg-success/20",
+                  saveStatus === "error" &&
+                    "bg-destructive/10 text-destructive hover:bg-destructive/20",
+                  saveStatus === "idle" &&
+                    "bg-primary/10 text-primary hover:bg-primary/20",
+                  saveStatus === "saving" && "cursor-not-allowed opacity-50",
+                )}
+              >
+                {saveStatus === "saving" && (
+                  <Loader2 className="size-3 animate-spin" />
+                )}
+                {saveStatus === "success" && <Check className="size-3" />}
+                {saveStatus === "idle" && "Save"}
+                {saveStatus === "saving" && "Saving..."}
+                {saveStatus === "success" && "Saved"}
+                {saveStatus === "error" && "Save failed"}
+              </button>
+            </div>
+            <textarea
+              ref={textareaRef}
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+              onKeyDown={handleKeyDown}
+              className="flex-1 resize-none bg-background p-4 font-mono text-sm text-foreground outline-none"
+              spellCheck={false}
+            />
+          </div>
+        ) : isMarkdown && file.content.content ? (
           <div className="mx-auto max-w-3xl px-8 py-8">
             <article className="prose prose-zinc dark:prose-invert max-w-none">
               <Markdown>{file.content.content}</Markdown>
             </article>
           </div>
+        ) : file.content.content ? (
+          <CodeLineViewer
+            code={file.content.content}
+            language={language}
+            filename={filename}
+            filePath={file.path}
+            onAddToChat={onTextSelect}
+            className="min-h-full"
+          />
         ) : (
-          <div className="mx-auto max-w-5xl">
-            <CodeBlockCode
-              code={file.content.content}
-              language={language}
-              className="min-h-full"
-            />
+          <div className="flex h-full flex-col items-center justify-center gap-3 p-8 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-surface-2">
+              <FileIcon className="size-8 text-muted-foreground" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-foreground">Empty file</p>
+              <p className="text-xs text-muted-foreground">
+                This file has no content
+              </p>
+            </div>
           </div>
         )}
       </div>
@@ -334,12 +528,21 @@ export function MultiFileViewer({
   onTabClose,
   onCloseAll,
   onOpenTerminal,
+  onFileUpdated,
+  onTextSelect,
   className,
+  // Terminal tab props
+  isTerminalOpen,
+  isTerminalActive,
+  onTerminalClick,
+  onTerminalClose,
+  terminalCwd,
+  terminalId,
 }: MultiFileViewerProps) {
   const activeFile = openFiles.find((f) => f.path === activeFilePath);
   const hasFiles = openFiles.length > 0;
+  const [isEditing, setIsEditing] = React.useState(false);
 
-  // Handle scrollable tabs
   const tabsRef = React.useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = React.useState(false);
   const [canScrollRight, setCanScrollRight] = React.useState(false);
@@ -363,7 +566,11 @@ export function MultiFileViewer({
     };
   }, [checkScroll, openFiles.length]);
 
-  const scrollTabs = (direction: "left" | "right") => {
+  React.useEffect(() => {
+    setIsEditing(false);
+  }, [activeFilePath]);
+
+  function scrollTabs(direction: "left" | "right"): void {
     const el = tabsRef.current;
     if (!el) return;
     const scrollAmount = 150;
@@ -371,14 +578,21 @@ export function MultiFileViewer({
       left: direction === "left" ? -scrollAmount : scrollAmount,
       behavior: "smooth",
     });
-  };
+  }
+
+  const canEdit =
+    activeFile?.content?.type === "text" && !activeFile.content.truncated;
+
+  async function handleSave(content: string): Promise<void> {
+    if (!activeFile) return;
+    await window.pidesk.fs.writeFile(activeFile.path, content);
+    onFileUpdated?.(activeFile.path, content);
+  }
 
   return (
     <div className={cn("flex h-full flex-col", className)}>
-      {/* Tab bar */}
-      {hasFiles && (
+      {(hasFiles || isTerminalOpen) && (
         <div className="flex h-10 shrink-0 items-center border-b border-border bg-surface-1">
-          {/* Scroll left button */}
           {canScrollLeft && (
             <button
               type="button"
@@ -401,7 +615,6 @@ export function MultiFileViewer({
             </button>
           )}
 
-          {/* Tabs container */}
           <div
             ref={tabsRef}
             className="flex min-w-0 flex-1 overflow-x-auto scrollbar-hide"
@@ -411,7 +624,7 @@ export function MultiFileViewer({
               <FileTab
                 key={file.path}
                 file={file}
-                isActive={file.path === activeFilePath}
+                isActive={file.path === activeFilePath && !isTerminalActive}
                 onClick={() => onTabClick(file.path)}
                 onClose={(e) => {
                   e.stopPropagation();
@@ -419,9 +632,18 @@ export function MultiFileViewer({
                 }}
               />
             ))}
+            {isTerminalOpen && (
+              <TerminalTab
+                isActive={isTerminalActive ?? false}
+                onClick={() => onTerminalClick?.()}
+                onClose={(e) => {
+                  e.stopPropagation();
+                  onTerminalClose?.();
+                }}
+              />
+            )}
           </div>
 
-          {/* Scroll right button */}
           {canScrollRight && (
             <button
               type="button"
@@ -444,8 +666,22 @@ export function MultiFileViewer({
             </button>
           )}
 
-          {/* Actions */}
           <div className="flex shrink-0 items-center border-l border-border bg-surface-1 px-2">
+            {canEdit && (
+              <button
+                type="button"
+                onClick={() => setIsEditing(!isEditing)}
+                className={cn(
+                  "flex size-6 items-center justify-center rounded transition",
+                  isEditing
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-surface-2 hover:text-foreground",
+                )}
+                aria-label={isEditing ? "Exit edit mode" : "Edit file"}
+              >
+                <Pencil className="size-3.5" />
+              </button>
+            )}
             {onOpenTerminal && (
               <button
                 type="button"
@@ -453,7 +689,7 @@ export function MultiFileViewer({
                 className="flex size-6 items-center justify-center rounded text-muted-foreground transition hover:bg-surface-2 hover:text-foreground"
                 aria-label="Open terminal"
               >
-                <Terminal className="size-3.5" />
+                <TerminalIcon className="size-3.5" />
               </button>
             )}
             <button
@@ -468,11 +704,22 @@ export function MultiFileViewer({
         </div>
       )}
 
-      {/* Content area */}
       <div className="min-h-0 flex-1 overflow-hidden bg-background">
-        {activeFile ? (
+        {isTerminalActive ? (
+          <TerminalComponent
+            id={terminalId ?? "terminal"}
+            cwd={terminalCwd}
+            className="h-full"
+          />
+        ) : activeFile ? (
           <ScrollArea className="h-full">
-            <FileContentViewer file={activeFile} />
+            <FileContentViewer
+              file={activeFile}
+              filename={getFileNameFromPath(activeFile.path)}
+              isEditing={isEditing && canEdit}
+              onSave={handleSave}
+              onTextSelect={onTextSelect}
+            />
           </ScrollArea>
         ) : (
           <EmptyState onCloseAll={onCloseAll} />

@@ -59,7 +59,15 @@ function FileTreeItem({
         });
       }
     }
-  }, [isDirectory, isExpanded, children, isLoading, entry.path, loadDirectory, cache]);
+  }, [
+    isDirectory,
+    isExpanded,
+    children,
+    isLoading,
+    entry.path,
+    loadDirectory,
+    cache,
+  ]);
 
   const Icon = isDirectory ? (isExpanded ? FolderOpen : Folder) : File;
 

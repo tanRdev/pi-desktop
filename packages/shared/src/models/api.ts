@@ -28,12 +28,23 @@ export interface PiDeskApi {
   fs: {
     readDirectory(path: string): Promise<import("./fs.js").DirectoryListing>;
     readFile(path: string): Promise<import("./fs.js").FileContent>;
+    writeFile(path: string, content: string): Promise<void>;
   };
   terminal: {
-    create(id: string, options: { cols: number; rows: number; cwd?: string }): Promise<void>;
+    create(
+      id: string,
+      options: { cols: number; rows: number; cwd?: string },
+    ): Promise<void>;
     write(id: string, data: string): Promise<void>;
     resize(id: string, cols: number, rows: number): Promise<void>;
     destroy(id: string): Promise<void>;
-    onEvent(listener: (event: { type: string; id: string; data?: string; exitCode?: number }) => void): () => void;
+    onEvent(
+      listener: (event: {
+        type: string;
+        id: string;
+        data?: string;
+        exitCode?: number;
+      }) => void,
+    ): () => void;
   };
 }
