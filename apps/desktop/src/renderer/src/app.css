@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "@pidesk/ui/styles/pidesk-shell.css";
 
+/* Desktop-specific styles */
 body {
   -webkit-app-region: drag;
 }
@@ -19,4 +20,25 @@ body {
 
 .titlebar {
   -webkit-app-region: drag;
+}
+
+/* Smooth transitions for interactive elements */
+button,
+a,
+input,
+textarea,
+select {
+  transition-property: background-color, border-color, color, box-shadow;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Focus states */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
 }
