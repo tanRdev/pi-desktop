@@ -77,8 +77,10 @@ function FileTreeItem({
         type="button"
         onClick={handleClick}
         className={cn(
-          "flex w-full items-center gap-1.5 rounded px-1.5 py-0.5 text-left text-sm transition hover:bg-surface-3",
-          "text-muted-foreground hover:text-foreground",
+          "flex w-full items-center gap-1.5 rounded px-1.5 py-0.5 text-left text-sm transition",
+          "text-muted-foreground hover:bg-surface-2 hover:text-foreground",
+          isExpanded && "bg-surface-2/50",
+          isDirectory && "font-medium text-foreground/90",
         )}
         style={{ paddingLeft: `${depth * 12 + 6}px` }}
       >
@@ -91,7 +93,12 @@ function FileTreeItem({
           />
         )}
         {!isDirectory && <span className="w-3" />}
-        <Icon className="size-3.5 shrink-0" />
+        <Icon
+          className={cn(
+            "size-3.5 shrink-0",
+            isDirectory ? "text-amber-500/80" : "text-blue-400/80",
+          )}
+        />
         <span className="truncate">{entry.name}</span>
       </button>
       {isDirectory && isExpanded && children && (
@@ -194,7 +201,7 @@ export function FileTree({ rootPath, onFileClick, className }: FileTreeProps) {
   }
 
   return (
-    <div className={cn("py-2", className)}>
+    <div className={cn("", className)}>
       {rootListing.entries.map((entry) => (
         <FileTreeItem
           key={entry.path}

@@ -68,15 +68,15 @@
 @layer base {
   /* Root variables - developer console dark theme */
   :root {
-    /* Base - Material dark: #121212 */
+    /* Base colors - unified dark theme */
     --background: #121212;
     --foreground: oklch(92% 0.01 100);
 
     /* Surface layers - subtle depth progression */
-    --surface-1: #1a1a1a;
-    --surface-2: #1e1e1e;
-    --surface-3: #252525;
-    --surface-4: #2a2a2a;
+--surface-1: #121212;
+--surface-2: #1a1a1a;
+--surface-3: #1e1e1e;
+--surface-4: #252525;
 
     /* Card and popover surfaces */
     --card: #161616;
