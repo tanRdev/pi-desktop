@@ -6,7 +6,9 @@ import { defineConfig } from "electron-vite";
 const mainEntry = fileURLToPath(
   new URL("./src/main/index.ts", import.meta.url),
 );
-
+const agentHostSessionServerEntry = fileURLToPath(
+  new URL("./src/main/agent-host-session-server-entry.ts", import.meta.url),
+);
 export default defineConfig({
   main: {
     build: {
@@ -16,6 +18,7 @@ export default defineConfig({
         external: ["electron", "node-pty"],
         input: {
           index: mainEntry,
+          agentHostSessionServer: agentHostSessionServerEntry,
         },
         treeshake: false,
       },

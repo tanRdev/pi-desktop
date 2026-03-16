@@ -4,4 +4,7 @@ export * from "./models/agent.js";
 export * from "./models/api.js";
 export * from "./models/dialog.js";
 export * from "./models/fs.js";
+export * from "./models/repository.js";
 export * from "./models/shell.js";
+export * from "./models/thread.js";
+export * from "./models/worktree.js";

@@ -49,10 +49,21 @@ export function useShellModel() {
     model.setDraft("");
   }, [model]);
 
+  const reload = useCallback(async () => {
+    try {
+      await model.load();
+    } catch (error) {
+      model.setAgentError(
+        error instanceof Error ? error.message : "Failed to load snapshot",
+      );
+    }
+  }, [model]);
+
   return {
     state,
     sendPrompt,
     setDraft,
     reset,
+    reload,
   };
 }

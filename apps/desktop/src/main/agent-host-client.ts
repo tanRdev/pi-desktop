@@ -16,7 +16,7 @@ type DistributiveOmit<T, TKey extends PropertyKey> = T extends unknown
 
 type AgentHostRequestInput = DistributiveOmit<AgentHostRequest, "requestId">;
 
-export interface UtilityProcessLike {
+export interface AgentHostTransport {
   on(event: "message", listener: (message: unknown) => void): this;
   postMessage(message: AgentHostRequest): void;
 }
@@ -43,7 +43,7 @@ export interface AgentHostClient {
 }
 
 export function createAgentHostClient(
-  child: UtilityProcessLike,
+  child: AgentHostTransport,
   { requestTimeoutMs = 5_000 }: AgentHostClientOptions = {},
 ): AgentHostClient {
   let requestId = 0;

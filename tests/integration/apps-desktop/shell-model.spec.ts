@@ -29,6 +29,7 @@ function createShellSnapshotFixture(): ShellSnapshot {
     runtime: {
       agentMode: "mock" as const,
       electronVersion: "41.0.1",
+      agentDirectory: "/tmp/pidesk/.pidesk-agent",
     },
     workspace: {
       rootPath: "/tmp/pidesk",
@@ -39,6 +40,54 @@ function createShellSnapshotFixture(): ShellSnapshot {
           name: "pidesk",
           path: "/tmp/pidesk",
           isActive: true,
+        },
+      ],
+    },
+    catalog: {
+      selection: {
+        repositoryId: "/tmp/pidesk",
+        worktreeId: "/tmp/pidesk",
+        threadId: "default-thread",
+      },
+      repositories: [
+        {
+          id: "/tmp/pidesk",
+          name: "pidesk",
+          rootPath: "/tmp/pidesk",
+          defaultBranch: "main",
+          worktrees: [
+            {
+              id: "/tmp/pidesk",
+              label: "main",
+              path: "/tmp/pidesk",
+              isMain: true,
+              isDetached: false,
+              git: {
+                status: "ready",
+                branch: "main",
+                commit: "abc1234",
+                hasChanges: false,
+                ahead: 0,
+                behind: 0,
+                stagedCount: 0,
+                modifiedCount: 0,
+                untrackedCount: 0,
+                message: null,
+              },
+              threads: [
+                {
+                  id: "default-thread",
+                  title: "Current thread",
+                  isArchived: false,
+                  lastActivityAt: null,
+                  runtime: {
+                    status: "ready",
+                    lastError: null,
+                  },
+                },
+              ],
+            },
+          ],
         },
       ],
     },

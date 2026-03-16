@@ -33,6 +33,14 @@ const INITIAL_STATE: ShellModelState = {
     chromeVersion: "unknown",
     platform: "unknown",
     mode: "development",
+    catalog: {
+      repositories: [],
+      selection: {
+        repositoryId: null,
+        worktreeId: null,
+        threadId: null,
+      },
+    },
   },
   agent: {
     sessionId: "",

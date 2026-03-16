@@ -13,7 +13,12 @@ export interface AgentIpcHost {
   getSnapshot(): Promise<AgentSnapshot>;
   prompt(text: string): Promise<void>;
   reset(): Promise<void>;
-  switchWorkspace(path: string): Promise<void>;
+  addRepository(path: string): Promise<void>;
+  selectRepository(repositoryId: string): Promise<void>;
+  createWorktree(repositoryId: string, branchName: string): Promise<void>;
+  selectWorktree(worktreeId: string): Promise<void>;
+  createThread(worktreeId: string, title?: string): Promise<void>;
+  selectThread(threadId: string): Promise<void>;
 }
 
 export interface IpcRegistrar {
@@ -28,7 +33,7 @@ export interface IpcRegistrar {
 
 export interface RegisterIpcHandlersDependencies {
   handle: IpcRegistrar["handle"];
-  getShellSnapshot(): ShellSnapshot;
+  getShellSnapshot(): Promise<ShellSnapshot> | ShellSnapshot;
   agentHost: AgentIpcHost;
   mainWindow: BrowserWindow | null;
 }
@@ -48,25 +53,87 @@ export function registerIpcHandlers({
   handle(IPC_CHANNELS.agent.getProviders, async () => agentHost.getProviders());
   handle(IPC_CHANNELS.agent.getSettings, async () => agentHost.getSettings());
   handle(IPC_CHANNELS.agent.getSnapshot, async () => agentHost.getSnapshot());
-  handle(IPC_CHANNELS.agent.switchWorkspace, async (_event, payload) => {
+  handle(IPC_CHANNELS.repositories.add, async (_event, payload) => {
     const path =
       typeof payload === "object" && payload !== null && "path" in payload
         ? payload.path
         : undefined;
-    if (typeof path === "string") {
-      await agentHost.switchWorkspace(path);
+    if (typeof path !== "string") {
+      throw new Error("Repository add payload must include path");
     }
+    await agentHost.addRepository(path);
+  });
+  handle(IPC_CHANNELS.repositories.select, async (_event, payload) => {
+    const repositoryId =
+      typeof payload === "object" && payload !== null && "repositoryId" in payload
+        ? payload.repositoryId
+        : undefined;
+    if (typeof repositoryId !== "string") {
+      throw new Error("Repository select payload must include repositoryId");
+    }
+    await agentHost.selectRepository(repositoryId);
+  });
+  handle(IPC_CHANNELS.worktrees.create, async (_event, payload) => {
+    const repositoryId =
+      typeof payload === "object" && payload !== null && "repositoryId" in payload
+        ? payload.repositoryId
+        : undefined;
+    const branchName =
+      typeof payload === "object" && payload !== null && "branchName" in payload
+        ? payload.branchName
+        : undefined;
+    if (typeof repositoryId !== "string" || typeof branchName !== "string") {
+      throw new Error(
+        "Worktree create payload must include repositoryId and branchName",
+      );
+    }
+    await agentHost.createWorktree(repositoryId, branchName);
+  });
+  handle(IPC_CHANNELS.worktrees.select, async (_event, payload) => {
+    const worktreeId =
+      typeof payload === "object" && payload !== null && "worktreeId" in payload
+        ? payload.worktreeId
+        : undefined;
+    if (typeof worktreeId !== "string") {
+      throw new Error("Worktree select payload must include worktreeId");
+    }
+    await agentHost.selectWorktree(worktreeId);
+  });
+  handle(IPC_CHANNELS.threads.create, async (_event, payload) => {
+    const worktreeId =
+      typeof payload === "object" && payload !== null && "worktreeId" in payload
+        ? payload.worktreeId
+        : undefined;
+    const title =
+      typeof payload === "object" && payload !== null && "title" in payload
+        ? payload.title
+        : undefined;
+    if (typeof worktreeId !== "string") {
+      throw new Error("Thread create payload must include worktreeId");
+    }
+    await agentHost.createThread(
+      worktreeId,
+      typeof title === "string" ? title : undefined,
+    );
+  });
+  handle(IPC_CHANNELS.threads.select, async (_event, payload) => {
+    const threadId =
+      typeof payload === "object" && payload !== null && "threadId" in payload
+        ? payload.threadId
+        : undefined;
+    if (typeof threadId !== "string") {
+      throw new Error("Thread select payload must include threadId");
+    }
+    await agentHost.selectThread(threadId);
   });
   handle(IPC_CHANNELS.agent.prompt, async (_event, payload) => {
     const text =
       typeof payload === "object" && payload !== null && "text" in payload
         ? payload.text
         : undefined;
-
     if (typeof text !== "string" || text.length === 0) {
       throw new Error("Agent prompt payload must include text");
     }
-
     await agentHost.prompt(text);
   });
   handle(IPC_CHANNELS.agent.reset, async () => {

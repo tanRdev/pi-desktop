@@ -1,10 +1,14 @@
-import { spawnSync } from "node:child_process";
 import path from "node:path";
 import type {
+  AgentSnapshot,
   ShellAgentMode,
+  ShellCatalogSnapshot,
   ShellGitSnapshot,
   ShellSnapshot,
+  ThreadSnapshot,
 } from "@pidesk/shared";
+import type { GitRepositoryInspection, GitWorktreeSummary } from "./git-worktree-service";
+import { GitWorktreeService } from "./git-worktree-service";
 
 export interface CreateShellSnapshotOptions {
   appName: string;
@@ -17,7 +21,17 @@ export interface CreateShellSnapshotOptions {
   cwd?: string;
   agentDir?: string;
   agentMode?: string;
+  agentSnapshot?: AgentSnapshot | null;
+  selectedThread?: {
+    id: string;
+    title: string;
+    lastActivityAt: number | null;
+  };
+  catalog?: ShellCatalogSnapshot;
 }
+
+const DEFAULT_THREAD_ID = "default-thread";
+const gitService = new GitWorktreeService();
 
 function resolveAgentMode(agentMode?: string): ShellAgentMode {
   if (agentMode === "mock" || agentMode === "sdk") {
@@ -25,6 +39,120 @@ function resolveAgentMode(agentMode?: string): ShellAgentMode {
   }
 
   return "unknown";
+}
+
+function createEmptyCatalog(): ShellCatalogSnapshot {
+  return {
+    repositories: [],
+    selection: {
+      repositoryId: null,
+      worktreeId: null,
+      threadId: null,
+    },
+  };
+}
+
+function toShellGitSnapshot(inspection: GitRepositoryInspection): ShellGitSnapshot {
+  if (inspection.status === "repository") {
+    return (
+      inspection.currentGit ?? {
+        status: "repository",
+        rootPath: inspection.rootPath,
+        message: inspection.message,
+      }
+    );
+  }
+
+  return {
+    status: inspection.status,
+    message: inspection.message,
+  };
+}
+
+function createThreadSnapshot(options: {
+  agentSnapshot?: AgentSnapshot | null;
+  selectedThread?: {
+    id: string;
+    title: string;
+    lastActivityAt: number | null;
+  };
+}): ThreadSnapshot {
+  const { agentSnapshot, selectedThread } = options;
+  const lastMessage = agentSnapshot?.messages[agentSnapshot.messages.length - 1];
+
+  return {
+    id: selectedThread?.id ?? DEFAULT_THREAD_ID,
+    title: selectedThread?.title ?? "Current thread",
+    isArchived: false,
+    lastActivityAt: selectedThread?.lastActivityAt ?? lastMessage?.timestamp ?? null,
+    runtime: {
+      status: agentSnapshot?.status ?? "starting",
+      lastError: agentSnapshot?.lastError ?? null,
+    },
+  };
+}
+
+function createWorktreeLabel(worktree: GitWorktreeSummary, appName: string): string {
+  if (worktree.branch) {
+    return worktree.branch;
+  }
+
+  if (worktree.isDetached) {
+    return `Detached ${worktree.commit ?? ""}`.trim();
+  }
+
+  return path.basename(worktree.path) || appName;
+}
+
+function createCatalog(options: {
+  appName: string;
+  inspection: GitRepositoryInspection;
+  agentSnapshot?: AgentSnapshot | null;
+  selectedThread?: {
+    id: string;
+    title: string;
+    lastActivityAt: number | null;
+  };
+}): ShellCatalogSnapshot {
+  const { appName, inspection, agentSnapshot, selectedThread } = options;
+
+  if (
+    inspection.status !== "repository" ||
+    !inspection.rootPath ||
+    !inspection.currentWorktreePath ||
+    !inspection.worktrees
+  ) {
+    return createEmptyCatalog();
+  }
+
+  const thread = createThreadSnapshot({ agentSnapshot, selectedThread });
+  const repositoryRoot = inspection.rootPath;
+  const currentWorktreePath = inspection.currentWorktreePath;
+
+  return {
+    repositories: [
+      {
+        id: repositoryRoot,
+        name: path.basename(repositoryRoot) || appName,
+        rootPath: repositoryRoot,
+        defaultBranch: inspection.defaultBranch ?? null,
+        worktrees: inspection.worktrees.map((worktree) => ({
+          id: worktree.path,
+          label: createWorktreeLabel(worktree, appName),
+          path: worktree.path,
+          isMain: worktree.isMain,
+          isDetached: worktree.isDetached,
+          git: worktree.git,
+          threads: worktree.path === currentWorktreePath ? [thread] : [],
+        })),
+      },
+    ],
+    selection: {
+      repositoryId: repositoryRoot,
+      worktreeId: currentWorktreePath,
+      threadId: thread.id,
+    },
+  };
 }
 
 export function createShellSnapshot({
@@ -38,171 +166,20 @@ export function createShellSnapshot({
   cwd,
   agentDir,
   agentMode,
+  agentSnapshot,
+  selectedThread,
+  catalog,
 }: CreateShellSnapshotOptions): ShellSnapshot {
-  const rootPath = cwd ?? process.cwd();
-  const projectName = path.basename(rootPath) || appName;
+  const requestedPath = cwd ?? process.cwd();
+  const inspection = gitService.inspect(requestedPath);
+  const git = toShellGitSnapshot(inspection);
+  const activePath =
+    inspection.status === "repository" && inspection.currentWorktreePath
+      ? inspection.currentWorktreePath
+      : requestedPath;
+  const projectName = path.basename(activePath) || appName;
 
-  // Detect git repository state for the renderer. This is intentionally
-  // synchronous because snapshot creation is sync. Keep parsing defensive and
-  // fail gracefully if git is unavailable or the cwd is not a repository.
-  function detectGitSnapshot(repoPath: string): ShellGitSnapshot {
-    // Default not_repo state
-    const notRepo = {
-      status: "not_repo",
-      message: null,
-    } as const;
-
-    // Quick check: ensure git binary is present
-    try {
-      const v = spawnSync("git", ["--version"], {
-        cwd: repoPath,
-        encoding: "utf8",
-      });
-      if (v.error) {
-        return {
-          status: "unavailable",
-          message: String(v.error?.message ?? "git binary unavailable"),
-        };
-      }
-    } catch (err: unknown) {
-      return {
-        status: "unavailable",
-        message: err instanceof Error ? err.message : String(err),
-      };
-    }
-
-    // Check whether we're inside a git repository and find the repo root
-    try {
-      const rev = spawnSync("git", ["rev-parse", "--show-toplevel"], {
-        cwd: repoPath,
-        encoding: "utf8",
-      });
-      if (rev.error) {
-        return {
-          status: "unavailable",
-          message: String(rev.error.message ?? "error running git rev-parse"),
-        };
-      }
-
-      if (rev.status !== 0 || !rev.stdout) {
-        // not a repository
-        return notRepo;
-      }
-
-      const repoRoot = rev.stdout.trim();
-
-      // Use porcelain=2 --branch to get branch/oid/ahead-behind when available
-      const statusCmd = spawnSync(
-        "git",
-        ["status", "--porcelain=2", "--branch"],
-        { cwd: repoPath, encoding: "utf8" },
-      );
-      if (statusCmd.error) {
-        return {
-          status: "unavailable",
-          message: String(
-            statusCmd.error.message ?? "error running git status",
-          ),
-        };
-      }
-
-      const out = String(statusCmd.stdout ?? "");
-      const lines = out.split(/\r?\n/);
-
-      let branch: string | undefined;
-      let commit: string | undefined;
-      let ahead: number | undefined;
-      let behind: number | undefined;
-
-      for (const line of lines) {
-        if (!line) continue;
-        if (line.startsWith("# branch.head ")) {
-          branch = line.replace(/^# branch\.head\s+/, "").trim();
-          continue;
-        }
-        if (line.startsWith("# branch.oid ")) {
-          const oid = line.replace(/^# branch\.oid\s+/, "").trim();
-          if (oid && oid !== "(initial)") {
-            commit = oid.slice(0, 7);
-          }
-          continue;
-        }
-        if (line.startsWith("# branch.ab ")) {
-          // format: # branch.ab +<ahead> -<behind>
-          const m = line.match(/^# branch\.ab \+(\d+) -(\d+)/);
-          if (m) {
-            ahead = Number(m[1]);
-            behind = Number(m[2]);
-          }
-        }
-      }
-
-      // As a fallback for commit when porcelain header isn't present, try rev-parse --short HEAD
-      if (!commit) {
-        const r = spawnSync("git", ["rev-parse", "--short", "HEAD"], {
-          cwd: repoPath,
-          encoding: "utf8",
-        });
-        if (!r.error && r.status === 0 && r.stdout) {
-          commit = String(r.stdout).trim();
-        }
-      }
-
-      // For working-tree counts, use porcelain (simple two-char format) which is easier to parse
-      let stagedCount = 0;
-      let modifiedCount = 0;
-      let untrackedCount = 0;
-
-      const porcelain = spawnSync("git", ["status", "--porcelain"], {
-        cwd: repoPath,
-        encoding: "utf8",
-      });
-      if (!porcelain.error && porcelain.status === 0 && porcelain.stdout) {
-        const pLines = String(porcelain.stdout).split(/\r?\n/);
-        for (const pl of pLines) {
-          if (!pl) continue;
-          // untracked
-          if (pl.startsWith("??")) {
-            untrackedCount++;
-            continue;
-          }
-
-          // porcelain short format: XY <path> where X=index, Y=worktree
-          const x = pl[0];
-          const y = pl[1];
-          if (x && x !== " ") stagedCount++;
-          if (y && y !== " ") modifiedCount++;
-        }
-      }
-
-      const hasChanges = stagedCount + modifiedCount + untrackedCount > 0;
-
-      const snapshot: ShellGitSnapshot = {
-        status: "repository",
-        rootPath: repoRoot,
-        branch,
-        commit,
-        hasChanges,
-        ahead,
-        behind,
-        stagedCount,
-        modifiedCount,
-        untrackedCount,
-        message: null,
-      };
-
-      return snapshot;
-    } catch (err: unknown) {
-      return {
-        status: "unavailable",
-        message: err instanceof Error ? err.message : String(err),
-      };
-    }
-  }
-
-  const git = detectGitSnapshot(rootPath);
-
-  const snapshot = {
+  return {
     appName,
     appVersion,
     chromeVersion: chromeVersion ?? "unknown",
@@ -216,19 +193,28 @@ export function createShellSnapshot({
     runtime: {
       agentMode: resolveAgentMode(agentMode),
       electronVersion,
+      agentDirectory: agentDir ?? null,
     },
     workspace: {
-      rootPath,
+      rootPath: activePath,
       agentDirectory: agentDir ?? null,
       projects: [
         {
-          id: rootPath,
+          id: activePath,
           name: projectName,
-          path: rootPath,
+          path: activePath,
           isActive: true,
         },
       ],
     },
+    catalog:
+      catalog ??
+      createCatalog({
+        appName,
+        inspection,
+        agentSnapshot,
+        selectedThread,
+      }),
     capabilities: {
       supportsTurns: true,
       supportsTools: true,
@@ -237,6 +223,4 @@ export function createShellSnapshot({
     },
     git,
   };
-
-  return snapshot as ShellSnapshot;
 }
