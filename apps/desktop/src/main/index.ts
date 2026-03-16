@@ -1,8 +1,13 @@
 import { mkdirSync } from "node:fs";
-import { type AgentSnapshot, IPC_CHANNELS } from "@pidesk/shared";
+import {
+  type AgentSnapshot,
+  IPC_CHANNELS,
+  type ProviderSnapshot,
+  type SettingsSnapshot,
+} from "@pidesk/shared";
 import { app, BrowserWindow, ipcMain, utilityProcess } from "electron";
-import preloadPath from "../preload/runtime?modulePath";
 import { createAgentHostClient } from "./agent-host-client";
+
 import agentHostEntryPath from "./agent-host-entry?modulePath";
 import {
   createUnavailableAgentHost,
@@ -22,6 +27,8 @@ let agentHostChild: Electron.UtilityProcess | null = null;
 const AGENT_BOOTSTRAP_ERROR_SESSION_ID = "bootstrap-error";
 
 type AgentDesktopHost = {
+  getProviders(): Promise<ProviderSnapshot[]>;
+  getSettings(): Promise<SettingsSnapshot>;
   getSnapshot(): Promise<AgentSnapshot>;
   prompt(text: string): Promise<void>;
   reset(): Promise<void>;
@@ -46,6 +53,12 @@ function createBootstrapErrorHost(message: string): AgentDesktopHost {
         sessionId: AGENT_BOOTSTRAP_ERROR_SESSION_ID,
       };
     },
+    async getProviders() {
+      return [];
+    },
+    async getSettings() {
+      return {};
+    },
     async prompt(text: string) {
       await unavailableHost.prompt(text);
     },
@@ -59,12 +72,15 @@ function createBootstrapErrorHost(message: string): AgentDesktopHost {
   };
 }
 
-async function bootstrapAgentHost(): Promise<AgentHostBootstrapResult> {
+async function bootstrapAgentHost(
+  cwd: string = process.cwd(),
+): Promise<AgentHostBootstrapResult> {
   const launchOptions = prepareAgentRuntimeLaunchOptions(
     process.env,
-    process.cwd(),
+    cwd,
     app.getPath("userData"),
     app.isPackaged,
+    app.getPath("home"),
     (directory) => {
       mkdirSync(directory, { recursive: true });
     },
@@ -98,11 +114,7 @@ async function createMainWindow() {
 
   const window = new BrowserWindow(
     createMainWindowOptions({
-      preloadPath: resolvePreloadTarget(
-        rendererUrl,
-        preloadPath,
-        import.meta.url,
-      ),
+      preloadPath: resolvePreloadTarget(import.meta.url),
     }),
   );
 
@@ -129,6 +141,12 @@ async function bootstrapDesktop() {
   const { child, host, launchOptions } = await bootstrapAgentHost();
   agentHostChild = child;
 
+  let currentHost = host;
+  let currentLaunchOptions = launchOptions;
+  let unsubscribe = currentHost.subscribe((event) => {
+    mainWindow?.webContents.send(IPC_CHANNELS.agent.event, event);
+  });
+
   registerIpcHandlers({
     handle: ipcMain.handle.bind(ipcMain),
     getShellSnapshot: () =>
@@ -140,19 +158,31 @@ async function bootstrapDesktop() {
         platform: process.platform,
         env: process.env,
         isPackaged: app.isPackaged,
-        cwd: launchOptions.cwd,
-        agentDir: launchOptions.env.PIDESK_AGENT_DIR,
-        agentMode: launchOptions.env.PIDESK_AGENT_MODE,
+        cwd: currentLaunchOptions.cwd,
+        agentDir: currentLaunchOptions.env.PIDESK_AGENT_DIR,
+        agentMode: currentLaunchOptions.env.PIDESK_AGENT_MODE,
       }),
     agentHost: {
-      getSnapshot: () => host.getSnapshot(),
-      prompt: (text) => host.prompt(text),
-      reset: () => host.reset?.(),
+      getProviders: () => currentHost.getProviders(),
+      getSettings: () => currentHost.getSettings(),
+      getSnapshot: () => currentHost.getSnapshot(),
+      prompt: (text) => currentHost.prompt(text),
+      reset: () => currentHost.reset?.(),
+      switchWorkspace: async (path) => {
+        unsubscribe();
+        agentHostChild?.kill();
+        const newBootstrap = await bootstrapAgentHost(path);
+        agentHostChild = newBootstrap.child;
+        currentHost = newBootstrap.host;
+        currentLaunchOptions = newBootstrap.launchOptions;
+        unsubscribe = currentHost.subscribe((event) => {
+          mainWindow?.webContents.send(IPC_CHANNELS.agent.event, event);
+        });
+        mainWindow?.webContents.send(IPC_CHANNELS.agent.event, {
+          type: "agent:reset",
+        });
+      },
     },
-  });
-
-  const unsubscribe = host.subscribe((event) => {
-    mainWindow?.webContents.send(IPC_CHANNELS.agent.event, event);
   });
 
   app.once("will-quit", () => {

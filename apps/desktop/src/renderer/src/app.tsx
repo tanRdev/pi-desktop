@@ -1,5 +1,9 @@
 "use client";
-import type { AgentMessageSnapshot, ShellGitSnapshot, ShellProjectSnapshot } from "@pidesk/shared";
+import type {
+  AgentMessageSnapshot,
+  ShellGitSnapshot,
+  ShellProjectSnapshot,
+} from "@pidesk/shared";
 
 import {
   ChatContainerContent,
@@ -16,17 +20,19 @@ import {
 import {
   ArrowUp,
   ChevronDown,
-  ChevronRight,
+  Folder,
   FolderGit,
   FolderTree,
   GitBranch,
   History,
   Plus,
   Settings2,
+  Trash2,
 } from "lucide-react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "./components/ui/button";
+import { FileTree } from "./components/ui/file-tree";
 import {
   Message,
   MessageAvatar,
@@ -39,9 +45,7 @@ import {
 } from "./components/ui/popover";
 import { ScrollArea } from "./components/ui/scroll-area";
 import { Separator } from "./components/ui/separator";
-import { ProjectList } from "./components/project-list";
 import { useShellModel } from "./hooks/use-shell-model";
-
 
 const UI_FONT_OPTIONS = [
   {
@@ -95,7 +99,6 @@ function readStoredValue(key: string, fallback: string) {
   }
 }
 
-
 function formatTimestamp(timestamp?: number) {
   if (!timestamp) {
     return "Just now";
@@ -138,20 +141,6 @@ function getPathTail(value?: string | null) {
   const segments = value.split(/[\\/]/).filter(Boolean);
   return segments[segments.length - 1] ?? value;
 }
-
-function getActiveProject(
-  projects:
-    | {
-        id: string;
-        isActive: boolean;
-        name: string;
-        path: string;
-      }[]
-    | undefined,
-) {
-  return projects?.find((project) => project.isActive) ?? projects?.[0] ?? null;
-}
-
 
 function getMessageLabel(message: AgentMessageSnapshot) {
   switch (message.role) {
@@ -275,7 +264,9 @@ function ReadOnlySelector({
         <p className="text-xs uppercase tracking-wide text-muted-foreground">
           Read only
         </p>
-        <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{description}</p>
+        <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+          {description}
+        </p>
       </PopoverContent>
     </Popover>
   );
@@ -333,7 +324,9 @@ function GitInspector({ git }: { git?: ShellGitSnapshot }) {
         <div className="mt-3 space-y-1 text-xs text-muted-foreground">
           <div className="flex justify-between gap-2">
             <span>Commit</span>
-            <span className="truncate text-foreground/80">{git.commit ?? "—"}</span>
+            <span className="truncate text-foreground/80">
+              {git.commit ?? "—"}
+            </span>
           </div>
           <div className="flex justify-between gap-2">
             <span>Changes</span>
@@ -368,19 +361,25 @@ function FilesInspector({
       <p className="text-xs font-medium text-muted-foreground">Files</p>
       <div className="space-y-3 rounded border border-border bg-surface-2 p-3 text-sm text-muted-foreground">
         <div>
-          <p className="text-xs uppercase tracking-wide text-foreground/50">Root</p>
+          <p className="text-xs uppercase tracking-wide text-foreground/50">
+            Root
+          </p>
           <p className="mt-1 break-words text-foreground/80">
             {rootPath ?? "Unavailable"}
           </p>
         </div>
         <div>
-          <p className="text-xs uppercase tracking-wide text-foreground/50">Project</p>
+          <p className="text-xs uppercase tracking-wide text-foreground/50">
+            Project
+          </p>
           <p className="mt-1 break-words text-foreground/80">
             {projectPath ?? rootPath ?? "Unavailable"}
           </p>
         </div>
         <div>
-          <p className="text-xs uppercase tracking-wide text-foreground/50">Agent dir</p>
+          <p className="text-xs uppercase tracking-wide text-foreground/50">
+            Agent dir
+          </p>
           <p className="mt-1 break-words text-foreground/80">
             {agentDirectory ?? "Unavailable"}
           </p>
@@ -417,11 +416,15 @@ function ContextInspector({
         </div>
         <div className="mt-2 flex justify-between gap-2">
           <span>Turns</span>
-          <span className="text-foreground/80">{supportsTurns ? "on" : "off"}</span>
+          <span className="text-foreground/80">
+            {supportsTurns ? "on" : "off"}
+          </span>
         </div>
         <div className="mt-1 flex justify-between gap-2">
           <span>Tools</span>
-          <span className="text-foreground/80">{supportsTools ? "on" : "off"}</span>
+          <span className="text-foreground/80">
+            {supportsTools ? "on" : "off"}
+          </span>
         </div>
         <div className="mt-1 flex justify-between gap-2">
           <span>Activity</span>
@@ -479,21 +482,32 @@ function TitleBar() {
   return (
     <div
       data-drag-region="true"
-      className="titlebar h-10 shrink-0 border-b border-border bg-surface-1"
-    />
+      className="titlebar relative flex h-10 shrink-0 items-center justify-center border-b border-border bg-surface-1"
+    >
+      <div
+        aria-hidden="true"
+        data-testid="app-title"
+        className="text-lg font-semibold tracking-tight text-muted-foreground"
+      >
+        π
+      </div>
+    </div>
   );
 }
 
 export default function App() {
-  const { reset, sendPrompt, setDraft, state } = useShellModel();
+  const { sendPrompt, setDraft, state } = useShellModel();
   const { agent, draft, live, shell } = state;
 
   const [activeView, setActiveView] = React.useState<InspectorView>("git");
   const [interfaceFont, setInterfaceFont] = React.useState(() =>
-    readStoredValue("pidesk-font-sans", UI_FONT_OPTIONS[0]!.value),
+    readStoredValue("pidesk-font-sans", UI_FONT_OPTIONS[0]?.value ?? "Inter"),
   );
   const [codeFont, setCodeFont] = React.useState(() =>
-    readStoredValue("pidesk-font-mono", CODE_FONT_OPTIONS[0]!.value),
+    readStoredValue(
+      "pidesk-font-mono",
+      CODE_FONT_OPTIONS[0]?.value ?? "JetBrains Mono",
+    ),
   );
 
   const activityItems = React.useMemo(
@@ -524,7 +538,6 @@ export default function App() {
     draft.trim().length > 0 &&
     agent.status !== "starting" &&
     agent.status !== "streaming";
-  const appTitle = shell.appName || "PiDesk";
   const runtimeMode = shell.runtime?.agentMode ?? "unknown";
   const runtimeModeLabel = `${runtimeMode} mode`;
   // Project management state with localStorage persistence
@@ -540,13 +553,15 @@ export default function App() {
     // Default: use current workspace project if available
     return shell.workspace?.projects ?? [];
   });
-  const [activeProjectId, setActiveProjectId] = React.useState<string | null>(() => {
-    try {
-      return window.localStorage.getItem("pidesk-active-project");
-    } catch {
-      return null;
-    }
-  });
+  const [activeProjectId, setActiveProjectId] = React.useState<string | null>(
+    () => {
+      try {
+        return window.localStorage.getItem("pidesk-active-project");
+      } catch {
+        return null;
+      }
+    },
+  );
 
   // Persist projects to localStorage
   React.useEffect(() => {
@@ -578,7 +593,12 @@ export default function App() {
   const [leftSidebarWidth, setLeftSidebarWidth] = React.useState(() => {
     try {
       const stored = window.localStorage.getItem("pidesk-left-sidebar-width");
-      return stored ? Math.max(MIN_SIDEBAR_WIDTH, Math.min(MAX_SIDEBAR_WIDTH, Number(stored))) : DEFAULT_LEFT_WIDTH;
+      return stored
+        ? Math.max(
+            MIN_SIDEBAR_WIDTH,
+            Math.min(MAX_SIDEBAR_WIDTH, Number(stored)),
+          )
+        : DEFAULT_LEFT_WIDTH;
     } catch {
       return DEFAULT_LEFT_WIDTH;
     }
@@ -586,7 +606,12 @@ export default function App() {
   const [rightSidebarWidth, setRightSidebarWidth] = React.useState(() => {
     try {
       const stored = window.localStorage.getItem("pidesk-right-sidebar-width");
-      return stored ? Math.max(MIN_SIDEBAR_WIDTH, Math.min(MAX_SIDEBAR_WIDTH, Number(stored))) : DEFAULT_RIGHT_WIDTH;
+      return stored
+        ? Math.max(
+            MIN_SIDEBAR_WIDTH,
+            Math.min(MAX_SIDEBAR_WIDTH, Number(stored)),
+          )
+        : DEFAULT_RIGHT_WIDTH;
     } catch {
       return DEFAULT_RIGHT_WIDTH;
     }
@@ -599,7 +624,10 @@ export default function App() {
   // Persist sidebar widths
   React.useEffect(() => {
     try {
-      window.localStorage.setItem("pidesk-left-sidebar-width", String(leftSidebarWidth));
+      window.localStorage.setItem(
+        "pidesk-left-sidebar-width",
+        String(leftSidebarWidth),
+      );
     } catch {
       // Ignore storage errors
     }
@@ -607,7 +635,10 @@ export default function App() {
 
   React.useEffect(() => {
     try {
-      window.localStorage.setItem("pidesk-right-sidebar-width", String(rightSidebarWidth));
+      window.localStorage.setItem(
+        "pidesk-right-sidebar-width",
+        String(rightSidebarWidth),
+      );
     } catch {
       // Ignore storage errors
     }
@@ -619,14 +650,17 @@ export default function App() {
 
     const handleMouseMove = (e: MouseEvent) => {
       if (isResizingLeft) {
-        setLeftSidebarWidth((prev) =>
-          Math.max(MIN_SIDEBAR_WIDTH, Math.min(MAX_SIDEBAR_WIDTH, e.clientX))
+        setLeftSidebarWidth(() =>
+          Math.max(MIN_SIDEBAR_WIDTH, Math.min(MAX_SIDEBAR_WIDTH, e.clientX)),
         );
       }
       if (isResizingRight) {
         const windowWidth = window.innerWidth;
-        setRightSidebarWidth((prev) =>
-          Math.max(MIN_SIDEBAR_WIDTH, Math.min(MAX_SIDEBAR_WIDTH, windowWidth - e.clientX))
+        setRightSidebarWidth(() =>
+          Math.max(
+            MIN_SIDEBAR_WIDTH,
+            Math.min(MAX_SIDEBAR_WIDTH, windowWidth - e.clientX),
+          ),
         );
       }
     };
@@ -650,14 +684,48 @@ export default function App() {
   }, [isResizingLeft, isResizingRight]);
   // Handle adding a project via file picker
   const handleAddProject = React.useCallback(async () => {
+    console.log("handleAddProject called, window.pidesk:", window.pidesk);
+    if (!window.pidesk) {
+      console.error("window.pidesk is not defined!");
+      alert("API not available - check console");
+      return;
+    }
+    if (!window.pidesk.dialog) {
+      console.error("window.pidesk.dialog is not defined!");
+      alert("Dialog API not available - check console");
+      return;
+    }
     try {
+      console.log("Calling showOpenDialog...");
       const paths = await window.pidesk.dialog.showOpenDialog({
         properties: ["openDirectory", "multiSelections"],
         title: "Add Project Folder",
       });
+      console.log("showOpenDialog returned:", paths);
       if (!paths || paths.length === 0) return;
 
-      const newProjects: ShellProjectSnapshot[] = paths.map((path) => ({
+      // Normalize paths for comparison (resolve to absolute, remove trailing slashes)
+      const normalizePath = (p: string) => p.replace(/[\\/]+$/, "");
+      const existingPaths = new Set(projects.map((p) => normalizePath(p.path)));
+
+      // Filter out duplicates and paths already in the workspace
+      const uniqueNewPaths = paths.filter(
+        (path) => !existingPaths.has(normalizePath(path)),
+      );
+
+      if (uniqueNewPaths.length === 0) {
+        console.log("All selected directories are already in the workspace");
+        return;
+      }
+
+      if (uniqueNewPaths.length < paths.length) {
+        console.log(
+          `Skipped ${paths.length - uniqueNewPaths.length} duplicate director` +
+            "ies",
+        );
+      }
+
+      const newProjects: ShellProjectSnapshot[] = uniqueNewPaths.map((path) => ({
         id: `project-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
         name: path.split(/[\\/]/).filter(Boolean).pop() ?? path,
         path,
@@ -677,23 +745,38 @@ export default function App() {
   }, [activeProjectId]);
 
   // Handle removing a project
-  const handleRemoveProject = React.useCallback((id: string) => {
-    setProjects((prev) => prev.filter((p) => p.id !== id));
-    if (activeProjectId === id) {
-      setActiveProjectId(null);
-    }
-  }, [activeProjectId]);
+  const handleRemoveProject = React.useCallback(
+    (id: string) => {
+      setProjects((prev) => prev.filter((p) => p.id !== id));
+      if (activeProjectId === id) {
+        setActiveProjectId(null);
+      }
+    },
+    [activeProjectId],
+  );
 
   // Handle selecting a project
-  const handleSelectProject = React.useCallback((id: string) => {
-    setActiveProjectId(id);
-    setProjects((prev) =>
-      prev.map((p) => ({
-        ...p,
-        isActive: p.id === id,
-      })),
-    );
-  }, []);
+  const handleSelectProject = React.useCallback(
+    async (id: string) => {
+      setActiveProjectId(id);
+      setProjects((prev) =>
+        prev.map((p) => ({
+          ...p,
+          isActive: p.id === id,
+        })),
+      );
+
+      const project = projects.find((p) => p.id === id);
+      if (project) {
+        try {
+          await window.pidesk.agent.switchWorkspace(project.path);
+        } catch (error) {
+          console.error("Failed to switch workspace:", error);
+        }
+      }
+    },
+    [projects],
+  );
 
   // Computed active project from state
   const activeProject = React.useMemo(
@@ -710,6 +793,18 @@ export default function App() {
     window.localStorage.setItem("pidesk-font-mono", codeFont);
   }, [codeFont, interfaceFont]);
 
+  React.useEffect(() => {
+    if (
+      activeProject &&
+      shell.workspace?.rootPath &&
+      activeProject.path !== shell.workspace.rootPath
+    ) {
+      window.pidesk.agent
+        .switchWorkspace(activeProject.path)
+        .catch(console.error);
+    }
+  }, [activeProject, shell.workspace?.rootPath]);
+
   const handleSend = React.useCallback(() => {
     if (!canSend) {
       return;
@@ -717,10 +812,6 @@ export default function App() {
 
     sendPrompt();
   }, [canSend, sendPrompt]);
-
-  const handleNewThread = React.useCallback(() => {
-    void reset();
-  }, [reset]);
 
   return (
     <TooltipProvider>
@@ -737,31 +828,67 @@ export default function App() {
 
           <aside
             style={{ width: leftSidebarWidth }}
-            className="relative z-10 flex shrink-0 flex-col border-r border-border bg-surface-1">
+            className="relative z-10 flex shrink-0 flex-col border-r border-border bg-surface-1"
+          >
             <div className="px-4 pt-4" data-no-drag="true">
-              <Button
-                onClick={handleNewThread}
-                className="h-10 w-full justify-between rounded border border-border bg-surface-2 px-3 text-sm font-medium text-foreground shadow-sm transition hover:border-border-hover hover:bg-surface-3"
-              >
-                <span className="inline-flex items-center gap-2.5">
-                  <Plus className="size-4" />
-                  New Thread
-                </span>
-                <ChevronRight className="size-4 text-muted-foreground" />
-              </Button>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="h-10 w-full justify-between rounded border border-border bg-surface-2 px-3 text-sm font-medium text-foreground shadow-sm transition hover:border-border-hover hover:bg-surface-3"
+                  >
+                    <span className="truncate">
+                      {activeProject ? activeProject.path : "Workspace"}
+                    </span>
+                    <ChevronDown className="size-4 shrink-0 text-muted-foreground" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  align="start"
+                  className="w-[var(--radix-popover-trigger-width)] rounded border border-border bg-popover p-2 shadow-lg"
+                >
+                  <div className="space-y-1">
+                    {projects.map((project) => (
+                      <div
+                        key={project.id}
+                        className="group flex items-center justify-between rounded px-2 py-1.5 text-sm transition hover:bg-surface-3"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => handleSelectProject(project.id)}
+                          className="flex min-w-0 flex-1 items-center gap-2 text-left"
+                        >
+                          <Folder className="size-4 shrink-0 text-muted-foreground" />
+                          <span className="truncate text-foreground">
+                            {project.name}
+                          </span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveProject(project.id)}
+                          className="opacity-0 transition hover:text-destructive group-hover:opacity-100"
+                          aria-label="Remove project"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                    {projects.length > 0 && <Separator className="my-1" />}
+                    <button
+                      type="button"
+                      onClick={handleAddProject}
+                      className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-sm text-foreground transition hover:bg-surface-3"
+                    >
+                      <Plus className="size-4 shrink-0 text-muted-foreground" />
+                      Add Directory
+                    </button>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
 
-            <ScrollArea className="min-h-0 flex-1">
-              <div className="flex flex-col gap-6 px-4 py-4">
-                <ProjectList
-                  projects={projects}
-                  activeProjectId={activeProjectId}
-                  onAddProject={handleAddProject}
-                  onRemoveProject={handleRemoveProject}
-                  onSelectProject={handleSelectProject}
-                />
-
-              </div>
+            <ScrollArea className="min-h-0 flex-1" data-no-drag="true">
+              <FileTree rootPath={activeProject?.path} />
             </ScrollArea>
 
             <div
@@ -830,15 +957,6 @@ export default function App() {
             >
               <div className="min-w-0 w-32" />
 
-              <div className="pointer-events-none absolute inset-x-0 flex justify-center">
-                <div
-                  aria-hidden="true"
-                  className="pt-4 text-2xl font-semibold tracking-tight text-muted-foreground"
-                >
-                  π
-                </div>
-              </div>
-
               <div className="flex items-center gap-2" data-no-drag="true">
                 <div
                   data-testid="agent-status"
@@ -870,52 +988,50 @@ export default function App() {
                     </div>
                   </section>
                 ) : (
-                  <>
-                    {agent.messages.map((message) => {
-                      const isSystem = message.role === "system";
+                  agent.messages.map((message) => {
+                    const isSystem = message.role === "system";
 
-                      return (
-                        <Message
-                          key={message.id}
-                          className={cn(isSystem && "my-6 justify-center")}
+                    return (
+                      <Message
+                        key={message.id}
+                        className={cn(isSystem && "my-6 justify-center")}
+                      >
+                        {!isSystem && (
+                          <MessageAvatar
+                            src=""
+                            alt={getMessageLabel(message)}
+                            fallback={getMessageFallback(message)}
+                          />
+                        )}
+
+                        <div
+                          className={cn(
+                            "min-w-0 flex-1",
+                            isSystem && "flex-initial",
+                          )}
                         >
                           {!isSystem && (
-                            <MessageAvatar
-                              src=""
-                              alt={getMessageLabel(message)}
-                              fallback={getMessageFallback(message)}
-                            />
+                            <span className="text-sm font-medium text-muted-foreground">
+                              {getMessageLabel(message)}
+                            </span>
                           )}
 
-                          <div
-                            className={cn(
-                              "min-w-0 flex-1",
-                              isSystem && "flex-initial",
-                            )}
-                          >
-                            {!isSystem && (
-                              <span className="text-sm font-medium text-muted-foreground">
-                                {getMessageLabel(message)}
-                              </span>
-                            )}
-
-                            {isSystem ? (
-                              <div className="mt-1 rounded border border-dashed border-border bg-surface-2 px-4 py-3 text-sm text-muted-foreground">
-                                {message.text}
-                              </div>
-                            ) : (
-                              <MessageContent
-                                markdown={message.role !== "user"}
-                                className="mt-1 max-w-none bg-transparent p-0 text-base leading-relaxed text-foreground shadow-none"
-                              >
-                                {message.text || " "}
-                              </MessageContent>
-                            )}
-                          </div>
-                        </Message>
-                      );
-                    })}
-                  </>
+                          {isSystem ? (
+                            <div className="mt-1 rounded border border-dashed border-border bg-surface-2 px-4 py-3 text-sm text-muted-foreground">
+                              {message.text}
+                            </div>
+                          ) : (
+                            <MessageContent
+                              markdown={message.role !== "user"}
+                              className="mt-1 max-w-none bg-transparent p-0 text-base leading-relaxed text-foreground shadow-none"
+                            >
+                              {message.text || " "}
+                            </MessageContent>
+                          )}
+                        </div>
+                      </Message>
+                    );
+                  })
                 )}
 
                 {agent.status === "streaming" && (
@@ -999,68 +1115,69 @@ export default function App() {
 
           <aside
             style={{ width: rightSidebarWidth }}
-            className="relative z-10 flex shrink-0 flex-col border-l border-border bg-surface-1">
+            className="relative z-10 flex shrink-0 flex-col border-l border-border bg-surface-1"
+          >
             <header className="flex h-11 shrink-0 items-center justify-between border-b border-border px-3 bg-surface-2">
-                <button
-                  type="button"
-                  onClick={() => setActiveView("git")}
-                  className={cn(
-                    "flex h-8 w-8 items-center justify-center rounded transition",
-                    activeView === "git"
-                      ? "bg-surface-3 text-foreground"
-                      : "text-muted-foreground hover:bg-surface-3 hover:text-foreground",
-                  )}
-                >
-                  <GitBranch className="size-4" />
-                </button>
-                <Separator
-                  orientation="vertical"
-                  className="mx-2 h-4 bg-border"
-                />
-                <button
-                  type="button"
-                  onClick={() => setActiveView("files")}
-                  className={cn(
-                    "flex h-8 w-8 items-center justify-center rounded transition",
-                    activeView === "files"
-                      ? "bg-surface-3 text-foreground"
-                      : "text-muted-foreground hover:bg-surface-3 hover:text-foreground",
-                  )}
-                >
-                  <FolderTree className="size-4" />
-                </button>
-                <Separator
-                  orientation="vertical"
-                  className="mx-2 h-4 bg-border"
-                />
-                <button
-                  type="button"
-                  onClick={() => setActiveView("context")}
-                  className={cn(
-                    "flex h-8 w-8 items-center justify-center rounded transition",
-                    activeView === "context"
-                      ? "bg-surface-3 text-foreground"
-                      : "text-muted-foreground hover:bg-surface-3 hover:text-foreground",
-                  )}
-                >
-                  <FolderGit className="size-4" />
-                </button>
-                <Separator
-                  orientation="vertical"
-                  className="mx-2 h-4 bg-border"
-                />
-                <button
-                  type="button"
-                  onClick={() => setActiveView("history")}
-                  className={cn(
-                    "flex h-8 w-8 items-center justify-center rounded transition",
-                    activeView === "history"
-                      ? "bg-surface-3 text-foreground"
-                      : "text-muted-foreground hover:bg-surface-3 hover:text-foreground",
-                  )}
-                >
-                  <History className="size-4" />
-                </button>
+              <button
+                type="button"
+                onClick={() => setActiveView("git")}
+                className={cn(
+                  "flex h-8 w-8 items-center justify-center rounded transition",
+                  activeView === "git"
+                    ? "bg-surface-3 text-foreground"
+                    : "text-muted-foreground hover:bg-surface-3 hover:text-foreground",
+                )}
+              >
+                <GitBranch className="size-4" />
+              </button>
+              <Separator
+                orientation="vertical"
+                className="mx-2 h-4 bg-border"
+              />
+              <button
+                type="button"
+                onClick={() => setActiveView("files")}
+                className={cn(
+                  "flex h-8 w-8 items-center justify-center rounded transition",
+                  activeView === "files"
+                    ? "bg-surface-3 text-foreground"
+                    : "text-muted-foreground hover:bg-surface-3 hover:text-foreground",
+                )}
+              >
+                <FolderTree className="size-4" />
+              </button>
+              <Separator
+                orientation="vertical"
+                className="mx-2 h-4 bg-border"
+              />
+              <button
+                type="button"
+                onClick={() => setActiveView("context")}
+                className={cn(
+                  "flex h-8 w-8 items-center justify-center rounded transition",
+                  activeView === "context"
+                    ? "bg-surface-3 text-foreground"
+                    : "text-muted-foreground hover:bg-surface-3 hover:text-foreground",
+                )}
+              >
+                <FolderGit className="size-4" />
+              </button>
+              <Separator
+                orientation="vertical"
+                className="mx-2 h-4 bg-border"
+              />
+              <button
+                type="button"
+                onClick={() => setActiveView("history")}
+                className={cn(
+                  "flex h-8 w-8 items-center justify-center rounded transition",
+                  activeView === "history"
+                    ? "bg-surface-3 text-foreground"
+                    : "text-muted-foreground hover:bg-surface-3 hover:text-foreground",
+                )}
+              >
+                <History className="size-4" />
+              </button>
             </header>
 
             <ScrollArea className="min-h-0 flex-1">

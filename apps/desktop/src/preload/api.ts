@@ -3,6 +3,8 @@ import {
   IPC_CHANNELS,
   type PiDeskAgentEvent,
   type PiDeskApi,
+  type ProviderSnapshot,
+  type SettingsSnapshot,
   type ShellSnapshot,
 } from "@pidesk/shared";
 
@@ -32,22 +34,48 @@ export function createPiDeskApi({
       },
     },
     agent: {
+      getProviders() {
+        return invoke<ProviderSnapshot[]>(
+          IPC_CHANNELS.agent.getProviders,
+          undefined,
+        );
+      },
+      getSettings() {
+        return invoke<SettingsSnapshot>(
+          IPC_CHANNELS.agent.getSettings,
+          undefined,
+        );
+      },
       getSnapshot() {
         return invoke<AgentSnapshot>(IPC_CHANNELS.agent.getSnapshot, undefined);
       },
-      prompt(text) {
+      prompt(text: string) {
         return invoke<void>(IPC_CHANNELS.agent.prompt, { text });
       },
       reset() {
         return invoke<void>(IPC_CHANNELS.agent.reset, undefined);
       },
-      subscribe(listener) {
+      switchWorkspace(path: string) {
+        return invoke<void>(IPC_CHANNELS.agent.switchWorkspace, { path });
+      },
+      subscribe(listener: (event: PiDeskAgentEvent) => void) {
         return on<PiDeskAgentEvent>(IPC_CHANNELS.agent.event, listener);
       },
     },
     dialog: {
-      showOpenDialog(options) {
-        return invoke<string[] | null>(IPC_CHANNELS.dialog.showOpenDialog, options);
+      showOpenDialog(options: Electron.OpenDialogOptions) {
+        return invoke<string[] | null>(
+          IPC_CHANNELS.dialog.showOpenDialog,
+          options,
+        );
+      },
+    },
+    fs: {
+      readDirectory(path: string) {
+        return invoke<import("@pidesk/shared").DirectoryListing>(
+          IPC_CHANNELS.fs.readDirectory,
+          { path },
+        );
       },
     },
   };

@@ -57,21 +57,9 @@ describe("resolveRendererTarget", () => {
 });
 
 describe("resolvePreloadTarget", () => {
-  it("uses the module path in development", () => {
+  it("resolves to the preload output relative to main entry", () => {
     expect(
       resolvePreloadTarget(
-        "http://127.0.0.1:5173",
-        "/tmp/pidesk/dev-preload.js",
-        "file:///app/out/main/index.js",
-      ),
-    ).toBe("/tmp/pidesk/dev-preload.js");
-  });
-
-  it("falls back to the packaged preload file", () => {
-    expect(
-      resolvePreloadTarget(
-        undefined,
-        "/tmp/pidesk/dev-preload.js",
         "file:///Applications/PiDesk.app/Contents/Resources/app/out/main/index.js",
       ),
     ).toBe(
