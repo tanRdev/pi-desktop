@@ -2,10 +2,14 @@ import type {
   AgentHostEnvelope,
   AgentHostRequest,
   AgentSnapshot,
+  ProviderSnapshot,
+  SettingsSnapshot,
 } from "@pidesk/shared";
 
 export interface CommandHandlerRuntime {
   bootstrap(): Promise<void>;
+  getProviders(): Promise<ProviderSnapshot[]>;
+  getSettings(): Promise<SettingsSnapshot>;
   getSnapshot(): AgentSnapshot;
   prompt(text: string): Promise<void>;
   // Reset the runtime to a fresh session. Implementations should clear
@@ -35,6 +39,24 @@ export function createAgentHostCommandHandler(runtime: CommandHandlerRuntime) {
               requestId: request.requestId,
               kind: "snapshot",
               snapshot: runtime.getSnapshot(),
+            },
+          };
+        case "getProviders":
+          return {
+            type: "response",
+            response: {
+              requestId: request.requestId,
+              kind: "providers",
+              providers: await runtime.getProviders(),
+            },
+          };
+        case "getSettings":
+          return {
+            type: "response",
+            response: {
+              requestId: request.requestId,
+              kind: "settings",
+              settings: await runtime.getSettings(),
             },
           };
         case "prompt":

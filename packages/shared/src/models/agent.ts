@@ -1,3 +1,15 @@
+export interface ProviderSnapshot {
+  id: string;
+  name: string;
+  models: Array<{ id: string; name: string }>;
+}
+
+export interface SettingsSnapshot {
+  defaultProvider?: string;
+  defaultModel?: string;
+  [key: string]: unknown;
+}
+
 export type AgentMessageRole = "assistant" | "system" | "tool" | "user";
 
 export type AgentMessageStatus = "complete" | "error" | "streaming";

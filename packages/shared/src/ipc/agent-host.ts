@@ -1,4 +1,8 @@
-import type { AgentSnapshot } from "../models/agent.js";
+import type {
+  AgentSnapshot,
+  ProviderSnapshot,
+  SettingsSnapshot,
+} from "../models/agent.js";
 
 export type AgentHostRequest =
   | {
@@ -12,6 +16,14 @@ export type AgentHostRequest =
   | {
       requestId: string;
       type: "getSnapshot";
+    }
+  | {
+      requestId: string;
+      type: "getProviders";
+    }
+  | {
+      requestId: string;
+      type: "getSettings";
     }
   | {
       requestId: string;
@@ -33,6 +45,16 @@ export type AgentHostResponse =
       requestId: string;
       kind: "snapshot";
       snapshot: AgentSnapshot;
+    }
+  | {
+      requestId: string;
+      kind: "providers";
+      providers: ProviderSnapshot[];
+    }
+  | {
+      requestId: string;
+      kind: "settings";
+      settings: SettingsSnapshot;
     };
 
 export type AgentHostEnvelope =

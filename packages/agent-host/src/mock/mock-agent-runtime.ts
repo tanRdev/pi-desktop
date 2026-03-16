@@ -2,6 +2,8 @@ import type {
   AgentMessageSnapshot,
   AgentSnapshot,
   PiDeskAgentEvent,
+  ProviderSnapshot,
+  SettingsSnapshot,
 } from "@pidesk/shared";
 
 type AgentListener = (event: PiDeskAgentEvent) => void;
@@ -29,6 +31,34 @@ export class MockAgentRuntime {
     // occurred and UI can reconcile state without a full reload.
     this.emit({ type: "agent_end" });
     this.emit({ type: "agent_start" });
+  }
+
+  async getProviders(): Promise<ProviderSnapshot[]> {
+    return [
+      {
+        id: "google",
+        name: "Google",
+        models: [
+          { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro" },
+          { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash" },
+        ],
+      },
+      {
+        id: "anthropic",
+        name: "Anthropic",
+        models: [
+          { id: "claude-sonnet-4-5-20251101", name: "Claude Sonnet 4.5" },
+          { id: "claude-3-7-sonnet-20250219", name: "Claude 3.7 Sonnet" },
+        ],
+      },
+    ];
+  }
+
+  async getSettings(): Promise<SettingsSnapshot> {
+    return {
+      defaultProvider: "google",
+      defaultModel: "gemini-2.5-pro",
+    };
   }
 
   async bootstrap(): Promise<void> {

@@ -8,6 +8,8 @@ import type {
   AgentMessageSnapshot,
   AgentSnapshot,
   PiDeskAgentEvent,
+  ProviderSnapshot,
+  SettingsSnapshot,
 } from "@pidesk/shared";
 
 import { normalizeAgentSessionEvent } from "../events/normalize-agent-session-event.js";
@@ -186,6 +188,34 @@ export class PiSdkAgentRuntime {
       this.setErrorState(error, "");
       throw error;
     }
+  }
+
+  async getProviders(): Promise<ProviderSnapshot[]> {
+    return [
+      {
+        id: "google",
+        name: "Google",
+        models: [
+          { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro" },
+          { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash" },
+        ],
+      },
+      {
+        id: "anthropic",
+        name: "Anthropic",
+        models: [
+          { id: "claude-sonnet-4-5-20251101", name: "Claude Sonnet 4.5" },
+          { id: "claude-3-7-sonnet-20250219", name: "Claude 3.7 Sonnet" },
+        ],
+      },
+    ];
+  }
+
+  async getSettings(): Promise<SettingsSnapshot> {
+    return {
+      defaultProvider: "google",
+      defaultModel: "gemini-2.5-pro",
+    };
   }
 
   subscribe(listener: AgentListener): () => void {
