@@ -73,15 +73,20 @@ const DEFAULT_SNAP_GRID = 16;
 /**
  * Initial window store state.
  */
-export const initialWindowStoreState: WindowStoreState = {
-  layout: {
-    windows: [],
-    nextZIndex: 1,
-    focusedWindowId: null,
-    snapGridSize: DEFAULT_SNAP_GRID,
-  },
-  snapPreview: null,
-};
+export const initialWindowStoreState: WindowStoreState =
+  createInitialWindowStoreState();
+
+function createInitialWindowStoreState(): WindowStoreState {
+  return {
+    layout: {
+      windows: [],
+      nextZIndex: 1,
+      focusedWindowId: null,
+      snapGridSize: DEFAULT_SNAP_GRID,
+    },
+    snapPreview: null,
+  };
+}
 
 /**
  * Generate a unique window ID.
@@ -226,26 +231,60 @@ function applyWindowUpdates(
   window: CanvasWindow,
   updates: WindowUpdates,
 ): CanvasWindow {
+  const {
+    id: _ignoredId,
+    isFocused: _ignoredFocus,
+    zIndex: _ignoredZIndex,
+    ...safeUpdates
+  } = updates as WindowUpdates & {
+    id?: string;
+    isFocused?: boolean;
+    zIndex?: number;
+  };
+
   switch (window.kind) {
     case "file":
-      return { ...window, ...updates };
+      return { ...window, ...safeUpdates };
     case "terminal":
-      return { ...window, ...updates };
+      return { ...window, ...safeUpdates };
     case "chat":
-      return { ...window, ...updates };
+      return { ...window, ...safeUpdates };
     case "note":
-      return { ...window, ...updates };
+      return { ...window, ...safeUpdates };
     case "git":
-      return { ...window, ...updates };
+      return { ...window, ...safeUpdates };
     case "search":
-      return { ...window, ...updates };
+      return { ...window, ...safeUpdates };
     case "graph":
-      return { ...window, ...updates };
+      return { ...window, ...safeUpdates };
     case "image":
-      return { ...window, ...updates };
+      return { ...window, ...safeUpdates };
   }
 }
 
+function pickNextFocusableWindowId(windows: CanvasWindow[]): string | null {
+  const focusableWindows = windows.filter(
+    (window) => window.state !== "minimized",
+  );
+  if (focusableWindows.length === 0) {
+    return null;
+  }
+
+  const sortedByZIndex = [...focusableWindows].sort(
+    (a, b) => b.zIndex - a.zIndex,
+  );
+  return sortedByZIndex[0]?.id ?? null;
+}
+
+function syncFocusedWindowState(
+  windows: CanvasWindow[],
+  focusedWindowId: string | null,
+): CanvasWindow[] {
+  return windows.map((window) => ({
+    ...window,
+    isFocused: window.id === focusedWindowId,
+  }));
+}
 
 /**
  * Window store reducer.
@@ -279,28 +318,15 @@ export function windowReducer(
       const windows = state.layout.windows.filter((w) => w.id !== windowId);
       const wasFocused = state.layout.focusedWindowId === windowId;
 
-      // Focus the next window if the closed one was focused
-      let focusedWindowId: string | null = null;
-      if (wasFocused && windows.length > 0) {
-        // Focus the window with highest z-index
-        const sortedByZ = [...windows].sort((a, b) => b.zIndex - a.zIndex);
-        const topWindow = sortedByZ[0];
-        if (topWindow) {
-          focusedWindowId = topWindow.id;
-        }
-      } else if (!wasFocused) {
-        focusedWindowId = state.layout.focusedWindowId;
-      }
+      const focusedWindowId = wasFocused
+        ? pickNextFocusableWindowId(windows)
+        : state.layout.focusedWindowId;
 
       return {
         ...state,
         layout: {
           ...state.layout,
-          windows: wasFocused
-            ? windows.map((w) =>
-                w.id === focusedWindowId ? { ...w, isFocused: true } : w,
-              )
-            : windows,
+          windows: syncFocusedWindowState(windows, focusedWindowId),
           focusedWindowId,
         },
       };
@@ -350,6 +376,23 @@ export function windowReducer(
       const windows = state.layout.windows.map((w) =>
         w.id === windowId ? { ...w, state: windowState } : w,
       );
+
+      if (
+        windowState === "minimized" &&
+        state.layout.focusedWindowId === windowId
+      ) {
+        const focusedWindowId = pickNextFocusableWindowId(windows);
+
+        return {
+          ...state,
+          layout: {
+            ...state.layout,
+            windows: syncFocusedWindowState(windows, focusedWindowId),
+            focusedWindowId,
+          },
+        };
+      }
+
       return { ...state, layout: { ...state.layout, windows } };
     }
 
@@ -359,9 +402,40 @@ export function windowReducer(
 
     case "UPDATE_WINDOW": {
       const { windowId, updates } = action.payload;
-      const windows = state.layout.windows.map((w) =>
-        w.id === windowId ? applyWindowUpdates(w, updates) : w,
-      );
+      const windows = state.layout.windows.map((w) => {
+        if (w.id !== windowId) {
+          return w;
+        }
+
+        const nextWindow = applyWindowUpdates(w, updates);
+        if (w.state === nextWindow.state) {
+          return nextWindow;
+        }
+
+        return { ...nextWindow, state: nextWindow.state };
+      });
+
+      const updatedWindow = windows.find((window) => window.id === windowId);
+      if (!updatedWindow) {
+        return { ...state, layout: { ...state.layout, windows } };
+      }
+
+      if (
+        updatedWindow.state === "minimized" &&
+        state.layout.focusedWindowId === windowId
+      ) {
+        const focusedWindowId = pickNextFocusableWindowId(windows);
+
+        return {
+          ...state,
+          layout: {
+            ...state.layout,
+            windows: syncFocusedWindowState(windows, focusedWindowId),
+            focusedWindowId,
+          },
+        };
+      }
+
       return { ...state, layout: { ...state.layout, windows } };
     }
 
@@ -378,7 +452,7 @@ export function windowReducer(
     }
 
     case "CLEAR_ALL": {
-      return initialWindowStoreState;
+      return createInitialWindowStoreState();
     }
 
     default:
@@ -391,7 +465,7 @@ export function windowReducer(
  * Uses the same pattern as shell-model for consistency.
  */
 export function createWindowStore() {
-  let state: WindowStoreState = initialWindowStoreState;
+  let state: WindowStoreState = createInitialWindowStoreState();
   const listeners = new Set<(state: WindowStoreState) => void>();
 
   function notify(): void {

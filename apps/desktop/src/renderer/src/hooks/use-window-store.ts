@@ -6,6 +6,10 @@
 import type { CanvasWindow } from "@pidesk/shared";
 import { useMemo, useSyncExternalStore } from "react";
 import {
+  computeDragPosition,
+  computeResizeGeometry,
+} from "../components/canvas/canvas-geometry";
+import {
   createWindowStore,
   type WindowStore,
   type WindowStoreState,
@@ -117,17 +121,15 @@ export function useWindowDrag(windowId: string) {
   const onDrag = (e: MouseEvent) => {
     if (!dragStart) return;
 
-    const dx = e.clientX - dragStart.x;
-    const dy = e.clientY - dragStart.y;
-    const newX = dragStart.windowX + dx;
-    const newY = dragStart.windowY + dy;
-
-    // Snap to grid
     const gridSize = state.layout.snapGridSize;
-    const snappedX = Math.round(newX / gridSize) * gridSize;
-    const snappedY = Math.round(newY / gridSize) * gridSize;
+    const pos = computeDragPosition(
+      { x: dragStart.windowX, y: dragStart.windowY },
+      { clientX: dragStart.x, clientY: dragStart.y },
+      { clientX: e.clientX, clientY: e.clientY },
+      gridSize,
+    );
 
-    store.moveWindow(windowId, snappedX, snappedY);
+    store.moveWindow(windowId, pos.x, pos.y);
   };
 
   const onDragEnd = () => {
@@ -183,30 +185,21 @@ export function useWindowResize(windowId: string) {
   const onResize = (e: MouseEvent) => {
     if (!resizeStart) return;
 
-    const dx = e.clientX - resizeStart.x;
-    const dy = e.clientY - resizeStart.y;
-
-    let newWidth = resizeStart.width;
-    let newHeight = resizeStart.height;
-
-    // Apply delta based on direction
-    if (resizeStart.direction.includes("e")) newWidth += dx;
-    if (resizeStart.direction.includes("w")) newWidth -= dx;
-    if (resizeStart.direction.includes("s")) newHeight += dy;
-    if (resizeStart.direction.includes("n")) newHeight -= dy;
-
-    // Minimum size constraints
-    const minWidth = 300;
-    const minHeight = 200;
-    newWidth = Math.max(minWidth, newWidth);
-    newHeight = Math.max(minHeight, newHeight);
-
-    // Snap to grid
     const gridSize = state.layout.snapGridSize;
-    const snappedWidth = Math.round(newWidth / gridSize) * gridSize;
-    const snappedHeight = Math.round(newHeight / gridSize) * gridSize;
+    const g = computeResizeGeometry(
+      {
+        x: window.x,
+        y: window.y,
+        width: resizeStart.width,
+        height: resizeStart.height,
+      },
+      resizeStart.direction,
+      { clientX: resizeStart.x, clientY: resizeStart.y },
+      { clientX: e.clientX, clientY: e.clientY },
+      gridSize,
+    );
 
-    store.resizeWindow(windowId, snappedWidth, snappedHeight);
+    store.resizeWindow(windowId, g.width, g.height);
   };
 
   const onResizeEnd = () => {

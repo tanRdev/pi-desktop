@@ -10,3 +10,4 @@ export * from "./note-window-content";
 export * from "./search-window-content";
 export * from "./terminal-window-content";
 export * from "./window-chrome";
+export * from "./window-content-router";

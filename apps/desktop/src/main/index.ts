@@ -26,6 +26,13 @@ import {
   type AgentHostSocketTransport,
   createAgentHostSocketTransport,
 } from "./agent-host-socket-transport";
+import { switchModelForContext } from "./bootstrap/model-switch";
+import { routePromptToTerminal } from "./bootstrap/route-to-terminal";
+import {
+  buildThreadContext as buildThreadContextFromHelper,
+  type ResolvedRepositoryInspection,
+  type SelectedThreadContext,
+} from "./bootstrap/thread-context";
 import {
   type GitRepositoryInspection,
   GitWorktreeService,
@@ -63,24 +70,6 @@ type AgentDesktopHost = {
   prompt(text: string): Promise<void>;
   reset(): Promise<void>;
   subscribe(listener: (event: PiDeskAgentEvent) => void): () => void;
-};
-
-type SelectedThreadContext = {
-  repositoryId: string;
-  worktreePath: string;
-  thread: ThreadCatalogEntry;
-  socketPath: string;
-  sessionName: string;
-  command: string[];
-  agentMode: "mock" | "sdk";
-  agentDirectory: string | null;
-};
-
-type ResolvedRepositoryInspection = GitRepositoryInspection & {
-  status: "repository";
-  rootPath: string;
-  currentWorktreePath: string;
-  worktrees: NonNullable<GitRepositoryInspection["worktrees"]>;
 };
 
 function createBootstrapErrorHost(message: string): AgentDesktopHost {
@@ -197,25 +186,20 @@ async function bootstrapDesktop() {
   }
 
   async function handleSwitchModel(request: ModelSwitchRequest): Promise<void> {
-    if (!currentContext) {
-      throw new Error("No active Pi context is selected");
-    }
+    await switchModelForContext(request, {
+      currentContext,
+      resolveAgentDirectory,
+      createSettingsManager: async (worktreePath, agentDirectory) => {
+        const { SettingsManager } = await import(
+          "@mariozechner/pi-coding-agent"
+        );
 
-    const { SettingsManager } = await import("@mariozechner/pi-coding-agent");
-    const agentDirectory = resolveAgentDirectory();
-    const settingsManager = SettingsManager.create(
-      currentContext.worktreePath,
-      agentDirectory,
-    );
-    settingsManager.setDefaultProvider(request.providerId);
-    settingsManager.setDefaultModel(request.modelId);
-
-    await runtimeManager.restartThreadRuntime({
-      threadId: currentContext.thread.id,
-      worktreePath: currentContext.worktreePath,
-      command: currentContext.command,
+        return SettingsManager.create(worktreePath, agentDirectory);
+      },
+      runtimeManager,
+      attachContext,
+      commitAttachment,
     });
-    commitAttachment(await attachContext(currentContext));
   }
 
   async function handleGetDiscovery(): Promise<PiDiscoveryResult> {
@@ -241,38 +225,10 @@ async function bootstrapDesktop() {
   async function handleRouteToTerminal(
     request: PiTerminalRouteRequest,
   ): Promise<PiTerminalRouteResult> {
-    const prompt = request.prompt.trim();
-    if (!prompt) {
-      return { success: false, error: "Prompt must not be empty" };
-    }
-
-    const session = terminalManager
-      .getSessions()
-      .find((candidate) => candidate.id === request.terminalId);
-    if (!session) {
-      return {
-        success: false,
-        error: `Unknown terminal session: ${request.terminalId}`,
-      };
-    }
-
-    if (session.backend === "lazygit") {
-      return {
-        success: false,
-        error: "Cannot route prompts into a lazygit session",
-      };
-    }
-
-    if (request.startPiIfNotLinked && !session.linkedThreadId) {
-      terminalManager.write(session.id, "pi\n");
-      await delay(150);
-    }
-
-    terminalManager.write(session.id, `${prompt}\n`);
-    return {
-      success: true,
-      threadId: session.linkedThreadId,
-    };
+    return routePromptToTerminal(request, {
+      terminalManager,
+      delay,
+    });
   }
 
   async function connectSocketHost(socketPath: string): Promise<{
@@ -327,45 +283,20 @@ async function bootstrapDesktop() {
     inspection: ResolvedRepositoryInspection,
     thread: ThreadCatalogEntry,
   ): SelectedThreadContext {
-    repositoryCatalog.setLastSelectedWorktree(
+    return buildThreadContextFromHelper({
       repositoryId,
-      inspection.currentWorktreePath,
-    );
-    selectionState.replace({
-      repositoryId,
-      worktreeId: inspection.currentWorktreePath,
-      threadId: thread.id,
-    });
-
-    const runtimeOptions = resolveAgentRuntimeOptions(
-      process.env,
-      inspection.currentWorktreePath,
-    );
-    if (runtimeOptions.agentDir) {
-      mkdirSync(runtimeOptions.agentDir, { recursive: true });
-    }
-
-    const launch = createThreadRuntimeLaunchDetails({
-      threadId: thread.id,
-      worktreePath: inspection.currentWorktreePath,
-      mode: runtimeOptions.mode,
-      socketDirectory: runtimeSocketDirectory,
+      inspection,
+      thread,
+      environment: process.env,
+      runtimeSocketDirectory,
       execPath: process.execPath,
       sessionServerEntryPath: agentHostSessionServerEntryPath,
-      nodeEnv: process.env.NODE_ENV,
-      agentDirectory: runtimeOptions.agentDir,
+      repositoryCatalog,
+      selectionState,
+      ensureDirectory: mkdirSync,
+      resolveRuntimeOptions: resolveAgentRuntimeOptions,
+      createLaunchDetails: createThreadRuntimeLaunchDetails,
     });
-
-    return {
-      repositoryId,
-      worktreePath: inspection.currentWorktreePath,
-      thread,
-      socketPath: launch.socketPath,
-      sessionName: launch.sessionName,
-      command: launch.command,
-      agentMode: runtimeOptions.mode,
-      agentDirectory: runtimeOptions.agentDir ?? null,
-    };
   }
 
   async function resolveDefaultThreadContext(

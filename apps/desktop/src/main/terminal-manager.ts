@@ -5,15 +5,25 @@ import type {
   TerminalCreateOptions,
   TerminalSession,
 } from "@pidesk/shared";
-import { IPC_CHANNELS } from "@pidesk/shared";
 import type { BrowserWindow } from "electron";
-import { createTmuxThreadSessionName } from "./tmux-session-naming";
+import {
+  buildTmuxLaunchSpec,
+  isTmuxLaunchBackend,
+  resolveLocalShellProgram,
+} from "./terminal/terminal-backends";
+import {
+  bindChildProcessSessionEvents,
+  bindPtySessionEvents,
+} from "./terminal/terminal-session-events";
 
 const nodeRequire = createRequire(import.meta.url);
 
 type PtyModule = typeof import("node-pty");
+type SpawnProcess = typeof spawn;
+type SpawnSyncProcess = typeof spawnSync;
+type NodeRequire = ReturnType<typeof createRequire>;
 
-interface TerminalInstance {
+export interface TerminalInstance {
   session: TerminalSession;
   // node-pty IPty when used to attach to tmux or spawn a local shell
   pty?: import("node-pty").IPty | null;
@@ -23,25 +33,77 @@ interface TerminalInstance {
   tmuxSessionName?: string | null;
 }
 
-function sanitizeSessionName(id: string): string {
-  const sanitized = id
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-  return `pidesk-term-${sanitized}`.slice(0, 48);
+export interface TerminalManagerDependencies {
+  spawn?: SpawnProcess;
+  spawnSync?: SpawnSyncProcess;
+  nodeRequire?: NodeRequire;
+  ptyModule?: PtyModule | null;
+  env?: NodeJS.ProcessEnv;
+  platform?: NodeJS.Platform;
+  cwd?: () => string;
+  now?: () => number;
+  tmuxBinary?: string;
 }
 
-class TerminalManager {
+function createDefaultDependencies(): Required<
+  Omit<TerminalManagerDependencies, "ptyModule">
+> & {
+  ptyModule: PtyModule | null;
+} {
+  return {
+    spawn,
+    spawnSync,
+    nodeRequire,
+    ptyModule: null,
+    env: process.env,
+    platform: process.platform,
+    cwd: () => process.cwd(),
+    now: () => Date.now(),
+    tmuxBinary: "tmux",
+  };
+}
+
+export class TerminalManager {
   private terminals: Map<string, TerminalInstance> = new Map();
   private mainWindow: BrowserWindow | null = null;
   private ptyModule: PtyModule | null = null;
   private initError: Error | null = null;
-  private tmuxBinary = "tmux";
+  private readonly spawnProcess: SpawnProcess;
+  private readonly spawnSyncProcess: SpawnSyncProcess;
+  private readonly loadModule: NodeRequire;
+  private readonly env: NodeJS.ProcessEnv;
+  private readonly platform: NodeJS.Platform;
+  private readonly getCwd: () => string;
+  private readonly now: () => number;
+  private readonly tmuxBinary: string;
+
+  constructor(dependencies: TerminalManagerDependencies = {}) {
+    const resolved = {
+      ...createDefaultDependencies(),
+      ...dependencies,
+    };
+
+    this.spawnProcess = resolved.spawn;
+    this.spawnSyncProcess = resolved.spawnSync;
+    this.loadModule = resolved.nodeRequire;
+    this.ptyModule = resolved.ptyModule;
+    this.env = resolved.env;
+    this.platform = resolved.platform;
+    this.getCwd = resolved.cwd;
+    this.now = resolved.now;
+    this.tmuxBinary = resolved.tmuxBinary;
+  }
 
   initialize(): void {
+    if (this.ptyModule) {
+      this.initError = null;
+      return;
+    }
+
     try {
       // Use require for native modules with electron-vite
-      this.ptyModule = nodeRequire("node-pty");
+      this.ptyModule = this.loadModule("node-pty") as PtyModule;
+      this.initError = null;
     } catch (error) {
       this.initError =
         error instanceof Error ? error : new Error("Failed to load node-pty");
@@ -64,7 +126,9 @@ class TerminalManager {
 
   private hasTmux(): boolean {
     try {
-      const result = spawnSync(this.tmuxBinary, ["-V"], { encoding: "utf8" });
+      const result = this.spawnSyncProcess(this.tmuxBinary, ["-V"], {
+        encoding: "utf8",
+      });
       return result.status === 0 && result.error == null;
     } catch {
       return false;
@@ -73,7 +137,7 @@ class TerminalManager {
 
   private runTmux(args: string[], cwd?: string) {
     try {
-      const result = spawnSync(this.tmuxBinary, args, {
+      const result = this.spawnSyncProcess(this.tmuxBinary, args, {
         cwd,
         encoding: "utf8",
       });
@@ -105,8 +169,8 @@ class TerminalManager {
       throw new Error("terminal.create payload must include ownerWindowId");
     }
 
-    const cwd = opts.cwd ?? process.cwd();
-    const createdAt = Date.now();
+    const cwd = opts.cwd ?? this.getCwd();
+    const createdAt = this.now();
 
     const session: TerminalSession = {
       id,
@@ -125,11 +189,16 @@ class TerminalManager {
     };
 
     const supportsTmux = this.hasTmux();
-    const tmuxBackends = new Set<TerminalBackend>([
-      "shell",
-      "lazygit",
-      "tmux-attach",
-    ]);
+
+    const handleAttachedProcessExit = () => {
+      if (instance.tmuxSessionName) {
+        try {
+          this.runTmux(["kill-session", "-t", instance.tmuxSessionName]);
+        } catch {}
+      }
+
+      this.terminals.delete(id);
+    };
 
     // Helper to wire up a node-pty or child process to IPC events and lifecycle
     const attachProcess = (
@@ -142,102 +211,54 @@ class TerminalManager {
           cols,
           rows,
           cwd,
-          env: process.env as Record<string, string>,
+          env: this.env as Record<string, string>,
         });
         instance.pty = pty;
         instance.tmuxSessionName = tmuxSessionName ?? null;
 
-        pty.onData((data: string) => {
-          session.status = "ready";
-          session.lastActivityAt = Date.now();
-          this.mainWindow?.webContents.send(IPC_CHANNELS.terminal.create, {
-            type: "data",
-            id,
-            data,
-          });
-        });
-        pty.onExit(({ exitCode }: { exitCode: number }) => {
-          session.status = "exited";
-          this.mainWindow?.webContents.send(IPC_CHANNELS.terminal.create, {
-            type: "exit",
-            id,
-            exitCode,
-          });
-          this.terminals.delete(id);
+        bindPtySessionEvents({
+          pty,
+          session,
+          id,
+          mainWindow: this.mainWindow,
+          onExit: handleAttachedProcessExit,
         });
         this.terminals.set(id, instance);
         return;
       }
 
       // Fallback to child_process streams (no pty). We still stream data and allow resizing via tmux commands.
-      const child = spawn(attachCmd.program, attachCmd.args, { cwd });
+      const child = this.spawnProcess(attachCmd.program, attachCmd.args, {
+        cwd,
+      });
       instance.childProcess = child;
       instance.tmuxSessionName = tmuxSessionName ?? null;
 
-      child.stdout.on("data", (chunk) => {
-        const data = String(chunk);
-        session.status = "ready";
-        session.lastActivityAt = Date.now();
-        this.mainWindow?.webContents.send(IPC_CHANNELS.terminal.create, {
-          type: "data",
-          id,
-          data,
-        });
-      });
-      child.stderr.on("data", (chunk) => {
-        const data = String(chunk);
-        session.lastActivityAt = Date.now();
-        this.mainWindow?.webContents.send(IPC_CHANNELS.terminal.create, {
-          type: "data",
-          id,
-          data,
-        });
-      });
-      child.on("exit", (code) => {
-        session.status = "exited";
-        this.mainWindow?.webContents.send(IPC_CHANNELS.terminal.create, {
-          type: "exit",
-          id,
-          exitCode: code ?? 0,
-        });
-        this.terminals.delete(id);
+      bindChildProcessSessionEvents({
+        child,
+        session,
+        id,
+        mainWindow: this.mainWindow,
+        onExit: handleAttachedProcessExit,
       });
 
       this.terminals.set(id, instance);
     };
 
     try {
-      if (supportsTmux && tmuxBackends.has(backend)) {
+      if (supportsTmux && isTmuxLaunchBackend(backend)) {
         // Create a tmux session (detached) and then attach a pty/child process to it
-        const tmuxSessionName = sanitizeSessionName(id);
-        const createArgs: string[] = [
-          "new-session",
-          "-d",
-          "-s",
-          tmuxSessionName,
-          "-c",
+        const launchSpec = buildTmuxLaunchSpec({
+          id,
+          backend,
           cwd,
-        ];
-        if (backend === "lazygit") {
-          createArgs.push("lazygit");
-        } else if (backend === "tmux-attach") {
-          // Attach to an existing thread runtime session if linkedThreadId provided
-          if (!opts.linkedThreadId) {
-            throw new Error("tmux-attach backend requires linkedThreadId");
-          }
-          const target = createTmuxThreadSessionName(opts.linkedThreadId);
-          // create a wrapper session that runs 'tmux attach -t target'
-          createArgs.push("tmux", "attach", "-t", target);
-        } else {
-          // shell backend: start a login shell inside tmux session
-          const shell =
-            process.platform === "win32"
-              ? "powershell.exe"
-              : process.env.SHELL || "/bin/zsh";
-          createArgs.push(shell);
-        }
+          linkedThreadId: opts.linkedThreadId,
+          platform: this.platform,
+          shell: this.env.SHELL,
+          tmuxBinary: this.tmuxBinary,
+        });
 
-        const result = this.runTmux(createArgs, cwd);
+        const result = this.runTmux(launchSpec.createArgs, cwd);
         if (result.error || result.status !== 0) {
           throw new Error(
             result.error?.message ||
@@ -250,16 +271,16 @@ class TerminalManager {
         // does not appear at the top of embedded terminals. This is best-effort;
         // ignore failures to avoid breaking session creation.
         try {
-          this.runTmux(["set-option", "-t", tmuxSessionName, "status", "off"], cwd);
-        } catch (e) {}
+          this.runTmux(
+            ["set-option", "-t", launchSpec.tmuxSessionName, "status", "off"],
+            cwd,
+          );
+        } catch {}
 
         // Attach to the tmux session via tmux attach -t <session>
-        attachProcess(
-          { program: this.tmuxBinary, args: ["attach", "-t", tmuxSessionName] },
-          tmuxSessionName,
-        );
+        attachProcess(launchSpec.attachCommand, launchSpec.tmuxSessionName);
         // update session metadata
-        session.tmuxSessionName = tmuxSessionName;
+        session.tmuxSessionName = launchSpec.tmuxSessionName;
         session.status = "ready";
         session.lastActivityAt = Date.now();
         return session;
@@ -273,39 +294,15 @@ class TerminalManager {
           throw new Error(error?.message || "Terminal is not available");
         }
         // Spawn local shell via node-pty as before
-        const shell =
-          process.platform === "win32"
-            ? "powershell.exe"
-            : process.env.SHELL || "/bin/zsh";
-        const pty = this.ptyModule.spawn(shell, [], {
-          name: "xterm-256color",
-          cols,
-          rows,
-          cwd,
-          env: process.env as Record<string, string>,
+        attachProcess({
+          program: resolveLocalShellProgram({
+            platform: this.platform,
+            shell: this.env.SHELL,
+          }),
+          args: [],
         });
-        instance.pty = pty;
-        pty.onData((data: string) => {
-          session.status = "ready";
-          session.lastActivityAt = Date.now();
-          this.mainWindow?.webContents.send(IPC_CHANNELS.terminal.create, {
-            type: "data",
-            id,
-            data,
-          });
-        });
-        pty.onExit(({ exitCode }: { exitCode: number }) => {
-          session.status = "exited";
-          this.mainWindow?.webContents.send(IPC_CHANNELS.terminal.create, {
-            type: "exit",
-            id,
-            exitCode,
-          });
-          this.terminals.delete(id);
-        });
-        this.terminals.set(id, instance);
         session.status = "ready";
-        session.lastActivityAt = Date.now();
+        session.lastActivityAt = this.now();
         return session;
       }
 

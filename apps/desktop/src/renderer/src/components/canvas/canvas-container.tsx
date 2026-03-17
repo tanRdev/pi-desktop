@@ -6,6 +6,7 @@ import type { CanvasWindow } from "@pidesk/shared";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { useWindowStore } from "../../hooks/use-window-store";
+import { computeDragPosition, computeResizeGeometry } from "./canvas-geometry";
 import { type ResizeDirection, WindowChrome } from "./window-chrome";
 
 /**
@@ -29,8 +30,12 @@ export function CanvasContainer({
   className,
 }: CanvasContainerProps) {
   const { state, store } = useWindowStore();
-  const [draggingWindowId, setDraggingWindowId] = React.useState<string | null>(null);
-  const [resizingWindowId, setResizingWindowId] = React.useState<string | null>(null);
+  const [draggingWindowId, setDraggingWindowId] = React.useState<string | null>(
+    null,
+  );
+  const [resizingWindowId, setResizingWindowId] = React.useState<string | null>(
+    null,
+  );
 
   // Handle drag
   const handleDragStart = React.useCallback(
@@ -47,16 +52,26 @@ export function CanvasContainer({
       const startWindowY = win.y;
 
       const handleMouseMove = (moveEvent: MouseEvent) => {
-        const dx = moveEvent.clientX - startX;
-        const dy = moveEvent.clientY - startY;
         const gridSize = state.layout.snapGridSize;
 
-        const newX = Math.round((startWindowX + dx) / gridSize) * gridSize;
-        const newY = Math.round((startWindowY + dy) / gridSize) * gridSize;
+        const pos = computeDragPosition(
+          { x: startWindowX, y: startWindowY },
+          { clientX: startX, clientY: startY },
+          { clientX: moveEvent.clientX, clientY: moveEvent.clientY },
+          gridSize,
+        );
 
         // Move the actual window while also showing snap preview
-        store.moveWindow(windowId, newX, newY);
-        store.setSnapPreview({ windowId, position: { x: newX, y: newY, width: win.width, height: win.height } });
+        store.moveWindow(windowId, pos.x, pos.y);
+        store.setSnapPreview({
+          windowId,
+          position: {
+            x: pos.x,
+            y: pos.y,
+            width: win.width,
+            height: win.height,
+          },
+        });
       };
 
       const handleMouseUp = () => {
@@ -90,53 +105,36 @@ export function CanvasContainer({
       const startWindowY = win.y;
 
       const handleMouseMove = (moveEvent: MouseEvent) => {
-        const dx = moveEvent.clientX - startX;
-        const dy = moveEvent.clientY - startY;
         const gridSize = state.layout.snapGridSize;
 
-        let newWidth = startWidth;
-        let newHeight = startHeight;
-        let newX = startWindowX;
-        let newY = startWindowY;
-
-        // Apply delta based on direction
-        if (direction.includes("e")) newWidth += dx;
-        if (direction.includes("w")) {
-          newWidth -= dx;
-          newX += dx;
-        }
-        if (direction.includes("s")) newHeight += dy;
-        if (direction.includes("n")) {
-          newHeight -= dy;
-          newY += dy;
-        }
-
-        // Minimum size constraints
-        const minWidth = 300;
-        const minHeight = 200;
-        newWidth = Math.max(minWidth, newWidth);
-        newHeight = Math.max(minHeight, newHeight);
-
-        // Snap to grid
-        const snappedWidth = Math.round(newWidth / gridSize) * gridSize;
-        const snappedHeight = Math.round(newHeight / gridSize) * gridSize;
-        const snappedX = Math.round(newX / gridSize) * gridSize;
-        const snappedY = Math.round(newY / gridSize) * gridSize;
+        const g = computeResizeGeometry(
+          {
+            x: startWindowX,
+            y: startWindowY,
+            width: startWidth,
+            height: startHeight,
+          },
+          direction,
+          { clientX: startX, clientY: startY },
+          { clientX: moveEvent.clientX, clientY: moveEvent.clientY },
+          gridSize,
+        );
 
         store.updateWindow(windowId, {
-          width: snappedWidth,
-          height: snappedHeight,
-          x: direction.includes("w") ? snappedX : win.x,
-          y: direction.includes("n") ? snappedY : win.y,
+          width: g.width,
+          height: g.height,
+          x: g.x,
+          y: g.y,
         });
+
         // Show snap preview for resize
         store.setSnapPreview({
           windowId,
           position: {
-            x: direction.includes("w") ? snappedX : win.x,
-            y: direction.includes("n") ? snappedY : win.y,
-            width: snappedWidth,
-            height: snappedHeight,
+            x: g.x,
+            y: g.y,
+            width: g.width,
+            height: g.height,
           },
         });
       };
@@ -182,7 +180,9 @@ export function CanvasContainer({
 
   const handleFocus = React.useCallback(
     (windowId: string) => () => {
-      const window = state.layout.windows.find((entry) => entry.id === windowId);
+      const window = state.layout.windows.find(
+        (entry) => entry.id === windowId,
+      );
       if (!window) {
         return;
       }

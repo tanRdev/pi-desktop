@@ -1,3 +1,4 @@
+import type { ProviderSnapshot, SettingsSnapshot } from "@pidesk/shared";
 import { createShellModel, type ShellModelState } from "@pidesk/shell-model";
 import { useCallback, useEffect, useMemo, useSyncExternalStore } from "react";
 
@@ -66,4 +67,44 @@ export function useShellModel() {
     reset,
     reload,
   };
+}
+
+// Pure helpers expected by tests
+export function parseModelSelectionValue(
+  value: string,
+): { providerId: string; modelId: string } | null {
+  if (!value) return null;
+  const parts = value.split("::");
+  if (parts.length !== 2) return null;
+  const [providerId, modelId] = parts;
+  if (!providerId || !modelId) return null;
+  return { providerId, modelId };
+}
+
+export function resolveCurrentModelValue(
+  providers: ProviderSnapshot[],
+  settings: SettingsSnapshot,
+): string {
+  const providerId =
+    settings.currentProviderId ?? settings.defaultProvider ?? providers[0]?.id;
+  const provider = providers.find((entry) => entry.id === providerId);
+  const modelId =
+    settings.currentModelId ?? settings.defaultModel ?? provider?.models[0]?.id;
+
+  if (!providerId || !modelId) return "";
+  return `${providerId}::${modelId}`;
+}
+
+export function reduceModelSelectionState(
+  state: { isSwitchingModel: boolean },
+  action: { type: "start" | "finish" },
+) {
+  switch (action.type) {
+    case "start":
+      return { ...state, isSwitchingModel: true };
+    case "finish":
+      return { ...state, isSwitchingModel: false };
+    default:
+      return state;
+  }
 }

@@ -17,31 +17,9 @@ import {
   getActiveThread,
   getActiveWorktree,
 } from "@pidesk/shared";
-import {
-  PromptInput,
-  PromptInputAction,
-  PromptInputActions,
-  PromptInputTextarea,
-  TooltipProvider,
-} from "@pidesk/ui";
-import {
-  ArrowUp,
-  FolderTree,
-  GitBranch,
-  StickyNote,
-  Terminal,
-} from "lucide-react";
+import { TooltipProvider } from "@pidesk/ui";
 import * as React from "react";
-import { cn } from "@/lib/utils";
-import {
-  CanvasContainer,
-  ChatWindowContent,
-  FileWindowContent,
-  GraphWindowContent,
-  NoteWindowContent,
-  SearchWindowContent,
-  TerminalWindowContent,
-} from "./components/canvas";
+import { CanvasContainer, WindowContentRouter } from "./components/canvas";
 import { SettingsModal, SettingsProvider } from "./components/settings";
 import { Button } from "./components/ui/button";
 import {
@@ -52,21 +30,31 @@ import {
   DialogTitle,
 } from "./components/ui/dialog";
 import { FileTree } from "./components/ui/file-tree";
-import PromptAutocomplete from "./components/ui/prompt-autocomplete";
 import { ScrollArea } from "./components/ui/scroll-area";
 import { LeftRail } from "./components/workspace/left-rail";
 import { LeftSidebar } from "./components/workspace/left-sidebar";
-import { useShellModel } from "./hooks/use-shell-model";
+import { PromptDock } from "./components/workspace/prompt-dock";
+import { TitleBar } from "./components/workspace/title-bar";
+import {
+  parseModelSelectionValue,
+  reduceModelSelectionState,
+  resolveCurrentModelValue,
+  useShellModel,
+} from "./hooks/use-shell-model";
 import { useWindowStore } from "./hooks/use-window-store";
 import { getLinkColorForId, getLinkColorHex } from "./lib/link-colors";
 import {
   buildFileMention,
+  buildMentionSuggestions,
   buildTerminalMention,
-  expandFileMentions,
-  extractTerminalRoute,
   getPromptAutocompleteMatch,
+  planPromptDispatch,
   replacePromptToken,
 } from "./lib/prompt-routing";
+import {
+  loadLeftSidebarWidth,
+  saveLeftSidebarWidth,
+} from "./lib/sidebar-preferences";
 
 type ThreadConversationState = {
   messages: AgentMessageSnapshot[];
@@ -74,98 +62,11 @@ type ThreadConversationState = {
   lastError: string | null;
 };
 
-function getThreadWindowTitle(thread: ThreadSnapshot | null | undefined): string {
+function getThreadWindowTitle(
+  thread: ThreadSnapshot | null | undefined,
+): string {
   const title = thread?.title.trim();
   return title && title.length > 0 ? title : "Untitled thread";
-}
-
-interface TitleBarProps {
-  sidebarView: "files" | "git" | "notes" | null;
-  setSidebarView: (view: "files" | "git" | "notes" | null) => void;
-  hasOpenNotes: boolean;
-  onOpenLauncher: () => void;
-  onOpenNote: () => void;
-  onOpenGit: () => void;
-  onOpenTerminal: () => void;
-}
-
-function TitleBar({
-  sidebarView,
-  setSidebarView,
-  hasOpenNotes,
-  onOpenLauncher,
-  onOpenNote,
-  onOpenGit,
-  onOpenTerminal,
-}: TitleBarProps) {
-  return (
-    <div
-      data-drag-region="true"
-      className="titlebar relative flex h-10 shrink-0 items-center justify-between bg-surface-1 px-3"
-    >
-      <div className="w-16" />
-      <button
-        type="button"
-        data-no-drag="true"
-        data-testid="app-title"
-        onClick={onOpenLauncher}
-        className="rounded px-2 py-1 text-lg font-semibold tracking-tight text-muted-foreground transition hover:bg-surface-2 hover:text-foreground"
-        title="Pi launcher"
-      >
-        π
-      </button>
-      <div className="flex items-center gap-1">
-        <button
-          type="button"
-          data-no-drag="true"
-          onClick={() =>
-            setSidebarView(sidebarView === "files" ? null : "files")
-          }
-          className={cn(
-            "flex h-7 w-7 items-center justify-center rounded-md transition",
-            sidebarView === "files"
-              ? "bg-surface-3 text-foreground"
-              : "text-muted-foreground hover:bg-surface-2 hover:text-foreground",
-          )}
-          title="Files"
-        >
-          <FolderTree className="size-3.5" />
-        </button>
-        <button
-          type="button"
-          data-no-drag="true"
-          onClick={onOpenGit}
-          className="flex h-7 w-7 items-center justify-center rounded-md transition text-muted-foreground hover:bg-surface-2 hover:text-foreground"
-          title="Git"
-        >
-          <GitBranch className="size-3.5" />
-        </button>
-        <button
-          type="button"
-          data-no-drag="true"
-          onClick={onOpenNote}
-          className={cn(
-            "flex h-7 w-7 items-center justify-center rounded-md transition",
-            hasOpenNotes
-              ? "bg-surface-3 text-foreground"
-              : "text-muted-foreground hover:bg-surface-2 hover:text-foreground",
-          )}
-          title="Notes"
-        >
-          <StickyNote className="size-3.5" />
-        </button>
-        <button
-          type="button"
-          data-no-drag="true"
-          onClick={onOpenTerminal}
-          className="flex h-7 w-7 items-center justify-center rounded-md transition text-muted-foreground hover:bg-surface-2 hover:text-foreground"
-          title="Terminal"
-        >
-          <Terminal className="size-3.5" />
-        </button>
-      </div>
-    </div>
-  );
 }
 
 export default function App() {
@@ -193,11 +94,9 @@ export default function App() {
   const [sidebarView, setSidebarView] = React.useState<
     "files" | "git" | "notes" | null
   >(null);
-  const [leftSidebarWidth, setLeftSidebarWidth] = React.useState(() => {
-    if (typeof window === "undefined") return 180;
-    const saved = localStorage.getItem("pidesk.leftSidebarWidth");
-    return saved ? Math.max(140, Math.min(400, Number(saved))) : 180;
-  });
+  const [leftSidebarWidth, setLeftSidebarWidth] = React.useState(() =>
+    loadLeftSidebarWidth(),
+  );
 
   const [fileContents, setFileContents] = React.useState<
     Map<
@@ -226,7 +125,11 @@ export default function App() {
   >([]);
   const [settingsSnapshot, setSettingsSnapshot] =
     React.useState<SettingsSnapshot>({});
-  const [isSwitchingModel, setIsSwitchingModel] = React.useState(false);
+  const [modelSelectionState, dispatchModelSelectionState] = React.useReducer(
+    reduceModelSelectionState,
+    { isSwitchingModel: false },
+  );
+  const isSwitchingModel = modelSelectionState.isSwitchingModel;
   const [threadConversations, setThreadConversations] = React.useState<
     Map<string, ThreadConversationState>
   >(new Map());
@@ -245,7 +148,7 @@ export default function App() {
 
   const handleLeftSidebarResize = React.useCallback((width: number) => {
     setLeftSidebarWidth(width);
-    localStorage.setItem("pidesk.leftSidebarWidth", String(width));
+    saveLeftSidebarWidth(width);
   }, []);
 
   React.useEffect(() => {
@@ -888,79 +791,7 @@ export default function App() {
         return;
       }
 
-      const query = autocompleteMatch.query.toLowerCase();
-      const mentionSuggestions: MentionSuggestion[] = [];
-      const seenIds = new Set<string>();
-
-      const terminalMentions: MentionSuggestion[] = windowState.layout.windows.flatMap(
-        (window) => {
-          if (window.kind === "terminal") {
-            return [
-              {
-                kind: "terminal",
-                id: window.terminalId,
-                name: window.title,
-                context: window.cwd,
-                linkColor: window.linkColor,
-              },
-            ];
-          }
-          if (window.kind === "git") {
-            return [
-              {
-                kind: "terminal",
-                id: window.terminalId,
-                name: window.title,
-                context: window.repositoryPath,
-                linkColor: window.linkColor,
-              },
-            ];
-          }
-          return [];
-        },
-      );
-
-      for (const suggestion of terminalMentions) {
-        if (
-          query.length === 0 ||
-          suggestion.name.toLowerCase().includes(query) ||
-          suggestion.context?.toLowerCase().includes(query)
-        ) {
-          mentionSuggestions.push(suggestion);
-          seenIds.add(`terminal:${suggestion.id}`);
-        }
-      }
-
-      const openFileMentions: MentionSuggestion[] = windowState.layout.windows.flatMap(
-        (window) => {
-          if (window.kind !== "file") {
-            return [];
-          }
-          return [
-            {
-              kind: "file",
-              id: window.filePath,
-              name: window.title,
-              context: window.filePath,
-            },
-          ];
-        },
-      );
-
-      for (const suggestion of openFileMentions) {
-        if (
-          query.length === 0 ||
-          suggestion.name.toLowerCase().includes(query) ||
-          suggestion.context?.toLowerCase().includes(query)
-        ) {
-          const key = `file:${suggestion.id}`;
-          if (!seenIds.has(key)) {
-            mentionSuggestions.push(suggestion);
-            seenIds.add(key);
-          }
-        }
-      }
-
+      let fileSearchResults: SearchMatch[] = [];
       if (activeWorktreePath && autocompleteMatch.query.trim().length > 0) {
         try {
           const searchResponse = await window.pidesk.search.searchFiles({
@@ -968,26 +799,17 @@ export default function App() {
             rootPath: activeWorktreePath,
             maxResults: 8,
           });
-          for (const match of searchResponse.results) {
-            if (match.type !== "file") {
-              continue;
-            }
-            const key = `file:${match.path}`;
-            if (seenIds.has(key)) {
-              continue;
-            }
-            mentionSuggestions.push({
-              kind: "file",
-              id: match.path,
-              name: match.name,
-              context: match.path,
-            });
-            seenIds.add(key);
-          }
+          fileSearchResults = searchResponse.results;
         } catch (error) {
           console.error("Failed to load file mentions:", error);
         }
       }
+
+      const mentionSuggestions = buildMentionSuggestions({
+        windows: windowState.layout.windows,
+        fileSearchResults,
+        query: autocompleteMatch.query,
+      });
 
       if (!disposed) {
         setAutocompleteSuggestions(mentionSuggestions);
@@ -1081,73 +903,73 @@ export default function App() {
 
   const handleModelSelection = React.useCallback(
     async (event: React.ChangeEvent<HTMLSelectElement>) => {
-      const [providerId, modelId] = event.target.value.split("::");
-      if (!providerId || !modelId) {
+      const selection = parseModelSelectionValue(event.target.value);
+      if (!selection) {
         return;
       }
 
-      setIsSwitchingModel(true);
+      dispatchModelSelectionState({ type: "start" });
       try {
-        await window.pidesk.agent.switchModel({ providerId, modelId });
+        await window.pidesk.agent.switchModel(selection);
         await loadModelState();
         await reload();
       } catch (error) {
         console.error("Failed to switch model:", error);
       } finally {
-        setIsSwitchingModel(false);
+        dispatchModelSelectionState({ type: "finish" });
       }
     },
     [loadModelState, reload],
   );
 
   const handleSend = React.useCallback(async () => {
-    if (!canSend || !activeThreadId) return;
+    const dispatchPlan = planPromptDispatch({
+      draft,
+      canSend,
+      activeThreadId,
+    });
 
-    const expandedPrompt = expandFileMentions(draft);
-    const routedPrompt = extractTerminalRoute(expandedPrompt);
-    if (routedPrompt.terminalIds.length > 0) {
-      const terminalId = routedPrompt.terminalIds[0];
-      if (!terminalId || !routedPrompt.prompt.trim()) {
-        return;
-      }
+    if (dispatchPlan.action === "noop") {
+      return;
+    }
+
+    if (dispatchPlan.action === "route") {
       try {
         await window.pidesk.threads.routeToTerminal({
-          terminalId,
-          prompt: routedPrompt.prompt,
+          terminalId: dispatchPlan.terminalId,
+          prompt: dispatchPlan.prompt,
           startPiIfNotLinked: true,
         });
-        setDraft("");
+        setDraft(dispatchPlan.nextDraft);
       } catch (error) {
         console.error("Failed to route prompt to terminal:", error);
       }
       return;
     }
 
-    if (expandedPrompt !== draft) {
-      setDraft(expandedPrompt);
+    if (dispatchPlan.nextDraft !== draft) {
+      setDraft(dispatchPlan.nextDraft);
     }
 
-    openOrFocusChatWindow(activeThreadId);
+    openOrFocusChatWindow(dispatchPlan.threadId);
     sendPrompt();
-  }, [activeThreadId, canSend, draft, openOrFocusChatWindow, sendPrompt, setDraft]);
+  }, [
+    activeThreadId,
+    canSend,
+    draft,
+    openOrFocusChatWindow,
+    sendPrompt,
+    setDraft,
+  ]);
 
   const runtimeMode = shell.runtime?.agentMode ?? "unknown";
   const runtimeModeLabel = `${runtimeMode} mode`;
   const displayAgentStatus =
     agent.status === "starting" ? "ready" : agent.status;
-  const currentModelValue = React.useMemo(() => {
-    const providerId =
-      settingsSnapshot.currentProviderId ??
-      settingsSnapshot.defaultProvider ??
-      providerSnapshots[0]?.id;
-    const provider = providerSnapshots.find((entry) => entry.id === providerId);
-    const modelId =
-      settingsSnapshot.currentModelId ??
-      settingsSnapshot.defaultModel ??
-      provider?.models[0]?.id;
-
-    return providerId && modelId ? `${providerId}::${modelId}` : "";
-  }, [providerSnapshots, settingsSnapshot]);
+  const currentModelValue = React.useMemo(
+    () => resolveCurrentModelValue(providerSnapshots, settingsSnapshot),
+    [providerSnapshots, settingsSnapshot],
+  );
 
   const graphNodes = React.useMemo(() => {
     const nodes = windowState.layout.windows.map((window) => ({
@@ -1264,142 +1086,36 @@ export default function App() {
                   onWindowFocus={(window) => {
                     void handleWindowFocus(window);
                   }}
-                  renderWindowContent={(win) => {
-                    if (win.kind === "file") {
-                      const fileData = fileContents.get(win.id);
-                      return (
-                        <FileWindowContent
-                          filePath={win.filePath}
-                          content={fileData?.content ?? null}
-                          isLoading={fileData?.isLoading}
-                          error={fileData?.error}
-                          isDirty={win.isDirty}
-                          isReadOnly={win.isReadOnly}
-                          onContentChange={(content) =>
-                            handleFileContentChange(win.id, content)
-                          }
-                          onSave={() => handleFileSave(win.id, win.filePath)}
-                        />
-                      );
-                    }
-                    if (win.kind === "chat") {
-                      const conversation =
-                        win.threadId === activeThreadId
-                          ? {
-                              messages: agent.messages,
-                              status: agent.status,
-                              lastError: agent.lastError,
-                            }
-                          : (threadConversations.get(win.threadId) ?? {
-                              messages: [],
-                              status: "idle",
-                              lastError: null,
-                            });
-
-                      return (
-                        <ChatWindowContent
-                          threadTitle={getThreadWindowTitle(
-                            threadLookup.get(win.threadId),
-                          )}
-                          isActiveThread={win.threadId === activeThreadId}
-                          messages={conversation.messages}
-                          isStreaming={
-                            win.threadId === activeThreadId &&
-                            conversation.status === "streaming"
-                          }
-                          lastError={conversation.lastError}
-                          className="h-full"
-                        />
-                      );
-                    }
-                    if (win.kind === "note") {
-                      const noteData = noteContents.get(win.id);
-                      return (
-                        <NoteWindowContent
-                          window={win}
-                          content={noteData?.content ?? ""}
-                          onContentChange={(content) =>
-                            handleNoteContentChange(win.id, content)
-                          }
-                          onSave={() => handleNoteSave(win.id, win.storagePath)}
-                        />
-                      );
-                    }
-                    if (win.kind === "terminal") {
-                      return (
-                        <TerminalWindowContent
-                          terminalId={win.terminalId}
-                          cwd={win.cwd}
-                          backend={win.backend}
-                          linkedThreadId={win.linkedThreadId}
-                          ownerWindowId={win.id}
-                        />
-                      );
-                    }
-                    if (win.kind === "git") {
-                      return (
-                        <TerminalWindowContent
-                          terminalId={win.terminalId}
-                          cwd={win.repositoryPath}
-                          backend="lazygit"
-                          ownerWindowId={win.id}
-                        />
-                      );
-                    }
-                    if (win.kind === "search") {
-                      const uiState = searchUiState.get(win.id);
-                      return (
-                        <SearchWindowContent
-                          query={win.query}
-                          results={win.results}
-                          isLoading={uiState?.isLoading}
-                          selectedIndex={uiState?.selectedIndex}
-                          onQueryChange={(query) =>
-                            void handleSearchQueryChange(win.id, query)
-                          }
-                          onSelect={handleSearchSelect}
-                          onHover={(index) => handleSearchHover(win.id, index)}
-                          onKeyDown={handleSearchKeyDown(win.id)}
-                          autoFocus={win.isFocused}
-                          actions={[
-                            {
-                              id: "terminal",
-                              label: "Terminal",
-                              onSelect: handleOpenTerminal,
-                            },
-                            {
-                              id: "git",
-                              label: "Git",
-                              onSelect: handleOpenGit,
-                            },
-                            {
-                              id: "note",
-                              label: "Note",
-                              onSelect: handleOpenNote,
-                            },
-                            {
-                              id: "graph",
-                              label: "Graph",
-                              onSelect: handleOpenGraph,
-                            },
-                          ]}
-                        />
-                      );
-                    }
-                    if (win.kind === "graph") {
-                      return (
-                        <GraphWindowContent
-                          nodes={graphNodes}
-                          links={graphLinks}
-                        />
-                      );
-                    }
-                    return (
-                      <div className="p-4 text-muted-foreground">
-                        Window type: {win.kind}
-                      </div>
-                    );
-                  }}
+                  renderWindowContent={(win) => (
+                    <WindowContentRouter
+                      win={win}
+                      activeThreadId={activeThreadId}
+                      agent={{
+                        messages: agent.messages,
+                        status: agent.status,
+                        lastError: agent.lastError,
+                      }}
+                      threadLookup={threadLookup}
+                      threadConversations={threadConversations}
+                      fileContents={fileContents}
+                      noteContents={noteContents}
+                      searchUiState={searchUiState}
+                      graphNodes={graphNodes}
+                      graphLinks={graphLinks}
+                      onFileContentChange={handleFileContentChange}
+                      onFileSave={handleFileSave}
+                      onNoteContentChange={handleNoteContentChange}
+                      onNoteSave={handleNoteSave}
+                      onSearchQueryChange={handleSearchQueryChange}
+                      onSearchSelect={handleSearchSelect}
+                      onSearchHover={handleSearchHover}
+                      onSearchKeyDown={handleSearchKeyDown}
+                      onOpenTerminal={handleOpenTerminal}
+                      onOpenGit={handleOpenGit}
+                      onOpenNote={handleOpenNote}
+                      onOpenGraph={handleOpenGraph}
+                    />
+                  )}
                 />
                 {windowState.layout.windows.length === 0 ? (
                   <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-8">
@@ -1418,93 +1134,27 @@ export default function App() {
               </div>
 
               {/* Input area */}
-              <div className="relative z-20 bg-gradient-to-t from-background to-transparent pb-6 pt-4">
-                <div className="mx-auto max-w-4xl px-6">
-                  <PromptInput
-                    value={draft}
-                    onValueChange={setDraft}
-                    onSubmit={() => void handleSend()}
-                    className="rounded-xl bg-surface-1/80 p-4 shadow-sm backdrop-blur-sm"
-                  >
-                    <PromptInputTextarea
-                      data-testid="chat-input"
-                      placeholder={
-                        activeThreadId
-                          ? "Ask Pi, use / for skills, @ for files or terminals..."
-                          : "Select a thread to start..."
-                      }
-                      disabled={!activeThreadId}
-                      onKeyDown={handlePromptKeyDown}
-                      className="min-h-24 resize-none border-0 bg-transparent text-base leading-relaxed text-foreground placeholder:text-muted-foreground outline-none focus-visible:ring-0 disabled:opacity-50"
-                    />
-                    <PromptAutocomplete
-                      visible={autocompleteSuggestions.length > 0}
-                      suggestions={autocompleteSuggestions}
-                      selectedIndex={autocompleteSelectedIndex}
-                      onSelect={handleAutocompleteSelect}
-                      onHover={setAutocompleteSelectedIndex}
-                      className="absolute left-6 right-6 top-full mt-2"
-                    />
-                    <PromptInputActions className="mt-3 items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span
-                          data-testid="agent-status"
-                          className="rounded border border-border bg-surface-1 px-2 py-1 text-[10px] text-muted-foreground"
-                        >
-                          {displayAgentStatus}
-                        </span>
-                        {activeThread ? (
-                          <span className="rounded border border-border bg-surface-1 px-2 py-1 text-[10px] text-muted-foreground">
-                            Chat · {getThreadWindowTitle(activeThread)}
-                          </span>
-                        ) : null}
-                        <span className="rounded border border-border bg-surface-1 px-2 py-1 text-[10px] text-muted-foreground">
-                          {runtimeModeLabel}
-                        </span>
-                        <select
-                          value={currentModelValue}
-                          onChange={(event) => void handleModelSelection(event)}
-                          disabled={
-                            isSwitchingModel || providerSnapshots.length === 0
-                          }
-                          className="rounded border border-border bg-surface-1 px-2 py-1 text-[10px] text-muted-foreground outline-none"
-                        >
-                          {providerSnapshots.map((provider) => (
-                            <optgroup key={provider.id} label={provider.name}>
-                              {provider.models.map((model) => (
-                                <option
-                                  key={`${provider.id}:${model.id}`}
-                                  value={`${provider.id}::${model.id}`}
-                                >
-                                  {model.name}
-                                </option>
-                              ))}
-                            </optgroup>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-[0.7rem] text-zinc-500">
-                          Enter to send
-                        </span>
-                        <PromptInputAction tooltip="Send message">
-                          <Button
-                            type="button"
-                            data-testid="chat-send"
-                            variant="ghost"
-                            size="icon"
-                            disabled={!canSend}
-                            onClick={() => void handleSend()}
-                            className="size-8 rounded-lg border border-white/8 bg-white/[0.06] text-zinc-200 hover:bg-white/[0.10] disabled:opacity-50"
-                          >
-                            <ArrowUp className="size-4" />
-                          </Button>
-                        </PromptInputAction>
-                      </div>
-                    </PromptInputActions>
-                  </PromptInput>
-                </div>
-              </div>
+              <PromptDock
+                draft={draft}
+                onDraftChange={setDraft}
+                onSend={handleSend}
+                activeThreadId={activeThreadId}
+                activeThreadTitle={
+                  activeThread ? getThreadWindowTitle(activeThread) : null
+                }
+                canSend={canSend}
+                autocompleteSuggestions={autocompleteSuggestions}
+                autocompleteSelectedIndex={autocompleteSelectedIndex}
+                onAutocompleteSelect={handleAutocompleteSelect}
+                onAutocompleteHover={setAutocompleteSelectedIndex}
+                onPromptKeyDown={handlePromptKeyDown}
+                displayAgentStatus={displayAgentStatus}
+                runtimeModeLabel={runtimeModeLabel}
+                providerSnapshots={providerSnapshots}
+                currentModelValue={currentModelValue}
+                isSwitchingModel={isSwitchingModel}
+                onModelSelection={handleModelSelection}
+              />
             </main>
 
             {/* Right sidebar */}
