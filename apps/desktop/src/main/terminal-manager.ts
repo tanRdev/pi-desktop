@@ -1,5 +1,8 @@
-import { spawn, spawnSync } from "node:child_process";
-import { createRequire } from "node:module";
+import {
+  spawn as defaultSpawn,
+  spawnSync as defaultSpawnSync,
+} from "node:child_process";
+import { createRequire as defaultCreateRequire } from "node:module";
 import type {
   TerminalBackend,
   TerminalCreateOptions,
@@ -9,7 +12,7 @@ import { IPC_CHANNELS } from "@pidesk/shared";
 import type { BrowserWindow } from "electron";
 import { createTmuxThreadSessionName } from "./tmux-session-naming";
 
-const nodeRequire = createRequire(import.meta.url);
+const nodeRequire = defaultCreateRequire(import.meta.url);
 
 type PtyModule = typeof import("node-pty");
 
@@ -18,7 +21,7 @@ interface TerminalInstance {
   // node-pty IPty when used to attach to tmux or spawn a local shell
   pty?: import("node-pty").IPty | null;
   // fallback child process when node-pty is not available
-  childProcess?: ReturnType<typeof spawn> | null;
+  childProcess?: ReturnType<typeof defaultSpawn> | null;
   // tmux session name if backed by tmux
   tmuxSessionName?: string | null;
 }
@@ -31,17 +34,38 @@ function sanitizeSessionName(id: string): string {
   return `pidesk-term-${sanitized}`.slice(0, 48);
 }
 
-class TerminalManager {
+export class TerminalManager {
   private terminals: Map<string, TerminalInstance> = new Map();
   private mainWindow: BrowserWindow | null = null;
   private ptyModule: PtyModule | null = null;
   private initError: Error | null = null;
   private tmuxBinary = "tmux";
+  // injectable runtime dependencies (defaults used in production)
+  private spawnFn: typeof defaultSpawn;
+  private spawnSyncFn: typeof defaultSpawnSync;
+  private nodeRequireFn: (id: string) => any;
+
+  constructor(deps?: {
+    spawn?: typeof defaultSpawn;
+    spawnSync?: typeof defaultSpawnSync;
+    nodeRequire?: (id: string) => any;
+    ptyModule?: PtyModule | null;
+    tmuxBinary?: string;
+  }) {
+    this.spawnFn = deps?.spawn ?? defaultSpawn;
+    this.spawnSyncFn = deps?.spawnSync ?? defaultSpawnSync;
+    this.nodeRequireFn = deps?.nodeRequire ?? ((id: string) => nodeRequire(id));
+    if (deps?.ptyModule !== undefined) {
+      this.ptyModule = deps.ptyModule ?? null;
+    }
+    if (deps?.tmuxBinary) this.tmuxBinary = deps.tmuxBinary;
+  }
 
   initialize(): void {
     try {
       // Use require for native modules with electron-vite
-      this.ptyModule = nodeRequire("node-pty");
+      // Allow injected nodeRequire for tests
+      this.ptyModule = this.ptyModule ?? this.nodeRequireFn("node-pty");
     } catch (error) {
       this.initError =
         error instanceof Error ? error : new Error("Failed to load node-pty");
@@ -64,8 +88,10 @@ class TerminalManager {
 
   private hasTmux(): boolean {
     try {
-      const result = spawnSync(this.tmuxBinary, ["-V"], { encoding: "utf8" });
-      return result.status === 0 && result.error == null;
+      const result = this.spawnSyncFn(this.tmuxBinary, ["-V"], {
+        encoding: "utf8",
+      });
+      return result.status === 0 && (result as any).error == null;
     } catch {
       return false;
     }
@@ -73,15 +99,19 @@ class TerminalManager {
 
   private runTmux(args: string[], cwd?: string) {
     try {
-      const result = spawnSync(this.tmuxBinary, args, {
+      const result = this.spawnSyncFn(this.tmuxBinary, args, {
         cwd,
         encoding: "utf8",
-      });
+      }) as ReturnType<typeof defaultSpawnSync> & {
+        stdout?: unknown;
+        stderr?: unknown;
+        error?: unknown;
+      };
       return {
         status: result.status ?? 1,
         stdout: String(result.stdout ?? ""),
         stderr: String(result.stderr ?? ""),
-        error: result.error ?? null,
+        error: (result as any).error ?? null,
       };
     } catch (error: unknown) {
       return {
@@ -177,7 +207,7 @@ class TerminalManager {
       }
 
       // Fallback to child_process streams (no pty). We still stream data and allow resizing via tmux commands.
-      const child = spawn(attachCmd.program, attachCmd.args, { cwd });
+      const child = this.spawnFn(attachCmd.program, attachCmd.args, { cwd });
       instance.childProcess = child;
       instance.tmuxSessionName = tmuxSessionName ?? null;
 
