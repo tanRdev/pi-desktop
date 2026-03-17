@@ -1,5 +1,5 @@
 import type { WorktreeGitSnapshot } from "@pidesk/shared";
-import { AlertCircle, Loader2, Pencil, RefreshCw } from "lucide-react";
+import { AlertCircle, Loader2, Pencil, RefreshCw } from "@/components/ui/icons";
 import type * as React from "react";
 import { cn } from "@/lib/utils";
 
@@ -17,17 +17,17 @@ export function GitStatusChip({ git, className }: GitStatusChipProps) {
   // Not ready states
   if (git.status !== "ready") {
     const statusIcons: Record<string, React.ReactNode> = {
-      loading: <Loader2 className="h-3 w-3 animate-spin text-amber-400" />,
-      error: <AlertCircle className="h-3 w-3 text-rose-400" />,
-      disconnected: <RefreshCw className="h-3 w-3 text-amber-400" />,
-      starting: <Loader2 className="h-3 w-3 animate-spin text-sky-400" />,
-      missing: <AlertCircle className="h-3 w-3 text-rose-400" />,
-      unavailable: <RefreshCw className="h-3 w-3 text-amber-400" />,
+      loading: <Loader2 className="h-3 w-3 animate-spin text-amber-400"/>,
+      error: <AlertCircle className="h-3 w-3 text-rose-400"/>,
+      disconnected: <RefreshCw className="h-3 w-3 text-amber-400"/>,
+      starting: <Loader2 className="h-3 w-3 animate-spin text-sky-400"/>,
+      missing: <AlertCircle className="h-3 w-3 text-rose-400"/>,
+      unavailable: <RefreshCw className="h-3 w-3 text-amber-400"/>,
     };
     return (
       <span className={cn("shrink-0", className)}>
         {statusIcons[git.status] ?? (
-          <RefreshCw className="h-3 w-3 text-amber-400" />
+          <RefreshCw className="h-3 w-3 text-amber-400"/>
         )}
       </span>
     );
@@ -37,7 +37,7 @@ export function GitStatusChip({ git, className }: GitStatusChipProps) {
   if (git.hasChanges) {
     return (
       <span className={cn("shrink-0", className)}>
-        <Pencil className="h-3 w-3 text-rose-400" />
+        <Pencil className="h-3 w-3 text-rose-400"/>
       </span>
     );
   }
@@ -45,7 +45,7 @@ export function GitStatusChip({ git, className }: GitStatusChipProps) {
   // Ahead/behind only - show sync icon
   return (
     <span className={cn("shrink-0", className)}>
-      <RefreshCw className="h-3 w-3 text-emerald-400" />
+      <RefreshCw className="h-3 w-3 text-emerald-400"/>
     </span>
   );
 }

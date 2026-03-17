@@ -5,6 +5,8 @@
 import type { CanvasWindow } from "@pidesk/shared";
 import type * as React from "react";
 import { cn } from "@/lib/utils";
+import { HugeiconsIcon } from '@hugeicons/react';
+import { Link01Icon, Cancel01Icon } from '@hugeicons/core-free-icons';
 
 /**
  * Props for WindowChrome component.
@@ -28,6 +30,12 @@ export interface WindowChromeProps {
   onResizeStart?: (e: React.MouseEvent, direction: ResizeDirection) => void;
   /** Additional class name */
   className?: string;
+  /** Called when link button is clicked (terminal windows only) */
+  onLink?: () => void;
+  /** Whether this terminal is linked to the chatbox */
+  isLinked?: boolean;
+  /** Link color for the glow ring */
+  linkedColor?: string;
 }
 
 /**
@@ -47,6 +55,9 @@ export function WindowChrome({
   onToggleMaximize,
   onDragStart,
   onResizeStart,
+  onLink,
+  isLinked,
+  linkedColor,
   className,
 }: WindowChromeProps) {
   const isMaximized = window.state === "maximized";
@@ -56,7 +67,8 @@ export function WindowChrome({
     <div
       className={cn(
         "absolute flex flex-col overflow-hidden rounded-lg border border-border bg-surface-1 shadow-lg transition-shadow",
-        window.isFocused && "shadow-xl ring-1 ring-neutral-200/50",
+        window.isFocused && "shadow-2xl ring-2 ring-white/30 shadow-white/10",
+        isLinked && linkedColor && "ring-2 shadow-lg",
         isMinimized && "opacity-50",
         className,
       )}
@@ -64,8 +76,12 @@ export function WindowChrome({
         left: window.x,
         top: window.y,
         width: window.width,
-        height: isMinimized ? 40 : window.height,
+        height: isMinimized ? 28 : window.height,
         zIndex: window.zIndex,
+        ...(isLinked && linkedColor ? {
+          outline: `2px solid ${linkedColor}80`,
+          boxShadow: `0 0 0 2px ${linkedColor}40, 0 0 24px ${linkedColor}30`
+        } : {})
       }}
       onMouseDown={onFocus}
       data-window-id={window.id}
@@ -74,47 +90,66 @@ export function WindowChrome({
       {/* Title bar */}
       <div
         className={cn(
-          "relative flex h-10 shrink-0 items-center border-b border-border px-3 select-none",
-          "bg-gradient-to-b from-surface-2 to-surface-1 cursor-move",
+          "relative flex h-7 shrink-0 items-center border-b border-border px-2 select-none",
+          "bg-surface-2 cursor-move",
         )}
         onMouseDown={onDragStart}
         data-drag-handle
       >
-        {/* Left: traffic lights (Mac-style) */}
+        {/* Left: traffic lights */}
         <div className="absolute left-3 z-10 flex items-center gap-2">
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onClose?.(); }}
             title="Close"
             aria-label="Close window"
-            className="h-3.5 w-3.5 rounded-full bg-red-500 hover:brightness-95 focus:outline-none"
+            className="h-2.5 w-2.5 rounded-full bg-red-500 hover:brightness-95 focus:outline-none"
           />
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onMinimize?.(); }}
             title="Minimize"
             aria-label="Minimize window"
-            className="h-3.5 w-3.5 rounded-full bg-amber-400 hover:brightness-95 focus:outline-none"
+            className="h-2.5 w-2.5 rounded-full bg-amber-400 hover:brightness-95 focus:outline-none"
           />
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onToggleMaximize?.(); }}
-            title={isMaximized ? "Restore" : "Maximize"}
+            title={isMaximized ? 'Restore' : 'Maximize'}
             aria-label="Maximize or restore window"
-            className="h-3.5 w-3.5 rounded-full bg-emerald-500 hover:brightness-95 focus:outline-none"
+            className="h-2.5 w-2.5 rounded-full bg-emerald-500 hover:brightness-95 focus:outline-none"
           />
         </div>
 
         {/* Center: title (keeps centered even when dirty) */}
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-6">
           <div className="min-w-0 flex items-center gap-2">
-            <span className="truncate text-xs font-medium text-foreground">
+            <span className="truncate text-[11px] font-medium text-foreground font-[var(--app-font-mono)]">
               {window.title}
               {"isDirty" in window && window.isDirty && (
                 <span className="ml-1 text-foreground">●</span>
               )}
             </span>
           </div>
+        </div>
+
+        {/* Right: per-kind actions */}
+        <div className="absolute right-3 z-10 flex items-center gap-1.5">
+          {window.kind === 'terminal' && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onLink?.(); }}
+              title={isLinked ? 'Unlink from chatbox' : 'Link to chatbox'}
+              aria-label={isLinked ? 'Unlink terminal from chatbox' : 'Link terminal to chatbox'}
+              className={cn(
+                'flex h-4 w-4 items-center justify-center rounded text-muted-foreground transition-colors hover:text-foreground focus:outline-none',
+                isLinked && 'text-foreground'
+              )}
+              style={isLinked && linkedColor ? { color: linkedColor } : undefined}
+            >
+              {isLinked ? <HugeiconsIcon icon={Cancel01Icon} className="h-3 w-3" /> : <HugeiconsIcon icon={Link01Icon} className="h-3 w-3" />}
+            </button>
+          )}
         </div>
 
         {/* NOTE: top-right controls intentionally removed for floating windows */}
@@ -131,13 +166,13 @@ export function WindowChrome({
         <>
           {/* Edges (wider hit targets for usability) */}
           <div
-            className="absolute left-0 top-10 w-3 cursor-ew-resize"
-            style={{ height: "calc(100% - 2.5rem)" }}
+            className="absolute left-0 top-7 w-3 cursor-ew-resize"
+            style={{ height: "calc(100% - 1.75rem)" }}
             onMouseDown={(e) => onResizeStart?.(e, "w")}
           />
           <div
-            className="absolute right-0 top-10 w-3 cursor-ew-resize"
-            style={{ height: "calc(100% - 2.5rem)" }}
+            className="absolute right-0 top-7 w-3 cursor-ew-resize"
+            style={{ height: "calc(100% - 1.75rem)" }}
             onMouseDown={(e) => onResizeStart?.(e, "e")}
           />
           <div
@@ -146,7 +181,7 @@ export function WindowChrome({
             onMouseDown={(e) => onResizeStart?.(e, "s")}
           />
           <div
-            className="absolute left-0 right-0 top-10 h-3 cursor-ns-resize"
+            className="absolute left-0 right-0 top-7 h-3 cursor-ns-resize"
             onMouseDown={(e) => onResizeStart?.(e, "n")}
           />
 
@@ -160,11 +195,11 @@ export function WindowChrome({
             onMouseDown={(e) => onResizeStart?.(e, "se")}
           />
           <div
-            className="absolute left-0 top-10 h-4 w-4 cursor-nw-resize"
+            className="absolute left-0 top-7 h-4 w-4 cursor-nw-resize"
             onMouseDown={(e) => onResizeStart?.(e, "nw")}
           />
           <div
-            className="absolute right-0 top-10 h-4 w-4 cursor-ne-resize"
+            className="absolute right-0 top-7 h-4 w-4 cursor-ne-resize"
             onMouseDown={(e) => onResizeStart?.(e, "ne")}
           />
         </>

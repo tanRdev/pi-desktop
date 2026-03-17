@@ -1,5 +1,5 @@
 import type { WorktreeSnapshot } from "@pidesk/shared";
-import { ChevronDown, ChevronRight, GitBranch, Plus } from "lucide-react";
+import { ChevronDown, ChevronRight, GitBranch, Plus } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { GitStatusChip } from "./git-status-chip";
@@ -13,6 +13,7 @@ export interface WorktreeSectionProps {
   onToggleExpand: () => void;
   onSelectThread: (threadId: string) => void;
   onCreateThread: () => void;
+  onArchiveThread?: (threadId: string) => void;
 }
 
 export function WorktreeSection({
@@ -23,6 +24,7 @@ export function WorktreeSection({
   onToggleExpand,
   onSelectThread,
   onCreateThread,
+  onArchiveThread,
 }: WorktreeSectionProps) {
   const isActive = worktree.id === activeWorktreeId;
   const activeThreadCount = worktree.threads.filter(
@@ -90,6 +92,7 @@ export function WorktreeSection({
                   thread={thread}
                   isActive={thread.id === activeThreadId}
                   onClick={() => onSelectThread(thread.id)}
+                  onArchive={() => onArchiveThread?.(thread.id)}
                 />
               ))}
 

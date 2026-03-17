@@ -1,6 +1,7 @@
 "use client";
 
-import { MessageSquare, Plus } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Message01Icon as MessageSquare, PlusSignIcon as Plus } from "@hugeicons/core-free-icons";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { CodeBlockCode } from "./code-block";
@@ -298,7 +299,7 @@ export function CodeLineViewer({
                     )}
                     aria-label={`Select line ${lineNumber}`}
                   >
-                    <Plus className="size-3.5" />
+                    <HugeiconsIcon icon={Plus} className="size-3.5" />
                   </button>
 
                   {/* Line number */}
@@ -344,7 +345,7 @@ export function CodeLineViewer({
               onClick={handleAddToChat}
               className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-popover-foreground transition hover:bg-accent"
             >
-              <MessageSquare className="size-3" />
+              <HugeiconsIcon icon={MessageSquare} className="size-3" />
               Add to chat
             </button>
             <span className="px-2 py-1.5 text-xs text-muted-foreground">

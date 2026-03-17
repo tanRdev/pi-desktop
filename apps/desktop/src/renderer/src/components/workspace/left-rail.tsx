@@ -1,5 +1,5 @@
 import type { RepositorySnapshot } from "@pidesk/shared";
-import { Plus, Settings } from "lucide-react";
+import { PanelLeft, Plus, Settings } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { ProjectAvatar } from "./project-avatar";
@@ -10,6 +10,8 @@ export interface LeftRailProps {
   onSelectRepository: (repositoryId: string) => void;
   onAddRepository: () => void;
   onOpenSettings: () => void;
+  onToggleSidebar?: () => void;
+  isSidebarVisible?: boolean;
 }
 
 export function LeftRail({
@@ -18,6 +20,8 @@ export function LeftRail({
   onSelectRepository,
   onAddRepository,
   onOpenSettings,
+  onToggleSidebar,
+  isSidebarVisible,
 }: LeftRailProps) {
   return (
     <aside
@@ -26,7 +30,7 @@ export function LeftRail({
       )}
     >
       {/* Project avatars area */}
-      <div className="flex flex-1 flex-col gap-2 overflow-y-auto px-2 pt-3">
+      <div className="flex flex-1 flex-col gap-[1px] overflow-y-auto py-2">
         {repositories.map((repository) => (
           <ProjectAvatar
             key={repository.id}
@@ -37,8 +41,20 @@ export function LeftRail({
         ))}
       </div>
 
-      {/* Bottom actions - Add and Settings */}
+      {/* Bottom actions */}
       <div className="flex flex-col items-center gap-2 border-t border-border px-2 py-3">
+        {!isSidebarVisible ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 rounded-lg text-muted-foreground hover:bg-surface-2 hover:text-foreground"
+            onClick={() => onToggleSidebar?.()}
+            aria-label="Show sidebar"
+          >
+            <PanelLeft className="h-5 w-5" />
+          </Button>
+        ) : null}
         <Button
           type="button"
           variant="ghost"

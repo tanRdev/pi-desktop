@@ -16,6 +16,10 @@ export interface CanvasContainerProps {
   renderWindowContent: (window: CanvasWindow) => React.ReactNode;
   /** Called after a window receives focus */
   onWindowFocus?: (window: CanvasWindow) => void;
+  /** ID of the terminal window currently linked to the chatbox */
+  linkedTerminalWindowId?: string | null;
+  /** Called when a terminal link button is toggled */
+  onLinkTerminal?: (windowId: string | null) => void;
   /** Additional class name */
   className?: string;
 }
@@ -26,11 +30,55 @@ export interface CanvasContainerProps {
 export function CanvasContainer({
   renderWindowContent,
   onWindowFocus,
+  linkedTerminalWindowId,
+  onLinkTerminal,
   className,
 }: CanvasContainerProps) {
   const { state, store } = useWindowStore();
   const [draggingWindowId, setDraggingWindowId] = React.useState<string | null>(null);
   const [resizingWindowId, setResizingWindowId] = React.useState<string | null>(null);
+
+  // Pan & zoom state
+  const containerRef = React.useRef<HTMLDivElement | null>(null);
+  const [zoom, setZoom] = React.useState<number>(0.85);
+  const [panX, setPanX] = React.useState<number>(0);
+  const [panY, setPanY] = React.useState<number>(0);
+  const zoomRef = React.useRef(zoom);
+  const panXRef = React.useRef(panX);
+  const panYRef = React.useRef(panY);
+  React.useEffect(() => { zoomRef.current = zoom; }, [zoom]);
+  React.useEffect(() => { panXRef.current = panX; }, [panX]);
+  React.useEffect(() => { panYRef.current = panY; }, [panY]);
+
+  // Wheel handler: ctrl/meta + wheel = zoom, otherwise pan. Use addEventListener with passive:false.
+  React.useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const handler = (e: WheelEvent) => {
+      // Zoom when Ctrl (or Meta) is pressed (pinch gesture on some trackpads)
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        const deltaY = e.deltaY;
+        const currentZoom = zoomRef.current;
+        let newZoom = currentZoom * (1 + deltaY * -0.001);
+        const minZoom = 0.05;
+        const maxZoom = Math.max(2, 1 + state.layout.windows.length * 0.5);
+        newZoom = Math.max(minZoom, Math.min(maxZoom, newZoom));
+        setZoom(newZoom);
+        return;
+      }
+      // Pan otherwise
+      e.preventDefault();
+      const dx = e.deltaX;
+      const dy = e.deltaY;
+      const currentZoom = zoomRef.current || 1;
+      // Divide pan deltas by zoom so panning feels consistent across zoom levels
+      setPanX((prev) => prev - dx / currentZoom);
+      setPanY((prev) => prev - dy / currentZoom);
+    };
+    el.addEventListener("wheel", handler, { passive: false });
+    return () => el.removeEventListener("wheel", handler);
+  }, [state.layout.windows.length]);
 
   // Handle drag
   const handleDragStart = React.useCallback(
@@ -47,8 +95,8 @@ export function CanvasContainer({
       const startWindowY = win.y;
 
       const handleMouseMove = (moveEvent: MouseEvent) => {
-        const dx = moveEvent.clientX - startX;
-        const dy = moveEvent.clientY - startY;
+        const dx = (moveEvent.clientX - startX) / zoomRef.current;
+        const dy = (moveEvent.clientY - startY) / zoomRef.current;
         const gridSize = state.layout.snapGridSize;
 
         const newX = Math.round((startWindowX + dx) / gridSize) * gridSize;
@@ -90,8 +138,8 @@ export function CanvasContainer({
       const startWindowY = win.y;
 
       const handleMouseMove = (moveEvent: MouseEvent) => {
-        const dx = moveEvent.clientX - startX;
-        const dy = moveEvent.clientY - startY;
+        const dx = (moveEvent.clientX - startX) / zoomRef.current;
+        const dy = (moveEvent.clientY - startY) / zoomRef.current;
         const gridSize = state.layout.snapGridSize;
 
         let newWidth = startWidth;
@@ -192,42 +240,91 @@ export function CanvasContainer({
     [onWindowFocus, state.layout.windows, store],
   );
 
+  // Background mousedown: blur focused window OR start drag-to-pan when nothing is focused.
+  const handleBackgroundMouseDown = React.useCallback(
+    (e: React.MouseEvent) => {
+      // Ignore clicks that originated inside a canvas window.
+      if ((e.target as Element).closest('[data-window-id]')) return;
+
+      if (state.layout.focusedWindowId !== null) {
+        // A window is focused — clicking the background unfocuses it.
+        store.blurAll();
+        return;
+      }
+
+      // No focused window — start free drag-to-pan.
+      e.preventDefault();
+      const startX = e.clientX;
+      const startY = e.clientY;
+      const startPanX = panXRef.current;
+      const startPanY = panYRef.current;
+
+      const handleMouseMove = (moveEvent: MouseEvent) => {
+        setPanX(startPanX + (moveEvent.clientX - startX));
+        setPanY(startPanY + (moveEvent.clientY - startY));
+      };
+
+      const handleMouseUp = () => {
+        globalThis.window.removeEventListener('mousemove', handleMouseMove);
+        globalThis.window.removeEventListener('mouseup', handleMouseUp);
+      };
+
+      globalThis.window.addEventListener('mousemove', handleMouseMove);
+      globalThis.window.addEventListener('mouseup', handleMouseUp);
+    },
+    [panXRef, panYRef, state.layout.focusedWindowId, store],
+  );
+
+
   return (
     <div
+      ref={containerRef}
       className={cn(
-        "relative h-full w-full overflow-hidden",
+        "relative h-full w-full overflow-hidden select-none",
         draggingWindowId && "cursor-move",
         resizingWindowId && "cursor-nwse-resize",
+        !draggingWindowId && !resizingWindowId && !state.layout.focusedWindowId && "cursor-grab",
         className,
       )}
+      onMouseDown={handleBackgroundMouseDown}
     >
-      {state.layout.windows.map((win) => (
-        <WindowChrome
-          key={win.id}
-          window={win}
-          onClose={handleClose(win.id)}
-          onFocus={handleFocus(win.id)}
-          onMinimize={handleMinimize(win.id)}
-          onToggleMaximize={handleToggleMaximize(win.id)}
-          onDragStart={handleDragStart(win.id)}
-          onResizeStart={handleResizeStart(win.id)}
-        >
-          {renderWindowContent(win)}
-        </WindowChrome>
-      ))}
+      <div
+        className="relative w-full h-full"
+        style={{ transform: `translate(${panX}px, ${panY}px) scale(${zoom})`, transformOrigin: "0 0" }}
+      >
+        {state.layout.windows.map((win) => (
+          <WindowChrome
+            key={win.id}
+            window={win}
+            onClose={handleClose(win.id)}
+            onFocus={handleFocus(win.id)}
+            onMinimize={handleMinimize(win.id)}
+            onToggleMaximize={handleToggleMaximize(win.id)}
+            onDragStart={handleDragStart(win.id)}
+            onResizeStart={handleResizeStart(win.id)}
+            isLinked={linkedTerminalWindowId === win.id}
+            linkedColor="#06b6d4"
+            onLink={() => {
+              onLinkTerminal?.(linkedTerminalWindowId === win.id ? null : win.id);
+            }}
+          >
+            {renderWindowContent(win)}
+          </WindowChrome>
+        ))}
 
-      {/* Snap preview */}
-      {state.snapPreview && (
-        <div
-          className="pointer-events-none absolute rounded-lg border-2 border-dashed border-neutral-400/60 bg-neutral-200/5"
-          style={{
-            left: state.snapPreview.position.x,
-            top: state.snapPreview.position.y,
-            width: state.snapPreview.position.width,
-            height: state.snapPreview.position.height,
-          }}
-        />
-      )}
+        {/* Snap preview */}
+        {state.snapPreview && (
+          <div
+            className="pointer-events-none absolute rounded-lg border-2 border-dashed border-neutral-400/60 bg-neutral-200/5"
+            style={{
+              left: state.snapPreview.position.x,
+              top: state.snapPreview.position.y,
+              width: state.snapPreview.position.width,
+              height: state.snapPreview.position.height,
+            }}
+          />
+        )}
+      </div>
     </div>
   );
 }
@@ -245,9 +342,7 @@ export function MinimizedWindowsBar({
 }: MinimizedWindowsBarProps) {
   const { state, store } = useWindowStore();
 
-  const minimizedWindows = state.layout.windows.filter(
-    (w) => w.state === "minimized",
-  );
+  const minimizedWindows = state.layout.windows.filter((w) => w.state === "minimized");
 
   if (minimizedWindows.length === 0) return null;
 

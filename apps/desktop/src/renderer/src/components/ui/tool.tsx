@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  CheckCircle,
-  ChevronDown,
-  Loader2,
-  Settings,
-  XCircle,
-} from "lucide-react";
+import { CheckCircle, ChevronDown, Loader2, Settings, XCircle } from "@/components/ui/icons";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {

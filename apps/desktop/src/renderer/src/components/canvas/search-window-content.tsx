@@ -1,7 +1,7 @@
 "use client";
 
 import type { SearchMatch } from "@pidesk/shared";
-import { File, Folder, Loader2 } from "lucide-react";
+import { File, Folder, Loader2 } from "@/components/ui/icons";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
@@ -111,9 +111,7 @@ export function SearchWindowContent({
                     <Icon
                       className={cn(
                         "size-4 shrink-0",
-                        res.type === "directory"
-                          ? "text-amber-400"
-                          : "text-muted-foreground",
+                        res.type === "directory" ? "text-amber-400" : "text-muted-foreground",
                       )}
                     />
                     <div className="min-w-0 flex-1">

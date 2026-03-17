@@ -1,4 +1,4 @@
-import { ChevronDown, Circle } from "lucide-react";
+import { HugeiconsIcon, ArrowDown01Icon, CancelCircleIcon } from "@/components/ui/icons";
 import React from "react";
 import {
   Collapsible,
@@ -52,18 +52,18 @@ export const ChainOfThoughtTrigger = ({
             {leftIcon}
           </span>
           {swapIconOnHover && (
-            <ChevronDown className="absolute size-4 opacity-0 transition-opacity group-hover:opacity-100 group-data-[state=open]:rotate-180" />
+            <HugeiconsIcon icon={ArrowDown01Icon} className="absolute size-4 opacity-0 transition-opacity group-hover:opacity-100 group-data-[state=open]:rotate-180" />
           )}
         </span>
       ) : (
         <span className="relative inline-flex size-4 items-center justify-center">
-          <Circle className="size-2 fill-current" />
+          <HugeiconsIcon icon={CancelCircleIcon} className="size-2 fill-current" />
         </span>
       )}
       <span>{children}</span>
     </div>
     {!leftIcon && (
-      <ChevronDown className="size-4 transition-transform group-data-[state=open]:rotate-180" />
+      <HugeiconsIcon icon={ArrowDown01Icon} className="size-4 transition-transform group-data-[state=open]:rotate-180" />
     )}
   </CollapsibleTrigger>
 );

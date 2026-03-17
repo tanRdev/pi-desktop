@@ -1,5 +1,5 @@
 import type { ThreadSnapshot } from "@pidesk/shared";
-import { X } from "lucide-react";
+import { X } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 
 export interface ThreadTabsProps {

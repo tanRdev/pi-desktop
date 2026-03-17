@@ -64,10 +64,11 @@ export type WindowAction =
       payload: { windowId: string; updates: WindowUpdates };
     }
   | { type: "SET_DIRTY"; payload: { windowId: string; isDirty: boolean } }
-  | { type: "CLEAR_ALL" };
+  | { type: "CLEAR_ALL" }
+  | { type: "BLUR_ALL" };
 
-const DEFAULT_WINDOW_WIDTH = 720;
-const DEFAULT_WINDOW_HEIGHT = 480;
+const DEFAULT_WINDOW_WIDTH = 480;
+const DEFAULT_WINDOW_HEIGHT = 340;
 const DEFAULT_SNAP_GRID = 16;
 
 /**
@@ -149,7 +150,7 @@ export function createWindowFromAction(
       const win: TerminalWindow = {
         ...base,
         kind: "terminal",
-        title: "Terminal",
+        title: `Terminal ${existingWindows.filter((w) => w.kind === "terminal").length + 1}`,
         terminalId: id,
         backend: action.backend,
         cwd: action.cwd ?? cwd ?? "/",
@@ -179,7 +180,7 @@ export function createWindowFromAction(
       const win: GitWindow = {
         ...base,
         kind: "git",
-        title: "Git",
+        title: `Git ${existingWindows.filter((w) => w.kind === "git").length + 1}`,
         terminalId: id,
         repositoryPath: action.repositoryPath,
       };
@@ -189,7 +190,7 @@ export function createWindowFromAction(
       const win: SearchWindow = {
         ...base,
         kind: "search",
-        title: "Search",
+        title: `Search ${existingWindows.filter((w) => w.kind === "search").length + 1}`,
         query: "",
         results: [],
       };
@@ -199,7 +200,7 @@ export function createWindowFromAction(
       const win: GraphWindow = {
         ...base,
         kind: "graph",
-        title: "Graph",
+        title: `Graph ${existingWindows.filter((w) => w.kind === "graph").length + 1}`,
         filters: {
           showFiles: true,
           showTerminals: true,
@@ -246,10 +247,21 @@ function applyWindowUpdates(
   }
 }
 
-
 /**
  * Window store reducer.
  */
+/**
+ * Pick the next focusable window id from a list of windows.
+ * Focusable means the window is not minimized. Chooses the highest z-index
+ * window among the focusable candidates. Returns null when none exist.
+ */
+function pickNextFocusableWindowId(windows: CanvasWindow[]): string | null {
+  const candidates = windows.filter((w) => w.state !== "minimized");
+  if (candidates.length === 0) return null;
+  candidates.sort((a, b) => b.zIndex - a.zIndex);
+  return candidates[0]?.id ?? null;
+}
+
 export function windowReducer(
   state: WindowStoreState,
   action: WindowAction,
@@ -279,28 +291,24 @@ export function windowReducer(
       const windows = state.layout.windows.filter((w) => w.id !== windowId);
       const wasFocused = state.layout.focusedWindowId === windowId;
 
-      // Focus the next window if the closed one was focused
-      let focusedWindowId: string | null = null;
-      if (wasFocused && windows.length > 0) {
-        // Focus the window with highest z-index
-        const sortedByZ = [...windows].sort((a, b) => b.zIndex - a.zIndex);
-        const topWindow = sortedByZ[0];
-        if (topWindow) {
-          focusedWindowId = topWindow.id;
-        }
-      } else if (!wasFocused) {
-        focusedWindowId = state.layout.focusedWindowId;
+      // If the closed window was focused, pick the next focused window
+      // candidate that is not minimized. If none exists, clear focus.
+      let focusedWindowId: string | null = state.layout.focusedWindowId;
+      if (wasFocused) {
+        focusedWindowId = pickNextFocusableWindowId(windows);
       }
+
+      // Normalize isFocused flags so they always match focusedWindowId
+      const normalizedWindows = windows.map((w) => ({
+        ...w,
+        isFocused: w.id === focusedWindowId,
+      }));
 
       return {
         ...state,
         layout: {
           ...state.layout,
-          windows: wasFocused
-            ? windows.map((w) =>
-                w.id === focusedWindowId ? { ...w, isFocused: true } : w,
-              )
-            : windows,
+          windows: normalizedWindows,
           focusedWindowId,
         },
       };
@@ -347,10 +355,34 @@ export function windowReducer(
 
     case "SET_WINDOW_STATE": {
       const { windowId, state: windowState } = action.payload;
-      const windows = state.layout.windows.map((w) =>
+      // Update the window state first
+      let windows = state.layout.windows.map((w) =>
         w.id === windowId ? { ...w, state: windowState } : w,
       );
-      return { ...state, layout: { ...state.layout, windows } };
+
+      // If the focused window was minimized, choose the next non-minimized
+      // window to focus. If none exists, clear focus. For other state
+      // transitions, keep existing focus behavior.
+      let focusedWindowId = state.layout.focusedWindowId;
+      if (
+        windowState === "minimized" &&
+        state.layout.focusedWindowId === windowId
+      ) {
+        focusedWindowId = pickNextFocusableWindowId(
+          windows.filter((w) => w.id !== windowId),
+        );
+
+        // Normalize focus flags after minimizing the focused window
+        windows = windows.map((w) => ({
+          ...w,
+          isFocused: w.id === focusedWindowId,
+        }));
+      }
+
+      return {
+        ...state,
+        layout: { ...state.layout, windows, focusedWindowId },
+      };
     }
 
     case "SET_SNAP_PREVIEW": {
@@ -379,6 +411,20 @@ export function windowReducer(
 
     case "CLEAR_ALL": {
       return initialWindowStoreState;
+    }
+    case "BLUR_ALL": {
+      const windows = state.layout.windows.map((w) => ({
+        ...w,
+        isFocused: false,
+      }));
+      return {
+        ...state,
+        layout: {
+          ...state.layout,
+          windows,
+          focusedWindowId: null,
+        },
+      };
     }
 
     default:
@@ -459,6 +505,9 @@ export function createWindowStore() {
       preview: { windowId: string; position: WindowPosition } | null,
     ): void {
       this.dispatch({ type: "SET_SNAP_PREVIEW", payload: preview });
+    },
+    blurAll(): void {
+      this.dispatch({ type: "BLUR_ALL" });
     },
 
     clearAll(): void {

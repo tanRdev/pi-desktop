@@ -1,23 +1,5 @@
 import type { RepositorySnapshot } from "@pidesk/shared";
-import {
-  Box,
-  Code2,
-  Cpu,
-  Database,
-  FileCode,
-  FolderGit,
-  Globe,
-  Layers,
-  Layout,
-  type LucideIcon,
-  Monitor,
-  Server,
-  Settings,
-  Shield,
-  Smartphone,
-  Terminal,
-  Zap,
-} from "lucide-react";
+import * as React from "react";
 import { cn } from "@/lib/utils";
 
 export interface ProjectAvatarProps {
@@ -26,67 +8,22 @@ export interface ProjectAvatarProps {
   onClick: () => void;
 }
 
-// Map repository names to appropriate icons based on common project types
-function getIconForRepository(name: string): LucideIcon {
-  const lower = name.toLowerCase();
+function getInitials(name: string): string {
+  // Split by common separators and filter out empty strings
+  const words = name.split(/[-_\s]+/).filter((w) => w.length > 0);
 
-  // Development tools
-  if (lower.includes("api")) return Server;
-  if (lower.includes("app")) return Layout;
-  if (lower.includes("web")) return Globe;
-  if (
-    lower.includes("mobile") ||
-    lower.includes("ios") ||
-    lower.includes("android")
-  )
-    return Smartphone;
-  if (lower.includes("desktop")) return Monitor;
-  if (lower.includes("cli") || lower.includes("cmd")) return Terminal;
-  if (lower.includes("ui") || lower.includes("component")) return Layout;
+  if (words.length === 0) return "?";
 
-  // Language/framework specific
-  if (lower.includes("react")) return Code2;
-  if (lower.includes("node") || lower.includes("js") || lower.includes("ts"))
-    return FileCode;
-  if (lower.includes("python") || lower.includes("py")) return Terminal;
-  if (lower.includes("go") || lower.includes("rust") || lower.includes("c++"))
-    return Cpu;
+  const firstWord = words[0]!;
+  if (words.length === 1) {
+    // Single word: take first 2 characters
+    return firstWord.slice(0, 2).toUpperCase();
+  }
 
-  // Data/Infra
-  if (lower.includes("db") || lower.includes("sql") || lower.includes("data"))
-    return Database;
-  if (lower.includes("infra") || lower.includes("deploy")) return Server;
-  if (lower.includes("config") || lower.includes("dotfiles")) return Settings;
-  if (lower.includes("security") || lower.includes("auth")) return Shield;
-
-  // Generic project types
-  if (
-    lower.includes("lib") ||
-    lower.includes("package") ||
-    lower.includes("sdk")
-  )
-    return Box;
-  if (lower.includes("plugin") || lower.includes("ext")) return Zap;
-  if (lower.includes("mono") || lower.includes("multi")) return Layers;
-
-  // Default to git folder icon
-  return FolderGit;
-}
-
-function getAvatarColor(id: string): string {
-  const colors = [
-    "bg-rose-500",
-    "bg-orange-500",
-    "bg-amber-500",
-    "bg-emerald-500",
-    "bg-cyan-500",
-    "bg-blue-500",
-    "bg-violet-500",
-    "bg-fuchsia-500",
-    "bg-pink-500",
-  ];
-  const hash = id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return colors[hash % colors.length] ?? "bg-zinc-500";
+  // Multiple words: take first letter of first two words
+  const first = firstWord.charAt(0);
+  const second = words[1]?.charAt(0) ?? "";
+  return (first + second).toUpperCase();
 }
 
 export function ProjectAvatar({
@@ -94,31 +31,45 @@ export function ProjectAvatar({
   isActive,
   onClick,
 }: ProjectAvatarProps) {
-  const Icon = getIconForRepository(repository.name);
+  const initials = getInitials(repository.name);
+
+  const handleClick = React.useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      onClick();
+    },
+    [onClick],
+  );
 
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={handleClick}
       className={cn(
-        "group relative flex h-10 w-10 items-center justify-center rounded-xl transition-all",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "group relative flex aspect-square w-full items-center justify-center",
+        "cursor-pointer",
+        "transition-all duration-200 ease-out",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
         isActive
-          ? "bg-surface-3 ring-1 ring-border-hover shadow-sm"
-          : "hover:bg-surface-2 hover:ring-1 hover:ring-border",
+          ? "bg-surface-3 text-foreground"
+          : "text-muted-foreground/60 hover:bg-surface-2 hover:text-muted-foreground",
       )}
       title={repository.name}
     >
+      {/* Initials with subtle scale on active */}
       <span
         className={cn(
-          "flex h-8 w-8 items-center justify-center rounded-lg shadow-sm",
-          getAvatarColor(repository.id),
+          "text-sm font-medium tracking-wide transition-transform duration-200 ease-out",
+          isActive && "scale-110",
         )}
       >
-        <Icon className="h-4 w-4 text-white" />
+        {initials}
       </span>
+
+      {/* Active indicator - elegant left accent */}
       {isActive && (
-        <span className="absolute -right-px top-1/2 h-4 w-1 -translate-y-1/2 rounded-l bg-foreground" />
+        <span className="absolute left-0 top-1/2 h-6 w-[3px] -translate-y-1/2 bg-foreground" />
       )}
     </button>
   );

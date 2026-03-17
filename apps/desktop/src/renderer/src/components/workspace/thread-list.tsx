@@ -1,5 +1,5 @@
 import type { ThreadSnapshot } from "@pidesk/shared";
-import { MessageSquare, Plus } from "lucide-react";
+import { MessageSquare, Plus } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { RuntimeStatusChip } from "./runtime-status-chip";

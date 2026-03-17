@@ -3,7 +3,7 @@
  */
 
 import type { FileContent } from "@pidesk/shared";
-import { FileIcon, FileText, Image, Loader2, Save } from "lucide-react";
+import { Save, Loader2, File, FileText, Image } from "@/components/ui/icons";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { CodeEditor } from "../ui/code-editor";
@@ -199,7 +199,7 @@ export function FileWindowContent({
     return (
       <div className={cn("flex h-full items-center justify-center", className)}>
         <div className="flex flex-col items-center gap-3 text-destructive">
-          <FileIcon className="h-8 w-8" />
+          <File className="h-8 w-8" />
           <span className="text-sm">{error}</span>
         </div>
       </div>
@@ -211,7 +211,7 @@ export function FileWindowContent({
     return (
       <div className={cn("flex h-full items-center justify-center", className)}>
         <div className="flex flex-col items-center gap-3 text-muted-foreground">
-          <FileIcon className="h-8 w-8" />
+          <File className="h-8 w-8" />
           <span className="text-sm">No content</span>
         </div>
       </div>
@@ -223,7 +223,7 @@ export function FileWindowContent({
     return (
       <div className={cn("flex h-full items-center justify-center", className)}>
         <div className="flex flex-col items-center gap-3 text-muted-foreground">
-          <FileIcon className="h-8 w-8" />
+          <File className="h-8 w-8" />
           <span className="text-sm">Binary file - cannot display</span>
           <span className="text-xs text-muted-foreground">
             {content.size ?? 0} bytes
@@ -238,7 +238,7 @@ export function FileWindowContent({
     return (
       <div className={cn("flex h-full items-center justify-center", className)}>
         <div className="flex flex-col items-center gap-3 text-muted-foreground">
-          <FileIcon className="h-8 w-8" />
+          <File className="h-8 w-8" />
           <span className="text-sm">Unsupported file type</span>
         </div>
       </div>
@@ -304,7 +304,7 @@ export function FileWindowContent({
   return (
     <div className={cn("flex h-full items-center justify-center", className)}>
       <div className="flex flex-col items-center gap-3 text-muted-foreground">
-        <FileIcon className="h-8 w-8" />
+        <File className="h-8 w-8" />
         <span className="text-sm">Unknown file type</span>
       </div>
     </div>
@@ -321,5 +321,5 @@ export function getFileIcon(path: string, className?: string) {
   if (isImageFile(path)) {
     return <Image className={cn("size-4", className)} />;
   }
-  return <FileIcon className={cn("size-4", className)} />;
+  return <File className={cn("size-4", className)} />;
 }

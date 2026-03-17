@@ -1,4 +1,4 @@
-import { RotateCcw } from "lucide-react";
+import { HugeiconsIcon, RotateCcw } from "@/components/ui/icons";
 import type React from "react";
 import { Button } from "../ui/button";
 

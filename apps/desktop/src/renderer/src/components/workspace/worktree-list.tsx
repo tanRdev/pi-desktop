@@ -1,5 +1,5 @@
 import type { WorktreeSnapshot } from "@pidesk/shared";
-import { GitBranch, Plus } from "lucide-react";
+import { GitBranch, Plus } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { GitStatusChip } from "./git-status-chip";

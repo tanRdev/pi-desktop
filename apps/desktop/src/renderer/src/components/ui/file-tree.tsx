@@ -1,5 +1,5 @@
 import type { DirectoryListing, FileEntry } from "@pidesk/shared";
-import { ChevronRight, File, Folder, FolderOpen } from "lucide-react";
+import { ChevronRight, File, Folder, FolderOpen } from "@/components/ui/icons";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
@@ -86,20 +86,10 @@ function FileTreeItem({
         style={{ paddingLeft: `${depth * 12 + 6}px` }}
       >
         {isDirectory && (
-          <ChevronRight
-            className={cn(
-              "size-3 shrink-0 transition-transform duration-150",
-              isExpanded && "rotate-90",
-            )}
-          />
+          <ChevronRight className={cn("size-3 shrink-0 transition-transform duration-150", isExpanded && "rotate-90")} />
         )}
         {!isDirectory && <span className="w-3" />}
-        <Icon
-          className={cn(
-            "size-3.5 shrink-0",
-            isDirectory ? "text-amber-400" : "text-muted-foreground",
-          )}
-        />
+        <Icon className={cn("size-3.5 shrink-0", isDirectory ? "text-amber-400" : "text-muted-foreground")} />
         <span className="truncate">{entry.name}</span>
       </button>
       {isDirectory && isExpanded && children && (

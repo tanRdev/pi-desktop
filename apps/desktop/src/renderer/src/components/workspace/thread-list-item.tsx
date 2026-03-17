@@ -1,11 +1,12 @@
 import type { ThreadSnapshot } from "@pidesk/shared";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, Archive } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 
 export interface ThreadListItemProps {
   thread: ThreadSnapshot;
   isActive: boolean;
   onClick: () => void;
+  onArchive?: () => void;
 }
 
 function formatPreview(timestamp: number | null): string {
@@ -39,6 +40,7 @@ export function ThreadListItem({
   thread,
   isActive,
   onClick,
+  onArchive,
 }: ThreadListItemProps) {
   const isRunning = thread.runtime.status === "streaming";
 
@@ -80,6 +82,21 @@ export function ThreadListItem({
           {formatPreview(thread.lastActivityAt)}
         </div>
       </div>
+      {/* Archive button (revealed on hover) */}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onArchive?.();
+        }}
+        className={cn(
+          "flex h-5 w-5 shrink-0 items-center justify-center rounded opacity-0 transition",
+          "group-hover:opacity-100 hover:bg-surface-3",
+          "text-muted-foreground hover:text-foreground",
+        )}
+      >
+        <Archive className="h-3 w-3" />
+      </button>
     </button>
   );
 }

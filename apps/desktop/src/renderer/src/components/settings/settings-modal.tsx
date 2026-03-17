@@ -1,12 +1,4 @@
-import {
-  Bot,
-  Code2,
-  Keyboard,
-  Palette,
-  Settings2,
-  Terminal,
-  X,
-} from "lucide-react";
+import { Bot, Code2, Keyboard, Palette, Settings2, Terminal, X } from "@/components/ui/icons";
 import type React from "react";
 import { useState } from "react";
 import { Button } from "../ui/button";

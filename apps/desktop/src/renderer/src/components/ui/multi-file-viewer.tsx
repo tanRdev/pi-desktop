@@ -1,18 +1,7 @@
 "use client";
 
 import type { FileContent } from "@pidesk/shared";
-import {
-  Binary,
-  Check,
-  FileIcon,
-  FileText,
-  FileWarning,
-  Image,
-  Loader2,
-  Pencil,
-  Terminal as TerminalIcon,
-  X,
-} from "lucide-react";
+import { Binary, Check, FileIcon, FileText, FileWarning, Image, Loader2, Pencil, Terminal, X } from "@/components/ui/icons";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { CodeLineViewer } from "./code-line-viewer";
@@ -213,7 +202,7 @@ function TerminalTab({
       {isActive && (
         <div className="absolute inset-x-0 top-0 h-[2px] bg-amber-500" />
       )}
-      <TerminalIcon className="size-3.5 shrink-0" />
+      <Terminal className="size-3.5 shrink-0" />
       <span className="min-w-0 flex-1 truncate text-xs font-medium">
         Terminal
       </span>
@@ -681,7 +670,7 @@ export function MultiFileViewer({
                 className="flex size-6 items-center justify-center rounded text-muted-foreground transition hover:bg-surface-2 hover:text-foreground"
                 aria-label="Open terminal"
               >
-                <TerminalIcon className="size-3.5" />
+                <Terminal className="size-3.5" />
               </button>
             )}
             <button

@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDownIcon } from "lucide-react";
+import { ChevronDown } from "@/components/ui/icons";
 import type React from "react";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -101,7 +101,7 @@ function ReasoningTrigger({
           isOpen ? "rotate-180" : "",
         )}
       >
-        <ChevronDownIcon className="size-4" />
+        <ChevronDown className="size-4" />
       </div>
     </button>
   );

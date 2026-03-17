@@ -55,6 +55,7 @@ export function ChatWindowContent({
   className,
 }: ChatWindowContentProps) {
   const safeThreadTitle = threadTitle.trim() || "Untitled thread";
+  const visibleMessages = messages.filter((message) => message.role !== "system" && message.role !== "tool");
 
   return (
     <div className={cn("flex h-full min-h-0 flex-col bg-surface-1", className)}>
@@ -65,45 +66,33 @@ export function ChatWindowContent({
       ) : null}
       <ChatContainerRoot className="min-h-0 flex-1">
         <ChatContainerContent className="flex flex-1 flex-col gap-5 px-5 py-5">
-          {messages.length === 0 ? (
+          {visibleMessages.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border-subtle bg-surface-2/50 px-4 py-3 text-sm text-muted-foreground">
               {isActiveThread
                 ? `No messages yet in ${safeThreadTitle}.`
                 : `Focus ${safeThreadTitle} to load its latest transcript.`}
             </div>
           ) : (
-            messages.map((message) => {
-              const isSystem = message.role === "system";
+            visibleMessages.map((message) => {
               return (
                 <Message
                   key={message.id}
-                  className={cn(isSystem && "my-4 justify-center")}
                 >
-                  {!isSystem ? (
-                    <MessageAvatar
-                      src=""
-                      alt={getMessageLabel(message)}
-                      fallback={getMessageFallback(message)}
-                    />
-                  ) : null}
-                  <div className={cn("min-w-0 flex-1", isSystem && "flex-initial")}>
-                    {!isSystem ? (
-                      <span className="text-sm font-medium text-muted-foreground">
-                        {getMessageLabel(message)}
-                      </span>
-                    ) : null}
-                    {isSystem ? (
-                      <div className="mt-1 rounded border border-dashed border-border bg-surface-2 px-4 py-3 text-sm text-muted-foreground">
-                        {message.text}
-                      </div>
-                    ) : (
-                      <MessageContent
-                        markdown={message.role !== "user"}
-                        className="mt-1 max-w-none bg-transparent p-0 text-base leading-relaxed text-foreground shadow-none"
-                      >
-                        {message.text || " "}
-                      </MessageContent>
-                    )}
+                  <MessageAvatar
+                    src=""
+                    alt={getMessageLabel(message)}
+                    fallback={getMessageFallback(message)}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      {getMessageLabel(message)}
+                    </span>
+                    <MessageContent
+                      markdown={message.role !== "user"}
+                      className="mt-1 max-w-none bg-transparent p-0 text-base leading-relaxed text-foreground shadow-none"
+                    >
+                      {message.text || " "}
+                    </MessageContent>
                   </div>
                 </Message>
               );

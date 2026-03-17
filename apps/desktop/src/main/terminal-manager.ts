@@ -163,6 +163,13 @@ class TerminalManager {
             id,
             exitCode,
           });
+          // If this terminal was backed by a tmux session, attempt to
+          // clean up the tmux session as well.
+          try {
+            if (instance.tmuxSessionName) {
+              this.runTmux(["kill-session", "-t", instance.tmuxSessionName]);
+            }
+          } catch {}
           this.terminals.delete(id);
         });
         this.terminals.set(id, instance);
@@ -200,6 +207,13 @@ class TerminalManager {
           id,
           exitCode: code ?? 0,
         });
+        // If this terminal was backed by a tmux session, attempt to
+        // clean up the tmux session as well.
+        try {
+          if (instance.tmuxSessionName) {
+            this.runTmux(["kill-session", "-t", instance.tmuxSessionName]);
+          }
+        } catch {}
         this.terminals.delete(id);
       });
 
@@ -250,7 +264,10 @@ class TerminalManager {
         // does not appear at the top of embedded terminals. This is best-effort;
         // ignore failures to avoid breaking session creation.
         try {
-          this.runTmux(["set-option", "-t", tmuxSessionName, "status", "off"], cwd);
+          this.runTmux(
+            ["set-option", "-t", tmuxSessionName, "status", "off"],
+            cwd,
+          );
         } catch (e) {}
 
         // Attach to the tmux session via tmux attach -t <session>

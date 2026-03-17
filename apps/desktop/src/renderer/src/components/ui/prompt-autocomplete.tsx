@@ -1,7 +1,7 @@
 "use client";
 
 import type { MentionSuggestion, SlashSuggestion } from "@pidesk/shared";
-import { AtSign, Command, File, MessageSquare, Terminal } from "lucide-react";
+import { AtSign, Command, File, MessageSquare, Terminal } from "@/components/ui/icons";
 import type * as React from "react";
 import { cn } from "@/lib/utils";
 

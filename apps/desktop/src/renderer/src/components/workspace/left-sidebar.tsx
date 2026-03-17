@@ -1,5 +1,5 @@
 import type { RepositorySnapshot } from "@pidesk/shared";
-import { Plus } from "lucide-react";
+import { PanelLeftClose, Plus } from "@/components/ui/icons";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
@@ -15,6 +15,7 @@ export interface LeftSidebarProps {
   onCreateThread: (worktreeId: string) => void;
   onCreateWorktree: () => void;
   onShowArchived: () => void;
+  onHide?: () => void;
   width: number;
   onResize: (width: number) => void;
   className?: string;
@@ -29,6 +30,7 @@ export function LeftSidebar({
   onCreateThread,
   onCreateWorktree,
   onShowArchived,
+  onHide,
   width,
   onResize,
   className,
@@ -94,10 +96,20 @@ export function LeftSidebar({
       style={{ width }}
     >
       {/* Header with repository name */}
-      <div className="flex h-12 items-center border-b border-border px-3">
+      <div className="group flex h-12 items-center border-b border-border px-3">
         <span className="truncate text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           {repository?.name ?? "No project"}
         </span>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label="Hide sidebar"
+          onClick={() => onHide?.()}
+          className="ml-auto h-6 w-6 rounded text-muted-foreground opacity-0 transition group-hover:opacity-100"
+        >
+          <PanelLeftClose className="h-4 w-4" />
+        </Button>
       </div>
 
       {/* Worktree list */}

@@ -26,6 +26,8 @@
     "typecheck": "tsc --project tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@hugeicons/core-free-icons": "^4.0.0",
+    "@hugeicons/react": "^1.1.6",
     "@mariozechner/pi-coding-agent": "0.57.1",
     "@monaco-editor/react": "^4.7.0",
     "@pidesk/agent-host": "workspace:*",
@@ -55,7 +57,6 @@
     "cmdk": "^1.1.1",
     "d3-force": "^3.0.0",
     "katex": "^0.16.38",
-    "lucide-react": "^0.474.0",
     "marked": "^15.0.7",
     "node-pty": "^1.1.0",
     "react": "^19.0.0",

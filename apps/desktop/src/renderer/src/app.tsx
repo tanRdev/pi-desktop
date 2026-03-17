@@ -24,13 +24,7 @@ import {
   PromptInputTextarea,
   TooltipProvider,
 } from "@pidesk/ui";
-import {
-  ArrowUp,
-  FolderTree,
-  GitBranch,
-  StickyNote,
-  Terminal,
-} from "lucide-react";
+import { ArrowUp, FolderTree, GitBranch, StickyNote, Terminal, Link2 } from "@/components/ui/icons";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import {
@@ -67,6 +61,17 @@ import {
   getPromptAutocompleteMatch,
   replacePromptToken,
 } from "./lib/prompt-routing";
+
+/** Maps provider IDs to display colors. */
+const PROVIDER_COLORS: Record<string, string> = {
+  anthropic: '#f97316',
+  google: '#22c55e',
+  openai: '#3b82f6',
+  mistral: '#a855f7',
+  groq: '#eab308',
+  ollama: '#6366f1',
+  cohere: '#06b6d4',
+};
 
 type ThreadConversationState = {
   messages: AgentMessageSnapshot[];
@@ -199,6 +204,8 @@ export default function App() {
     return saved ? Math.max(140, Math.min(400, Number(saved))) : 180;
   });
 
+  const [isLeftSidebarVisible, setIsLeftSidebarVisible] = React.useState(true);
+
   const [fileContents, setFileContents] = React.useState<
     Map<
       string,
@@ -226,6 +233,8 @@ export default function App() {
   >([]);
   const [settingsSnapshot, setSettingsSnapshot] =
     React.useState<SettingsSnapshot>({});
+  const [linkedTerminalWindowId, setLinkedTerminalWindowId] = React.useState<string | null>(null);
+
   const [isSwitchingModel, setIsSwitchingModel] = React.useState(false);
   const [threadConversations, setThreadConversations] = React.useState<
     Map<string, ThreadConversationState>
@@ -718,7 +727,7 @@ export default function App() {
             searchWindow.results.length === 0
               ? -1
               : (selectedIndex - 1 + searchWindow.results.length) %
-                searchWindow.results.length;
+              searchWindow.results.length;
           next.set(windowId, { isLoading: false, selectedIndex: nextIndex });
           return next;
         });
@@ -1131,10 +1140,6 @@ export default function App() {
     sendPrompt();
   }, [activeThreadId, canSend, draft, openOrFocusChatWindow, sendPrompt, setDraft]);
 
-  const runtimeMode = shell.runtime?.agentMode ?? "unknown";
-  const runtimeModeLabel = `${runtimeMode} mode`;
-  const displayAgentStatus =
-    agent.status === "starting" ? "ready" : agent.status;
   const currentModelValue = React.useMemo(() => {
     const providerId =
       settingsSnapshot.currentProviderId ??
@@ -1148,6 +1153,28 @@ export default function App() {
 
     return providerId && modelId ? `${providerId}::${modelId}` : "";
   }, [providerSnapshots, settingsSnapshot]);
+  // Derive current provider id and model for chatbox display
+  const currentProviderId = currentModelValue.split("::")[0] ?? "";
+  const currentProviderColor = PROVIDER_COLORS[currentProviderId] ?? "#9ca3af";
+  const currentModelObj = React.useMemo(() => {
+    const [pId, mId] = currentModelValue.split("::");
+    return (
+      providerSnapshots.find((p) => p.id === pId)?.models.find((m) => m.id === mId) ?? null
+    );
+  }, [currentModelValue, providerSnapshots]);
+
+  // Estimate context usage from current thread messages
+  const contextUsageBadge = React.useMemo(() => {
+    const contextWindow = currentModelObj?.contextWindow;
+    if (!contextWindow) return null;
+    const totalChars = agent.messages.reduce((sum, m) => sum + m.text.length, 0);
+    const estimatedTokens = Math.ceil(totalChars / 4);
+    const pct = Math.min(100, Math.round((estimatedTokens / contextWindow) * 100));
+    const ctxK = contextWindow >= 1000 ? `${Math.round(contextWindow / 1000)}k` : String(contextWindow);
+    return `${pct}% / ${ctxK}`;
+  }, [agent.messages, currentModelObj]);
+
+
 
   const graphNodes = React.useMemo(() => {
     const nodes = windowState.layout.windows.map((window) => ({
@@ -1225,7 +1252,7 @@ export default function App() {
           <div className="relative flex min-h-0 flex-1">
             {/* Extended grid background - covers full viewport */}
             <div
-              className="pointer-events-none absolute inset-0 z-0 opacity-[0.25]"
+              className="pointer-events-none absolute inset-0 z-0 opacity-[0.4]"
               style={{
                 backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.15) 1px, transparent 1px), radial-gradient(circle, rgba(0,0,0,0.3) 1px, transparent 1px)`,
                 backgroundSize: "16px 16px",
@@ -1239,21 +1266,26 @@ export default function App() {
               onSelectRepository={handleSelectRepository}
               onAddRepository={handleAddRepository}
               onOpenSettings={() => setIsSettingsOpen(true)}
+              onToggleSidebar={() => setIsLeftSidebarVisible(true)}
+              isSidebarVisible={isLeftSidebarVisible}
             />
 
-            <LeftSidebar
-              repository={activeRepository}
-              activeWorktreeId={activeWorktreeId}
-              activeThreadId={activeThreadId}
-              onSelectWorktree={handleSelectWorktree}
-              onSelectThread={handleSelectThread}
-              onCreateThread={handleCreateThread}
-              onCreateWorktree={handleCreateWorktree}
-              onShowArchived={() => {}}
-              width={leftSidebarWidth}
-              onResize={handleLeftSidebarResize}
-              className="z-10"
-            />
+            {isLeftSidebarVisible && (
+              <LeftSidebar
+                repository={activeRepository}
+                activeWorktreeId={activeWorktreeId}
+                activeThreadId={activeThreadId}
+                onSelectWorktree={handleSelectWorktree}
+                onSelectThread={handleSelectThread}
+                onCreateThread={handleCreateThread}
+                onCreateWorktree={handleCreateWorktree}
+                onShowArchived={() => { }}
+                width={leftSidebarWidth}
+                onResize={handleLeftSidebarResize}
+                onHide={() => setIsLeftSidebarVisible(false)}
+                className="z-10"
+              />
+            )}
 
             {/* Main panel */}
             <main className="relative z-10 flex min-w-0 flex-1 flex-col">
@@ -1261,6 +1293,8 @@ export default function App() {
               <div className="relative min-h-0 flex-1">
                 <CanvasContainer
                   className="h-full"
+                  linkedTerminalWindowId={linkedTerminalWindowId}
+                  onLinkTerminal={setLinkedTerminalWindowId}
                   onWindowFocus={(window) => {
                     void handleWindowFocus(window);
                   }}
@@ -1286,15 +1320,15 @@ export default function App() {
                       const conversation =
                         win.threadId === activeThreadId
                           ? {
-                              messages: agent.messages,
-                              status: agent.status,
-                              lastError: agent.lastError,
-                            }
+                            messages: agent.messages,
+                            status: agent.status,
+                            lastError: agent.lastError,
+                          }
                           : (threadConversations.get(win.threadId) ?? {
-                              messages: [],
-                              status: "idle",
-                              lastError: null,
-                            });
+                            messages: [],
+                            status: "idle",
+                            lastError: null,
+                          });
 
                       return (
                         <ChatWindowContent
@@ -1418,13 +1452,20 @@ export default function App() {
               </div>
 
               {/* Input area */}
-              <div className="relative z-20 bg-gradient-to-t from-background to-transparent pb-6 pt-4">
-                <div className="mx-auto max-w-4xl px-6">
+              <div className="relative z-20 pointer-events-none bg-gradient-to-t from-background to-transparent pb-6 pt-4">
+                <div className="mx-auto max-w-2xl px-6 pointer-events-auto">
                   <PromptInput
                     value={draft}
                     onValueChange={setDraft}
                     onSubmit={() => void handleSend()}
-                    className="rounded-xl bg-surface-1/80 p-4 shadow-sm backdrop-blur-sm"
+                    className={cn(
+                      "rounded-xl bg-surface-1/80 p-3 overflow-visible shadow-sm backdrop-blur-sm",
+                      linkedTerminalWindowId && "transition-[box-shadow,outline]"
+                    )}
+                    style={linkedTerminalWindowId ? {
+                      outline: '2px solid #06b6d480',
+                      boxShadow: '0 0 0 2px #06b6d440, 0 0 24px #06b6d430'
+                    } : undefined}
                   >
                     <PromptInputTextarea
                       data-testid="chat-input"
@@ -1435,7 +1476,7 @@ export default function App() {
                       }
                       disabled={!activeThreadId}
                       onKeyDown={handlePromptKeyDown}
-                      className="min-h-24 resize-none border-0 bg-transparent text-base leading-relaxed text-foreground placeholder:text-muted-foreground outline-none focus-visible:ring-0 disabled:opacity-50"
+                      className="min-h-14 resize-none border-0 bg-transparent text-sm leading-relaxed text-foreground placeholder:text-muted-foreground outline-none focus-visible:ring-0 disabled:opacity-50"
                     />
                     <PromptAutocomplete
                       visible={autocompleteSuggestions.length > 0}
@@ -1443,31 +1484,16 @@ export default function App() {
                       selectedIndex={autocompleteSelectedIndex}
                       onSelect={handleAutocompleteSelect}
                       onHover={setAutocompleteSelectedIndex}
-                      className="absolute left-6 right-6 top-full mt-2"
+                      className="absolute left-6 right-6 bottom-full mb-2"
                     />
-                    <PromptInputActions className="mt-3 items-center justify-between">
+                    <PromptInputActions className="mt-2 items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span
-                          data-testid="agent-status"
-                          className="rounded border border-border bg-surface-1 px-2 py-1 text-[10px] text-muted-foreground"
-                        >
-                          {displayAgentStatus}
-                        </span>
-                        {activeThread ? (
-                          <span className="rounded border border-border bg-surface-1 px-2 py-1 text-[10px] text-muted-foreground">
-                            Chat · {getThreadWindowTitle(activeThread)}
-                          </span>
-                        ) : null}
-                        <span className="rounded border border-border bg-surface-1 px-2 py-1 text-[10px] text-muted-foreground">
-                          {runtimeModeLabel}
-                        </span>
                         <select
                           value={currentModelValue}
                           onChange={(event) => void handleModelSelection(event)}
-                          disabled={
-                            isSwitchingModel || providerSnapshots.length === 0
-                          }
-                          className="rounded border border-border bg-surface-1 px-2 py-1 text-[10px] text-muted-foreground outline-none"
+                          disabled={isSwitchingModel || providerSnapshots.length === 0}
+                          className="max-w-[180px] truncate rounded border border-border bg-surface-1 px-2 py-1 text-[10px] font-medium outline-none"
+                          style={{ color: currentProviderColor }}
                         >
                           {providerSnapshots.map((provider) => (
                             <optgroup key={provider.id} label={provider.name}>
@@ -1482,11 +1508,13 @@ export default function App() {
                             </optgroup>
                           ))}
                         </select>
+                        {contextUsageBadge ? (
+                          <span className="rounded border border-border bg-surface-1 px-2 py-1 text-[10px] text-muted-foreground tabular-nums">
+                            {contextUsageBadge}
+                          </span>
+                        ) : null}
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="text-[0.7rem] text-zinc-500">
-                          Enter to send
-                        </span>
                         <PromptInputAction tooltip="Send message">
                           <Button
                             type="button"
