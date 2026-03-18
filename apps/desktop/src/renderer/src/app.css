@@ -6,6 +6,7 @@ body {
   -webkit-app-region: drag;
   font-family: var(--app-font-sans);
   letter-spacing: -0.01em;
+  background: color-mix(in oklch, var(--background) 96%, black 4%);
 }
 
 * {
@@ -22,6 +23,7 @@ body {
 
 .titlebar {
   -webkit-app-region: drag;
+  border-bottom: 1px solid color-mix(in oklch, var(--border) 88%, black 12%);
 }
 
 /* Smooth transitions for interactive elements */
@@ -41,8 +43,61 @@ a:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
-  outline: 2px solid rgba(0,0,0,0.06);
+  outline: 2px solid color-mix(in oklch, var(--foreground) 14%, transparent);
   outline-offset: 2px;
+}
+
+.shell-chrome {
+  background: color-mix(in oklch, var(--surface-1) 94%, black 6%);
+}
+
+.chrome-eyebrow {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.chrome-icon-button {
+  border: 1px solid transparent;
+  background: transparent;
+}
+
+.chrome-icon-button:hover {
+  border-color: var(--border);
+  background: var(--surface-2);
+}
+
+.project-customization-trigger {
+  opacity: 0;
+  transform: translateY(-1px);
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease,
+    background-color 140ms ease,
+    border-color 140ms ease;
+}
+
+.group:hover .project-customization-trigger,
+.group:focus-within .project-customization-trigger,
+.project-customization-trigger[data-state="open"] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.project-customization-field {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in oklch, var(--surface-2) 88%, black 12%);
+  padding: 0.625rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--foreground);
+}
+
+.project-customization-field::placeholder {
+  color: var(--muted-foreground);
 }
 
 /* Code highlighting - seamless integration with app theme */
