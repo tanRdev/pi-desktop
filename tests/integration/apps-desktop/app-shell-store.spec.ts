@@ -1,0 +1,383 @@
+import { describe, expect, it, vi } from "vitest";
+import {
+  DEFAULT_SETTINGS,
+  STORAGE_KEY,
+} from "../../../apps/desktop/src/renderer/src/components/settings/defaults";
+import { createAppShellStore } from "../../../apps/desktop/src/renderer/src/stores/app-shell-store";
+import type {
+  PiDeskAgentEvent,
+  PiDeskApi,
+  ShellSnapshot,
+} from "../../../packages/shared/src";
+
+function createApiFixture(overrides: Partial<PiDeskApi> = {}): PiDeskApi {
+  const listeners = new Set<(event: PiDeskAgentEvent) => void>();
+
+  return {
+    shell: {
+      getSnapshot: vi.fn(async () => ({
+        appName: "PiDesk",
+        appVersion: "0.1.0",
+        chromeVersion: "141.0.0.0",
+        platform: "darwin",
+        mode: "test",
+        catalog: {
+          repositories: [],
+          selection: {
+            repositoryId: "/tmp/repo",
+            worktreeId: "/tmp/repo",
+            threadId: "thread-1",
+          },
+        },
+      })),
+    },
+    agent: {
+      getProviders: vi.fn(async () => [
+        {
+          id: "google",
+          name: "Google",
+          models: [
+            {
+              id: "gemini-2.5-pro",
+              name: "Gemini 2.5 Pro",
+              providerId: "google",
+            },
+          ],
+        },
+      ]),
+      getSettings: vi.fn(async () => ({
+        currentProviderId: "google",
+        currentModelId: "gemini-2.5-pro",
+      })),
+      getSnapshot: vi.fn(async () => ({
+        sessionId: "agent-session",
+        status: "ready",
+        messages: [],
+        lastError: null,
+      })),
+      prompt: vi.fn(async () => undefined),
+      reset: vi.fn(async () => undefined),
+      switchModel: vi.fn(async () => undefined),
+      getDiscovery: vi.fn(async () => ({
+        isInstalled: false,
+        skills: [],
+        commands: [],
+      })),
+      getSlashSuggestions: vi.fn(async () => ({
+        kind: "slash",
+        suggestions: [],
+        hasMore: false,
+      })),
+      subscribe: vi.fn((next) => {
+        listeners.add(next);
+        return () => {
+          listeners.delete(next);
+        };
+      }),
+    },
+    repositories: {
+      add: vi.fn(async () => undefined),
+      select: vi.fn(async () => undefined),
+    },
+    worktrees: {
+      create: vi.fn(async () => undefined),
+      select: vi.fn(async () => undefined),
+    },
+    threads: {
+      create: vi.fn(async () => undefined),
+      select: vi.fn(async () => undefined),
+      routeToTerminal: vi.fn(async () => ({ success: true })),
+    },
+    dialog: {
+      showOpenDialog: vi.fn(async () => null),
+    },
+    fs: {
+      readDirectory: vi.fn(async () => ({ path: "/tmp/repo", entries: [] })),
+      readFile: vi.fn(async () => ({
+        type: "text",
+        content: "",
+        encoding: "utf-8",
+      })),
+      writeFile: vi.fn(async () => undefined),
+      getImageMetadata: vi.fn(async () => ({
+        width: 1,
+        height: 1,
+        mimeType: "image/png",
+      })),
+      getImagePreview: vi.fn(async () => ({
+        dataUrl: "data:image/png;base64,AA==",
+      })),
+    },
+    terminal: {
+      create: vi.fn(async () => ({
+        id: "term-1",
+        backend: "shell",
+        cwd: "/tmp/repo",
+        status: "ready",
+        ownerWindowId: "window-1",
+        createdAt: 1,
+      })),
+      write: vi.fn(async () => undefined),
+      resize: vi.fn(async () => undefined),
+      destroy: vi.fn(async () => undefined),
+      getSessions: vi.fn(async () => []),
+      onEvent: vi.fn(() => () => undefined),
+    },
+    search: {
+      searchFiles: vi.fn(async () => ({
+        query: "",
+        results: [],
+        total: 0,
+        duration: 0,
+      })),
+    },
+    state: {
+      getRepositoryPreferences: vi.fn(async () => null),
+      updateRepositoryPreferences: vi.fn(async () => ({
+        repositoryId: "/tmp/repo",
+        customName: null,
+        icon: null,
+        accentColor: null,
+      })),
+      getWorkspaceSession: vi.fn(async () => null),
+      saveWorkspaceSession: vi.fn(async (session) => session),
+      getAppPreferences: vi.fn(async () => ({})),
+      updateAppPreferences: vi.fn(async (updates) => updates),
+      importLegacyPreferences: vi.fn(async () => ({
+        repositoryPreferences: [],
+        appPreferences: {},
+      })),
+    },
+    window: {
+      create: vi.fn(async () => {
+        throw new Error("unused");
+      }),
+      close: vi.fn(async () => undefined),
+      focus: vi.fn(async () => undefined),
+      move: vi.fn(async () => undefined),
+      resize: vi.fn(async () => undefined),
+      minimize: vi.fn(async () => undefined),
+      maximize: vi.fn(async () => undefined),
+      restore: vi.fn(async () => undefined),
+      getLayout: vi.fn(async () => ({
+        windows: [],
+        nextZIndex: 1,
+        focusedWindowId: null,
+        snapGridSize: 16,
+      })),
+    },
+    ...overrides,
+  } as PiDeskApi;
+}
+
+describe("app-shell-store", () => {
+  it("loads provider state, app preferences, and migrates legacy renderer preferences once", async () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ interface: { theme: "dark", sidebarWidth: 320 } }),
+    );
+    localStorage.setItem("pidesk.leftSidebarWidth", "260");
+
+    const api = createApiFixture();
+    const store = createAppShellStore(api);
+
+    await store.getState().initialize();
+
+    expect(store.getState().providerSnapshots).toHaveLength(1);
+    expect(store.getState().settingsSnapshot.currentModelId).toBe(
+      "gemini-2.5-pro",
+    );
+    expect(store.getState().appPreferences.leftSidebarWidth).toBe(260);
+    expect(
+      (
+        store.getState().appPreferences as {
+          settings?: { interface?: Record<string, unknown> };
+        }
+      ).settings?.interface,
+    ).toMatchObject({
+      theme: "dark",
+      sidebarWidth: 260,
+    });
+    expect(api.state.updateAppPreferences).toHaveBeenCalledWith({
+      leftSidebarWidth: 260,
+      settings: {
+        ...DEFAULT_SETTINGS,
+        interface: {
+          ...DEFAULT_SETTINGS.interface,
+          theme: "dark",
+          sidebarWidth: 260,
+        },
+      },
+    });
+  });
+
+  it("switches models through the transport boundary and refreshes renderer-facing state", async () => {
+    const api = createApiFixture();
+    const store = createAppShellStore(api);
+
+    await store.getState().initialize();
+    await store.getState().switchModel({
+      providerId: "google",
+      modelId: "gemini-2.5-pro",
+    });
+
+    expect(api.agent.switchModel).toHaveBeenCalledWith({
+      providerId: "google",
+      modelId: "gemini-2.5-pro",
+    });
+    expect(store.getState().isSwitchingModel).toBe(false);
+    expect(api.agent.getSettings).toHaveBeenCalledTimes(2);
+    expect(api.shell.getSnapshot).toHaveBeenCalledTimes(2);
+  });
+
+  it("synchronizes durable sidebar width with interface settings on initialize and update", async () => {
+    const api = createApiFixture({
+      state: {
+        getRepositoryPreferences: vi.fn(async () => null),
+        updateRepositoryPreferences: vi.fn(async () => ({
+          repositoryId: "/tmp/repo",
+          customName: null,
+          icon: null,
+          accentColor: null,
+        })),
+        getWorkspaceSession: vi.fn(async () => null),
+        saveWorkspaceSession: vi.fn(async (session) => session),
+        getAppPreferences: vi.fn(async () => ({ leftSidebarWidth: 310 })),
+        updateAppPreferences: vi.fn(async (updates) => updates),
+        importLegacyPreferences: vi.fn(async () => ({
+          repositoryPreferences: [],
+          appPreferences: {},
+        })),
+      },
+    });
+    const store = createAppShellStore(api);
+
+    await store.getState().initialize();
+
+    expect(store.getState().appPreferences.leftSidebarWidth).toBe(310);
+    expect(
+      (
+        store.getState().appPreferences as {
+          settings?: { interface?: Record<string, unknown> };
+        }
+      ).settings?.interface,
+    ).toMatchObject({
+      sidebarWidth: 310,
+    });
+
+    await store.getState().updateAppPreferences({
+      settings: {
+        ...DEFAULT_SETTINGS,
+        interface: {
+          ...DEFAULT_SETTINGS.interface,
+          sidebarWidth: 360,
+        },
+      },
+    } as never);
+
+    expect(api.state.updateAppPreferences).toHaveBeenLastCalledWith({
+      leftSidebarWidth: 360,
+      settings: {
+        ...DEFAULT_SETTINGS,
+        interface: {
+          ...DEFAULT_SETTINGS.interface,
+          sidebarWidth: 360,
+        },
+      },
+    });
+  });
+
+  it("updates repository preferences through the state API and reloads renderer-facing shell state", async () => {
+    const initialShellSnapshot: ShellSnapshot = {
+      appName: "PiDesk",
+      appVersion: "0.1.0",
+      chromeVersion: "141.0.0.0",
+      platform: "darwin",
+      mode: "test" as const,
+      catalog: {
+        repositories: [
+          {
+            id: "/tmp/repo",
+            name: "PiDesk",
+            customName: null,
+            icon: null,
+            accentColor: null,
+            rootPath: "/tmp/repo",
+            defaultBranch: "main",
+            worktrees: [],
+          },
+        ],
+        selection: {
+          repositoryId: "/tmp/repo",
+          worktreeId: "/tmp/repo",
+          threadId: "thread-1",
+        },
+      },
+    };
+    const updatedShellSnapshot: ShellSnapshot = {
+      ...initialShellSnapshot,
+      catalog: {
+        ...initialShellSnapshot.catalog,
+        repositories: [
+          {
+            ...initialShellSnapshot.catalog.repositories[0],
+            name: "Mission Control",
+            customName: "Mission Control",
+            icon: "terminal",
+            accentColor: "slate",
+          },
+        ],
+      },
+    };
+    const getSnapshot = vi
+      .fn<() => Promise<typeof initialShellSnapshot>>()
+      .mockResolvedValueOnce(initialShellSnapshot)
+      .mockResolvedValueOnce(updatedShellSnapshot);
+    const api = createApiFixture({
+      shell: {
+        getSnapshot,
+      },
+    });
+    const store = createAppShellStore(api);
+
+    await store.getState().initialize();
+    const updateRepositoryPreferences = (
+      store.getState() as {
+        updateRepositoryPreferences?: (
+          repositoryId: string,
+          updates: {
+            customName: string;
+            icon: string;
+            accentColor: string;
+          },
+        ) => Promise<void>;
+      }
+    ).updateRepositoryPreferences;
+
+    expect(updateRepositoryPreferences).toBeTypeOf("function");
+
+    await updateRepositoryPreferences?.("/tmp/repo", {
+      customName: "Mission Control",
+      icon: "terminal",
+      accentColor: "slate",
+    });
+
+    expect(api.state.updateRepositoryPreferences).toHaveBeenCalledWith(
+      "/tmp/repo",
+      {
+        customName: "Mission Control",
+        icon: "terminal",
+        accentColor: "slate",
+      },
+    );
+    expect(getSnapshot).toHaveBeenCalledTimes(2);
+    expect(
+      store.getState().shellState.shell.catalog.repositories[0],
+    ).toMatchObject({
+      name: "Mission Control",
+      customName: "Mission Control",
+      icon: "terminal",
+      accentColor: "slate",
+    });
+  });
+});
