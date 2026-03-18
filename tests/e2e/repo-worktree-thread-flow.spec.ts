@@ -26,6 +26,8 @@ function removeWorktree(
 
 test("creates a worktree, creates a thread, and restores selection after relaunch", async () => {
   const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), "pidesk-e2e-home-"));
+  const userDataDir = path.join(homeDir, ".pidesk-test-user-data");
+  const customProjectName = "PiDesk Orbit";
   const branchName = `feature/e2e-${Date.now()}`;
   const worktreeDirectoryName = branchName.replace(/[\\/]+/g, "-");
   const createdWorktreePath = path.join(
@@ -34,6 +36,7 @@ test("creates a worktree, creates a thread, and restores selection after relaunc
     "PiDesk",
     worktreeDirectoryName,
   );
+  fs.mkdirSync(userDataDir, { recursive: true });
 
   const launchApp = () =>
     electron.launch({
@@ -44,6 +47,8 @@ test("creates a worktree, creates a thread, and restores selection after relaunc
         HOME: homeDir,
         NODE_ENV: "test",
         PIDESK_AGENT_MODE: "mock",
+        PIDESK_HEADLESS: "1",
+        PIDESK_USER_DATA_DIR: userDataDir,
       },
     });
 
@@ -54,6 +59,10 @@ test("creates a worktree, creates a thread, and restores selection after relaunc
 
     await expect(page.getByTestId("app-ready")).toBeVisible();
     await expect(page.getByTestId("app-title")).toHaveText("π");
+    await expect(page.getByTestId("titlebar-project-name")).toHaveText(
+      "PiDesk",
+    );
+    await expect(page.getByTestId("canvas-grid")).toBeVisible();
     await expect(page.getByTestId("agent-status")).toHaveText("ready", {
       timeout: 10_000,
     });
@@ -62,9 +71,12 @@ test("creates a worktree, creates a thread, and restores selection after relaunc
     await page.getByTestId("worktree-branch-input").fill(branchName);
     await page.getByRole("button", { name: "Create" }).click();
 
-    await expect(page.getByText(branchName).first(), {
+    await expect(page.getByText(branchName).first()).toBeVisible({
       timeout: 15_000,
-    }).toBeVisible();
+    });
+    await expect(page.getByTestId("current-worktree-label")).toHaveText(
+      branchName,
+    );
     await expect(page.getByTestId("agent-status")).toHaveText("ready", {
       timeout: 10_000,
     });
@@ -72,6 +84,17 @@ test("creates a worktree, creates a thread, and restores selection after relaunc
     await page.getByRole("button", { name: "Create thread" }).click();
     await expect(page.getByTestId("current-thread-title")).toHaveText(
       "New thread",
+    );
+
+    await page
+      .getByRole("complementary")
+      .filter({ hasText: repoRoot })
+      .getByRole("button", { name: "Customize PiDesk" })
+      .click();
+    await page.getByLabel("Project display name").fill(customProjectName);
+    await page.getByLabel("Project display name").press("Enter");
+    await expect(page.getByTestId("titlebar-project-name")).toHaveText(
+      customProjectName,
     );
 
     await app.close();
@@ -84,7 +107,14 @@ test("creates a worktree, creates a thread, and restores selection after relaunc
         "ready",
         { timeout: 10_000 },
       );
+      await expect(
+        relaunchedPage.getByTestId("titlebar-project-name"),
+      ).toHaveText(customProjectName);
+      await expect(relaunchedPage.getByTestId("canvas-grid")).toBeVisible();
       await expect(relaunchedPage.getByText(branchName).first()).toBeVisible();
+      await expect(
+        relaunchedPage.getByTestId("current-worktree-label"),
+      ).toHaveText(branchName);
       await expect(
         relaunchedPage.getByTestId("current-thread-title"),
       ).toHaveText("New thread");
