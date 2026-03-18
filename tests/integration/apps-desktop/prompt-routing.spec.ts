@@ -141,7 +141,9 @@ describe("prompt-routing helpers", () => {
     const searchResults = [
       { type: "file", path: "/repo/src/index.ts", name: "index.ts" },
       { type: "file", path: "/repo/src/other.ts", name: "other.ts" },
-    ];
+    ] satisfies NonNullable<
+      Parameters<typeof buildMentionSuggestions>[0]["fileSearchResults"]
+    >;
 
     const suggestions = buildMentionSuggestions({
       windows,
@@ -151,16 +153,16 @@ describe("prompt-routing helpers", () => {
 
     expect(Array.isArray(suggestions)).toBe(true);
     expect(
-      suggestions.find((s: any) => s.kind === "terminal" && s.id === "term-1"),
+      suggestions.find((s) => s.kind === "terminal" && s.id === "term-1"),
     ).toBeTruthy();
     expect(
       suggestions.filter(
-        (s: any) => s.kind === "file" && s.id === "/repo/src/index.ts",
+        (s) => s.kind === "file" && s.id === "/repo/src/index.ts",
       ).length,
     ).toBe(1);
     expect(
       suggestions.find(
-        (s: any) => s.kind === "file" && s.id === "/repo/src/other.ts",
+        (s) => s.kind === "file" && s.id === "/repo/src/other.ts",
       ),
     ).toBeTruthy();
   });
@@ -177,10 +179,21 @@ describe("prompt-routing helpers", () => {
 
     it("resolves the current select value from providers and settings snapshots", () => {
       const providers = [
-        { id: "p1", name: "P1", models: [{ id: "m1", name: "M1" }] },
-        { id: "p2", name: "P2", models: [{ id: "m2", name: "M2" }] },
-      ];
-      const settings = { currentProviderId: "p2", currentModelId: "m2" };
+        {
+          id: "p1",
+          name: "P1",
+          models: [{ id: "m1", providerId: "p1", name: "M1" }],
+        },
+        {
+          id: "p2",
+          name: "P2",
+          models: [{ id: "m2", providerId: "p2", name: "M2" }],
+        },
+      ] satisfies Parameters<typeof resolveCurrentModelValue>[0];
+      const settings = {
+        currentProviderId: "p2",
+        currentModelId: "m2",
+      } satisfies Parameters<typeof resolveCurrentModelValue>[1];
 
       expect(resolveCurrentModelValue(providers, settings)).toBe("p2::m2");
       expect(resolveCurrentModelValue(providers, {})).toBe("p1::m1");

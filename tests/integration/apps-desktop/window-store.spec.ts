@@ -3,6 +3,18 @@ import {
   createWindowStore,
   initialWindowStoreState,
 } from "../../../apps/desktop/src/renderer/src/stores/window-store";
+import type { TerminalWindow } from "../../../packages/shared/src";
+
+function requireWindow<T extends { id: string }>(
+  window: T | undefined,
+  label: string,
+): T {
+  if (!window) {
+    throw new Error(`Expected window ${label} to exist`);
+  }
+
+  return window;
+}
 
 describe("window-store", () => {
   it("creates, focuses, and closes windows while tracking z-order", () => {
@@ -85,8 +97,14 @@ describe("window-store", () => {
     store.moveWindow(a.id, 400, 300);
 
     const windows = store.getState().layout.windows;
-    const wa = windows.find((w) => w.id === a.id)!;
-    const wb = windows.find((w) => w.id === b.id)!;
+    const wa = requireWindow(
+      windows.find((w) => w.id === a.id),
+      "after moving target",
+    );
+    const wb = requireWindow(
+      windows.find((w) => w.id === b.id),
+      "after moving untouched window",
+    );
 
     expect(wa.x).toBe(400);
     expect(wa.y).toBe(300);
@@ -105,8 +123,14 @@ describe("window-store", () => {
     store.resizeWindow(a.id, 640, 480);
 
     const windows = store.getState().layout.windows;
-    const wa = windows.find((w) => w.id === a.id)!;
-    const wb = windows.find((w) => w.id === b.id)!;
+    const wa = requireWindow(
+      windows.find((w) => w.id === a.id),
+      "after resizing target",
+    );
+    const wb = requireWindow(
+      windows.find((w) => w.id === b.id),
+      "after resizing untouched window",
+    );
 
     expect(wa.width).toBe(640);
     expect(wa.height).toBe(480);
@@ -195,12 +219,15 @@ describe("window-store", () => {
       linkedThreadId: "thread-1",
       title: "My Terminal",
     });
-    const updated = store
-      .getState()
-      .layout.windows.find((w) => w.id === term.id)!;
+    const updated = requireWindow(
+      store.getState().layout.windows.find((w) => w.id === term.id),
+      "updated terminal window",
+    );
+    expect(updated.kind).toBe("terminal");
+    const updatedTerminal = updated as TerminalWindow;
 
     expect(updated.id).toBe(originalId);
-    expect((updated as any).linkedThreadId).toBe("thread-1");
+    expect(updatedTerminal.linkedThreadId).toBe("thread-1");
     expect(updated.title).toBe("My Terminal");
     expect(updated.zIndex).toBe(originalZ);
   });

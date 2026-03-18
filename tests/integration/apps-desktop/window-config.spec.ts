@@ -4,6 +4,7 @@ import {
   createMainWindowOptions,
   resolvePreloadTarget,
   resolveRendererTarget,
+  shouldShowMainWindow,
 } from "../../../apps/desktop/src/main/window-config";
 
 describe("createMainWindowOptions", () => {
@@ -26,6 +27,28 @@ describe("createMainWindowOptions", () => {
       spellcheck: false,
       webSecurity: true,
     });
+  });
+
+  it("keeps the window hidden until the main process decides to show it", () => {
+    const options = createMainWindowOptions({
+      preloadPath: "/tmp/pidesk/preload.js",
+    });
+
+    expect(options.show).toBe(false);
+  });
+});
+
+describe("shouldShowMainWindow", () => {
+  it("shows the main window by default", () => {
+    expect(shouldShowMainWindow({})).toBe(true);
+  });
+
+  it("suppresses the main window when headless mode is enabled", () => {
+    expect(shouldShowMainWindow({ PIDESK_HEADLESS: "1" })).toBe(false);
+  });
+
+  it("preserves the normal app behavior for other values", () => {
+    expect(shouldShowMainWindow({ PIDESK_HEADLESS: "0" })).toBe(true);
   });
 });
 

@@ -2,10 +2,20 @@ import { describe, expect, test, vi } from "vitest";
 import type {
   AgentSnapshot,
   PiDeskAgentEvent,
-  PiDeskApi,
   ShellSnapshot,
 } from "../../../packages/shared/src";
 import { createShellModel } from "../../../packages/shell-model/src";
+
+type ShellModelApi = Parameters<typeof createShellModel>[0];
+type ShellModelStateApi = {
+  getRepositoryPreferences: ReturnType<typeof vi.fn>;
+  updateRepositoryPreferences: ReturnType<typeof vi.fn>;
+  getWorkspaceSession: ReturnType<typeof vi.fn>;
+  saveWorkspaceSession: ReturnType<typeof vi.fn>;
+  getAppPreferences: ReturnType<typeof vi.fn>;
+  updateAppPreferences: ReturnType<typeof vi.fn>;
+  importLegacyPreferences: ReturnType<typeof vi.fn>;
+};
 
 type LegacyMessageEnvelopeEvent = {
   type: "message_end" | "message_start" | "message_update";
@@ -112,12 +122,32 @@ function createAgentSnapshotFixture(
   };
 }
 
+function createStateApiFixture(): ShellModelStateApi {
+  return {
+    getRepositoryPreferences: vi.fn(async () => null),
+    updateRepositoryPreferences: vi.fn(async () => ({
+      repositoryId: "/tmp/pidesk",
+      customName: null,
+      icon: null,
+      accentColor: null,
+    })),
+    getWorkspaceSession: vi.fn(async () => null),
+    saveWorkspaceSession: vi.fn(async (session) => session),
+    getAppPreferences: vi.fn(async () => ({})),
+    updateAppPreferences: vi.fn(async (updates) => updates),
+    importLegacyPreferences: vi.fn(async () => ({
+      repositoryPreferences: [],
+      appPreferences: {},
+    })),
+  };
+}
+
 describe("createShellModel", () => {
   test("loads snapshots and folds live agent events into renderer state", async () => {
     let eventListener:
       | ((event: PiDeskAgentEvent | LegacyMessageEnvelopeEvent) => void)
       | undefined;
-    const api: PiDeskApi = {
+    const api = {
       shell: {
         getSnapshot: vi.fn(async () => createShellSnapshotFixture()),
       },
@@ -132,7 +162,8 @@ describe("createShellModel", () => {
           };
         }),
       },
-    };
+      state: createStateApiFixture(),
+    } as unknown as ShellModelApi;
 
     const model = createShellModel(api);
     await model.load();
@@ -189,7 +220,7 @@ describe("createShellModel", () => {
 
   test("notifies renderer subscribers when live turn and tool events arrive", async () => {
     let eventListener: ((event: PiDeskAgentEvent) => void) | undefined;
-    const api: PiDeskApi = {
+    const api = {
       shell: {
         getSnapshot: vi.fn(async () => createShellSnapshotFixture()),
       },
@@ -203,7 +234,8 @@ describe("createShellModel", () => {
           };
         }),
       },
-    };
+      state: createStateApiFixture(),
+    } as unknown as ShellModelApi;
 
     const model = createShellModel(api);
     const listener = vi.fn();
@@ -253,7 +285,7 @@ describe("createShellModel", () => {
 
   test("sends trimmed prompts and clears the draft after sending", async () => {
     const prompt = vi.fn(async () => {});
-    const api: PiDeskApi = {
+    const api = {
       shell: {
         getSnapshot: vi.fn(async () => createShellSnapshotFixture()),
       },
@@ -262,7 +294,8 @@ describe("createShellModel", () => {
         prompt,
         subscribe: vi.fn(() => () => {}),
       },
-    };
+      state: createStateApiFixture(),
+    } as unknown as ShellModelApi;
 
     const model = createShellModel(api);
     model.setDraft("  Summarize the workspace  ");
@@ -298,7 +331,7 @@ describe("createShellModel", () => {
       ];
     });
 
-    const api: PiDeskApi = {
+    const api = {
       shell: {
         getSnapshot: vi.fn(async () => createShellSnapshotFixture()),
       },
@@ -310,7 +343,8 @@ describe("createShellModel", () => {
         prompt,
         subscribe: vi.fn(() => () => {}),
       },
-    };
+      state: createStateApiFixture(),
+    } as unknown as ShellModelApi;
 
     const model = createShellModel(api);
     await model.load();
@@ -350,7 +384,7 @@ describe("createShellModel", () => {
       throw new Error("Missing SDK auth");
     });
 
-    const api: PiDeskApi = {
+    const api = {
       shell: {
         getSnapshot: vi.fn(async () => createShellSnapshotFixture()),
       },
@@ -362,7 +396,8 @@ describe("createShellModel", () => {
         prompt,
         subscribe: vi.fn(() => () => {}),
       },
-    };
+      state: createStateApiFixture(),
+    } as unknown as ShellModelApi;
 
     const model = createShellModel(api);
     await model.load();
@@ -389,7 +424,7 @@ describe("createShellModel", () => {
       throw new Error("Missing SDK auth");
     });
 
-    const api: PiDeskApi = {
+    const api = {
       shell: {
         getSnapshot: vi.fn(async () => createShellSnapshotFixture()),
       },
@@ -408,7 +443,8 @@ describe("createShellModel", () => {
         prompt,
         subscribe: vi.fn(() => () => {}),
       },
-    };
+      state: createStateApiFixture(),
+    } as unknown as ShellModelApi;
 
     const model = createShellModel(api);
     await model.load();
@@ -452,7 +488,7 @@ describe("createShellModel", () => {
       });
     });
 
-    const api: PiDeskApi = {
+    const api = {
       shell: {
         getSnapshot: vi.fn(async () => createShellSnapshotFixture()),
       },
@@ -469,7 +505,8 @@ describe("createShellModel", () => {
           };
         }),
       },
-    };
+      state: createStateApiFixture(),
+    } as unknown as ShellModelApi;
 
     const model = createShellModel(api);
     await model.load();
@@ -525,7 +562,7 @@ describe("createShellModel", () => {
       });
     });
 
-    const api: PiDeskApi = {
+    const api = {
       shell: {
         getSnapshot: vi.fn(async () => createShellSnapshotFixture()),
       },
@@ -562,7 +599,8 @@ describe("createShellModel", () => {
           };
         }),
       },
-    };
+      state: createStateApiFixture(),
+    } as unknown as ShellModelApi;
 
     const model = createShellModel(api);
     await model.load();

@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { buildShellCatalog } from "../../../apps/desktop/src/main/shell-catalog-builder";
-import type { AgentSnapshot } from "../../../packages/shared/src";
+import {
+  type AgentSnapshot,
+  createEmptyWorkspaceSession,
+} from "../../../packages/shared/src";
 
 describe("buildShellCatalog", () => {
   it("merges repository catalog entries, git worktrees, thread catalog entries, and selected runtime state", async () => {
@@ -37,6 +40,160 @@ describe("buildShellCatalog", () => {
         worktreeId: "/tmp/repo-beta/feature",
         threadId: "thread-selected",
       },
+      repositoryPreferences: [
+        {
+          repositoryId: "/tmp/repo-beta",
+          customName: "Beta Custom",
+          icon: "beaker",
+          accentColor: "#ee6600",
+        },
+      ],
+      workspaceSessions: [
+        (() => {
+          const session = createEmptyWorkspaceSession("/tmp/repo-beta/feature");
+          session.layout.windows = [
+            {
+              id: "file-valid",
+              kind: "file",
+              title: "app.ts",
+              x: 10,
+              y: 10,
+              width: 400,
+              height: 300,
+              zIndex: 1,
+              isFocused: true,
+              state: "normal",
+              filePath: "/tmp/repo-beta/feature/src/app.ts",
+              isDirty: false,
+            },
+            {
+              id: "file-stale",
+              kind: "file",
+              title: "stale.ts",
+              x: 20,
+              y: 20,
+              width: 400,
+              height: 300,
+              zIndex: 2,
+              isFocused: false,
+              state: "normal",
+              filePath: "/tmp/repo-beta/src/outside.ts",
+              isDirty: false,
+            },
+            {
+              id: "chat-valid",
+              kind: "chat",
+              title: "Selected",
+              x: 30,
+              y: 30,
+              width: 400,
+              height: 300,
+              zIndex: 3,
+              isFocused: false,
+              state: "normal",
+              threadId: "thread-selected",
+            },
+            {
+              id: "chat-stale",
+              kind: "chat",
+              title: "Archived",
+              x: 40,
+              y: 40,
+              width: 400,
+              height: 300,
+              zIndex: 4,
+              isFocused: false,
+              state: "normal",
+              threadId: "thread-archived",
+            },
+            {
+              id: "terminal-valid",
+              kind: "terminal",
+              title: "Terminal",
+              x: 50,
+              y: 50,
+              width: 500,
+              height: 320,
+              zIndex: 5,
+              isFocused: false,
+              state: "normal",
+              terminalId: "term-1",
+              backend: "shell",
+              cwd: "/tmp/repo-beta/feature",
+              linkedThreadId: "thread-selected",
+            },
+            {
+              id: "terminal-stale",
+              kind: "terminal",
+              title: "Linked terminal",
+              x: 60,
+              y: 60,
+              width: 500,
+              height: 320,
+              zIndex: 6,
+              isFocused: false,
+              state: "normal",
+              terminalId: "term-2",
+              backend: "pi-linked",
+              cwd: "/tmp/repo-beta",
+              linkedThreadId: "thread-archived",
+              tmuxSessionName: "pidesk-thread-archived",
+            },
+            {
+              id: "git-stale",
+              kind: "git",
+              title: "Git",
+              x: 70,
+              y: 70,
+              width: 520,
+              height: 340,
+              zIndex: 7,
+              isFocused: false,
+              state: "normal",
+              terminalId: "term-3",
+              repositoryPath: "/tmp/repo-beta",
+            },
+          ];
+          session.layout.focusedWindowId = "chat-stale";
+          session.search = {
+            query: "app",
+            selectedPath: "/tmp/repo-beta/src/outside.ts",
+          };
+          session.promptDrafts = {
+            "thread-selected": "resume selected thread",
+            "thread-archived": "stale archived draft",
+          };
+          session.files = {
+            "/tmp/repo-beta/feature/src/app.ts": {
+              filePath: "/tmp/repo-beta/feature/src/app.ts",
+              scrollTop: 24,
+            },
+            "/tmp/repo-beta/src/outside.ts": {
+              filePath: "/tmp/repo-beta/src/outside.ts",
+              scrollTop: 99,
+            },
+          };
+          session.recoveryDrafts = {
+            "thread-selected": {
+              kind: "thread",
+              text: "recover me",
+              updatedAt: 11,
+            },
+            "thread-archived": {
+              kind: "thread",
+              text: "drop me",
+              updatedAt: 12,
+            },
+            "note-1": {
+              kind: "note",
+              text: "keep me",
+              updatedAt: 13,
+            },
+          };
+          return session;
+        })(),
+        createEmptyWorkspaceSession("/tmp/missing-worktree"),
+      ],
       inspectRepository: (rootPath) => {
         if (rootPath === "/tmp/repo-alpha") {
           return {
@@ -180,7 +337,10 @@ describe("buildShellCatalog", () => {
     });
     expect(catalog.repositories[1]).toMatchObject({
       id: "/tmp/repo-beta",
-      name: "repo-beta",
+      name: "Beta Custom",
+      customName: "Beta Custom",
+      icon: "beaker",
+      accentColor: "#ee6600",
       defaultBranch: "main",
     });
     expect(catalog.repositories[1]?.worktrees[1]).toMatchObject({
@@ -213,6 +373,120 @@ describe("buildShellCatalog", () => {
         },
       ],
     });
+    expect(catalog.reconciledWorkspaceSessions).toEqual([
+      {
+        worktreeId: "/tmp/repo-beta/feature",
+        sidebar: {
+          activePanel: null,
+          isCollapsed: false,
+        },
+        promptDrafts: {
+          "thread-selected": "resume selected thread",
+        },
+        search: {
+          query: "app",
+          selectedPath: null,
+        },
+        files: {
+          "/tmp/repo-beta/feature/src/app.ts": {
+            filePath: "/tmp/repo-beta/feature/src/app.ts",
+            scrollTop: 24,
+          },
+        },
+        notes: {},
+        recoveryDrafts: {
+          "note-1": {
+            kind: "note",
+            text: "keep me",
+            updatedAt: 13,
+          },
+          "thread-selected": {
+            kind: "thread",
+            text: "recover me",
+            updatedAt: 11,
+          },
+        },
+        layout: {
+          windows: [
+            {
+              id: "file-valid",
+              kind: "file",
+              title: "app.ts",
+              x: 10,
+              y: 10,
+              width: 400,
+              height: 300,
+              zIndex: 1,
+              isFocused: true,
+              state: "normal",
+              filePath: "/tmp/repo-beta/feature/src/app.ts",
+              isDirty: false,
+            },
+            {
+              id: "chat-valid",
+              kind: "chat",
+              title: "Selected",
+              x: 30,
+              y: 30,
+              width: 400,
+              height: 300,
+              zIndex: 3,
+              isFocused: false,
+              state: "normal",
+              threadId: "thread-selected",
+            },
+            {
+              id: "terminal-valid",
+              kind: "terminal",
+              title: "Terminal",
+              x: 50,
+              y: 50,
+              width: 500,
+              height: 320,
+              zIndex: 5,
+              isFocused: false,
+              state: "normal",
+              terminalId: "term-1",
+              backend: "shell",
+              cwd: "/tmp/repo-beta/feature",
+              linkedThreadId: "thread-selected",
+            },
+            {
+              id: "terminal-stale",
+              kind: "terminal",
+              title: "Linked terminal",
+              x: 60,
+              y: 60,
+              width: 500,
+              height: 320,
+              zIndex: 6,
+              isFocused: false,
+              state: "normal",
+              terminalId: "term-2",
+              backend: "shell",
+              cwd: "/tmp/repo-beta/feature",
+            },
+            {
+              id: "git-stale",
+              kind: "git",
+              title: "Git",
+              x: 70,
+              y: 70,
+              width: 520,
+              height: 340,
+              zIndex: 7,
+              isFocused: false,
+              state: "normal",
+              terminalId: "term-3",
+              repositoryPath: "/tmp/repo-beta/feature",
+            },
+          ],
+          focusedWindowId: "chat-valid",
+          nextZIndex: 8,
+          snapGridSize: 16,
+        },
+      },
+    ]);
   });
 
   it("falls back to the first valid repository, worktree, and thread when stored selection is stale", async () => {
@@ -284,6 +558,100 @@ describe("buildShellCatalog", () => {
       repositoryId: "/tmp/repo-alpha",
       worktreeId: "/tmp/repo-alpha",
       threadId: "thread-alpha",
+    });
+  });
+
+  it("skips repositories without worktrees when reconciling stale selection", async () => {
+    const catalog = await buildShellCatalog({
+      repositories: [
+        {
+          id: "/tmp/repo-empty",
+          rootPath: "/tmp/repo-empty",
+          label: null,
+          order: 0,
+          lastSelectedWorktreeId: null,
+          addedAt: 1,
+          updatedAt: 1,
+        },
+        {
+          id: "/tmp/repo-valid",
+          rootPath: "/tmp/repo-valid",
+          label: null,
+          order: 1,
+          lastSelectedWorktreeId: null,
+          addedAt: 2,
+          updatedAt: 2,
+        },
+      ],
+      selection: {
+        repositoryId: "/tmp/missing-repo",
+        worktreeId: "/tmp/missing-worktree",
+        threadId: "thread-missing",
+      },
+      inspectRepository: (rootPath) =>
+        rootPath === "/tmp/repo-empty"
+          ? {
+              status: "repository" as const,
+              rootPath,
+              currentWorktreePath: "/tmp/repo-empty",
+              defaultBranch: "main",
+              message: null,
+              worktrees: [],
+            }
+          : {
+              status: "repository" as const,
+              rootPath,
+              currentWorktreePath: "/tmp/repo-valid/main",
+              defaultBranch: "main",
+              message: null,
+              worktrees: [
+                {
+                  id: "/tmp/repo-valid/main",
+                  path: "/tmp/repo-valid/main",
+                  isMain: true,
+                  isCurrent: true,
+                  isDetached: false,
+                  isPrunable: false,
+                  prunableReason: null,
+                  branch: "main",
+                  commit: "bbbbbbb",
+                  git: {
+                    status: "ready",
+                    branch: "main",
+                    commit: "bbbbbbb",
+                    hasChanges: false,
+                    ahead: 0,
+                    behind: 0,
+                    stagedCount: 0,
+                    modifiedCount: 0,
+                    untrackedCount: 0,
+                    message: null,
+                  },
+                },
+              ],
+            },
+      listThreadsByWorktree: (worktreeId) =>
+        worktreeId === "/tmp/repo-valid/main"
+          ? [
+              {
+                id: "thread-valid",
+                worktreeId,
+                title: "Recovered thread",
+                archivedAt: null,
+                lastActivityAt: 4,
+                runtimeSessionName: "pidesk-thread-valid",
+                createdAt: 1,
+                updatedAt: 1,
+              },
+            ]
+          : [],
+      getRuntimeState: async () => ({ status: "ready", lastError: null }),
+    });
+
+    expect(catalog.selection).toEqual({
+      repositoryId: "/tmp/repo-valid",
+      worktreeId: "/tmp/repo-valid/main",
+      threadId: "thread-valid",
     });
   });
 });

@@ -1,35 +1,40 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  clampLeftSidebarWidth,
-  loadLeftSidebarWidth,
-  saveLeftSidebarWidth,
-} from "../../../apps/desktop/src/renderer/src/lib/sidebar-preferences";
+import * as sidebarPreferences from "../../../apps/desktop/src/renderer/src/lib/sidebar-preferences";
+
+const { clampLeftSidebarWidth, readLegacyLeftSidebarWidth } =
+  sidebarPreferences;
 
 describe("sidebar preference helpers", () => {
+  it("does not expose removed load and save wrapper helpers", () => {
+    expect("loadLeftSidebarWidth" in sidebarPreferences).toBe(false);
+    expect("saveLeftSidebarWidth" in sidebarPreferences).toBe(false);
+  });
+
   it("clamps widths to the allowed range", () => {
     expect(clampLeftSidebarWidth(100)).toBe(140);
     expect(clampLeftSidebarWidth(180)).toBe(180);
     expect(clampLeftSidebarWidth(1000)).toBe(400);
   });
 
-  it("loadLeftSidebarWidth returns default when localStorage missing or invalid", () => {
-    // Clear any existing value
+  it("readLegacyLeftSidebarWidth returns null when localStorage value is missing", () => {
     localStorage.removeItem("pidesk.leftSidebarWidth");
-    expect(loadLeftSidebarWidth()).toBe(180);
-
-    localStorage.setItem("pidesk.leftSidebarWidth", "250");
-    expect(loadLeftSidebarWidth()).toBe(250);
-
-    localStorage.setItem("pidesk.leftSidebarWidth", "not-a-number");
-    expect(loadLeftSidebarWidth()).toBe(180);
+    expect(readLegacyLeftSidebarWidth()).toBeNull();
   });
 
-  it("saveLeftSidebarWidth writes clamped value to localStorage", () => {
-    saveLeftSidebarWidth(100);
-    expect(localStorage.getItem("pidesk.leftSidebarWidth")).toBe("140");
+  it("readLegacyLeftSidebarWidth returns null when localStorage value is invalid", () => {
+    localStorage.setItem("pidesk.leftSidebarWidth", "not-a-number");
+    expect(readLegacyLeftSidebarWidth()).toBeNull();
+  });
 
-    saveLeftSidebarWidth(350);
-    expect(localStorage.getItem("pidesk.leftSidebarWidth")).toBe("350");
+  it("readLegacyLeftSidebarWidth returns a clamped width for valid legacy values", () => {
+    localStorage.setItem("pidesk.leftSidebarWidth", "100");
+    expect(readLegacyLeftSidebarWidth()).toBe(140);
+
+    localStorage.setItem("pidesk.leftSidebarWidth", "250");
+    expect(readLegacyLeftSidebarWidth()).toBe(250);
+
+    localStorage.setItem("pidesk.leftSidebarWidth", "1000");
+    expect(readLegacyLeftSidebarWidth()).toBe(400);
   });
 });

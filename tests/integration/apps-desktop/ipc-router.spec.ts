@@ -1,3 +1,4 @@
+import type { Dirent, PathLike } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 
 // Mock `node:fs` early so modules imported below that may use it will get the mocked
@@ -26,9 +27,7 @@ vi.mock("node:fs", () => {
 
 describe("payload-parsers", () => {
   it("parseDialogOptions preserves title and filters unsupported properties", async () => {
-    const parsers: any = await import(
-      "../../../apps/desktop/src/main/ipc/payload-parsers"
-    );
+    const parsers = await loadPayloadParsers();
 
     const input = {
       title: "Choose files",
@@ -49,9 +48,7 @@ describe("payload-parsers", () => {
   });
 
   it("parseSearchRequest returns null when either query or rootPath is missing, and returns expected object when both are present", async () => {
-    const parsers: any = await import(
-      "../../../apps/desktop/src/main/ipc/payload-parsers"
-    );
+    const parsers = await loadPayloadParsers();
 
     expect(parsers.parseSearchRequest({})).toBeNull();
     expect(parsers.parseSearchRequest({ query: "app" })).toBeNull();
@@ -73,9 +70,7 @@ describe("payload-parsers", () => {
   });
 
   it("parseTerminalCreateOptions returns null when ownerWindowId is missing, normalizes supported backends, and strips unsupported backends", async () => {
-    const parsers: any = await import(
-      "../../../apps/desktop/src/main/ipc/payload-parsers"
-    );
+    const parsers = await loadPayloadParsers();
 
     // missing ownerWindowId => null
     expect(
@@ -136,7 +131,7 @@ it("fs.readFile rejects out-of-workspace absolute paths before touching node:fs.
   const harness = createHandlerHarness();
   const shellSnapshot = createShellSnapshot();
   // ensure workspace root is /tmp/pidesk for the policy
-  shellSnapshot.workspace!.rootPath = "/tmp/pidesk";
+  shellSnapshot.workspace.rootPath = "/tmp/pidesk";
   const getShellSnapshot = vi.fn(() => shellSnapshot);
 
   registerIpcHandlers({
@@ -146,10 +141,10 @@ it("fs.readFile rejects out-of-workspace absolute paths before touching node:fs.
     mainWindow: null,
   });
 
-  const nodeFs: any = await import("node:fs");
+  const nodeFs = await loadMockedNodeFs();
   nodeFs.readFileSync.mockClear();
   nodeFs.statSync.mockClear();
-  nodeFs.realpathSync.mockImplementation((value: string) => value);
+  nodeFs.realpathSync.mockImplementation((value) => value.toString());
 
   await expect(
     harness.handlers.get(IPC_CHANNELS.fs.readFile)?.(undefined, {
@@ -164,7 +159,7 @@ it("fs.readFile rejects out-of-workspace absolute paths before touching node:fs.
 it("fs.writeFile rejects out-of-workspace absolute paths before touching node:fs/promises.mkdir or writeFile", async () => {
   const harness = createHandlerHarness();
   const shellSnapshot = createShellSnapshot();
-  shellSnapshot.workspace!.rootPath = "/tmp/pidesk";
+  shellSnapshot.workspace.rootPath = "/tmp/pidesk";
   const getShellSnapshot = vi.fn(() => shellSnapshot);
 
   registerIpcHandlers({
@@ -174,12 +169,12 @@ it("fs.writeFile rejects out-of-workspace absolute paths before touching node:fs
     mainWindow: null,
   });
 
-  const nodeFsPromises: any = await import("node:fs/promises");
+  const nodeFsPromises = await loadMockedNodeFsPromises();
   nodeFsPromises.mkdir.mockClear();
   nodeFsPromises.writeFile.mockClear();
   // ensure calls would succeed if they happened; tests assert they should not
-  nodeFsPromises.mkdir.mockImplementation(() => Promise.resolve());
-  nodeFsPromises.writeFile.mockImplementation(() => Promise.resolve());
+  nodeFsPromises.mkdir.mockResolvedValue(undefined);
+  nodeFsPromises.writeFile.mockResolvedValue(undefined);
 
   await expect(
     harness.handlers.get(IPC_CHANNELS.fs.writeFile)?.(undefined, {
@@ -195,7 +190,7 @@ it("fs.writeFile rejects out-of-workspace absolute paths before touching node:fs
 it("fs.writeFile resolves relative paths against the workspace root before writing", async () => {
   const harness = createHandlerHarness();
   const shellSnapshot = createShellSnapshot();
-  shellSnapshot.workspace!.rootPath = "/tmp/pidesk";
+  shellSnapshot.workspace.rootPath = "/tmp/pidesk";
   const getShellSnapshot = vi.fn(() => shellSnapshot);
 
   registerIpcHandlers({
@@ -205,11 +200,11 @@ it("fs.writeFile resolves relative paths against the workspace root before writi
     mainWindow: null,
   });
 
-  const nodeFsPromises: any = await import("node:fs/promises");
+  const nodeFsPromises = await loadMockedNodeFsPromises();
   nodeFsPromises.mkdir.mockClear();
   nodeFsPromises.writeFile.mockClear();
-  nodeFsPromises.mkdir.mockImplementation(() => Promise.resolve());
-  nodeFsPromises.writeFile.mockImplementation(() => Promise.resolve());
+  nodeFsPromises.mkdir.mockResolvedValue(undefined);
+  nodeFsPromises.writeFile.mockResolvedValue(undefined);
 
   await harness.handlers.get(IPC_CHANNELS.fs.writeFile)?.(undefined, {
     path: "notes/today.md",
@@ -227,17 +222,143 @@ it("fs.writeFile resolves relative paths against the workspace root before writi
   );
 });
 
+import type { BrowserWindow } from "electron";
 import { registerIpcHandlers } from "../../../apps/desktop/src/main/ipc-router";
+import { TerminalManager } from "../../../apps/desktop/src/main/terminal-manager";
 import {
   type AgentSnapshot,
+  type AppPreferences,
+  createEmptyWorkspaceSession,
   IPC_CHANNELS,
   type PiDiscoveryResult,
   type PiTerminalRouteResult,
+  type RepositoryPreferences,
   type SearchResponse,
   type ShellSnapshot,
+  type TerminalSession,
+  type WorkspaceSession,
 } from "../../../packages/shared/src";
 
-function createShellSnapshot(): ShellSnapshot {
+type ShellSnapshotWithWorkspace = ShellSnapshot & {
+  workspace: NonNullable<ShellSnapshot["workspace"]>;
+};
+type MockedReadDirSync = {
+  mockClear(): void;
+  mockImplementation(
+    implementation: (targetPath: PathLike, options?: unknown) => Dirent[],
+  ): unknown;
+};
+type MockedRealpathSync = {
+  mockImplementation(implementation: (path: PathLike) => string): unknown;
+};
+
+async function loadPayloadParsers() {
+  return import("../../../apps/desktop/src/main/ipc/payload-parsers");
+}
+
+async function loadMockedNodeFs() {
+  const nodeFs = await import("node:fs");
+  return {
+    readdirSync: nodeFs.readdirSync as unknown as MockedReadDirSync,
+    realpathSync: nodeFs.realpathSync as unknown as MockedRealpathSync,
+    readFileSync: vi.mocked(nodeFs.readFileSync),
+    statSync: vi.mocked(nodeFs.statSync),
+  };
+}
+
+async function loadMockedNodeFsPromises() {
+  const nodeFsPromises = await import("node:fs/promises");
+  return {
+    mkdir: vi.mocked(nodeFsPromises.mkdir),
+    writeFile: vi.mocked(nodeFsPromises.writeFile),
+  };
+}
+
+function createDirent(name: string, kind: "file" | "directory"): Dirent {
+  return {
+    name,
+    path: "",
+    parentPath: "",
+    isBlockDevice: () => false,
+    isCharacterDevice: () => false,
+    isDirectory: () => kind === "directory",
+    isFIFO: () => false,
+    isFile: () => kind === "file",
+    isSocket: () => false,
+    isSymbolicLink: () => false,
+    isUnknown: () => false,
+  } as unknown as Dirent;
+}
+
+function createTerminalSession(
+  overrides: Partial<TerminalSession> = {},
+): TerminalSession {
+  return {
+    id: "term-1",
+    backend: "shell",
+    cwd: "/tmp",
+    status: "ready",
+    ownerWindowId: "terminal-term-1",
+    createdAt: Date.now(),
+    ...overrides,
+  };
+}
+
+function createTerminalManagerMock(
+  overrides: {
+    setMainWindow?: BrowserWindow extends infer _Window
+      ? (window: BrowserWindow) => void
+      : never;
+    initialize?: () => void;
+    isAvailable?: () => boolean;
+    getError?: () => Error | null;
+    create?: TerminalManager["create"];
+    write?: TerminalManager["write"];
+    resize?: TerminalManager["resize"];
+    destroy?: TerminalManager["destroy"];
+    destroyAll?: TerminalManager["destroyAll"];
+    get?: TerminalManager["get"];
+    getSessions?: TerminalManager["getSessions"];
+  } = {},
+): TerminalManager {
+  const manager = new TerminalManager();
+
+  vi.spyOn(manager, "setMainWindow").mockImplementation(
+    overrides.setMainWindow ?? (() => {}),
+  );
+  vi.spyOn(manager, "initialize").mockImplementation(
+    overrides.initialize ?? (() => {}),
+  );
+  vi.spyOn(manager, "isAvailable").mockImplementation(
+    overrides.isAvailable ?? (() => true),
+  );
+  vi.spyOn(manager, "getError").mockImplementation(
+    overrides.getError ?? (() => null),
+  );
+  vi.spyOn(manager, "create").mockImplementation(
+    overrides.create ?? (() => createTerminalSession()),
+  );
+  vi.spyOn(manager, "write").mockImplementation(overrides.write ?? (() => {}));
+  vi.spyOn(manager, "resize").mockImplementation(
+    overrides.resize ?? (() => {}),
+  );
+  vi.spyOn(manager, "destroy").mockImplementation(
+    overrides.destroy ?? (() => {}),
+  );
+  vi.spyOn(manager, "destroyAll").mockImplementation(
+    overrides.destroyAll ?? (() => {}),
+  );
+  vi.spyOn(manager, "get").mockImplementation(
+    overrides.get ?? (() => undefined),
+  );
+  vi.spyOn(manager, "getSessions").mockImplementation(
+    overrides.getSessions ?? (() => []),
+  );
+
+  return manager;
+}
+
+function createShellSnapshot(): ShellSnapshotWithWorkspace {
   return {
     appName: "PiDesk",
     appVersion: "0.1.0",
@@ -363,6 +484,38 @@ function createAgentHost(agentSnapshot: AgentSnapshot) {
   };
 }
 
+function createStateHost() {
+  const repositoryPreferences: RepositoryPreferences = {
+    repositoryId: "/tmp/pidesk",
+    customName: "PiDesk",
+    icon: "pi",
+    accentColor: "#224466",
+  };
+  const workspaceSession: WorkspaceSession =
+    createEmptyWorkspaceSession("/tmp/pidesk");
+  const appPreferences: AppPreferences = {
+    leftSidebarWidth: 220,
+    settings: {
+      interface: {
+        theme: "dark",
+      },
+    },
+  };
+
+  return {
+    getRepositoryPreferences: vi.fn(async () => repositoryPreferences),
+    updateRepositoryPreferences: vi.fn(async () => repositoryPreferences),
+    getWorkspaceSession: vi.fn(async () => workspaceSession),
+    saveWorkspaceSession: vi.fn(async () => workspaceSession),
+    getAppPreferences: vi.fn(async () => appPreferences),
+    updateAppPreferences: vi.fn(async () => appPreferences),
+    importLegacyPreferences: vi.fn(async () => ({
+      repositoryPreferences: [repositoryPreferences],
+      appPreferences,
+    })),
+  };
+}
+
 describe("registerIpcHandlers", () => {
   it("binds shell and agent handlers to the expected invoke channels", async () => {
     const shellSnapshot = createShellSnapshot();
@@ -441,26 +594,11 @@ describe("registerIpcHandlers", () => {
 
   it("binds terminal.create and getSessions handlers returning full TerminalSession descriptors", async () => {
     const harness = createHandlerHarness();
-    const fakeSession = {
-      id: "term-1",
-      backend: "shell",
-      cwd: "/tmp",
-      status: "ready",
-      ownerWindowId: "terminal-term-1",
-      createdAt: Date.now(),
-    };
-    const tmMock: any = {
-      setMainWindow: vi.fn(),
-      initialize: vi.fn(),
-      isAvailable: vi.fn(() => true),
-      getError: vi.fn(() => null),
+    const fakeSession = createTerminalSession();
+    const tmMock = createTerminalManagerMock({
       create: vi.fn(() => fakeSession),
       getSessions: vi.fn(() => [fakeSession]),
-      write: vi.fn(),
-      resize: vi.fn(),
-      destroy: vi.fn(),
-      get: vi.fn(),
-    };
+    });
 
     registerIpcHandlers({
       handle: harness.handle,
@@ -487,6 +625,148 @@ describe("registerIpcHandlers", () => {
       harness.handlers.get(IPC_CHANNELS.terminal.getSessions)?.(),
     ).resolves.toEqual([fakeSession]);
     expect(tmMock.create).toHaveBeenCalledWith("term-1", createPayload);
+  });
+
+  it("binds state persistence handlers", async () => {
+    const harness = createHandlerHarness();
+    const stateHost = createStateHost();
+    const session = createEmptyWorkspaceSession("/tmp/pidesk");
+
+    session.layout.windows.push({
+      id: "chat-1",
+      kind: "chat",
+      title: "Current thread",
+      x: 20,
+      y: 20,
+      width: 600,
+      height: 400,
+      zIndex: 1,
+      isFocused: true,
+      state: "normal",
+      threadId: "default-thread",
+      messages: ["drop me"],
+    } as never);
+
+    registerIpcHandlers({
+      handle: harness.handle,
+      getShellSnapshot: vi.fn(createShellSnapshot),
+      agentHost: createAgentHost(createAgentSnapshot()),
+      stateHost,
+      mainWindow: null,
+    });
+
+    await harness.handlers.get(IPC_CHANNELS.state.getRepositoryPreferences)?.(
+      undefined,
+      { repositoryId: "/tmp/pidesk" },
+    );
+    await harness.handlers.get(
+      IPC_CHANNELS.state.updateRepositoryPreferences,
+    )?.(undefined, {
+      repositoryId: "/tmp/pidesk",
+      updates: {
+        customName: "PiDesk",
+        icon: "pi",
+        accentColor: "#224466",
+      },
+    });
+    await harness.handlers.get(IPC_CHANNELS.state.getWorkspaceSession)?.(
+      undefined,
+      { worktreeId: "/tmp/pidesk" },
+    );
+    await harness.handlers.get(IPC_CHANNELS.state.saveWorkspaceSession)?.(
+      undefined,
+      {
+        session: {
+          ...session,
+          transcriptBodies: {
+            "default-thread": "drop me",
+          },
+          runtimeState: {
+            status: "streaming",
+          },
+        },
+      },
+    );
+    await harness.handlers.get(IPC_CHANNELS.state.getAppPreferences)?.();
+    await harness.handlers.get(IPC_CHANNELS.state.updateAppPreferences)?.(
+      undefined,
+      {
+        updates: {
+          leftSidebarWidth: 220,
+          settings: {
+            interface: {
+              theme: "dark",
+            },
+          },
+        },
+      },
+    );
+    await harness.handlers.get(IPC_CHANNELS.state.importLegacyPreferences)?.(
+      undefined,
+      {
+        importData: {
+          leftSidebarWidth: 220,
+          repositories: [
+            {
+              repositoryId: "/tmp/pidesk",
+              customName: "PiDesk",
+            },
+          ],
+        },
+      },
+    );
+
+    expect(stateHost.getRepositoryPreferences).toHaveBeenCalledWith(
+      "/tmp/pidesk",
+    );
+    expect(stateHost.updateRepositoryPreferences).toHaveBeenCalledWith(
+      "/tmp/pidesk",
+      {
+        customName: "PiDesk",
+        icon: "pi",
+        accentColor: "#224466",
+      },
+    );
+    expect(stateHost.getWorkspaceSession).toHaveBeenCalledWith("/tmp/pidesk");
+    expect(stateHost.saveWorkspaceSession).toHaveBeenCalledWith({
+      ...session,
+      layout: {
+        ...session.layout,
+        windows: [
+          {
+            id: "chat-1",
+            kind: "chat",
+            title: "Current thread",
+            x: 20,
+            y: 20,
+            width: 600,
+            height: 400,
+            zIndex: 1,
+            isFocused: true,
+            state: "normal",
+            threadId: "default-thread",
+          },
+        ],
+      },
+    });
+    expect(stateHost.getAppPreferences).toHaveBeenCalledTimes(1);
+    expect(stateHost.updateAppPreferences).toHaveBeenCalledWith({
+      leftSidebarWidth: 220,
+      settings: {
+        interface: {
+          theme: "dark",
+        },
+      },
+    });
+    expect(stateHost.importLegacyPreferences).toHaveBeenCalledWith({
+      leftSidebarWidth: 220,
+      repositories: [
+        {
+          repositoryId: "/tmp/pidesk",
+          customName: "PiDesk",
+        },
+      ],
+    });
   });
 
   it("delegates discovery, slash suggestions, search, model switch, and terminal routing", async () => {
@@ -602,10 +882,7 @@ describe("registerIpcHandlers", () => {
 
   it("terminal manager initialization: mainWindow null calls initialize once and does not call setMainWindow", async () => {
     const harness = createHandlerHarness();
-    const tmMock: any = {
-      setMainWindow: vi.fn(),
-      initialize: vi.fn(),
-    };
+    const tmMock = createTerminalManagerMock();
 
     registerIpcHandlers({
       handle: harness.handle,
@@ -622,11 +899,11 @@ describe("registerIpcHandlers", () => {
   it("terminal manager initialization: calls setMainWindow before initialize when mainWindow is provided", async () => {
     const harness = createHandlerHarness();
     const callOrder: string[] = [];
-    const tmMock: any = {
+    const tmMock = createTerminalManagerMock({
       setMainWindow: vi.fn(() => callOrder.push("setMainWindow")),
       initialize: vi.fn(() => callOrder.push("initialize")),
-    };
-    const fakeWindow = { id: "main-win" } as any;
+    });
+    const fakeWindow = { id: "main-win" } as unknown as BrowserWindow;
 
     registerIpcHandlers({
       handle: harness.handle,
@@ -671,12 +948,7 @@ describe("registerIpcHandlers", () => {
 
   it("terminal.create malformed payload should mention ownerWindowId in the error", async () => {
     const harness = createHandlerHarness();
-    const tmMock: any = {
-      setMainWindow: vi.fn(),
-      initialize: vi.fn(),
-      isAvailable: vi.fn(() => true),
-      getError: vi.fn(() => null),
-    };
+    const tmMock = createTerminalManagerMock();
 
     registerIpcHandlers({
       handle: harness.handle,
@@ -718,7 +990,7 @@ describe("registerIpcHandlers", () => {
     const harness = createHandlerHarness();
     const shellSnapshot = createShellSnapshot();
     // ensure workspace root is /tmp/pidesk for the policy
-    shellSnapshot.workspace!.rootPath = "/tmp/pidesk";
+    shellSnapshot.workspace.rootPath = "/tmp/pidesk";
     const getShellSnapshot = vi.fn(() => shellSnapshot);
 
     registerIpcHandlers({
@@ -728,9 +1000,9 @@ describe("registerIpcHandlers", () => {
       mainWindow: null,
     });
 
-    const nodeFs: any = await import("node:fs");
+    const nodeFs = await loadMockedNodeFs();
     nodeFs.readdirSync.mockClear();
-    nodeFs.realpathSync.mockImplementation((value: string) => value);
+    nodeFs.realpathSync.mockImplementation((value) => value.toString());
 
     await expect(
       harness.handlers.get(IPC_CHANNELS.fs.readDirectory)?.(undefined, {
@@ -748,7 +1020,7 @@ describe("registerIpcHandlers", () => {
     const harness = createHandlerHarness();
     const shellSnapshot = createShellSnapshot();
     // ensure workspace root is /tmp/pidesk for the policy
-    shellSnapshot.workspace!.rootPath = "/tmp/pidesk";
+    shellSnapshot.workspace.rootPath = "/tmp/pidesk";
     const getShellSnapshot = vi.fn(() => shellSnapshot);
 
     registerIpcHandlers({
@@ -758,21 +1030,21 @@ describe("registerIpcHandlers", () => {
       mainWindow: null,
     });
 
-    const nodeFs: any = await import("node:fs");
+    const nodeFs = await loadMockedNodeFs();
     nodeFs.readdirSync.mockClear();
 
     // Simulate canonicalization outside the workspace and assert that the
     // handler rejects before attempting to read the directory.
-    nodeFs.realpathSync?.mockImplementation?.((value: string) => {
-      if (value === "/tmp/pidesk") {
+    nodeFs.realpathSync.mockImplementation((value) => {
+      if (value.toString() === "/tmp/pidesk") {
         return "/tmp/pidesk";
       }
 
-      if (value === "/tmp/pidesk/link-to-outside") {
+      if (value.toString() === "/tmp/pidesk/link-to-outside") {
         return "/outside/workspace";
       }
 
-      return value;
+      return value.toString();
     });
 
     await expect(
@@ -790,7 +1062,7 @@ describe("registerIpcHandlers", () => {
   it("fs.readDirectory returns entry paths based on the normalized resolved target", async () => {
     const harness = createHandlerHarness();
     const shellSnapshot = createShellSnapshot();
-    shellSnapshot.workspace!.rootPath = "/tmp/pidesk";
+    shellSnapshot.workspace.rootPath = "/tmp/pidesk";
     const getShellSnapshot = vi.fn(() => shellSnapshot);
 
     registerIpcHandlers({
@@ -800,17 +1072,17 @@ describe("registerIpcHandlers", () => {
       mainWindow: null,
     });
 
-    const nodeFs: any = await import("node:fs");
+    const nodeFs = await loadMockedNodeFs();
     nodeFs.readdirSync.mockClear();
-    nodeFs.realpathSync.mockImplementation((value: string) => value);
+    nodeFs.realpathSync.mockImplementation((value) => value.toString());
 
     const fakeEntries = [
-      { name: "file1.txt", isDirectory: () => false, isFile: () => true },
-      { name: "dir1", isDirectory: () => true, isFile: () => false },
+      createDirent("file1.txt", "file"),
+      createDirent("dir1", "directory"),
     ];
 
     // Expect the handler to read the normalized (resolved) target path
-    nodeFs.readdirSync.mockImplementation((targetPath, opts) => {
+    nodeFs.readdirSync.mockImplementation((targetPath) => {
       expect(targetPath).toBe("/tmp/pidesk/project");
       return fakeEntries;
     });
@@ -843,7 +1115,7 @@ describe("registerIpcHandlers", () => {
     const harness = createHandlerHarness();
     const shellSnapshot = createShellSnapshot();
     // ensure workspace root is /tmp/pidesk for the policy
-    shellSnapshot.workspace!.rootPath = "/tmp/pidesk";
+    shellSnapshot.workspace.rootPath = "/tmp/pidesk";
     const getShellSnapshot = vi.fn(() => shellSnapshot);
 
     registerIpcHandlers({
@@ -853,18 +1125,18 @@ describe("registerIpcHandlers", () => {
       mainWindow: null,
     });
 
-    const nodeFs: any = await import("node:fs");
+    const nodeFs = await loadMockedNodeFs();
     nodeFs.readdirSync.mockClear();
-    nodeFs.realpathSync.mockImplementation((value: string) => value);
+    nodeFs.realpathSync.mockImplementation((value) => value.toString());
 
     const fakeEntries = [
-      { name: "file1.txt", isDirectory: () => false, isFile: () => true },
-      { name: "dir1", isDirectory: () => true, isFile: () => false },
+      createDirent("file1.txt", "file"),
+      createDirent("dir1", "directory"),
     ];
 
     // Production should resolve the relative payload "project" against
     // the workspace root (/tmp/pidesk) before calling node:fs.readdirSync.
-    nodeFs.readdirSync.mockImplementation((targetPath, opts) => {
+    nodeFs.readdirSync.mockImplementation((targetPath) => {
       expect(targetPath).toBe("/tmp/pidesk/project");
       return fakeEntries;
     });
