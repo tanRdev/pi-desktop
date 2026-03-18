@@ -22,6 +22,10 @@ import {
 import { registerDialogHandlers } from "./ipc/register-dialog-handlers";
 import { registerFilesystemHandlers } from "./ipc/register-filesystem-handlers";
 import { registerRepositoryHandlers } from "./ipc/register-repository-handlers";
+import {
+  registerStateHandlers,
+  type StateIpcHost,
+} from "./ipc/register-state-handlers";
 import { registerTerminalHandlers } from "./ipc/register-terminal-handlers";
 import { registerThreadHandlers } from "./ipc/register-thread-handlers";
 import { terminalManager } from "./terminal-manager";
@@ -54,6 +58,7 @@ export interface RegisterIpcHandlersDependencies {
   handle: IpcRegistrar["handle"];
   getShellSnapshot(): Promise<ShellSnapshot> | ShellSnapshot;
   agentHost: AgentIpcHost;
+  stateHost?: StateIpcHost;
   mainWindow: BrowserWindow | null;
   terminalManager?: typeof terminalManager;
   searchFiles?(request: SearchRequest): Promise<SearchResponse>;
@@ -71,6 +76,7 @@ export function registerIpcHandlers({
   handle,
   getShellSnapshot,
   agentHost,
+  stateHost,
   mainWindow,
   terminalManager: terminalManagerOverride,
   searchFiles,
@@ -86,6 +92,7 @@ export function registerIpcHandlers({
   registerThreadHandlers({ handle, agentHost, routeToTerminal });
   registerDialogHandlers({ handle });
   registerFilesystemHandlers({ handle, getShellSnapshot });
+  registerStateHandlers({ handle, stateHost });
 
   handle(IPC_CHANNELS.shell.getSnapshot, async () => getShellSnapshot());
   handle(IPC_CHANNELS.agent.getProviders, async () => agentHost.getProviders());

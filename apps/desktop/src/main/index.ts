@@ -26,6 +26,7 @@ import {
   type AgentHostSocketTransport,
   createAgentHostSocketTransport,
 } from "./agent-host-socket-transport";
+import { AppPreferencesCatalog } from "./app-preferences-catalog";
 import { switchModelForContext } from "./bootstrap/model-switch";
 import { routePromptToTerminal } from "./bootstrap/route-to-terminal";
 import {
@@ -33,16 +34,14 @@ import {
   type ResolvedRepositoryInspection,
   type SelectedThreadContext,
 } from "./bootstrap/thread-context";
-import {
-  type GitRepositoryInspection,
-  GitWorktreeService,
-} from "./git-worktree-service";
+import { GitWorktreeService } from "./git-worktree-service";
 import { registerIpcHandlers } from "./ipc-router";
 import {
   discoverPiResources,
   getPiSlashSuggestions,
 } from "./pi-resource-discovery";
 import { RepositoryCatalog } from "./repository-catalog";
+import { RepositoryPreferencesCatalog } from "./repository-preferences-catalog";
 import { SelectionState } from "./selection-state";
 import { buildShellCatalog } from "./shell-catalog-builder";
 import { createShellSnapshot } from "./shell-snapshot";
@@ -54,8 +53,10 @@ import {
   createMainWindowOptions,
   resolvePreloadTarget,
   resolveRendererTarget,
+  shouldShowMainWindow,
 } from "./window-config";
 import { WorkspaceSearchService } from "./workspace-search-service";
+import { WorkspaceSessionCatalog } from "./workspace-session-catalog";
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -120,9 +121,11 @@ async function createMainWindow() {
     }),
   );
 
-  window.once("ready-to-show", () => {
-    window.show();
-  });
+  if (shouldShowMainWindow(process.env)) {
+    window.once("ready-to-show", () => {
+      window.show();
+    });
+  }
 
   const rendererTarget = resolveRendererTarget(rendererUrl, import.meta.url);
   if (rendererTarget.kind === "url") {
@@ -149,6 +152,12 @@ async function bootstrapDesktop() {
   const userDataPath = app.getPath("userData");
   const gitService = new GitWorktreeService();
   const repositoryCatalog = new RepositoryCatalog(userDataPath);
+  const repositoryPreferencesCatalog = new RepositoryPreferencesCatalog(
+    userDataPath,
+  );
+  repositoryPreferencesCatalog.importLegacyLabels(repositoryCatalog.list());
+  const workspaceSessionCatalog = new WorkspaceSessionCatalog(userDataPath);
+  const appPreferencesCatalog = new AppPreferencesCatalog(userDataPath);
   const threadCatalog = new ThreadCatalog(userDataPath);
   const selectionState = new SelectionState(userDataPath);
   const runtimeManager = new TmuxThreadRuntimeManager();
@@ -294,8 +303,19 @@ async function bootstrapDesktop() {
       repositoryCatalog,
       selectionState,
       ensureDirectory: mkdirSync,
-      resolveRuntimeOptions: resolveAgentRuntimeOptions,
-      createLaunchDetails: createThreadRuntimeLaunchDetails,
+      resolveRuntimeOptions: (environment, cwd) => {
+        const runtimeOptions = resolveAgentRuntimeOptions(environment, cwd);
+        return {
+          mode: runtimeOptions.mode,
+          cwd: runtimeOptions.cwd,
+          agentDir: runtimeOptions.agentDir,
+        };
+      },
+      createLaunchDetails: (input) =>
+        createThreadRuntimeLaunchDetails({
+          ...input,
+          agentDirectory: input.agentDirectory ?? undefined,
+        }),
     });
   }
 
@@ -501,6 +521,8 @@ async function bootstrapDesktop() {
       const catalog = await buildShellCatalog({
         repositories: repositoryCatalog.list(),
         selection,
+        repositoryPreferences: repositoryPreferencesCatalog.list(),
+        workspaceSessions: workspaceSessionCatalog.list(),
         inspectRepository: (rootPath) => gitService.inspect(rootPath),
         listThreadsByWorktree: (worktreeId) =>
           threadCatalog.listByWorktree(worktreeId),
@@ -508,6 +530,9 @@ async function bootstrapDesktop() {
         selectedAgentSnapshot: agentSnapshot,
       });
       selectionState.replace(catalog.selection);
+      workspaceSessionCatalog.replaceAll(
+        catalog.reconciledWorkspaceSessions ?? [],
+      );
 
       return createShellSnapshot({
         appName: app.getName(),
@@ -549,6 +574,41 @@ async function bootstrapDesktop() {
       },
       selectThread: async (threadId) => {
         commitAttachment(await attachToThreadId(threadId));
+      },
+    },
+    stateHost: {
+      getRepositoryPreferences: async (repositoryId) =>
+        repositoryPreferencesCatalog.get(repositoryId),
+      updateRepositoryPreferences: async (repositoryId, updates) =>
+        repositoryPreferencesCatalog.upsert(repositoryId, updates),
+      getWorkspaceSession: async (worktreeId) =>
+        workspaceSessionCatalog.get(worktreeId),
+      saveWorkspaceSession: async (session) =>
+        workspaceSessionCatalog.save(session),
+      getAppPreferences: async () => appPreferencesCatalog.get(),
+      updateAppPreferences: async (updates) =>
+        appPreferencesCatalog.update(updates),
+      importLegacyPreferences: async (importData) => {
+        const repositoryPreferences = (importData.repositories ?? []).map(
+          (repository) =>
+            repositoryPreferencesCatalog.upsert(repository.repositoryId, {
+              customName: repository.customName,
+              icon: repository.icon,
+              accentColor: repository.accentColor,
+            }),
+        );
+        const appPreferences = appPreferencesCatalog.update({
+          leftSidebarWidth: importData.leftSidebarWidth,
+          settings:
+            importData.settings && typeof importData.settings === "object"
+              ? importData.settings
+              : undefined,
+        });
+
+        return {
+          repositoryPreferences,
+          appPreferences,
+        };
       },
     },
     mainWindow: null,
