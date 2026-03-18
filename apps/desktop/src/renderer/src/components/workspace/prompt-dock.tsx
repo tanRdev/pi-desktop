@@ -58,13 +58,13 @@ export function PromptDock({
   onModelSelection,
 }: PromptDockProps) {
   return (
-    <div className="relative z-20 bg-gradient-to-t from-background to-transparent pb-6 pt-4">
+    <div className="relative z-20 border-t border-border-subtle bg-background pb-4 pt-3">
       <div className="mx-auto max-w-4xl px-6">
         <PromptInput
           value={draft}
           onValueChange={onDraftChange}
           onSubmit={() => void onSend()}
-          className="rounded-xl bg-surface-1/80 p-4 shadow-sm backdrop-blur-sm"
+          className="shell-dock bg-surface-1 px-3 py-2.5"
         >
           <PromptInputTextarea
             data-testid="chat-input"
@@ -75,7 +75,7 @@ export function PromptDock({
             }
             disabled={!activeThreadId}
             onKeyDown={onPromptKeyDown}
-            className="min-h-24 resize-none border-0 bg-transparent text-base leading-relaxed text-foreground placeholder:text-muted-foreground outline-none focus-visible:ring-0 disabled:opacity-50"
+            className="min-h-20 resize-none border-0 bg-transparent px-0 py-0 text-[13px] leading-6 text-foreground placeholder:text-muted-foreground outline-none focus-visible:ring-0 disabled:opacity-50"
           />
           <PromptAutocomplete
             visible={autocompleteSuggestions.length > 0}
@@ -83,29 +83,29 @@ export function PromptDock({
             selectedIndex={autocompleteSelectedIndex}
             onSelect={onAutocompleteSelect}
             onHover={onAutocompleteHover}
-            className="absolute left-6 right-6 top-full mt-2"
+            className="absolute left-0 right-0 top-full mt-2"
           />
-          <PromptInputActions className="mt-3 items-center justify-between">
+          <PromptInputActions className="mt-2 items-center justify-between gap-3 border-t border-border-subtle pt-2">
             <div className="flex items-center gap-2">
               <span
                 data-testid="agent-status"
-                className="rounded border border-border bg-surface-1 px-2 py-1 text-[10px] text-muted-foreground"
+                className="shell-token rounded-sm border border-border-subtle bg-surface-2 px-2 py-1 text-[10px] text-muted-foreground"
               >
                 {displayAgentStatus}
               </span>
               {activeThreadTitle ? (
-                <span className="rounded border border-border bg-surface-1 px-2 py-1 text-[10px] text-muted-foreground">
+                <span className="shell-token rounded-sm border border-border-subtle bg-surface-2 px-2 py-1 text-[10px] text-muted-foreground">
                   Chat · {activeThreadTitle}
                 </span>
               ) : null}
-              <span className="rounded border border-border bg-surface-1 px-2 py-1 text-[10px] text-muted-foreground">
+              <span className="shell-token rounded-sm border border-border-subtle bg-surface-2 px-2 py-1 text-[10px] text-muted-foreground">
                 {runtimeModeLabel}
               </span>
               <select
                 value={currentModelValue}
                 onChange={(event) => void onModelSelection(event)}
                 disabled={isSwitchingModel || providerSnapshots.length === 0}
-                className="rounded border border-border bg-surface-1 px-2 py-1 text-[10px] text-muted-foreground outline-none"
+                className="shell-token rounded-sm border border-border-subtle bg-surface-2 px-2 py-1 text-[10px] text-muted-foreground outline-none"
               >
                 {providerSnapshots.map((provider) => (
                   <optgroup key={provider.id} label={provider.name}>
@@ -121,8 +121,10 @@ export function PromptDock({
                 ))}
               </select>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="text-[0.7rem] text-zinc-500">Enter to send</span>
+            <div className="flex items-center gap-2.5">
+              <span className="text-[0.7rem] uppercase tracking-[0.12em] text-muted-foreground">
+                Enter to send
+              </span>
               <PromptInputAction tooltip="Send message">
                 <Button
                   type="button"
@@ -131,7 +133,7 @@ export function PromptDock({
                   size="icon"
                   disabled={!canSend}
                   onClick={() => void onSend()}
-                  className="size-8 rounded-lg border border-white/8 bg-white/[0.06] text-zinc-200 hover:bg-white/[0.10] disabled:opacity-50"
+                  className="shell-send-button size-8 rounded-sm border border-border-subtle bg-surface-2 text-foreground hover:bg-surface-3 disabled:opacity-50"
                 >
                   <ArrowUp className="size-4" />
                 </Button>

@@ -1,125 +1,165 @@
 import type { RepositorySnapshot } from "@pidesk/shared";
-import {
-  Box,
-  Code2,
-  Cpu,
-  Database,
-  FileCode,
-  FolderGit,
-  Globe,
-  Layers,
-  Layout,
-  type LucideIcon,
-  Monitor,
-  Server,
-  Settings,
-  Shield,
-  Smartphone,
-  Terminal,
-  Zap,
-} from "lucide-react";
+import type { CSSProperties } from "react";
 import { cn } from "@/lib/utils";
+import { resolveProjectIconOption } from "./project-icon-picker";
 
 export interface ProjectAvatarProps {
   repository: RepositorySnapshot;
-  isActive: boolean;
-  onClick: () => void;
+  isActive?: boolean;
+  onClick?: () => void;
+  size?: "sm" | "md";
+  className?: string;
 }
 
-// Map repository names to appropriate icons based on common project types
-function getIconForRepository(name: string): LucideIcon {
-  const lower = name.toLowerCase();
-
-  // Development tools
-  if (lower.includes("api")) return Server;
-  if (lower.includes("app")) return Layout;
-  if (lower.includes("web")) return Globe;
-  if (
-    lower.includes("mobile") ||
-    lower.includes("ios") ||
-    lower.includes("android")
-  )
-    return Smartphone;
-  if (lower.includes("desktop")) return Monitor;
-  if (lower.includes("cli") || lower.includes("cmd")) return Terminal;
-  if (lower.includes("ui") || lower.includes("component")) return Layout;
-
-  // Language/framework specific
-  if (lower.includes("react")) return Code2;
-  if (lower.includes("node") || lower.includes("js") || lower.includes("ts"))
-    return FileCode;
-  if (lower.includes("python") || lower.includes("py")) return Terminal;
-  if (lower.includes("go") || lower.includes("rust") || lower.includes("c++"))
-    return Cpu;
-
-  // Data/Infra
-  if (lower.includes("db") || lower.includes("sql") || lower.includes("data"))
-    return Database;
-  if (lower.includes("infra") || lower.includes("deploy")) return Server;
-  if (lower.includes("config") || lower.includes("dotfiles")) return Settings;
-  if (lower.includes("security") || lower.includes("auth")) return Shield;
-
-  // Generic project types
-  if (
-    lower.includes("lib") ||
-    lower.includes("package") ||
-    lower.includes("sdk")
-  )
-    return Box;
-  if (lower.includes("plugin") || lower.includes("ext")) return Zap;
-  if (lower.includes("mono") || lower.includes("multi")) return Layers;
-
-  // Default to git folder icon
-  return FolderGit;
+export interface ProjectAccentOption {
+  id: string;
+  value: string | null;
+  label: string;
+  swatch: string;
+  style: CSSProperties | null;
 }
 
-function getAvatarColor(id: string): string {
-  const colors = [
-    "bg-rose-500",
-    "bg-orange-500",
-    "bg-amber-500",
-    "bg-emerald-500",
-    "bg-cyan-500",
-    "bg-blue-500",
-    "bg-violet-500",
-    "bg-fuchsia-500",
-    "bg-pink-500",
-  ];
-  const hash = id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return colors[hash % colors.length] ?? "bg-zinc-500";
+export const PROJECT_ACCENT_OPTIONS: ProjectAccentOption[] = [
+  {
+    id: "neutral",
+    value: null,
+    label: "Neutral",
+    swatch: "oklch(56% 0.01 260)",
+    style: null,
+  },
+  {
+    id: "slate",
+    value: "slate",
+    label: "Slate",
+    swatch: "oklch(54% 0.018 255)",
+    style: {
+      backgroundColor: "oklch(90% 0.014 255 / 0.9)",
+      borderColor: "oklch(62% 0.018 255 / 0.7)",
+      color: "oklch(36% 0.012 255)",
+    },
+  },
+  {
+    id: "steel",
+    value: "steel",
+    label: "Steel",
+    swatch: "oklch(55% 0.022 225)",
+    style: {
+      backgroundColor: "oklch(90% 0.018 225 / 0.9)",
+      borderColor: "oklch(62% 0.022 225 / 0.7)",
+      color: "oklch(37% 0.018 225)",
+    },
+  },
+  {
+    id: "olive",
+    value: "olive",
+    label: "Olive",
+    swatch: "oklch(58% 0.03 140)",
+    style: {
+      backgroundColor: "oklch(91% 0.018 140 / 0.92)",
+      borderColor: "oklch(63% 0.03 140 / 0.72)",
+      color: "oklch(40% 0.022 140)",
+    },
+  },
+  {
+    id: "copper",
+    value: "copper",
+    label: "Copper",
+    swatch: "oklch(60% 0.05 45)",
+    style: {
+      backgroundColor: "oklch(91% 0.024 45 / 0.92)",
+      borderColor: "oklch(65% 0.045 45 / 0.72)",
+      color: "oklch(42% 0.036 45)",
+    },
+  },
+  {
+    id: "ink",
+    value: "ink",
+    label: "Ink",
+    swatch: "oklch(47% 0.024 285)",
+    style: {
+      backgroundColor: "oklch(89% 0.02 285 / 0.9)",
+      borderColor: "oklch(58% 0.028 285 / 0.68)",
+      color: "oklch(34% 0.022 285)",
+    },
+  },
+];
+
+const DEFAULT_PROJECT_ACCENT_OPTION: ProjectAccentOption = {
+  id: "neutral-fallback",
+  value: null,
+  label: "Neutral",
+  swatch: "oklch(56% 0.01 260)",
+  style: null,
+};
+
+export function resolveProjectAccentOption(
+  accentColor: string | null | undefined,
+): ProjectAccentOption {
+  return (
+    PROJECT_ACCENT_OPTIONS.find((option) => option.value === accentColor) ??
+    DEFAULT_PROJECT_ACCENT_OPTION
+  );
+}
+
+export function resolveProjectAccentStyle(
+  accentColor: string | null | undefined,
+): CSSProperties | null {
+  return resolveProjectAccentOption(accentColor).style;
 }
 
 export function ProjectAvatar({
   repository,
-  isActive,
+  isActive = false,
   onClick,
+  size = "sm",
+  className,
 }: ProjectAvatarProps) {
-  const Icon = getIconForRepository(repository.name);
+  const { icon: Icon } = resolveProjectIconOption(
+    repository.icon,
+    repository.name,
+  );
+  const accentStyle = resolveProjectAccentStyle(repository.accentColor);
+  const outerClassName = cn(
+    "group relative flex items-center justify-center border transition-all",
+    size === "md" ? "h-12 w-12 rounded-2xl" : "h-10 w-10 rounded-xl",
+    isActive
+      ? "border-border bg-surface-2 text-foreground shadow-sm"
+      : "border-transparent bg-transparent text-muted-foreground hover:border-border hover:bg-surface-2 hover:text-foreground",
+    className,
+  );
+  const innerClassName = cn(
+    "flex items-center justify-center border shadow-sm",
+    size === "md" ? "h-10 w-10 rounded-2xl" : "h-8 w-8 rounded-lg",
+    accentStyle
+      ? "border-current/20"
+      : "border-border bg-surface-1 text-foreground/80",
+  );
+  const iconClassName = size === "md" ? "h-5 w-5" : "h-4 w-4";
+
+  const content = (
+    <>
+      <span className={innerClassName} style={accentStyle ?? undefined}>
+        <Icon className={iconClassName} />
+      </span>
+      {isActive ? (
+        <span className="absolute -right-px top-1/2 h-4 w-1 -translate-y-1/2 rounded-l bg-foreground" />
+      ) : null}
+    </>
+  );
+
+  if (!onClick) {
+    return <div className={outerClassName}>{content}</div>;
+  }
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className={cn(
-        "group relative flex h-10 w-10 items-center justify-center rounded-xl transition-all",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-        isActive
-          ? "bg-surface-3 ring-1 ring-border-hover shadow-sm"
-          : "hover:bg-surface-2 hover:ring-1 hover:ring-border",
-      )}
+      className={outerClassName}
+      aria-label={`Open repository ${repository.name}`}
       title={repository.name}
     >
-      <span
-        className={cn(
-          "flex h-8 w-8 items-center justify-center rounded-lg shadow-sm",
-          getAvatarColor(repository.id),
-        )}
-      >
-        <Icon className="h-4 w-4 text-white" />
-      </span>
-      {isActive && (
-        <span className="absolute -right-px top-1/2 h-4 w-1 -translate-y-1/2 rounded-l bg-foreground" />
-      )}
+      {content}
     </button>
   );
 }
