@@ -70,13 +70,7 @@ const DEFAULT_WINDOW_WIDTH = 720;
 const DEFAULT_WINDOW_HEIGHT = 480;
 const DEFAULT_SNAP_GRID = 16;
 
-/**
- * Initial window store state.
- */
-export const initialWindowStoreState: WindowStoreState =
-  createInitialWindowStoreState();
-
-function createInitialWindowStoreState(): WindowStoreState {
+export function createInitialWindowStoreState(): WindowStoreState {
   return {
     layout: {
       windows: [],
@@ -87,6 +81,12 @@ function createInitialWindowStoreState(): WindowStoreState {
     snapPreview: null,
   };
 }
+
+/**
+ * Initial window reducer state.
+ */
+export const initialWindowStoreState: WindowStoreState =
+  createInitialWindowStoreState();
 
 /**
  * Generate a unique window ID.
@@ -461,8 +461,8 @@ export function windowReducer(
 }
 
 /**
- * Create a window store instance.
- * Uses the same pattern as shell-model for consistency.
+ * Create a local window reducer harness.
+ * This is retained for tests and non-authoritative reducer use only.
  */
 export function createWindowStore() {
   let state: WindowStoreState = createInitialWindowStoreState();

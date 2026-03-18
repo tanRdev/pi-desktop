@@ -30,6 +30,8 @@ const DEFAULT_WIDTH = 180;
 const MIN_WIDTH = 140;
 const MAX_WIDTH = 400;
 
+export const DEFAULT_LEFT_SIDEBAR_WIDTH = DEFAULT_WIDTH;
+
 function getStorage(): Storage | null {
   if (typeof window !== "undefined") {
     return window.localStorage;
@@ -43,27 +45,16 @@ export function clampLeftSidebarWidth(width: number): number {
   return Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, Math.floor(width)));
 }
 
-export function loadLeftSidebarWidth(): number {
+export function readLegacyLeftSidebarWidth(): number | null {
   try {
     const storage = getStorage();
-    if (!storage) return DEFAULT_WIDTH;
+    if (!storage) return null;
     const raw = storage.getItem(LEFT_SIDEBAR_KEY);
-    if (!raw) return DEFAULT_WIDTH;
+    if (!raw) return null;
     const parsed = Number(raw);
-    if (Number.isNaN(parsed)) return DEFAULT_WIDTH;
+    if (Number.isNaN(parsed)) return null;
     return clampLeftSidebarWidth(parsed);
   } catch {
-    return DEFAULT_WIDTH;
-  }
-}
-
-export function saveLeftSidebarWidth(width: number): void {
-  try {
-    const storage = getStorage();
-    if (!storage) return;
-    const value = clampLeftSidebarWidth(width);
-    storage.setItem(LEFT_SIDEBAR_KEY, String(value));
-  } catch {
-    // ignore write failures
+    return null;
   }
 }
