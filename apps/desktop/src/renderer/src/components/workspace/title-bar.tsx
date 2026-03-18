@@ -36,31 +36,31 @@ export function TitleBar({
           data-no-drag="true"
           data-testid="app-title"
           onClick={onOpenLauncher}
-          className="chrome-icon-button rounded-md px-2 py-1 text-base font-semibold tracking-tight"
+          className="text-lg text-muted-foreground/60 transition-colors hover:text-muted-foreground"
           aria-label="Open launcher"
           title="Pi launcher"
         >
           π
         </button>
 
-        <div className="min-w-0" data-no-drag="true">
-          <div className="chrome-eyebrow">Project</div>
-          <div className="flex min-w-0 items-baseline gap-2">
-            <span
-              data-testid="titlebar-project-name"
-              className="truncate text-sm font-semibold text-foreground"
-            >
-              {activeRepository?.name ?? "No project selected"}
-            </span>
-            {activeWorktreeLabel ? (
+        <div className="flex min-w-0 items-center gap-2" data-no-drag="true">
+          <span
+            data-testid="titlebar-project-name"
+            className="truncate text-sm text-muted-foreground/80"
+          >
+            {activeRepository?.name ?? "No project selected"}
+          </span>
+          {activeWorktreeLabel ? (
+            <>
+              <span className="text-muted-foreground/40">·</span>
               <span
                 data-testid="titlebar-worktree-label"
-                className="truncate text-xs text-muted-foreground"
+                className="truncate text-sm text-muted-foreground/60"
               >
                 {activeWorktreeLabel}
               </span>
-            ) : null}
-          </div>
+            </>
+          ) : null}
         </div>
       </div>
 

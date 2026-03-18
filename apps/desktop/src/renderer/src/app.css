@@ -52,9 +52,9 @@ select:focus-visible {
 }
 
 .chrome-eyebrow {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--muted-foreground);
 }
@@ -207,4 +207,20 @@ code:not(.shiki code):not(pre code) {
 /* Muted border - for subtle separators */
 .border-subtle {
   border-color: oklch(40% 0.012 270 / 0.3);
+}
+
+/* Empty state - clean inline placeholder, no dashed borders */
+.chrome-empty-state {
+  border-radius: var(--radius-md);
+  background: oklch(18% 0.008 270 / 0.5);
+  color: var(--muted-foreground);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* Section separator - subtle horizontal rule */
+.chrome-divider {
+  height: 1px;
+  background: var(--border-subtle);
+  margin: 0.375rem 0;
 }

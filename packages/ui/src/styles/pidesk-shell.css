@@ -72,16 +72,16 @@
     --background: oklch(12% 0.01 270);
     --foreground: oklch(92% 0.01 100);
 
-    /* Surface layers - subtle depth progression */
+    /* Surface layers - refined depth progression */
 --surface-1: #121212;
 --surface-2: #1a1a1a;
---surface-3: #1e1e1e;
---surface-4: #252525;
+--surface-3: #212121;
+--surface-4: #282828;
 
     /* Card and popover surfaces */
-    --card: #161616;
+    --card: #171717;
     --card-foreground: oklch(92% 0.01 100);
-    --popover: #1c1c1c;
+    --popover: #1d1d1d;
     --popover-foreground: oklch(92% 0.01 100);
 
     /* Primary - warm neutral emphasis for interactive elements */
@@ -94,7 +94,7 @@
 
     /* Muted - subtle emphasis */
     --muted: #2d2d2d;
-    --muted-foreground: oklch(60% 0.01 270);
+    --muted-foreground: oklch(56% 0.01 270);
 
     /* Accent - subdued neutral surface highlight */
     --accent: oklch(28% 0.01 270);
@@ -104,11 +104,11 @@
     --destructive: oklch(60% 0.18 25);
     --destructive-foreground: oklch(95% 0.01 100);
 
-    /* Border system - visible but subtle borders */
-    --border: oklch(40% 0.01 270 / 0.4);
-    --border-subtle: oklch(35% 0.008 270 / 0.3);
-    --border-hover: oklch(50% 0.012 270 / 0.5);
-    --input: oklch(38% 0.01 270 / 0.35);
+    /* Border system - clean, precise borders */
+    --border: oklch(38% 0.01 270 / 0.45);
+    --border-subtle: oklch(34% 0.008 270 / 0.35);
+    --border-hover: oklch(48% 0.012 270 / 0.5);
+    --input: oklch(36% 0.01 270 / 0.38);
     --ring: oklch(78% 0.018 95 / 0.35);
 
     /* Status colors - subdued semantic accents */
@@ -136,6 +136,7 @@
     --space-12: 3rem; /* 48px */
 
     /* Shadows - restrained depth for flatter shell surfaces */
+    --shadow-xs: 0 1px 1px 0 oklch(0% 0 0 / 0.18);
     --shadow-sm: 0 1px 2px 0 oklch(0% 0 0 / 0.28);
     --shadow-md: 0 3px 8px -4px oklch(0% 0 0 / 0.34);
     --shadow-lg: 0 8px 18px -10px oklch(0% 0 0 / 0.32);
@@ -349,6 +350,7 @@
     border-radius: var(--radius-sm);
     text-transform: uppercase;
     letter-spacing: 0.08em;
+    font-weight: 500;
   }
 
   .shell-send-button {

@@ -2,10 +2,8 @@ import type {
   RepositoryDisplayMetadata,
   RepositorySnapshot,
 } from "@pidesk/shared";
-import { Plus } from "lucide-react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { Button } from "../ui/button";
 import { ScrollArea } from "../ui/scroll-area";
 import { ProjectAvatar } from "./project-avatar";
 import { ProjectCustomizationMenu } from "./project-customization-menu";
@@ -23,6 +21,7 @@ export interface LeftSidebarProps {
   onSelectThread: (threadId: string) => void;
   onCreateThread: (worktreeId: string) => void;
   onCreateWorktree: () => void;
+  onCloseThread?: (threadId: string) => void;
   width: number;
   onResize: (width: number) => void;
   className?: string;
@@ -36,7 +35,7 @@ export function LeftSidebar({
   onSelectWorktree,
   onSelectThread,
   onCreateThread,
-  onCreateWorktree,
+  onCloseThread,
   width,
   onResize,
   className,
@@ -92,9 +91,6 @@ export function LeftSidebar({
   };
 
   const worktrees = repository?.worktrees ?? [];
-  const activeWorktree = worktrees.find(
-    (worktree) => worktree.id === activeWorktreeId,
-  );
 
   return (
     <aside
@@ -104,63 +100,36 @@ export function LeftSidebar({
       )}
       style={{ width }}
     >
-      <div className="border-b border-border px-3 py-3">
+      <div className="border-b border-border px-3 py-2">
         {repository ? (
-          <div className="group rounded-2xl border border-border bg-surface-2/80 p-3 shadow-sm">
-            <div className="flex items-start gap-3">
-              <ProjectAvatar
-                repository={repository}
-                isActive
-                size="md"
-                className="shrink-0"
-              />
-
-              <div className="min-w-0 flex-1">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <div className="chrome-eyebrow">Repository</div>
-                    <div className="truncate text-sm font-semibold text-foreground">
-                      {repository.name}
-                    </div>
-                    <div className="truncate text-[11px] text-muted-foreground">
-                      {repository.rootPath}
-                    </div>
-                  </div>
-
-                  <ProjectCustomizationMenu
-                    repository={repository}
-                    updateRepositoryPreferences={onUpdateRepositoryPreferences}
-                    align="end"
-                    className="project-customization-trigger"
-                  />
-                </div>
-
-                <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-                  <span>{worktrees.length} worktrees</span>
-                  {repository.defaultBranch ? (
-                    <span>{repository.defaultBranch}</span>
-                  ) : null}
-                  {activeWorktree ? <span>{activeWorktree.label}</span> : null}
-                </div>
-
-                <div className="mt-3 flex items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    aria-label="Create worktree"
-                    className="h-7 gap-1.5 rounded-md border-border bg-surface-1 px-2 text-[11px] text-foreground"
-                    onClick={onCreateWorktree}
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                    New worktree
-                  </Button>
-                </div>
+          <div className="group flex items-center gap-2.5">
+            <ProjectAvatar
+              repository={repository}
+              isActive
+              size="sm"
+              className="shrink-0"
+            />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5">
+                <span className="truncate text-sm font-medium text-foreground">
+                  {repository.name}
+                </span>
+                <ProjectCustomizationMenu
+                  repository={repository}
+                  updateRepositoryPreferences={onUpdateRepositoryPreferences}
+                  align="end"
+                  className="project-customization-trigger opacity-0 group-hover:opacity-100"
+                />
+              </div>
+              <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                {repository.defaultBranch && (
+                  <span>{repository.defaultBranch}</span>
+                )}
               </div>
             </div>
           </div>
         ) : (
-          <div className="rounded-2xl border border-dashed border-border bg-surface-2/40 px-3 py-4 text-sm text-muted-foreground">
+          <div className="chrome-empty-state px-3 py-4 text-sm">
             Add a repository to start a workspace.
           </div>
         )}
@@ -168,7 +137,6 @@ export function LeftSidebar({
 
       <ScrollArea className="min-h-0 flex-1">
         <div className="px-2 py-2">
-          <div className="chrome-eyebrow px-2 pb-2">Worktrees</div>
           {worktrees.map((worktree) => (
             <WorktreeSection
               key={worktree.id}
@@ -179,11 +147,12 @@ export function LeftSidebar({
               onToggleExpand={() => handleToggleWorktree(worktree.id)}
               onSelectThread={onSelectThread}
               onCreateThread={() => onCreateThread(worktree.id)}
+              onCloseThread={onCloseThread}
             />
           ))}
 
           {worktrees.length === 0 && (
-            <div className="rounded-xl border border-dashed border-border bg-surface-2/40 px-3 py-4 text-center text-xs text-muted-foreground">
+            <div className="chrome-empty-state px-3 py-4 text-center text-xs">
               No worktrees
             </div>
           )}

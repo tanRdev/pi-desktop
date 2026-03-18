@@ -673,6 +673,22 @@ export function useAppShellController(): AppShellController {
     [reload],
   );
 
+  const handleCloseThread = React.useCallback(
+    async (threadId: string) => {
+      // Close any chat windows for this thread
+      const chatWindow = windowState.layout.windows.find(
+        (w): w is ChatWindow => w.kind === "chat" && w.threadId === threadId,
+      );
+      if (chatWindow) {
+        windowStore.closeWindow(chatWindow.id);
+      }
+      // Archive the thread
+      await window.pidesk.threads.archive(threadId);
+      await reload();
+    },
+    [windowState.layout.windows, windowStore, reload],
+  );
+
   const handleSelectThread = React.useCallback(
     async (threadId: string) => {
       await window.pidesk.threads.select(threadId);
@@ -980,6 +996,7 @@ export function useAppShellController(): AppShellController {
     onSelectWorktree: handleSelectWorktree,
     onSelectThread: handleSelectThread,
     onCreateThread: handleCreateThread,
+    onCloseThread: handleCloseThread,
     onCreateWorktree: handleCreateWorktree,
     onLeftSidebarResize: handleLeftSidebarResize,
     onOpenLauncher: handleOpenLauncher,

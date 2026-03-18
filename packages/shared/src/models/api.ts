@@ -69,6 +69,7 @@ export interface PiDeskApi {
   threads: {
     create(worktreeId: string, title?: string): Promise<void>;
     select(threadId: string): Promise<void>;
+    archive(threadId: string): Promise<void>;
     routeToTerminal(
       request: PiTerminalRouteRequest,
     ): Promise<PiTerminalRouteResult>;

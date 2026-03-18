@@ -29,6 +29,7 @@ import {
 import { registerTerminalHandlers } from "./ipc/register-terminal-handlers";
 import { registerThreadHandlers } from "./ipc/register-thread-handlers";
 import { terminalManager } from "./terminal-manager";
+import type { ThreadCatalog } from "./thread-catalog";
 
 export interface AgentIpcHost {
   getProviders(): Promise<ProviderSnapshot[]>;
@@ -70,6 +71,7 @@ export interface RegisterIpcHandlersDependencies {
   routeToTerminal?(
     request: PiTerminalRouteRequest,
   ): Promise<PiTerminalRouteResult>;
+  threadCatalog?: ThreadCatalog;
 }
 
 export function registerIpcHandlers({
@@ -84,12 +86,13 @@ export function registerIpcHandlers({
   getDiscovery,
   getSlashSuggestions,
   routeToTerminal,
+  threadCatalog,
 }: RegisterIpcHandlersDependencies): void {
   const tm = terminalManagerOverride ?? terminalManager;
 
   registerTerminalHandlers({ handle, mainWindow, terminalManager: tm });
   registerRepositoryHandlers({ handle, agentHost });
-  registerThreadHandlers({ handle, agentHost, routeToTerminal });
+  registerThreadHandlers({ handle, agentHost, routeToTerminal, threadCatalog });
   registerDialogHandlers({ handle });
   registerFilesystemHandlers({ handle, getShellSnapshot });
   registerStateHandlers({ handle, stateHost });

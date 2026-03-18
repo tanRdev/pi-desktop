@@ -617,6 +617,7 @@ async function bootstrapDesktop() {
     getDiscovery: handleGetDiscovery,
     getSlashSuggestions: handleGetSlashSuggestions,
     routeToTerminal: handleRouteToTerminal,
+    threadCatalog,
   });
 
   mainWindow = await createMainWindow();

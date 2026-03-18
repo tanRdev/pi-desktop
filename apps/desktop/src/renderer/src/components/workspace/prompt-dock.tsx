@@ -9,9 +9,10 @@ import {
   PromptInputActions,
   PromptInputTextarea,
 } from "@pidesk/ui";
-import { ArrowUp } from "lucide-react";
-import type * as React from "react";
+import { ArrowUp, ChevronDown } from "lucide-react";
+import * as React from "react";
 import { Button } from "../ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import PromptAutocomplete from "../ui/prompt-autocomplete";
 
 export interface PromptDockProps {
@@ -57,8 +58,30 @@ export function PromptDock({
   isSwitchingModel,
   onModelSelection,
 }: PromptDockProps) {
+  const [modelOpen, setModelOpen] = React.useState(false);
+
+  // Find current model display name
+  const currentModelDisplay = React.useMemo(() => {
+    for (const provider of providerSnapshots) {
+      for (const model of provider.models) {
+        if (`${provider.id}::${model.id}` === currentModelValue) {
+          return model.name;
+        }
+      }
+    }
+    return "Select model";
+  }, [providerSnapshots, currentModelValue]);
+
+  const handleModelSelect = (value: string) => {
+    const event = {
+      target: { value },
+    } as React.ChangeEvent<HTMLSelectElement>;
+    void onModelSelection(event);
+    setModelOpen(false);
+  };
+
   return (
-    <div className="relative z-20 border-t border-border-subtle bg-background pb-4 pt-3">
+    <div className="relative z-20 bg-background pb-4 pt-3">
       <div className="mx-auto max-w-4xl px-6">
         <PromptInput
           value={draft}
@@ -86,45 +109,57 @@ export function PromptDock({
             className="absolute left-0 right-0 top-full mt-2"
           />
           <PromptInputActions className="mt-2 items-center justify-between gap-3 border-t border-border-subtle pt-2">
-            <div className="flex items-center gap-2">
-              <span
-                data-testid="agent-status"
-                className="shell-token rounded-sm border border-border-subtle bg-surface-2 px-2 py-1 text-[10px] text-muted-foreground"
-              >
-                {displayAgentStatus}
-              </span>
-              {activeThreadTitle ? (
-                <span className="shell-token rounded-sm border border-border-subtle bg-surface-2 px-2 py-1 text-[10px] text-muted-foreground">
-                  Chat · {activeThreadTitle}
-                </span>
-              ) : null}
-              <span className="shell-token rounded-sm border border-border-subtle bg-surface-2 px-2 py-1 text-[10px] text-muted-foreground">
-                {runtimeModeLabel}
-              </span>
-              <select
-                value={currentModelValue}
-                onChange={(event) => void onModelSelection(event)}
-                disabled={isSwitchingModel || providerSnapshots.length === 0}
-                className="shell-token rounded-sm border border-border-subtle bg-surface-2 px-2 py-1 text-[10px] text-muted-foreground outline-none"
-              >
-                {providerSnapshots.map((provider) => (
-                  <optgroup key={provider.id} label={provider.name}>
-                    {provider.models.map((model) => (
-                      <option
-                        key={`${provider.id}:${model.id}`}
-                        value={`${provider.id}::${model.id}`}
-                      >
-                        {model.name}
-                      </option>
+            <div className="flex items-center gap-1.5">
+              <Popover open={modelOpen} onOpenChange={setModelOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    disabled={isSwitchingModel || providerSnapshots.length === 0}
+                    className="flex items-center gap-1.5 rounded-sm bg-surface-2/80 px-2 py-0.5 text-[10px] text-muted-foreground transition-colors hover:bg-surface-2 disabled:opacity-50"
+                  >
+                    <span className="max-w-[120px] truncate">
+                      {currentModelDisplay}
+                    </span>
+                    <ChevronDown className="h-3 w-3 opacity-70" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent
+                  align="start"
+                  side="top"
+                  sideOffset={8}
+                  className="w-56 p-1"
+                >
+                  <div className="max-h-48 overflow-y-auto">
+                    {providerSnapshots.map((provider) => (
+                      <div key={provider.id} className="py-1">
+                        <div className="px-2 py-1 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                          {provider.name}
+                        </div>
+                        {provider.models.map((model) => {
+                          const value = `${provider.id}::${model.id}`;
+                          const isSelected = value === currentModelValue;
+                          return (
+                            <button
+                              key={`${provider.id}:${model.id}`}
+                              type="button"
+                              onClick={() => handleModelSelect(value)}
+                              className={`w-full rounded-sm px-2 py-1.5 text-left text-[11px] transition-colors ${
+                                isSelected
+                                  ? "bg-surface-2 text-foreground"
+                                  : "text-muted-foreground hover:bg-surface-1 hover:text-foreground"
+                              }`}
+                            >
+                              {model.name}
+                            </button>
+                          );
+                        })}
+                      </div>
                     ))}
-                  </optgroup>
-                ))}
-              </select>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
             <div className="flex items-center gap-2.5">
-              <span className="text-[0.7rem] uppercase tracking-[0.12em] text-muted-foreground">
-                Enter to send
-              </span>
               <PromptInputAction tooltip="Send message">
                 <Button
                   type="button"
@@ -133,7 +168,7 @@ export function PromptDock({
                   size="icon"
                   disabled={!canSend}
                   onClick={() => void onSend()}
-                  className="shell-send-button size-8 rounded-sm border border-border-subtle bg-surface-2 text-foreground hover:bg-surface-3 disabled:opacity-50"
+                  className="shell-send-button size-8 rounded-sm border border-border-subtle bg-surface-2 text-foreground transition-colors hover:bg-surface-3 disabled:opacity-50"
                 >
                   <ArrowUp className="size-4" />
                 </Button>

@@ -137,14 +137,9 @@ export function ProjectAvatar({
   const iconClassName = size === "md" ? "h-5 w-5" : "h-4 w-4";
 
   const content = (
-    <>
-      <span className={innerClassName} style={accentStyle ?? undefined}>
-        <Icon className={iconClassName} />
-      </span>
-      {isActive ? (
-        <span className="absolute -right-px top-1/2 h-4 w-1 -translate-y-1/2 rounded-l bg-foreground" />
-      ) : null}
-    </>
+    <span className={innerClassName} style={accentStyle ?? undefined}>
+      <Icon className={iconClassName} />
+    </span>
   );
 
   if (!onClick) {

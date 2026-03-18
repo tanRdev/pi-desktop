@@ -34,11 +34,7 @@ export function LeftRail({
         "flex h-full w-16 shrink-0 flex-col border-r border-border bg-surface-1",
       )}
     >
-      <div className="px-2 pt-3">
-        <div className="chrome-eyebrow text-center">Repo</div>
-      </div>
-
-      <div className="flex flex-1 flex-col gap-2 overflow-y-auto px-2 pb-3 pt-2">
+      <div className="flex flex-1 flex-col gap-2 overflow-y-auto px-2 pb-3 pt-3">
         {repositories.map((repository) => (
           <div
             key={repository.id}
@@ -59,7 +55,7 @@ export function LeftRail({
         ))}
       </div>
 
-      <div className="flex flex-col items-center gap-2 border-t border-border px-2 py-3">
+      <div className="flex flex-col items-center gap-1.5 border-t border-border px-2 py-2.5">
         <Button
           type="button"
           variant="ghost"

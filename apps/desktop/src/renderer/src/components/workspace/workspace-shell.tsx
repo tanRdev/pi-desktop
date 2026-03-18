@@ -53,6 +53,7 @@ export interface WorkspaceShellProps {
   onSelectWorktree: (worktreeId: string) => void | Promise<void>;
   onSelectThread: (threadId: string) => void | Promise<void>;
   onCreateThread: (worktreeId: string) => void | Promise<void>;
+  onCloseThread: (threadId: string) => void | Promise<void>;
   onCreateWorktree: () => void;
   onLeftSidebarResize: (width: number) => void;
   onOpenLauncher: () => void;
@@ -120,6 +121,7 @@ export function WorkspaceShell({
   onSelectWorktree,
   onSelectThread,
   onCreateThread,
+  onCloseThread,
   onCreateWorktree,
   onLeftSidebarResize,
   onOpenLauncher,
@@ -214,11 +216,6 @@ export function WorkspaceShell({
       />
 
       <div className="relative flex min-h-0 flex-1">
-        <CanvasGrid
-          snapGridSize={snapGridSize}
-          className="pointer-events-none absolute inset-0 z-0 opacity-[0.25]"
-        />
-
         <LeftRail
           repositories={repositories}
           activeRepositoryId={activeRepositoryId}
@@ -236,6 +233,7 @@ export function WorkspaceShell({
           onSelectWorktree={onSelectWorktree}
           onSelectThread={onSelectThread}
           onCreateThread={onCreateThread}
+          onCloseThread={onCloseThread}
           onCreateWorktree={onCreateWorktree}
           width={leftSidebarWidth}
           onResize={onLeftSidebarResize}
@@ -243,6 +241,10 @@ export function WorkspaceShell({
         />
 
         <main className="relative z-10 flex min-w-0 flex-1 flex-col">
+          <CanvasGrid
+            snapGridSize={snapGridSize}
+            className="pointer-events-none absolute inset-0 z-0 opacity-50"
+          />
           <div className="relative min-h-0 flex-1">
             <CanvasContainer
               className="h-full"
@@ -251,7 +253,7 @@ export function WorkspaceShell({
             />
             {windowCount === 0 ? (
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-8">
-                <div className="max-w-md rounded-2xl border border-dashed border-border bg-surface-1 px-6 py-5 text-center shadow-sm">
+                <div className="max-w-md rounded-lg border border-border/40 bg-surface-1/80 px-6 py-5 text-center shadow-sm">
                   <h2 className="text-base font-semibold text-foreground">
                     Open threads in their own windows
                   </h2>
