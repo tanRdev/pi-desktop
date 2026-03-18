@@ -21,6 +21,42 @@ export interface CanvasContainerProps {
   className?: string;
 }
 
+interface CanvasWindowFrameProps {
+  win: CanvasWindow;
+  content: React.ReactNode;
+  onClose?: () => void;
+  onFocus?: () => void;
+  onMinimize?: () => void;
+  onToggleMaximize?: () => void;
+  onDragStart?: (e: React.MouseEvent) => void;
+  onResizeStart?: (e: React.MouseEvent, direction: ResizeDirection) => void;
+}
+
+function CanvasWindowFrame({
+  win,
+  content,
+  onClose,
+  onFocus,
+  onMinimize,
+  onToggleMaximize,
+  onDragStart,
+  onResizeStart,
+}: CanvasWindowFrameProps) {
+  return (
+    <WindowChrome
+      window={win}
+      onClose={onClose}
+      onFocus={onFocus}
+      onMinimize={onMinimize}
+      onToggleMaximize={onToggleMaximize}
+      onDragStart={onDragStart}
+      onResizeStart={onResizeStart}
+    >
+      {content}
+    </WindowChrome>
+  );
+}
+
 /**
  * Canvas container component - renders all windows on a canvas.
  */
@@ -30,18 +66,12 @@ export function CanvasContainer({
   className,
 }: CanvasContainerProps) {
   const { state, store } = useWindowStore();
-  const [draggingWindowId, setDraggingWindowId] = React.useState<string | null>(
-    null,
-  );
-  const [resizingWindowId, setResizingWindowId] = React.useState<string | null>(
-    null,
-  );
 
   // Handle drag
   const handleDragStart = React.useCallback(
     (windowId: string) => (e: React.MouseEvent) => {
       e.preventDefault();
-      setDraggingWindowId(windowId);
+      store.setDraggingWindowId(windowId);
 
       const startX = e.clientX;
       const startY = e.clientY;
@@ -75,7 +105,7 @@ export function CanvasContainer({
       };
 
       const handleMouseUp = () => {
-        setDraggingWindowId(null);
+        store.setDraggingWindowId(null);
         store.setSnapPreview(null);
         globalThis.window.removeEventListener("mousemove", handleMouseMove);
         globalThis.window.removeEventListener("mouseup", handleMouseUp);
@@ -92,7 +122,7 @@ export function CanvasContainer({
     (windowId: string) => (e: React.MouseEvent, direction: ResizeDirection) => {
       e.preventDefault();
       e.stopPropagation();
-      setResizingWindowId(windowId);
+      store.setResizingWindowId(windowId);
 
       const startX = e.clientX;
       const startY = e.clientY;
@@ -140,7 +170,7 @@ export function CanvasContainer({
       };
 
       const handleMouseUp = () => {
-        setResizingWindowId(null);
+        store.setResizingWindowId(null);
         store.setSnapPreview(null);
         globalThis.window.removeEventListener("mousemove", handleMouseMove);
         globalThis.window.removeEventListener("mouseup", handleMouseUp);
@@ -192,28 +222,35 @@ export function CanvasContainer({
     [onWindowFocus, state.layout.windows, store],
   );
 
+  const windowContents = React.useMemo(
+    () =>
+      new Map(
+        state.layout.windows.map((win) => [win.id, renderWindowContent(win)]),
+      ),
+    [renderWindowContent, state.layout.windows],
+  );
+
   return (
     <div
       className={cn(
         "relative h-full w-full overflow-hidden",
-        draggingWindowId && "cursor-move",
-        resizingWindowId && "cursor-nwse-resize",
+        state.draggingWindowId && "cursor-move",
+        state.resizingWindowId && "cursor-nwse-resize",
         className,
       )}
     >
       {state.layout.windows.map((win) => (
-        <WindowChrome
+        <CanvasWindowFrame
           key={win.id}
-          window={win}
+          win={win}
+          content={windowContents.get(win.id) ?? null}
           onClose={handleClose(win.id)}
           onFocus={handleFocus(win.id)}
           onMinimize={handleMinimize(win.id)}
           onToggleMaximize={handleToggleMaximize(win.id)}
           onDragStart={handleDragStart(win.id)}
           onResizeStart={handleResizeStart(win.id)}
-        >
-          {renderWindowContent(win)}
-        </WindowChrome>
+        />
       ))}
 
       {/* Snap preview */}

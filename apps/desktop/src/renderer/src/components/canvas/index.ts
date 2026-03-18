@@ -3,6 +3,7 @@
  */
 
 export * from "./canvas-container";
+export * from "./canvas-grid";
 export * from "./chat-window-content";
 export * from "./file-window-content";
 export * from "./graph-window-content";

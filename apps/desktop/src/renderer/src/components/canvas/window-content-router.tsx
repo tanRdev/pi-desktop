@@ -1,11 +1,14 @@
-import type {
-  AgentMessageSnapshot,
-  CanvasWindow,
-  FileContent,
-  SearchMatch,
-  ThreadSnapshot,
-} from "@pidesk/shared";
+import type { CanvasWindow, SearchMatch, ThreadSnapshot } from "@pidesk/shared";
 import type * as React from "react";
+import { useStore } from "zustand";
+import { workspaceSessionStore } from "../../hooks/use-window-store";
+import {
+  selectFileWindowStateByWorktree,
+  selectNoteWindowStateByWorktree,
+  selectSearchUiStateByWorktree,
+  selectThreadConversationByWorktree,
+} from "../../stores/workspace-session-selectors";
+import type { ThreadConversationState } from "../../stores/workspace-session-store";
 import { ChatWindowContent } from "./chat-window-content";
 import { FileWindowContent } from "./file-window-content";
 import {
@@ -17,37 +20,17 @@ import { NoteWindowContent } from "./note-window-content";
 import { SearchWindowContent } from "./search-window-content";
 import { TerminalWindowContent } from "./terminal-window-content";
 
-type ThreadConversationState = {
-  messages: AgentMessageSnapshot[];
-  status: string;
-  lastError: string | null;
-};
-
-type FileWindowState = {
-  content: FileContent | null;
-  isLoading: boolean;
-  error: string | null;
-};
-
-type NoteWindowState = {
-  content: string;
-  error: string | null;
-};
-
-type SearchUiState = {
-  isLoading: boolean;
-  selectedIndex: number;
+const EMPTY_THREAD_CONVERSATION: ThreadConversationState = {
+  messages: [],
+  status: "idle",
+  lastError: null,
 };
 
 export interface WindowContentRouterProps {
   win: CanvasWindow;
+  activeWorktreeId: string | null;
   activeThreadId: string | null;
-  agent: ThreadConversationState;
   threadLookup: Map<string, ThreadSnapshot>;
-  threadConversations: Map<string, ThreadConversationState>;
-  fileContents: Map<string, FileWindowState>;
-  noteContents: Map<string, NoteWindowState>;
-  searchUiState: Map<string, SearchUiState>;
   graphNodes: GraphNode[];
   graphLinks: GraphLink[];
   onFileContentChange: (windowId: string, content: string) => void;
@@ -78,13 +61,9 @@ function getThreadWindowTitle(
 
 export function WindowContentRouter({
   win,
+  activeWorktreeId,
   activeThreadId,
-  agent,
   threadLookup,
-  threadConversations,
-  fileContents,
-  noteContents,
-  searchUiState,
   graphNodes,
   graphLinks,
   onFileContentChange,
@@ -100,8 +79,26 @@ export function WindowContentRouter({
   onOpenNote,
   onOpenGraph,
 }: WindowContentRouterProps) {
+  const fileData = useStore(workspaceSessionStore, (storeState) =>
+    selectFileWindowStateByWorktree(storeState, activeWorktreeId, win.id),
+  );
+  const noteData = useStore(workspaceSessionStore, (storeState) =>
+    selectNoteWindowStateByWorktree(storeState, activeWorktreeId, win.id),
+  );
+  const uiState = useStore(workspaceSessionStore, (storeState) =>
+    selectSearchUiStateByWorktree(storeState, activeWorktreeId, win.id),
+  );
+  const threadConversation = useStore(workspaceSessionStore, (storeState) =>
+    win.kind === "chat"
+      ? selectThreadConversationByWorktree(
+          storeState,
+          activeWorktreeId,
+          win.threadId,
+        )
+      : undefined,
+  );
+
   if (win.kind === "file") {
-    const fileData = fileContents.get(win.id);
     return (
       <FileWindowContent
         filePath={win.filePath}
@@ -117,23 +114,14 @@ export function WindowContentRouter({
   }
 
   if (win.kind === "chat") {
-    const conversation =
-      win.threadId === activeThreadId
-        ? agent
-        : (threadConversations.get(win.threadId) ?? {
-            messages: [],
-            status: "idle",
-            lastError: null,
-          });
+    const conversation = threadConversation ?? EMPTY_THREAD_CONVERSATION;
 
     return (
       <ChatWindowContent
         threadTitle={getThreadWindowTitle(threadLookup.get(win.threadId))}
         isActiveThread={win.threadId === activeThreadId}
         messages={conversation.messages}
-        isStreaming={
-          win.threadId === activeThreadId && conversation.status === "streaming"
-        }
+        isStreaming={conversation.status === "streaming"}
         lastError={conversation.lastError}
         className="h-full"
       />
@@ -141,10 +129,8 @@ export function WindowContentRouter({
   }
 
   if (win.kind === "note") {
-    const noteData = noteContents.get(win.id);
     return (
       <NoteWindowContent
-        window={win}
         content={noteData?.content ?? ""}
         onContentChange={(content) => onNoteContentChange(win.id, content)}
         onSave={() => onNoteSave(win.id, win.storagePath)}
@@ -176,7 +162,6 @@ export function WindowContentRouter({
   }
 
   if (win.kind === "search") {
-    const uiState = searchUiState.get(win.id);
     return (
       <SearchWindowContent
         query={win.query}
@@ -187,7 +172,7 @@ export function WindowContentRouter({
         onSelect={onSearchSelect}
         onHover={(index) => onSearchHover(win.id, index)}
         onKeyDown={onSearchKeyDown(win.id)}
-        autoFocus={win.isFocused}
+        shouldFocusInput={win.isFocused}
         actions={[
           {
             id: "terminal",
