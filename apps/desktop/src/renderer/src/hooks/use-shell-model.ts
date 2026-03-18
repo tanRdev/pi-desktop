@@ -100,14 +100,26 @@ export function resolveCurrentModelValue(
   providers: ProviderSnapshot[],
   settings: SettingsSnapshot,
 ): string {
-  const providerId =
-    settings.currentProviderId ?? settings.defaultProvider ?? providers[0]?.id;
-  const provider = providers.find((entry) => entry.id === providerId);
-  const modelId =
-    settings.currentModelId ?? settings.defaultModel ?? provider?.models[0]?.id;
+  const preferredModelId = settings.currentModelId ?? settings.defaultModel;
+  const preferredProviderId =
+    settings.currentProviderId ?? settings.defaultProvider ?? null;
+  const provider =
+    providers.find((entry) => entry.id === preferredProviderId) ??
+    (preferredModelId
+      ? providers.find((entry) =>
+          entry.models.some((model) => model.id === preferredModelId),
+        )
+      : undefined) ??
+    providers[0];
 
-  if (!providerId || !modelId) return "";
-  return `${providerId}::${modelId}`;
+  if (!provider) return "";
+
+  const modelId =
+    provider.models.find((model) => model.id === preferredModelId)?.id ??
+    provider.models[0]?.id;
+
+  if (!modelId) return "";
+  return `${provider.id}::${modelId}`;
 }
 
 export function reduceModelSelectionState(

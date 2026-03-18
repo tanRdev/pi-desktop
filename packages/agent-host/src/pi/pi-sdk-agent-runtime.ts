@@ -141,13 +141,13 @@ export class PiSdkAgentRuntime {
 
     // Create auth storage for model registry
     const authStorage = AuthStorage.create(
-      path.join(resolvedAgentDir, "auth.json"),
+      path.join(globalAgentDir, "auth.json"),
     );
 
     // Initialize model registry with auth storage
     this.modelRegistry = new ModelRegistry(
       authStorage,
-      path.join(resolvedAgentDir, "models.json"),
+      path.join(globalAgentDir, "models.json"),
     );
 
     // Initialize settings manager

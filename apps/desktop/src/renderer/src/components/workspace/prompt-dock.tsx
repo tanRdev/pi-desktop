@@ -34,6 +34,7 @@ export interface PromptDockProps {
   providerSnapshots: ProviderSnapshot[];
   currentModelValue: string;
   isSwitchingModel: boolean;
+  onModelMenuOpenChange?: (open: boolean) => void | Promise<void>;
   onModelSelection: (
     event: React.ChangeEvent<HTMLSelectElement>,
   ) => void | Promise<void>;
@@ -56,6 +57,7 @@ export function PromptDock({
   providerSnapshots,
   currentModelValue,
   isSwitchingModel,
+  onModelMenuOpenChange,
   onModelSelection,
 }: PromptDockProps) {
   const [modelOpen, setModelOpen] = React.useState(false);
@@ -80,6 +82,13 @@ export function PromptDock({
     setModelOpen(false);
   };
 
+  const handleModelOpenChange = (nextOpen: boolean) => {
+    setModelOpen(nextOpen);
+    if (nextOpen) {
+      void onModelMenuOpenChange?.(nextOpen);
+    }
+  };
+
   return (
     <div className="relative z-20 bg-background pb-4 pt-3">
       <div className="mx-auto max-w-4xl px-6">
@@ -87,7 +96,7 @@ export function PromptDock({
           value={draft}
           onValueChange={onDraftChange}
           onSubmit={() => void onSend()}
-          className="shell-dock bg-surface-1 px-3 py-2.5"
+          className="shell-dock bg-surface-1 px-4 py-3"
         >
           <PromptInputTextarea
             data-testid="chat-input"
@@ -98,7 +107,7 @@ export function PromptDock({
             }
             disabled={!activeThreadId}
             onKeyDown={onPromptKeyDown}
-            className="min-h-20 resize-none border-0 bg-transparent px-0 py-0 text-[13px] leading-6 text-foreground placeholder:text-muted-foreground outline-none focus-visible:ring-0 disabled:opacity-50"
+            className="min-h-20 resize-none border-0 bg-transparent px-0.5 py-0.5 text-[13px] leading-6 text-foreground placeholder:text-muted-foreground outline-none focus-visible:border-transparent focus-visible:ring-0 disabled:opacity-50"
           />
           <PromptAutocomplete
             visible={autocompleteSuggestions.length > 0}
@@ -110,11 +119,13 @@ export function PromptDock({
           />
           <PromptInputActions className="mt-2 items-center justify-between gap-3 border-t border-border-subtle pt-2">
             <div className="flex items-center gap-1.5">
-              <Popover open={modelOpen} onOpenChange={setModelOpen}>
+              <Popover open={modelOpen} onOpenChange={handleModelOpenChange}>
                 <PopoverTrigger asChild>
                   <button
                     type="button"
-                    disabled={isSwitchingModel || providerSnapshots.length === 0}
+                    disabled={
+                      isSwitchingModel || providerSnapshots.length === 0
+                    }
                     className="flex items-center gap-1.5 rounded-sm bg-surface-2/80 px-2 py-0.5 text-[10px] text-muted-foreground transition-colors hover:bg-surface-2 disabled:opacity-50"
                   >
                     <span className="max-w-[120px] truncate">

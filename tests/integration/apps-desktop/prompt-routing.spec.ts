@@ -199,6 +199,28 @@ describe("prompt-routing helpers", () => {
       expect(resolveCurrentModelValue(providers, {})).toBe("p1::m1");
     });
 
+    it("falls back to the selected provider's first available model", () => {
+      const providers = [
+        {
+          id: "google",
+          name: "Google",
+          models: [{ id: "gemini-2.5-pro", providerId: "google", name: "M1" }],
+        },
+        {
+          id: "openai",
+          name: "OpenAI",
+          models: [{ id: "gpt-5", providerId: "openai", name: "GPT-5" }],
+        },
+      ] satisfies Parameters<typeof resolveCurrentModelValue>[0];
+
+      expect(
+        resolveCurrentModelValue(providers, {
+          currentProviderId: "openai",
+          defaultModel: "gemini-2.5-pro",
+        }),
+      ).toBe("openai::gpt-5");
+    });
+
     it("reduces model selection UI state during switching transitions", () => {
       const initial = { isSwitchingModel: false };
       const started = reduceModelSelectionState(initial, { type: "start" });

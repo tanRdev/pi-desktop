@@ -43,6 +43,7 @@ export interface WorkspaceShellProps {
   providerSnapshots: ProviderSnapshot[];
   currentModelValue: string;
   isSwitchingModel: boolean;
+  onModelMenuOpenChange: (open: boolean) => void | Promise<void>;
   onAddRepository: () => void | Promise<void>;
   onSelectRepository: (repositoryId: string) => void | Promise<void>;
   onUpdateRepositoryPreferences: (
@@ -88,6 +89,47 @@ export interface WorkspaceShellProps {
   ) => void | Promise<void>;
 }
 
+function CanvasEmptyState({
+  activeThreadId,
+}: {
+  activeThreadId: string | null;
+}) {
+  return (
+    <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-8 py-10">
+      <div className="w-full max-w-xl rounded-2xl border border-border/50 bg-surface-1/92 px-6 py-5 shadow-sm">
+        <div className="mb-4 flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+          <span className="rounded-sm border border-border/60 bg-surface-2 px-2 py-1">
+            Canvas.md
+          </span>
+          <span>workspace notes</span>
+        </div>
+        <div className="space-y-4 text-sm leading-6 text-muted-foreground">
+          <div>
+            <p className="text-base font-semibold text-foreground"># Canvas</p>
+            <p className="mt-1">
+              Arrange chats, terminals, notes, and files here as you work.
+            </p>
+          </div>
+          <div>
+            <p className="font-medium text-foreground">## Quick start</p>
+            <p className="mt-1">
+              - Pick a thread from the left sidebar to bring chat onto the
+              canvas.
+            </p>
+            <p>- Use the title bar to open a terminal, notes, git, or files.</p>
+            <p>
+              -{" "}
+              {activeThreadId
+                ? "Send a message to open or refocus the active chat window here."
+                : "Select a thread first, then send a message when you're ready."}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function WorkspaceShell({
   repositories,
   activeRepository,
@@ -114,6 +156,7 @@ export function WorkspaceShell({
   providerSnapshots,
   currentModelValue,
   isSwitchingModel,
+  onModelMenuOpenChange,
   onAddRepository,
   onSelectRepository,
   onUpdateRepositoryPreferences,
@@ -252,18 +295,7 @@ export function WorkspaceShell({
               renderWindowContent={renderWindowContent}
             />
             {windowCount === 0 ? (
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-8">
-                <div className="max-w-md rounded-lg border border-border/40 bg-surface-1/80 px-6 py-5 text-center shadow-sm">
-                  <h2 className="text-base font-semibold text-foreground">
-                    Open threads in their own windows
-                  </h2>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                    {activeThreadId
-                      ? "Click a thread in the left sidebar, or send a message, to open or refocus its chat window here."
-                      : "Select a thread in the left sidebar to open its dedicated chat window."}
-                  </p>
-                </div>
-              </div>
+              <CanvasEmptyState activeThreadId={activeThreadId} />
             ) : null}
           </div>
 
@@ -284,6 +316,7 @@ export function WorkspaceShell({
             providerSnapshots={providerSnapshots}
             currentModelValue={currentModelValue}
             isSwitchingModel={isSwitchingModel}
+            onModelMenuOpenChange={onModelMenuOpenChange}
             onModelSelection={onModelSelection}
           />
         </main>

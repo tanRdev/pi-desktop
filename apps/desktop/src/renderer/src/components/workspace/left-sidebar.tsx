@@ -5,8 +5,6 @@ import type {
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "../ui/scroll-area";
-import { ProjectAvatar } from "./project-avatar";
-import { ProjectCustomizationMenu } from "./project-customization-menu";
 import { WorktreeSection } from "./worktree-section";
 
 export interface LeftSidebarProps {
@@ -31,7 +29,6 @@ export function LeftSidebar({
   repository,
   activeWorktreeId,
   activeThreadId,
-  onUpdateRepositoryPreferences,
   onSelectWorktree,
   onSelectThread,
   onCreateThread,
@@ -100,40 +97,13 @@ export function LeftSidebar({
       )}
       style={{ width }}
     >
-      <div className="border-b border-border px-3 py-2">
-        {repository ? (
-          <div className="group flex items-center gap-2.5">
-            <ProjectAvatar
-              repository={repository}
-              isActive
-              size="sm"
-              className="shrink-0"
-            />
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5">
-                <span className="truncate text-sm font-medium text-foreground">
-                  {repository.name}
-                </span>
-                <ProjectCustomizationMenu
-                  repository={repository}
-                  updateRepositoryPreferences={onUpdateRepositoryPreferences}
-                  align="end"
-                  className="project-customization-trigger opacity-0 group-hover:opacity-100"
-                />
-              </div>
-              <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                {repository.defaultBranch && (
-                  <span>{repository.defaultBranch}</span>
-                )}
-              </div>
-            </div>
-          </div>
-        ) : (
+      {!repository ? (
+        <div className="px-2 pt-2">
           <div className="chrome-empty-state px-3 py-4 text-sm">
             Add a repository to start a workspace.
           </div>
-        )}
-      </div>
+        </div>
+      ) : null}
 
       <ScrollArea className="min-h-0 flex-1">
         <div className="px-2 py-2">

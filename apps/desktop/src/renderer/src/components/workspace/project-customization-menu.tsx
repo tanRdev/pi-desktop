@@ -2,11 +2,10 @@ import type {
   RepositoryDisplayMetadata,
   RepositorySnapshot,
 } from "@pidesk/shared";
-import { Palette, PencilLine } from "lucide-react";
+import { Palette } from "lucide-react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import {
   PROJECT_ACCENT_OPTIONS,
   resolveProjectAccentOption,
@@ -27,17 +26,16 @@ export interface ProjectCustomizationMenuProps {
     repositoryId: string,
     updates: Partial<RepositoryDisplayMetadata>,
   ) => void | Promise<void>;
-  align?: "start" | "center" | "end";
+  side?: "left" | "right";
   className?: string;
 }
 
 export function ProjectCustomizationMenu({
   repository,
   updateRepositoryPreferences,
-  align = "center",
+  side = "right",
   className,
 }: ProjectCustomizationMenuProps) {
-  const [open, setOpen] = React.useState(false);
   const [iconPickerOpen, setIconPickerOpen] = React.useState(false);
   const [customName, setCustomName] = React.useState(
     repository.customName ?? "",
@@ -78,32 +76,17 @@ export function ProjectCustomizationMenu({
 
   return (
     <>
-      <Popover
-        open={open}
-        onOpenChange={(nextOpen) => {
-          if (!nextOpen) {
-            void commitCustomName();
-          }
-          setOpen(nextOpen);
+      <div
+        className={cn(
+          "pointer-events-none opacity-0 transition-all duration-150 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100",
+          side === "right" ? "translate-x-1" : "-translate-x-1",
+          className,
+        )}
+        onMouseLeave={() => {
+          void commitCustomName();
         }}
       >
-        <PopoverTrigger asChild>
-          <button
-            type="button"
-            className={cn(
-              "project-customization-trigger chrome-icon-button flex h-7 w-7 items-center justify-center rounded-md border border-border bg-surface-1 text-muted-foreground hover:text-foreground",
-              className,
-            )}
-            aria-label={`Customize ${repository.name}`}
-          >
-            <PencilLine className="h-3.5 w-3.5" />
-          </button>
-        </PopoverTrigger>
-
-        <PopoverContent
-          align={align}
-          className="w-80 rounded-2xl border-border bg-surface-1 p-4"
-        >
+        <div className="w-80 rounded-2xl border border-border bg-surface-1/96 p-4 shadow-lg shadow-black/12 backdrop-blur-sm">
           <div className="space-y-4">
             <div>
               <label htmlFor="project-custom-name" className="chrome-eyebrow">
@@ -114,6 +97,9 @@ export function ProjectCustomizationMenu({
                   id="project-custom-name"
                   value={customName}
                   onChange={(event) => setCustomName(event.target.value)}
+                  onBlur={() => {
+                    void commitCustomName();
+                  }}
                   onKeyDown={(event) => {
                     if (event.key === "Enter") {
                       event.preventDefault();
@@ -189,8 +175,8 @@ export function ProjectCustomizationMenu({
               </div>
             </div>
           </div>
-        </PopoverContent>
-      </Popover>
+        </div>
+      </div>
 
       <ProjectIconPicker
         open={iconPickerOpen}

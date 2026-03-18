@@ -906,6 +906,16 @@ export function useAppShellController(): AppShellController {
     () => resolveCurrentModelValue(providerSnapshots, settingsSnapshot),
     [providerSnapshots, settingsSnapshot],
   );
+  const handleModelMenuOpenChange = React.useCallback(
+    (open: boolean) => {
+      if (!open) {
+        return;
+      }
+
+      void reload();
+    },
+    [reload],
+  );
 
   const graphNodes = React.useMemo(() => {
     const nodes = windowState.layout.windows.map((window) => ({
@@ -989,6 +999,7 @@ export function useAppShellController(): AppShellController {
     providerSnapshots,
     currentModelValue,
     isSwitchingModel,
+    onModelMenuOpenChange: handleModelMenuOpenChange,
     onAddRepository: handleAddRepository,
     onSelectRepository: handleSelectRepository,
     onUpdateRepositoryPreferences: updateRepositoryPreferences,

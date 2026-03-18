@@ -34,7 +34,7 @@ export function LeftRail({
         "flex h-full w-16 shrink-0 flex-col border-r border-border bg-surface-1",
       )}
     >
-      <div className="flex flex-1 flex-col gap-2 overflow-y-auto px-2 pb-3 pt-3">
+      <div className="flex flex-1 flex-col gap-2 overflow-x-visible overflow-y-auto px-2 pb-3 pt-3">
         {repositories.map((repository) => (
           <div
             key={repository.id}
@@ -48,8 +48,8 @@ export function LeftRail({
             <ProjectCustomizationMenu
               repository={repository}
               updateRepositoryPreferences={onUpdateRepositoryPreferences}
-              align="end"
-              className="project-customization-trigger absolute -right-1 -top-1"
+              side="right"
+              className="absolute left-full top-1/2 z-20 -translate-y-1/2 pl-2"
             />
           </div>
         ))}

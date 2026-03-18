@@ -25,6 +25,8 @@ describe("window-store", () => {
 
     expect(store.getState().layout.windows).toHaveLength(2);
     expect(store.getState().layout.focusedWindowId).toBe(second.id);
+    expect(first.width).toBe(560);
+    expect(first.height).toBe(380);
 
     store.focusWindow(first.id);
     expect(store.getState().layout.focusedWindowId).toBe(first.id);

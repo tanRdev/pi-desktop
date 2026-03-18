@@ -91,7 +91,7 @@ function PromptInput({
           role="presentation"
           onClick={handleClick}
           className={cn(
-            "shell-input-frame cursor-text border border-border-subtle bg-transparent p-1.5 transition-colors focus-within:border-border-hover focus-within:ring-0",
+            "shell-input-frame cursor-text border border-border-subtle bg-transparent p-2 transition-colors focus-within:border-border-hover focus-within:ring-0",
             disabled && "cursor-not-allowed opacity-60",
             className,
           )}
@@ -170,7 +170,7 @@ function PromptInputTextarea({
       onChange={handleChange}
       onKeyDown={handleKeyDown}
       className={cn(
-        "min-h-[44px] w-full resize-none border-none bg-transparent shadow-none outline-none focus-visible:ring-0 focus-visible:ring-offset-0",
+        "min-h-[44px] w-full resize-none border-none bg-transparent shadow-none outline-none focus-visible:border-transparent focus-visible:ring-0 focus-visible:ring-offset-0",
         className,
       )}
       rows={1}
