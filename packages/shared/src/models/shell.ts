@@ -1,5 +1,6 @@
 import type { RepositorySnapshot } from "./repository.js";
 import type { ThreadSnapshot } from "./thread.js";
+import type { WorkspaceSession } from "./workspace-session.js";
 import type { WorktreeSnapshot } from "./worktree.js";
 
 export type AppRuntimeMode = "development" | "production" | "test";
@@ -34,6 +35,7 @@ export interface ShellSelectionSnapshot {
 export interface ShellCatalogSnapshot {
   repositories: RepositorySnapshot[];
   selection: ShellSelectionSnapshot;
+  reconciledWorkspaceSessions?: WorkspaceSession[];
 }
 
 export interface ShellCapabilitiesSnapshot {

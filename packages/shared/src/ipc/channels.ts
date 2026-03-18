@@ -46,6 +46,15 @@ export const IPC_CHANNELS = {
   search: {
     searchFiles: "search:searchFiles",
   },
+  state: {
+    getRepositoryPreferences: "state:getRepositoryPreferences",
+    updateRepositoryPreferences: "state:updateRepositoryPreferences",
+    getWorkspaceSession: "state:getWorkspaceSession",
+    saveWorkspaceSession: "state:saveWorkspaceSession",
+    getAppPreferences: "state:getAppPreferences",
+    updateAppPreferences: "state:updateAppPreferences",
+    importLegacyPreferences: "state:importLegacyPreferences",
+  },
   window: {
     create: "window:create",
     close: "window:close",

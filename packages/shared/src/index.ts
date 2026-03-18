@@ -10,4 +10,5 @@ export * from "./models/shell.js";
 export * from "./models/terminal.js";
 export * from "./models/thread.js";
 export * from "./models/window.js";
+export * from "./models/workspace-session.js";
 export * from "./models/worktree.js";
