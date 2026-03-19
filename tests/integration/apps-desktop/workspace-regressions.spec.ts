@@ -35,9 +35,9 @@ describe("workspace regressions", () => {
     );
 
     expect(railSource).toContain('side="right"');
-    expect(railSource).toContain("overflow-x-visible");
+    expect(customizationSource).toContain("hidden");
     expect(customizationSource).not.toContain("PencilLine");
-    expect(customizationSource).toContain("group-hover:pointer-events-auto");
+    expect(customizationSource).toContain("group-hover:block");
   });
 
   it("adds prompt input padding and suppresses the inner focus treatment", () => {
