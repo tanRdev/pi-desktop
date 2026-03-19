@@ -33,6 +33,13 @@ import type {
   WindowLayoutState,
   WindowPosition,
 } from "./window.js";
+import type {
+  AppPreferences,
+  LegacyPreferencesImport,
+  RepositoryDisplayMetadata,
+  RepositoryPreferences,
+  WorkspaceSession,
+} from "./workspace-session.js";
 
 export interface PiDeskApi {
   shell: {
@@ -62,6 +69,7 @@ export interface PiDeskApi {
   threads: {
     create(worktreeId: string, title?: string): Promise<void>;
     select(threadId: string): Promise<void>;
+    archive(threadId: string): Promise<void>;
     routeToTerminal(
       request: PiTerminalRouteRequest,
     ): Promise<PiTerminalRouteResult>;
@@ -96,6 +104,25 @@ export interface PiDeskApi {
   };
   search: {
     searchFiles(request: SearchRequest): Promise<SearchResponse>;
+  };
+  state: {
+    getRepositoryPreferences(
+      repositoryId: string,
+    ): Promise<RepositoryPreferences | null>;
+    updateRepositoryPreferences(
+      repositoryId: string,
+      updates: Partial<RepositoryDisplayMetadata>,
+    ): Promise<RepositoryPreferences>;
+    getWorkspaceSession(worktreeId: string): Promise<WorkspaceSession | null>;
+    saveWorkspaceSession(session: WorkspaceSession): Promise<WorkspaceSession>;
+    getAppPreferences(): Promise<AppPreferences>;
+    updateAppPreferences(
+      updates: Partial<AppPreferences>,
+    ): Promise<AppPreferences>;
+    importLegacyPreferences(importData: LegacyPreferencesImport): Promise<{
+      repositoryPreferences: RepositoryPreferences[];
+      appPreferences: AppPreferences;
+    }>;
   };
   window: {
     create(action: CreateWindowAction): Promise<CanvasWindow>;

@@ -26,19 +26,22 @@ import {
   type AgentHostSocketTransport,
   createAgentHostSocketTransport,
 } from "./agent-host-socket-transport";
+import { AppPreferencesCatalog } from "./app-preferences-catalog";
 import { switchModelForContext } from "./bootstrap/model-switch";
 import { routePromptToTerminal } from "./bootstrap/route-to-terminal";
-import { buildThreadContext as buildThreadContextFromHelper } from "./bootstrap/thread-context";
 import {
-  type GitRepositoryInspection,
-  GitWorktreeService,
-} from "./git-worktree-service";
+  buildThreadContext as buildThreadContextFromHelper,
+  type ResolvedRepositoryInspection,
+  type SelectedThreadContext,
+} from "./bootstrap/thread-context";
+import { GitWorktreeService } from "./git-worktree-service";
 import { registerIpcHandlers } from "./ipc-router";
 import {
   discoverPiResources,
   getPiSlashSuggestions,
 } from "./pi-resource-discovery";
 import { RepositoryCatalog } from "./repository-catalog";
+import { RepositoryPreferencesCatalog } from "./repository-preferences-catalog";
 import { SelectionState } from "./selection-state";
 import { buildShellCatalog } from "./shell-catalog-builder";
 import { createShellSnapshot } from "./shell-snapshot";
@@ -50,8 +53,10 @@ import {
   createMainWindowOptions,
   resolvePreloadTarget,
   resolveRendererTarget,
+  shouldShowMainWindow,
 } from "./window-config";
 import { WorkspaceSearchService } from "./workspace-search-service";
+import { WorkspaceSessionCatalog } from "./workspace-session-catalog";
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -66,24 +71,6 @@ type AgentDesktopHost = {
   prompt(text: string): Promise<void>;
   reset(): Promise<void>;
   subscribe(listener: (event: PiDeskAgentEvent) => void): () => void;
-};
-
-type SelectedThreadContext = {
-  repositoryId: string;
-  worktreePath: string;
-  thread: ThreadCatalogEntry;
-  socketPath: string;
-  sessionName: string;
-  command: string[];
-  agentMode: "mock" | "sdk";
-  agentDirectory: string | null;
-};
-
-type ResolvedRepositoryInspection = GitRepositoryInspection & {
-  status: "repository";
-  rootPath: string;
-  currentWorktreePath: string;
-  worktrees: NonNullable<GitRepositoryInspection["worktrees"]>;
 };
 
 function createBootstrapErrorHost(message: string): AgentDesktopHost {
@@ -134,9 +121,11 @@ async function createMainWindow() {
     }),
   );
 
-  window.once("ready-to-show", () => {
-    window.show();
-  });
+  if (shouldShowMainWindow(process.env)) {
+    window.once("ready-to-show", () => {
+      window.show();
+    });
+  }
 
   const rendererTarget = resolveRendererTarget(rendererUrl, import.meta.url);
   if (rendererTarget.kind === "url") {
@@ -163,6 +152,12 @@ async function bootstrapDesktop() {
   const userDataPath = app.getPath("userData");
   const gitService = new GitWorktreeService();
   const repositoryCatalog = new RepositoryCatalog(userDataPath);
+  const repositoryPreferencesCatalog = new RepositoryPreferencesCatalog(
+    userDataPath,
+  );
+  repositoryPreferencesCatalog.importLegacyLabels(repositoryCatalog.list());
+  const workspaceSessionCatalog = new WorkspaceSessionCatalog(userDataPath);
+  const appPreferencesCatalog = new AppPreferencesCatalog(userDataPath);
   const threadCatalog = new ThreadCatalog(userDataPath);
   const selectionState = new SelectionState(userDataPath);
   const runtimeManager = new TmuxThreadRuntimeManager();
@@ -200,22 +195,19 @@ async function bootstrapDesktop() {
   }
 
   async function handleSwitchModel(request: ModelSwitchRequest): Promise<void> {
-    return switchModelForContext(request, {
+    await switchModelForContext(request, {
       currentContext,
-      resolveAgentDirectory: () => resolveAgentDirectory(),
-      createSettingsManager: async (
-        worktreePath: string,
-        agentDirectory: string | null,
-      ) => {
+      resolveAgentDirectory,
+      createSettingsManager: async (worktreePath, agentDirectory) => {
         const { SettingsManager } = await import(
           "@mariozechner/pi-coding-agent"
         );
+
         return SettingsManager.create(worktreePath, agentDirectory);
       },
-      restartThreadRuntime: async (args) =>
-        runtimeManager.restartThreadRuntime(args),
-      attachContext: async (ctx) => attachContext(ctx),
-      commitAttachment: (a) => commitAttachment(a),
+      runtimeManager,
+      attachContext,
+      commitAttachment,
     });
   }
 
@@ -243,9 +235,8 @@ async function bootstrapDesktop() {
     request: PiTerminalRouteRequest,
   ): Promise<PiTerminalRouteResult> {
     return routePromptToTerminal(request, {
-      getSessions: () => terminalManager.getSessions(),
-      write: (id: string, data: string) => terminalManager.write(id, data),
-      delay: (ms: number) => delay(ms),
+      terminalManager,
+      delay,
     });
   }
 
@@ -305,15 +296,26 @@ async function bootstrapDesktop() {
       repositoryId,
       inspection,
       thread,
-      repositoryCatalog,
-      selectionState,
-      resolveAgentRuntimeOptions,
+      environment: process.env,
       runtimeSocketDirectory,
       execPath: process.execPath,
       sessionServerEntryPath: agentHostSessionServerEntryPath,
-      env: process.env,
-      createThreadRuntimeLaunchDetails,
-      mkdirSync,
+      repositoryCatalog,
+      selectionState,
+      ensureDirectory: mkdirSync,
+      resolveRuntimeOptions: (environment, cwd) => {
+        const runtimeOptions = resolveAgentRuntimeOptions(environment, cwd);
+        return {
+          mode: runtimeOptions.mode,
+          cwd: runtimeOptions.cwd,
+          agentDir: runtimeOptions.agentDir,
+        };
+      },
+      createLaunchDetails: (input) =>
+        createThreadRuntimeLaunchDetails({
+          ...input,
+          agentDirectory: input.agentDirectory ?? undefined,
+        }),
     });
   }
 
@@ -519,6 +521,8 @@ async function bootstrapDesktop() {
       const catalog = await buildShellCatalog({
         repositories: repositoryCatalog.list(),
         selection,
+        repositoryPreferences: repositoryPreferencesCatalog.list(),
+        workspaceSessions: workspaceSessionCatalog.list(),
         inspectRepository: (rootPath) => gitService.inspect(rootPath),
         listThreadsByWorktree: (worktreeId) =>
           threadCatalog.listByWorktree(worktreeId),
@@ -526,6 +530,9 @@ async function bootstrapDesktop() {
         selectedAgentSnapshot: agentSnapshot,
       });
       selectionState.replace(catalog.selection);
+      workspaceSessionCatalog.replaceAll(
+        catalog.reconciledWorkspaceSessions ?? [],
+      );
 
       return createShellSnapshot({
         appName: app.getName(),
@@ -569,12 +576,48 @@ async function bootstrapDesktop() {
         commitAttachment(await attachToThreadId(threadId));
       },
     },
+    stateHost: {
+      getRepositoryPreferences: async (repositoryId) =>
+        repositoryPreferencesCatalog.get(repositoryId),
+      updateRepositoryPreferences: async (repositoryId, updates) =>
+        repositoryPreferencesCatalog.upsert(repositoryId, updates),
+      getWorkspaceSession: async (worktreeId) =>
+        workspaceSessionCatalog.get(worktreeId),
+      saveWorkspaceSession: async (session) =>
+        workspaceSessionCatalog.save(session),
+      getAppPreferences: async () => appPreferencesCatalog.get(),
+      updateAppPreferences: async (updates) =>
+        appPreferencesCatalog.update(updates),
+      importLegacyPreferences: async (importData) => {
+        const repositoryPreferences = (importData.repositories ?? []).map(
+          (repository) =>
+            repositoryPreferencesCatalog.upsert(repository.repositoryId, {
+              customName: repository.customName,
+              icon: repository.icon,
+              accentColor: repository.accentColor,
+            }),
+        );
+        const appPreferences = appPreferencesCatalog.update({
+          leftSidebarWidth: importData.leftSidebarWidth,
+          settings:
+            importData.settings && typeof importData.settings === "object"
+              ? importData.settings
+              : undefined,
+        });
+
+        return {
+          repositoryPreferences,
+          appPreferences,
+        };
+      },
+    },
     mainWindow: null,
     searchFiles: handleSearchFiles,
     switchModel: handleSwitchModel,
     getDiscovery: handleGetDiscovery,
     getSlashSuggestions: handleGetSlashSuggestions,
     routeToTerminal: handleRouteToTerminal,
+    threadCatalog,
   });
 
   mainWindow = await createMainWindow();

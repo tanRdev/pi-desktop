@@ -1,8 +1,9 @@
-import type { RepositorySnapshot } from "@pidesk/shared";
-import { PanelLeftClose, Plus } from "@/components/ui/icons";
+import type {
+  RepositoryDisplayMetadata,
+  RepositorySnapshot,
+} from "@pidesk/shared";
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { Button } from "../ui/button";
 import { ScrollArea } from "../ui/scroll-area";
 import { WorktreeSection } from "./worktree-section";
 
@@ -10,12 +11,15 @@ export interface LeftSidebarProps {
   repository: RepositorySnapshot | null;
   activeWorktreeId: string | null;
   activeThreadId: string | null;
+  onUpdateRepositoryPreferences: (
+    repositoryId: string,
+    updates: Partial<RepositoryDisplayMetadata>,
+  ) => void | Promise<void>;
   onSelectWorktree: (worktreeId: string) => void;
   onSelectThread: (threadId: string) => void;
   onCreateThread: (worktreeId: string) => void;
   onCreateWorktree: () => void;
-  onShowArchived: () => void;
-  onHide?: () => void;
+  onCloseThread?: (threadId: string) => void;
   width: number;
   onResize: (width: number) => void;
   className?: string;
@@ -28,9 +32,7 @@ export function LeftSidebar({
   onSelectWorktree,
   onSelectThread,
   onCreateThread,
-  onCreateWorktree,
-  onShowArchived,
-  onHide,
+  onCloseThread,
   width,
   onResize,
   className,
@@ -95,26 +97,16 @@ export function LeftSidebar({
       )}
       style={{ width }}
     >
-      {/* Header with repository name */}
-      <div className="group flex h-12 items-center border-b border-border px-3">
-        <span className="truncate text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          {repository?.name ?? "No project"}
-        </span>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          aria-label="Hide sidebar"
-          onClick={() => onHide?.()}
-          className="ml-auto h-6 w-6 rounded text-muted-foreground opacity-0 transition group-hover:opacity-100"
-        >
-          <PanelLeftClose className="h-4 w-4" />
-        </Button>
-      </div>
+      {!repository ? (
+        <div className="px-2 pt-2">
+          <div className="chrome-empty-state px-3 py-4 text-sm">
+            Add a repository to start a workspace.
+          </div>
+        </div>
+      ) : null}
 
-      {/* Worktree list */}
       <ScrollArea className="min-h-0 flex-1">
-        <div className="py-1">
+        <div className="px-2 py-2">
           {worktrees.map((worktree) => (
             <WorktreeSection
               key={worktree.id}
@@ -125,44 +117,24 @@ export function LeftSidebar({
               onToggleExpand={() => handleToggleWorktree(worktree.id)}
               onSelectThread={onSelectThread}
               onCreateThread={() => onCreateThread(worktree.id)}
+              onCloseThread={onCloseThread}
             />
           ))}
 
           {worktrees.length === 0 && (
-            <div className="px-3 py-4 text-center text-xs text-muted-foreground">
+            <div className="chrome-empty-state px-3 py-4 text-center text-xs">
               No worktrees
             </div>
           )}
         </div>
       </ScrollArea>
 
-      {/* Bottom actions */}
-      <div className="border-t border-border p-2">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          aria-label="Create worktree"
-          className="h-7 w-full justify-start gap-1.5 px-2 text-[11px] text-muted-foreground hover:text-foreground"
-          onClick={onCreateWorktree}
-        >
-          <Plus className="h-3.5 w-3.5" />
-          Add worktree
-        </Button>
-
-        <button
-          type="button"
-          onClick={onShowArchived}
-          className="mt-1 flex h-7 w-full items-center justify-center text-[10px] text-muted-foreground opacity-60 transition hover:text-foreground hover:opacity-100"
-        >
-          Show archived
-        </button>
-      </div>
-      {/* Resize handle */}
       <div
         className={cn("absolute right-0 top-0 bottom-0 w-1 cursor-col-resize")}
         onMouseDown={() => setIsResizing(true)}
         title="Drag to resize"
+        role="presentation"
+        aria-hidden="true"
       />
     </aside>
   );

@@ -2,15 +2,12 @@
  * Note window content - renders a note document in a window.
  */
 
-import type { NoteWindow } from "@pidesk/shared";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "../ui/scroll-area";
 import { Textarea } from "../ui/textarea";
 
 export interface NoteWindowContentProps {
-  /** Note window data */
-  window: NoteWindow;
   /** Note content */
   content?: string;
   /** Called when content changes */
@@ -22,7 +19,6 @@ export interface NoteWindowContentProps {
 }
 
 export function NoteWindowContent({
-  window: win,
   content = "",
   onContentChange,
   onSave,
@@ -52,7 +48,7 @@ export function NoteWindowContent({
     const id = setTimeout(() => {
       try {
         onSave();
-      } catch (err) {
+      } catch {
         // Save errors are surfaced elsewhere; swallow here
         // to avoid affecting typing UX.
       }

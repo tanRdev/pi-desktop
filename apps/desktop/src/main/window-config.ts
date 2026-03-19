@@ -11,6 +11,12 @@ export interface RendererTarget {
   value: string;
 }
 
+export function shouldShowMainWindow(
+  env: Record<string, string | undefined>,
+): boolean {
+  return env.PIDESK_HEADLESS !== "1";
+}
+
 export function createMainWindowOptions({
   preloadPath,
 }: CreateMainWindowOptionsInput): BrowserWindowConstructorOptions {

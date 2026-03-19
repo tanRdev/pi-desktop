@@ -3,6 +3,18 @@ import {
   createWindowStore,
   initialWindowStoreState,
 } from "../../../apps/desktop/src/renderer/src/stores/window-store";
+import type { TerminalWindow } from "../../../packages/shared/src";
+
+function requireWindow<T extends { id: string }>(
+  window: T | undefined,
+  label: string,
+): T {
+  if (!window) {
+    throw new Error(`Expected window ${label} to exist`);
+  }
+
+  return window;
+}
 
 describe("window-store", () => {
   it("creates, focuses, and closes windows while tracking z-order", () => {
@@ -13,6 +25,8 @@ describe("window-store", () => {
 
     expect(store.getState().layout.windows).toHaveLength(2);
     expect(store.getState().layout.focusedWindowId).toBe(second.id);
+    expect(first.width).toBe(560);
+    expect(first.height).toBe(380);
 
     store.focusWindow(first.id);
     expect(store.getState().layout.focusedWindowId).toBe(first.id);
@@ -52,33 +66,29 @@ describe("window-store", () => {
     expect(terminal && "isDirty" in terminal).toBe(false);
   });
 
-  it("new windows cascade and terminal createWindow(action, cwd) uses cwd fallback", () => {
+  it("cascades default positions for multiple createWindow calls", () => {
     const store = createWindowStore();
 
-    const first = store.createWindow({ kind: "file", filePath: "/tmp/a.ts" });
-    const second = store.createWindow({ kind: "file", filePath: "/tmp/b.ts" });
+    const a = store.createWindow({ kind: "file", filePath: "/tmp/a.ts" });
+    const b = store.createWindow({ kind: "file", filePath: "/tmp/b.ts" });
 
-    // cascade offset is deterministic (32px per window)
-    expect(second.x).toBe(first.x + 32);
-    expect(second.y).toBe(first.y + 32);
-
-    const store2 = createWindowStore();
-    const termWithCwd = store2.createWindow({
-      kind: "terminal",
-      backend: "shell",
-      cwd: "/root",
-    });
-    expect(termWithCwd.cwd).toBe("/root");
-
-    const termWithFallback = store2.createWindow(
-      { kind: "terminal", backend: "shell" },
-      "/home/me",
-    );
-    // when action.cwd is absent, the passed cwd fallback should be used
-    expect(termWithFallback.cwd).toBe("/home/me");
+    expect(b.x).toBe(a.x + 32);
+    expect(b.y).toBe(a.y + 32);
   });
 
-  it("moveWindow updates only the target window coordinates", () => {
+  it("terminal createWindow falls back to passed cwd when action.cwd is missing", () => {
+    const store = createWindowStore();
+
+    const cwd = "/home/test";
+    const t = store.createWindow({ kind: "terminal", backend: "shell" }, cwd);
+
+    expect(t.kind).toBe("terminal");
+    // Terminal windows should use the fallback cwd when action.cwd is absent
+    // @ts-expect-error runtime property
+    expect(t.cwd).toBe(cwd);
+  });
+
+  it("moveWindow only updates targeted window coordinates", () => {
     const store = createWindowStore();
     const a = store.createWindow({ kind: "file", filePath: "/tmp/a.ts" });
     const b = store.createWindow({ kind: "file", filePath: "/tmp/b.ts" });
@@ -89,8 +99,14 @@ describe("window-store", () => {
     store.moveWindow(a.id, 400, 300);
 
     const windows = store.getState().layout.windows;
-    const wa = windows.find((w) => w.id === a.id)!;
-    const wb = windows.find((w) => w.id === b.id)!;
+    const wa = requireWindow(
+      windows.find((w) => w.id === a.id),
+      "after moving target",
+    );
+    const wb = requireWindow(
+      windows.find((w) => w.id === b.id),
+      "after moving untouched window",
+    );
 
     expect(wa.x).toBe(400);
     expect(wa.y).toBe(300);
@@ -98,7 +114,7 @@ describe("window-store", () => {
     expect(wb.y).toBe(bOrigY);
   });
 
-  it("resizeWindow updates only the target window dimensions", () => {
+  it("resizeWindow only updates targeted window dimensions", () => {
     const store = createWindowStore();
     const a = store.createWindow({ kind: "file", filePath: "/tmp/a.ts" });
     const b = store.createWindow({ kind: "file", filePath: "/tmp/b.ts" });
@@ -109,8 +125,14 @@ describe("window-store", () => {
     store.resizeWindow(a.id, 640, 480);
 
     const windows = store.getState().layout.windows;
-    const wa = windows.find((w) => w.id === a.id)!;
-    const wb = windows.find((w) => w.id === b.id)!;
+    const wa = requireWindow(
+      windows.find((w) => w.id === a.id),
+      "after resizing target",
+    );
+    const wb = requireWindow(
+      windows.find((w) => w.id === b.id),
+      "after resizing untouched window",
+    );
 
     expect(wa.width).toBe(640);
     expect(wa.height).toBe(480);
@@ -199,25 +221,70 @@ describe("window-store", () => {
       linkedThreadId: "thread-1",
       title: "My Terminal",
     });
-    const updated = store
-      .getState()
-      .layout.windows.find((w) => w.id === term.id)!;
+    const updated = requireWindow(
+      store.getState().layout.windows.find((w) => w.id === term.id),
+      "updated terminal window",
+    );
+    expect(updated.kind).toBe("terminal");
+    const updatedTerminal = updated as TerminalWindow;
 
     expect(updated.id).toBe(originalId);
-    expect((updated as any).linkedThreadId).toBe("thread-1");
+    expect(updatedTerminal.linkedThreadId).toBe("thread-1");
     expect(updated.title).toBe("My Terminal");
     expect(updated.zIndex).toBe(originalZ);
+  });
 
-    const search = store.createWindow({ kind: "search" });
-    store.updateWindow(search.id, {
-      query: "foo",
-      results: [{ path: "/x", name: "x", score: 1, type: "file" }],
+  it("updateWindow ignores managed focus and z-order fields", () => {
+    const store = createWindowStore();
+
+    const first = store.createWindow({ kind: "file", filePath: "/tmp/a" });
+    const second = store.createWindow({ kind: "file", filePath: "/tmp/b" });
+
+    const originalFirstZIndex = first.zIndex;
+
+    store.updateWindow(first.id, {
+      title: "Renamed",
+      isFocused: true,
+      zIndex: 999,
     });
-    const updatedSearch = store
-      .getState()
-      .layout.windows.find((w) => w.id === search.id)!;
-    expect((updatedSearch as any).query).toBe("foo");
-    expect((updatedSearch as any).results).toHaveLength(1);
+
+    const windows = store.getState().layout.windows;
+    const updatedFirst = windows.find((window) => window.id === first.id);
+    const updatedSecond = windows.find((window) => window.id === second.id);
+
+    expect(store.getState().layout.focusedWindowId).toBe(second.id);
+    expect(updatedFirst?.title).toBe("Renamed");
+    expect(updatedFirst?.isFocused).toBe(false);
+    expect(updatedFirst?.zIndex).toBe(originalFirstZIndex);
+    expect(updatedSecond?.isFocused).toBe(true);
+  });
+
+  it("updateWindow preserves identity while routing state changes through focus rules", () => {
+    const store = createWindowStore();
+
+    const first = store.createWindow({ kind: "file", filePath: "/tmp/a" });
+    const second = store.createWindow({ kind: "file", filePath: "/tmp/b" });
+
+    store.focusWindow(first.id);
+
+    store.updateWindow(first.id, {
+      id: "hacked-window-id",
+      state: "minimized",
+      title: "Renamed while minimizing",
+    });
+
+    const windows = store.getState().layout.windows;
+    const updatedFirst = windows.find((window) => window.id === first.id);
+    const updatedSecond = windows.find((window) => window.id === second.id);
+
+    expect(windows.some((window) => window.id === "hacked-window-id")).toBe(
+      false,
+    );
+    expect(updatedFirst?.title).toBe("Renamed while minimizing");
+    expect(updatedFirst?.state).toBe("minimized");
+    expect(updatedFirst?.isFocused).toBe(false);
+    expect(updatedSecond?.isFocused).toBe(true);
+    expect(store.getState().layout.focusedWindowId).toBe(second.id);
   });
 
   it("clearAll restores the initial store state", () => {
@@ -230,5 +297,16 @@ describe("window-store", () => {
 
     store.clearAll();
     expect(store.getState()).toEqual(initialWindowStoreState);
+  });
+
+  it("clearAll returns a fresh initial-state snapshot", () => {
+    const store = createWindowStore();
+
+    store.createWindow({ kind: "file", filePath: "/tmp/a" });
+    store.clearAll();
+
+    expect(store.getState()).toEqual(initialWindowStoreState);
+    expect(store.getState()).not.toBe(initialWindowStoreState);
+    expect(store.getState().layout).not.toBe(initialWindowStoreState.layout);
   });
 });

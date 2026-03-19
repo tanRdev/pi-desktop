@@ -1,4 +1,5 @@
 import type { SearchRequest, TerminalCreateOptions } from "@pidesk/shared";
+import type { OpenDialogOptions } from "electron";
 
 function isPayloadRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -11,6 +12,7 @@ export function getStringField(
   if (!isPayloadRecord(payload)) {
     return undefined;
   }
+
   const value = payload[key];
   return typeof value === "string" ? value : undefined;
 }
@@ -22,6 +24,7 @@ export function getNumberField(
   if (!isPayloadRecord(payload)) {
     return undefined;
   }
+
   const value = payload[key];
   return typeof value === "number" ? value : undefined;
 }
@@ -33,6 +36,7 @@ export function getBooleanField(
   if (!isPayloadRecord(payload)) {
     return undefined;
   }
+
   const value = payload[key];
   return typeof value === "boolean" ? value : undefined;
 }
@@ -44,17 +48,17 @@ export function getStringArrayField(
   if (!isPayloadRecord(payload)) {
     return undefined;
   }
+
   const value = payload[key];
   if (!Array.isArray(value)) {
     return undefined;
   }
+
   return value.filter((entry): entry is string => typeof entry === "string");
 }
 
-export function parseDialogOptions(
-  payload: unknown,
-): Electron.OpenDialogOptions {
-  const options: Electron.OpenDialogOptions = {};
+export function parseDialogOptions(payload: unknown): OpenDialogOptions {
+  const options: OpenDialogOptions = {};
   const title = getStringField(payload, "title");
   if (title) {
     options.title = title;
@@ -65,9 +69,7 @@ export function parseDialogOptions(
     options.properties = properties.filter(
       (
         property,
-      ): property is NonNullable<
-        Electron.OpenDialogOptions["properties"]
-      >[number] =>
+      ): property is NonNullable<OpenDialogOptions["properties"]>[number] =>
         property === "openFile" ||
         property === "openDirectory" ||
         property === "multiSelections" ||

@@ -5,6 +5,9 @@ import { File, Folder, Loader2 } from "@/components/ui/icons";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
+const EMPTY_SEARCH_RESULTS: SearchMatch[] = [];
+const EMPTY_SEARCH_ACTIONS: SearchWindowAction[] = [];
+
 export type SearchWindowAction = {
   id: string;
   label: string;
@@ -22,7 +25,7 @@ export type SearchWindowContentProps = {
   onHover?: (index: number) => void;
   onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>;
   actions?: SearchWindowAction[];
-  autoFocus?: boolean;
+  shouldFocusInput?: boolean;
   className?: string;
 };
 
@@ -30,22 +33,22 @@ export function SearchWindowContent({
   query,
   onQueryChange,
   isLoading = false,
-  results = [],
+  results = EMPTY_SEARCH_RESULTS,
   selectedIndex = -1,
   onSelect,
   onHover,
   onKeyDown,
-  actions = [],
-  autoFocus = false,
+  actions = EMPTY_SEARCH_ACTIONS,
+  shouldFocusInput = false,
   className,
 }: SearchWindowContentProps) {
   const inputRef = React.useRef<HTMLInputElement | null>(null);
 
   React.useEffect(() => {
-    if (autoFocus) {
+    if (shouldFocusInput) {
       inputRef.current?.focus();
     }
-  }, [autoFocus]);
+  }, [shouldFocusInput]);
 
   return (
     <div className={cn("flex h-full min-h-0 flex-col", className)}>

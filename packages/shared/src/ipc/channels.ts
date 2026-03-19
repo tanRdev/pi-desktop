@@ -24,6 +24,7 @@ export const IPC_CHANNELS = {
   threads: {
     create: "threads:create",
     select: "threads:select",
+    archive: "threads:archive",
     routeToTerminal: "threads:routeToTerminal",
   },
   dialog: {
@@ -45,6 +46,15 @@ export const IPC_CHANNELS = {
   },
   search: {
     searchFiles: "search:searchFiles",
+  },
+  state: {
+    getRepositoryPreferences: "state:getRepositoryPreferences",
+    updateRepositoryPreferences: "state:updateRepositoryPreferences",
+    getWorkspaceSession: "state:getWorkspaceSession",
+    saveWorkspaceSession: "state:saveWorkspaceSession",
+    getAppPreferences: "state:getAppPreferences",
+    updateAppPreferences: "state:updateAppPreferences",
+    importLegacyPreferences: "state:importLegacyPreferences",
   },
   window: {
     create: "window:create",

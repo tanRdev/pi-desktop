@@ -1,5 +1,54 @@
 import type { Settings } from "./types";
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+export function mergeSettingsWithDefaults(value: unknown): Settings {
+  const parsed = isRecord(value) ? value : {};
+
+  return {
+    ai: { ...DEFAULT_SETTINGS.ai, ...(isRecord(parsed.ai) ? parsed.ai : {}) },
+    interface: {
+      ...DEFAULT_SETTINGS.interface,
+      ...(isRecord(parsed.interface) ? parsed.interface : {}),
+    },
+    editor: {
+      ...DEFAULT_SETTINGS.editor,
+      ...(isRecord(parsed.editor) ? parsed.editor : {}),
+    },
+    terminal: {
+      ...DEFAULT_SETTINGS.terminal,
+      ...(isRecord(parsed.terminal) ? parsed.terminal : {}),
+    },
+    keybindings: {
+      ...DEFAULT_SETTINGS.keybindings,
+      ...(isRecord(parsed.keybindings) ? parsed.keybindings : {}),
+    },
+    advanced: {
+      ...DEFAULT_SETTINGS.advanced,
+      ...(isRecord(parsed.advanced) ? parsed.advanced : {}),
+    },
+  };
+}
+
+export function readLegacySettingsStorage(): Settings | null {
+  if (typeof globalThis.localStorage === "undefined") {
+    return null;
+  }
+
+  try {
+    const stored = globalThis.localStorage.getItem(STORAGE_KEY);
+    if (!stored) {
+      return null;
+    }
+
+    return mergeSettingsWithDefaults(JSON.parse(stored));
+  } catch {
+    return null;
+  }
+}
+
 export const DEFAULT_SETTINGS: Settings = {
   ai: {
     provider: "google",

@@ -26,10 +26,43 @@ type AgentListener = (event: PiDeskAgentEvent) => void;
 
 type CreateAgentSession = typeof createPiAgentSession;
 
+type ProviderModelLike = {
+  id: string;
+  name?: string;
+  provider: string;
+  reasoning?: boolean;
+  input?: string[];
+  contextWindow?: number;
+};
+
+type ModelRegistryLike = {
+  getAvailable: () => ProviderModelLike[];
+};
+
+type SettingsManagerLike = Pick<
+  SettingsManager,
+  | "getGlobalSettings"
+  | "getProjectSettings"
+  | "setDefaultProvider"
+  | "setDefaultModel"
+>;
+
+type CreateModelRegistry = (
+  authFilePath: string,
+  modelsFilePath: string,
+) => ModelRegistryLike;
+
+type CreateSettingsManager = (
+  cwd: string,
+  agentDir: string,
+) => SettingsManagerLike;
+
 type PiSdkAgentRuntimeOptions = {
   cwd: string;
   agentDir?: string;
   createAgentSession?: CreateAgentSession;
+  createModelRegistry?: CreateModelRegistry;
+  createSettingsManager?: CreateSettingsManager;
 };
 
 type StructuredMessage = {
@@ -115,9 +148,9 @@ export class PiSdkAgentRuntime {
 
   private unsubscribeSession: (() => void) | null = null;
 
-  private modelRegistry: ModelRegistry | null = null;
+  private modelRegistry: ModelRegistryLike | null = null;
 
-  private settingsManager: SettingsManager | null = null;
+  private settingsManager: SettingsManagerLike | null = null;
 
   private snapshot: AgentSnapshot = {
     sessionId: "",
@@ -130,6 +163,10 @@ export class PiSdkAgentRuntime {
     cwd,
     agentDir,
     createAgentSession = createPiAgentSession,
+    createModelRegistry = (authFilePath, modelsFilePath) =>
+      new ModelRegistry(AuthStorage.create(authFilePath), modelsFilePath),
+    createSettingsManager = (nextCwd, nextAgentDir) =>
+      SettingsManager.create(nextCwd, nextAgentDir),
   }: PiSdkAgentRuntimeOptions) {
     this.cwd = cwd;
     this.agentDir = agentDir;
@@ -139,19 +176,14 @@ export class PiSdkAgentRuntime {
     const globalAgentDir = path.join(homedir(), ".pi", "agent");
     const resolvedAgentDir = agentDir ?? globalAgentDir;
 
-    // Create auth storage for model registry
-    const authStorage = AuthStorage.create(
-      path.join(resolvedAgentDir, "auth.json"),
-    );
-
     // Initialize model registry with auth storage
-    this.modelRegistry = new ModelRegistry(
-      authStorage,
-      path.join(resolvedAgentDir, "models.json"),
+    this.modelRegistry = createModelRegistry(
+      path.join(globalAgentDir, "auth.json"),
+      path.join(globalAgentDir, "models.json"),
     );
 
     // Initialize settings manager
-    this.settingsManager = SettingsManager.create(cwd, resolvedAgentDir);
+    this.settingsManager = createSettingsManager(cwd, resolvedAgentDir);
   }
 
   async bootstrap(): Promise<void> {

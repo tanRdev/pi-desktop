@@ -4,12 +4,71 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
+  useRef,
   useState,
 } from "react";
-import { DEFAULT_SETTINGS, STORAGE_KEY } from "./defaults";
+import { useShellModel } from "../../hooks/use-shell-model";
+import { getEffectiveSettings } from "../../stores/app-shell-store";
+import { DEFAULT_SETTINGS } from "./defaults";
 import type { Settings, SettingsContextValue, SettingsSection } from "./types";
 
 const SettingsContext = createContext<SettingsContextValue | null>(null);
+
+type SettingsDraftState = {
+  baseSignature: string;
+  value: Settings;
+};
+
+function cloneSettings(settings: Settings): Settings {
+  return {
+    ai: { ...settings.ai },
+    interface: { ...settings.interface },
+    editor: { ...settings.editor },
+    terminal: { ...settings.terminal },
+    keybindings: {
+      ...settings.keybindings,
+      customKeybindings: { ...settings.keybindings.customKeybindings },
+    },
+    advanced: { ...settings.advanced },
+  };
+}
+
+function cloneDefaultSettings(): Settings {
+  return cloneSettings(DEFAULT_SETTINGS);
+}
+
+export function serializeSettings(settings: Settings): string {
+  return JSON.stringify(settings);
+}
+
+export function reconcileSettingsDraftState(
+  draftState: SettingsDraftState | null,
+  persistedSignature: string,
+  acknowledgedPersistedSignatures: readonly string[],
+): SettingsDraftState | null {
+  if (!draftState) {
+    return null;
+  }
+
+  const draftSignature = serializeSettings(draftState.value);
+  if (draftSignature === persistedSignature) {
+    return null;
+  }
+
+  if (draftState.baseSignature === persistedSignature) {
+    return draftState;
+  }
+
+  if (acknowledgedPersistedSignatures.includes(persistedSignature)) {
+    return {
+      baseSignature: persistedSignature,
+      value: draftState.value,
+    };
+  }
+
+  return null;
+}
 
 export function useSettings(): SettingsContextValue {
   const context = useContext(SettingsContext);
@@ -23,75 +82,127 @@ interface SettingsProviderProps {
   children: React.ReactNode;
 }
 
-function loadSettings(): Settings {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      // Merge with defaults to handle any missing keys from updates
-      return {
-        ai: { ...DEFAULT_SETTINGS.ai, ...parsed.ai },
-        interface: { ...DEFAULT_SETTINGS.interface, ...parsed.interface },
-        editor: { ...DEFAULT_SETTINGS.editor, ...parsed.editor },
-        terminal: { ...DEFAULT_SETTINGS.terminal, ...parsed.terminal },
-        keybindings: { ...DEFAULT_SETTINGS.keybindings, ...parsed.keybindings },
-        advanced: { ...DEFAULT_SETTINGS.advanced, ...parsed.advanced },
-      };
-    }
-  } catch (error) {
-    console.error("Failed to load settings:", error);
-  }
-  return { ...DEFAULT_SETTINGS };
-}
-
 export function SettingsProvider({ children }: SettingsProviderProps) {
-  const [settings, setSettings] = useState<Settings>(loadSettings);
-  const [originalSettings, setOriginalSettings] = useState<Settings>(() =>
-    loadSettings(),
+  const { appPreferences, updateAppPreferences } = useShellModel();
+  const persistedSettings = useMemo(
+    () => getEffectiveSettings(appPreferences),
+    [appPreferences],
   );
+  const persistedSignature = useMemo(
+    () => serializeSettings(persistedSettings),
+    [persistedSettings],
+  );
+  const persistedSettingsRef = useRef(persistedSettings);
+  const persistedSignatureRef = useRef(persistedSignature);
+  const acknowledgedPersistedSignaturesRef = useRef<string[]>([]);
+  const [draftState, setDraftState] = useState<SettingsDraftState | null>(null);
 
-  const hasUnsavedChanges =
-    JSON.stringify(settings) !== JSON.stringify(originalSettings);
+  persistedSettingsRef.current = persistedSettings;
+  persistedSignatureRef.current = persistedSignature;
 
-  const updateSettings = useCallback(
-    <K extends keyof Settings>(section: K, updates: Partial<Settings[K]>) => {
-      setSettings((prev) => ({
-        ...prev,
-        [section]: { ...prev[section], ...updates },
-      }));
+  const effectiveDraftState = reconcileSettingsDraftState(
+    draftState,
+    persistedSignature,
+    acknowledgedPersistedSignaturesRef.current,
+  );
+  const settings = effectiveDraftState?.value ?? persistedSettings;
+  const settingsSignature = serializeSettings(settings);
+  const hasUnsavedChanges = settingsSignature !== persistedSignature;
+
+  const rememberPersistedSignature = useCallback((signature: string) => {
+    acknowledgedPersistedSignaturesRef.current = [
+      ...acknowledgedPersistedSignaturesRef.current.filter(
+        (entry) => entry !== signature,
+      ),
+      signature,
+    ].slice(-12);
+  }, []);
+
+  const updateDraftState = useCallback(
+    (updater: (current: Settings) => Settings) => {
+      setDraftState((currentDraftState) => {
+        const reconciledDraftState = reconcileSettingsDraftState(
+          currentDraftState,
+          persistedSignatureRef.current,
+          acknowledgedPersistedSignaturesRef.current,
+        );
+        const currentPersistedSettings = persistedSettingsRef.current;
+        const currentPersistedSignature = persistedSignatureRef.current;
+        const currentSettings =
+          reconciledDraftState?.value ?? currentPersistedSettings;
+        const nextSettings = updater(currentSettings);
+
+        if (serializeSettings(nextSettings) === currentPersistedSignature) {
+          return null;
+        }
+
+        return {
+          baseSignature:
+            reconciledDraftState?.baseSignature ?? currentPersistedSignature,
+          value: nextSettings,
+        };
+      });
     },
     [],
   );
 
-  const resetSection = useCallback((section: SettingsSection) => {
-    setSettings((prev) => ({
-      ...prev,
-      [section]: { ...DEFAULT_SETTINGS[section] },
-    }));
-  }, []);
+  const updateSettings = useCallback(
+    <K extends keyof Settings>(section: K, updates: Partial<Settings[K]>) => {
+      updateDraftState((currentSettings) => ({
+        ...currentSettings,
+        [section]: { ...currentSettings[section], ...updates },
+      }));
+    },
+    [updateDraftState],
+  );
+
+  const resetSection = useCallback(
+    (section: SettingsSection) => {
+      updateDraftState((currentSettings) => ({
+        ...currentSettings,
+        [section]: cloneSettings(DEFAULT_SETTINGS)[section],
+      }));
+    },
+    [updateDraftState],
+  );
 
   const resetAll = useCallback(() => {
-    setSettings({ ...DEFAULT_SETTINGS });
-  }, []);
+    updateDraftState(() => cloneDefaultSettings());
+  }, [updateDraftState]);
 
-  const saveSettings = useCallback(() => {
+  const saveSettings = useCallback(async () => {
+    const settingsToSave = settings;
+    rememberPersistedSignature(serializeSettings(settingsToSave));
+
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-      setOriginalSettings({ ...settings });
+      await updateAppPreferences({
+        settings: settingsToSave as unknown as Record<string, unknown>,
+      });
     } catch (error) {
       console.error("Failed to save settings:", error);
     }
-  }, [settings]);
+  }, [rememberPersistedSignature, settings, updateAppPreferences]);
 
-  // Auto-save on settings change
   useEffect(() => {
+    if (!hasUnsavedChanges) {
+      return;
+    }
+
     const timeoutId = setTimeout(() => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-      setOriginalSettings({ ...settings });
+      rememberPersistedSignature(settingsSignature);
+      void updateAppPreferences({
+        settings: settings as unknown as Record<string, unknown>,
+      });
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [settings]);
+  }, [
+    hasUnsavedChanges,
+    rememberPersistedSignature,
+    settings,
+    settingsSignature,
+    updateAppPreferences,
+  ]);
 
   const value: SettingsContextValue = {
     settings,

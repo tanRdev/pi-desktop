@@ -1,28 +1,31 @@
-import { createShellModel, type ShellModelState } from "@pidesk/shell-model";
-import { useCallback, useEffect, useMemo, useSyncExternalStore } from "react";
+import type { ProviderSnapshot, SettingsSnapshot } from "@pidesk/shared";
+import { useCallback, useEffect, useSyncExternalStore } from "react";
+import {
+  type AppShellStoreState,
+  getAppShellStore,
+} from "../stores/app-shell-store";
 
 export function useShellModel() {
-  const model = useMemo(() => createShellModel(window.pidesk), []);
-  const state = useSyncExternalStore<ShellModelState>(
-    model.subscribe,
-    model.getState,
-    model.getState,
+  const store = getAppShellStore();
+  const snapshot = useSyncExternalStore<AppShellStoreState>(
+    store.subscribe,
+    store.getState,
+    store.getState,
   );
 
   useEffect(() => {
-    void model.load();
-    return () => model.dispose();
-  }, [model.dispose, model.load]);
+    void store.getState().initialize();
+  }, [store]);
 
   const sendPrompt = useCallback(() => {
-    model.sendPrompt();
-  }, [model.sendPrompt]);
+    return store.getState().sendPrompt();
+  }, [store]);
 
   const setDraft = useCallback(
     (draft: string) => {
-      model.setDraft(draft);
+      store.getState().setDraft(draft);
     },
-    [model.setDraft],
+    [store],
   );
 
   const reset = useCallback(async () => {
@@ -31,39 +34,104 @@ export function useShellModel() {
     } catch (error) {
       // A failed reset should still attempt to refresh snapshot state so the
       // renderer can surface the latest runtime status without a full reload.
-      model.setAgentError(
-        error instanceof Error ? error.message : "Reset failed",
-      );
+      store
+        .getState()
+        .shellModel.setAgentError(
+          error instanceof Error ? error.message : "Reset failed",
+        );
     }
 
     try {
-      await model.load();
+      await store.getState().reload();
     } catch (error) {
       // Snapshot refresh failures are surfaced to the UI so users can see
       // that the session state may be stale.
-      model.setAgentError(
-        error instanceof Error ? error.message : "Failed to load snapshot",
-      );
+      store
+        .getState()
+        .shellModel.setAgentError(
+          error instanceof Error ? error.message : "Failed to load snapshot",
+        );
     }
 
-    model.setDraft("");
-  }, [model]);
+    store.getState().setDraft("");
+  }, [store]);
 
   const reload = useCallback(async () => {
     try {
-      await model.load();
+      await store.getState().reload();
     } catch (error) {
-      model.setAgentError(
-        error instanceof Error ? error.message : "Failed to load snapshot",
-      );
+      store
+        .getState()
+        .shellModel.setAgentError(
+          error instanceof Error ? error.message : "Failed to load snapshot",
+        );
     }
-  }, [model]);
+  }, [store]);
 
   return {
-    state,
+    state: snapshot.shellState,
+    providerSnapshots: snapshot.providerSnapshots,
+    settingsSnapshot: snapshot.settingsSnapshot,
+    appPreferences: snapshot.appPreferences,
+    isSwitchingModel: snapshot.isSwitchingModel,
+    switchModel: store.getState().switchModel,
+    updateAppPreferences: store.getState().updateAppPreferences,
+    updateRepositoryPreferences: store.getState().updateRepositoryPreferences,
     sendPrompt,
     setDraft,
     reset,
     reload,
   };
+}
+
+// Pure helpers expected by tests
+export function parseModelSelectionValue(
+  value: string,
+): { providerId: string; modelId: string } | null {
+  if (!value) return null;
+  const parts = value.split("::");
+  if (parts.length !== 2) return null;
+  const [providerId, modelId] = parts;
+  if (!providerId || !modelId) return null;
+  return { providerId, modelId };
+}
+
+export function resolveCurrentModelValue(
+  providers: ProviderSnapshot[],
+  settings: SettingsSnapshot,
+): string {
+  const preferredModelId = settings.currentModelId ?? settings.defaultModel;
+  const preferredProviderId =
+    settings.currentProviderId ?? settings.defaultProvider ?? null;
+  const provider =
+    providers.find((entry) => entry.id === preferredProviderId) ??
+    (preferredModelId
+      ? providers.find((entry) =>
+          entry.models.some((model) => model.id === preferredModelId),
+        )
+      : undefined) ??
+    providers[0];
+
+  if (!provider) return "";
+
+  const modelId =
+    provider.models.find((model) => model.id === preferredModelId)?.id ??
+    provider.models[0]?.id;
+
+  if (!modelId) return "";
+  return `${provider.id}::${modelId}`;
+}
+
+export function reduceModelSelectionState(
+  state: { isSwitchingModel: boolean },
+  action: { type: "start" | "finish" },
+) {
+  switch (action.type) {
+    case "start":
+      return { ...state, isSwitchingModel: true };
+    case "finish":
+      return { ...state, isSwitchingModel: false };
+    default:
+      return state;
+  }
 }

@@ -14,7 +14,7 @@ export type MessageProps = {
 } & React.HTMLProps<HTMLDivElement>;
 
 const Message = ({ children, className, ...props }: MessageProps) => (
-  <div className={cn("flex gap-3", className)} {...props}>
+  <div className={cn("flex gap-2.5", className)} {...props}>
     {children}
   </div>
 );
@@ -35,7 +35,7 @@ const MessageAvatar = ({
   className,
 }: MessageAvatarProps) => {
   return (
-    <Avatar className={cn("h-8 w-8 shrink-0", className)}>
+    <Avatar className={cn("h-7 w-7 shrink-0 rounded-sm", className)}>
       <AvatarImage src={src} alt={alt} />
       {fallback && (
         <AvatarFallback delayMs={delayMs}>{fallback}</AvatarFallback>
@@ -58,7 +58,7 @@ const MessageContent = ({
   ...props
 }: MessageContentProps) => {
   const classNames = cn(
-    "rounded-md p-3 text-sm text-foreground bg-surface-2 border border-border-subtle prose break-words whitespace-normal",
+    "shell-console-message rounded-sm border border-border-subtle bg-surface-2 px-3 py-2 text-[13px] leading-6 text-foreground prose break-words whitespace-normal",
     className,
   );
 

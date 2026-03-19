@@ -1,5 +1,6 @@
 import {
   type AgentSnapshot,
+  type AppPreferences,
   type AutocompleteContext,
   type AutocompleteSuggestions,
   type CanvasWindow,
@@ -8,6 +9,7 @@ import {
   type ImagePreview,
   type ImagePreviewOptions,
   IPC_CHANNELS,
+  type LegacyPreferencesImport,
   type ModelSwitchRequest,
   type PiDeskAgentEvent,
   type PiDeskApi,
@@ -15,6 +17,8 @@ import {
   type PiTerminalRouteRequest,
   type PiTerminalRouteResult,
   type ProviderSnapshot,
+  type RepositoryDisplayMetadata,
+  type RepositoryPreferences,
   type SearchRequest,
   type SearchResponse,
   type SettingsSnapshot,
@@ -23,6 +27,7 @@ import {
   type TerminalSession,
   type WindowLayoutState,
   type WindowPosition,
+  type WorkspaceSession,
 } from "@pidesk/shared";
 
 export type PreloadInvoke = <TReturn>(
@@ -117,6 +122,9 @@ export function createPiDeskApi({
       select(threadId: string) {
         return invoke<void>(IPC_CHANNELS.threads.select, { threadId });
       },
+      archive(threadId: string) {
+        return invoke<void>(IPC_CHANNELS.threads.archive, { threadId });
+      },
       routeToTerminal(request: PiTerminalRouteRequest) {
         return invoke<PiTerminalRouteResult>(
           IPC_CHANNELS.threads.routeToTerminal,
@@ -193,6 +201,56 @@ export function createPiDeskApi({
     search: {
       searchFiles(request: SearchRequest) {
         return invoke<SearchResponse>(IPC_CHANNELS.search.searchFiles, request);
+      },
+    },
+    state: {
+      getRepositoryPreferences(repositoryId: string) {
+        return invoke<RepositoryPreferences | null>(
+          IPC_CHANNELS.state.getRepositoryPreferences,
+          { repositoryId },
+        );
+      },
+      updateRepositoryPreferences(
+        repositoryId: string,
+        updates: Partial<RepositoryDisplayMetadata>,
+      ) {
+        return invoke<RepositoryPreferences>(
+          IPC_CHANNELS.state.updateRepositoryPreferences,
+          { repositoryId, updates },
+        );
+      },
+      getWorkspaceSession(worktreeId: string) {
+        return invoke<WorkspaceSession | null>(
+          IPC_CHANNELS.state.getWorkspaceSession,
+          { worktreeId },
+        );
+      },
+      saveWorkspaceSession(session: WorkspaceSession) {
+        return invoke<WorkspaceSession>(
+          IPC_CHANNELS.state.saveWorkspaceSession,
+          {
+            session,
+          },
+        );
+      },
+      getAppPreferences() {
+        return invoke<AppPreferences>(
+          IPC_CHANNELS.state.getAppPreferences,
+          undefined,
+        );
+      },
+      updateAppPreferences(updates: Partial<AppPreferences>) {
+        return invoke<AppPreferences>(IPC_CHANNELS.state.updateAppPreferences, {
+          updates,
+        });
+      },
+      importLegacyPreferences(importData: LegacyPreferencesImport) {
+        return invoke<{
+          repositoryPreferences: RepositoryPreferences[];
+          appPreferences: AppPreferences;
+        }>(IPC_CHANNELS.state.importLegacyPreferences, {
+          importData,
+        });
       },
     },
     window: {

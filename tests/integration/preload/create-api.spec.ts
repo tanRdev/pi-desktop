@@ -6,8 +6,11 @@ import {
 } from "../../../apps/desktop/src/preload/api";
 import {
   type AgentSnapshot,
+  type AppPreferences,
+  createEmptyWorkspaceSession,
   IPC_CHANNELS,
   type PiDeskAgentEvent,
+  type RepositoryPreferences,
   type ShellSnapshot,
 } from "../../../packages/shared/src";
 
@@ -241,6 +244,134 @@ describe("createPiDeskApi", () => {
         },
       ],
       [IPC_CHANNELS.threads.select, { threadId: "thread-123" }],
+    ]);
+  });
+
+  it("invokes state persistence channels", async () => {
+    const repositoryPreferences: RepositoryPreferences = {
+      repositoryId: "/tmp/work/repo-one",
+      customName: "Repo One",
+      icon: "rocket",
+      accentColor: "#2255aa",
+    };
+    const workspaceSession = createEmptyWorkspaceSession(
+      "/tmp/work/repo-one/feature",
+    );
+    const appPreferences: AppPreferences = {
+      leftSidebarWidth: 240,
+      settings: {
+        interface: {
+          theme: "dark",
+        },
+      },
+    };
+    const invokeCalls: Array<[string, unknown?]> = [];
+    const invoke: PreloadInvoke = async <TReturn>(
+      channel: string,
+      payload?: unknown,
+    ) => {
+      invokeCalls.push([channel, payload]);
+
+      if (channel === IPC_CHANNELS.state.getRepositoryPreferences) {
+        return repositoryPreferences as TReturn;
+      }
+      if (channel === IPC_CHANNELS.state.getWorkspaceSession) {
+        return workspaceSession as TReturn;
+      }
+      if (channel === IPC_CHANNELS.state.getAppPreferences) {
+        return appPreferences as TReturn;
+      }
+
+      return undefined as TReturn;
+    };
+
+    const api = createPiDeskApi({
+      invoke,
+      on: () => () => undefined,
+    });
+
+    await expect(
+      api.state.getRepositoryPreferences("/tmp/work/repo-one"),
+    ).resolves.toEqual(repositoryPreferences);
+    await api.state.updateRepositoryPreferences("/tmp/work/repo-one", {
+      customName: "Repo One",
+      icon: "rocket",
+      accentColor: "#2255aa",
+    });
+    await expect(
+      api.state.getWorkspaceSession("/tmp/work/repo-one/feature"),
+    ).resolves.toEqual(workspaceSession);
+    await api.state.saveWorkspaceSession(workspaceSession);
+    await expect(api.state.getAppPreferences()).resolves.toEqual(
+      appPreferences,
+    );
+    await api.state.updateAppPreferences({
+      leftSidebarWidth: 240,
+      settings: {
+        interface: {
+          theme: "dark",
+        },
+      },
+    });
+    await api.state.importLegacyPreferences({
+      leftSidebarWidth: 240,
+      repositories: [
+        {
+          repositoryId: "/tmp/work/repo-one",
+          customName: "Repo One",
+        },
+      ],
+    });
+
+    expect(invokeCalls).toEqual([
+      [
+        IPC_CHANNELS.state.getRepositoryPreferences,
+        { repositoryId: "/tmp/work/repo-one" },
+      ],
+      [
+        IPC_CHANNELS.state.updateRepositoryPreferences,
+        {
+          repositoryId: "/tmp/work/repo-one",
+          updates: {
+            customName: "Repo One",
+            icon: "rocket",
+            accentColor: "#2255aa",
+          },
+        },
+      ],
+      [
+        IPC_CHANNELS.state.getWorkspaceSession,
+        { worktreeId: "/tmp/work/repo-one/feature" },
+      ],
+      [IPC_CHANNELS.state.saveWorkspaceSession, { session: workspaceSession }],
+      [IPC_CHANNELS.state.getAppPreferences, undefined],
+      [
+        IPC_CHANNELS.state.updateAppPreferences,
+        {
+          updates: {
+            leftSidebarWidth: 240,
+            settings: {
+              interface: {
+                theme: "dark",
+              },
+            },
+          },
+        },
+      ],
+      [
+        IPC_CHANNELS.state.importLegacyPreferences,
+        {
+          importData: {
+            leftSidebarWidth: 240,
+            repositories: [
+              {
+                repositoryId: "/tmp/work/repo-one",
+                customName: "Repo One",
+              },
+            ],
+          },
+        },
+      ],
     ]);
   });
 });
