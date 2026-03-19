@@ -383,7 +383,7 @@ export function useAppShellController(): AppShellController {
     const noteCount =
       windowState.layout.windows.filter((w) => w.kind === "note").length + 1;
     const storagePath = activeWorktreePath
-      ? `${activeWorktreePath.replace(/[\\/]+$/, "")}/.pidesk/notes/${noteWindow.id}.md`
+      ? `${activeWorktreePath.replace(/[\\/]+$/, "")}/.pi/desktop/notes/${noteWindow.id}.md`
       : undefined;
 
     windowStore.updateWindow(noteWindow.id, {
@@ -687,6 +687,14 @@ export function useAppShellController(): AppShellController {
       await reload();
     },
     [windowState.layout.windows, windowStore, reload],
+  );
+
+  const handleRenameThread = React.useCallback(
+    async (threadId: string, title: string) => {
+      await window.pidesk.threads.rename(threadId, title);
+      await reload();
+    },
+    [reload],
   );
 
   const handleSelectThread = React.useCallback(
@@ -1008,6 +1016,7 @@ export function useAppShellController(): AppShellController {
     onSelectThread: handleSelectThread,
     onCreateThread: handleCreateThread,
     onCloseThread: handleCloseThread,
+    onRenameThread: handleRenameThread,
     onCreateWorktree: handleCreateWorktree,
     onLeftSidebarResize: handleLeftSidebarResize,
     onOpenLauncher: handleOpenLauncher,

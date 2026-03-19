@@ -3,7 +3,7 @@
  */
 
 import type { CanvasWindow } from "@pidesk/shared";
-import type * as React from "react";
+import * as React from "react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -26,6 +26,8 @@ export interface WindowChromeProps {
   onDragStart?: (e: React.MouseEvent) => void;
   /** Called when resize starts */
   onResizeStart?: (e: React.MouseEvent, direction: ResizeDirection) => void;
+  /** Called when the window title is renamed */
+  onTitleChange?: (newTitle: string) => void;
   /** Additional class name */
   className?: string;
 }
@@ -47,10 +49,40 @@ export function WindowChrome({
   onToggleMaximize,
   onDragStart,
   onResizeStart,
+  onTitleChange,
   className,
 }: WindowChromeProps) {
   const isMaximized = window.state === "maximized";
   const isMinimized = window.state === "minimized";
+
+  const [isEditingTitle, setIsEditingTitle] = React.useState(false);
+  const [editValue, setEditValue] = React.useState(window.title);
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
+  const startEditing = React.useCallback(() => {
+    setEditValue(window.title);
+    setIsEditingTitle(true);
+  }, [window.title]);
+
+  const commitEdit = React.useCallback(() => {
+    const trimmed = editValue.trim();
+    if (trimmed && trimmed !== window.title) {
+      onTitleChange?.(trimmed);
+    }
+    setIsEditingTitle(false);
+  }, [editValue, window.title, onTitleChange]);
+
+  const cancelEdit = React.useCallback(() => {
+    setEditValue(window.title);
+    setIsEditingTitle(false);
+  }, [window.title]);
+
+  React.useEffect(() => {
+    if (isEditingTitle && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditingTitle]);
 
   return (
     <div
@@ -122,12 +154,37 @@ export function WindowChrome({
         {/* Center: title (keeps centered even when dirty) */}
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-6">
           <div className="min-w-0 flex items-center gap-2">
-            <span className="truncate text-[11px] font-medium tracking-[0.08em] text-muted-foreground">
-              {window.title}
-              {"isDirty" in window && window.isDirty && (
-                <span className="ml-1 text-foreground">●</span>
-              )}
-            </span>
+            {isEditingTitle ? (
+              <input
+                ref={inputRef}
+                type="text"
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    commitEdit();
+                  } else if (e.key === "Escape") {
+                    cancelEdit();
+                  }
+                }}
+                onBlur={commitEdit}
+                className="pointer-events-auto w-full min-w-[60px] max-w-[200px] truncate rounded-sm border border-border-subtle bg-surface-2 px-1.5 py-0.5 text-xs font-normal tracking-normal text-foreground outline-none focus:border-ring/60"
+                data-no-drag
+              />
+            ) : (
+              <span
+                className="truncate text-xs font-normal tracking-normal text-muted-foreground pointer-events-auto cursor-default"
+                onDoubleClick={(e) => {
+                  e.stopPropagation();
+                  startEditing();
+                }}
+              >
+                {window.title}
+                {"isDirty" in window && window.isDirty && (
+                  <span className="ml-1 text-foreground">●</span>
+                )}
+              </span>
+            )}
           </div>
         </div>
 

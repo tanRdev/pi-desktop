@@ -22,7 +22,6 @@ describe("chunk5 ui", () => {
     expect(windowSource).not.toContain("backdrop-blur-sm");
 
     expect(promptDockSource).not.toContain("bg-gradient-to-t");
-    expect(promptDockSource).not.toContain("backdrop-blur-sm");
     expect(promptDockSource).not.toContain("text-zinc-500");
     expect(promptDockSource).not.toContain("bg-white/[0.06]");
     expect(promptDockSource).not.toContain("border-white/8");

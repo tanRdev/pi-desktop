@@ -15,6 +15,7 @@ const getAvailable = vi.fn(() => [
 const modelRegistryCtor = vi.fn(
   (_authFilePath: string, _modelsFilePath: string) => ({
     getAvailable,
+    refresh: vi.fn(),
   }),
 );
 const settingsCreate = vi.fn(() => ({

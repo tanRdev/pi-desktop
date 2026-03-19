@@ -15,6 +15,14 @@ import { Button } from "../ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import PromptAutocomplete from "../ui/prompt-autocomplete";
 
+function formatTokenCount(tokens: number): string {
+  if (tokens >= 1_000_000)
+    return `${(tokens / 1_000_000).toFixed(tokens % 1_000_000 === 0 ? 0 : 1)}M`;
+  if (tokens >= 1_000)
+    return `${(tokens / 1_000).toFixed(tokens % 1_000 === 0 ? 0 : 1)}k`;
+  return String(tokens);
+}
+
 export interface PromptDockProps {
   draft: string;
   onDraftChange: (draft: string) => void;
@@ -74,6 +82,18 @@ export function PromptDock({
     return "Select model";
   }, [providerSnapshots, currentModelValue]);
 
+  // Find current model's context window size
+  const currentContextWindow = React.useMemo(() => {
+    for (const provider of providerSnapshots) {
+      for (const model of provider.models) {
+        if (`${provider.id}::${model.id}` === currentModelValue) {
+          return model.contextWindow ?? null;
+        }
+      }
+    }
+    return null;
+  }, [providerSnapshots, currentModelValue]);
+
   const handleModelSelect = (value: string) => {
     const event = {
       target: { value },
@@ -90,7 +110,7 @@ export function PromptDock({
   };
 
   return (
-    <div className="relative z-20 bg-background pb-4 pt-3">
+    <div className="relative z-20 bg-background/80 pb-4 pt-3 backdrop-blur-sm">
       <div className="mx-auto max-w-4xl px-6">
         <PromptInput
           value={draft}
@@ -179,6 +199,11 @@ export function PromptDock({
               </Popover>
             </div>
             <div className="flex items-center gap-2.5">
+              {currentContextWindow != null ? (
+                <span className="text-[10px] tabular-nums text-muted-foreground/70">
+                  {formatTokenCount(currentContextWindow)} ctx
+                </span>
+              ) : null}
               <PromptInputAction tooltip="Send message">
                 <Button
                   type="button"

@@ -44,6 +44,19 @@ export function registerThreadHandlers({
     threadCatalog.archive(threadId);
   });
 
+  handle(IPC_CHANNELS.threads.rename, async (_event, payload) => {
+    const threadId = getStringField(payload, "threadId");
+    const title = getStringField(payload, "title");
+    if (!threadId || !title) {
+      throw new Error("Thread rename payload must include threadId and title");
+    }
+    if (!threadCatalog) {
+      throw new Error("Thread catalog is not available");
+    }
+
+    threadCatalog.rename(threadId, title);
+  });
+
   handle(IPC_CHANNELS.threads.routeToTerminal, async (_event, payload) => {
     if (!routeToTerminal) {
       return {

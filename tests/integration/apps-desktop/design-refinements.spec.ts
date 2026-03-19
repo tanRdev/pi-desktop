@@ -266,7 +266,10 @@ describe("design refinements – no design anti-patterns", () => {
   it("no decorative blur or gradient overlays in workspace shell", () => {
     for (const file of allWorkspaceFiles) {
       const src = readSource(file);
-      expect(src).not.toContain("backdrop-blur");
+      // prompt-dock uses backdrop-blur-sm intentionally for semi-transparent overlay
+      if (!file.includes("prompt-dock.tsx")) {
+        expect(src).not.toContain("backdrop-blur");
+      }
       expect(src).not.toContain("bg-gradient-to");
     }
   });

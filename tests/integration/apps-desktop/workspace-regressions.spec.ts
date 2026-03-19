@@ -46,7 +46,7 @@ describe("workspace regressions", () => {
     );
 
     expect(promptInputSource).toContain("p-2");
-    expect(promptInputSource).toContain("focus-visible:border-transparent");
+    expect(promptInputSource).toContain("focus-visible:border-none");
     expect(promptInputSource).toContain("focus-visible:ring-0");
   });
 

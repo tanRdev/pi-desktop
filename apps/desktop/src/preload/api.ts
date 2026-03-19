@@ -125,6 +125,9 @@ export function createPiDeskApi({
       archive(threadId: string) {
         return invoke<void>(IPC_CHANNELS.threads.archive, { threadId });
       },
+      rename(threadId: string, title: string) {
+        return invoke<void>(IPC_CHANNELS.threads.rename, { threadId, title });
+      },
       routeToTerminal(request: PiTerminalRouteRequest) {
         return invoke<PiTerminalRouteResult>(
           IPC_CHANNELS.threads.routeToTerminal,

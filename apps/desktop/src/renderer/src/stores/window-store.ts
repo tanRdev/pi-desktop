@@ -66,8 +66,8 @@ export type WindowAction =
   | { type: "SET_DIRTY"; payload: { windowId: string; isDirty: boolean } }
   | { type: "CLEAR_ALL" };
 
-const DEFAULT_WINDOW_WIDTH = 560;
-const DEFAULT_WINDOW_HEIGHT = 380;
+const DEFAULT_WINDOW_WIDTH = 420;
+const DEFAULT_WINDOW_HEIGHT = 280;
 const DEFAULT_SNAP_GRID = 16;
 
 export function createInitialWindowStoreState(): WindowStoreState {

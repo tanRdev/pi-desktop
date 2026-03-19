@@ -25,6 +25,7 @@ export const IPC_CHANNELS = {
     create: "threads:create",
     select: "threads:select",
     archive: "threads:archive",
+    rename: "threads:rename",
     routeToTerminal: "threads:routeToTerminal",
   },
   dialog: {

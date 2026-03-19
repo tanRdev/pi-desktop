@@ -136,6 +136,14 @@ export class ThreadCatalog {
     }));
   }
 
+  rename(threadId: string, title: string): ThreadCatalogEntry | null {
+    return this.updateThread(threadId, (thread, currentTime) => ({
+      ...thread,
+      title,
+      updatedAt: currentTime,
+    }));
+  }
+
   updateRuntimeSession(
     threadId: string,
     runtimeSessionName: string | null,

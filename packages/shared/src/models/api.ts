@@ -70,6 +70,7 @@ export interface PiDeskApi {
     create(worktreeId: string, title?: string): Promise<void>;
     select(threadId: string): Promise<void>;
     archive(threadId: string): Promise<void>;
+    rename(threadId: string, title: string): Promise<void>;
     routeToTerminal(
       request: PiTerminalRouteRequest,
     ): Promise<PiTerminalRouteResult>;

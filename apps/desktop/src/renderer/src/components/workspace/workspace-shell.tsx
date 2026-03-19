@@ -55,6 +55,7 @@ export interface WorkspaceShellProps {
   onSelectThread: (threadId: string) => void | Promise<void>;
   onCreateThread: (worktreeId: string) => void | Promise<void>;
   onCloseThread: (threadId: string) => void | Promise<void>;
+  onRenameThread: (threadId: string, title: string) => void | Promise<void>;
   onCreateWorktree: () => void;
   onLeftSidebarResize: (width: number) => void;
   onOpenLauncher: () => void;
@@ -91,18 +92,23 @@ export interface WorkspaceShellProps {
 
 function CanvasEmptyState({
   activeThreadId,
+  onOpenNote,
 }: {
   activeThreadId: string | null;
+  onOpenNote: () => void;
 }) {
+  const hasAutoOpened = React.useRef(false);
+
+  React.useEffect(() => {
+    if (!hasAutoOpened.current) {
+      hasAutoOpened.current = true;
+      onOpenNote();
+    }
+  }, [onOpenNote]);
+
   return (
     <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-8 py-10">
       <div className="w-full max-w-xl rounded-lg border border-border/40 bg-surface-1/80 px-6 py-5 shadow-sm">
-        <div className="mb-4 flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
-          <span className="rounded-sm border border-border/60 bg-surface-2 px-2 py-1">
-            Canvas.md
-          </span>
-          <span>workspace notes</span>
-        </div>
         <div className="space-y-4 text-sm leading-6 text-muted-foreground">
           <div>
             <p className="text-base font-semibold text-foreground"># Canvas</p>
@@ -165,6 +171,7 @@ export function WorkspaceShell({
   onSelectThread,
   onCreateThread,
   onCloseThread,
+  onRenameThread,
   onCreateWorktree,
   onLeftSidebarResize,
   onOpenLauncher,
@@ -195,6 +202,13 @@ export function WorkspaceShell({
     },
     [onWindowFocus],
   );
+
+  const [isLeftSidebarCollapsed, setIsLeftSidebarCollapsed] =
+    React.useState(false);
+
+  const handleToggleLeftSidebar = React.useCallback(() => {
+    setIsLeftSidebarCollapsed((prev) => !prev);
+  }, []);
 
   const renderWindowContent = React.useCallback(
     (win: CanvasWindow) => (
@@ -252,6 +266,8 @@ export function WorkspaceShell({
         sidebarView={sidebarView}
         setSidebarView={setSidebarView}
         hasOpenNotes={hasOpenNotes}
+        isLeftSidebarCollapsed={isLeftSidebarCollapsed}
+        onToggleLeftSidebar={handleToggleLeftSidebar}
         onOpenLauncher={onOpenLauncher}
         onOpenNote={onOpenNote}
         onOpenGit={onOpenGit}
@@ -277,9 +293,11 @@ export function WorkspaceShell({
           onSelectThread={onSelectThread}
           onCreateThread={onCreateThread}
           onCloseThread={onCloseThread}
+          onRenameThread={onRenameThread}
           onCreateWorktree={onCreateWorktree}
           width={leftSidebarWidth}
           onResize={onLeftSidebarResize}
+          isCollapsed={isLeftSidebarCollapsed}
           className="z-10"
         />
 
@@ -295,30 +313,37 @@ export function WorkspaceShell({
               renderWindowContent={renderWindowContent}
             />
             {windowCount === 0 ? (
-              <CanvasEmptyState activeThreadId={activeThreadId} />
+              <CanvasEmptyState
+                activeThreadId={activeThreadId}
+                onOpenNote={onOpenNote}
+              />
             ) : null}
           </div>
 
-          <PromptDock
-            draft={draft}
-            onDraftChange={onDraftChange}
-            onSend={onSend}
-            activeThreadId={activeThreadId}
-            activeThreadTitle={activeThreadTitle}
-            canSend={canSend}
-            autocompleteSuggestions={autocompleteSuggestions}
-            autocompleteSelectedIndex={autocompleteSelectedIndex}
-            onAutocompleteSelect={onAutocompleteSelect}
-            onAutocompleteHover={onAutocompleteHover}
-            onPromptKeyDown={onPromptKeyDown}
-            displayAgentStatus={displayAgentStatus}
-            runtimeModeLabel={runtimeModeLabel}
-            providerSnapshots={providerSnapshots}
-            currentModelValue={currentModelValue}
-            isSwitchingModel={isSwitchingModel}
-            onModelMenuOpenChange={onModelMenuOpenChange}
-            onModelSelection={onModelSelection}
-          />
+          <div className="pointer-events-none relative z-20 shrink-0">
+            <div className="pointer-events-auto">
+              <PromptDock
+                draft={draft}
+                onDraftChange={onDraftChange}
+                onSend={onSend}
+                activeThreadId={activeThreadId}
+                activeThreadTitle={activeThreadTitle}
+                canSend={canSend}
+                autocompleteSuggestions={autocompleteSuggestions}
+                autocompleteSelectedIndex={autocompleteSelectedIndex}
+                onAutocompleteSelect={onAutocompleteSelect}
+                onAutocompleteHover={onAutocompleteHover}
+                onPromptKeyDown={onPromptKeyDown}
+                displayAgentStatus={displayAgentStatus}
+                runtimeModeLabel={runtimeModeLabel}
+                providerSnapshots={providerSnapshots}
+                currentModelValue={currentModelValue}
+                isSwitchingModel={isSwitchingModel}
+                onModelMenuOpenChange={onModelMenuOpenChange}
+                onModelSelection={onModelSelection}
+              />
+            </div>
+          </div>
         </main>
 
         {sidebarView === "files" ? (

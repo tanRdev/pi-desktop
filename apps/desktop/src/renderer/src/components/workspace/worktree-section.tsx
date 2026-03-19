@@ -1,5 +1,12 @@
 import type { WorktreeSnapshot } from "@pidesk/shared";
-import { ChevronDown, ChevronRight, GitBranch, Plus } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronRight,
+  GitBranch,
+  Loader2,
+  Plus,
+} from "lucide-react";
+import * as React from "react";
 import { cn } from "@/lib/utils";
 import { GitStatusChip } from "./git-status-chip";
 import { ThreadListItem } from "./thread-list-item";
@@ -11,8 +18,9 @@ export interface WorktreeSectionProps {
   isExpanded: boolean;
   onToggleExpand: () => void;
   onSelectThread: (threadId: string) => void;
-  onCreateThread: () => void;
+  onCreateThread: () => void | Promise<void>;
   onCloseThread?: (threadId: string) => void;
+  onRenameThread?: (threadId: string, title: string) => void;
 }
 
 export function WorktreeSection({
@@ -24,7 +32,19 @@ export function WorktreeSection({
   onSelectThread,
   onCreateThread,
   onCloseThread,
+  onRenameThread,
 }: WorktreeSectionProps) {
+  const [isCreatingThread, setIsCreatingThread] = React.useState(false);
+
+  const handleCreateThread = React.useCallback(async () => {
+    setIsCreatingThread(true);
+    try {
+      await onCreateThread();
+    } finally {
+      setIsCreatingThread(false);
+    }
+  }, [onCreateThread]);
+
   const visibleThreads = worktree.threads.filter(
     (thread) => !thread.isArchived,
   );
@@ -49,7 +69,7 @@ export function WorktreeSection({
           )}
         </span>
         <GitBranch className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-        <span className="truncate text-xs font-medium">{worktree.label}</span>
+        <span className="truncate text-sm font-medium">{worktree.label}</span>
         <GitStatusChip git={worktree.git} />
       </button>
 
@@ -67,10 +87,15 @@ export function WorktreeSection({
                     onClose={
                       onCloseThread ? () => onCloseThread(thread.id) : undefined
                     }
+                    onRename={
+                      onRenameThread
+                        ? (title: string) => onRenameThread(thread.id, title)
+                        : undefined
+                    }
                   />
                 ))
               ) : (
-                <div className="chrome-empty-state px-2 py-2 text-[11px] text-muted-foreground">
+                <div className="chrome-empty-state px-2 py-2 text-xs text-muted-foreground">
                   No visible threads
                 </div>
               )}
@@ -79,14 +104,22 @@ export function WorktreeSection({
             <button
               type="button"
               aria-label="Create thread"
-              className="mt-1 flex h-6 w-full items-center gap-1.5 rounded-md px-2 text-[10px] text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
+              disabled={isCreatingThread}
+              className={cn(
+                "mt-1 flex h-6 w-full items-center gap-1.5 rounded-md px-2 text-xs text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground",
+                isCreatingThread && "pointer-events-none opacity-50",
+              )}
               onClick={(e) => {
                 e.stopPropagation();
-                onCreateThread();
+                void handleCreateThread();
               }}
             >
-              <Plus className="h-3 w-3" />
-              New thread
+              {isCreatingThread ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <Plus className="h-3 w-3" />
+              )}
+              {isCreatingThread ? "Creating…" : "New thread"}
             </button>
           </div>
         </div>

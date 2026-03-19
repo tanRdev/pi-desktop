@@ -28,6 +28,7 @@ interface CanvasWindowFrameProps {
   onFocus?: () => void;
   onMinimize?: () => void;
   onToggleMaximize?: () => void;
+  onTitleChange?: (newTitle: string) => void;
   onDragStart?: (e: React.MouseEvent) => void;
   onResizeStart?: (e: React.MouseEvent, direction: ResizeDirection) => void;
 }
@@ -39,6 +40,7 @@ function CanvasWindowFrame({
   onFocus,
   onMinimize,
   onToggleMaximize,
+  onTitleChange,
   onDragStart,
   onResizeStart,
 }: CanvasWindowFrameProps) {
@@ -49,6 +51,7 @@ function CanvasWindowFrame({
       onFocus={onFocus}
       onMinimize={onMinimize}
       onToggleMaximize={onToggleMaximize}
+      onTitleChange={onTitleChange}
       onDragStart={onDragStart}
       onResizeStart={onResizeStart}
     >
@@ -222,6 +225,13 @@ export function CanvasContainer({
     [onWindowFocus, state.layout.windows, store],
   );
 
+  const handleTitleChange = React.useCallback(
+    (windowId: string) => (newTitle: string) => {
+      store.updateWindow(windowId, { title: newTitle });
+    },
+    [store],
+  );
+
   const windowContents = React.useMemo(
     () =>
       new Map(
@@ -248,6 +258,7 @@ export function CanvasContainer({
           onFocus={handleFocus(win.id)}
           onMinimize={handleMinimize(win.id)}
           onToggleMaximize={handleToggleMaximize(win.id)}
+          onTitleChange={handleTitleChange(win.id)}
           onDragStart={handleDragStart(win.id)}
           onResizeStart={handleResizeStart(win.id)}
         />

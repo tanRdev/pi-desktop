@@ -311,15 +311,27 @@
   }
 
   .shell-control-dot[data-control="close"] {
-    background: oklch(52% 0.03 28);
+    background: oklch(63% 0.24 27);
+  }
+
+  .shell-control-dot[data-control="close"]:hover {
+    background: oklch(58% 0.26 27);
   }
 
   .shell-control-dot[data-control="minimize"] {
-    background: oklch(62% 0.025 85);
+    background: oklch(83% 0.17 90);
+  }
+
+  .shell-control-dot[data-control="minimize"]:hover {
+    background: oklch(78% 0.19 90);
   }
 
   .shell-control-dot[data-control="maximize"] {
-    background: oklch(58% 0.03 150);
+    background: oklch(76% 0.19 150);
+  }
+
+  .shell-control-dot[data-control="maximize"]:hover {
+    background: oklch(71% 0.21 150);
   }
 
   .shell-backdrop {

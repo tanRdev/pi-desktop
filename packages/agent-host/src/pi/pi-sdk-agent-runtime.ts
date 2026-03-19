@@ -37,6 +37,7 @@ type ProviderModelLike = {
 
 type ModelRegistryLike = {
   getAvailable: () => ProviderModelLike[];
+  refresh: () => void;
 };
 
 type SettingsManagerLike = Pick<
@@ -255,6 +256,9 @@ export class PiSdkAgentRuntime {
     if (!this.modelRegistry) {
       return [];
     }
+
+    // Refresh the registry so newly-added providers (e.g. via CLI) are picked up
+    this.modelRegistry.refresh();
 
     // Get all available models
     const models = this.modelRegistry.getAvailable();

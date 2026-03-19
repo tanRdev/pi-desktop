@@ -1,5 +1,12 @@
 import type { RepositorySnapshot } from "@pidesk/shared";
-import { FolderTree, GitBranch, StickyNote, Terminal } from "lucide-react";
+import {
+  FolderTree,
+  GitBranch,
+  PanelLeft,
+  PanelLeftClose,
+  StickyNote,
+  Terminal,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface TitleBarProps {
@@ -8,6 +15,8 @@ export interface TitleBarProps {
   sidebarView: "files" | "git" | "notes" | null;
   setSidebarView: (view: "files" | "git" | "notes" | null) => void;
   hasOpenNotes: boolean;
+  isLeftSidebarCollapsed: boolean;
+  onToggleLeftSidebar: () => void;
   onOpenLauncher: () => void;
   onOpenNote: () => void;
   onOpenGit: () => void;
@@ -20,6 +29,8 @@ export function TitleBar({
   sidebarView,
   setSidebarView,
   hasOpenNotes,
+  isLeftSidebarCollapsed,
+  onToggleLeftSidebar,
   onOpenLauncher,
   onOpenNote,
   onOpenGit,
@@ -31,6 +42,25 @@ export function TitleBar({
       className="titlebar shell-chrome relative flex h-11 shrink-0 items-center justify-between pr-3"
     >
       <div className="flex min-w-0 items-center gap-2.5 pl-[88px]">
+        <button
+          type="button"
+          data-no-drag="true"
+          onClick={onToggleLeftSidebar}
+          className="chrome-icon-button flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground"
+          aria-label={
+            isLeftSidebarCollapsed
+              ? "Expand left sidebar"
+              : "Collapse left sidebar"
+          }
+          title={isLeftSidebarCollapsed ? "Show sidebar" : "Hide sidebar"}
+        >
+          {isLeftSidebarCollapsed ? (
+            <PanelLeft className="size-3.5" />
+          ) : (
+            <PanelLeftClose className="size-3.5" />
+          )}
+        </button>
+
         <button
           type="button"
           data-no-drag="true"
