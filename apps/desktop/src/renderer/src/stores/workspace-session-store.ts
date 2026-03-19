@@ -78,6 +78,11 @@ export interface WorkspaceSessionStoreState {
     value: FileWindowState,
   ): void;
   setNoteContent(windowId: string, content: string): void;
+  setNoteContentForWorktree(
+    worktreeId: string,
+    windowId: string,
+    content: string,
+  ): void;
   setSearchUiState(windowId: string, value: SearchUiState): void;
   setSearchUiStateForWorktree(
     worktreeId: string,
@@ -163,6 +168,23 @@ function applyLayout(
     ...session,
     layout: nextState.layout,
   };
+}
+
+function resolveNoteId(
+  session: RendererWorkspaceSession,
+  windowId: string,
+): string {
+  const existingNoteId = session.notes[windowId]?.noteId;
+  if (existingNoteId) {
+    return existingNoteId;
+  }
+
+  const noteWindow = session.layout.windows.find(
+    (window) => window.id === windowId && window.kind === "note",
+  );
+  return (
+    (noteWindow?.kind === "note" ? noteWindow.noteId : undefined) ?? windowId
+  );
 }
 
 export type WorkspaceSessionStore = ReturnType<
@@ -439,7 +461,23 @@ export function createWorkspaceSessionStore({
         notes: {
           ...session.notes,
           [windowId]: {
-            noteId: session.notes[windowId]?.noteId ?? windowId,
+            noteId: resolveNoteId(session, windowId),
+            draft: content,
+          },
+        },
+      }));
+    },
+    setNoteContentForWorktree(worktreeId, windowId, content) {
+      withSession(worktreeId, (session) => ({
+        ...session,
+        noteContents: new Map(session.noteContents).set(windowId, {
+          content,
+          error: null,
+        }),
+        notes: {
+          ...session.notes,
+          [windowId]: {
+            noteId: resolveNoteId(session, windowId),
             draft: content,
           },
         },

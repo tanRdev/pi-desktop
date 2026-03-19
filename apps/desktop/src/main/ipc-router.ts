@@ -38,6 +38,7 @@ export interface AgentIpcHost {
   prompt(text: string): Promise<void>;
   reset(): Promise<void>;
   addRepository(path: string): Promise<void>;
+  reorderRepositories(repositoryIds: string[]): Promise<void>;
   selectRepository(repositoryId: string): Promise<void>;
   createWorktree(repositoryId: string, branchName: string): Promise<void>;
   selectWorktree(worktreeId: string): Promise<void>;
@@ -171,4 +172,9 @@ export function registerIpcHandlers({
     }
     return searchFiles(request);
   });
+
+  handle(
+    IPC_CHANNELS.window.getFullscreenState,
+    async () => mainWindow?.isFullScreen() ?? false,
+  );
 }

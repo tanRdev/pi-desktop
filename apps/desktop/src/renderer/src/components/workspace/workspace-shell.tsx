@@ -8,6 +8,8 @@ import type {
   ThreadSnapshot,
 } from "@pidesk/shared";
 import * as React from "react";
+import { useStore } from "zustand";
+import { uiInteractionStore } from "../../stores/ui-interaction-store";
 import { CanvasContainer, CanvasGrid, WindowContentRouter } from "../canvas";
 import type { GraphLink, GraphNode } from "../canvas/graph-window-content";
 import { FileTree } from "../ui/file-tree";
@@ -196,6 +198,33 @@ export function WorkspaceShell({
   onPromptKeyDown,
   onModelSelection,
 }: WorkspaceShellProps) {
+  const isMainWindowFullscreen = useStore(
+    uiInteractionStore,
+    (storeState) => storeState.isMainWindowFullscreen,
+  );
+
+  React.useEffect(() => {
+    let disposed = false;
+    const interactions = uiInteractionStore.getState();
+
+    void window.pidesk.window.getFullscreenState().then((isFullscreen) => {
+      if (!disposed) {
+        interactions.setMainWindowFullscreen(isFullscreen);
+      }
+    });
+
+    const unsubscribe = window.pidesk.window.onFullscreenChanged(
+      (isFullscreen) => {
+        uiInteractionStore.getState().setMainWindowFullscreen(isFullscreen);
+      },
+    );
+
+    return () => {
+      disposed = true;
+      unsubscribe();
+    };
+  }, []);
+
   const handleCanvasWindowFocus = React.useCallback(
     (window: CanvasWindow) => {
       void onWindowFocus(window);
@@ -266,6 +295,7 @@ export function WorkspaceShell({
         sidebarView={sidebarView}
         setSidebarView={setSidebarView}
         hasOpenNotes={hasOpenNotes}
+        isMainWindowFullscreen={isMainWindowFullscreen}
         isLeftSidebarCollapsed={isLeftSidebarCollapsed}
         onToggleLeftSidebar={handleToggleLeftSidebar}
         onOpenLauncher={onOpenLauncher}

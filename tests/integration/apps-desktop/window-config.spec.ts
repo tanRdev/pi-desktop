@@ -6,6 +6,7 @@ import {
   resolveRendererTarget,
   shouldShowMainWindow,
 } from "../../../apps/desktop/src/main/window-config";
+import { getTitleBarLeftPadding } from "../../../apps/desktop/src/renderer/src/lib/title-bar-layout";
 
 describe("createMainWindowOptions", () => {
   it("locks down the BrowserWindow web preferences", () => {
@@ -88,5 +89,15 @@ describe("resolvePreloadTarget", () => {
     ).toBe(
       "/Applications/PiDesk.app/Contents/Resources/app/out/preload/index.cjs",
     );
+  });
+});
+
+describe("getTitleBarLeftPadding", () => {
+  it("uses traffic-light spacing when not fullscreen", () => {
+    expect(getTitleBarLeftPadding(false)).toBe(88);
+  });
+
+  it("shifts left when fullscreen hides traffic lights", () => {
+    expect(getTitleBarLeftPadding(true)).toBe(24);
   });
 });

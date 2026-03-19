@@ -22,6 +22,7 @@ function getFallbackRepositoryName(rootPath: string): string {
 
 export interface ProjectCustomizationMenuProps {
   repository: RepositorySnapshot;
+  open?: boolean;
   updateRepositoryPreferences: (
     repositoryId: string,
     updates: Partial<RepositoryDisplayMetadata>,
@@ -32,6 +33,7 @@ export interface ProjectCustomizationMenuProps {
 
 export function ProjectCustomizationMenu({
   repository,
+  open = false,
   updateRepositoryPreferences,
   side = "right",
   className,
@@ -78,8 +80,12 @@ export function ProjectCustomizationMenu({
     <>
       <fieldset
         aria-label={`Customize ${repository.name}`}
+        aria-hidden={open ? undefined : true}
         className={cn(
-          "hidden min-w-0 border-0 p-0 group-hover:block group-focus-within:block",
+          "min-w-0 border-0 p-0 transition-opacity duration-150",
+          open
+            ? "pointer-events-auto visible opacity-100"
+            : "pointer-events-none invisible opacity-0",
           side === "right" ? "translate-x-1" : "-translate-x-1",
           className,
         )}

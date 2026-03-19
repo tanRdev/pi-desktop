@@ -477,6 +477,7 @@ function createAgentHost(agentSnapshot: AgentSnapshot) {
     reset: vi.fn(async () => undefined),
     addRepository: vi.fn(async () => undefined),
     selectRepository: vi.fn(async () => undefined),
+    reorderRepositories: vi.fn(async () => undefined),
     createWorktree: vi.fn(async () => undefined),
     selectWorktree: vi.fn(async () => undefined),
     createThread: vi.fn(async () => undefined),
@@ -550,6 +551,12 @@ describe("registerIpcHandlers", () => {
       { sender: "electron-ipc-event" },
       { repositoryId: "/tmp/pidesk" },
     );
+    await harness.handlers.get(IPC_CHANNELS.repositories.reorder)?.(
+      { sender: "electron-ipc-event" },
+      {
+        repositoryIds: ["/tmp/second", "/tmp/pidesk"],
+      },
+    );
     await harness.handlers.get(IPC_CHANNELS.worktrees.create)?.(
       { sender: "electron-ipc-event" },
       {
@@ -578,6 +585,10 @@ describe("registerIpcHandlers", () => {
     expect(agentHost.prompt).toHaveBeenCalledWith("Inspect the workspace");
     expect(agentHost.addRepository).toHaveBeenCalledWith("/tmp/pidesk");
     expect(agentHost.selectRepository).toHaveBeenCalledWith("/tmp/pidesk");
+    expect(agentHost.reorderRepositories).toHaveBeenCalledWith([
+      "/tmp/second",
+      "/tmp/pidesk",
+    ]);
     expect(agentHost.createWorktree).toHaveBeenCalledWith(
       "/tmp/pidesk",
       "feature/runtime",

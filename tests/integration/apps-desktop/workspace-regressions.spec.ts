@@ -26,7 +26,7 @@ describe("workspace regressions", () => {
     expect(sidebarSource).not.toContain("repository.defaultBranch");
   });
 
-  it("shows repository customization as a seamless hover panel without the pencil trigger", () => {
+  it("uses controlled repository customization visibility instead of hover-only CSS", () => {
     const railSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
     );
@@ -35,9 +35,19 @@ describe("workspace regressions", () => {
     );
 
     expect(railSource).toContain('side="right"');
-    expect(customizationSource).toContain("hidden");
+    expect(railSource).toContain("open={");
     expect(customizationSource).not.toContain("PencilLine");
-    expect(customizationSource).toContain("group-hover:block");
+    expect(customizationSource).not.toContain("group-hover:block");
+    expect(customizationSource).toContain("pointer-events-none");
+  });
+
+  it("renames the left sidebar footer action to New worktree", () => {
+    const sidebarSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/left-sidebar.tsx",
+    );
+
+    expect(sidebarSource).toContain("New worktree");
+    expect(sidebarSource).not.toContain("New session");
   });
 
   it("adds prompt input padding and suppresses the inner focus treatment", () => {

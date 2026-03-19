@@ -15,6 +15,7 @@ export const IPC_CHANNELS = {
   },
   repositories: {
     add: "repositories:add",
+    reorder: "repositories:reorder",
     select: "repositories:select",
   },
   worktrees: {
@@ -61,6 +62,8 @@ export const IPC_CHANNELS = {
     create: "window:create",
     close: "window:close",
     focus: "window:focus",
+    fullscreenChanged: "window:fullscreenChanged",
+    getFullscreenState: "window:getFullscreenState",
     move: "window:move",
     resize: "window:resize",
     minimize: "window:minimize",

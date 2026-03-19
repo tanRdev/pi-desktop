@@ -47,10 +47,10 @@ export async function loadPromptAutocompleteSuggestions({
   }
 
   let fileSearchResults: SearchMatch[] = [];
-  if (activeWorktreePath && autocompleteMatch.query.trim().length > 0) {
+  if (activeWorktreePath) {
     try {
       const searchResponse = await searchFiles({
-        query: autocompleteMatch.query,
+        query: autocompleteMatch.query.trim(),
         rootPath: activeWorktreePath,
         maxResults: 8,
       });

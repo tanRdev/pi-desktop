@@ -19,6 +19,39 @@ import {
   readLegacyLeftSidebarWidth,
 } from "../lib/sidebar-preferences";
 
+type StoredAiPreferences = {
+  provider?: string;
+  model?: string;
+};
+
+function readStoredAiPreferences(
+  preferences: AppPreferences | undefined,
+): StoredAiPreferences | null {
+  if (!preferences?.settings || typeof preferences.settings !== "object") {
+    return null;
+  }
+
+  const ai = (preferences.settings as Record<string, unknown>).ai;
+  if (!ai || typeof ai !== "object") {
+    return null;
+  }
+
+  const provider =
+    typeof (ai as Record<string, unknown>).provider === "string"
+      ? ((ai as Record<string, unknown>).provider as string)
+      : undefined;
+  const model =
+    typeof (ai as Record<string, unknown>).model === "string"
+      ? ((ai as Record<string, unknown>).model as string)
+      : undefined;
+
+  if (!provider && !model) {
+    return null;
+  }
+
+  return { provider, model };
+}
+
 export interface AppShellStoreState {
   shellModel: ReturnType<typeof createShellModel>;
   shellState: ShellModelState;
@@ -50,9 +83,19 @@ function mergeSettingsState(
   updates: unknown,
 ): EffectiveSettings {
   const parsed = isRecord(updates) ? updates : {};
+  const parsedAi = isRecord(parsed.ai) ? parsed.ai : {};
+  const nextAi = {
+    ...base.ai,
+    ...(typeof parsedAi.provider === "string" && parsedAi.provider.length > 0
+      ? { provider: parsedAi.provider }
+      : {}),
+    ...(typeof parsedAi.model === "string" && parsedAi.model.length > 0
+      ? { model: parsedAi.model }
+      : {}),
+  };
 
   return {
-    ai: { ...base.ai, ...(isRecord(parsed.ai) ? parsed.ai : {}) },
+    ai: nextAi,
     interface: {
       ...base.interface,
       ...(isRecord(parsed.interface) ? parsed.interface : {}),
@@ -79,6 +122,7 @@ function mergeSettingsState(
 function normalizeAppPreferences(
   value: AppPreferences | undefined,
 ): AppPreferences {
+  const storedAiPreferences = readStoredAiPreferences(value);
   const normalizedSettings =
     value?.settings && typeof value.settings === "object"
       ? mergeSettingsWithDefaults(value.settings)
@@ -96,11 +140,50 @@ function normalizeAppPreferences(
     leftSidebarWidth: resolvedLeftSidebarWidth,
     settings: {
       ...(normalizedSettings ?? DEFAULT_SETTINGS),
+      ai: {
+        ...((normalizedSettings?.ai ??
+          DEFAULT_SETTINGS.ai) as EffectiveSettings["ai"]),
+        ...(storedAiPreferences?.provider
+          ? { provider: storedAiPreferences.provider }
+          : {}),
+        ...(storedAiPreferences?.model
+          ? { model: storedAiPreferences.model }
+          : {}),
+      },
       interface: {
         ...(normalizedSettings?.interface ?? DEFAULT_SETTINGS.interface),
         sidebarWidth: resolvedLeftSidebarWidth,
       },
     },
+  };
+}
+
+function getSelectedModelValue(settings: SettingsSnapshot): {
+  providerId: string | null;
+  modelId: string | null;
+} {
+  return {
+    providerId: settings.currentProviderId ?? settings.defaultProvider ?? null,
+    modelId: settings.currentModelId ?? settings.defaultModel ?? null,
+  };
+}
+
+function buildAiPreferenceUpdate(
+  preferences: AppPreferences,
+  request: ModelSwitchRequest,
+): Partial<AppPreferences> {
+  const normalized = normalizeAppPreferences(preferences);
+  const effectiveSettings = getEffectiveSettings(normalized);
+
+  return {
+    settings: {
+      ...effectiveSettings,
+      ai: {
+        ...effectiveSettings.ai,
+        provider: request.providerId,
+        model: request.modelId,
+      },
+    } as Record<string, unknown>,
   };
 }
 
@@ -158,12 +241,14 @@ export function createAppShellStore(api: PiDeskApi) {
       if (!initializePromise) {
         initializePromise = (async () => {
           await shellModel.load();
-          const [providerSnapshots, settingsSnapshot, rawAppPreferences] =
+          let [providerSnapshots, settingsSnapshot, rawAppPreferences] =
             await Promise.all([
               api.agent.getProviders(),
               api.agent.getSettings(),
               api.state.getAppPreferences(),
             ]);
+          const storedAiPreferences =
+            readStoredAiPreferences(rawAppPreferences);
 
           const appPreferences = normalizeAppPreferences(rawAppPreferences);
           const migrated = getMigratedAppPreferences(rawAppPreferences);
@@ -179,6 +264,22 @@ export function createAppShellStore(api: PiDeskApi) {
             finalPreferences = normalizeAppPreferences(
               mergeAppPreferences(appPreferences, persistedUpdates, response),
             );
+          }
+
+          const selectedModel = getSelectedModelValue(settingsSnapshot);
+          if (
+            storedAiPreferences?.provider &&
+            storedAiPreferences?.model &&
+            (storedAiPreferences.provider !== selectedModel.providerId ||
+              storedAiPreferences.model !== selectedModel.modelId)
+          ) {
+            await api.agent.switchModel({
+              providerId: storedAiPreferences.provider,
+              modelId: storedAiPreferences.model,
+            });
+            settingsSnapshot = await api.agent.getSettings();
+            await shellModel.load();
+            providerSnapshots = await api.agent.getProviders();
           }
 
           set({
@@ -214,10 +315,51 @@ export function createAppShellStore(api: PiDeskApi) {
       set({ shellState: shellModel.getState() });
     },
     async switchModel(request) {
+      const currentPreferences = get().appPreferences;
+      const previousSettingsSnapshot = get().settingsSnapshot;
+      const optimisticPreferences = normalizeAppPreferences(
+        mergeAppPreferences(
+          currentPreferences,
+          normalizeAppPreferenceUpdates(
+            buildAiPreferenceUpdate(currentPreferences, request),
+            currentPreferences,
+          ),
+        ),
+      );
       set({ isSwitchingModel: true });
+      set({
+        appPreferences: optimisticPreferences,
+        settingsSnapshot: {
+          ...get().settingsSnapshot,
+          currentProviderId: request.providerId,
+          currentModelId: request.modelId,
+          defaultProvider: request.providerId,
+          defaultModel: request.modelId,
+        },
+      });
       try {
         await api.agent.switchModel(request);
+        const persistedUpdates = normalizeAppPreferenceUpdates(
+          buildAiPreferenceUpdate(currentPreferences, request),
+          currentPreferences,
+        );
+        const response = await api.state.updateAppPreferences(persistedUpdates);
+        set({
+          appPreferences: normalizeAppPreferences(
+            mergeAppPreferences(
+              optimisticPreferences,
+              persistedUpdates,
+              response,
+            ),
+          ),
+        });
         await get().reload();
+      } catch (error) {
+        set({
+          appPreferences: currentPreferences,
+          settingsSnapshot: previousSettingsSnapshot,
+        });
+        throw error;
       } finally {
         set({ isSwitchingModel: false });
       }

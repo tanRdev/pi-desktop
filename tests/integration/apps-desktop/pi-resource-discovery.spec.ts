@@ -102,4 +102,89 @@ describe("pi-resource-discovery", () => {
       },
     ]);
   });
+
+  it("merges global and project-local skill discovery without duplicate skill names", () => {
+    const globalAgentDir = createTempAgentDir();
+    const projectRoot = createTempAgentDir();
+    const globalBrainstormingDir = path.join(
+      globalAgentDir,
+      "skills",
+      "brainstorming",
+    );
+    const globalReviewDir = path.join(globalAgentDir, "skills", "review");
+    const projectBrainstormingDir = path.join(
+      projectRoot,
+      ".pi",
+      "agent",
+      "skills",
+      "brainstorming",
+    );
+    const projectShipDir = path.join(
+      projectRoot,
+      ".pi",
+      "agent",
+      "skills",
+      "ship",
+    );
+
+    mkdirSync(globalBrainstormingDir, { recursive: true });
+    mkdirSync(globalReviewDir, { recursive: true });
+    mkdirSync(projectBrainstormingDir, { recursive: true });
+    mkdirSync(projectShipDir, { recursive: true });
+
+    writeFileSync(
+      path.join(globalBrainstormingDir, "SKILL.md"),
+      "# Global brainstorming",
+      "utf8",
+    );
+    writeFileSync(path.join(globalReviewDir, "SKILL.md"), "# Review", "utf8");
+    writeFileSync(
+      path.join(projectBrainstormingDir, "SKILL.md"),
+      "# Project brainstorming",
+      "utf8",
+    );
+    writeFileSync(path.join(projectShipDir, "SKILL.md"), "# Ship", "utf8");
+
+    const discovery = discoverPiResources(globalAgentDir, projectRoot);
+
+    expect(discovery.skills.map((skill) => skill.name)).toEqual([
+      "brainstorming",
+      "review",
+      "ship",
+    ]);
+    expect(
+      discovery.skills.filter((skill) => skill.name === "brainstorming"),
+    ).toHaveLength(1);
+    expect(
+      discovery.skills.find((skill) => skill.name === "brainstorming")?.source,
+    ).toBe(path.join(projectBrainstormingDir, "SKILL.md"));
+  });
+
+  it("discovers project-local skills even when the global agent dir is missing", () => {
+    const missingGlobalAgentDir = path.join(
+      os.tmpdir(),
+      `pidesk-missing-global-${Date.now()}`,
+    );
+    const projectRoot = createTempAgentDir();
+    const localSkillDir = path.join(
+      projectRoot,
+      ".pi",
+      "agent",
+      "skills",
+      "local-only",
+    );
+
+    mkdirSync(localSkillDir, { recursive: true });
+    writeFileSync(path.join(localSkillDir, "SKILL.md"), "# Local only", "utf8");
+
+    const discovery = discoverPiResources(missingGlobalAgentDir, projectRoot);
+
+    expect(discovery.skills).toEqual([
+      {
+        name: "local-only",
+        description: undefined,
+        source: path.join(localSkillDir, "SKILL.md"),
+      },
+    ]);
+  });
 });

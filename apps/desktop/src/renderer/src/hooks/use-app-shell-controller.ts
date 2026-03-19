@@ -32,6 +32,7 @@ import {
   hoverSearchResultForWorktree,
   initializeSearchWindowForWorktree,
   openFileWindowForWorktree,
+  openProjectNoteWindowForWorktree,
   saveFileWindowForWorktree,
   saveNoteWindowForWorktree,
   selectSearchResultIndexForWorktree,
@@ -376,31 +377,31 @@ export function useAppShellController(): AppShellController {
   ]);
 
   const handleOpenNote = React.useCallback(() => {
-    const noteWindow = windowStore.createWindow(
-      { kind: "note" },
-      activeWorktreePath ?? undefined,
-    );
-    const noteCount =
-      windowState.layout.windows.filter((w) => w.kind === "note").length + 1;
-    const storagePath = activeWorktreePath
-      ? `${activeWorktreePath.replace(/[\\/]+$/, "")}/.pi/desktop/notes/${noteWindow.id}.md`
-      : undefined;
+    void openProjectNoteWindowForWorktree({
+      sessionStore: workspaceSessionStore,
+      windowActions: {
+        createWindow: windowStore.createWindow,
+        focusWindow: windowStore.focusWindow,
+        updateWindow: windowStore.updateWindow,
+      },
+      windows: windowState.layout.windows,
+      worktreeId: activeWorktreeId,
+      worktreePath: activeWorktreePath,
+      readFile: (filePath) => window.pidesk.fs.readFile(filePath),
+    }).then((noteWindowId) => {
+      if (!activeThreadId) {
+        return;
+      }
 
-    windowStore.updateWindow(noteWindow.id, {
-      title: `Note ${noteCount}`,
-      storagePath,
-    });
-    setNoteContentState(noteWindow.id, "");
-    if (activeThreadId) {
-      windowStore.updateWindow(noteWindow.id, {
+      windowStore.updateWindow(noteWindowId, {
         linkColor: getLinkColorForId(activeThreadId),
         linkTargetIds: [activeThreadId],
       });
-    }
+    });
   }, [
     activeThreadId,
+    activeWorktreeId,
     activeWorktreePath,
-    setNoteContentState,
     windowState.layout.windows,
     windowStore,
   ]);

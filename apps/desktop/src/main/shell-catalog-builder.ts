@@ -289,6 +289,7 @@ export async function buildShellCatalog({
       ) {
         return {
           id: repository.id,
+          order: repository.order,
           name: fallbackName,
           customName: preferences?.customName ?? null,
           icon: preferences?.icon ?? null,
@@ -323,6 +324,7 @@ export async function buildShellCatalog({
 
       return {
         id: repository.id,
+        order: repository.order,
         name: fallbackName,
         customName: preferences?.customName ?? null,
         icon: preferences?.icon ?? null,

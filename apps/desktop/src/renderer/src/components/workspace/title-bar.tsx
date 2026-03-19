@@ -8,6 +8,7 @@ import {
   Terminal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getTitleBarLeftPadding } from "../../lib/title-bar-layout";
 
 export interface TitleBarProps {
   activeRepository: RepositorySnapshot | null;
@@ -15,6 +16,7 @@ export interface TitleBarProps {
   sidebarView: "files" | "git" | "notes" | null;
   setSidebarView: (view: "files" | "git" | "notes" | null) => void;
   hasOpenNotes: boolean;
+  isMainWindowFullscreen: boolean;
   isLeftSidebarCollapsed: boolean;
   onToggleLeftSidebar: () => void;
   onOpenLauncher: () => void;
@@ -29,6 +31,7 @@ export function TitleBar({
   sidebarView,
   setSidebarView,
   hasOpenNotes,
+  isMainWindowFullscreen,
   isLeftSidebarCollapsed,
   onToggleLeftSidebar,
   onOpenLauncher,
@@ -36,12 +39,17 @@ export function TitleBar({
   onOpenGit,
   onOpenTerminal,
 }: TitleBarProps) {
+  const leftPadding = getTitleBarLeftPadding(isMainWindowFullscreen);
+
   return (
     <div
       data-drag-region="true"
       className="titlebar shell-chrome relative flex h-11 shrink-0 items-center justify-between pr-3"
     >
-      <div className="flex min-w-0 items-center gap-2.5 pl-[88px]">
+      <div
+        className="flex min-w-0 items-center gap-2.5"
+        style={{ paddingLeft: `${leftPadding}px` }}
+      >
         <button
           type="button"
           data-no-drag="true"

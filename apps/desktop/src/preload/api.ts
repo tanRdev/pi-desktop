@@ -100,6 +100,11 @@ export function createPiDeskApi({
       add(path: string) {
         return invoke<void>(IPC_CHANNELS.repositories.add, { path });
       },
+      reorder(repositoryIds: string[]) {
+        return invoke<void>(IPC_CHANNELS.repositories.reorder, {
+          repositoryIds,
+        });
+      },
       select(repositoryId: string) {
         return invoke<void>(IPC_CHANNELS.repositories.select, { repositoryId });
       },
@@ -265,6 +270,15 @@ export function createPiDeskApi({
       },
       focus(windowId: string) {
         return invoke<void>(IPC_CHANNELS.window.focus, { windowId });
+      },
+      getFullscreenState() {
+        return invoke<boolean>(
+          IPC_CHANNELS.window.getFullscreenState,
+          undefined,
+        );
+      },
+      onFullscreenChanged(listener: (isFullscreen: boolean) => void) {
+        return on<boolean>(IPC_CHANNELS.window.fullscreenChanged, listener);
       },
       move(windowId: string, position: WindowPosition) {
         return invoke<void>(IPC_CHANNELS.window.move, { windowId, position });

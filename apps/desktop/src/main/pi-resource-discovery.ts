@@ -93,6 +93,24 @@ function listSkills(agentDir: string): PiSkillInfo[] {
     .sort((left, right) => left.name.localeCompare(right.name));
 }
 
+function listMergedSkills(agentDir: string, cwd: string): PiSkillInfo[] {
+  const merged = new Map<string, PiSkillInfo>();
+  const skillSets = [
+    listSkills(agentDir),
+    listSkills(path.join(cwd, ".pi", "agent")),
+  ];
+
+  for (const skills of skillSets) {
+    for (const skill of skills) {
+      merged.set(skill.name, skill);
+    }
+  }
+
+  return [...merged.values()].sort((left, right) =>
+    left.name.localeCompare(right.name),
+  );
+}
+
 function createCommandInfo(commandFile: string): PiCommandInfo {
   return {
     name: path.basename(commandFile, path.extname(commandFile)),
@@ -134,9 +152,10 @@ export function discoverPiResources(
   agentDir: string,
   cwd: string,
 ): PiDiscoveryResult {
-  const isInstalled = existsSync(agentDir);
-  const skills = isInstalled ? listSkills(agentDir) : [];
-  const commands = isInstalled ? listCommands(agentDir, cwd) : [];
+  const projectAgentDir = path.join(cwd, ".pi", "agent");
+  const isInstalled = existsSync(agentDir) || existsSync(projectAgentDir);
+  const skills = listMergedSkills(agentDir, cwd);
+  const commands = existsSync(agentDir) ? listCommands(agentDir, cwd) : [];
 
   return {
     isInstalled,

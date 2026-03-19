@@ -21,6 +21,7 @@ export interface UiInteractionState {
   draggingWindowId: string | null;
   resizingWindowId: string | null;
   hoveredItem: UiHoverTarget | null;
+  isMainWindowFullscreen: boolean;
   dialogs: UiDialogsState;
   snapPreview: { windowId: string; position: WindowPosition } | null;
   promptAutocompleteSuggestions: (SlashSuggestion | MentionSuggestion)[];
@@ -29,6 +30,7 @@ export interface UiInteractionState {
   setResizingWindowId(windowId: string | null): void;
   setHoveredItem(item: UiHoverTarget | null): void;
   clearHoveredItem(): void;
+  setMainWindowFullscreen(isFullscreen: boolean): void;
   setDialogOpen(dialog: UiDialogId, isOpen: boolean): void;
   setSnapPreview(
     preview: { windowId: string; position: WindowPosition } | null,
@@ -48,6 +50,7 @@ export function createUiInteractionStore() {
     draggingWindowId: null,
     resizingWindowId: null,
     hoveredItem: null,
+    isMainWindowFullscreen: false,
     dialogs: {
       settings: false,
       createWorktree: false,
@@ -66,6 +69,9 @@ export function createUiInteractionStore() {
     },
     clearHoveredItem() {
       set({ hoveredItem: null });
+    },
+    setMainWindowFullscreen(isMainWindowFullscreen) {
+      set({ isMainWindowFullscreen });
     },
     setDialogOpen(dialog, isOpen) {
       set((state) => ({
@@ -98,6 +104,7 @@ export function createUiInteractionStore() {
         draggingWindowId: null,
         resizingWindowId: null,
         hoveredItem: null,
+        isMainWindowFullscreen: state.isMainWindowFullscreen,
         snapPreview: null,
         promptAutocompleteSuggestions: [],
         promptAutocompleteSelectedIndex: -1,

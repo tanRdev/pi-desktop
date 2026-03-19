@@ -103,15 +103,16 @@ describe("chunk4 architecture", () => {
     expect(titleBarSource).toContain('aria-label="Open git view"');
     expect(titleBarSource).toContain('aria-label="Open notes"');
     expect(titleBarSource).toContain('aria-label="Open terminal"');
-    const repositoryNameExpression = `${"$"}{repository.name}`;
+    const repositoryNameExpression = `${"$"}{displayName}`;
     expect(avatarSource).toContain(
       `aria-label={\`Open repository ${repositoryNameExpression}\`}`,
     );
     expect(customizationSource).toContain(
-      `aria-label={\`Customize ${repositoryNameExpression}\`}`,
+      `aria-label={\`Customize ${"$"}{repository.name}\`}`,
     );
-    expect(customizationSource).toContain("group-hover:block");
-    expect(customizationSource).toContain("group-focus-within:block");
+    expect(customizationSource).not.toContain("group-hover:block");
+    expect(customizationSource).not.toContain("group-focus-within:block");
+    expect(customizationSource).toContain("pointer-events-none");
     expect(customizationSource).toContain('htmlFor="project-custom-name"');
     expect(customizationSource).toContain('id="project-custom-name"');
     expect(customizationSource).toContain('aria-label="Project display name"');

@@ -198,6 +198,98 @@ export async function saveNoteWindowForWorktree({
   return true;
 }
 
+function buildProjectNoteStoragePath(worktreePath: string): string {
+  return `${worktreePath.replace(/[\\/]+$/, "")}/.pi/desktop/notes/project.md`;
+}
+
+function findExistingProjectNoteWindow(
+  windows: CanvasWindow[],
+  storagePath: string,
+): Extract<CanvasWindow, { kind: "note" }> | undefined {
+  return windows.find(
+    (window): window is Extract<CanvasWindow, { kind: "note" }> =>
+      window.kind === "note" && window.storagePath === storagePath,
+  );
+}
+
+export async function openProjectNoteWindowForWorktree({
+  sessionStore,
+  windowActions,
+  windows,
+  worktreeId,
+  worktreePath,
+  readFile,
+}: {
+  sessionStore: WorkspaceSessionStore;
+  windowActions: {
+    createWindow: WorkspaceSessionStoreState["createWindow"];
+    focusWindow: WorkspaceSessionStoreState["focusWindow"];
+    updateWindow: WorkspaceSessionStoreState["updateWindow"];
+  };
+  windows: CanvasWindow[];
+  worktreeId: string | null;
+  worktreePath: string | null;
+  readFile: (filePath: string) => Promise<FileContent>;
+}): Promise<string> {
+  if (!worktreePath) {
+    const createdWindow = windowActions.createWindow({ kind: "note" });
+    windowActions.updateWindow(createdWindow.id, {
+      title: "Project Notes",
+      noteId: "project-note",
+    });
+
+    if (worktreeId) {
+      sessionStore
+        .getState()
+        .setNoteContentForWorktree(worktreeId, createdWindow.id, "");
+    }
+
+    return createdWindow.id;
+  }
+
+  const storagePath = buildProjectNoteStoragePath(worktreePath);
+  const existingWindow = findExistingProjectNoteWindow(windows, storagePath);
+  if (existingWindow) {
+    windowActions.updateWindow(existingWindow.id, {
+      title: "Project Notes",
+      noteId: "project-note",
+      storagePath,
+      state:
+        existingWindow.state === "minimized" ? "normal" : existingWindow.state,
+    });
+    windowActions.focusWindow(existingWindow.id);
+    return existingWindow.id;
+  }
+
+  const createdWindow = windowActions.createWindow(
+    { kind: "note" },
+    worktreePath,
+  );
+  windowActions.updateWindow(createdWindow.id, {
+    title: "Project Notes",
+    noteId: "project-note",
+    storagePath,
+  });
+
+  let content = "";
+  try {
+    const file = await readFile(storagePath);
+    if (file.type === "text") {
+      content = file.content;
+    }
+  } catch {
+    content = "";
+  }
+
+  if (worktreeId) {
+    sessionStore
+      .getState()
+      .setNoteContentForWorktree(worktreeId, createdWindow.id, content);
+  }
+
+  return createdWindow.id;
+}
+
 export function initializeSearchWindowForWorktree({
   sessionStore,
   worktreeId,

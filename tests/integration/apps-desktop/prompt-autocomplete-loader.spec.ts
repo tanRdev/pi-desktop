@@ -96,4 +96,47 @@ describe("prompt-autocomplete-loader", () => {
       ]),
     );
   });
+
+  it("requests project file suggestions even for a bare @ mention", async () => {
+    const searchFiles = vi.fn(async () => ({
+      query: "",
+      results: [
+        {
+          path: "/tmp/repo-a/README.md",
+          name: "README.md",
+          score: 0.92,
+          type: "file" as const,
+        },
+      ],
+      total: 1,
+      duration: 1,
+    }));
+
+    const suggestions = await loadPromptAutocompleteSuggestions({
+      draft: "@",
+      autocompleteMatch: {
+        trigger: "@",
+        query: "",
+        start: 0,
+        end: 1,
+      },
+      activeWorktreePath: "/tmp/repo-a",
+      windows: [],
+      getSlashSuggestions: vi.fn(),
+      searchFiles,
+    });
+
+    expect(searchFiles).toHaveBeenCalledWith({
+      query: "",
+      rootPath: "/tmp/repo-a",
+      maxResults: 8,
+    });
+    expect(suggestions).toEqual([
+      expect.objectContaining({
+        kind: "file",
+        id: "/tmp/repo-a/README.md",
+        name: "README.md",
+      }),
+    ]);
+  });
 });

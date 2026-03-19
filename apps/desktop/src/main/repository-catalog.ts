@@ -53,9 +53,9 @@ export class RepositoryCatalog {
   }
 
   list(): RepositoryCatalogEntry[] {
-    return this.store
-      .get()
-      .repositories.sort((left, right) => left.order - right.order);
+    return [...this.store.get().repositories].sort(
+      (left, right) => left.order - right.order,
+    );
   }
 
   get(repositoryId: string): RepositoryCatalogEntry | null {
@@ -148,6 +148,59 @@ export class RepositoryCatalog {
       nextState.repositories.find(
         (repository) => repository.id === normalizedRepositoryId,
       ) ?? null
+    );
+  }
+
+  reorder(repositoryIds: string[]): RepositoryCatalogEntry[] {
+    const normalizedRepositoryIds = repositoryIds.map(normalizePathId);
+    const currentTime = this.now();
+
+    const nextState = this.store.update((state) => {
+      const repositories = [...state.repositories].sort(
+        (left, right) => left.order - right.order,
+      );
+      const repositoriesById = new Map(
+        repositories.map((repository) => [repository.id, repository]),
+      );
+      const seenRepositoryIds = new Set<string>();
+      const reorderedRepositories: RepositoryCatalogEntry[] = [];
+
+      for (const repositoryId of normalizedRepositoryIds) {
+        if (seenRepositoryIds.has(repositoryId)) {
+          continue;
+        }
+
+        const repository = repositoriesById.get(repositoryId);
+        if (!repository) {
+          continue;
+        }
+
+        seenRepositoryIds.add(repositoryId);
+        reorderedRepositories.push(repository);
+      }
+
+      for (const repository of repositories) {
+        if (!seenRepositoryIds.has(repository.id)) {
+          reorderedRepositories.push(repository);
+        }
+      }
+
+      return {
+        ...state,
+        repositories: reorderedRepositories.map((repository, order) =>
+          repository.order === order
+            ? repository
+            : {
+                ...repository,
+                order,
+                updatedAt: currentTime,
+              },
+        ),
+      };
+    });
+
+    return [...nextState.repositories].sort(
+      (left, right) => left.order - right.order,
     );
   }
 

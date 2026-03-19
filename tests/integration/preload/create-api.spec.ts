@@ -6,13 +6,13 @@ import {
 } from "../../../apps/desktop/src/preload/api";
 import {
   type AgentSnapshot,
-  type AppPreferences,
   createEmptyWorkspaceSession,
   IPC_CHANNELS,
   type PiDeskAgentEvent,
   type RepositoryPreferences,
   type ShellSnapshot,
 } from "../../../packages/shared/src";
+import type { AppPreferences } from "../../../packages/shared/src/models/workspace-session";
 
 describe("createPiDeskApi", () => {
   it("invokes typed shell and agent channels", async () => {
@@ -211,6 +211,10 @@ describe("createPiDeskApi", () => {
 
     await api.repositories.add("/tmp/work/repo-one");
     await api.repositories.select("/tmp/work/repo-one");
+    await api.repositories.reorder([
+      "/tmp/work/repo-two",
+      "/tmp/work/repo-one",
+    ]);
     await api.worktrees.create("/tmp/work/repo-one", "feature/runtime");
     await api.worktrees.select("/tmp/work/repo-one-feature");
     await api.threads.create(
@@ -224,6 +228,12 @@ describe("createPiDeskApi", () => {
       [
         IPC_CHANNELS.repositories.select,
         { repositoryId: "/tmp/work/repo-one" },
+      ],
+      [
+        IPC_CHANNELS.repositories.reorder,
+        {
+          repositoryIds: ["/tmp/work/repo-two", "/tmp/work/repo-one"],
+        },
       ],
       [
         IPC_CHANNELS.worktrees.create,

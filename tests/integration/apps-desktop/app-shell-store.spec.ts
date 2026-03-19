@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   DEFAULT_SETTINGS,
   STORAGE_KEY,
@@ -170,13 +170,31 @@ function createApiFixture(overrides: Partial<PiDeskApi> = {}): PiDeskApi {
   } as PiDeskApi;
 }
 
+afterEach(() => {
+  vi.unstubAllGlobals();
+  localStorage.clear();
+});
+
 describe("app-shell-store", () => {
   it("loads provider state, app preferences, and migrates legacy renderer preferences once", async () => {
-    localStorage.setItem(
+    const storage = new Map<string, string>();
+    vi.stubGlobal("localStorage", {
+      getItem: vi.fn((key: string) => storage.get(key) ?? null),
+      setItem: vi.fn((key: string, value: string) => {
+        storage.set(key, value);
+      }),
+      removeItem: vi.fn((key: string) => {
+        storage.delete(key);
+      }),
+      clear: vi.fn(() => {
+        storage.clear();
+      }),
+    });
+    storage.set(
       STORAGE_KEY,
       JSON.stringify({ interface: { theme: "dark", sidebarWidth: 320 } }),
     );
-    localStorage.setItem("pidesk.leftSidebarWidth", "260");
+    storage.set("pidesk.leftSidebarWidth", "260");
 
     const api = createApiFixture();
     const store = createAppShellStore(api);
@@ -195,7 +213,6 @@ describe("app-shell-store", () => {
         }
       ).settings?.interface,
     ).toMatchObject({
-      theme: "dark",
       sidebarWidth: 260,
     });
     expect(api.state.updateAppPreferences).toHaveBeenCalledWith({
@@ -204,10 +221,106 @@ describe("app-shell-store", () => {
         ...DEFAULT_SETTINGS,
         interface: {
           ...DEFAULT_SETTINGS.interface,
-          theme: "dark",
           sidebarWidth: 260,
         },
       },
+    });
+  });
+
+  it("applies the saved AI provider and model preference during initialize when runtime settings differ", async () => {
+    const api = createApiFixture({
+      state: {
+        getRepositoryPreferences: vi.fn(async () => null),
+        updateRepositoryPreferences: vi.fn(async () => ({
+          repositoryId: "/tmp/repo",
+          customName: null,
+          icon: null,
+          accentColor: null,
+        })),
+        getWorkspaceSession: vi.fn(async () => null),
+        saveWorkspaceSession: vi.fn(async (session) => session),
+        getAppPreferences: vi.fn(async () => ({
+          settings: {
+            ai: {
+              provider: "anthropic",
+              model: "claude-sonnet-4-20250514",
+            },
+          },
+        })),
+        updateAppPreferences: vi.fn(async (updates) => updates),
+        importLegacyPreferences: vi.fn(async () => ({
+          repositoryPreferences: [],
+          appPreferences: {},
+        })),
+      },
+      agent: {
+        getProviders: vi.fn(async () => [
+          {
+            id: "google",
+            name: "Google",
+            models: [
+              {
+                id: "gemini-2.5-pro",
+                name: "Gemini 2.5 Pro",
+                providerId: "google",
+              },
+            ],
+          },
+          {
+            id: "anthropic",
+            name: "Anthropic",
+            models: [
+              {
+                id: "claude-sonnet-4-20250514",
+                name: "Claude Sonnet 4",
+                providerId: "anthropic",
+              },
+            ],
+          },
+        ]),
+        getSettings: vi
+          .fn()
+          .mockResolvedValueOnce({
+            currentProviderId: "google",
+            currentModelId: "gemini-2.5-pro",
+          })
+          .mockResolvedValueOnce({
+            currentProviderId: "anthropic",
+            currentModelId: "claude-sonnet-4-20250514",
+          }),
+        getSnapshot: vi.fn(async () => ({
+          sessionId: "agent-session",
+          status: "ready" as const,
+          messages: [],
+          lastError: null,
+        })),
+        prompt: vi.fn(async () => undefined),
+        reset: vi.fn(async () => undefined),
+        switchModel: vi.fn(async () => undefined),
+        getDiscovery: vi.fn(async () => ({
+          isInstalled: false,
+          skills: [],
+          commands: [],
+        })),
+        getSlashSuggestions: vi.fn(async () => ({
+          kind: "slash" as const,
+          suggestions: [],
+          hasMore: false,
+        })),
+        subscribe: vi.fn(() => () => undefined),
+      },
+    });
+    const store = createAppShellStore(api);
+
+    await store.getState().initialize();
+
+    expect(api.agent.switchModel).toHaveBeenCalledWith({
+      providerId: "anthropic",
+      modelId: "claude-sonnet-4-20250514",
+    });
+    expect(store.getState().settingsSnapshot).toMatchObject({
+      currentProviderId: "anthropic",
+      currentModelId: "claude-sonnet-4-20250514",
     });
   });
 
@@ -228,6 +341,275 @@ describe("app-shell-store", () => {
     expect(store.getState().isSwitchingModel).toBe(false);
     expect(api.agent.getSettings).toHaveBeenCalledTimes(2);
     expect(api.shell.getSnapshot).toHaveBeenCalledTimes(2);
+  });
+
+  it("keeps saved AI preferences in sync when prompt-dock model switching succeeds", async () => {
+    const api = createApiFixture({
+      state: {
+        getRepositoryPreferences: vi.fn(async () => null),
+        updateRepositoryPreferences: vi.fn(async () => ({
+          repositoryId: "/tmp/repo",
+          customName: null,
+          icon: null,
+          accentColor: null,
+        })),
+        getWorkspaceSession: vi.fn(async () => null),
+        saveWorkspaceSession: vi.fn(async (session) => session),
+        getAppPreferences: vi.fn(async () => ({
+          settings: {
+            ai: {
+              provider: "google",
+              model: "gemini-2.5-pro",
+            },
+          },
+        })),
+        updateAppPreferences: vi.fn(async (updates) => updates),
+        importLegacyPreferences: vi.fn(async () => ({
+          repositoryPreferences: [],
+          appPreferences: {},
+        })),
+      },
+      agent: {
+        getProviders: vi.fn(async () => [
+          {
+            id: "google",
+            name: "Google",
+            models: [
+              {
+                id: "gemini-2.5-pro",
+                name: "Gemini 2.5 Pro",
+                providerId: "google",
+              },
+            ],
+          },
+          {
+            id: "anthropic",
+            name: "Anthropic",
+            models: [
+              {
+                id: "claude-sonnet-4-20250514",
+                name: "Claude Sonnet 4",
+                providerId: "anthropic",
+                contextWindow: 200000,
+              },
+            ],
+          },
+        ]),
+        getSettings: vi
+          .fn()
+          .mockResolvedValueOnce({
+            currentProviderId: "google",
+            currentModelId: "gemini-2.5-pro",
+          })
+          .mockResolvedValueOnce({
+            currentProviderId: "anthropic",
+            currentModelId: "claude-sonnet-4-20250514",
+          }),
+        getSnapshot: vi.fn(async () => ({
+          sessionId: "agent-session",
+          status: "ready" as const,
+          messages: [],
+          lastError: null,
+        })),
+        prompt: vi.fn(async () => undefined),
+        reset: vi.fn(async () => undefined),
+        switchModel: vi.fn(async () => undefined),
+        getDiscovery: vi.fn(async () => ({
+          isInstalled: false,
+          skills: [],
+          commands: [],
+        })),
+        getSlashSuggestions: vi.fn(async () => ({
+          kind: "slash" as const,
+          suggestions: [],
+          hasMore: false,
+        })),
+        subscribe: vi.fn(() => () => undefined),
+      },
+    });
+    const store = createAppShellStore(api);
+
+    await store.getState().initialize();
+    await store.getState().switchModel({
+      providerId: "anthropic",
+      modelId: "claude-sonnet-4-20250514",
+    });
+
+    expect(api.state.updateAppPreferences).toHaveBeenLastCalledWith({
+      leftSidebarWidth: 280,
+      settings: expect.objectContaining({
+        ai: expect.objectContaining({
+          provider: "anthropic",
+          model: "claude-sonnet-4-20250514",
+        }),
+      }),
+    });
+    expect(store.getState().settingsSnapshot).toMatchObject({
+      currentProviderId: "anthropic",
+      currentModelId: "claude-sonnet-4-20250514",
+    });
+  });
+
+  it("preserves saved AI preferences when unrelated settings updates are persisted", async () => {
+    const api = createApiFixture({
+      state: {
+        getRepositoryPreferences: vi.fn(async () => null),
+        updateRepositoryPreferences: vi.fn(async () => ({
+          repositoryId: "/tmp/repo",
+          customName: null,
+          icon: null,
+          accentColor: null,
+        })),
+        getWorkspaceSession: vi.fn(async () => null),
+        saveWorkspaceSession: vi.fn(async (session) => session),
+        getAppPreferences: vi.fn(async () => ({
+          leftSidebarWidth: 260,
+          settings: {
+            ai: {
+              provider: "anthropic",
+              model: "claude-sonnet-4-20250514",
+            },
+            interface: {
+              sidebarWidth: 260,
+            },
+          },
+        })),
+        updateAppPreferences: vi.fn(async (updates) => updates),
+        importLegacyPreferences: vi.fn(async () => ({
+          repositoryPreferences: [],
+          appPreferences: {},
+        })),
+      },
+    });
+    const store = createAppShellStore(api);
+
+    await store.getState().initialize();
+    await store.getState().updateAppPreferences({
+      settings: {
+        ...DEFAULT_SETTINGS,
+        interface: {
+          ...DEFAULT_SETTINGS.interface,
+          sidebarWidth: 320,
+        },
+      } as never,
+    });
+
+    expect(api.state.updateAppPreferences).toHaveBeenLastCalledWith({
+      leftSidebarWidth: 320,
+      settings: {
+        ...DEFAULT_SETTINGS,
+        ai: {
+          provider: "anthropic",
+          model: "claude-sonnet-4-20250514",
+        },
+        interface: {
+          ...DEFAULT_SETTINGS.interface,
+          sidebarWidth: 320,
+        },
+      },
+    });
+  });
+
+  it("rolls back optimistic model state when runtime switching fails", async () => {
+    const switchError = new Error("runtime rejected switch");
+    const api = createApiFixture({
+      state: {
+        getRepositoryPreferences: vi.fn(async () => null),
+        updateRepositoryPreferences: vi.fn(async () => ({
+          repositoryId: "/tmp/repo",
+          customName: null,
+          icon: null,
+          accentColor: null,
+        })),
+        getWorkspaceSession: vi.fn(async () => null),
+        saveWorkspaceSession: vi.fn(async (session) => session),
+        getAppPreferences: vi.fn(async () => ({
+          settings: {
+            ai: {
+              provider: "google",
+              model: "gemini-2.5-pro",
+            },
+          },
+        })),
+        updateAppPreferences: vi.fn(async (updates) => updates),
+        importLegacyPreferences: vi.fn(async () => ({
+          repositoryPreferences: [],
+          appPreferences: {},
+        })),
+      },
+      agent: {
+        getProviders: vi.fn(async () => [
+          {
+            id: "google",
+            name: "Google",
+            models: [
+              {
+                id: "gemini-2.5-pro",
+                name: "Gemini 2.5 Pro",
+                providerId: "google",
+              },
+            ],
+          },
+          {
+            id: "anthropic",
+            name: "Anthropic",
+            models: [
+              {
+                id: "claude-sonnet-4-20250514",
+                name: "Claude Sonnet 4",
+                providerId: "anthropic",
+              },
+            ],
+          },
+        ]),
+        getSettings: vi.fn(async () => ({
+          currentProviderId: "google",
+          currentModelId: "gemini-2.5-pro",
+        })),
+        getSnapshot: vi.fn(async () => ({
+          sessionId: "agent-session",
+          status: "ready" as const,
+          messages: [],
+          lastError: null,
+        })),
+        prompt: vi.fn(async () => undefined),
+        reset: vi.fn(async () => undefined),
+        switchModel: vi.fn(async () => {
+          throw switchError;
+        }),
+        getDiscovery: vi.fn(async () => ({
+          isInstalled: false,
+          skills: [],
+          commands: [],
+        })),
+        getSlashSuggestions: vi.fn(async () => ({
+          kind: "slash" as const,
+          suggestions: [],
+          hasMore: false,
+        })),
+        subscribe: vi.fn(() => () => undefined),
+      },
+    });
+    const store = createAppShellStore(api);
+
+    await store.getState().initialize();
+
+    await expect(
+      store.getState().switchModel({
+        providerId: "anthropic",
+        modelId: "claude-sonnet-4-20250514",
+      }),
+    ).rejects.toThrow("runtime rejected switch");
+
+    expect(store.getState().settingsSnapshot).toMatchObject({
+      currentProviderId: "google",
+      currentModelId: "gemini-2.5-pro",
+    });
+    expect((store.getState().appPreferences.settings as any)?.ai).toEqual({
+      provider: "google",
+      model: "gemini-2.5-pro",
+    });
+    expect(api.state.updateAppPreferences).not.toHaveBeenCalled();
   });
 
   it("synchronizes durable sidebar width with interface settings on initialize and update", async () => {

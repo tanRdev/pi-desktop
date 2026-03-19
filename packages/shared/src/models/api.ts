@@ -60,6 +60,7 @@ export interface PiDeskApi {
   };
   repositories: {
     add(path: string): Promise<void>;
+    reorder(repositoryIds: string[]): Promise<void>;
     select(repositoryId: string): Promise<void>;
   };
   worktrees: {
@@ -129,6 +130,8 @@ export interface PiDeskApi {
     create(action: CreateWindowAction): Promise<CanvasWindow>;
     close(windowId: string): Promise<void>;
     focus(windowId: string): Promise<void>;
+    getFullscreenState(): Promise<boolean>;
+    onFullscreenChanged(listener: (isFullscreen: boolean) => void): () => void;
     move(windowId: string, position: WindowPosition): Promise<void>;
     resize(windowId: string, position: WindowPosition): Promise<void>;
     minimize(windowId: string): Promise<void>;

@@ -85,4 +85,28 @@ describe("RepositoryCatalog", () => {
       },
     ]);
   });
+
+  it("reorders repositories and persists normalized order values", () => {
+    let tick = 0;
+    const now = () => ++tick;
+    const userDataPath = createUserDataPath();
+    const catalog = new RepositoryCatalog(userDataPath, { now });
+
+    const repoOne = catalog.upsert({ rootPath: "/tmp/work/repo-one" });
+    const repoTwo = catalog.upsert({ rootPath: "/tmp/work/repo-two" });
+    const repoThree = catalog.upsert({ rootPath: "/tmp/work/repo-three" });
+
+    catalog.reorder([repoThree.id, repoOne.id, repoTwo.id]);
+
+    const reloaded = new RepositoryCatalog(userDataPath, { now });
+
+    expect(reloaded.list().map((repository) => repository.id)).toEqual([
+      "/tmp/work/repo-three",
+      "/tmp/work/repo-one",
+      "/tmp/work/repo-two",
+    ]);
+    expect(reloaded.list().map((repository) => repository.order)).toEqual([
+      0, 1, 2,
+    ]);
+  });
 });

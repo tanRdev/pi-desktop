@@ -7,6 +7,19 @@ type RegisterRepositoryHandlersDependencies = Pick<
   "handle" | "agentHost"
 >;
 
+function getStringArrayField(payload: unknown, key: string): string[] {
+  if (!payload || typeof payload !== "object") {
+    return [];
+  }
+
+  const value = (payload as Record<string, unknown>)[key];
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter((entry): entry is string => typeof entry === "string");
+}
+
 export function registerRepositoryHandlers({
   handle,
   agentHost,
@@ -27,6 +40,15 @@ export function registerRepositoryHandlers({
     }
 
     await agentHost.selectRepository(repositoryId);
+  });
+
+  handle(IPC_CHANNELS.repositories.reorder, async (_event, payload) => {
+    const repositoryIds = getStringArrayField(payload, "repositoryIds");
+    if (repositoryIds.length === 0) {
+      throw new Error("Repository reorder payload must include repositoryIds");
+    }
+
+    await agentHost.reorderRepositories(repositoryIds);
   });
 
   handle(IPC_CHANNELS.worktrees.create, async (_event, payload) => {

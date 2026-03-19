@@ -85,4 +85,14 @@ describe("ui-interaction-store", () => {
     expect(store.getState().dialogs.settings).toBe(true);
     expect(store.getState().dialogs.createWorktree).toBe(true);
   });
+
+  it("tracks whether the main window is fullscreen for titlebar layout", () => {
+    const store = createUiInteractionStore();
+
+    store.getState().setMainWindowFullscreen(true);
+    expect(store.getState().isMainWindowFullscreen).toBe(true);
+
+    store.getState().setMainWindowFullscreen(false);
+    expect(store.getState().isMainWindowFullscreen).toBe(false);
+  });
 });

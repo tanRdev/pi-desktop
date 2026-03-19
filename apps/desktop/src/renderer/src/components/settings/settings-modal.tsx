@@ -1,19 +1,15 @@
-import { Bot, Code2, Keyboard, Palette, Settings2, Terminal, X } from "@/components/ui/icons";
 import type React from "react";
 import { useState } from "react";
+import { Bot, Palette, X } from "@/components/ui/icons";
 import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { ScrollArea } from "../ui/scroll-area";
 import {
-  AdvancedSettingsSection,
-  AISettingsSection,
-  EditorSettingsSection,
-  InterfaceSettingsSection,
-  KeybindingsSettingsSection,
-  TerminalSettingsSection,
-} from "./sections";
+  SETTINGS_MODAL_SECTION_IDS,
+  type SettingsModalSection,
+} from "./navigation";
+import { AISettingsSection, InterfaceSettingsSection } from "./sections";
 import { useSettings } from "./settings-context";
-import type { SettingsSection as SettingsSectionType } from "./types";
 
 interface SettingsModalProps {
   open: boolean;
@@ -21,51 +17,35 @@ interface SettingsModalProps {
 }
 
 interface NavItem {
-  id: SettingsSectionType;
+  id: SettingsModalSection;
   label: string;
   icon: React.ReactNode;
 }
 
-const NAV_ITEMS: NavItem[] = [
-  { id: "ai", label: "AI & Models", icon: <Bot className="h-4 w-4" /> },
-  {
-    id: "interface",
-    label: "Interface",
-    icon: <Palette className="h-4 w-4" />,
-  },
-  { id: "editor", label: "Editor", icon: <Code2 className="h-4 w-4" /> },
-  { id: "terminal", label: "Terminal", icon: <Terminal className="h-4 w-4" /> },
-  {
-    id: "keybindings",
-    label: "Keybindings",
-    icon: <Keyboard className="h-4 w-4" />,
-  },
-  {
-    id: "advanced",
-    label: "Advanced",
-    icon: <Settings2 className="h-4 w-4" />,
-  },
-];
+export const SETTINGS_MODAL_SECTIONS: NavItem[] =
+  SETTINGS_MODAL_SECTION_IDS.map((id) => ({
+    id,
+    label: id === "ai" ? "AI & Models" : "Interface",
+    icon:
+      id === "ai" ? (
+        <Bot className="h-4 w-4" />
+      ) : (
+        <Palette className="h-4 w-4" />
+      ),
+  }));
 
-function renderSection(section: SettingsSectionType) {
+function renderSection(section: SettingsModalSection) {
   switch (section) {
     case "ai":
       return <AISettingsSection />;
     case "interface":
       return <InterfaceSettingsSection />;
-    case "editor":
-      return <EditorSettingsSection />;
-    case "terminal":
-      return <TerminalSettingsSection />;
-    case "keybindings":
-      return <KeybindingsSettingsSection />;
-    case "advanced":
-      return <AdvancedSettingsSection />;
   }
 }
 
 export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
-  const [activeSection, setActiveSection] = useState<SettingsSectionType>("ai");
+  const [activeSection, setActiveSection] =
+    useState<SettingsModalSection>("ai");
   const { resetAll } = useSettings();
 
   return (
@@ -87,7 +67,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
           {/* Sidebar Navigation */}
           <nav className="w-48 shrink-0 border-r border-border bg-surface-1/50">
             <div className="flex flex-col gap-1 p-3">
-              {NAV_ITEMS.map((item) => (
+              {SETTINGS_MODAL_SECTIONS.map((item) => (
                 <button
                   type="button"
                   key={item.id}

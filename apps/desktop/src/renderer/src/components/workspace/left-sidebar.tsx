@@ -145,7 +145,7 @@ export function LeftSidebar({
             onClick={onCreateWorktree}
           >
             <FolderPlus className="h-3.5 w-3.5" />
-            New session
+            New worktree
           </button>
         </div>
       )}

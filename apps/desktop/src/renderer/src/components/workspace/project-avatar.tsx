@@ -1,5 +1,5 @@
 import type { RepositorySnapshot } from "@pidesk/shared";
-import type { CSSProperties } from "react";
+import type { CSSProperties, DragEventHandler } from "react";
 import { cn } from "@/lib/utils";
 import { resolveProjectIconOption } from "./project-icon-picker";
 
@@ -7,6 +7,11 @@ export interface ProjectAvatarProps {
   repository: RepositorySnapshot;
   isActive?: boolean;
   onClick?: () => void;
+  draggable?: boolean;
+  onDragStart?: DragEventHandler<HTMLButtonElement>;
+  onDragEnd?: DragEventHandler<HTMLButtonElement>;
+  ariaControls?: string;
+  ariaExpanded?: boolean;
   size?: "sm" | "md";
   className?: string;
 }
@@ -111,9 +116,15 @@ export function ProjectAvatar({
   repository,
   isActive = false,
   onClick,
+  draggable = false,
+  onDragStart,
+  onDragEnd,
+  ariaControls,
+  ariaExpanded,
   size = "sm",
   className,
 }: ProjectAvatarProps) {
+  const displayName = repository.customName ?? repository.name;
   const { icon: Icon } = resolveProjectIconOption(
     repository.icon,
     repository.name,
@@ -150,9 +161,14 @@ export function ProjectAvatar({
     <button
       type="button"
       onClick={onClick}
+      draggable={draggable}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
       className={outerClassName}
-      aria-label={`Open repository ${repository.name}`}
-      title={repository.name}
+      aria-controls={ariaControls}
+      aria-expanded={ariaExpanded}
+      aria-label={`Open repository ${displayName}`}
+      title={displayName}
     >
       {content}
     </button>

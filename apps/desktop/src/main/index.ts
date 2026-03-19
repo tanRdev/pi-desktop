@@ -137,6 +137,25 @@ async function createMainWindow() {
   return window;
 }
 
+function subscribeToFullscreenChanges(window: BrowserWindow) {
+  const emitFullscreenState = () => {
+    window.webContents.send(
+      IPC_CHANNELS.window.fullscreenChanged,
+      window.isFullScreen(),
+    );
+  };
+
+  window.on("enter-full-screen", emitFullscreenState);
+  window.on("leave-full-screen", emitFullscreenState);
+  window.on("ready-to-show", emitFullscreenState);
+
+  return () => {
+    window.removeListener("enter-full-screen", emitFullscreenState);
+    window.removeListener("leave-full-screen", emitFullscreenState);
+    window.removeListener("ready-to-show", emitFullscreenState);
+  };
+}
+
 async function bootstrapDesktop() {
   await app.whenReady();
   app.setName("PiDesk");
@@ -558,6 +577,9 @@ async function bootstrapDesktop() {
       addRepository: async (targetPath) => {
         commitAttachment(await attachToPath(targetPath));
       },
+      reorderRepositories: async (repositoryIds) => {
+        repositoryCatalog.reorder(repositoryIds);
+      },
       selectRepository: async (repositoryId) => {
         commitAttachment(await attachToRepository(repositoryId));
       },
@@ -622,7 +644,9 @@ async function bootstrapDesktop() {
 
   mainWindow = await createMainWindow();
   terminalManager.setMainWindow(mainWindow);
+  let unsubscribeFullscreen = subscribeToFullscreenChanges(mainWindow);
   mainWindow.on("closed", () => {
+    unsubscribeFullscreen();
     mainWindow = null;
   });
 
@@ -636,7 +660,9 @@ async function bootstrapDesktop() {
     if (BrowserWindow.getAllWindows().length === 0) {
       mainWindow = await createMainWindow();
       terminalManager.setMainWindow(mainWindow);
+      unsubscribeFullscreen = subscribeToFullscreenChanges(mainWindow);
       mainWindow.on("closed", () => {
+        unsubscribeFullscreen();
         mainWindow = null;
       });
     }
