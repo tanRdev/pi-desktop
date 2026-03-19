@@ -57,17 +57,23 @@ export function WorktreeSection({
         <div className="overflow-hidden transition-all duration-200 ease-out">
           <div className="py-1 pl-7 pr-2">
             <div className="space-y-0.5">
-              {visibleThreads.map((thread) => (
-                <ThreadListItem
-                  key={thread.id}
-                  thread={thread}
-                  isActive={thread.id === activeThreadId}
-                  onClick={() => onSelectThread(thread.id)}
-                  onClose={
-                    onCloseThread ? () => onCloseThread(thread.id) : undefined
-                  }
-                />
-              ))}
+              {visibleThreads.length > 0 ? (
+                visibleThreads.map((thread) => (
+                  <ThreadListItem
+                    key={thread.id}
+                    thread={thread}
+                    isActive={thread.id === activeThreadId}
+                    onClick={() => onSelectThread(thread.id)}
+                    onClose={
+                      onCloseThread ? () => onCloseThread(thread.id) : undefined
+                    }
+                  />
+                ))
+              ) : (
+                <div className="chrome-empty-state px-2 py-2 text-[11px] text-muted-foreground">
+                  No visible threads
+                </div>
+              )}
             </div>
 
             <button

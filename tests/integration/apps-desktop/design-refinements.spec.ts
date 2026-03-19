@@ -96,15 +96,11 @@ describe("design refinements – sidebar components", () => {
       "apps/desktop/src/renderer/src/components/workspace/thread-list-item.tsx",
     );
 
-  it("repo card uses rounded-lg without heavy border+shadow", () => {
+  it("left sidebar removes the old repository summary card entirely", () => {
     const src = sidebarSrc();
-    // Should use softer rounded-lg with transparent background
-    expect(src).toContain("rounded-lg bg-surface-2/60");
-    // Should NOT have the old boxy style
-    expect(src).not.toContain(
-      "rounded-2xl border border-border bg-surface-2/80",
-    );
-    expect(src).not.toContain("shadow-sm");
+    expect(src).not.toContain("ProjectAvatar");
+    expect(src).not.toContain("ProjectCustomizationMenu");
+    expect(src).not.toContain("repository.defaultBranch");
   });
 
   it("empty states use chrome-empty-state instead of dashed borders", () => {
@@ -115,18 +111,15 @@ describe("design refinements – sidebar components", () => {
     expect(src).not.toContain("rounded-2xl border border-dashed");
   });
 
-  it("worktree section badges use clean tag style (rounded-sm, no border)", () => {
+  it("worktree section uses the shared git status chip instead of bespoke badges", () => {
     const src = worktreeSrc();
-    expect(src).toContain("rounded-sm bg-surface-3/60");
-    // Should NOT have old badge style with explicit borders
+    expect(src).toContain("<GitStatusChip git={worktree.git} />");
     expect(src).not.toContain("rounded-full border border-border bg-surface-1");
   });
 
   it("worktree section uses tighter padding and spacing", () => {
     const src = worktreeSrc();
-    // Button should use py-2 not py-2.5
-    expect(src).toContain("rounded-lg border px-3 py-2");
-    // Thread list should use tighter spacing
+    expect(src).toContain("rounded-md px-2 py-1.5");
     expect(src).toContain("space-y-0.5");
     expect(src).not.toContain("space-y-1 pl-8");
   });
@@ -149,11 +142,11 @@ describe("design refinements – sidebar components", () => {
     expect(src).toContain("bg-surface-3/80");
   });
 
-  it("thread time uses semantic color token instead of raw opacity", () => {
+  it("thread row uses semantic color tokens instead of raw opacity", () => {
     const src = threadSrc();
-    // Time text should use the design system color token
+    // Thread chrome should use design-system color tokens
     expect(src).toContain("text-muted-foreground");
-    // Should NOT use opacity hack for dimming
+    // Should NOT use opacity hacks for dimming
     expect(src).not.toContain("opacity-60");
   });
 });
@@ -236,16 +229,17 @@ describe("design refinements – shell chrome & layout", () => {
     expect(src).toContain("gap-1.5");
   });
 
-  it("enter-to-send label uses refined tracking (0.1em)", () => {
+  it("prompt dock removes the old enter-to-send helper chrome", () => {
     const src = dockSrc();
-    expect(src).toContain("tracking-[0.1em]");
-    expect(src).toContain("text-[11px]");
+    expect(src).not.toContain("Enter to send");
+    expect(src).not.toContain("tracking-[0.1em]");
   });
 });
 
 describe("design refinements – no design anti-patterns", () => {
   const allWorkspaceFiles = [
     "apps/desktop/src/renderer/src/components/workspace/left-sidebar.tsx",
+    "apps/desktop/src/renderer/src/components/workspace/project-customization-menu.tsx",
     "apps/desktop/src/renderer/src/components/workspace/worktree-section.tsx",
     "apps/desktop/src/renderer/src/components/workspace/thread-list-item.tsx",
     "apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx",

@@ -76,9 +76,10 @@ export function ProjectCustomizationMenu({
 
   return (
     <>
-      <div
+      <fieldset
+        aria-label={`Customize ${repository.name}`}
         className={cn(
-          "pointer-events-none opacity-0 transition-all duration-150 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100",
+          "hidden min-w-0 border-0 p-0 group-hover:block group-focus-within:block",
           side === "right" ? "translate-x-1" : "-translate-x-1",
           className,
         )}
@@ -86,7 +87,7 @@ export function ProjectCustomizationMenu({
           void commitCustomName();
         }}
       >
-        <div className="w-80 rounded-2xl border border-border bg-surface-1/96 p-4 shadow-lg shadow-black/12 backdrop-blur-sm">
+        <div className="w-80 rounded-lg border border-border/40 bg-surface-1/96 p-4 shadow-sm">
           <div className="space-y-4">
             <div>
               <label htmlFor="project-custom-name" className="chrome-eyebrow">
@@ -176,7 +177,7 @@ export function ProjectCustomizationMenu({
             </div>
           </div>
         </div>
-      </div>
+      </fieldset>
 
       <ProjectIconPicker
         open={iconPickerOpen}

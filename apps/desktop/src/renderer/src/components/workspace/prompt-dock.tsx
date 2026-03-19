@@ -119,6 +119,14 @@ export function PromptDock({
           />
           <PromptInputActions className="mt-2 items-center justify-between gap-3 border-t border-border-subtle pt-2">
             <div className="flex items-center gap-1.5">
+              <span
+                data-testid="agent-status"
+                data-runtime-mode={runtimeModeLabel}
+                aria-live="polite"
+                className="shell-token sr-only"
+              >
+                {displayAgentStatus}
+              </span>
               <Popover open={modelOpen} onOpenChange={handleModelOpenChange}>
                 <PopoverTrigger asChild>
                   <button

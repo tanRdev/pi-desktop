@@ -100,7 +100,7 @@ describe("chunk5 ui", () => {
     expect(messageSource).not.toContain("rounded-md p-3 text-sm");
 
     expect(promptInputSource).toContain("shell-input-frame");
-    expect(promptInputSource).toContain("p-1.5");
+    expect(promptInputSource).toContain("p-2");
     expect(promptInputSource).not.toContain("rounded-lg");
     expect(promptInputSource).not.toContain("rounded-3xl");
     expect(promptInputSource).not.toContain("shadow-xs");

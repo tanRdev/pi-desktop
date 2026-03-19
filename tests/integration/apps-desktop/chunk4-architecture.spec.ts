@@ -40,7 +40,7 @@ describe("chunk4 architecture", () => {
     expect(appSource).toContain("controller.workspaceShellProps");
   });
 
-  it("adds focused project identity and customization surfaces without the old bright avatar palette", () => {
+  it("keeps repository customization on the rail while removing the old sidebar header chrome", () => {
     const titleBarSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/title-bar.tsx",
     );
@@ -63,7 +63,7 @@ describe("chunk4 architecture", () => {
     expect(titleBarSource).toContain("activeRepository");
     expect(titleBarSource).not.toContain('className="w-16"');
     expect(leftRailSource).toContain("ProjectCustomizationMenu");
-    expect(leftSidebarSource).toContain("ProjectCustomizationMenu");
+    expect(leftSidebarSource).not.toContain("ProjectCustomizationMenu");
     expect(customizationSource).toContain("updateRepositoryPreferences");
     expect(customizationSource).toContain("accentColor");
     expect(iconPickerSource).toContain("PROJECT_ICON_OPTIONS");
@@ -78,7 +78,7 @@ describe("chunk4 architecture", () => {
     expect(avatarSource).not.toContain("bg-pink-500");
   });
 
-  it("removes dead archived chrome, keeps empty states flat, and labels new controls accessibly", () => {
+  it("removes dead archived chrome, keeps hover customization seamless, and labels fields accessibly", () => {
     const shellSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx",
     );
@@ -110,6 +110,8 @@ describe("chunk4 architecture", () => {
     expect(customizationSource).toContain(
       `aria-label={\`Customize ${repositoryNameExpression}\`}`,
     );
+    expect(customizationSource).toContain("group-hover:block");
+    expect(customizationSource).toContain("group-focus-within:block");
     expect(customizationSource).toContain('htmlFor="project-custom-name"');
     expect(customizationSource).toContain('id="project-custom-name"');
     expect(customizationSource).toContain('aria-label="Project display name"');

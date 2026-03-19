@@ -22,11 +22,11 @@ export function ThreadListItem({
       className={cn(
         "group flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors",
         isActive
-          ? "text-foreground"
+          ? "bg-surface-3/80 text-foreground"
           : "text-muted-foreground hover:text-foreground",
       )}
     >
-      <MessageSquare className="h-3 w-3 shrink-0 opacity-60" />
+      <MessageSquare className="h-3 w-3 shrink-0 text-muted-foreground" />
       <div className="min-w-0 flex-1">
         <span
           data-testid={isActive ? "current-thread-title" : undefined}

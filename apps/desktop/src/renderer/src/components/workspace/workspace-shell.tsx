@@ -96,7 +96,7 @@ function CanvasEmptyState({
 }) {
   return (
     <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-8 py-10">
-      <div className="w-full max-w-xl rounded-2xl border border-border/50 bg-surface-1/92 px-6 py-5 shadow-sm">
+      <div className="w-full max-w-xl rounded-lg border border-border/40 bg-surface-1/80 px-6 py-5 shadow-sm">
         <div className="mb-4 flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
           <span className="rounded-sm border border-border/60 bg-surface-2 px-2 py-1">
             Canvas.md

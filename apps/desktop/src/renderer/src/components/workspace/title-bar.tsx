@@ -30,7 +30,7 @@ export function TitleBar({
       data-drag-region="true"
       className="titlebar shell-chrome relative flex h-11 shrink-0 items-center justify-between pr-3"
     >
-      <div className="flex min-w-0 items-center gap-3 pl-[88px]">
+      <div className="flex min-w-0 items-center gap-2.5 pl-[88px]">
         <button
           type="button"
           data-no-drag="true"

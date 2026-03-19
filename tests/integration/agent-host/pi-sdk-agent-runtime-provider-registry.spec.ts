@@ -12,35 +12,20 @@ const getAvailable = vi.fn(() => [
   },
 ]);
 
-const authCreate = vi.fn((filePath: string) => ({ filePath }));
-const modelRegistryCtor = vi.fn();
+const modelRegistryCtor = vi.fn(
+  (_authFilePath: string, _modelsFilePath: string) => ({
+    getAvailable,
+  }),
+);
 const settingsCreate = vi.fn(() => ({
   getGlobalSettings: () => ({}),
   getProjectSettings: () => ({}),
-}));
-
-vi.mock("@mariozechner/pi-coding-agent", () => ({
-  AuthStorage: {
-    create: authCreate,
-  },
-  ModelRegistry: class ModelRegistry {
-    constructor(...args: unknown[]) {
-      modelRegistryCtor(...args);
-    }
-
-    getAvailable() {
-      return getAvailable();
-    }
-  },
-  SettingsManager: {
-    create: settingsCreate,
-  },
-  createAgentSession: vi.fn(),
+  setDefaultProvider: vi.fn(),
+  setDefaultModel: vi.fn(),
 }));
 
 describe("PiSdkAgentRuntime provider registry", () => {
   beforeEach(() => {
-    authCreate.mockClear();
     modelRegistryCtor.mockClear();
     settingsCreate.mockClear();
     getAvailable.mockClear();
@@ -54,13 +39,14 @@ describe("PiSdkAgentRuntime provider registry", () => {
     const runtime = new PiSdkAgentRuntime({
       cwd: "/tmp/project",
       agentDir: "/tmp/project/.pi/agent",
+      createModelRegistry: modelRegistryCtor,
+      createSettingsManager: settingsCreate,
     });
 
     const providers = await runtime.getProviders();
 
-    expect(authCreate).toHaveBeenCalledWith(`${homedir()}/.pi/agent/auth.json`);
     expect(modelRegistryCtor).toHaveBeenCalledWith(
-      { filePath: `${homedir()}/.pi/agent/auth.json` },
+      `${homedir()}/.pi/agent/auth.json`,
       `${homedir()}/.pi/agent/models.json`,
     );
     expect(settingsCreate).toHaveBeenCalledWith(
