@@ -98,7 +98,7 @@ export function LeftSidebar({
   return (
     <aside
       className={cn(
-        "relative z-10 flex h-full shrink-0 flex-col bg-[#0e0e0e]",
+        "relative z-10 flex h-full shrink-0 flex-col bg-[#0e0e0e] ml-16",
         "transition-[width] duration-150 ease-[var(--ease-out)]",
         isCollapsed && "overflow-hidden",
         className,

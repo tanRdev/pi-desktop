@@ -342,7 +342,7 @@ export function WorkspaceShell({
           className="z-10"
         />
 
-        <main className="relative z-10 flex min-w-0 flex-1 flex-col">
+        <main className="relative z-10 flex min-w-0 flex-1 flex-col ml-16">
           <CanvasGrid
             snapGridSize={snapGridSize}
             className="pointer-events-none absolute inset-0 z-0 opacity-50"

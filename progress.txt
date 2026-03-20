@@ -19,3 +19,12 @@ Started: Fri Mar 20 10:36:15 EDT 2026
   - PromptDock is now a simpler component without heavy wrapper styling
   - The prompt input integrates with the canvas via shrink-0 flex positioning
 ---
+## Fri Mar 20 10:55:00 EDT 2026 - US-002
+- Increased dotted grid visibility by changing dot opacity from 0.1 to 0.3 and dot size from 0.5px to 1px
+- The grid was too faint because combined opacity (0.1 * 0.5 = 0.05) was barely visible
+- Files changed: apps/desktop/src/renderer/src/components/canvas/canvas-grid.tsx
+- **Learnings for future iterations:**
+  - CanvasGrid uses radial-gradient for dotted pattern, not a separate image
+  - Grid is positioned with absolute inset-0 z-0 behind canvas content
+  - Effective visibility = dot opacity * wrapper opacity (e.g., 0.3 * 0.5 = 0.15)
+---

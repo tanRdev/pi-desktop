@@ -28,7 +28,7 @@
         "Typecheck passes"
       ],
       "priority": 1,
-      "passes": false,
+      "passes": true,
       "notes": "File: canvas-grid.tsx, workspace-shell.tsx - grid exists but may be hidden or opacity too low"
     },
     {
