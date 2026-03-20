@@ -121,7 +121,14 @@ export type CodeBlockProps = {
 
 function CodeBlock({ children, className, ...props }: CodeBlockProps) {
   return (
-    <div className={cn("not-prose flex w-full flex-col", className)} {...props}>
+    <div
+      className={cn(
+        "not-prose flex w-full flex-col",
+        "transition-all duration-150 ease-out",
+        className,
+      )}
+      {...props}
+    >
       {children}
     </div>
   );
@@ -229,7 +236,12 @@ function CodeBlockCode({
   if (isTooLarge) {
     return (
       <div className={classNames} {...props}>
-        <div className="sticky top-0 z-10 border-b border-border-subtle bg-surface-2/80 px-4 py-2 text-xs text-muted-foreground backdrop-blur">
+        <div
+          className={cn(
+            "sticky top-0 z-10 border-b border-border-subtle bg-surface-2/80 px-4 py-2 text-xs text-muted-foreground backdrop-blur",
+            "transition-all duration-150 ease-out",
+          )}
+        >
           File too large for syntax highlighting
         </div>
         <div className="p-4">
@@ -245,14 +257,22 @@ function CodeBlockCode({
   return (
     <div className={classNames} {...props}>
       {isHighlighting && (
-        <div className="sticky top-0 z-10 border-b border-border-subtle bg-surface-2/80 px-4 py-2 text-xs text-muted-foreground backdrop-blur">
+        <div
+          className={cn(
+            "sticky top-0 z-10 border-b border-border-subtle bg-surface-2/80 px-4 py-2 text-xs text-muted-foreground backdrop-blur",
+            "transition-all duration-150 ease-out",
+          )}
+        >
           Loading syntax highlighting...
         </div>
       )}
       {highlightedHtml ? (
-        <div ref={containerRef} className="p-4" />
+        <div
+          ref={containerRef}
+          className="p-4 transition-opacity duration-150 ease-out"
+        />
       ) : (
-        <div className="p-4">
+        <div className="p-4 transition-opacity duration-150 ease-out">
           <pre className="whitespace-pre-wrap break-words">
             <code>{code}</code>
           </pre>
@@ -271,7 +291,11 @@ function CodeBlockGroup({
 }: CodeBlockGroupProps) {
   return (
     <div
-      className={cn("flex items-center justify-between", className)}
+      className={cn(
+        "flex items-center justify-between",
+        "transition-all duration-150 ease-out",
+        className,
+      )}
       {...props}
     >
       {children}

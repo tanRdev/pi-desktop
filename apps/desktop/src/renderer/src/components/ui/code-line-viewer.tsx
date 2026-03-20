@@ -233,7 +233,14 @@ export function CodeLineViewer({
   }
 
   return (
-    <div ref={containerRef} className={cn("relative select-none", className)}>
+    <div
+      ref={containerRef}
+      className={cn(
+        "relative select-none",
+        "animate-in fade-in duration-200 [transition-timing-function:var(--ease-out)]",
+        className,
+      )}
+    >
       {/* Code with line numbers overlay */}
       <div className="flex">
         {/* Line numbers column */}
@@ -257,6 +264,8 @@ export function CodeLineViewer({
                   data-line-number={lineNumber}
                   className={cn(
                     "line-row group relative flex h-[1.625rem] cursor-pointer items-center",
+                    "transition-transform duration-150 [transition-timing-function:var(--ease-out)]",
+                    "motion-reduce:transition-none",
                     isDragging && "cursor-grabbing",
                   )}
                   onMouseEnter={() => {
@@ -279,12 +288,26 @@ export function CodeLineViewer({
                 >
                   {/* Selection highlight */}
                   {isSelected && (
-                    <div className="pointer-events-none absolute inset-0 -left-4 right-0 bg-primary/10" />
+                    <div
+                      className={cn(
+                        "pointer-events-none absolute inset-0 -left-4 right-0 bg-primary/10",
+                        "origin-left transition-all duration-200 [transition-timing-function:var(--ease-out)]",
+                        "motion-reduce:transition-none",
+                        "animate-in fade-in-50 scale-x-95 duration-200",
+                      )}
+                    />
                   )}
 
                   {/* Hover highlight */}
                   {isHovered && !isSelected && (
-                    <div className="pointer-events-none absolute inset-0 -left-4 right-0 bg-surface-2/50" />
+                    <div
+                      className={cn(
+                        "pointer-events-none absolute inset-0 -left-4 right-0 bg-surface-2/50",
+                        "origin-left transition-all duration-200 [transition-timing-function:var(--ease-out)]",
+                        "motion-reduce:transition-none",
+                        "animate-in fade-in-50 scale-x-95 duration-200",
+                      )}
+                    />
                   )}
 
                   {/* Plus button - always visible on hover or selection */}
@@ -292,10 +315,15 @@ export function CodeLineViewer({
                     type="button"
                     onClick={(e) => handleLineClick(lineNumber, e)}
                     className={cn(
-                      "absolute left-0 flex size-5 items-center justify-center rounded text-muted-foreground transition",
+                      "absolute left-0 flex size-5 items-center justify-center rounded text-muted-foreground",
+                      "transition-all duration-200 [transition-timing-function:var(--ease-out)]",
+                      "hover:scale-110 hover:-translate-y-[1px]",
+                      "active:scale-[0.97] motion-reduce:active:scale-100",
+                      "focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary/50",
+                      "motion-reduce:transform-none motion-reduce:transition-none",
                       isHovered || isSelected
                         ? "opacity-100 hover:bg-surface-3 hover:text-foreground"
-                        : "opacity-0",
+                        : "opacity-0 scale-95",
                     )}
                     aria-label={`Select line ${lineNumber}`}
                   >
@@ -306,8 +334,9 @@ export function CodeLineViewer({
                   <span
                     className={cn(
                       "ml-5 text-right text-xs",
+                      "transition-all duration-200 [transition-timing-function:var(--ease-out)]",
                       isSelected
-                        ? "text-primary font-medium"
+                        ? "text-primary font-medium translate-x-[2px]"
                         : "text-muted-foreground/50 hover:text-muted-foreground",
                     )}
                     style={{ width: `${lineNumberWidth - 1.5}rem` }}
@@ -333,17 +362,33 @@ export function CodeLineViewer({
       {/* Popover */}
       {showPopover && selection && (
         <div
-          className="absolute z-50 animate-in fade-in-0 slide-in-from-top-1"
+          className={cn(
+            "absolute z-50",
+            "animate-in fade-in-0 slide-in-from-top-1 zoom-in-95 duration-200 [transition-timing-function:var(--ease-out)]",
+            "motion-reduce:animate-none",
+          )}
           style={{
             top: popoverPosition.top,
             left: popoverPosition.left,
           }}
         >
-          <div className="flex items-center gap-1 rounded-lg border border-border bg-popover p-1 shadow-lg">
+          <div
+            className={cn(
+              "flex items-center gap-1 rounded-lg border border-border bg-popover p-1 shadow-lg",
+              "transition-all duration-200 [transition-timing-function:var(--ease-out)]",
+            )}
+          >
             <button
               type="button"
               onClick={handleAddToChat}
-              className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-popover-foreground transition hover:bg-accent"
+              className={cn(
+                "flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-popover-foreground",
+                "transition-all duration-200 [transition-timing-function:var(--ease-out)]",
+                "hover:bg-accent hover:scale-105 hover:-translate-y-[1px]",
+                "active:scale-[0.97] motion-reduce:active:scale-100",
+                "focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary/50",
+                "motion-reduce:transform-none motion-reduce:transition-none",
+              )}
             >
               <HugeiconsIcon icon={MessageSquare} className="size-3" />
               Add to chat

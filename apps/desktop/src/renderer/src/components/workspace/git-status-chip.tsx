@@ -15,7 +15,8 @@ export interface GitStatusChipProps {
   className?: string;
 }
 
-const iconClass = "h-3 w-3";
+const iconClass = "h-3 w-3 transition-all duration-[var(--duration-fast)] motion-reduce:transition-none";
+const iconStyle = { transitionTimingFunction: "var(--ease-out)" };
 
 export function GitStatusChip({ git, className }: GitStatusChipProps) {
   // Hide completely if clean (no changes, no ahead/behind)
@@ -38,9 +39,17 @@ export function GitStatusChip({ git, className }: GitStatusChipProps) {
       unavailable: <WifiOff className={cn(iconClass, "text-amber-400")} />,
     };
     return (
-      <span className={cn("shrink-0", className)}>
+      <span
+        className={cn(
+          "shrink-0",
+          "transition-all duration-[var(--duration-fast)] motion-reduce:transition-none",
+          "hover:scale-110 active:scale-95 motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
+          className,
+        )}
+        style={{ transitionTimingFunction: "var(--ease-out)" }}
+      >
         {statusIcons[git.status] ?? (
-          <AlertCircle className={cn(iconClass, "text-amber-400")} />
+          <AlertCircle className={cn(iconClass, "text-amber-400")} style={iconStyle} />
         )}
       </span>
     );
@@ -49,8 +58,16 @@ export function GitStatusChip({ git, className }: GitStatusChipProps) {
   // Ready + has local changes (dirty)
   if (git.hasChanges) {
     return (
-      <span className={cn("shrink-0", className)}>
-        <Pencil className={cn(iconClass, "text-amber-400")} />
+      <span
+        className={cn(
+          "shrink-0",
+          "transition-all duration-[var(--duration-fast)] motion-reduce:transition-none",
+          "hover:scale-110 active:scale-95 motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
+          className,
+        )}
+        style={{ transitionTimingFunction: "var(--ease-out)" }}
+      >
+        <Pencil className={cn(iconClass, "text-amber-400")} style={iconStyle} />
       </span>
     );
   }
@@ -62,8 +79,16 @@ export function GitStatusChip({ git, className }: GitStatusChipProps) {
   if (ahead > 0 && behind > 0) {
     // Diverged — local and remote have diverged
     return (
-      <span className={cn("shrink-0", className)}>
-        <GitFork className={cn(iconClass, "text-violet-400")} />
+      <span
+        className={cn(
+          "shrink-0",
+          "transition-all duration-[var(--duration-fast)] motion-reduce:transition-none",
+          "hover:scale-110 active:scale-95 motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
+          className,
+        )}
+        style={{ transitionTimingFunction: "var(--ease-out)" }}
+      >
+        <GitFork className={cn(iconClass, "text-violet-400")} style={iconStyle} />
       </span>
     );
   }
@@ -71,16 +96,32 @@ export function GitStatusChip({ git, className }: GitStatusChipProps) {
   if (ahead > 0) {
     // Ahead of remote — needs push
     return (
-      <span className={cn("shrink-0", className)}>
-        <ArrowUp className={cn(iconClass, "text-sky-400")} />
+      <span
+        className={cn(
+          "shrink-0",
+          "transition-all duration-[var(--duration-fast)] motion-reduce:transition-none",
+          "hover:scale-110 active:scale-95 motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
+          className,
+        )}
+        style={{ transitionTimingFunction: "var(--ease-out)" }}
+      >
+        <ArrowUp className={cn(iconClass, "text-sky-400")} style={iconStyle} />
       </span>
     );
   }
 
   // Behind remote — needs pull
   return (
-    <span className={cn("shrink-0", className)}>
-      <ArrowDown className={cn(iconClass, "text-orange-400")} />
+    <span
+      className={cn(
+        "shrink-0",
+        "transition-all duration-[var(--duration-fast)] motion-reduce:transition-none",
+        "hover:scale-110 active:scale-95 motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
+        className,
+      )}
+      style={{ transitionTimingFunction: "var(--ease-out)" }}
+    >
+      <ArrowDown className={cn(iconClass, "text-orange-400")} style={iconStyle} />
     </span>
   );
 }

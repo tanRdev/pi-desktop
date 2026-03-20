@@ -18,6 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
+import { cn } from "@/lib/utils";
 
 export interface ProjectIconOption {
   id: string;
@@ -129,7 +130,7 @@ export function ProjectIconPicker({
         </DialogHeader>
 
         <div className="grid grid-cols-2 gap-2 pt-2 sm:grid-cols-3">
-          {PROJECT_ICON_OPTIONS.map((option) => {
+          {PROJECT_ICON_OPTIONS.map((option, index) => {
             const Icon = option.icon;
             const isSelected = option.id === selectedIconId;
 
@@ -141,14 +142,21 @@ export function ProjectIconPicker({
                   void onSelect(option.id === "auto" ? null : option.id);
                   onOpenChange(false);
                 }}
-                className={[
-                  "flex items-center gap-2 rounded-xl border px-3 py-3 text-left transition",
+                className={cn(
+                  "flex items-center gap-2 rounded-xl border px-3 py-3 text-left",
+                  "transition-all duration-[var(--duration-fast)] motion-reduce:transition-none",
+                  "hover:scale-[1.02] active:scale-[0.97] motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
                   isSelected
                     ? "border-border bg-surface-2 text-foreground shadow-sm"
                     : "border-border/70 bg-surface-1 text-muted-foreground hover:border-border hover:bg-surface-2 hover:text-foreground",
-                ].join(" ")}
+                )}
+                style={{
+                  transitionTimingFunction: "var(--ease-out)",
+                  animationDelay: `${index * 30}ms`,
+                }}
               >
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-surface-2">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-surface-2 transition-transform duration-[var(--duration-fast)] motion-reduce:transition-none group-hover:scale-105">
                   <Icon className="h-4 w-4" />
                 </span>
                 <span className="text-xs font-medium">{option.label}</span>

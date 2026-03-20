@@ -19,6 +19,8 @@ const Separator = React.forwardRef<
       orientation={orientation}
       className={cn(
         "shrink-0 bg-border",
+        "transition-all duration-[150ms] ease-[var(--ease-out)]",
+        "motion-reduce:transition-none",
         orientation === "horizontal" ? "h-[1px] w-full" : "h-full w-[1px]",
         className,
       )}

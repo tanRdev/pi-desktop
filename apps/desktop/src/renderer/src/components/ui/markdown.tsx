@@ -115,7 +115,11 @@ const INITIAL_COMPONENTS: Partial<Components> = {
     return (
       <a
         href={href}
-        className="text-sm text-primary underline underline-offset-4 decoration-primary/30 hover:decoration-primary transition-colors"
+        className={cn(
+          "text-sm text-primary underline underline-offset-4 decoration-primary/30",
+          "transition-all duration-150 ease-out",
+          "hover:decoration-primary hover:text-primary/80",
+        )}
         {...props}
       >
         {children}
@@ -144,7 +148,14 @@ const INITIAL_COMPONENTS: Partial<Components> = {
     );
   },
   hr: function HrComponent() {
-    return <hr className="my-8 border-t border-border" />;
+    return (
+      <hr
+        className={cn(
+          "my-8 border-t border-border",
+          "transition-colors duration-150 ease-out",
+        )}
+      />
+    );
   },
   br: function BrComponent() {
     return <br className="block content-['']" />;
@@ -179,7 +190,11 @@ const INITIAL_COMPONENTS: Partial<Components> = {
   blockquote: function BlockquoteComponent({ children, ...props }) {
     return (
       <blockquote
-        className="my-6 border-l-2 border-primary/30 pl-4 italic text-foreground/80"
+        className={cn(
+          "my-6 border-l-2 border-primary/30 pl-4 italic text-foreground/80",
+          "transition-all duration-150 ease-out",
+          "hover:border-primary/50",
+        )}
         {...props}
       >
         {children}
@@ -197,6 +212,8 @@ const INITIAL_COMPONENTS: Partial<Components> = {
           className={cn(
             "rounded bg-surface-3 px-1.5 py-0.5 font-mono text-xs",
             "text-foreground",
+            "transition-all duration-150 ease-out",
+            "hover:bg-surface-4",
             className,
           )}
           {...props}
@@ -244,7 +261,13 @@ const INITIAL_COMPONENTS: Partial<Components> = {
   },
   tr: function TrComponent({ children, ...props }) {
     return (
-      <tr className="transition-colors hover:bg-surface-2/30" {...props}>
+      <tr
+        className={cn(
+          "transition-all duration-150 ease-out",
+          "hover:bg-surface-2/50",
+        )}
+        {...props}
+      >
         {children}
       </tr>
     );
@@ -271,7 +294,11 @@ const INITIAL_COMPONENTS: Partial<Components> = {
       <img
         src={src}
         alt={alt}
-        className="my-6 rounded-lg border border-border shadow-sm max-w-full"
+        className={cn(
+          "my-6 rounded-lg border border-border shadow-sm max-w-full",
+          "transition-all duration-200 ease-out",
+          "hover:shadow-md hover:scale-[1.02]",
+        )}
         {...props}
       />
     );

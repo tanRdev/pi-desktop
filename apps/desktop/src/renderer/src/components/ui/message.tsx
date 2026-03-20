@@ -14,7 +14,15 @@ export type MessageProps = {
 } & React.HTMLProps<HTMLDivElement>;
 
 const Message = ({ children, className, ...props }: MessageProps) => (
-  <div className={cn("flex gap-2.5", className)} {...props}>
+  <div
+    className={cn(
+      "flex gap-2.5",
+      "transition-opacity duration-[var(--duration-normal)] ease-[var(--ease-out)]",
+      "motion-reduce:transition-none motion-reduce:duration-0",
+      className,
+    )}
+    {...props}
+  >
     {children}
   </div>
 );
@@ -35,7 +43,16 @@ const MessageAvatar = ({
   className,
 }: MessageAvatarProps) => {
   return (
-    <Avatar className={cn("h-7 w-7 shrink-0 rounded-sm", className)}>
+    <Avatar
+      className={cn(
+        "h-7 w-7 shrink-0 rounded-sm",
+        "transition-transform duration-[var(--duration-fast)] ease-[var(--ease-out)]",
+        "hover:scale-105",
+        "active:scale-[0.97]",
+        "motion-reduce:transition-none motion-reduce:duration-0",
+        className,
+      )}
+    >
       <AvatarImage src={src} alt={alt} />
       {fallback && (
         <AvatarFallback delayMs={delayMs}>{fallback}</AvatarFallback>
@@ -59,6 +76,9 @@ const MessageContent = ({
 }: MessageContentProps) => {
   const classNames = cn(
     "shell-console-message rounded-sm border border-border-subtle bg-surface-2 px-3 py-2 text-[13px] leading-6 text-foreground prose break-words whitespace-normal",
+    "transition-colors transition-border duration-[var(--duration-fast)] ease-[var(--ease-out)]",
+    "hover:border-border/60",
+    "motion-reduce:transition-none motion-reduce:duration-0",
     className,
   );
 
@@ -84,7 +104,13 @@ const MessageActions = ({
   ...props
 }: MessageActionsProps) => (
   <div
-    className={cn("text-muted-foreground flex items-center gap-2", className)}
+    className={cn(
+      "text-muted-foreground flex items-center gap-2",
+      "opacity-0 transition-opacity duration-[var(--duration-fast)] ease-[var(--ease-out)]",
+      "group-hover:opacity-100",
+      "motion-reduce:transition-none motion-reduce:duration-0",
+      className,
+    )}
     {...props}
   >
     {children}
@@ -108,8 +134,17 @@ const MessageAction = ({
   return (
     <TooltipProvider>
       <Tooltip {...props}>
-        <TooltipTrigger asChild>{children}</TooltipTrigger>
-        <TooltipContent side={side} className={className}>
+        <TooltipTrigger asChild>
+          {children}
+        </TooltipTrigger>
+        <TooltipContent
+          side={side}
+          className={cn(
+            "transition-colors transition-opacity duration-[var(--duration-fast)] ease-[var(--ease-out)]",
+            "motion-reduce:transition-none motion-reduce:duration-0",
+            className,
+          )}
+        >
           {tooltip}
         </TooltipContent>
       </Tooltip>

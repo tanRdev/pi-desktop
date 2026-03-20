@@ -212,6 +212,12 @@ export interface WindowLayoutState {
   focusedWindowId: string | null;
   /** Grid size for snapping (pixels) */
   snapGridSize: number;
+  /** Canvas zoom scale (1.0 = 100%) */
+  zoom: number;
+  /** Canvas pan offset X */
+  panX: number;
+  /** Canvas pan offset Y */
+  panY: number;
 }
 
 /**

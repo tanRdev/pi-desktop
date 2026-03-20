@@ -157,7 +157,14 @@ export function CodeEditor({
     language ?? (filePath ? getLanguageFromPath(filePath) : "plaintext");
 
   return (
-    <div className={cn("h-full w-full overflow-hidden", className)}>
+    <div
+      className={cn(
+        "h-full w-full overflow-hidden",
+        "animate-in fade-in zoom-in-95 duration-200 [transition-timing-function:var(--ease-out)]",
+        "motion-reduce:animate-none",
+        className,
+      )}
+    >
       <Editor
         height="100%"
         language={detectedLanguage}
@@ -166,8 +173,21 @@ export function CodeEditor({
         onChange={handleChange}
         onMount={handleMount}
         loading={
-          <div className="flex h-full items-center justify-center text-muted-foreground">
-            Loading editor...
+          <div
+            className={cn(
+              "flex h-full items-center justify-center text-muted-foreground",
+              "animate-in fade-in zoom-in-95 duration-200 [transition-timing-function:var(--ease-out)]",
+            )}
+          >
+            <div className="flex items-center gap-2">
+              <div
+                className={cn(
+                  "size-4 animate-spin rounded-full border-2 border-border border-t-primary",
+                  "transition-all duration-150 [transition-timing-function:var(--ease-out)]",
+                )}
+              />
+              Loading editor...
+            </div>
           </div>
         }
         options={{

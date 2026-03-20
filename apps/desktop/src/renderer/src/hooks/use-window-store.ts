@@ -24,6 +24,9 @@ const FALLBACK_LAYOUT: WindowLayoutState = {
   nextZIndex: 1,
   focusedWindowId: null,
   snapGridSize: 16,
+  zoom: 1,
+  panX: 0,
+  panY: 0,
 };
 
 const workspaceSessionStore = createWorkspaceSessionStore({
@@ -48,6 +51,11 @@ export interface WindowStoreAdapter {
   resizeWindow: WorkspaceSessionStoreState["resizeWindow"];
   updateWindow: WorkspaceSessionStoreState["updateWindow"];
   setDirty: WorkspaceSessionStoreState["setDirty"];
+  setZoom: WorkspaceSessionStoreState["setZoom"];
+  zoomIn: WorkspaceSessionStoreState["zoomIn"];
+  zoomOut: WorkspaceSessionStoreState["zoomOut"];
+  resetZoom: WorkspaceSessionStoreState["resetZoom"];
+  setPan: WorkspaceSessionStoreState["setPan"];
   setDraggingWindowId(windowId: string | null): void;
   setResizingWindowId(windowId: string | null): void;
   setSnapPreview(preview: WindowStoreState["snapPreview"]): void;
@@ -162,6 +170,11 @@ function getStoreAdapter(): WindowStoreAdapter {
     resizeWindow: workspaceSessionStore.getState().resizeWindow,
     updateWindow: workspaceSessionStore.getState().updateWindow,
     setDirty: workspaceSessionStore.getState().setDirty,
+    setZoom: workspaceSessionStore.getState().setZoom,
+    zoomIn: workspaceSessionStore.getState().zoomIn,
+    zoomOut: workspaceSessionStore.getState().zoomOut,
+    resetZoom: workspaceSessionStore.getState().resetZoom,
+    setPan: workspaceSessionStore.getState().setPan,
     setDraggingWindowId(windowId) {
       uiInteractionStore.getState().setDraggingWindowId(windowId);
     },
@@ -189,6 +202,11 @@ export function useWindowStore() {
     resizeWindow: store.resizeWindow,
     updateWindow: store.updateWindow,
     setDirty: store.setDirty,
+    setZoom: store.setZoom,
+    zoomIn: store.zoomIn,
+    zoomOut: store.zoomOut,
+    resetZoom: store.resetZoom,
+    setPan: store.setPan,
     setDraggingWindowId: store.setDraggingWindowId,
     setResizingWindowId: store.setResizingWindowId,
     setSnapPreview: store.setSnapPreview,

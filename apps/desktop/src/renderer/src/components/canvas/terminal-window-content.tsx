@@ -35,7 +35,14 @@ export function TerminalWindowContent({
   className,
 }: TerminalWindowContentProps) {
   return (
-    <div className={cn("h-full w-full", className)}>
+    <div
+      className={cn(
+        "h-full w-full",
+        // Window enter animation - scale from 0.95 with translateY
+        "animate-[window-enter_300ms_cubic-bezier(0.23,1,0.32,1)_forwards]",
+        className
+      )}
+    >
       <Terminal
         id={terminalId}
         cwd={cwd}

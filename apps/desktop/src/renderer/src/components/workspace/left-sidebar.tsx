@@ -98,7 +98,9 @@ export function LeftSidebar({
   return (
     <aside
       className={cn(
-        "relative z-10 flex h-full shrink-0 flex-col border-r border-border bg-surface-1 transition-[width] duration-200 ease-in-out",
+        "relative z-10 flex h-full shrink-0 flex-col border-r border-border bg-surface-1",
+        "transition-[width] duration-200 ease-[var(--ease-out)]",
+        "motion-reduce:transition-none",
         isCollapsed && "overflow-hidden border-r-0",
         className,
       )}
@@ -114,19 +116,24 @@ export function LeftSidebar({
 
       <ScrollArea className="min-h-0 flex-1">
         <div className="px-2 py-2">
-          {worktrees.map((worktree) => (
-            <WorktreeSection
+          {worktrees.map((worktree, index) => (
+            <div
               key={worktree.id}
-              worktree={worktree}
-              activeWorktreeId={activeWorktreeId}
-              activeThreadId={activeThreadId}
-              isExpanded={expandedWorktreeId === worktree.id}
-              onToggleExpand={() => handleToggleWorktree(worktree.id)}
-              onSelectThread={onSelectThread}
-              onCreateThread={() => onCreateThread(worktree.id)}
-              onCloseThread={onCloseThread}
-              onRenameThread={onRenameThread}
-            />
+              className="stagger-item"
+              style={{ animationDelay: `${index * 50}ms` }}
+            >
+              <WorktreeSection
+                worktree={worktree}
+                activeWorktreeId={activeWorktreeId}
+                activeThreadId={activeThreadId}
+                isExpanded={expandedWorktreeId === worktree.id}
+                onToggleExpand={() => handleToggleWorktree(worktree.id)}
+                onSelectThread={onSelectThread}
+                onCreateThread={() => onCreateThread(worktree.id)}
+                onCloseThread={onCloseThread}
+                onRenameThread={onRenameThread}
+              />
+            </div>
           ))}
 
           {worktrees.length === 0 && (
@@ -141,7 +148,14 @@ export function LeftSidebar({
         <div className="border-t border-border px-2 py-2">
           <button
             type="button"
-            className="flex h-7 w-full items-center gap-2 rounded-md px-2 text-xs text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
+            className={cn(
+              "flex h-7 w-full items-center gap-2 rounded-md px-2 text-xs text-muted-foreground",
+              "transition-all duration-150 ease-[var(--ease-out)]",
+              "hover:bg-surface-2 hover:text-foreground hover:translate-y-[-1px]",
+              "active:scale-[0.97] active:translate-y-0",
+              "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/50 focus-visible:outline-offset-2",
+              "motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:active:scale-100",
+            )}
             onClick={onCreateWorktree}
           >
             <FolderPlus className="h-3.5 w-3.5" />
@@ -154,6 +168,9 @@ export function LeftSidebar({
         <div
           className={cn(
             "absolute right-0 top-0 bottom-0 w-1 cursor-col-resize",
+            "hover:bg-ring/10 transition-colors duration-150 ease-[var(--ease-out)]",
+            "motion-reduce:transition-none",
+            isResizing && "bg-ring/20",
           )}
           onMouseDown={() => setIsResizing(true)}
           title="Drag to resize"

@@ -11,6 +11,7 @@ import {
 } from "@pidesk/ui";
 import { ArrowUp, ChevronDown } from "lucide-react";
 import * as React from "react";
+import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import PromptAutocomplete from "../ui/prompt-autocomplete";
@@ -69,6 +70,7 @@ export function PromptDock({
   onModelSelection,
 }: PromptDockProps) {
   const [modelOpen, setModelOpen] = React.useState(false);
+  const [isFocused, setIsFocused] = React.useState(false);
 
   // Find current model display name
   const currentModelDisplay = React.useMemo(() => {
@@ -110,13 +112,24 @@ export function PromptDock({
   };
 
   return (
-    <div className="relative z-20 bg-background/80 pb-4 pt-3 backdrop-blur-sm">
+    <div
+      className={cn(
+        "relative z-20 bg-background/80 pb-4 pt-3 backdrop-blur-sm",
+        "transition-opacity duration-200 ease-[var(--ease-out)]",
+        "motion-reduce:transition-none",
+      )}
+    >
       <div className="mx-auto max-w-4xl px-6">
         <PromptInput
           value={draft}
           onValueChange={onDraftChange}
           onSubmit={() => void onSend()}
-          className="shell-dock bg-surface-1 px-4 py-3"
+          className={cn(
+            "shell-dock bg-surface-1 px-4 py-3",
+            "transition-all duration-200 ease-[var(--ease-out)]",
+            "motion-reduce:transition-none",
+            isFocused && "border-border-hover shadow-md",
+          )}
         >
           <PromptInputTextarea
             data-testid="chat-input"
@@ -127,7 +140,15 @@ export function PromptDock({
             }
             disabled={!activeThreadId}
             onKeyDown={onPromptKeyDown}
-            className="min-h-20 resize-none border-0 bg-transparent px-0.5 py-0.5 text-[13px] leading-6 text-foreground placeholder:text-muted-foreground outline-none focus-visible:border-transparent focus-visible:ring-0 disabled:opacity-50"
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            className={cn(
+              "min-h-20 resize-none border-0 bg-transparent px-0.5 py-0.5 text-[13px] leading-6",
+              "text-foreground placeholder:text-muted-foreground outline-none",
+              "focus-visible:border-transparent focus-visible:ring-0 disabled:opacity-50",
+              "transition-colors duration-150 ease-[var(--ease-out)]",
+              "motion-reduce:transition-none",
+            )}
           />
           <PromptAutocomplete
             visible={autocompleteSuggestions.length > 0}
@@ -154,12 +175,25 @@ export function PromptDock({
                     disabled={
                       isSwitchingModel || providerSnapshots.length === 0
                     }
-                    className="flex items-center gap-1.5 rounded-sm bg-surface-2/80 px-2 py-0.5 text-[10px] text-muted-foreground transition-colors hover:bg-surface-2 disabled:opacity-50"
+                    className={cn(
+                      "flex items-center gap-1.5 rounded-sm bg-surface-2/80 px-2 py-0.5 text-[10px] text-muted-foreground",
+                      "transition-all duration-150 ease-[var(--ease-out)]",
+                      "hover:bg-surface-2 hover:text-foreground hover:translate-y-[-1px]",
+                      "active:scale-[0.97] active:translate-y-0",
+                      "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/50 focus-visible:outline-offset-2",
+                      "disabled:opacity-50 motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:active:scale-100",
+                    )}
                   >
                     <span className="max-w-[120px] truncate">
                       {currentModelDisplay}
                     </span>
-                    <ChevronDown className="h-3 w-3 opacity-70" />
+                    <ChevronDown
+                      className={cn(
+                        "h-3 w-3 opacity-70 transition-transform duration-150 ease-[var(--ease-out)]",
+                        "motion-reduce:transition-none",
+                        modelOpen && "rotate-180",
+                      )}
+                    />
                   </button>
                 </PopoverTrigger>
                 <PopoverContent
@@ -169,12 +203,16 @@ export function PromptDock({
                   className="w-56 p-1"
                 >
                   <div className="max-h-48 overflow-y-auto">
-                    {providerSnapshots.map((provider) => (
-                      <div key={provider.id} className="py-1">
+                    {providerSnapshots.map((provider, providerIndex) => (
+                      <div
+                        key={provider.id}
+                        className="stagger-item py-1"
+                        style={{ animationDelay: `${providerIndex * 30}ms` }}
+                      >
                         <div className="px-2 py-1 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
                           {provider.name}
                         </div>
-                        {provider.models.map((model) => {
+                        {provider.models.map((model, modelIndex) => {
                           const value = `${provider.id}::${model.id}`;
                           const isSelected = value === currentModelValue;
                           return (
@@ -182,11 +220,19 @@ export function PromptDock({
                               key={`${provider.id}:${model.id}`}
                               type="button"
                               onClick={() => handleModelSelect(value)}
-                              className={`w-full rounded-sm px-2 py-1.5 text-left text-[11px] transition-colors ${
+                              className={cn(
+                                "w-full rounded-sm px-2 py-1.5 text-left text-[11px]",
+                                "transition-all duration-150 ease-[var(--ease-out)]",
+                                "hover:translate-x-0.5",
+                                "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/50 focus-visible:outline-offset-2",
+                                "motion-reduce:transition-none motion-reduce:hover:translate-x-0",
                                 isSelected
                                   ? "bg-surface-2 text-foreground"
-                                  : "text-muted-foreground hover:bg-surface-1 hover:text-foreground"
-                              }`}
+                                  : "text-muted-foreground hover:bg-surface-1 hover:text-foreground",
+                              )}
+                              style={{
+                                animationDelay: `${(providerIndex * 30) + ((modelIndex + 1) * 20)}ms`,
+                              }}
                             >
                               {model.name}
                             </button>
@@ -212,9 +258,23 @@ export function PromptDock({
                   size="icon"
                   disabled={!canSend}
                   onClick={() => void onSend()}
-                  className="shell-send-button size-8 rounded-sm border border-border-subtle bg-surface-2 text-foreground transition-colors hover:bg-surface-3 disabled:opacity-50"
+                  className={cn(
+                    "shell-send-button size-8 rounded-sm border border-border-subtle bg-surface-2 text-foreground",
+                    "transition-all duration-150 ease-[var(--ease-out)]",
+                    "hover:bg-surface-3 hover:border-border hover:shadow-sm hover:translate-y-[-1px]",
+                    "active:scale-[0.97] active:translate-y-0",
+                    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/50 focus-visible:outline-offset-2",
+                    "disabled:opacity-50 motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:active:scale-100",
+                    canSend && "hover:shadow-sm",
+                  )}
                 >
-                  <ArrowUp className="size-4" />
+                  <ArrowUp
+                    className={cn(
+                      "size-4 transition-transform duration-150 ease-[var(--ease-out)]",
+                      "motion-reduce:transition-none",
+                      canSend && "group-hover:-translate-y-0.5",
+                    )}
+                  />
                 </Button>
               </PromptInputAction>
             </div>

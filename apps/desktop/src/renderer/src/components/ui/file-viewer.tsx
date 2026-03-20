@@ -137,7 +137,12 @@ export function FileViewer({
   return (
     <div className={cn("flex h-full flex-col", className)}>
       {/* Header */}
-      <div className="flex h-12 shrink-0 items-center justify-between border-b border-border bg-surface-2 px-4">
+      <div
+        className={cn(
+          "flex h-12 shrink-0 items-center justify-between border-b border-border bg-surface-2 px-4",
+          "transition-colors duration-150 ease-out",
+        )}
+      >
         <div className="flex min-w-0 items-center gap-2">
           {fileContent?.type === "image" ? (
             <Image className="size-4 shrink-0 text-muted-foreground" />
@@ -158,7 +163,12 @@ export function FileViewer({
             <button
               type="button"
               onClick={onOpenTerminal}
-              className="rounded p-1 text-muted-foreground transition hover:bg-surface-3 hover:text-foreground"
+              className={cn(
+                "rounded p-1 text-muted-foreground",
+                "transition-all duration-150 ease-out",
+                "hover:bg-surface-3 hover:text-foreground",
+                "active:scale-95",
+              )}
               aria-label="Open terminal"
             >
               <Terminal className="size-4" />
@@ -168,7 +178,12 @@ export function FileViewer({
             <button
               type="button"
               onClick={onClose}
-              className="rounded p-1 text-muted-foreground transition hover:bg-surface-3 hover:text-foreground"
+              className={cn(
+                "rounded p-1 text-muted-foreground",
+                "transition-all duration-150 ease-out",
+                "hover:bg-surface-3 hover:text-foreground",
+                "active:scale-95",
+              )}
               aria-label="Close file"
             >
               <X className="size-4" />
@@ -180,20 +195,41 @@ export function FileViewer({
       {/* Content */}
       <div className="min-h-0 flex-1 overflow-auto">
         {isLoading && (
-          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+          <div
+            className={cn(
+              "flex h-full items-center justify-center text-sm text-muted-foreground",
+              "animate-pulse",
+            )}
+          >
             Loading...
           </div>
         )}
 
         {error && (
-          <div className="flex h-full items-center justify-center text-sm text-destructive">
+          <div
+            className={cn(
+              "flex h-full items-center justify-center text-sm text-destructive",
+              "animate-in fade-in duration-200",
+            )}
+          >
             {error}
           </div>
         )}
 
         {fileContent?.type === "binary" && (
-          <div className="flex h-full flex-col items-center justify-center gap-3 p-8 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-surface-2">
+          <div
+            className={cn(
+              "flex h-full flex-col items-center justify-center gap-3 p-8 text-center",
+              "transition-opacity duration-200 ease-out",
+            )}
+          >
+            <div
+              className={cn(
+                "flex h-16 w-16 items-center justify-center rounded-xl bg-surface-2",
+                "transition-all duration-150 ease-out",
+                "hover:scale-105",
+              )}
+            >
               <Binary className="size-8 text-muted-foreground" />
             </div>
             <div className="space-y-1">
@@ -205,18 +241,38 @@ export function FileViewer({
           </div>
         )}
         {fileContent?.type === "image" && fileContent.content && (
-          <div className="flex h-full items-center justify-center p-4">
+          <div
+            className={cn(
+              "flex h-full items-center justify-center p-4",
+              "transition-opacity duration-200 ease-out",
+            )}
+          >
             <img
               src={fileContent.content}
               alt={fileName}
-              className="max-h-full max-w-full object-contain"
+              className={cn(
+                "max-h-full max-w-full object-contain",
+                "transition-all duration-200 ease-out",
+                "hover:scale-[1.02]",
+              )}
             />
           </div>
         )}
 
         {fileContent?.type === "unsupported" && (
-          <div className="flex h-full flex-col items-center justify-center gap-3 p-8 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-surface-2">
+          <div
+            className={cn(
+              "flex h-full flex-col items-center justify-center gap-3 p-8 text-center",
+              "transition-opacity duration-200 ease-out",
+            )}
+          >
+            <div
+              className={cn(
+                "flex h-16 w-16 items-center justify-center rounded-xl bg-surface-2",
+                "transition-all duration-150 ease-out",
+                "hover:scale-105",
+              )}
+            >
               <FileWarning className="size-8 text-muted-foreground" />
             </div>
             <div className="space-y-1">
@@ -233,7 +289,13 @@ export function FileViewer({
         {fileContent?.type === "text" && fileContent.content && (
           <div className="h-full">
             {fileContent.truncated && (
-              <div className="flex items-start gap-3 border-b border-warning/30 bg-warning/10 px-4 py-3 text-sm">
+              <div
+                className={cn(
+                  "flex items-start gap-3 border-b border-warning/30 bg-warning/10 px-4 py-3 text-sm",
+                  "transition-colors duration-150 ease-out",
+                  "hover:bg-warning/15",
+                )}
+              >
                 <FileWarning className="mt-0.5 size-4 shrink-0 text-warning" />
                 <div>
                   <p className="font-medium text-warning-foreground">
@@ -261,8 +323,19 @@ export function FileViewer({
         )}
 
         {fileContent?.type === "text" && !fileContent.content && (
-          <div className="flex h-full flex-col items-center justify-center gap-3 p-8 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-surface-2">
+          <div
+            className={cn(
+              "flex h-full flex-col items-center justify-center gap-3 p-8 text-center",
+              "transition-opacity duration-200 ease-out",
+            )}
+          >
+            <div
+              className={cn(
+                "flex h-16 w-16 items-center justify-center rounded-xl bg-surface-2",
+                "transition-all duration-150 ease-out",
+                "hover:scale-105",
+              )}
+            >
               <FileIcon className="size-8 text-muted-foreground" />
             </div>
             <div className="space-y-1">

@@ -16,6 +16,15 @@ const STATUS_STYLES: Record<ThreadRuntimeStatus, string> = {
   error: "border-rose-400/30 bg-rose-400/10 text-rose-100",
 };
 
+const STATUS_ANIMATIONS: Record<ThreadRuntimeStatus, string> = {
+  starting: "animate-pulse",
+  ready: "",
+  streaming: "animate-pulse",
+  disconnected: "animate-pulse",
+  exited: "",
+  error: "animate-pulse",
+};
+
 export function RuntimeStatusChip({
   status,
   className,
@@ -26,9 +35,14 @@ export function RuntimeStatusChip({
       data-testid={testId}
       className={cn(
         "inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide",
+        "transition-all duration-[var(--duration-normal)] motion-reduce:transition-none",
+        "hover:scale-105 active:scale-[0.97] motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
         STATUS_STYLES[status],
+        STATUS_ANIMATIONS[status],
         className,
       )}
+      style={{ transitionTimingFunction: "var(--ease-out)" }}
     >
       {status}
     </span>

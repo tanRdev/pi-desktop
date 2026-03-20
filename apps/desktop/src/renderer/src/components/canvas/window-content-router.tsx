@@ -1,6 +1,7 @@
 import type { CanvasWindow, SearchMatch, ThreadSnapshot } from "@pidesk/shared";
 import type * as React from "react";
 import { useStore } from "zustand";
+import { cn } from "@/lib/utils";
 import { workspaceSessionStore } from "../../hooks/use-window-store";
 import {
   selectFileWindowStateByWorktree,
@@ -100,16 +101,20 @@ export function WindowContentRouter({
 
   if (win.kind === "file") {
     return (
-      <FileWindowContent
-        filePath={win.filePath}
-        content={fileData?.content ?? null}
-        isLoading={fileData?.isLoading}
-        error={fileData?.error}
-        isDirty={win.isDirty}
-        isReadOnly={win.isReadOnly}
-        onContentChange={(content) => onFileContentChange(win.id, content)}
-        onSave={() => onFileSave(win.id, win.filePath)}
-      />
+      <div
+        className="h-full animate-[window-enter_300ms_cubic-bezier(0.23,1,0.32,1)_forwards] motion-reduce:animate-none"
+      >
+        <FileWindowContent
+          filePath={win.filePath}
+          content={fileData?.content ?? null}
+          isLoading={fileData?.isLoading}
+          error={fileData?.error}
+          isDirty={win.isDirty}
+          isReadOnly={win.isReadOnly}
+          onContentChange={(content) => onFileContentChange(win.id, content)}
+          onSave={() => onFileSave(win.id, win.filePath)}
+        />
+      </div>
     );
   }
 
@@ -117,93 +122,123 @@ export function WindowContentRouter({
     const conversation = threadConversation ?? EMPTY_THREAD_CONVERSATION;
 
     return (
-      <ChatWindowContent
-        threadTitle={getThreadWindowTitle(threadLookup.get(win.threadId))}
-        isActiveThread={win.threadId === activeThreadId}
-        messages={conversation.messages}
-        isStreaming={conversation.status === "streaming"}
-        lastError={conversation.lastError}
-        className="h-full"
-      />
+      <div
+        className="h-full animate-[window-enter_300ms_cubic-bezier(0.23,1,0.32,1)_forwards] motion-reduce:animate-none"
+      >
+        <ChatWindowContent
+          threadTitle={getThreadWindowTitle(threadLookup.get(win.threadId))}
+          isActiveThread={win.threadId === activeThreadId}
+          messages={conversation.messages}
+          isStreaming={conversation.status === "streaming"}
+          lastError={conversation.lastError}
+          className="h-full"
+        />
+      </div>
     );
   }
 
   if (win.kind === "note") {
     return (
-      <NoteWindowContent
-        content={noteData?.content ?? ""}
-        onContentChange={(content) => onNoteContentChange(win.id, content)}
-        onSave={() => onNoteSave(win.id, win.storagePath)}
-      />
+      <div
+        className="h-full animate-[window-enter_300ms_cubic-bezier(0.23,1,0.32,1)_forwards] motion-reduce:animate-none"
+      >
+        <NoteWindowContent
+          content={noteData?.content ?? ""}
+          onContentChange={(content) => onNoteContentChange(win.id, content)}
+          onSave={() => onNoteSave(win.id, win.storagePath)}
+        />
+      </div>
     );
   }
 
   if (win.kind === "terminal") {
     return (
-      <TerminalWindowContent
-        terminalId={win.terminalId}
-        cwd={win.cwd}
-        backend={win.backend}
-        linkedThreadId={win.linkedThreadId}
-        ownerWindowId={win.id}
-      />
+      <div
+        className="h-full animate-[window-enter_300ms_cubic-bezier(0.23,1,0.32,1)_forwards] motion-reduce:animate-none"
+      >
+        <TerminalWindowContent
+          terminalId={win.terminalId}
+          cwd={win.cwd}
+          backend={win.backend}
+          linkedThreadId={win.linkedThreadId}
+          ownerWindowId={win.id}
+        />
+      </div>
     );
   }
 
   if (win.kind === "git") {
     return (
-      <TerminalWindowContent
-        terminalId={win.terminalId}
-        cwd={win.repositoryPath}
-        backend="lazygit"
-        ownerWindowId={win.id}
-      />
+      <div
+        className="h-full animate-[window-enter_300ms_cubic-bezier(0.23,1,0.32,1)_forwards] motion-reduce:animate-none"
+      >
+        <TerminalWindowContent
+          terminalId={win.terminalId}
+          cwd={win.repositoryPath}
+          backend="lazygit"
+          ownerWindowId={win.id}
+        />
+      </div>
     );
   }
 
   if (win.kind === "search") {
     return (
-      <SearchWindowContent
-        query={win.query}
-        results={win.results}
-        isLoading={uiState?.isLoading}
-        selectedIndex={uiState?.selectedIndex}
-        onQueryChange={(query) => void onSearchQueryChange(win.id, query)}
-        onSelect={onSearchSelect}
-        onHover={(index) => onSearchHover(win.id, index)}
-        onKeyDown={onSearchKeyDown(win.id)}
-        shouldFocusInput={win.isFocused}
-        actions={[
-          {
-            id: "terminal",
-            label: "Terminal",
-            onSelect: onOpenTerminal,
-          },
-          {
-            id: "git",
-            label: "Git",
-            onSelect: onOpenGit,
-          },
-          {
-            id: "note",
-            label: "Note",
-            onSelect: onOpenNote,
-          },
-          {
-            id: "graph",
-            label: "Graph",
-            onSelect: onOpenGraph,
-          },
-        ]}
-      />
+      <div
+        className="h-full animate-[window-enter_300ms_cubic-bezier(0.23,1,0.32,1)_forwards] motion-reduce:animate-none"
+      >
+        <SearchWindowContent
+          query={win.query}
+          results={win.results}
+          isLoading={uiState?.isLoading}
+          selectedIndex={uiState?.selectedIndex}
+          onQueryChange={(query) => void onSearchQueryChange(win.id, query)}
+          onSelect={onSearchSelect}
+          onHover={(index) => onSearchHover(win.id, index)}
+          onKeyDown={onSearchKeyDown(win.id)}
+          shouldFocusInput={win.isFocused}
+          actions={[
+            {
+              id: "terminal",
+              label: "Terminal",
+              onSelect: onOpenTerminal,
+            },
+            {
+              id: "git",
+              label: "Git",
+              onSelect: onOpenGit,
+            },
+            {
+              id: "note",
+              label: "Note",
+              onSelect: onOpenNote,
+            },
+            {
+              id: "graph",
+              label: "Graph",
+              onSelect: onOpenGraph,
+            },
+          ]}
+        />
+      </div>
     );
   }
 
   if (win.kind === "graph") {
-    return <GraphWindowContent nodes={graphNodes} links={graphLinks} />;
+    return (
+      <div
+        className="h-full animate-[window-enter_300ms_cubic-bezier(0.23,1,0.32,1)_forwards] motion-reduce:animate-none"
+      >
+        <GraphWindowContent nodes={graphNodes} links={graphLinks} />
+      </div>
+    );
   }
 
   return (
-    <div className="p-4 text-muted-foreground">Window type: {win.kind}</div>
+    <div
+      className="p-4 text-muted-foreground animate-[window-enter_300ms_cubic-bezier(0.23,1,0.32,1)_forwards] motion-reduce:animate-none"
+    >
+      Window type: {win.kind}
+    </div>
   );
 }

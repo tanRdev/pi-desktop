@@ -71,12 +71,16 @@ export function ChatWindowContent({
                 : `Focus ${safeThreadTitle} to load its latest transcript.`}
             </div>
           ) : (
-            messages.map((message) => {
+            messages.map((message, index) => {
               const isSystem = message.role === "system";
               return (
                 <Message
                   key={message.id}
-                  className={cn(isSystem && "my-2 justify-center")}
+                  className={cn(
+                    isSystem && "my-2 justify-center",
+                    "stagger-item",
+                  )}
+                  style={{ animationDelay: `${(index % 8) * 40}ms` }}
                 >
                   {!isSystem ? (
                     <MessageAvatar
@@ -112,7 +116,7 @@ export function ChatWindowContent({
             })
           )}
           {isStreaming ? (
-            <div className="pl-9 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+            <div className="pl-9 text-[10px] uppercase tracking-[0.18em] text-muted-foreground streaming-indicator">
               PiDesk is responding
             </div>
           ) : null}

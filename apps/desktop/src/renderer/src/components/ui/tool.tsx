@@ -37,20 +37,58 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
   const getStateIcon = () => {
     switch (state) {
       case "input-streaming":
-        return <Loader2 className="h-4 w-4 animate-spin text-blue-500" />;
+        return (
+          <Loader2
+            className={cn(
+              "h-4 w-4 animate-spin text-blue-500",
+              "transition-all duration-150 ease-out",
+            )}
+          />
+        );
       case "input-available":
-        return <Settings className="h-4 w-4 text-orange-500" />;
+        return (
+          <Settings
+            className={cn(
+              "h-4 w-4 text-orange-500",
+              "transition-all duration-150 ease-out",
+            )}
+          />
+        );
       case "output-available":
-        return <CheckCircle className="h-4 w-4 text-zinc-400" />;
+        return (
+          <CheckCircle
+            className={cn(
+              "h-4 w-4 text-zinc-400",
+              "transition-all duration-150 ease-out",
+            )}
+          />
+        );
       case "output-error":
-        return <XCircle className="h-4 w-4 text-red-500" />;
+        return (
+          <XCircle
+            className={cn(
+              "h-4 w-4 text-red-500",
+              "transition-all duration-150 ease-out",
+            )}
+          />
+        );
       default:
-        return <Settings className="text-muted-foreground h-4 w-4" />;
+        return (
+          <Settings
+            className={cn(
+              "text-muted-foreground h-4 w-4",
+              "transition-all duration-150 ease-out",
+            )}
+          />
+        );
     }
   };
 
   const getStateBadge = () => {
-    const baseClasses = "px-2 py-1 rounded-full text-xs font-medium";
+    const baseClasses = cn(
+      "px-2 py-1 rounded-full text-xs font-medium",
+      "transition-all duration-150 ease-out",
+    );
     switch (state) {
       case "input-streaming":
         return (
@@ -58,6 +96,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
             className={cn(
               baseClasses,
               "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+              "animate-pulse",
             )}
           >
             Processing
@@ -124,6 +163,8 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
     <div
       className={cn(
         "border-border mt-3 overflow-hidden rounded-lg border",
+        "transition-all duration-200 ease-out",
+        "hover:border-border-hover",
         className,
       )}
     >
@@ -131,7 +172,12 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
         <CollapsibleTrigger asChild>
           <Button
             variant="ghost"
-            className="bg-background h-auto w-full justify-between rounded-b-none px-3 py-2 font-normal"
+            className={cn(
+              "bg-background h-auto w-full justify-between rounded-b-none px-3 py-2 font-normal",
+              "transition-all duration-150 ease-out",
+              "hover:bg-surface-2",
+              "active:scale-[0.99]",
+            )}
           >
             <div className="flex items-center gap-2">
               {getStateIcon()}
@@ -140,7 +186,12 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
               </span>
               {getStateBadge()}
             </div>
-            <ChevronDown className={cn("h-4 w-4", isOpen && "rotate-180")} />
+            <ChevronDown
+              className={cn(
+                "h-4 w-4 transition-transform duration-200 ease-out",
+                isOpen && "rotate-180",
+              )}
+            />
           </Button>
         </CollapsibleTrigger>
         <CollapsibleContent
@@ -189,7 +240,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
             )}
 
             {state === "input-streaming" && (
-              <div className="text-muted-foreground text-sm">
+              <div className="text-muted-foreground text-sm animate-pulse">
                 Processing tool call...
               </div>
             )}

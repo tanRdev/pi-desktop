@@ -18,6 +18,7 @@ import { LeftRail } from "./left-rail";
 import { LeftSidebar } from "./left-sidebar";
 import { PromptDock } from "./prompt-dock";
 import { TitleBar } from "./title-bar";
+import { cn } from "@/lib/utils";
 
 export interface WorkspaceShellProps {
   repositories: RepositorySnapshot[];
@@ -110,15 +111,26 @@ function CanvasEmptyState({
 
   return (
     <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-8 py-10">
-      <div className="w-full max-w-xl rounded-lg border border-border/40 bg-surface-1/80 px-6 py-5 shadow-sm">
+      <div
+        className={cn(
+          "w-full max-w-xl rounded-lg border border-border/40 bg-surface-1/80 px-6 py-5 shadow-sm",
+          "motion-safe:animate-[window-enter_0.3s_var(--ease-out)_forwards]",
+        )}
+      >
         <div className="space-y-4 text-sm leading-6 text-muted-foreground">
-          <div>
+          <div
+            className="stagger-item"
+            style={{ animationDelay: "0ms" }}
+          >
             <p className="text-base font-semibold text-foreground"># Canvas</p>
             <p className="mt-1">
               Arrange chats, terminals, notes, and files here as you work.
             </p>
           </div>
-          <div>
+          <div
+            className="stagger-item"
+            style={{ animationDelay: "40ms" }}
+          >
             <p className="font-medium text-foreground">## Quick start</p>
             <p className="mt-1">
               - Pick a thread from the left sidebar to bring chat onto the

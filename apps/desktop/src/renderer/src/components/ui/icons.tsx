@@ -1,5 +1,8 @@
 /**
- * Icon wrapper using Hugeicons
+ * Icon wrapper using Hugeicons with Emil Design principles
+ * - Hover/active states with subtle scale transforms
+ * - Reduced motion support
+ * - Custom easing via CSS variable --ease-out
  */
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { HugeiconsIconProps, IconSvgElement } from "@hugeicons/react";
@@ -106,45 +109,127 @@ import {
   ColorsIcon,
 } from "@hugeicons/core-free-icons";
 
-// Helper to create an icon component
-function createIconComponent(icon: HugeiconsIconProps["icon"], defaultProps?: Partial<HugeiconsIconProps>) {
-  const IconComponent = React.forwardRef<HTMLSpanElement, Omit<HugeiconsIconProps, "icon"> & { className?: string }>(
-    ({ className, size, color, strokeWidth, ...props }, ref) => {
-      // Extract size from className (e.g., "size-4" -> 16)
-      let iconSize = size || 24;
-      if (className?.includes("size-")) {
-        const sizeMatch = className.match(/size-(\d+\.?\d*)/);
-        if (sizeMatch) {
-          const sizeValue = parseFloat(sizeMatch[1] ?? '0');
-          // Tailwind size-* is typically in rems (0.25rem = 4px)
-          iconSize = sizeValue * 4;
-        }
+/**
+ * CSS class utilities for Emil Design icon states
+ * These classes enable consistent hover/active animations across all icons
+ */
+export const iconStateClasses = {
+  // Base interactive state classes for icons
+  interactive: "motion-safe:transition-transform motion-safe:duration-150",
+  // Hover state: subtle scale up
+  hover: "motion-safe:hover:scale-110",
+  // Active state: subtle scale down for pressed feedback
+  active: "motion-safe:active:scale-90",
+  // Combined hover and active states
+  hoverActive: "motion-safe:hover:scale-110 motion-safe:active:scale-90",
+  // Reduced motion: disable transitions
+  motionReduce: "motion-reduce:transition-none motion-reduce:transform-none",
+} as const;
+
+/**
+ * Easing function used throughout Emil Design
+ * Custom cubic-bezier for smooth, natural-feeling animations
+ */
+export const EMIL_EASE_OUT = "cubic-bezier(0.23, 1, 0.32, 1)";
+
+/**
+ * Duration constants (in ms) for consistent timing
+ * All durations under 300ms per Emil Design principles
+ */
+export const EMIL_DURATIONS = {
+  fast: 150,
+  normal: 200,
+  slow: 300,
+} as const;
+
+// Helper to create an icon component with Emil Design interactions
+function createIconComponent(
+  icon: HugeiconsIconProps["icon"],
+  defaultProps?: Partial<HugeiconsIconProps> & {
+    enableHoverScale?: boolean;
+    enableActiveScale?: boolean;
+  }
+) {
+  const IconComponent = React.forwardRef<
+    HTMLSpanElement,
+    Omit<HugeiconsIconProps, "icon"> & {
+      className?: string;
+      // Emil Design: allow consumers to opt into hover/active states
+      interactive?: boolean;
+    }
+  >(({ className, size, color, strokeWidth, interactive, ...props }, ref) => {
+    // Extract size from className (e.g., "size-4" -> 16)
+    let iconSize = size || 24;
+    if (className?.includes("size-")) {
+      const sizeMatch = className.match(/size-(\d+\.?\d*)/);
+      if (sizeMatch) {
+        const sizeValue = parseFloat(sizeMatch[1] ?? "0");
+        // Tailwind size-* is typically in rems (0.25rem = 4px)
+        iconSize = sizeValue * 4;
       }
-      if (className?.includes("h-")) {
-        const hMatch = className.match(/h-(\d+\.?\d*)/);
-        if (hMatch) {
-          iconSize = parseFloat(hMatch[1] ?? '0') * 4;
-        }
+    }
+    if (className?.includes("h-")) {
+      const hMatch = className.match(/h-(\d+\.?\d*)/);
+      if (hMatch) {
+        iconSize = parseFloat(hMatch[1] ?? "0") * 4;
       }
-      if (className?.includes("w-")) {
-        const wMatch = className.match(/w-(\d+\.?\d*)/);
-        if (wMatch) {
-          iconSize = parseFloat(wMatch[1] ?? '0') * 4;
+    }
+    if (className?.includes("w-")) {
+      const wMatch = className.match(/w-(\d+\.?\d*)/);
+      if (wMatch) {
+        iconSize = parseFloat(wMatch[1] ?? "0") * 4;
+      }
+    }
+
+    // Build className with Emil Design state classes when interactive
+    const enhancedClassName = React.useMemo(() => {
+      const classes: string[] = [className || ""];
+
+      if (
+        interactive ||
+        defaultProps?.enableHoverScale ||
+        defaultProps?.enableActiveScale
+      ) {
+        classes.push(iconStateClasses.interactive);
+        classes.push(iconStateClasses.motionReduce);
+
+        if (interactive || defaultProps?.enableHoverScale) {
+          classes.push(iconStateClasses.hover);
+        }
+        if (interactive || defaultProps?.enableActiveScale) {
+          classes.push(iconStateClasses.active);
         }
       }
 
-      return (
-        <span ref={ref} className={className}>
-          <HugeiconsIcon
-            icon={icon}
-            size={iconSize}
-            color={color || "currentColor"}
-            strokeWidth={strokeWidth || 1.5}
-          />
-        </span>
-      );
-    }
-  );
+      return classes.join(" ");
+    }, [
+      className,
+      interactive,
+      defaultProps?.enableHoverScale,
+      defaultProps?.enableActiveScale,
+    ]);
+
+    return (
+      <span
+        ref={ref}
+        className={enhancedClassName}
+        style={{
+          // Emil Design: consistent transition timing
+          transitionTimingFunction: "var(--ease-out, " + EMIL_EASE_OUT + ")",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <HugeiconsIcon
+          icon={icon}
+          size={iconSize}
+          color={color || "currentColor"}
+          strokeWidth={strokeWidth || 1.5}
+        />
+      </span>
+    );
+  });
   IconComponent.displayName = "Icon";
   return IconComponent;
 }

@@ -131,7 +131,10 @@ export function ProjectAvatar({
   );
   const accentStyle = resolveProjectAccentStyle(repository.accentColor);
   const outerClassName = cn(
-    "group relative flex items-center justify-center border transition-all",
+    "group relative flex items-center justify-center border",
+    "transition-all duration-[var(--duration-fast)] motion-reduce:transition-none",
+    "hover:scale-105 active:scale-[0.95] motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
     size === "md" ? "h-12 w-12 rounded-2xl" : "h-10 w-10 rounded-xl",
     isActive
       ? "border-border bg-surface-2 text-foreground shadow-sm"
@@ -140,6 +143,7 @@ export function ProjectAvatar({
   );
   const innerClassName = cn(
     "flex items-center justify-center border shadow-sm",
+    "transition-transform duration-[var(--duration-fast)] motion-reduce:transition-none",
     size === "md" ? "h-10 w-10 rounded-2xl" : "h-8 w-8 rounded-lg",
     accentStyle
       ? "border-current/20"

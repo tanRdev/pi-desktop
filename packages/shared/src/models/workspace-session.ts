@@ -75,6 +75,9 @@ export function createEmptyWindowLayoutState(): WindowLayoutState {
     nextZIndex: 1,
     focusedWindowId: null,
     snapGridSize: 16,
+    zoom: 1,
+    panX: 0,
+    panY: 0,
   };
 }
 

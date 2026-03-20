@@ -1,6 +1,34 @@
 @import "tailwindcss";
 @import "@pidesk/ui/styles/pidesk-shell.css";
 
+/* ============================================
+   EMIL DESIGN SYSTEM - Custom Easing & Motion
+   ============================================ */
+
+/* Custom easing curves - stronger, more intentional */
+:root {
+  /* Strong ease-out for UI interactions - responsive feel */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  /* Strong ease-in-out for on-screen movement */
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  /* iOS-like drawer curve */
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  /* Snappy button press */
+  --ease-press: cubic-bezier(0.4, 0, 0.2, 1);
+  /* Spring-like bounce (subtle) */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Durations - fast for responsiveness */
+  --duration-instant: 100ms;
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+
+  /* Stagger delays */
+  --stagger-base: 30ms;
+  --stagger-increment: 40ms;
+}
+
 /* Desktop-specific styles */
 body {
   -webkit-app-region: drag;
@@ -26,18 +54,41 @@ body {
   border-bottom: 1px solid color-mix(in oklch, var(--border) 88%, black 12%);
 }
 
-/* Smooth transitions for interactive elements */
+/* ============================================
+   MICRO-INTERACTIONS - Button Press Feedback
+   ============================================ */
+
+/* Press feedback - tactile response */
+button:not(:disabled):active,
+[role="button"]:not(:disabled):active {
+  transform: scale(0.97);
+  transition: transform var(--duration-instant) var(--ease-press);
+}
+
+/* Icon buttons - more pronounced feedback */
+.chrome-icon-button:active {
+  transform: scale(0.95);
+}
+
+/* Smooth transitions for interactive elements - specific properties only */
 button,
 a,
 input,
 textarea,
 select {
-  transition-property: background-color, border-color, color, box-shadow;
-  transition-duration: 150ms;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out),
+    transform var(--duration-instant) var(--ease-press);
+  will-change: transform;
 }
 
-/* Focus states - neutral subtle outline */
+/* ============================================
+   FOCUS STATES - Visible but subtle
+   ============================================ */
+
 button:focus-visible,
 a:focus-visible,
 input:focus-visible,
@@ -45,6 +96,279 @@ textarea:focus-visible,
 select:focus-visible {
   outline: 2px solid color-mix(in oklch, var(--foreground) 14%, transparent);
   outline-offset: 2px;
+  transition: outline var(--duration-fast) var(--ease-out);
+}
+
+/* ============================================
+   WINDOW ANIMATIONS - Enter/Exit states
+   ============================================ */
+
+/* Window entrance - scale from 0.95 with fade */
+@keyframes window-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Window exit - faster than entrance */
+@keyframes window-exit {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95) translateY(4px);
+  }
+}
+
+.shell-window {
+  animation: window-enter var(--duration-slow) var(--ease-out) forwards;
+}
+
+.shell-window.closing {
+  animation: window-exit var(--duration-fast) var(--ease-in-out) forwards;
+}
+
+/* Focus transition - subtle border glow */
+.shell-window {
+  transition:
+    border-color var(--duration-normal) var(--ease-out),
+    box-shadow var(--duration-normal) var(--ease-out);
+}
+
+/* ============================================
+   STAGGERED REVEALS - List items cascade
+   ============================================ */
+
+@keyframes stagger-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stagger-item {
+  opacity: 0;
+  animation: stagger-fade-in var(--duration-normal) var(--ease-out) forwards;
+}
+
+.stagger-item:nth-child(1) { animation-delay: calc(var(--stagger-base) * 0); }
+.stagger-item:nth-child(2) { animation-delay: calc(var(--stagger-base) * 1); }
+.stagger-item:nth-child(3) { animation-delay: calc(var(--stagger-base) * 2); }
+.stagger-item:nth-child(4) { animation-delay: calc(var(--stagger-base) * 3); }
+.stagger-item:nth-child(5) { animation-delay: calc(var(--stagger-base) * 4); }
+.stagger-item:nth-child(6) { animation-delay: calc(var(--stagger-base) * 5); }
+.stagger-item:nth-child(7) { animation-delay: calc(var(--stagger-base) * 6); }
+.stagger-item:nth-child(8) { animation-delay: calc(var(--stagger-base) * 7); }
+
+/* ============================================
+   POPOVER ANIMATIONS - Origin-aware scaling
+   ============================================ */
+
+@keyframes popover-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+[data-radix-popper-content-wrapper] > div {
+  transform-origin: var(--radix-popover-content-transform-origin);
+  animation: popover-enter var(--duration-fast) var(--ease-out) forwards;
+}
+
+/* ============================================
+   DOCK INPUT ANIMATIONS
+   ============================================ */
+
+/* Input focus - subtle lift */
+.shell-dock:focus-within {
+  border-color: var(--border-hover);
+  box-shadow:
+    0 0 0 1px oklch(78% 0.018 95 / 0.1),
+    var(--shadow-md);
+  transition:
+    border-color var(--duration-normal) var(--ease-out),
+    box-shadow var(--duration-normal) var(--ease-out);
+}
+
+/* Send button - enhanced interaction */
+.shell-send-button {
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-instant) var(--ease-press),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.shell-send-button:hover {
+  box-shadow: 0 0 0 1px oklch(78% 0.018 95 / 0.15);
+}
+
+.shell-send-button:active {
+  transform: scale(0.95);
+}
+
+/* ============================================
+   MESSAGE ANIMATIONS - Chat content
+   ============================================ */
+
+@keyframes message-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.shell-console-message {
+  animation: message-enter var(--duration-normal) var(--ease-out) forwards;
+}
+
+/* ============================================
+   SIDEBAR ANIMATIONS
+   ============================================ */
+
+/* Sidebar collapse/expand */
+aside[data-collapsible] {
+  transition: width var(--duration-slow) var(--ease-drawer);
+}
+
+/* Worktree section expand - height animation via grid */
+.worktree-section {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--duration-normal) var(--ease-out);
+}
+
+.worktree-section.expanded {
+  grid-template-rows: 1fr;
+}
+
+.worktree-section > div {
+  overflow: hidden;
+}
+
+/* ============================================
+   LOADING & STREAMING STATES
+   ============================================ */
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.streaming-indicator {
+  animation: pulse-subtle 1.5s var(--ease-in-out) infinite;
+}
+
+/* Typing cursor - more elegant */
+@keyframes cursor-blink-enhanced {
+  0%, 45% { opacity: 1; }
+  50%, 95% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.cursor-blink {
+  animation: cursor-blink-enhanced 1.2s var(--ease-in-out) infinite;
+}
+
+/* ============================================
+   TOOLTIP ENHANCEMENTS
+   ============================================ */
+
+[data-radix-tooltip-content] {
+  transform-origin: var(--radix-tooltip-content-transform-origin);
+  animation: popover-enter var(--duration-fast) var(--ease-out) forwards;
+}
+
+/* Skip animation on subsequent tooltips */
+[data-radix-tooltip-content][data-state="instant"] {
+  animation: none;
+}
+
+/* ============================================
+   MODAL ANIMATIONS
+   ============================================ */
+
+@keyframes modal-backdrop-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modal-content-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+[data-radix-dialog-overlay] {
+  animation: modal-backdrop-enter var(--duration-normal) var(--ease-out) forwards;
+}
+
+[data-radix-dialog-content] {
+  animation: modal-content-enter var(--duration-slow) var(--ease-out) forwards;
+}
+
+/* ============================================
+   HOVER LIFT EFFECTS
+   ============================================ */
+
+.hover-lift {
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.hover-lift:hover {
+  transform: translateY(-1px);
+}
+
+.hover-lift:active {
+  transform: translateY(0);
+}
+
+/* ============================================
+   REDUCED MOTION - Accessibility
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transform: none !important;
+  }
+
+  .shell-window,
+  .stagger-item,
+  .shell-console-message {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
 }
 
 .shell-chrome {
@@ -59,24 +383,43 @@ select:focus-visible {
   color: var(--muted-foreground);
 }
 
+/* Enhanced icon button - better press feedback */
 .chrome-icon-button {
   border: 1px solid transparent;
   background: transparent;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-instant) var(--ease-press),
+    box-shadow var(--duration-fast) var(--ease-out);
 }
 
 .chrome-icon-button:hover {
   border-color: var(--border);
   background: var(--surface-2);
+  box-shadow: 0 0 0 1px oklch(100% 0 0 / 0.02);
+}
+
+.chrome-icon-button:active {
+  transform: scale(0.95);
+  border-color: var(--border-hover);
+}
+
+/* Active state with subtle glow */
+.chrome-icon-button.active {
+  background: var(--surface-3);
+  border-color: var(--border-hover);
+  box-shadow: inset 0 1px 0 oklch(100% 0 0 / 0.03);
 }
 
 .project-customization-trigger {
   opacity: 0;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
   transition:
-    opacity 140ms ease,
-    transform 140ms ease,
-    background-color 140ms ease,
-    border-color 140ms ease;
+    opacity var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
 }
 
 .group:hover .project-customization-trigger,
@@ -94,6 +437,14 @@ select:focus-visible {
   padding: 0.625rem 0.75rem;
   font-size: 0.875rem;
   color: var(--foreground);
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.project-customization-field:focus {
+  border-color: var(--border-hover);
+  box-shadow: 0 0 0 2px oklch(78% 0.018 95 / 0.1);
 }
 
 .project-customization-field::placeholder {
@@ -123,7 +474,7 @@ select:focus-visible {
   background: transparent !important;
 }
 
-/* Inline code styling - console-like */
+/* Inline code styling - console-like with hover lift */
 code:not(.shiki code):not(pre code) {
   background: var(--surface-3);
   border: 1px solid var(--border-subtle);
@@ -132,6 +483,14 @@ code:not(.shiki code):not(pre code) {
   font-family: var(--app-font-mono);
   font-size: 0.875em;
   color: var(--foreground);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+code:not(.shiki code):not(pre code):hover {
+  background: color-mix(in oklch, var(--surface-3) 90%, white 10%);
+  border-color: var(--border);
 }
 
 .shiki ::selection {
@@ -139,14 +498,15 @@ code:not(.shiki code):not(pre code) {
   color: var(--foreground);
 }
 
-/* Terminal-like cursor blink animation */
+/* Terminal-like cursor blink animation - enhanced */
 @keyframes cursor-blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
+  0%, 45% { opacity: 1; }
+  50%, 95% { opacity: 0; }
+  100% { opacity: 1; }
 }
 
 .cursor-blink {
-  animation: cursor-blink 1s step-end infinite;
+  animation: cursor-blink 1.2s var(--ease-in-out) infinite;
 }
 
 .activity-indicator {
@@ -158,16 +518,24 @@ code:not(.shiki code):not(pre code) {
   box-shadow: 0 0 4px rgba(0,0,0,0.06);
 }
 
-/* Panel elevation - layered dark glass */
+/* Panel elevation - layered dark glass with subtle animation */
 .panel-elevated {
   background: var(--surface-2);
   box-shadow:
     0 1px 0 oklch(100% 0 0 / 0.03) inset,
     0 4px 12px oklch(0% 0 0 / 0.4);
+  transition: box-shadow var(--duration-normal) var(--ease-out);
+}
+
+.panel-elevated:hover {
+  box-shadow:
+    0 1px 0 oklch(100% 0 0 / 0.04) inset,
+    0 6px 16px oklch(0% 0 0 / 0.45);
 }
 
 .row-active {
   background: rgba(0,0,0,0.02);
+  transition: background-color var(--duration-fast) var(--ease-out);
 }
 
 .hover-glow:hover {
@@ -216,6 +584,13 @@ code:not(.shiki code):not(pre code) {
   color: var(--muted-foreground);
   font-size: 12px;
   line-height: 1.5;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.chrome-empty-state:hover {
+  background: oklch(20% 0.01 270 / 0.55);
 }
 
 /* Section separator - subtle horizontal rule */

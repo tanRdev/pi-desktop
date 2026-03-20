@@ -58,6 +58,9 @@ export function PromptAutocomplete({
       onKeyDown={onKeyDown}
       className={cn(
         "z-50 w-72 overflow-hidden rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-lg",
+        "origin-top",
+        "animate-in fade-in-0 zoom-in-95 duration-200 ease-[var(--ease-out)]",
+        "motion-reduce:animate-none motion-reduce:opacity-100",
         className,
       )}
     >
@@ -74,6 +77,14 @@ export function PromptAutocomplete({
                 key={
                   isMention ? suggestion.id : suggestion.slash || String(index)
                 }
+                className={cn(
+                  "origin-left",
+                  "animate-in fade-in-0 slide-in-from-left-2 duration-200 ease-[var(--ease-out)]",
+                  "motion-reduce:animate-none motion-reduce:opacity-100",
+                )}
+                style={{
+                  animationDelay: `${index * 30}ms`,
+                }}
               >
                 <button
                   type="button"
@@ -82,8 +93,12 @@ export function PromptAutocomplete({
                   onClick={() => onSelect?.(suggestion)}
                   onMouseEnter={() => onHover?.(index)}
                   className={cn(
-                    "flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition",
+                    "flex w-full items-center gap-2 px-3 py-2 text-left text-sm",
+                    "transition-all duration-150 ease-[var(--ease-out)]",
                     "hover:bg-surface-2 hover:text-foreground",
+                    "active:scale-[0.97] motion-reduce:active:scale-100",
+                    "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-subtle/50",
+                    "motion-reduce:focus-visible:outline-none",
                     isSelected && "bg-surface-2/60",
                   )}
                 >

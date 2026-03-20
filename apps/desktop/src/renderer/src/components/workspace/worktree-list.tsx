@@ -27,7 +27,13 @@ export function WorktreeList({
           type="button"
           variant="ghost"
           size="icon"
-          className="size-7 rounded border border-border bg-surface-2 text-foreground hover:bg-surface-3"
+          className={cn(
+            "size-7 rounded border border-border bg-surface-2 text-foreground",
+            "transition-[transform,background-color,border-color] duration-150 ease-out",
+            "hover:bg-surface-3 hover:scale-105",
+            "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/10",
+            "active:scale-[0.97] active:duration-100",
+          )}
           onClick={() => onCreate()}
           aria-label="Create worktree"
         >
@@ -35,7 +41,7 @@ export function WorktreeList({
         </Button>
       </div>
       <div className="space-y-1">
-        {worktrees.map((worktree) => {
+        {worktrees.map((worktree, index) => {
           const liveThreadCount = worktree.threads.filter(
             (thread) => thread.isArchived === false,
           ).length;
@@ -46,11 +52,16 @@ export function WorktreeList({
               type="button"
               onClick={() => onSelect(worktree.id)}
               className={cn(
-                "w-full rounded-lg border p-3 text-left transition",
+                "motion-safe:stagger-item w-full rounded-lg border p-3 text-left",
+                "transition-[transform,opacity,background-color,border-color,box-shadow] duration-200 ease-out",
+                "hover:translate-x-0.5 hover:shadow-sm",
+                "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/10",
+                "active:scale-[0.97] active:duration-100",
                 worktree.id === activeWorktreeId
-                  ? "border-border-hover bg-surface-2"
+                  ? "border-border-hover bg-surface-2 shadow-sm"
                   : "border-border bg-surface-1 hover:bg-surface-2",
               )}
+              style={{ animationDelay: `${Math.min(index * 40, 320)}ms` }}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">

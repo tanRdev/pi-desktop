@@ -1,6 +1,7 @@
 import { FitAddon } from "@xterm/addon-fit";
 import { Terminal as XTerm } from "@xterm/xterm";
 import * as React from "react";
+import { cn } from "@/lib/utils";
 
 import "@xterm/xterm/css/xterm.css";
 
@@ -148,12 +149,25 @@ export function Terminal({
   if (error) {
     return (
       <div className={className}>
-        <div className="flex h-full flex-col items-center justify-center gap-3 p-4 text-center">
+        <div
+          className={cn(
+            "flex h-full flex-col items-center justify-center gap-3 p-4 text-center",
+            "animate-in fade-in zoom-in-95 duration-200 [transition-timing-function:var(--ease-out)]",
+            "motion-reduce:animate-none",
+          )}
+        >
           <div className="text-sm text-destructive">Terminal Error</div>
           <div className="text-xs text-muted-foreground">{error}</div>
           <div className="text-xs text-muted-foreground">
             Run{" "}
-            <code className="rounded bg-surface-2 px-1">
+            <code
+              className={cn(
+                "rounded bg-surface-2 px-1",
+                "transition-all duration-150 [transition-timing-function:var(--ease-out)]",
+                "hover:bg-surface-3 hover:scale-105",
+                "active:scale-[0.97] motion-reduce:active:scale-100",
+              )}
+            >
               pnpm rebuild node-pty
             </code>{" "}
             to rebuild native modules.
@@ -166,7 +180,11 @@ export function Terminal({
   return (
     <div
       ref={containerRef}
-      className={className}
+      className={cn(
+        className,
+        "animate-in fade-in zoom-in-95 duration-200 [transition-timing-function:var(--ease-out)]",
+        "motion-reduce:animate-none",
+      )}
       style={{ width: "100%", height: "100%" }}
     />
   );

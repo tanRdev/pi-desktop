@@ -8,6 +8,9 @@ import {
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
+// Animation delay constants for staggered reveals
+const STAGGER_BASE_MS = 30;
+
 export interface GraphNode {
   id: string;
   label: string;
@@ -171,6 +174,8 @@ export function GraphWindowContent({
       <div
         className={cn(
           "flex h-full items-center justify-center text-sm text-muted-foreground",
+          // Window enter animation
+          "animate-[window-enter_300ms_cubic-bezier(0.23,1,0.32,1)_forwards]",
           className,
         )}
       >
@@ -181,7 +186,12 @@ export function GraphWindowContent({
 
   return (
     <div
-      className={cn("h-full w-full overflow-hidden bg-background", className)}
+      className={cn(
+        "h-full w-full overflow-hidden bg-background",
+        // Window enter animation - scale from 0.95 with translateY
+        "animate-[window-enter_300ms_cubic-bezier(0.23,1,0.32,1)_forwards]",
+        className
+      )}
     >
       <svg
         key={tick}
@@ -197,7 +207,7 @@ export function GraphWindowContent({
       >
         <title>Workspace graph</title>
         <g>
-          {renderedLinks.map((link) => {
+          {renderedLinks.map((link, index) => {
             const source = renderedNodes.find(
               (node) => node.id === getLinkedNodeId(link.source),
             );
@@ -224,6 +234,9 @@ export function GraphWindowContent({
             return (
               <g
                 key={`${getLinkedNodeId(link.source)}-${getLinkedNodeId(link.target)}`}
+                // Staggered reveal for links
+                className="animate-[stagger-fade-in_200ms_cubic-bezier(0.23,1,0.32,1)_forwards]"
+                style={{ animationDelay: `${STAGGER_BASE_MS * (index % 8)}ms` }}
               >
                 <line
                   x1={sourcePosition.x}
@@ -249,7 +262,7 @@ export function GraphWindowContent({
           })}
         </g>
         <g>
-          {renderedNodes.map((node) => {
+          {renderedNodes.map((node, index) => {
             const position = getNodePosition(node, width / 2, height / 2);
             const radius = node.radius ?? 18;
 
@@ -257,7 +270,16 @@ export function GraphWindowContent({
               <g
                 key={node.id}
                 transform={`translate(${position.x}, ${position.y})`}
-                className="cursor-pointer"
+                className={cn(
+                  "cursor-pointer",
+                  // Hover lift effect for interactive elements
+                  "transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]",
+                  "hover:scale-[1.02]",
+                  // Staggered reveal for nodes
+                  "animate-[stagger-fade-in_200ms_cubic-bezier(0.23,1,0.32,1)_forwards]",
+                  "motion-reduce:animate-none motion-reduce:opacity-100"
+                )}
+                style={{ animationDelay: `${STAGGER_BASE_MS * ((index % 8) + 1)}ms` }}
                 onClick={() => onNodeClick?.(node)}
                 onPointerDown={(event) => {
                   dragStateRef.current = {
@@ -275,6 +297,8 @@ export function GraphWindowContent({
                   fillOpacity={0.92}
                   stroke="#171717"
                   strokeWidth={2}
+                  // Button press feedback on active
+                  className="transition-transform duration-100 active:scale-[0.97]"
                 />
                 <text
                   y={radius + 14}

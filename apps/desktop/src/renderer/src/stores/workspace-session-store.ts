@@ -64,6 +64,11 @@ export interface WorkspaceSessionStoreState {
   resizeWindow(windowId: string, width: number, height: number): void;
   updateWindow(windowId: string, updates: WindowUpdates): void;
   setDirty(windowId: string, isDirty: boolean): void;
+  setZoom(zoom: number): void;
+  zoomIn(): void;
+  zoomOut(): void;
+  resetZoom(): void;
+  setPan(panX: number, panY: number): void;
   clearAll(): void;
   setThreadConversation(threadId: string, value: ThreadConversationState): void;
   setThreadConversationForWorktree(
@@ -394,6 +399,47 @@ export function createWorkspaceSessionStore({
           windowReducer(windowState, {
             type: "SET_DIRTY",
             payload: { windowId, isDirty },
+          }),
+        ),
+      );
+    },
+    setZoom(zoom) {
+      withActiveSession((session) =>
+        applyLayout(session, (windowState) =>
+          windowReducer(windowState, {
+            type: "SET_ZOOM",
+            payload: { zoom },
+          }),
+        ),
+      );
+    },
+    zoomIn() {
+      withActiveSession((session) =>
+        applyLayout(session, (windowState) =>
+          windowReducer(windowState, { type: "ZOOM_IN" }),
+        ),
+      );
+    },
+    zoomOut() {
+      withActiveSession((session) =>
+        applyLayout(session, (windowState) =>
+          windowReducer(windowState, { type: "ZOOM_OUT" }),
+        ),
+      );
+    },
+    resetZoom() {
+      withActiveSession((session) =>
+        applyLayout(session, (windowState) =>
+          windowReducer(windowState, { type: "RESET_ZOOM" }),
+        ),
+      );
+    },
+    setPan(panX, panY) {
+      withActiveSession((session) =>
+        applyLayout(session, (windowState) =>
+          windowReducer(windowState, {
+            type: "SET_PAN",
+            payload: { panX, panY },
           }),
         ),
       );

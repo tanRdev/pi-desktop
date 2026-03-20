@@ -1,5 +1,6 @@
 import type { RepositorySnapshot } from "@pidesk/shared";
 import { ChevronDown, FolderGit, Plus } from "@/components/ui/icons";
+import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Separator } from "../ui/separator";
@@ -45,7 +46,14 @@ export function RepositorySwitcher({
       <PopoverTrigger asChild>
         <Button
           variant="ghost"
-          className="h-auto w-full justify-between rounded border border-border bg-surface-2 px-3 py-2 text-left text-sm font-medium text-foreground shadow-sm transition hover:border-border-hover hover:bg-surface-3"
+          className={cn(
+            "h-auto w-full justify-between rounded border border-border bg-surface-2 px-3 py-2 text-left text-sm font-medium text-foreground shadow-sm",
+            "transition-all duration-[var(--duration-fast)] motion-reduce:transition-none",
+            "hover:border-border-hover hover:bg-surface-3 hover:scale-[1.01]",
+            "active:scale-[0.97] motion-reduce:active:scale-100",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+          )}
+          style={{ transitionTimingFunction: "var(--ease-out)" }}
         >
           <div className="min-w-0 flex-1">
             <div className="truncate">
@@ -63,7 +71,7 @@ export function RepositorySwitcher({
         className="w-[var(--radix-popover-trigger-width)] rounded border border-border bg-popover p-2 shadow-lg"
       >
         <div className="space-y-1">
-          {repositories.map((repository) => {
+          {repositories.map((repository, index) => {
             const repositoryWorktree =
               repository.worktrees.find((worktree) => worktree.isMain) ??
               repository.worktrees[0] ??
@@ -74,7 +82,14 @@ export function RepositorySwitcher({
                 key={repository.id}
                 type="button"
                 onClick={() => onSelect(repository.id)}
-                className="flex w-full items-start gap-3 rounded px-2 py-2 text-left text-sm transition hover:bg-surface-3"
+                className={cn(
+                  "flex w-full items-start gap-3 rounded px-2 py-2 text-left text-sm",
+                  "transition-all duration-[var(--duration-fast)] motion-reduce:transition-none",
+                  "hover:bg-surface-3 hover:translate-x-0.5",
+                  "active:scale-[0.97] motion-reduce:active:scale-100",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+                )}
+                style={{ transitionTimingFunction: "var(--ease-out)", animationDelay: `${index * 30}ms` }}
               >
                 <FolderGit className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
                 <div className="min-w-0 flex-1">
@@ -95,7 +110,14 @@ export function RepositorySwitcher({
           <button
             type="button"
             onClick={() => onAdd()}
-            className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-sm text-foreground transition hover:bg-surface-3"
+            className={cn(
+              "flex w-full items-center gap-2 rounded px-2 py-1.5 text-sm text-foreground",
+              "transition-all duration-[var(--duration-fast)] motion-reduce:transition-none",
+              "hover:bg-surface-3 hover:translate-x-0.5",
+              "active:scale-[0.97] motion-reduce:active:scale-100",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+            )}
+            style={{ transitionTimingFunction: "var(--ease-out)" }}
           >
             <Plus className="size-4 shrink-0 text-muted-foreground" />
             Add Repository

@@ -35,7 +35,13 @@ export function ThreadList({
           type="button"
           variant="ghost"
           size="icon"
-          className="size-7 rounded border border-border bg-surface-2 text-foreground hover:bg-surface-3"
+          className={cn(
+            "size-7 rounded border border-border bg-surface-2 text-foreground",
+            "transition-[transform,background-color,border-color] duration-150 ease-out",
+            "hover:bg-surface-3 hover:scale-105",
+            "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/10",
+            "active:scale-[0.97] active:duration-100",
+          )}
           onClick={() => onCreate()}
           aria-label="Create thread"
         >
@@ -44,21 +50,26 @@ export function ThreadList({
       </div>
       <div className="space-y-1">
         {threads.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-border px-3 py-4 text-xs text-muted-foreground">
+          <div className="chrome-empty-state px-3 py-4 text-xs text-muted-foreground motion-safe:stagger-item">
             No threads for this worktree yet.
           </div>
         ) : (
-          threads.map((thread) => (
+          threads.map((thread, index) => (
             <button
               key={thread.id}
               type="button"
               onClick={() => onSelect(thread.id)}
               className={cn(
-                "w-full rounded-lg border p-3 text-left transition",
+                "motion-safe:stagger-item w-full rounded-lg border p-3 text-left",
+                "transition-[transform,opacity,background-color,border-color,box-shadow] duration-200 ease-out",
+                "hover:translate-x-0.5 hover:shadow-sm",
+                "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/10",
+                "active:scale-[0.97] active:duration-100",
                 thread.id === activeThreadId
-                  ? "border-border-hover bg-surface-2"
+                  ? "border-border-hover bg-surface-2 shadow-sm"
                   : "border-border bg-surface-1 hover:bg-surface-2",
               )}
+              style={{ animationDelay: `${Math.min(index * 40, 320)}ms` }}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">

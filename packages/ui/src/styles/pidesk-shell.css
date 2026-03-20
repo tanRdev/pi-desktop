@@ -50,9 +50,14 @@
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
 
-  /* Animation */
-  --animate-accordion-down: accordion-down 0.2s ease-out;
-  --animate-accordion-up: accordion-up 0.2s ease-out;
+  /* Animation - custom easing curves per Emil Design */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --animate-accordion-down: accordion-down 0.2s var(--ease-out);
+  --animate-accordion-up: accordion-up 0.2s var(--ease-out);
 
   @keyframes accordion-down {
     from { height: 0; }
@@ -62,6 +67,60 @@
   @keyframes accordion-up {
     from { height: var(--radix-accordion-content-height); }
     to { height: 0; }
+  }
+
+  /* Window animations */
+  --animate-window-enter: window-enter 0.3s var(--ease-out);
+  --animate-window-exit: window-exit 0.15s var(--ease-in-out);
+
+  @keyframes window-enter {
+    from {
+      opacity: 0;
+      transform: scale(0.95) translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  @keyframes window-exit {
+    from {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.95) translateY(4px);
+    }
+  }
+
+  /* Stagger fade in */
+  --animate-stagger: stagger-fade-in 0.2s var(--ease-out) forwards;
+
+  @keyframes stagger-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Message enter animation */
+  --animate-message: message-enter 0.2s var(--ease-out);
+
+  @keyframes message-enter {
+    from {
+      opacity: 0;
+      transform: translateY(8px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
   }
 }
 
@@ -192,7 +251,7 @@
     font-feature-settings: "liga" 0, "calt" 1;
   }
 
-  /* Scrollbar - minimal, console-like */
+  /* Scrollbar - minimal, console-like with enhanced hover */
   ::-webkit-scrollbar {
     width: 5px;
     height: 5px;
@@ -205,27 +264,33 @@
   ::-webkit-scrollbar-thumb {
     background: oklch(45% 0.01 270 / 0.5);
     border-radius: 2px;
+    transition: background 0.15s ease-out;
   }
 
   ::-webkit-scrollbar-thumb:hover {
     background: oklch(55% 0.015 270 / 0.6);
   }
 
-  /* Focus visible - neutral ring */
+  ::-webkit-scrollbar-thumb:active {
+    background: oklch(60% 0.02 270 / 0.7);
+  }
+
+  /* Focus visible - neutral ring with animation */
   :focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
+    transition: outline 0.15s ease-out, outline-offset 0.15s ease-out;
   }
 
-  /* Reduced motion */
+  /* Reduced motion - respect user preference */
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
     *::after {
-      animation-duration: 0.01ms;
-      animation-iteration-count: 1;
-      transition-duration: 0.01ms;
-      scroll-behavior: auto;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
     }
   }
 }
@@ -250,6 +315,14 @@
   padding: 0.125rem 0.375rem;
   font-size: 0.875em;
   font-family: var(--app-font-mono);
+  transition:
+    background-color 0.15s ease-out,
+    border-color 0.15s ease-out;
+}
+
+.prose code:hover {
+  background: color-mix(in oklch, var(--surface-2) 90%, white 10%);
+  border-color: var(--border);
 }
 
 .prose pre {
@@ -258,6 +331,11 @@
   border-radius: var(--radius-md);
   padding: 1rem;
   overflow-x: auto;
+  transition: border-color 0.15s ease-out;
+}
+
+.prose pre:hover {
+  border-color: var(--border);
 }
 
 .prose pre code {
@@ -291,6 +369,9 @@
     border-radius: var(--radius-md);
     background: var(--surface-1);
     box-shadow: var(--shadow-sm);
+    transition:
+      border-color 0.2s cubic-bezier(0.23, 1, 0.32, 1),
+      box-shadow 0.2s cubic-bezier(0.23, 1, 0.32, 1);
   }
 
   .shell-window[data-focus-state="active"] {
@@ -300,14 +381,31 @@
       var(--shadow-md);
   }
 
+  .shell-window[data-focus-state="inactive"] {
+    border-color: var(--border-subtle);
+    opacity: 0.95;
+  }
+
   .shell-titlebar {
     background: var(--surface-2);
     box-shadow: inset 0 -1px 0 0 var(--border-subtle);
+    transition: background-color 0.15s ease-out;
   }
 
   .shell-control-dot {
     border: 1px solid oklch(100% 0 0 / 0.08);
     box-shadow: inset 0 1px 0 oklch(100% 0 0 / 0.1);
+    transition:
+      background-color 0.1s ease-out,
+      transform 0.1s ease-out;
+  }
+
+  .shell-control-dot:hover {
+    transform: scale(1.15);
+  }
+
+  .shell-control-dot:active {
+    transform: scale(0.95);
   }
 
   .shell-control-dot[data-control="close"] {
@@ -336,12 +434,20 @@
 
   .shell-backdrop {
     background: oklch(6% 0.003 260 / 0.42);
+    backdrop-filter: blur(2px);
   }
 
   .shell-console-panel {
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
     background: var(--surface-2);
+    transition:
+      border-color 0.15s ease-out,
+      background-color 0.15s ease-out;
+  }
+
+  .shell-console-panel:hover {
+    border-color: var(--border);
   }
 
   .shell-console-message {
@@ -349,6 +455,9 @@
     border-radius: var(--radius-sm);
     background: var(--surface-2);
     box-shadow: inset 0 1px 0 oklch(100% 0 0 / 0.02);
+    transition:
+      border-color 0.15s ease-out,
+      box-shadow 0.15s ease-out;
   }
 
   .shell-dock {
@@ -356,6 +465,16 @@
     border-radius: var(--radius-md);
     background: var(--surface-1);
     box-shadow: var(--shadow-sm);
+    transition:
+      border-color 0.2s cubic-bezier(0.23, 1, 0.32, 1),
+      box-shadow 0.2s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .shell-dock:focus-within {
+    border-color: var(--border-hover);
+    box-shadow:
+      0 0 0 1px oklch(78% 0.018 95 / 0.1),
+      var(--shadow-md);
   }
 
   .shell-token {
@@ -368,6 +487,19 @@
   .shell-send-button {
     border-radius: var(--radius-sm);
     box-shadow: inset 0 1px 0 oklch(100% 0 0 / 0.04);
+    transition:
+      background-color 0.15s ease-out,
+      border-color 0.15s ease-out,
+      transform 0.1s ease-out,
+      box-shadow 0.15s ease-out;
+  }
+
+  .shell-send-button:hover {
+    box-shadow: 0 0 0 1px oklch(78% 0.018 95 / 0.15);
+  }
+
+  .shell-send-button:active {
+    transform: scale(0.95);
   }
 
   .shell-input-frame {

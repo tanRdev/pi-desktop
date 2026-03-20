@@ -80,13 +80,18 @@ export function LeftRail({
     <aside
       className={cn(
         "flex h-full w-16 shrink-0 flex-col border-r border-border bg-surface-1",
+        "motion-safe:[animation:stagger-fade-in_0.2s_var(--ease-out)_forwards]",
       )}
     >
-      <div className="flex flex-1 flex-col gap-2 overflow-x-visible overflow-y-auto px-2 pb-3 pt-3">
-        {orderedRepositories.map((repository) => (
+      <div className="flex flex-1 flex-col gap-2 overflow-x-hidden overflow-y-auto px-2 pb-3 pt-3">
+        {orderedRepositories.map((repository, index) => (
           <div
             key={repository.id}
-            className="group relative flex justify-center"
+            className={cn(
+              "group relative flex justify-center",
+              "stagger-item",
+            )}
+            style={{ animationDelay: `${index * 40}ms` }}
             onMouseEnter={() => setOpenRepositoryId(repository.id)}
             onMouseLeave={() =>
               setOpenRepositoryId((currentId) =>
@@ -151,7 +156,13 @@ export function LeftRail({
           type="button"
           variant="ghost"
           size="icon"
-          className="chrome-icon-button h-9 w-9 rounded-lg text-muted-foreground"
+          className={cn(
+            "h-9 w-9 rounded-lg text-muted-foreground",
+            "transition-all duration-150 ease-[var(--ease-out)]",
+            "hover:scale-105 hover:text-foreground active:scale-[0.97]",
+            "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/50 focus-visible:outline-offset-2",
+            "motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
+          )}
           onClick={onAddRepository}
           aria-label="Add repository"
         >
@@ -162,7 +173,13 @@ export function LeftRail({
           type="button"
           variant="ghost"
           size="icon"
-          className="chrome-icon-button h-9 w-9 rounded-lg text-muted-foreground"
+          className={cn(
+            "h-9 w-9 rounded-lg text-muted-foreground",
+            "transition-all duration-150 ease-[var(--ease-out)]",
+            "hover:scale-105 hover:text-foreground active:scale-[0.97]",
+            "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/50 focus-visible:outline-offset-2",
+            "motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
+          )}
           onClick={onOpenSettings}
           aria-label="Open settings"
         >

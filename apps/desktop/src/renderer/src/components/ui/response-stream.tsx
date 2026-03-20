@@ -333,18 +333,45 @@ function ResponseStream({
   // fadeStyle is the style for the fade animation
   const fadeStyle = `
     @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+      from { opacity: 0; transform: translateY(2px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-    
+
+    @keyframes streamingPulse {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
+    }
+
     .fade-segment {
       display: inline-block;
       opacity: 0;
-      animation: fadeIn ${getFadeDuration()}ms ease-out forwards;
+      animation: fadeIn ${getFadeDuration()}ms var(--ease-out) forwards;
     }
 
     .fade-segment-space {
       white-space: pre;
+    }
+
+    .streaming-indicator {
+      display: inline-block;
+      width: 0.5em;
+      height: 0.5em;
+      background-color: currentColor;
+      border-radius: 50%;
+      margin-left: 0.25em;
+      animation: streamingPulse 1.5s ease-in-out infinite;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .fade-segment {
+        animation: none;
+        opacity: 1;
+        transform: none;
+      }
+      .streaming-indicator {
+        animation: none;
+        opacity: 0.6;
+      }
     }
   `;
 
@@ -388,7 +415,16 @@ function ResponseStream({
 
   const Container = as as keyof React.JSX.IntrinsicElements;
 
-  return <Container className={className}>{renderContent()}</Container>;
+  return (
+    <Container className={className}>
+      <div className="motion-reduce:[&_*]:animation-none motion-reduce:[&_*]:opacity-100 motion-reduce:[&_*]:transform-none">
+        {renderContent()}
+        {!isComplete && mode === "typewriter" && (
+          <span className="streaming-indicator" aria-hidden="true" />
+        )}
+      </div>
+    </Container>
+  );
 }
 
 export { ResponseStream, useTextStream };

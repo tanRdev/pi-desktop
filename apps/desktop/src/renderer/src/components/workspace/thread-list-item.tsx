@@ -78,7 +78,11 @@ export function ThreadListItem({
         }
       }}
       className={cn(
-        "group flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors",
+        "motion-safe:stagger-item group flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left",
+        "transition-[transform,opacity,background-color] duration-200 ease-out",
+        "hover:bg-surface-2/50 hover:translate-y-[-1px]",
+        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/10",
+        "active:scale-[0.97] active:duration-100",
         isActive
           ? "bg-surface-3/80 text-foreground"
           : "text-muted-foreground hover:text-foreground",
@@ -96,7 +100,11 @@ export function ThreadListItem({
             onKeyDown={handleInputKeyDown}
             onBlur={handleConfirmRename}
             onClick={(e) => e.stopPropagation()}
-            className="block w-full rounded-sm border border-border bg-surface-2 px-1 py-0 text-sm text-foreground outline-none focus:border-accent"
+            className={cn(
+              "block w-full rounded-sm border border-border bg-surface-2 px-1 py-0 text-sm text-foreground outline-none",
+              "transition-[border-color,box-shadow] duration-150 ease-out",
+              "focus:border-accent focus:ring-1 focus:ring-accent/30",
+            )}
           />
         ) : (
           <span
@@ -111,7 +119,14 @@ export function ThreadListItem({
         <button
           type="button"
           onClick={handleStartRename}
-          className="ml-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-sm opacity-0 transition-opacity hover:bg-surface-3 group-hover:opacity-100"
+          className={cn(
+            "ml-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-sm",
+            "opacity-0 transition-[opacity,transform,background-color] duration-150 ease-out",
+            "hover:bg-surface-3 hover:scale-110",
+            "focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-foreground/10",
+            "active:scale-[0.97] active:duration-100",
+            "group-hover:opacity-100",
+          )}
           aria-label="Rename thread"
           title="Rename thread"
         >
@@ -125,7 +140,14 @@ export function ThreadListItem({
             e.stopPropagation();
             onClose();
           }}
-          className="ml-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-sm opacity-0 transition-opacity hover:bg-surface-3 group-hover:opacity-100"
+          className={cn(
+            "ml-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-sm",
+            "opacity-0 transition-[opacity,transform,background-color] duration-150 ease-out",
+            "hover:bg-surface-3 hover:scale-110",
+            "focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-foreground/10",
+            "active:scale-[0.97] active:duration-100",
+            "group-hover:opacity-100",
+          )}
           aria-label="Close thread"
           title="Close thread"
         >

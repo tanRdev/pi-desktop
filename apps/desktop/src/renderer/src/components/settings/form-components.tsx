@@ -1,6 +1,10 @@
 import { HugeiconsIcon, RotateCcw } from "@/components/ui/icons";
 import type React from "react";
+import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
+
+// Custom easing for Emil Design
+const EASE_OUT = "cubic-bezier(0.23, 1, 0.32, 1)";
 
 interface SelectOption {
   value: string;
@@ -77,7 +81,15 @@ export function SettingsSelect({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       disabled={disabled}
-      className="flex h-9 w-[180px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+      className={cn(
+        "flex h-9 w-[180px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm",
+        "transition-all duration-150",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+        "hover:border-border-hover",
+        "active:scale-[0.99]",
+        "disabled:cursor-not-allowed disabled:opacity-50"
+      )}
+      style={{ transitionTimingFunction: EASE_OUT }}
     >
       {options.map((option) => (
         <option key={option.value} value={option.value}>
@@ -107,14 +119,23 @@ export function SettingsSwitch({
       aria-checked={checked}
       disabled={disabled}
       onClick={() => onChange(!checked)}
-      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+      className={cn(
+        "relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent",
+        "transition-all duration-150",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+        "active:scale-[0.97]",
+        "disabled:cursor-not-allowed disabled:opacity-50",
         checked ? "bg-primary" : "bg-input"
-      }`}
+      )}
+      style={{ transitionTimingFunction: EASE_OUT }}
     >
       <span
-        className={`pointer-events-none block h-4 w-4 rounded-full bg-background shadow ring-0 transition-transform ${
+        className={cn(
+          "pointer-events-none block h-4 w-4 rounded-full bg-background shadow ring-0",
+          "transition-transform duration-150",
           checked ? "translate-x-4" : "translate-x-0"
-        }`}
+        )}
+        style={{ transitionTimingFunction: EASE_OUT }}
       />
     </button>
   );
@@ -150,10 +171,16 @@ export function SettingsSlider({
         max={max}
         step={step}
         disabled={disabled}
-        className="w-[120px] h-2 bg-surface-2 rounded-lg appearance-none cursor-pointer accent-primary disabled:opacity-50"
+        className={cn(
+          "w-[120px] h-2 bg-surface-2 rounded-lg appearance-none cursor-pointer accent-primary",
+          "transition-all duration-150",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+          "disabled:opacity-50"
+        )}
+        style={{ transitionTimingFunction: EASE_OUT }}
       />
       {showValue && (
-        <span className="w-10 text-right text-xs text-muted-foreground">
+        <span className="w-10 text-right text-xs text-muted-foreground tabular-nums">
           {value}
         </span>
       )}
@@ -186,7 +213,16 @@ export function SettingsInput({
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       disabled={disabled}
-      className={`${className} flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50`}
+      className={cn(
+        className,
+        "flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm",
+        "transition-all duration-150",
+        "file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+        "hover:border-border-hover",
+        "disabled:cursor-not-allowed disabled:opacity-50"
+      )}
+      style={{ transitionTimingFunction: EASE_OUT }}
     />
   );
 }
@@ -220,7 +256,15 @@ export function SettingsNumberInput({
       max={max}
       step={step}
       disabled={disabled}
-      className={`${className} flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50`}
+      className={cn(
+        className,
+        "flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm",
+        "transition-all duration-150",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+        "hover:border-border-hover",
+        "disabled:cursor-not-allowed disabled:opacity-50"
+      )}
+      style={{ transitionTimingFunction: EASE_OUT }}
     />
   );
 }
@@ -248,7 +292,13 @@ export function ResetButton({
       size="sm"
       onClick={onClick}
       disabled={disabled}
-      className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+      className={cn(
+        "h-7 px-2 text-xs text-muted-foreground hover:text-foreground",
+        "transition-all duration-150",
+        "hover:bg-surface-2",
+        "active:scale-[0.97]"
+      )}
+      style={{ transitionTimingFunction: EASE_OUT }}
     >
       <RotateCcw className="mr-1 h-3 w-3" />
       {label}
@@ -281,7 +331,16 @@ export function SettingsTextarea({
       placeholder={placeholder}
       rows={rows}
       disabled={disabled}
-      className={`${className} rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50`}
+      className={cn(
+        className,
+        "rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background",
+        "transition-all duration-150",
+        "placeholder:text-muted-foreground",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+        "hover:border-border-hover",
+        "disabled:cursor-not-allowed disabled:opacity-50"
+      )}
+      style={{ transitionTimingFunction: EASE_OUT }}
     />
   );
 }

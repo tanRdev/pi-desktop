@@ -39,10 +39,10 @@ Write your notes here...
             type="button"
             onClick={() => setIsEditing(true)}
             className={cn(
-              "rounded px-2 py-1 text-xs font-medium transition",
+              "rounded px-2 py-1 text-xs font-medium transition-all duration-150 ease-[var(--ease-out)] active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100",
               isEditing
                 ? "bg-surface-3 text-foreground"
-                : "text-muted-foreground hover:bg-surface-2 hover:text-foreground",
+                : "text-muted-foreground hover:bg-surface-2 hover:text-foreground hover:-translate-y-px",
             )}
           >
             Edit
@@ -51,10 +51,10 @@ Write your notes here...
             type="button"
             onClick={() => setIsEditing(false)}
             className={cn(
-              "rounded px-2 py-1 text-xs font-medium transition",
+              "rounded px-2 py-1 text-xs font-medium transition-all duration-150 ease-[var(--ease-out)] active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100",
               !isEditing
                 ? "bg-surface-3 text-foreground"
-                : "text-muted-foreground hover:bg-surface-2 hover:text-foreground",
+                : "text-muted-foreground hover:bg-surface-2 hover:text-foreground hover:-translate-y-px",
             )}
           >
             Preview
@@ -67,7 +67,7 @@ Write your notes here...
 
       {/* Content Area */}
       <ScrollArea className="min-h-0 flex-1">
-        <div className="p-4">
+        <div className="p-4 motion-safe:animate-[fade-in_0.2s_var(--ease-out)]">
           {isEditing ? (
             <textarea
               value={content}

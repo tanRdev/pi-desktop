@@ -174,7 +174,7 @@ export function FileWindowContent({
           type="button"
           onClick={onSave}
           disabled={isReadOnly || !isDirty}
-          className="flex h-7 items-center gap-1 rounded border border-border px-2 text-xs text-foreground transition hover:bg-surface-3 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-7 items-center gap-1 rounded border border-border px-2 text-xs text-foreground transition-all duration-150 ease-[var(--ease-out)] hover:bg-surface-3 hover:scale-[1.02] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100"
         >
           <Save className="h-3 w-3" />
           Save
@@ -186,7 +186,7 @@ export function FileWindowContent({
   if (isLoading) {
     return (
       <div className={cn("flex h-full items-center justify-center", className)}>
-        <div className="flex flex-col items-center gap-3 text-muted-foreground">
+        <div className="flex flex-col items-center gap-3 text-muted-foreground motion-safe:animate-[fade-in_0.3s_var(--ease-out)]">
           <Loader2 className="h-8 w-8 animate-spin" />
           <span className="text-sm">Loading {fileName}...</span>
         </div>
@@ -198,7 +198,7 @@ export function FileWindowContent({
   if (error) {
     return (
       <div className={cn("flex h-full items-center justify-center", className)}>
-        <div className="flex flex-col items-center gap-3 text-destructive">
+        <div className="flex flex-col items-center gap-3 text-destructive motion-safe:animate-[zoom-in_0.3s_var(--ease-out)]">
           <File className="h-8 w-8" />
           <span className="text-sm">{error}</span>
         </div>
@@ -210,7 +210,7 @@ export function FileWindowContent({
   if (!content) {
     return (
       <div className={cn("flex h-full items-center justify-center", className)}>
-        <div className="flex flex-col items-center gap-3 text-muted-foreground">
+        <div className="flex flex-col items-center gap-3 text-muted-foreground motion-safe:animate-[fade-in_0.3s_var(--ease-out)]">
           <File className="h-8 w-8" />
           <span className="text-sm">No content</span>
         </div>
@@ -222,7 +222,7 @@ export function FileWindowContent({
   if (content.type === "binary") {
     return (
       <div className={cn("flex h-full items-center justify-center", className)}>
-        <div className="flex flex-col items-center gap-3 text-muted-foreground">
+        <div className="flex flex-col items-center gap-3 text-muted-foreground motion-safe:animate-[zoom-in_0.3s_var(--ease-out)]">
           <File className="h-8 w-8" />
           <span className="text-sm">Binary file - cannot display</span>
           <span className="text-xs text-muted-foreground">
@@ -237,7 +237,7 @@ export function FileWindowContent({
   if (content.type === "unsupported") {
     return (
       <div className={cn("flex h-full items-center justify-center", className)}>
-        <div className="flex flex-col items-center gap-3 text-muted-foreground">
+        <div className="flex flex-col items-center gap-3 text-muted-foreground motion-safe:animate-[zoom-in_0.3s_var(--ease-out)]">
           <File className="h-8 w-8" />
           <span className="text-sm">Unsupported file type</span>
         </div>
@@ -260,7 +260,7 @@ export function FileWindowContent({
         <img
           src={imageSrc}
           alt={fileName}
-          className="max-h-full max-w-full object-contain"
+          className="max-h-full max-w-full object-contain motion-safe:animate-[zoom-in_0.3s_var(--ease-out)]"
         />
       </div>
     );
@@ -303,7 +303,7 @@ export function FileWindowContent({
   // Unknown type
   return (
     <div className={cn("flex h-full items-center justify-center", className)}>
-      <div className="flex flex-col items-center gap-3 text-muted-foreground">
+      <div className="flex flex-col items-center gap-3 text-muted-foreground motion-safe:animate-[fade-in_0.3s_var(--ease-out)]">
         <File className="h-8 w-8" />
         <span className="text-sm">Unknown file type</span>
       </div>

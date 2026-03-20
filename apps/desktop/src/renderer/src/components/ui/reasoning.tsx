@@ -90,14 +90,19 @@ function ReasoningTrigger({
 
   return (
     <button
-      className={cn("flex cursor-pointer items-center gap-2", className)}
+      className={cn(
+        "flex cursor-pointer items-center gap-2",
+        "transition-all duration-150 ease-out",
+        "hover:opacity-80 active:scale-95",
+        className,
+      )}
       onClick={() => onOpenChange(!isOpen)}
       {...props}
     >
       <span className="text-primary">{children}</span>
       <div
         className={cn(
-          "transform transition-transform",
+          "transform transition-transform duration-200 ease-out",
           isOpen ? "rotate-180" : "",
         )}
       >
@@ -138,6 +143,8 @@ function ReasoningContent({
 
     if (isOpen) {
       contentRef.current.style.maxHeight = `${innerRef.current.scrollHeight}px`;
+    } else {
+      contentRef.current.style.maxHeight = "0px";
     }
 
     return () => observer.disconnect();
@@ -153,9 +160,11 @@ function ReasoningContent({
     <div
       ref={contentRef}
       className={cn(
-        "overflow-hidden transition-[max-height] duration-150 ease-out",
+        "overflow-hidden transition-[max-height,opacity] duration-200 ease-out",
+        "data-[state=open]:opacity-100 data-[state=closed]:opacity-0",
         className,
       )}
+      data-state={isOpen ? "open" : "closed"}
       style={{
         maxHeight: isOpen ? contentRef.current?.scrollHeight : "0px",
       }}
@@ -165,6 +174,7 @@ function ReasoningContent({
         ref={innerRef}
         className={cn(
           "text-muted-foreground prose prose-sm dark:prose-invert",
+          "stagger-item",
           contentClassName,
         )}
       >

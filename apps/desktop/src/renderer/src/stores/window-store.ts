@@ -64,11 +64,20 @@ export type WindowAction =
       payload: { windowId: string; updates: WindowUpdates };
     }
   | { type: "SET_DIRTY"; payload: { windowId: string; isDirty: boolean } }
+  | { type: "SET_ZOOM"; payload: { zoom: number } }
+  | { type: "ZOOM_IN" }
+  | { type: "ZOOM_OUT" }
+  | { type: "RESET_ZOOM" }
+  | { type: "SET_PAN"; payload: { panX: number; panY: number } }
   | { type: "CLEAR_ALL" };
 
 const DEFAULT_WINDOW_WIDTH = 420;
 const DEFAULT_WINDOW_HEIGHT = 280;
 const DEFAULT_SNAP_GRID = 16;
+const DEFAULT_ZOOM = 1;
+const MIN_ZOOM = 0.25;
+const MAX_ZOOM = 3;
+const ZOOM_STEP = 0.1;
 
 export function createInitialWindowStoreState(): WindowStoreState {
   return {
@@ -77,6 +86,9 @@ export function createInitialWindowStoreState(): WindowStoreState {
       nextZIndex: 1,
       focusedWindowId: null,
       snapGridSize: DEFAULT_SNAP_GRID,
+      zoom: DEFAULT_ZOOM,
+      panX: 0,
+      panY: 0,
     },
     snapPreview: null,
   };
@@ -451,6 +463,64 @@ export function windowReducer(
       return { ...state, layout: { ...state.layout, windows } };
     }
 
+    case "SET_ZOOM": {
+      const { zoom } = action.payload;
+      const clampedZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoom));
+      return {
+        ...state,
+        layout: {
+          ...state.layout,
+          zoom: Math.round(clampedZoom * 100) / 100,
+        },
+      };
+    }
+
+    case "ZOOM_IN": {
+      const newZoom = Math.min(MAX_ZOOM, state.layout.zoom + ZOOM_STEP);
+      return {
+        ...state,
+        layout: {
+          ...state.layout,
+          zoom: Math.round(newZoom * 100) / 100,
+        },
+      };
+    }
+
+    case "ZOOM_OUT": {
+      const newZoom = Math.max(MIN_ZOOM, state.layout.zoom - ZOOM_STEP);
+      return {
+        ...state,
+        layout: {
+          ...state.layout,
+          zoom: Math.round(newZoom * 100) / 100,
+        },
+      };
+    }
+
+    case "RESET_ZOOM": {
+      return {
+        ...state,
+        layout: {
+          ...state.layout,
+          zoom: DEFAULT_ZOOM,
+          panX: 0,
+          panY: 0,
+        },
+      };
+    }
+
+    case "SET_PAN": {
+      const { panX, panY } = action.payload;
+      return {
+        ...state,
+        layout: {
+          ...state.layout,
+          panX,
+          panY,
+        },
+      };
+    }
+
     case "CLEAR_ALL": {
       return createInitialWindowStoreState();
     }
@@ -527,6 +597,26 @@ export function createWindowStore() {
 
     setDirty(windowId: string, isDirty: boolean): void {
       this.dispatch({ type: "SET_DIRTY", payload: { windowId, isDirty } });
+    },
+
+    setZoom(zoom: number): void {
+      this.dispatch({ type: "SET_ZOOM", payload: { zoom } });
+    },
+
+    zoomIn(): void {
+      this.dispatch({ type: "ZOOM_IN" });
+    },
+
+    zoomOut(): void {
+      this.dispatch({ type: "ZOOM_OUT" });
+    },
+
+    resetZoom(): void {
+      this.dispatch({ type: "RESET_ZOOM" });
+    },
+
+    setPan(panX: number, panY: number): void {
+      this.dispatch({ type: "SET_PAN", payload: { panX, panY } });
     },
 
     setSnapPreview(

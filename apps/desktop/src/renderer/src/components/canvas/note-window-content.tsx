@@ -68,7 +68,14 @@ export function NoteWindowContent({
   );
 
   return (
-    <div className={cn("flex h-full flex-col", className)}>
+    <div
+      className={cn(
+        "flex h-full flex-col",
+        "transition-opacity duration-[var(--duration-fast)] ease-[var(--ease-out)]",
+        "motion-reduce:transition-none motion-reduce:duration-0",
+        className,
+      )}
+    >
       <ScrollArea className="min-h-0 flex-1">
         <Textarea
           ref={textareaRef}
@@ -76,7 +83,12 @@ export function NoteWindowContent({
           onChange={(ev) => handleChange(ev.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Start typing your note..."
-          className="min-h-full w-full h-full resize-none border-0 bg-transparent p-4 font-[var(--app-font-mono)] text-sm leading-relaxed text-foreground outline-none"
+          className={cn(
+            "min-h-full w-full h-full resize-none border-0 bg-transparent p-4 font-[var(--app-font-mono)] text-sm leading-relaxed text-foreground outline-none",
+            "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out)]",
+            "focus:bg-surface-1/30",
+            "motion-reduce:transition-none motion-reduce:duration-0",
+          )}
         />
       </ScrollArea>
     </div>

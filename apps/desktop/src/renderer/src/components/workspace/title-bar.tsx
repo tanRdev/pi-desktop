@@ -54,7 +54,16 @@ export function TitleBar({
           type="button"
           data-no-drag="true"
           onClick={onToggleLeftSidebar}
-          className="chrome-icon-button flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground"
+          className={cn(
+            "chrome-icon-button flex h-8 w-8 items-center justify-center rounded-md",
+            "transition-all duration-150 ease-[var(--ease-out)]",
+            "hover:scale-105 active:scale-[0.97]",
+            "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/50 focus-visible:outline-offset-2",
+            "motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
+            isLeftSidebarCollapsed
+              ? "text-muted-foreground hover:text-foreground"
+              : "text-foreground",
+          )}
           aria-label={
             isLeftSidebarCollapsed
               ? "Expand left sidebar"
@@ -74,7 +83,13 @@ export function TitleBar({
           data-no-drag="true"
           data-testid="app-title"
           onClick={onOpenLauncher}
-          className="text-lg text-muted-foreground/60 transition-colors hover:text-muted-foreground"
+          className={cn(
+            "text-lg transition-all duration-150 ease-[var(--ease-out)]",
+            "hover:scale-110 active:scale-[0.97]",
+            "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/50 focus-visible:outline-offset-2",
+            "motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
+            "text-muted-foreground/60 hover:text-muted-foreground",
+          )}
           aria-label="Open launcher"
           title="Pi launcher"
         >
@@ -84,7 +99,10 @@ export function TitleBar({
         <div className="flex min-w-0 items-center gap-2" data-no-drag="true">
           <span
             data-testid="titlebar-project-name"
-            className="truncate text-sm text-muted-foreground/80"
+            className={cn(
+              "truncate text-sm transition-colors duration-150",
+              activeRepository ? "text-foreground" : "text-muted-foreground/80",
+            )}
           >
             {activeRepository?.name ?? "No project selected"}
           </span>
@@ -111,9 +129,13 @@ export function TitleBar({
           }
           className={cn(
             "chrome-icon-button flex h-8 w-8 items-center justify-center rounded-md",
+            "transition-all duration-150 ease-[var(--ease-out)]",
+            "hover:scale-105 active:scale-[0.97]",
+            "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/50 focus-visible:outline-offset-2",
+            "motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
             sidebarView === "files"
-              ? "bg-surface-3 text-foreground"
-              : "text-muted-foreground",
+              ? "bg-surface-3 text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground",
           )}
           aria-label="Toggle files sidebar"
           title="Files"
@@ -124,7 +146,14 @@ export function TitleBar({
           type="button"
           data-no-drag="true"
           onClick={onOpenGit}
-          className="chrome-icon-button flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground"
+          className={cn(
+            "chrome-icon-button flex h-8 w-8 items-center justify-center rounded-md",
+            "transition-all duration-150 ease-[var(--ease-out)]",
+            "hover:scale-105 active:scale-[0.97]",
+            "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/50 focus-visible:outline-offset-2",
+            "motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
+            "text-muted-foreground hover:text-foreground",
+          )}
           aria-label="Open git view"
           title="Git"
         >
@@ -136,9 +165,13 @@ export function TitleBar({
           onClick={onOpenNote}
           className={cn(
             "chrome-icon-button flex h-8 w-8 items-center justify-center rounded-md",
+            "transition-all duration-150 ease-[var(--ease-out)]",
+            "hover:scale-105 active:scale-[0.97]",
+            "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/50 focus-visible:outline-offset-2",
+            "motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
             hasOpenNotes
-              ? "bg-surface-3 text-foreground"
-              : "text-muted-foreground",
+              ? "bg-surface-3 text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground",
           )}
           aria-label="Open notes"
           title="Notes"
@@ -149,7 +182,14 @@ export function TitleBar({
           type="button"
           data-no-drag="true"
           onClick={onOpenTerminal}
-          className="chrome-icon-button flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground"
+          className={cn(
+            "chrome-icon-button flex h-8 w-8 items-center justify-center rounded-md",
+            "transition-all duration-150 ease-[var(--ease-out)]",
+            "hover:scale-105 active:scale-[0.97]",
+            "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/50 focus-visible:outline-offset-2",
+            "motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
+            "text-muted-foreground hover:text-foreground",
+          )}
           aria-label="Open terminal"
           title="Terminal"
         >

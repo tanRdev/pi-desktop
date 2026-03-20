@@ -91,7 +91,10 @@ function PromptInput({
           role="presentation"
           onClick={handleClick}
           className={cn(
-            "border border-border-subtle bg-transparent cursor-text rounded-md p-3 transition-colors focus-within:ring-0",
+            "border border-border-subtle bg-transparent cursor-text rounded-md p-3",
+            "transition-all duration-200 ease-[var(--ease-out)]",
+            "focus-within:ring-0 focus-within:border-border-subtle/80 focus-within:shadow-sm focus-within:-translate-y-px",
+            "motion-reduce:transition-none motion-reduce:focus-within:translate-y-0 motion-reduce:focus-within:shadow-none",
             disabled && "cursor-not-allowed opacity-60",
             className,
           )}
@@ -168,7 +171,10 @@ function PromptInputTextarea({
       onChange={handleChange}
       onKeyDown={handleKeyDown}
       className={cn(
-        "min-h-[44px] w-full resize-none border-0 bg-transparent text-sm leading-relaxed text-foreground shadow-none outline-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground",
+        "min-h-[44px] w-full resize-none border-0 bg-transparent text-sm leading-relaxed text-foreground shadow-none",
+        "outline-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-subtle/50",
+        "placeholder:text-muted-foreground placeholder:transition-opacity placeholder:duration-150 placeholder:ease-[var(--ease-out)]",
+        "motion-reduce:focus-visible:outline-none",
         className,
       )}
       rows={1}
@@ -186,7 +192,14 @@ function PromptInputActions({
   ...props
 }: PromptInputActionsProps) {
   return (
-    <div className={cn("flex items-center gap-2", className)} {...props}>
+    <div
+      className={cn(
+        "flex items-center gap-2",
+        "motion-reduce:[&>button]:transition-none",
+        className,
+      )}
+      {...props}
+    >
       {children}
     </div>
   );
@@ -214,10 +227,23 @@ function PromptInputAction({
         asChild
         disabled={disabled}
         onClick={(event) => event.stopPropagation()}
+        className={cn(
+          "transition-transform duration-100 ease-[var(--ease-press)]",
+          "active:scale-[0.97] motion-reduce:active:scale-100",
+          "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-subtle/50",
+          "motion-reduce:focus-visible:outline-none",
+        )}
       >
         {children}
       </TooltipTrigger>
-      <TooltipContent side={side} className={className}>
+      <TooltipContent
+        side={side}
+        className={cn(
+          "animate-in fade-in-0 zoom-in-95 duration-200 ease-[var(--ease-out)]",
+          "motion-reduce:animate-none",
+          className,
+        )}
+      >
         {tooltip}
       </TooltipContent>
     </Tooltip>
