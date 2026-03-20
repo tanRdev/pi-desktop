@@ -14,6 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 
 export interface TitleBarProps {
   projectName: string;
+  platform: NodeJS.Platform | string | null;
   activeWorktreeLabel: string | null;
   worktrees: WorktreeSnapshot[];
   activeWorktreeId: string | null;
@@ -28,6 +29,7 @@ export interface TitleBarProps {
 
 export function TitleBar({
   projectName,
+  platform,
   activeWorktreeLabel,
   worktrees,
   activeWorktreeId,
@@ -39,17 +41,22 @@ export function TitleBar({
   onOpenNote,
   onSelectWorktree,
 }: TitleBarProps) {
-  const leftPadding = getTitleBarLeftPadding(isMainWindowFullscreen);
+  const leftPadding = getTitleBarLeftPadding({
+    isFullscreen: isMainWindowFullscreen,
+    platform,
+  });
   const activeWorktree =
     worktrees.find((worktree) => worktree.id === activeWorktreeId) ?? null;
+  const canOpenFileTree = activeWorktree !== null;
 
   return (
     <div
       data-drag-region="true"
-      className="titlebar relative grid h-10 shrink-0 grid-cols-[1fr_auto_1fr] items-center border-b border-[#474747]/30 bg-[#0e0e0e] px-3 z-50"
+      className="titlebar relative z-50 flex h-10 shrink-0 items-center gap-3 border-b border-[#474747]/30 bg-[#0e0e0e] px-3"
     >
       <div
-        className="flex min-w-0 items-center"
+        className="flex min-w-0 flex-1 items-center"
+        data-slot="titlebar-project"
         style={{ paddingLeft: `${leftPadding}px` }}
       >
         <div className="min-w-0" data-no-drag="true">
@@ -59,14 +66,18 @@ export function TitleBar({
         </div>
       </div>
 
-      <div className="justify-self-center" data-no-drag="true">
+      <div
+        className="ml-auto flex items-center gap-2"
+        data-no-drag="true"
+        data-slot="titlebar-controls"
+      >
         <Popover>
           <PopoverTrigger asChild>
             <Button
               type="button"
               variant="ghost"
               className={cn(
-                "h-7 min-w-[148px] justify-between gap-3 border border-[#474747]/25 bg-[#111111] px-2.5 text-[10px] uppercase tracking-[0.08em] text-[#9a9a9a]",
+                "h-7 min-w-[148px] max-w-[18rem] justify-between gap-3 border border-[#474747]/25 bg-[#111111] px-2.5 text-[10px] uppercase tracking-[0.08em] text-[#9a9a9a]",
                 "hover:border-[#6a6a6a] hover:bg-[#161616] hover:text-white",
               )}
               aria-label="Select worktree"
@@ -83,7 +94,7 @@ export function TitleBar({
             </Button>
           </PopoverTrigger>
           <PopoverContent
-            align="center"
+            align="end"
             sideOffset={8}
             className="w-72 border-[#474747]/35 bg-[#111111] p-1 text-[10px]"
           >
@@ -125,12 +136,6 @@ export function TitleBar({
             </div>
           </PopoverContent>
         </Popover>
-      </div>
-
-      <div
-        className="flex items-center justify-end gap-0.5"
-        data-no-drag="true"
-      >
         <button
           type="button"
           onClick={onToggleLeftSidebar}
@@ -142,8 +147,19 @@ export function TitleBar({
         <button
           type="button"
           onClick={onOpenFileTree}
-          className="flex size-8 items-center justify-center text-[#6f6f6f] transition-colors hover:text-white"
+          className={cn(
+            "flex size-8 items-center justify-center text-[#6f6f6f] transition-colors",
+            canOpenFileTree
+              ? "hover:text-white"
+              : "cursor-not-allowed opacity-40",
+          )}
           aria-label="Open file tree"
+          title={
+            canOpenFileTree
+              ? "Browse files"
+              : "Select a worktree to browse files"
+          }
+          disabled={!canOpenFileTree}
         >
           <FolderTree className="size-4" />
         </button>

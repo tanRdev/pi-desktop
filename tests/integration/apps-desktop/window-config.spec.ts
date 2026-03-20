@@ -93,11 +93,21 @@ describe("resolvePreloadTarget", () => {
 });
 
 describe("getTitleBarLeftPadding", () => {
-  it("uses traffic-light spacing when not fullscreen", () => {
-    expect(getTitleBarLeftPadding(false)).toBe(88);
+  it("uses traffic-light spacing on macOS when not fullscreen", () => {
+    expect(
+      getTitleBarLeftPadding({ isFullscreen: false, platform: "darwin" }),
+    ).toBe(88);
   });
 
   it("shifts left when fullscreen hides traffic lights", () => {
-    expect(getTitleBarLeftPadding(true)).toBe(24);
+    expect(
+      getTitleBarLeftPadding({ isFullscreen: true, platform: "darwin" }),
+    ).toBe(24);
+  });
+
+  it("keeps a smaller inset on non-macOS platforms", () => {
+    expect(
+      getTitleBarLeftPadding({ isFullscreen: false, platform: "linux" }),
+    ).toBe(16);
   });
 });

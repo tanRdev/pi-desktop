@@ -159,7 +159,7 @@ export function FileTreeOverlay({
     <WorkspaceOverlayFrame
       ariaLabel={ariaLabel}
       onClose={onClose}
-      className="max-w-2xl"
+      className="max-w-3xl"
     >
       <div className="flex items-start justify-between gap-4 border-b border-[#474747]/20 bg-[#0d0d0d] px-4 py-3">
         <div className="min-w-0">
@@ -183,11 +183,32 @@ export function FileTreeOverlay({
       </div>
       <ScrollArea className="max-h-[min(72vh,720px)] bg-[#101010]">
         <div className="p-3">
-          <FileTree
-            rootPath={activeWorktree?.path ?? null}
-            onFileClick={handleFileClick}
-            className="py-2"
-          />
+          {activeWorktree ? (
+            <div className="overflow-hidden border border-[#474747]/25 bg-[#0d0d0d]">
+              <div className="border-b border-[#474747]/20 bg-[#111111] px-3 py-2">
+                <p className="truncate text-[10px] font-mono uppercase tracking-[0.2em] text-[#666]">
+                  {activeWorktree.path}
+                </p>
+              </div>
+              <FileTree
+                rootPath={activeWorktree.path}
+                onFileClick={handleFileClick}
+                className="py-2"
+              />
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center gap-3 border border-[#474747]/25 bg-[#0d0d0d] px-6 py-12 text-center">
+              <FolderTree className="size-8 text-[#5d5d5d]" />
+              <div className="space-y-1">
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-white">
+                  Select a repository or worktree to browse files
+                </p>
+                <p className="text-[10px] uppercase tracking-[0.14em] text-[#6f6f6f]">
+                  Choose a branch on the right, then open Files again.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </ScrollArea>
     </WorkspaceOverlayFrame>

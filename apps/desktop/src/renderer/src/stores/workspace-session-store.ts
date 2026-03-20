@@ -103,12 +103,59 @@ export interface WorkspaceSessionStoreState {
   ): void;
 }
 
+function isLegacySearchWindow(
+  window: WorkspaceSession["layout"]["windows"][number],
+): boolean {
+  return window.kind === "search";
+}
+
+function getFocusedWindowAfterSanitizingSearchWindows(
+  windows: WorkspaceSession["layout"]["windows"],
+  focusedWindowId: string | null,
+): string | null {
+  if (
+    focusedWindowId &&
+    windows.some((window) => window.id === focusedWindowId)
+  ) {
+    return focusedWindowId;
+  }
+
+  return (
+    [...windows]
+      .filter((window) => window.state !== "minimized")
+      .sort((a, b) => b.zIndex - a.zIndex)[0]?.id ?? null
+  );
+}
+
+function sanitizeWorkspaceSessionLayout(
+  layout: WorkspaceSession["layout"],
+): WorkspaceSession["layout"] {
+  const windows = layout.windows.filter(
+    (window) => !isLegacySearchWindow(window),
+  );
+
+  if (windows.length === layout.windows.length) {
+    return layout;
+  }
+
+  return {
+    ...layout,
+    windows,
+    focusedWindowId: getFocusedWindowAfterSanitizingSearchWindows(
+      windows,
+      layout.focusedWindowId,
+    ),
+  };
+}
+
 function cloneSession(session: WorkspaceSession): RendererWorkspaceSession {
+  const sanitizedLayout = sanitizeWorkspaceSessionLayout(session.layout);
+
   return {
     ...session,
     layout: {
-      ...session.layout,
-      windows: [...session.layout.windows],
+      ...sanitizedLayout,
+      windows: [...sanitizedLayout.windows],
     },
     sidebar: { ...session.sidebar },
     promptDrafts: { ...session.promptDrafts },
@@ -143,7 +190,11 @@ function mergeSession(
     threadConversations: currentSession.threadConversations,
     fileContents: currentSession.fileContents,
     noteContents: currentSession.noteContents,
-    searchUiState: currentSession.searchUiState,
+    searchUiState: new Map(
+      [...currentSession.searchUiState].filter(([windowId]) =>
+        clonedSession.layout.windows.some((window) => window.id === windowId),
+      ),
+    ),
   };
 }
 
@@ -152,7 +203,7 @@ function toPersistedSession(
 ): WorkspaceSession {
   return {
     worktreeId: session.worktreeId,
-    layout: session.layout,
+    layout: sanitizeWorkspaceSessionLayout(session.layout),
     sidebar: session.sidebar,
     promptDrafts: session.promptDrafts,
     search: session.search,

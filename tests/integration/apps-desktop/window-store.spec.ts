@@ -101,6 +101,15 @@ describe("window-store", () => {
     expect(t.cwd).toBe(cwd);
   });
 
+  it("rejects creating legacy search canvas windows", () => {
+    const store = createWindowStore();
+
+    expect(() => store.createWindow({ kind: "search" })).toThrow(
+      /overlay-only/i,
+    );
+    expect(store.getState().layout.windows).toHaveLength(0);
+  });
+
   it("moveWindow only updates targeted window coordinates", () => {
     const store = createWindowStore();
     const a = store.createWindow({ kind: "file", filePath: "/tmp/a.ts" });

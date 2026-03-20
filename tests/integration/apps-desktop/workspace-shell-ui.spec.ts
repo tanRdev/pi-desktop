@@ -40,9 +40,64 @@ describe("workspace shell UI guards", () => {
     );
 
     expect(source).toContain(
-      'className="pointer-events-none absolute inset-x-0 bottom-6 z-20"',
+      'className="pointer-events-none absolute bottom-6 left-1/2 z-20 w-full max-w-[38rem] -translate-x-1/2 px-4"',
     );
     expect(source).not.toContain('activeThreadId && "pb-40"');
+  });
+
+  it("keeps the prompt dock drawer-sized instead of stretching across the workspace", () => {
+    const shellSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx",
+    );
+    const dockSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/prompt-dock.tsx",
+    );
+
+    expect(shellSource).toContain(
+      'className="pointer-events-none absolute bottom-6 left-1/2 z-20 w-full max-w-[38rem] -translate-x-1/2 px-4"',
+    );
+    expect(shellSource).not.toContain(
+      'className="pointer-events-none absolute inset-x-0 bottom-6 z-20"',
+    );
+    expect(dockSource).not.toContain("max-w-[44rem]");
+    expect(dockSource).toContain("relative w-full");
+  });
+
+  it("auto-hides the prompt drawer unless a chat thread is focused", () => {
+    const controllerSource = readSource(
+      "apps/desktop/src/renderer/src/hooks/use-app-shell-controller.ts",
+    );
+
+    expect(controllerSource).toContain('focusedWindow?.kind === "chat"');
+    expect(controllerSource).not.toContain(
+      '(!focusedWindow || focusedWindow.kind === "chat")',
+    );
+  });
+
+  it("routes prompt input submit through stop while a prompt is executing", () => {
+    const dockSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/prompt-dock.tsx",
+    );
+
+    expect(dockSource).toContain("onSubmit={() =>");
+    expect(dockSource).toContain(
+      "void (isPromptExecuting ? onCancelPrompt() : onSend())",
+    );
+  });
+
+  it("compresses prompt suggestions into a single compact horizontal row", () => {
+    const suggestionSource = readSource(
+      "apps/desktop/src/renderer/src/components/ui/prompt-suggestion.tsx",
+    );
+
+    expect(suggestionSource).toContain(
+      "inline-flex h-9 min-w-fit shrink-0 items-center gap-2.5 whitespace-nowrap",
+    );
+    expect(suggestionSource).toContain("items-center gap-1.5 truncate");
+    expect(suggestionSource).not.toContain("h-12 min-w-[15rem]");
+    expect(suggestionSource).not.toContain(
+      "block truncate text-[11px] leading-4",
+    );
   });
 
   it("uses an explicit prompt stop action and overlay-only launcher search results", () => {

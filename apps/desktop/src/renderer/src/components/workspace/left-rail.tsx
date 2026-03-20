@@ -149,9 +149,9 @@ export function LeftRail({
       style={{ width: LEFT_RAIL_WIDTH }}
     >
       <div className="flex h-full flex-col border-r border-[#474747]/15">
-        <div className="flex h-12 items-center justify-center border-b border-[#474747]/15 px-2">
+        <div className="flex h-12 items-center justify-center border-b border-[#474747]/15 px-1.5">
           {isProjectSelectionMode ? (
-            <span className="px-2 text-center font-mono text-[9px] uppercase tracking-[0.1em] text-[#6f6f6f]">
+            <span className="px-1.5 text-center font-mono text-[9px] uppercase leading-none tracking-[0.08em] text-[#6f6f6f]">
               Projects
             </span>
           ) : (
@@ -167,7 +167,7 @@ export function LeftRail({
               title="Return to project selection"
             >
               <ArrowLeft className="size-3.5" />
-              <span className="font-mono text-[8px] uppercase tracking-[0.1em]">
+              <span className="font-mono text-[8px] uppercase tracking-[0.08em]">
                 Back
               </span>
             </button>

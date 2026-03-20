@@ -98,13 +98,31 @@ describe("moveRepositorySnapshots", () => {
     );
   });
 
-  it("uses tighter tracking for rail labels and project heading", () => {
+  it("uses tighter tracking across the left rail chrome", () => {
     const source = readSource(
       "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
     );
 
     expect(source).toContain("tracking-[0.08em]");
-    expect(source).toContain("tracking-[0.1em]");
+    expect(source).not.toContain("tracking-[0.1em]");
     expect(source).not.toContain("tracking-[0.24em]");
+  });
+
+  it("offsets the expandable sidebar from the fixed left rail", () => {
+    const sidebarSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/left-sidebar.tsx",
+    );
+    const shellSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx",
+    );
+
+    expect(sidebarSource).toMatch(
+      /style=\{\{\s*marginLeft:\s*isCollapsed\s*\?\s*0\s*:\s*LEFT_RAIL_WIDTH,\s*width:\s*isCollapsed\s*\?\s*0\s*:\s*width,\s*\}\}/s,
+    );
+    expect(sidebarSource).not.toContain("width + LEFT_RAIL_WIDTH");
+    expect(sidebarSource).not.toContain("flex min-w-0 flex-1 flex-col pl-16");
+    expect(shellSource).toContain(
+      '(isLeftSidebarCollapsed || leftRailMode === "projects") && "ml-16"',
+    );
   });
 });

@@ -740,15 +740,18 @@ export function LeftSidebar({
     <aside
       className={cn(
         "relative z-10 flex h-full shrink-0 overflow-hidden bg-[#0e0e0e]",
-        "transition-[width] duration-150 ease-[var(--ease-out)]",
+        "transition-[margin-left,width] duration-150 ease-[var(--ease-out)]",
         isCollapsed && "overflow-hidden",
         className,
       )}
-      style={{ width: isCollapsed ? 0 : width + LEFT_RAIL_WIDTH }}
+      style={{
+        marginLeft: isCollapsed ? 0 : LEFT_RAIL_WIDTH,
+        width: isCollapsed ? 0 : width,
+      }}
     >
-      <div className="flex min-w-0 flex-1 flex-col pl-16">
+      <div className="flex min-w-0 flex-1 flex-col">
         {!isCollapsed && (
-          <div className="flex items-center gap-2 border-b border-[#474747]/15 px-3 py-2">
+          <div className="flex items-center gap-1.5 border-b border-[#474747]/15 px-2.5 py-1.5">
             <span className="text-[#6f6f6f]">{viewInfo.icon}</span>
             <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-[#919191]">
               {viewInfo.title}

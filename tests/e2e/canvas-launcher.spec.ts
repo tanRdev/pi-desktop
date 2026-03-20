@@ -22,7 +22,7 @@ function createLaunchContext(prefix: string) {
   };
 }
 
-test("opens launcher and note windows from the title bar", async () => {
+test("opens launcher as an overlay and dismisses it on close or selection", async () => {
   const launchContext = createLaunchContext("pidesk-e2e-canvas-");
   const app = await electron.launch({
     args: [desktopMainEntry],
@@ -41,15 +41,30 @@ test("opens launcher and note windows from the title bar", async () => {
     const page = await app.firstWindow();
 
     await expect(page.getByTestId("app-ready")).toBeVisible();
-    await expect(page.getByTestId("titlebar-project-name")).toHaveText(
-      "PiDesk",
-    );
     await expect(page.getByTestId("canvas-grid")).toBeVisible();
-    await page.getByTestId("app-title").click();
-    await expect(page.locator('[data-window-kind="search"]')).toBeVisible();
-    await expect(page.getByPlaceholder("Search workspace...")).toBeVisible();
+    await page.getByRole("button", { name: "Open launcher" }).click();
+    const launcherOverlay = page.getByRole("dialog", {
+      name: "Launcher overlay",
+    });
+    await expect(launcherOverlay).toBeVisible();
+    await expect(page.locator('[data-window-kind="search"]')).toHaveCount(0);
+    await expect(
+      launcherOverlay.getByPlaceholder("Search workspace..."),
+    ).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(
+      page.getByRole("dialog", { name: "Launcher overlay" }),
+    ).toHaveCount(0);
 
-    await page.getByRole("button", { name: "Open notes" }).click();
+    await page.getByRole("button", { name: "Open launcher" }).click();
+    const reopenedOverlay = page.getByRole("dialog", {
+      name: "Launcher overlay",
+    });
+    await expect(reopenedOverlay).toBeVisible();
+    await reopenedOverlay.getByRole("button", { name: "Note" }).click();
+    await expect(
+      page.getByRole("dialog", { name: "Launcher overlay" }),
+    ).toHaveCount(0);
     await expect(page.locator('[data-window-kind="note"]')).toBeVisible();
   } finally {
     await app.close();

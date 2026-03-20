@@ -240,14 +240,9 @@ export function createWindowFromAction(
       return win;
     }
     case "search": {
-      const win: SearchWindow = {
-        ...base,
-        kind: "search",
-        title: "Search",
-        query: "",
-        results: [],
-      };
-      return win;
+      throw new Error(
+        "Search windows are overlay-only. Use the launcher overlay instead.",
+      );
     }
     case "graph": {
       const win: GraphWindow = {

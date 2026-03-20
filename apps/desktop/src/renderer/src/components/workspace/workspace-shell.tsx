@@ -22,6 +22,7 @@ import { TitleBar } from "./title-bar";
 import { FileTreeOverlay, LauncherOverlay } from "./workspace-overlays";
 
 export interface WorkspaceShellProps {
+  platform: string | null;
   repositories: RepositorySnapshot[];
   activeRepository: RepositorySnapshot | null;
   activeRepositoryId: string | null;
@@ -194,6 +195,7 @@ function CanvasEmptyState({
 }
 
 export function WorkspaceShell({
+  platform,
   repositories,
   activeRepository,
   activeRepositoryId,
@@ -428,6 +430,7 @@ export function WorkspaceShell({
     <>
       <TitleBar
         projectName={projectName}
+        platform={platform}
         activeWorktreeLabel={activeWorktreeLabel}
         worktrees={activeRepository?.worktrees ?? []}
         activeWorktreeId={activeWorktreeId}
@@ -496,7 +499,7 @@ export function WorkspaceShell({
                 onOpenBlankStateChat={onOpenBlankStateChat}
               />
             ) : null}
-            <div className="pointer-events-none absolute inset-x-0 bottom-6 z-20">
+            <div className="pointer-events-none absolute bottom-6 left-1/2 z-20 w-full max-w-[38rem] -translate-x-1/2 px-4">
               <div className="pointer-events-auto">
                 <PromptDock
                   draft={draft}

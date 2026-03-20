@@ -161,25 +161,38 @@ describe("workspace-session-store", () => {
     ).toBe(0);
   });
 
-  it("updates late window state on the originating worktree session", async () => {
+  it("ignores late updates for legacy search canvas windows", async () => {
     const store = createWorkspaceSessionStore({
       getWorkspaceSession: vi.fn(async () => null),
       saveWorkspaceSession: vi.fn(async (session) => session),
       persistDelayMs: 5,
     });
 
+    const sessionA = createEmptyWorkspaceSession("/tmp/repo-a");
+    sessionA.layout.windows.push({
+      id: "search-window-a",
+      kind: "search",
+      title: "Search",
+      query: "",
+      results: [],
+      x: 160,
+      y: 120,
+      width: 640,
+      height: 420,
+      zIndex: 1,
+      isFocused: true,
+      state: "normal",
+    });
+
     store
       .getState()
       .hydrateCatalogSessions([
-        createEmptyWorkspaceSession("/tmp/repo-a"),
+        sessionA,
         createEmptyWorkspaceSession("/tmp/repo-b"),
       ]);
 
-    await store.getState().setActiveWorktree("/tmp/repo-a");
-    const searchWindow = store.getState().createWindow({ kind: "search" });
-
     await store.getState().setActiveWorktree("/tmp/repo-b");
-    store.getState().updateWindowForWorktree("/tmp/repo-a", searchWindow.id, {
+    store.getState().updateWindowForWorktree("/tmp/repo-a", "search-window-a", {
       query: "notes",
       results: [
         {
@@ -194,23 +207,46 @@ describe("workspace-session-store", () => {
     const updatedSearchWindow = store
       .getState()
       .sessionsByWorktreeId["/tmp/repo-a"]?.layout.windows.find(
-        (window) => window.id === searchWindow.id,
+        (window) => window.id === "search-window-a",
       );
 
-    expect(updatedSearchWindow).toMatchObject({
-      id: searchWindow.id,
-      kind: "search",
-      query: "notes",
-      results: [
-        expect.objectContaining({
-          path: "/tmp/repo-a/notes/today.md",
-          name: "today.md",
-        }),
-      ],
-    });
+    expect(updatedSearchWindow).toBeUndefined();
     expect(
       store.getState().sessionsByWorktreeId["/tmp/repo-b"]?.layout.windows,
     ).toHaveLength(0);
+  });
+
+  it("strips legacy search canvas windows when hydrating catalog sessions", () => {
+    const store = createWorkspaceSessionStore({
+      getWorkspaceSession: vi.fn(async () => null),
+      saveWorkspaceSession: vi.fn(async (session) => session),
+      persistDelayMs: 5,
+    });
+
+    const session = createEmptyWorkspaceSession("/tmp/repo-a");
+    session.layout.windows.push({
+      id: "search-window-a",
+      kind: "search",
+      title: "Search",
+      query: "notes",
+      results: [],
+      x: 160,
+      y: 120,
+      width: 640,
+      height: 420,
+      zIndex: 1,
+      isFocused: true,
+      state: "normal",
+    });
+    session.layout.focusedWindowId = "search-window-a";
+    session.layout.nextZIndex = 2;
+
+    store.getState().hydrateCatalogSessions([session]);
+
+    const hydratedSession =
+      store.getState().sessionsByWorktreeId["/tmp/repo-a"];
+    expect(hydratedSession?.layout.windows).toEqual([]);
+    expect(hydratedSession?.layout.focusedWindowId).toBeNull();
   });
 
   it("preserves runtime-only maps when catalog hydration refreshes a session", async () => {

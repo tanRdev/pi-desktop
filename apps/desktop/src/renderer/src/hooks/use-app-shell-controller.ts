@@ -91,6 +91,7 @@ export function useAppShellController(): AppShellController {
   );
   const activeWorktree = React.useMemo(() => getActiveWorktree(shell), [shell]);
   const activeThread = React.useMemo(() => getActiveThread(shell), [shell]);
+  const platform = shell.platform ?? null;
   const repositories = shell.catalog.repositories;
   const activeRepositoryId = activeRepository?.id ?? null;
   const activeWorktreeId = activeWorktree?.id ?? null;
@@ -346,8 +347,7 @@ export function useAppShellController(): AppShellController {
   const isPromptExecuting =
     agent.status === "starting" || agent.status === "streaming";
   const isPromptVisible =
-    activeThreadId !== null &&
-    (!focusedWindow || focusedWindow.kind === "chat");
+    activeThreadId !== null && focusedWindow?.kind === "chat";
 
   const handleFileClick = React.useCallback(
     async (filePath: string) => {
@@ -1127,6 +1127,7 @@ export function useAppShellController(): AppShellController {
   }, [windowState.layout.windows]);
 
   const workspaceShellProps: WorkspaceShellProps = {
+    platform,
     repositories,
     activeRepository,
     activeRepositoryId,

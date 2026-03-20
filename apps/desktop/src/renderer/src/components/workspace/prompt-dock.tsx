@@ -245,7 +245,7 @@ export function PromptDock({
     <div
       aria-hidden={!isVisible}
       className={cn(
-        "relative",
+        "relative w-full",
         "transition-[max-height,padding] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]",
         "motion-reduce:transition-none",
         isVisible ? "max-h-[42rem] pb-5 pt-3" : "max-h-0 pb-0 pt-0",
@@ -261,7 +261,7 @@ export function PromptDock({
       />
       <div
         className={cn(
-          "relative mx-auto w-full max-w-[44rem] px-4",
+          "relative w-full",
           "transition-[opacity,transform,filter] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]",
           "motion-reduce:transition-none",
           isVisible
@@ -272,7 +272,9 @@ export function PromptDock({
         <PromptInput
           value={draft}
           onValueChange={onDraftChange}
-          onSubmit={() => void onSend()}
+          onSubmit={() =>
+            void (isPromptExecuting ? onCancelPrompt() : onSend())
+          }
           className={cn(
             "shell-dock px-4 pb-3 pt-3",
             "bg-[linear-gradient(180deg,rgba(13,13,13,0.84)_0%,rgba(8,8,8,0.98)_100%)]",

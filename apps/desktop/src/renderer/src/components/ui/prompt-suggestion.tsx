@@ -17,21 +17,26 @@ export function PromptSuggestion({
     <button
       type="button"
       className={cn(
-        "group flex h-12 min-w-[15rem] shrink-0 items-center gap-2 border border-[#474747]/25 bg-[#111111]/92 px-3 py-2 text-left",
+        "group inline-flex h-9 min-w-fit shrink-0 items-center gap-2.5 whitespace-nowrap border border-[#474747]/25 bg-[#111111]/92 px-3 text-left",
         "transition-[transform,border-color,background-color,color] duration-150 ease-out",
         "hover:border-white/35 hover:bg-[#171717] hover:text-white active:scale-[0.99]",
         className,
       )}
       {...props}
     >
-      <div className="min-w-0 flex-1">
-        <span className="block truncate font-mono text-[10px] uppercase tracking-[0.08em] text-white/88">
+      <div className="flex min-w-0 items-center gap-1.5 truncate">
+        <span className="truncate font-mono text-[10px] uppercase tracking-[0.08em] text-white/88">
           {title}
         </span>
         {description ? (
-          <span className="block truncate text-[11px] leading-4 text-[#7e7e7e] group-hover:text-[#b5b5b5]">
-            {description}
-          </span>
+          <>
+            <span aria-hidden="true" className="text-[#4f4f4f]">
+              /
+            </span>
+            <span className="truncate text-[10px] text-[#7e7e7e] group-hover:text-[#b5b5b5]">
+              {description}
+            </span>
+          </>
         ) : null}
       </div>
     </button>
@@ -48,7 +53,7 @@ export function PromptSuggestionGroup({
   return (
     <div
       className={cn(
-        "flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+        "flex items-center gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
         className,
       )}
       {...props}
