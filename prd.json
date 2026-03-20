@@ -14,7 +14,7 @@
         "Typecheck passes"
       ],
       "priority": 1,
-      "passes": false,
+      "passes": true,
       "notes": "File: workspace-shell.tsx, prompt-dock.tsx - restructure so prompt is part of canvas, not separate dock"
     },
     {

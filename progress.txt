@@ -9,3 +9,13 @@ Started: Fri Mar 20 10:36:15 EDT 2026
   - Traffic lights are handled by Electron/frameless window, not in React component
   - Navigation buttons (TERMINAL, LOGS, FILES, NETWORK) use uppercase font-mono styling
 ---
+## Fri Mar 20 10:50:00 EDT 2026 - US-001
+- Removed z-20 and bg-[#131313] styling from PromptDock wrapper
+- Simplified the prompt dock wrapper in workspace-shell.tsx (removed pointer-events-none div)
+- Prompt input is now part of the main canvas area without separate dock styling
+- Files changed: apps/desktop/src/renderer/src/components/workspace/prompt-dock.tsx, apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx
+- **Learnings for future iterations:**
+  - The workspace-shell uses a main element with flex-col layout for canvas + prompt
+  - PromptDock is now a simpler component without heavy wrapper styling
+  - The prompt input integrates with the canvas via shrink-0 flex positioning
+---
