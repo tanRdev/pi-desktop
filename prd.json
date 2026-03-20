@@ -130,7 +130,7 @@
         "Typecheck passes"
       ],
       "priority": 1,
-      "passes": false,
+      "passes": true,
       "notes": "File: title-bar.tsx - remove the OBSIDIAN_CMD span"
     }
   ]

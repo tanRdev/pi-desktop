@@ -114,7 +114,7 @@ export function PromptDock({
   return (
     <div
       className={cn(
-        "relative z-20 bg-[#131313] pb-4 pt-3",
+        "relative pb-4 pt-3",
         "transition-opacity duration-100 ease-[var(--ease-out)]",
       )}
     >

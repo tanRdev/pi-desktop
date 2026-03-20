@@ -361,9 +361,8 @@ export function WorkspaceShell({
             ) : null}
           </div>
 
-          <div className="pointer-events-none relative z-20 shrink-0">
-            <div className="pointer-events-auto">
-              <PromptDock
+          <div className="relative shrink-0">
+            <PromptDock
                 draft={draft}
                 onDraftChange={onDraftChange}
                 onSend={onSend}
@@ -383,7 +382,6 @@ export function WorkspaceShell({
                 onModelMenuOpenChange={onModelMenuOpenChange}
                 onModelSelection={onModelSelection}
               />
-            </div>
           </div>
         </main>
 

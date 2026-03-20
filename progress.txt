@@ -1,3 +1,11 @@
 # Ralph Progress Log
 Started: Fri Mar 20 10:36:15 EDT 2026
 ---
+## Fri Mar 20 10:45:00 EDT 2026 - US-009
+- Removed OBSIDIAN_CMD text from title-bar.tsx to prevent overlap with traffic lights
+- Files changed: apps/desktop/src/renderer/src/components/workspace/title-bar.tsx
+- **Learnings for future iterations:**
+  - The title bar uses a horizontal flex layout with gap-6 between elements
+  - Traffic lights are handled by Electron/frameless window, not in React component
+  - Navigation buttons (TERMINAL, LOGS, FILES, NETWORK) use uppercase font-mono styling
+---
