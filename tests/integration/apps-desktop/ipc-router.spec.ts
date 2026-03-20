@@ -474,6 +474,7 @@ function createAgentHost(agentSnapshot: AgentSnapshot) {
     getSettings: vi.fn(async () => ({})),
     getSnapshot: vi.fn(async () => agentSnapshot),
     prompt: vi.fn(async () => undefined),
+    cancelPrompt: vi.fn(async () => undefined),
     reset: vi.fn(async () => undefined),
     addRepository: vi.fn(async () => undefined),
     selectRepository: vi.fn(async () => undefined),

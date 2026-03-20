@@ -209,6 +209,13 @@ describe("design refinements – shell chrome & layout", () => {
     expect(src).toContain("transition-colors");
   });
 
+  it("prompt dock uses tighter tracking and a stop label while executing", () => {
+    const src = dockSrc();
+    expect(src).toContain('isPromptExecuting ? "STOP" : "EXECUTE"');
+    expect(src).toContain("tracking-[0.12em]");
+    expect(src).not.toContain("tracking-[0.24em]");
+  });
+
   it("title bar uses refined spacing (gap-2.5)", () => {
     const src = titleSrc();
     expect(src).toContain("gap-2.5");
@@ -220,6 +227,14 @@ describe("design refinements – shell chrome & layout", () => {
     expect(src).toContain("py-2.5");
     // Should NOT use the looser original spacing
     expect(src).not.toContain("gap-2 py-3");
+  });
+
+  it("left rail and title bar reduce excessive tracking", () => {
+    const rail = railSrc();
+    const title = titleSrc();
+    expect(rail).toContain("tracking-[0.08em]");
+    expect(rail).not.toContain("tracking-[0.24em]");
+    expect(title).toContain("tracking-[0.08em]");
   });
 
   it("status bar uses proportional sizing (10px text, 1.5×1.5 dot)", () => {

@@ -36,6 +36,7 @@ export interface AgentIpcHost {
   getSettings(): Promise<SettingsSnapshot>;
   getSnapshot(): Promise<AgentSnapshot>;
   prompt(text: string): Promise<void>;
+  cancelPrompt(): Promise<void>;
   reset(): Promise<void>;
   addRepository(path: string): Promise<void>;
   reorderRepositories(repositoryIds: string[]): Promise<void>;
@@ -156,6 +157,10 @@ export function registerIpcHandlers({
       throw new Error("Agent prompt payload must include text");
     }
     await agentHost.prompt(text);
+  });
+
+  handle(IPC_CHANNELS.agent.cancelPrompt, async () => {
+    await agentHost.cancelPrompt();
   });
 
   handle(IPC_CHANNELS.agent.reset, async () => {

@@ -90,6 +90,23 @@ describe("createAgentHostClient", () => {
     });
 
     await expect(promptPromise).resolves.toBeUndefined();
+
+    const cancelPromise = client.cancelPrompt();
+
+    expect(child.postMessage).toHaveBeenNthCalledWith(4, {
+      requestId: "4",
+      type: "cancelPrompt",
+    });
+
+    child.emitMessage({
+      type: "response",
+      response: {
+        requestId: "4",
+        kind: "ack",
+      },
+    });
+
+    await expect(cancelPromise).resolves.toBeUndefined();
   });
 
   it("rejects requests when the agent host responds with an error", async () => {

@@ -12,6 +12,7 @@ export interface CommandHandlerRuntime {
   getSettings(): Promise<SettingsSnapshot>;
   getSnapshot(): AgentSnapshot;
   prompt(text: string): Promise<void>;
+  cancelPrompt(): Promise<void>;
   // Reset the runtime to a fresh session. Implementations should clear
   // any message history and produce a new session id where applicable.
   reset(): Promise<void>;
@@ -61,6 +62,15 @@ export function createAgentHostCommandHandler(runtime: CommandHandlerRuntime) {
           };
         case "prompt":
           await runtime.prompt(request.text);
+          return {
+            type: "response",
+            response: {
+              requestId: request.requestId,
+              kind: "ack",
+            },
+          };
+        case "cancelPrompt":
+          await runtime.cancelPrompt();
           return {
             type: "response",
             response: {

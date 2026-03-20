@@ -38,8 +38,12 @@ describe("wireAgentHostParentPort", () => {
     const parentPort = new FakeParentPort();
     const runtime = {
       bootstrap: vi.fn(async () => {}),
+      getProviders: vi.fn(async () => []),
+      getSettings: vi.fn(async () => ({})),
       getSnapshot: vi.fn(() => snapshot),
       prompt: vi.fn(async () => {}),
+      cancelPrompt: vi.fn(async () => {}),
+      reset: vi.fn(async () => {}),
       subscribe: vi.fn(() => () => {}),
     };
 
@@ -63,6 +67,8 @@ describe("wireAgentHostParentPort", () => {
       bootstrap: vi.fn(async () => {
         throw new Error("Missing SDK auth");
       }),
+      getProviders: vi.fn(async () => []),
+      getSettings: vi.fn(async () => ({})),
       getSnapshot: vi.fn(() => ({
         sessionId: "sdk-session",
         status: "error" as const,
@@ -70,6 +76,8 @@ describe("wireAgentHostParentPort", () => {
         lastError: "Missing SDK auth",
       })),
       prompt: vi.fn(async () => {}),
+      cancelPrompt: vi.fn(async () => {}),
+      reset: vi.fn(async () => {}),
       subscribe: vi.fn(() => () => {}),
     };
 
@@ -93,6 +101,8 @@ describe("wireAgentHostParentPort", () => {
     let listener: ((event: { type: "agent_start" }) => void) | undefined;
     const runtime = {
       bootstrap: vi.fn(async () => {}),
+      getProviders: vi.fn(async () => []),
+      getSettings: vi.fn(async () => ({})),
       getSnapshot: vi.fn(() => ({
         sessionId: "mock-session",
         status: "ready",
@@ -100,6 +110,8 @@ describe("wireAgentHostParentPort", () => {
         lastError: null,
       })),
       prompt: vi.fn(async () => {}),
+      cancelPrompt: vi.fn(async () => {}),
+      reset: vi.fn(async () => {}),
       subscribe: vi.fn(
         (nextListener: (event: { type: "agent_start" }) => void) => {
           listener = nextListener;
@@ -117,6 +129,38 @@ describe("wireAgentHostParentPort", () => {
       type: "event",
       event: {
         type: "agent_start",
+      },
+    });
+  });
+
+  test("forwards cancelPrompt requests to the runtime", async () => {
+    const parentPort = new FakeParentPort();
+    const runtime = {
+      bootstrap: vi.fn(async () => {}),
+      getProviders: vi.fn(async () => []),
+      getSettings: vi.fn(async () => ({})),
+      getSnapshot: vi.fn(() => ({
+        sessionId: "mock-session",
+        status: "ready" as const,
+        messages: [],
+        lastError: null,
+      })),
+      prompt: vi.fn(async () => {}),
+      cancelPrompt: vi.fn(async () => {}),
+      reset: vi.fn(async () => {}),
+      subscribe: vi.fn(() => () => {}),
+    };
+
+    wireAgentHostParentPort({ parentPort, runtime });
+    parentPort.emit({ requestId: "9", type: "cancelPrompt" });
+    await Promise.resolve();
+
+    expect(runtime.cancelPrompt).toHaveBeenCalledOnce();
+    expect(parentPort.postMessage).toHaveBeenCalledWith({
+      type: "response",
+      response: {
+        requestId: "9",
+        kind: "ack",
       },
     });
   });

@@ -29,6 +29,13 @@ export interface WindowStoreState {
   snapPreview: { windowId: string; position: WindowPosition } | null;
 }
 
+export interface WindowCreationOptions {
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+}
+
 /**
  * Window store actions.
  */
@@ -71,10 +78,10 @@ export type WindowAction =
   | { type: "SET_PAN"; payload: { panX: number; panY: number } }
   | { type: "CLEAR_ALL" };
 
-const DEFAULT_WINDOW_WIDTH = 420;
-const DEFAULT_WINDOW_HEIGHT = 280;
-const DEFAULT_SNAP_GRID = 16;
-const DEFAULT_ZOOM = 1;
+const DEFAULT_WINDOW_WIDTH = 640;
+const DEFAULT_WINDOW_HEIGHT = 420;
+const DEFAULT_SNAP_GRID = 24;
+const DEFAULT_ZOOM = 0.9;
 const MIN_ZOOM = 0.25;
 const MAX_ZOOM = 3;
 const ZOOM_STEP = 0.1;
@@ -114,16 +121,45 @@ export function getDefaultWindowPosition(existingWindows: CanvasWindow[]): {
   x: number;
   y: number;
 } {
-  const cascadeOffset = 32;
-  const maxOffset = 200;
+  const cascadeOffset = 48;
+  const maxOffset = 288;
 
   // Calculate cascade position based on existing windows
   const count = existingWindows.length;
   const offset = Math.min(count * cascadeOffset, maxOffset);
 
   return {
-    x: 100 + offset,
-    y: 80 + offset,
+    x: 160 + offset,
+    y: 120 + offset,
+  };
+}
+
+export function getCenteredWindowPosition({
+  viewportWidth,
+  viewportHeight,
+  windowWidth = DEFAULT_WINDOW_WIDTH,
+  windowHeight = DEFAULT_WINDOW_HEIGHT,
+  zoom = DEFAULT_ZOOM,
+  panX = 0,
+  panY = 0,
+}: {
+  viewportWidth: number;
+  viewportHeight: number;
+  windowWidth?: number;
+  windowHeight?: number;
+  zoom?: number;
+  panX?: number;
+  panY?: number;
+}): { x: number; y: number } {
+  const safeZoom = zoom > 0 ? zoom : DEFAULT_ZOOM;
+
+  return {
+    x: Math.round(
+      (viewportWidth / safeZoom - windowWidth) / 2 - panX / safeZoom,
+    ),
+    y: Math.round(
+      (viewportHeight / safeZoom - windowHeight) / 2 - panY / safeZoom,
+    ),
   };
 }
 
@@ -135,6 +171,7 @@ export function createWindowFromAction(
   existingWindows: CanvasWindow[],
   nextZIndex: number,
   cwd?: string,
+  options?: WindowCreationOptions,
 ): CanvasWindow {
   const id = generateWindowId(action.kind);
   const position = getDefaultWindowPosition(existingWindows);
@@ -142,10 +179,10 @@ export function createWindowFromAction(
   const base: Omit<CanvasWindowBase, "kind"> = {
     id,
     title: "",
-    x: position.x,
-    y: position.y,
-    width: DEFAULT_WINDOW_WIDTH,
-    height: DEFAULT_WINDOW_HEIGHT,
+    x: options?.x ?? position.x,
+    y: options?.y ?? position.y,
+    width: options?.width ?? DEFAULT_WINDOW_WIDTH,
+    height: options?.height ?? DEFAULT_WINDOW_HEIGHT,
     zIndex: nextZIndex,
     isFocused: true,
     state: "normal",
@@ -561,12 +598,17 @@ export function createWindowStore() {
       notify();
     },
 
-    createWindow(action: CreateWindowAction, cwd?: string): CanvasWindow {
+    createWindow(
+      action: CreateWindowAction,
+      cwd?: string,
+      options?: WindowCreationOptions,
+    ): CanvasWindow {
       const window = createWindowFromAction(
         action,
         state.layout.windows,
         state.layout.nextZIndex,
         cwd,
+        options,
       );
       this.dispatch({ type: "CREATE_WINDOW", payload: { window } });
       return window;

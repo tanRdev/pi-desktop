@@ -1,110 +1,173 @@
-import type { RepositorySnapshot } from "@pidesk/shared";
+import type { WorktreeSnapshot } from "@pidesk/shared";
 import {
   FolderTree,
   GitBranch,
   PanelLeft,
-  PanelLeftClose,
+  Search,
   StickyNote,
-  Terminal,
+  Workflow,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getTitleBarLeftPadding } from "../../lib/title-bar-layout";
+import { Button } from "../ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 
 export interface TitleBarProps {
-  activeRepository: RepositorySnapshot | null;
+  projectName: string;
   activeWorktreeLabel: string | null;
-  sidebarView: "files" | "git" | "notes" | null;
-  setSidebarView: (view: "files" | "git" | "notes" | null) => void;
-  hasOpenNotes: boolean;
+  worktrees: WorktreeSnapshot[];
+  activeWorktreeId: string | null;
   isMainWindowFullscreen: boolean;
-  isLeftSidebarCollapsed: boolean;
   onToggleLeftSidebar: () => void;
   onOpenLauncher: () => void;
-  onOpenNote: () => void;
+  onOpenFileTree: () => void;
   onOpenGit: () => void;
-  onOpenTerminal: () => void;
+  onOpenNote: () => void;
+  onSelectWorktree: (worktreeId: string) => void | Promise<void>;
 }
 
 export function TitleBar({
-  activeRepository,
+  projectName,
   activeWorktreeLabel,
-  sidebarView,
-  setSidebarView,
-  hasOpenNotes,
+  worktrees,
+  activeWorktreeId,
   isMainWindowFullscreen,
-  isLeftSidebarCollapsed,
   onToggleLeftSidebar,
   onOpenLauncher,
-  onOpenNote,
+  onOpenFileTree,
   onOpenGit,
-  onOpenTerminal,
+  onOpenNote,
+  onSelectWorktree,
 }: TitleBarProps) {
   const leftPadding = getTitleBarLeftPadding(isMainWindowFullscreen);
+  const activeWorktree =
+    worktrees.find((worktree) => worktree.id === activeWorktreeId) ?? null;
 
   return (
     <div
       data-drag-region="true"
-      className="titlebar relative flex h-10 shrink-0 items-center justify-between px-3 bg-[#0e0e0e] border-b border-[#474747]/30 z-50"
+      className="titlebar relative grid h-10 shrink-0 grid-cols-[1fr_auto_1fr] items-center border-b border-[#474747]/30 bg-[#0e0e0e] px-3 z-50"
     >
-      <div className="flex items-center gap-6">
-        <div className="flex gap-4" data-no-drag="true">
-          <button
-            type="button"
-            onClick={onOpenTerminal}
-            className="font-mono text-[11px] tracking-tight uppercase text-[#474747] hover:text-white transition-colors"
-          >
-            TERMINAL
-          </button>
-          <button
-            type="button"
-            className="font-mono text-[11px] tracking-tight uppercase text-[#474747] hover:text-white transition-colors"
-          >
-            LOGS
-          </button>
-          <button
-            type="button"
-            onClick={() =>
-              setSidebarView(sidebarView === "files" ? null : "files")
-            }
-            className={cn(
-              "font-mono text-[11px] tracking-tight uppercase transition-colors",
-              sidebarView === "files"
-                ? "text-white"
-                : "text-[#474747] hover:text-white",
-            )}
-          >
-            FILES
-          </button>
-          <button
-            type="button"
-            className="font-mono text-[11px] tracking-tight uppercase text-[#474747] hover:text-white transition-colors"
-          >
-            NETWORK
-          </button>
+      <div
+        className="flex min-w-0 items-center"
+        style={{ paddingLeft: `${leftPadding}px` }}
+      >
+        <div className="min-w-0" data-no-drag="true">
+          <p className="truncate text-[11px] font-medium text-white">
+            {projectName}
+          </p>
         </div>
       </div>
 
-      <div className="flex items-center gap-3" data-no-drag="true">
-        <div className="bg-[#1f1f1f] h-6 flex items-center px-2 border border-[#474747]/30">
-          <span className="text-[#474747] mr-2">
-            <PanelLeft className="size-3" />
-          </span>
-          <input
-            className="bg-transparent border-none text-[10px] focus:ring-0 w-32 uppercase placeholder:text-[#474747]/50 font-mono"
-            placeholder="CMD + K"
-            type="text"
-          />
-        </div>
+      <div className="justify-self-center" data-no-drag="true">
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              className={cn(
+                "h-7 min-w-[148px] justify-between gap-3 border border-[#474747]/25 bg-[#111111] px-2.5 text-[10px] uppercase tracking-[0.08em] text-[#9a9a9a]",
+                "hover:border-[#6a6a6a] hover:bg-[#161616] hover:text-white",
+              )}
+              aria-label="Select worktree"
+            >
+              <span className="flex min-w-0 items-center gap-2">
+                <GitBranch className="size-3.5 shrink-0" />
+                <span className="truncate">
+                  {activeWorktreeLabel ?? "No branch"}
+                </span>
+              </span>
+              <span className="truncate text-[9px] text-[#666]">
+                {activeWorktree?.git.branch ?? "detached"}
+              </span>
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent
+            align="center"
+            sideOffset={8}
+            className="w-72 border-[#474747]/35 bg-[#111111] p-1 text-[10px]"
+          >
+            <div className="space-y-1">
+              {worktrees.length === 0 ? (
+                <div className="px-3 py-3 text-center text-[#6f6f6f]">
+                  No worktrees available
+                </div>
+              ) : (
+                worktrees.map((worktree) => {
+                  const isActive = worktree.id === activeWorktreeId;
+                  return (
+                    <button
+                      key={worktree.id}
+                      type="button"
+                      onClick={() => void onSelectWorktree(worktree.id)}
+                      className={cn(
+                        "flex w-full items-start justify-between gap-3 border border-transparent px-3 py-2 text-left transition-colors",
+                        isActive
+                          ? "border-[#474747]/35 bg-[#1b1b1b] text-white"
+                          : "text-[#8a8a8a] hover:border-[#474747]/20 hover:bg-[#181818] hover:text-white",
+                      )}
+                    >
+                      <div className="min-w-0">
+                        <div className="truncate text-[10px] uppercase tracking-[0.08em]">
+                          {worktree.label}
+                        </div>
+                        <div className="mt-1 truncate text-[9px] text-[#666]">
+                          {worktree.path}
+                        </div>
+                      </div>
+                      <span className="shrink-0 text-[9px] text-[#666]">
+                        {worktree.git.branch ?? "detached"}
+                      </span>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      <div
+        className="flex items-center justify-end gap-0.5"
+        data-no-drag="true"
+      >
         <button
           type="button"
           onClick={onToggleLeftSidebar}
-          className="text-[#474747] hover:text-white transition-colors"
+          className="flex size-8 items-center justify-center text-[#6f6f6f] transition-colors hover:text-white"
+          aria-label="Toggle workspace sidebar"
         >
           <PanelLeft className="size-4" />
         </button>
         <button
           type="button"
-          className="text-[#474747] hover:text-white transition-colors"
+          onClick={onOpenFileTree}
+          className="flex size-8 items-center justify-center text-[#6f6f6f] transition-colors hover:text-white"
+          aria-label="Open file tree"
+        >
+          <FolderTree className="size-4" />
+        </button>
+        <button
+          type="button"
+          onClick={onOpenLauncher}
+          className="flex size-8 items-center justify-center text-[#6f6f6f] transition-colors hover:text-white"
+          aria-label="Open launcher"
+        >
+          <Search className="size-4" />
+        </button>
+        <button
+          type="button"
+          onClick={onOpenGit}
+          className="flex size-8 items-center justify-center text-[#6f6f6f] transition-colors hover:text-white"
+          aria-label="Open git view"
+        >
+          <Workflow className="size-4" />
+        </button>
+        <button
+          type="button"
+          onClick={onOpenNote}
+          className="flex size-8 items-center justify-center text-[#6f6f6f] transition-colors hover:text-white"
+          aria-label="Open notes"
         >
           <StickyNote className="size-4" />
         </button>

@@ -292,6 +292,49 @@ export function createShellModel(api: PiDeskApi) {
       notify();
     },
 
+    async cancelPrompt(): Promise<void> {
+      try {
+        await api.agent.cancelPrompt();
+      } catch (error) {
+        console.debug("[shell-model] cancel prompt failed:", error);
+      }
+
+      try {
+        const refreshedSnapshot = await api.agent.getSnapshot();
+        const mergedAgent = mergeAgentSnapshots(
+          state.agent,
+          refreshedSnapshot,
+          false,
+        );
+
+        state = {
+          ...state,
+          agent: {
+            ...mergedAgent,
+            status: refreshedSnapshot.status,
+          },
+          live: {
+            ...state.live,
+            snapshotLoadedAt: Date.now(),
+          },
+        };
+      } catch (error) {
+        state = {
+          ...state,
+          agent: {
+            ...state.agent,
+            status: "error",
+            lastError:
+              error instanceof Error
+                ? error.message
+                : "Unknown agent host error",
+          },
+        };
+      }
+
+      notify();
+    },
+
     setAgentError(message: string): void {
       state = {
         ...state,

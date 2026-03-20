@@ -56,6 +56,7 @@ function createApiFixture(overrides: Partial<PiDeskApi> = {}): PiDeskApi {
         lastError: null,
       })),
       prompt: vi.fn(async () => undefined),
+      cancelPrompt: vi.fn(async () => undefined),
       reset: vi.fn(async () => undefined),
       switchModel: vi.fn(async () => undefined),
       getDiscovery: vi.fn(async () => ({
@@ -295,6 +296,7 @@ describe("app-shell-store", () => {
           lastError: null,
         })),
         prompt: vi.fn(async () => undefined),
+        cancelPrompt: vi.fn(async () => undefined),
         reset: vi.fn(async () => undefined),
         switchModel: vi.fn(async () => undefined),
         getDiscovery: vi.fn(async () => ({
@@ -341,6 +343,16 @@ describe("app-shell-store", () => {
     expect(store.getState().isSwitchingModel).toBe(false);
     expect(api.agent.getSettings).toHaveBeenCalledTimes(2);
     expect(api.shell.getSnapshot).toHaveBeenCalledTimes(2);
+  });
+
+  it("cancels prompts through the transport boundary and syncs shell state", async () => {
+    const api = createApiFixture();
+    const store = createAppShellStore(api);
+
+    await store.getState().initialize();
+    await store.getState().cancelPrompt();
+
+    expect(api.agent.cancelPrompt).toHaveBeenCalledTimes(1);
   });
 
   it("keeps saved AI preferences in sync when prompt-dock model switching succeeds", async () => {
@@ -412,6 +424,7 @@ describe("app-shell-store", () => {
           lastError: null,
         })),
         prompt: vi.fn(async () => undefined),
+        cancelPrompt: vi.fn(async () => undefined),
         reset: vi.fn(async () => undefined),
         switchModel: vi.fn(async () => undefined),
         getDiscovery: vi.fn(async () => ({
@@ -573,6 +586,7 @@ describe("app-shell-store", () => {
           lastError: null,
         })),
         prompt: vi.fn(async () => undefined),
+        cancelPrompt: vi.fn(async () => undefined),
         reset: vi.fn(async () => undefined),
         switchModel: vi.fn(async () => {
           throw switchError;

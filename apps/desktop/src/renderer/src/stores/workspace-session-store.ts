@@ -9,6 +9,7 @@ import { createStore } from "zustand/vanilla";
 import {
   createInitialWindowStoreState,
   createWindowFromAction,
+  type WindowCreationOptions,
   type WindowStoreState,
   type WindowUpdates,
   windowReducer,
@@ -57,6 +58,7 @@ export interface WorkspaceSessionStoreState {
   createWindow(
     action: CreateWindowAction,
     cwd?: string,
+    options?: WindowCreationOptions,
   ): ReturnType<typeof createWindowFromAction>;
   closeWindow(windowId: string): void;
   focusWindow(windowId: string): void;
@@ -318,7 +320,7 @@ export function createWorkspaceSessionStore({
         },
       }));
     },
-    createWindow(action, cwd) {
+    createWindow(action, cwd, options) {
       let createdWindow: ReturnType<typeof createWindowFromAction> | null =
         null;
       withActiveSession((session) => {
@@ -327,6 +329,7 @@ export function createWorkspaceSessionStore({
           session.layout.windows,
           session.layout.nextZIndex,
           cwd,
+          options,
         );
         createdWindow = nextWindow;
         return applyLayout(session, (windowState) =>

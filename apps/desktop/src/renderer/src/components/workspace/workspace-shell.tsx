@@ -13,27 +13,23 @@ import { cn } from "@/lib/utils";
 import { uiInteractionStore } from "../../stores/ui-interaction-store";
 import { CanvasContainer, CanvasGrid, WindowContentRouter } from "../canvas";
 import type { GraphLink, GraphNode } from "../canvas/graph-window-content";
-import { FileTree } from "../ui/file-tree";
-import { ScrollArea } from "../ui/scroll-area";
-import { LeftRail } from "./left-rail";
+import type { SearchWindowAction } from "../canvas/search-window-content";
+import { LeftRail, type RailView } from "./left-rail";
 import { LeftSidebar } from "./left-sidebar";
 import { PromptDock } from "./prompt-dock";
 import { StatusBar } from "./status-bar";
 import { TitleBar } from "./title-bar";
+import { FileTreeOverlay, LauncherOverlay } from "./workspace-overlays";
 
 export interface WorkspaceShellProps {
   repositories: RepositorySnapshot[];
   activeRepository: RepositorySnapshot | null;
   activeRepositoryId: string | null;
   activeWorktreeId: string | null;
-  activeWorktreePath: string | null;
   activeThreadId: string | null;
   activeThreadTitle: string | null;
   draft: string;
   canSend: boolean;
-  sidebarView: "files" | "git" | "notes" | null;
-  setSidebarView: (view: "files" | "git" | "notes" | null) => void;
-  hasOpenNotes: boolean;
   leftSidebarWidth: number;
   snapGridSize: number;
   windowCount: number;
@@ -47,6 +43,14 @@ export interface WorkspaceShellProps {
   providerSnapshots: ProviderSnapshot[];
   currentModelValue: string;
   isSwitchingModel: boolean;
+  isLauncherOpen: boolean;
+  isFileTreeOpen: boolean;
+  isPromptVisible: boolean;
+  isPromptExecuting: boolean;
+  launcherQuery: string;
+  launcherResults: import("@pidesk/shared").SearchMatch[];
+  launcherSelectedIndex: number;
+  launcherIsLoading: boolean;
   onModelMenuOpenChange: (open: boolean) => void | Promise<void>;
   onAddRepository: () => void | Promise<void>;
   onSelectRepository: (repositoryId: string) => void | Promise<void>;
@@ -63,6 +67,12 @@ export interface WorkspaceShellProps {
   onCreateWorktree: () => void;
   onLeftSidebarResize: (width: number) => void;
   onOpenLauncher: () => void;
+  onCloseLauncher: () => void;
+  onOpenFileTree: () => void;
+  onCloseFileTree: () => void;
+  onOpenBlankStateChat: (
+    canvasBounds: DOMRect | null,
+  ) => boolean | Promise<boolean>;
   onOpenNote: () => void;
   onOpenGit: () => void;
   onOpenTerminal: () => void;
@@ -81,9 +91,14 @@ export interface WorkspaceShellProps {
   onSearchKeyDown: (
     windowId: string,
   ) => React.KeyboardEventHandler<HTMLInputElement>;
+  onLauncherQueryChange: (query: string) => void | Promise<void>;
+  onLauncherSelect: (match: import("@pidesk/shared").SearchMatch) => void;
+  onLauncherHover: (index: number) => void;
+  onLauncherKeyDown: React.KeyboardEventHandler<HTMLInputElement>;
   onWindowFocus: (window: CanvasWindow) => void | Promise<void>;
   onDraftChange: (draft: string) => void;
   onSend: () => void | Promise<void>;
+  onCancelPrompt: () => void | Promise<void>;
   onAutocompleteSelect: (
     suggestion: SlashSuggestion | MentionSuggestion,
   ) => void;
@@ -95,23 +110,47 @@ export interface WorkspaceShellProps {
 }
 
 function CanvasEmptyState({
+  activeWorktreeId,
   activeThreadId,
-  onOpenNote,
+  onOpenBlankStateChat,
 }: {
+  activeWorktreeId: string | null;
   activeThreadId: string | null;
-  onOpenNote: () => void;
+  onOpenBlankStateChat: (
+    canvasBounds: DOMRect | null,
+  ) => boolean | Promise<boolean>;
 }) {
-  const hasAutoOpened = React.useRef(false);
+  const containerRef = React.useRef<HTMLDivElement | null>(null);
+  const attemptedLaunchKeyRef = React.useRef<string | null>(null);
+  const [isLaunching, setIsLaunching] = React.useState(false);
 
   React.useEffect(() => {
-    if (!hasAutoOpened.current) {
-      hasAutoOpened.current = true;
-      onOpenNote();
+    const launchKey = `${activeWorktreeId ?? "no-worktree"}:${activeThreadId ?? "blank"}`;
+    if (attemptedLaunchKeyRef.current === launchKey) {
+      return;
     }
-  }, [onOpenNote]);
+
+    attemptedLaunchKeyRef.current = launchKey;
+    let cancelled = false;
+    const canvasBounds = containerRef.current?.getBoundingClientRect() ?? null;
+
+    setIsLaunching(true);
+    void Promise.resolve(onOpenBlankStateChat(canvasBounds)).finally(() => {
+      if (!cancelled) {
+        setIsLaunching(false);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeThreadId, activeWorktreeId, onOpenBlankStateChat]);
 
   return (
-    <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-8 py-10">
+    <div
+      ref={containerRef}
+      className="pointer-events-none absolute inset-0 flex items-center justify-center px-8 py-10"
+    >
       <div
         className={cn(
           "w-full max-w-xl border border-[#474747]/30 bg-[#0e0e0e] px-6 py-5",
@@ -132,15 +171,20 @@ function CanvasEmptyState({
               ## Quick start
             </p>
             <p className="mt-1">
-              - Pick a thread from the left sidebar to bring chat onto the
-              canvas.
+              - Blank canvases now boot into chat first so the workspace opens
+              in conversation mode.
             </p>
-            <p>- Use the title bar to open a terminal, notes, git, or files.</p>
+            <p>
+              - Use the title bar for launcher, files, notes, and git while the
+              rail handles project navigation.
+            </p>
             <p>
               -{" "}
               {activeThreadId
-                ? "Send a message to open or refocus the active chat window here."
-                : "Select a thread first, then send a message when you're ready."}
+                ? "The active thread is being centered on the canvas now."
+                : isLaunching
+                  ? "Preparing a thread so chat can open in the center of the canvas."
+                  : "Waiting for a thread so chat can claim the center of the canvas."}
             </p>
           </div>
         </div>
@@ -154,14 +198,10 @@ export function WorkspaceShell({
   activeRepository,
   activeRepositoryId,
   activeWorktreeId,
-  activeWorktreePath,
   activeThreadId,
   activeThreadTitle,
   draft,
   canSend,
-  sidebarView,
-  setSidebarView,
-  hasOpenNotes,
   leftSidebarWidth,
   snapGridSize,
   windowCount,
@@ -175,6 +215,14 @@ export function WorkspaceShell({
   providerSnapshots,
   currentModelValue,
   isSwitchingModel,
+  isLauncherOpen,
+  isFileTreeOpen,
+  isPromptVisible,
+  isPromptExecuting,
+  launcherQuery,
+  launcherResults,
+  launcherSelectedIndex,
+  launcherIsLoading,
   onModelMenuOpenChange,
   onAddRepository,
   onSelectRepository,
@@ -188,6 +236,10 @@ export function WorkspaceShell({
   onCreateWorktree,
   onLeftSidebarResize,
   onOpenLauncher,
+  onCloseLauncher,
+  onOpenFileTree,
+  onCloseFileTree,
+  onOpenBlankStateChat,
   onOpenNote,
   onOpenGit,
   onOpenTerminal,
@@ -201,9 +253,14 @@ export function WorkspaceShell({
   onSearchSelect,
   onSearchHover,
   onSearchKeyDown,
+  onLauncherQueryChange,
+  onLauncherSelect,
+  onLauncherHover,
+  onLauncherKeyDown,
   onWindowFocus,
   onDraftChange,
   onSend,
+  onCancelPrompt,
   onAutocompleteSelect,
   onAutocompleteHover,
   onPromptKeyDown,
@@ -245,9 +302,82 @@ export function WorkspaceShell({
 
   const [isLeftSidebarCollapsed, setIsLeftSidebarCollapsed] =
     React.useState(false);
+  const [leftRailMode, setLeftRailMode] = React.useState<
+    "projects" | "workspace"
+  >("projects");
+  const [activeRailView, setActiveRailView] = React.useState<RailView>(null);
+
+  const projectName =
+    activeRepository?.customName ?? activeRepository?.name ?? "PiDesk";
+  const activeWorktree =
+    activeRepository?.worktrees.find(
+      (worktree) => worktree.id === activeWorktreeId,
+    ) ?? null;
+  const activeWorktreeLabel = activeWorktree?.label ?? null;
+
+  const launcherActions = React.useMemo<SearchWindowAction[]>(
+    () => [
+      {
+        id: "terminal",
+        label: "Terminal",
+        onSelect: () => {
+          onCloseLauncher();
+          onOpenTerminal();
+        },
+      },
+      {
+        id: "git",
+        label: "Git",
+        onSelect: () => {
+          onCloseLauncher();
+          onOpenGit();
+        },
+      },
+      {
+        id: "note",
+        label: "Note",
+        onSelect: () => {
+          onCloseLauncher();
+          onOpenNote();
+        },
+      },
+      {
+        id: "graph",
+        label: "Graph",
+        onSelect: () => {
+          onCloseLauncher();
+          onOpenGraph();
+        },
+      },
+    ],
+    [onCloseLauncher, onOpenGit, onOpenGraph, onOpenNote, onOpenTerminal],
+  );
 
   const handleToggleLeftSidebar = React.useCallback(() => {
     setIsLeftSidebarCollapsed((prev) => !prev);
+  }, []);
+
+  const handleShowProjectSelector = React.useCallback(() => {
+    setLeftRailMode("projects");
+    setActiveRailView(null);
+    setIsLeftSidebarCollapsed(true);
+  }, []);
+
+  const handleEnterWorkspace = React.useCallback(
+    (view: Exclude<RailView, null>) => {
+      setLeftRailMode("workspace");
+      setActiveRailView(view);
+      setIsLeftSidebarCollapsed(false);
+    },
+    [],
+  );
+
+  const handleSelectRailView = React.useCallback((view: RailView) => {
+    setActiveRailView(view);
+    if (view !== null) {
+      setLeftRailMode("workspace");
+      setIsLeftSidebarCollapsed(false);
+    }
   }, []);
 
   const renderWindowContent = React.useCallback(
@@ -297,38 +427,39 @@ export function WorkspaceShell({
   return (
     <>
       <TitleBar
-        activeRepository={activeRepository}
-        activeWorktreeLabel={
-          activeRepository?.worktrees.find(
-            (worktree) => worktree.id === activeWorktreeId,
-          )?.label ?? null
-        }
-        sidebarView={sidebarView}
-        setSidebarView={setSidebarView}
-        hasOpenNotes={hasOpenNotes}
+        projectName={projectName}
+        activeWorktreeLabel={activeWorktreeLabel}
+        worktrees={activeRepository?.worktrees ?? []}
+        activeWorktreeId={activeWorktreeId}
         isMainWindowFullscreen={isMainWindowFullscreen}
-        isLeftSidebarCollapsed={isLeftSidebarCollapsed}
         onToggleLeftSidebar={handleToggleLeftSidebar}
         onOpenLauncher={onOpenLauncher}
-        onOpenNote={onOpenNote}
+        onOpenFileTree={onOpenFileTree}
         onOpenGit={onOpenGit}
-        onOpenTerminal={onOpenTerminal}
+        onOpenNote={onOpenNote}
+        onSelectWorktree={onSelectWorktree}
       />
 
       <div className="relative flex min-h-0 flex-1">
         <LeftRail
           repositories={repositories}
+          mode={leftRailMode}
           activeRepositoryId={activeRepositoryId}
+          activeView={activeRailView}
           onSelectRepository={onSelectRepository}
           onUpdateRepositoryPreferences={onUpdateRepositoryPreferences}
           onAddRepository={onAddRepository}
           onOpenSettings={onOpenSettings}
+          onShowProjects={handleShowProjectSelector}
+          onEnterWorkspace={handleEnterWorkspace}
+          onSelectView={handleSelectRailView}
         />
 
         <LeftSidebar
           repository={activeRepository}
           activeWorktreeId={activeWorktreeId}
           activeThreadId={activeThreadId}
+          activeView={activeRailView}
           onUpdateRepositoryPreferences={onUpdateRepositoryPreferences}
           onSelectWorktree={onSelectWorktree}
           onSelectThread={onSelectThread}
@@ -338,14 +469,19 @@ export function WorkspaceShell({
           onCreateWorktree={onCreateWorktree}
           width={leftSidebarWidth}
           onResize={onLeftSidebarResize}
-          isCollapsed={isLeftSidebarCollapsed}
+          isCollapsed={isLeftSidebarCollapsed || leftRailMode === "projects"}
           className="z-10"
         />
 
-        <main className="relative z-10 flex min-w-0 flex-1 flex-col ml-16">
+        <main
+          className={cn(
+            "relative z-10 flex min-w-0 flex-1 flex-col",
+            (isLeftSidebarCollapsed || leftRailMode === "projects") && "ml-16",
+          )}
+        >
           <CanvasGrid
             snapGridSize={snapGridSize}
-            className="pointer-events-none absolute inset-0 z-0 opacity-50"
+            className="pointer-events-none absolute inset-0 z-0 opacity-70"
           />
           <div className="relative min-h-0 flex-1">
             <CanvasContainer
@@ -355,57 +491,73 @@ export function WorkspaceShell({
             />
             {windowCount === 0 ? (
               <CanvasEmptyState
+                activeWorktreeId={activeWorktreeId}
                 activeThreadId={activeThreadId}
-                onOpenNote={onOpenNote}
+                onOpenBlankStateChat={onOpenBlankStateChat}
               />
             ) : null}
-          </div>
-
-          <div className="relative shrink-0">
-            <PromptDock
-                draft={draft}
-                onDraftChange={onDraftChange}
-                onSend={onSend}
-                activeThreadId={activeThreadId}
-                activeThreadTitle={activeThreadTitle}
-                canSend={canSend}
-                autocompleteSuggestions={autocompleteSuggestions}
-                autocompleteSelectedIndex={autocompleteSelectedIndex}
-                onAutocompleteSelect={onAutocompleteSelect}
-                onAutocompleteHover={onAutocompleteHover}
-                onPromptKeyDown={onPromptKeyDown}
-                displayAgentStatus={displayAgentStatus}
-                runtimeModeLabel={runtimeModeLabel}
-                providerSnapshots={providerSnapshots}
-                currentModelValue={currentModelValue}
-                isSwitchingModel={isSwitchingModel}
-                onModelMenuOpenChange={onModelMenuOpenChange}
-                onModelSelection={onModelSelection}
-              />
-          </div>
-        </main>
-
-        {sidebarView === "files" ? (
-          <aside className="relative z-10 flex h-full w-64 shrink-0 flex-col border-l border-[#474747]/20 bg-[#0e0e0e]">
-            <ScrollArea className="min-h-0 flex-1">
-              <div className="p-2">
-                <FileTree
-                  rootPath={activeWorktreePath}
-                  onFileClick={onFileClick}
+            <div className="pointer-events-none absolute inset-x-0 bottom-6 z-20">
+              <div className="pointer-events-auto">
+                <PromptDock
+                  draft={draft}
+                  onDraftChange={onDraftChange}
+                  onSend={onSend}
+                  onCancelPrompt={onCancelPrompt}
+                  activeThreadId={activeThreadId}
+                  activeThreadTitle={activeThreadTitle}
+                  canSend={canSend}
+                  isVisible={isPromptVisible}
+                  isPromptExecuting={isPromptExecuting}
+                  autocompleteSuggestions={autocompleteSuggestions}
+                  autocompleteSelectedIndex={autocompleteSelectedIndex}
+                  onAutocompleteSelect={onAutocompleteSelect}
+                  onAutocompleteHover={onAutocompleteHover}
+                  onPromptKeyDown={onPromptKeyDown}
+                  displayAgentStatus={displayAgentStatus}
+                  runtimeModeLabel={runtimeModeLabel}
+                  providerSnapshots={providerSnapshots}
+                  currentModelValue={currentModelValue}
+                  isSwitchingModel={isSwitchingModel}
+                  onModelMenuOpenChange={onModelMenuOpenChange}
+                  onModelSelection={onModelSelection}
                 />
               </div>
-            </ScrollArea>
-          </aside>
-        ) : null}
+            </div>
+          </div>
+        </main>
       </div>
 
-      <StatusBar
-        activeWorktreeLabel={
-          activeRepository?.worktrees.find(
-            (worktree) => worktree.id === activeWorktreeId,
-          )?.label ?? null
-        }
-      />
+      {isLauncherOpen ? (
+        <LauncherOverlay
+          // aria-label="Launcher overlay"
+          ariaLabel="Launcher overlay"
+          projectName={projectName}
+          activeWorktreeLabel={activeWorktreeLabel}
+          query={launcherQuery}
+          isLoading={launcherIsLoading}
+          results={launcherResults}
+          selectedIndex={launcherSelectedIndex}
+          actions={launcherActions}
+          onClose={onCloseLauncher}
+          onQueryChange={(query) => void onLauncherQueryChange(query)}
+          onSelect={onLauncherSelect}
+          onHover={onLauncherHover}
+          onKeyDown={onLauncherKeyDown}
+        />
+      ) : null}
+
+      {isFileTreeOpen ? (
+        <FileTreeOverlay
+          // aria-label="File tree overlay"
+          ariaLabel="File tree overlay"
+          projectName={projectName}
+          activeWorktree={activeWorktree}
+          onClose={onCloseFileTree}
+          onFileClick={onFileClick}
+        />
+      ) : null}
+
+      <StatusBar activeWorktreeLabel={activeWorktreeLabel} />
     </>
   );
 }

@@ -8,6 +8,7 @@ export const IPC_CHANNELS = {
     getSettings: "agent:getSettings",
     getSnapshot: "agent:getSnapshot",
     prompt: "agent:prompt",
+    cancelPrompt: "agent:cancelPrompt",
     reset: "agent:reset",
     switchModel: "agent:switchModel",
     getDiscovery: "agent:getDiscovery",

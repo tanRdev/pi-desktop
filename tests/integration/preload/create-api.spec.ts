@@ -194,6 +194,29 @@ describe("createPiDeskApi", () => {
     ]);
   });
 
+  it("sends prompt cancellation over the dedicated agent cancel channel", async () => {
+    const invokeCalls: Array<[string, unknown?]> = [];
+    const invoke: PreloadInvoke = async <TReturn>(
+      channel: string,
+      payload?: unknown,
+    ) => {
+      invokeCalls.push([channel, payload]);
+      return undefined as TReturn;
+    };
+
+    const api = createPiDeskApi({
+      invoke,
+      on: () => () => undefined,
+    });
+
+    await api.agent.cancelPrompt();
+
+    expect(invokeCalls[0]).toEqual([
+      IPC_CHANNELS.agent.cancelPrompt,
+      undefined,
+    ]);
+  });
+
   it("invokes repository, worktree, and thread navigation channels", async () => {
     const invokeCalls: Array<[string, unknown?]> = [];
     const invoke: PreloadInvoke = async <TReturn>(

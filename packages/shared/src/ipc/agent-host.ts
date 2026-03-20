@@ -29,6 +29,10 @@ export type AgentHostRequest =
       requestId: string;
       text: string;
       type: "prompt";
+    }
+  | {
+      requestId: string;
+      type: "cancelPrompt";
     };
 
 export type AgentHostResponse =

@@ -38,3 +38,40 @@ Started: Fri Mar 20 10:36:15 EDT 2026
   - Any content that should not be overlapped needs ml-16 to account for rail width
   - The resize handler in LeftSidebar already accounts for 64px offset in its calculation
 ---
+## Fri Mar 20 11:05:00 EDT 2026 - US-003
+- Added CSS transition-based swipe animation to PromptDock
+- Animation uses transform: translateY(8px) and opacity transitions
+- Duration: 300ms with cubic-bezier(0.23, 1, 0.32, 1) easing
+- Prompt slides up (translateY(0), opacity-1) when activeThreadId is set
+- Prompt slides down (translateY(8px), opacity-0) when activeThreadId is null
+- Added pointer-events-none when hidden to prevent interaction
+- Files changed: apps/desktop/src/renderer/src/components/workspace/prompt-dock.tsx
+- **Learnings for future iterations:**
+  - CSS transitions are preferred over Framer Motion in this codebase
+  - The cubic-bezier easing provides a smooth, polished animation feel
+  - Combine opacity and transform for smooth entry/exit animations
+---
+## Fri Mar 20 11:16:00 EDT 2026 - US-005 / US-006 / US-007 / US-008 / integration
+- Rebuilt the fixed left rail into a two-step flow: project selector first, then workspace tools with a Back action and slide animation
+- Added real sidebar views for workspace overview, explorer, search, source control, debug, and extensions using repository/worktree/thread/git data
+- Moved the prompt into the same canvas region in workspace-shell so it reads as part of the canvas rather than a separate dock strip
+- Replaced OPERATOR_01 with PiDesk v0.1.0 in the status bar and removed the title-bar command box so traffic-light space stays clear
+- Files changed: apps/desktop/src/renderer/src/components/workspace/left-rail.tsx, apps/desktop/src/renderer/src/components/workspace/left-sidebar.tsx, apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx, apps/desktop/src/renderer/src/components/workspace/status-bar.tsx, apps/desktop/src/renderer/src/components/workspace/title-bar.tsx, apps/desktop/src/renderer/src/components/workspace/prompt-dock.tsx, packages/ui/src/components/ui/prompt-input.tsx, apps/desktop/src/renderer/src/components/canvas/canvas-grid.tsx
+- **Learnings for future iterations:**
+  - The fixed rail should own the left 64px offset; the sidebar can reserve that width internally instead of pushing thread content under the rail
+  - Prompt presentation feels integrated once it shares the canvas stacking context rather than living in a sibling layout band
+  - Status/title branding works better when the app label lives in the status bar and the title bar stays focused on window controls and navigation
+---
+## Fri Mar 20 12:55:00 EDT 2026 - Prompt Kit rollout / centered chat / canvas scale
+- Added the missing Prompt Kit-style desktop primitives: feedback bar, file upload, image, loader, prompt suggestion, scroll button, source, steps, and system message
+- Rebuilt the prompt dock to surface uploads, prompt suggestions, image previews, loading state, model routing, and file mentions directly in the composer
+- Reworked chat windows to use richer Prompt Kit surfaces across empty, streaming, tool, system, and assistant states while keeping the transcript selector stable
+- Blank canvases now bootstrap chat instead of auto-opening project notes, and centered chat placement uses measured canvas bounds plus the current zoom level
+- Increased default window size and canvas framing defaults so new windows use more of the infinite canvas immediately
+- Restored launcher and git actions to the title bar so the main workspace controls stay reachable
+- Files changed: apps/desktop/src/renderer/src/components/canvas/chat-window-content.tsx, apps/desktop/src/renderer/src/components/workspace/prompt-dock.tsx, apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx, apps/desktop/src/renderer/src/components/workspace/title-bar.tsx, apps/desktop/src/renderer/src/hooks/use-app-shell-controller.ts, apps/desktop/src/renderer/src/hooks/use-window-store.ts, apps/desktop/src/renderer/src/stores/window-store.ts, apps/desktop/src/renderer/src/stores/workspace-session-store.ts, packages/shared/src/models/workspace-session.ts, apps/desktop/src/renderer/src/components/ui/*.tsx, tests/integration/apps-desktop/prompt-kit-components.spec.ts, tests/integration/apps-desktop/workspace-shell-ui.spec.ts, tests/integration/apps-desktop/window-store.spec.ts, prd.json
+- **Learnings for future iterations:**
+  - File-upload affordances can piggyback on existing `@file:` prompt mention routing to become real prompt context instead of dead chrome
+  - Centering canvas windows needs viewport-aware math that includes zoom rather than hard-coded top-left offsets
+  - Prompt Kit components read best in PiDesk when they are spread across real transcript/dock states instead of isolated showcase panels alone
+---

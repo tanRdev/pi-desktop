@@ -13,8 +13,12 @@ describe("createAgentHostCommandHandler", () => {
 
     const runtime = {
       bootstrap: vi.fn(async () => undefined),
+      getProviders: vi.fn(async () => []),
+      getSettings: vi.fn(async () => ({})),
       getSnapshot: vi.fn(() => snapshot),
       prompt: vi.fn(async () => undefined),
+      cancelPrompt: vi.fn(async () => undefined),
+      reset: vi.fn(async () => undefined),
     };
 
     const handleCommand = createAgentHostCommandHandler(runtime);
@@ -54,9 +58,20 @@ describe("createAgentHostCommandHandler", () => {
       },
     });
 
+    await expect(
+      handleCommand({ requestId: "4", type: "cancelPrompt" }),
+    ).resolves.toEqual({
+      type: "response",
+      response: {
+        requestId: "4",
+        kind: "ack",
+      },
+    });
+
     expect(runtime.bootstrap).toHaveBeenCalledTimes(1);
     expect(runtime.getSnapshot).toHaveBeenCalledTimes(1);
     expect(runtime.prompt).toHaveBeenCalledWith("Explain the open files");
+    expect(runtime.cancelPrompt).toHaveBeenCalledTimes(1);
   });
 
   it("returns error responses when runtime commands fail", async () => {
@@ -64,12 +79,18 @@ describe("createAgentHostCommandHandler", () => {
       bootstrap: vi.fn(async () => {
         throw new Error("Missing SDK auth");
       }),
+      getProviders: vi.fn(async () => []),
+      getSettings: vi.fn(async () => ({})),
       getSnapshot: vi.fn(() => {
         throw new Error("Snapshot unavailable");
       }),
       prompt: vi.fn(async () => {
         throw new Error("Provider request failed");
       }),
+      cancelPrompt: vi.fn(async () => {
+        throw new Error("No prompt is running");
+      }),
+      reset: vi.fn(async () => undefined),
     };
 
     const handleCommand = createAgentHostCommandHandler(runtime);
@@ -97,6 +118,17 @@ describe("createAgentHostCommandHandler", () => {
         requestId: "2",
         kind: "error",
         message: "Provider request failed",
+      },
+    });
+
+    await expect(
+      handleCommand({ requestId: "3", type: "cancelPrompt" }),
+    ).resolves.toEqual({
+      type: "response",
+      response: {
+        requestId: "3",
+        kind: "error",
+        message: "No prompt is running",
       },
     });
   });

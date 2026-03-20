@@ -4,7 +4,6 @@ import type {
   GitWindow,
   MentionSuggestion,
   SearchMatch,
-  SearchWindow,
   SlashSuggestion,
   TerminalWindow,
   ThreadSnapshot,
@@ -28,19 +27,17 @@ import {
 } from "../lib/prompt-routing";
 import { getEffectiveLeftSidebarWidth } from "../stores/app-shell-store";
 import { uiInteractionStore } from "../stores/ui-interaction-store";
+import { getCenteredWindowPosition } from "../stores/window-store";
 import {
   hoverSearchResultForWorktree,
-  initializeSearchWindowForWorktree,
   openFileWindowForWorktree,
   openProjectNoteWindowForWorktree,
   saveFileWindowForWorktree,
   saveNoteWindowForWorktree,
-  selectSearchResultIndexForWorktree,
   syncActiveThreadConversation,
   updateFileDraftForWorktree,
   updateSearchWindowQueryForWorktree,
 } from "../stores/workspace-session-runtime";
-import { selectSearchUiStateByWorktree } from "../stores/workspace-session-selectors";
 import {
   parseModelSelectionValue,
   resolveCurrentModelValue,
@@ -50,6 +47,7 @@ import { useWindowStore, workspaceSessionStore } from "./use-window-store";
 
 const EMPTY_AUTOCOMPLETE_SUGGESTIONS: (SlashSuggestion | MentionSuggestion)[] =
   [];
+const LAUNCHER_WINDOW_ID = "overlay-launcher";
 
 function getThreadWindowTitle(
   thread: ThreadSnapshot | null | undefined,
@@ -74,6 +72,7 @@ export function useAppShellController(): AppShellController {
   const {
     reload,
     sendPrompt,
+    cancelPrompt,
     setDraft,
     state,
     providerSnapshots,
@@ -107,6 +106,30 @@ export function useAppShellController(): AppShellController {
     uiInteractionStore,
     (storeState) => storeState.promptAutocompleteSelectedIndex,
   );
+  const launcherQuery = useStore(
+    uiInteractionStore,
+    (storeState) => storeState.overlays.launcher.query,
+  );
+  const isLauncherOpen = useStore(
+    uiInteractionStore,
+    (storeState) => storeState.overlays.launcher.isOpen,
+  );
+  const launcherResults = useStore(
+    uiInteractionStore,
+    (storeState) => storeState.overlays.launcher.results,
+  );
+  const launcherSelectedIndex = useStore(
+    uiInteractionStore,
+    (storeState) => storeState.overlays.launcher.selectedIndex,
+  );
+  const launcherIsLoading = useStore(
+    uiInteractionStore,
+    (storeState) => storeState.overlays.launcher.isLoading,
+  );
+  const isFileTreeOpen = useStore(
+    uiInteractionStore,
+    (storeState) => storeState.overlays.fileTree.isOpen,
+  );
   const isSettingsOpen = useStore(
     uiInteractionStore,
     (storeState) => storeState.dialogs.settings,
@@ -119,21 +142,12 @@ export function useAppShellController(): AppShellController {
   const [worktreeCreateError, setWorktreeCreateError] = React.useState<
     string | null
   >(null);
-  const [sidebarView, setSidebarViewState] = React.useState<
-    "files" | "git" | "notes" | null
-  >(null);
   const leftSidebarWidth = React.useMemo(
     () => getEffectiveLeftSidebarWidth(appPreferences),
     [appPreferences],
   );
   const searchRequestVersionsRef = React.useRef(new Map<string, number>());
 
-  const setSidebarView = React.useCallback(
-    (view: "files" | "git" | "notes" | null) => {
-      setSidebarViewState(view);
-    },
-    [],
-  );
   const setNewWorktreeBranch = React.useCallback((value: string) => {
     setNewWorktreeBranchState(value);
   }, []);
@@ -160,6 +174,18 @@ export function useAppShellController(): AppShellController {
   }, []);
   const setCreateWorktreeOpen = React.useCallback((isOpen: boolean) => {
     uiInteractionStore.getState().setDialogOpen("createWorktree", isOpen);
+  }, []);
+  const openLauncherOverlay = React.useCallback(() => {
+    uiInteractionStore.getState().openLauncherOverlay();
+  }, []);
+  const closeLauncherOverlay = React.useCallback(() => {
+    uiInteractionStore.getState().closeLauncherOverlay();
+  }, []);
+  const openFileTreeOverlay = React.useCallback(() => {
+    uiInteractionStore.getState().openFileTreeOverlay();
+  }, []);
+  const closeFileTreeOverlay = React.useCallback(() => {
+    uiInteractionStore.getState().closeFileTreeOverlay();
   }, []);
   const handleOpenSettings = React.useCallback(() => {
     setSettingsOpen(true);
@@ -204,7 +230,7 @@ export function useAppShellController(): AppShellController {
   ]);
 
   const openOrFocusChatWindow = React.useCallback(
-    (threadId: string) => {
+    (threadId: string, options?: { canvasBounds?: DOMRect | null }) => {
       const thread = threadLookup.get(threadId);
       const title = getThreadWindowTitle(thread);
       const existingChatWindow = windowState.layout.windows.find(
@@ -226,9 +252,28 @@ export function useAppShellController(): AppShellController {
         return existingChatWindow.id;
       }
 
+      const centeredPosition = options?.canvasBounds
+        ? getCenteredWindowPosition({
+            viewportWidth: options.canvasBounds.width,
+            viewportHeight: options.canvasBounds.height,
+            windowWidth: 640,
+            windowHeight: 420,
+            zoom: windowState.layout.zoom,
+            panX: windowState.layout.panX,
+            panY: windowState.layout.panY,
+          })
+        : undefined;
+
       const chatWindow = windowStore.createWindow(
         { kind: "chat", threadId, title },
         activeWorktreePath ?? undefined,
+        centeredPosition
+          ? {
+              ...centeredPosition,
+              width: 640,
+              height: 420,
+            }
+          : undefined,
       );
       windowStore.updateWindow(chatWindow.id, {
         title,
@@ -237,7 +282,15 @@ export function useAppShellController(): AppShellController {
       });
       return chatWindow.id;
     },
-    [activeWorktreePath, threadLookup, windowState.layout.windows, windowStore],
+    [
+      activeWorktreePath,
+      threadLookup,
+      windowState.layout.panX,
+      windowState.layout.panY,
+      windowState.layout.windows,
+      windowState.layout.zoom,
+      windowStore,
+    ],
   );
 
   React.useEffect(() => {
@@ -286,6 +339,15 @@ export function useAppShellController(): AppShellController {
     activeThreadId !== null &&
     agent.status !== "starting" &&
     agent.status !== "streaming";
+  const focusedWindow =
+    windowState.layout.windows.find(
+      (window) => window.id === windowState.layout.focusedWindowId,
+    ) ?? null;
+  const isPromptExecuting =
+    agent.status === "starting" || agent.status === "streaming";
+  const isPromptVisible =
+    activeThreadId !== null &&
+    (!focusedWindow || focusedWindow.kind === "chat");
 
   const handleFileClick = React.useCallback(
     async (filePath: string) => {
@@ -301,10 +363,14 @@ export function useAppShellController(): AppShellController {
         filePath,
         readFile: (nextFilePath) => window.pidesk.fs.readFile(nextFilePath),
       });
+      closeLauncherOverlay();
+      closeFileTreeOverlay();
     },
     [
       activeWorktreeId,
       activeWorktreePath,
+      closeFileTreeOverlay,
+      closeLauncherOverlay,
       windowState.layout.windows,
       windowStore,
     ],
@@ -406,31 +472,43 @@ export function useAppShellController(): AppShellController {
     windowStore,
   ]);
 
-  const handleOpenLauncher = React.useCallback(() => {
-    const existingSearchWindow = windowState.layout.windows.find(
-      (w): w is SearchWindow => w.kind === "search",
-    );
-    if (existingSearchWindow) {
-      windowStore.focusWindow(existingSearchWindow.id);
-      return;
-    }
+  const handleOpenBlankStateChat = React.useCallback(
+    async (canvasBounds: DOMRect | null) => {
+      if (activeThreadId) {
+        openOrFocusChatWindow(activeThreadId, { canvasBounds });
+        return true;
+      }
 
-    const searchWindow = windowStore.createWindow(
-      { kind: "search" },
-      activeWorktreePath ?? undefined,
-    );
-    windowStore.updateWindow(searchWindow.id, { title: "Pi Launcher" });
-    initializeSearchWindowForWorktree({
-      sessionStore: workspaceSessionStore,
-      worktreeId: activeWorktreeId,
-      windowId: searchWindow.id,
-    });
-  }, [
-    activeWorktreeId,
-    activeWorktreePath,
-    windowState.layout.windows,
-    windowStore,
-  ]);
+      const firstVisibleThreadId =
+        activeWorktree?.threads.find((thread) => !thread.isArchived)?.id ??
+        null;
+
+      if (firstVisibleThreadId) {
+        await window.pidesk.threads.select(firstVisibleThreadId);
+        await reload();
+        return true;
+      }
+
+      if (!activeWorktreeId) {
+        return false;
+      }
+
+      await window.pidesk.threads.create(activeWorktreeId, "Canvas Chat");
+      await reload();
+      return true;
+    },
+    [
+      activeThreadId,
+      activeWorktree?.threads,
+      activeWorktreeId,
+      openOrFocusChatWindow,
+      reload,
+    ],
+  );
+
+  const handleOpenLauncher = React.useCallback(() => {
+    openLauncherOverlay();
+  }, [openLauncherOverlay]);
 
   const handleOpenGraph = React.useCallback(() => {
     const existingGraphWindow = windowState.layout.windows.find(
@@ -531,9 +609,9 @@ export function useAppShellController(): AppShellController {
         void handleFileClick(match.path);
         return;
       }
-      setSidebarView("files");
+      openFileTreeOverlay();
     },
-    [handleFileClick, setSidebarView],
+    [handleFileClick, openFileTreeOverlay],
   );
 
   const handleSearchHover = React.useCallback(
@@ -544,59 +622,126 @@ export function useAppShellController(): AppShellController {
         windowId,
         index,
       });
+
+      if (windowId === LAUNCHER_WINDOW_ID) {
+        uiInteractionStore.getState().setLauncherSelectedIndex(index);
+      }
     },
     [activeWorktreeId],
   );
 
   const handleSearchKeyDown = React.useCallback(
     (windowId: string) => (event: React.KeyboardEvent<HTMLInputElement>) => {
-      const searchWindow = windowState.layout.windows.find(
-        (w): w is SearchWindow => w.id === windowId && w.kind === "search",
-      );
-      if (!searchWindow) {
+      if (windowId !== LAUNCHER_WINDOW_ID) {
         return;
       }
 
+      const launcherState = uiInteractionStore.getState().overlays.launcher;
+      const results = launcherState.results;
+
       if (event.key === "ArrowDown") {
         event.preventDefault();
-        selectSearchResultIndexForWorktree({
-          sessionStore: workspaceSessionStore,
-          worktreeId: activeWorktreeId,
-          windowId,
-          results: searchWindow.results,
-          direction: "next",
-        });
+        if (results.length === 0) {
+          return;
+        }
+        const nextIndex =
+          launcherState.selectedIndex < results.length - 1
+            ? launcherState.selectedIndex + 1
+            : 0;
+        uiInteractionStore.getState().setLauncherSelectedIndex(nextIndex);
         return;
       }
 
       if (event.key === "ArrowUp") {
         event.preventDefault();
-        selectSearchResultIndexForWorktree({
-          sessionStore: workspaceSessionStore,
-          worktreeId: activeWorktreeId,
-          windowId,
-          results: searchWindow.results,
-          direction: "previous",
-        });
+        if (results.length === 0) {
+          return;
+        }
+        const previousIndex =
+          launcherState.selectedIndex > 0
+            ? launcherState.selectedIndex - 1
+            : results.length - 1;
+        uiInteractionStore.getState().setLauncherSelectedIndex(previousIndex);
         return;
       }
 
       if (event.key === "Enter") {
-        const selectedIndex =
-          selectSearchUiStateByWorktree(
-            workspaceSessionStore.getState(),
-            activeWorktreeId,
-            windowId,
-          )?.selectedIndex ?? -1;
         const selectedMatch =
-          selectedIndex >= 0 ? searchWindow.results[selectedIndex] : undefined;
+          launcherState.selectedIndex >= 0
+            ? results[launcherState.selectedIndex]
+            : undefined;
         if (selectedMatch) {
           event.preventDefault();
           handleSearchSelect(selectedMatch);
         }
+        return;
+      }
+
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeLauncherOverlay();
       }
     },
-    [activeWorktreeId, handleSearchSelect, windowState.layout.windows],
+    [closeLauncherOverlay, handleSearchSelect],
+  );
+
+  const handleLauncherQueryChange = React.useCallback(
+    async (query: string) => {
+      const interactions = uiInteractionStore.getState();
+      interactions.setLauncherQuery(query);
+
+      const requestVersion =
+        (searchRequestVersionsRef.current.get(LAUNCHER_WINDOW_ID) ?? 0) + 1;
+      searchRequestVersionsRef.current.set(LAUNCHER_WINDOW_ID, requestVersion);
+
+      if (!query.trim() || !activeWorktreePath) {
+        interactions.setLauncherResults([]);
+        interactions.setLauncherSelectedIndex(-1);
+        interactions.setLauncherLoading(false);
+        return;
+      }
+
+      interactions.setLauncherLoading(true);
+
+      try {
+        const response = await window.pidesk.search.searchFiles({
+          query,
+          rootPath: activeWorktreePath,
+          maxResults: 20,
+        });
+
+        if (
+          searchRequestVersionsRef.current.get(LAUNCHER_WINDOW_ID) !==
+          requestVersion
+        ) {
+          return;
+        }
+
+        interactions.setLauncherResults(response.results);
+        interactions.setLauncherLoading(false);
+      } catch {
+        if (
+          searchRequestVersionsRef.current.get(LAUNCHER_WINDOW_ID) !==
+          requestVersion
+        ) {
+          return;
+        }
+
+        interactions.setLauncherResults([]);
+        interactions.setLauncherSelectedIndex(-1);
+        interactions.setLauncherLoading(false);
+      }
+    },
+    [activeWorktreePath],
+  );
+
+  const handleLauncherHover = React.useCallback((index: number) => {
+    uiInteractionStore.getState().setLauncherSelectedIndex(index);
+  }, []);
+
+  const handleLauncherKeyDown = React.useMemo(
+    () => handleSearchKeyDown(LAUNCHER_WINDOW_ID),
+    [handleSearchKeyDown],
   );
 
   const handleAddRepository = React.useCallback(async () => {
@@ -721,10 +866,6 @@ export function useAppShellController(): AppShellController {
     [activeThreadId, reload],
   );
 
-  const hasOpenNotes = React.useMemo(
-    () => windowState.layout.windows.some((window) => window.kind === "note"),
-    [windowState.layout.windows],
-  );
   const autocompleteMatch = React.useMemo(
     () => getPromptAutocompleteMatch(draft),
     [draft],
@@ -907,10 +1048,13 @@ export function useAppShellController(): AppShellController {
     setDraft,
   ]);
 
+  const handleCancelPrompt = React.useCallback(async () => {
+    await cancelPrompt();
+  }, [cancelPrompt]);
+
   const runtimeMode = shell.runtime?.agentMode ?? "unknown";
   const runtimeModeLabel = `${runtimeMode} mode`;
-  const displayAgentStatus =
-    agent.status === "starting" ? "ready" : agent.status;
+  const displayAgentStatus = agent.status;
   const currentModelValue = React.useMemo(
     () => resolveCurrentModelValue(providerSnapshots, settingsSnapshot),
     [providerSnapshots, settingsSnapshot],
@@ -987,14 +1131,10 @@ export function useAppShellController(): AppShellController {
     activeRepository,
     activeRepositoryId,
     activeWorktreeId,
-    activeWorktreePath,
     activeThreadId,
     activeThreadTitle: activeThread ? getThreadWindowTitle(activeThread) : null,
     draft,
     canSend,
-    sidebarView,
-    setSidebarView,
-    hasOpenNotes,
     leftSidebarWidth,
     snapGridSize: windowState.layout.snapGridSize,
     windowCount: windowState.layout.windows.length,
@@ -1008,6 +1148,14 @@ export function useAppShellController(): AppShellController {
     providerSnapshots,
     currentModelValue,
     isSwitchingModel,
+    isLauncherOpen,
+    isFileTreeOpen,
+    launcherQuery,
+    launcherResults,
+    launcherSelectedIndex,
+    launcherIsLoading,
+    isPromptVisible,
+    isPromptExecuting,
     onModelMenuOpenChange: handleModelMenuOpenChange,
     onAddRepository: handleAddRepository,
     onSelectRepository: handleSelectRepository,
@@ -1021,6 +1169,10 @@ export function useAppShellController(): AppShellController {
     onCreateWorktree: handleCreateWorktree,
     onLeftSidebarResize: handleLeftSidebarResize,
     onOpenLauncher: handleOpenLauncher,
+    onCloseLauncher: closeLauncherOverlay,
+    onOpenFileTree: openFileTreeOverlay,
+    onCloseFileTree: closeFileTreeOverlay,
+    onOpenBlankStateChat: handleOpenBlankStateChat,
     onOpenNote: handleOpenNote,
     onOpenGit: handleOpenGit,
     onOpenTerminal: handleOpenTerminal,
@@ -1034,9 +1186,14 @@ export function useAppShellController(): AppShellController {
     onSearchSelect: handleSearchSelect,
     onSearchHover: handleSearchHover,
     onSearchKeyDown: handleSearchKeyDown,
+    onLauncherQueryChange: handleLauncherQueryChange,
+    onLauncherSelect: handleSearchSelect,
+    onLauncherHover: handleLauncherHover,
+    onLauncherKeyDown: handleLauncherKeyDown,
     onWindowFocus: handleWindowFocus,
     onDraftChange: setDraft,
     onSend: handleSend,
+    onCancelPrompt: handleCancelPrompt,
     onAutocompleteSelect: handleAutocompleteSelect,
     onAutocompleteHover: setAutocompleteSelectedIndex,
     onPromptKeyDown: handlePromptKeyDown,

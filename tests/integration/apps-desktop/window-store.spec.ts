@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   createWindowStore,
+  getCenteredWindowPosition,
   initialWindowStoreState,
 } from "../../../apps/desktop/src/renderer/src/stores/window-store";
 import type { TerminalWindow } from "../../../packages/shared/src";
@@ -25,8 +26,8 @@ describe("window-store", () => {
 
     expect(store.getState().layout.windows).toHaveLength(2);
     expect(store.getState().layout.focusedWindowId).toBe(second.id);
-    expect(first.width).toBe(420);
-    expect(first.height).toBe(280);
+    expect(first.width).toBe(640);
+    expect(first.height).toBe(420);
 
     store.focusWindow(first.id);
     expect(store.getState().layout.focusedWindowId).toBe(first.id);
@@ -72,8 +73,20 @@ describe("window-store", () => {
     const a = store.createWindow({ kind: "file", filePath: "/tmp/a.ts" });
     const b = store.createWindow({ kind: "file", filePath: "/tmp/b.ts" });
 
-    expect(b.x).toBe(a.x + 32);
-    expect(b.y).toBe(a.y + 32);
+    expect(b.x).toBe(a.x + 48);
+    expect(b.y).toBe(a.y + 48);
+  });
+
+  it("centers windows against the visible canvas viewport", () => {
+    expect(
+      getCenteredWindowPosition({
+        viewportWidth: 1440,
+        viewportHeight: 900,
+        windowWidth: 640,
+        windowHeight: 420,
+        zoom: 0.9,
+      }),
+    ).toEqual({ x: 480, y: 290 });
   });
 
   it("terminal createWindow falls back to passed cwd when action.cwd is missing", () => {

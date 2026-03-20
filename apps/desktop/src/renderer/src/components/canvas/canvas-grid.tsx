@@ -7,9 +7,11 @@ export function getCanvasGridStyle(snapGridSize: number): React.CSSProperties {
 
   return {
     backgroundImage:
-      "radial-gradient(circle, rgba(255,255,255,0.3) 1px, transparent 1px)",
+      "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.52) 1px, transparent 1.35px), radial-gradient(circle at 1px 1px, rgba(255,255,255,0.16) 1px, transparent 1.5px)",
     backgroundSize: `${safeGridSize}px ${safeGridSize}px`,
     backgroundPosition: `0 0, ${offset}px ${offset}px`,
+    backgroundRepeat: "repeat",
+    mixBlendMode: "screen",
   };
 }
 
@@ -24,7 +26,7 @@ export function CanvasGrid({
     <div
       data-testid="canvas-grid"
       className={cn(
-        "transition-opacity duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]",
+        "transition-opacity duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] mix-blend-screen",
         "motion-reduce:duration-150 motion-reduce:ease-out motion-reduce:transition-none",
         className,
       )}

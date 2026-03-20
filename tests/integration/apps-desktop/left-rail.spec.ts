@@ -77,4 +77,34 @@ describe("moveRepositorySnapshots", () => {
     );
     expect(source).toContain("window.pidesk.repositories.reorder");
   });
+
+  it("starts in project selection mode instead of jumping into workspace nav", () => {
+    const source = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
+    );
+
+    expect(source).not.toContain(
+      'activeRepositoryId ? "workspace" : "projects"',
+    );
+  });
+
+  it("keeps workspace navigation views stable instead of toggling back to null", () => {
+    const source = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
+    );
+
+    expect(source).not.toContain(
+      "const nextView = activeView === view ? null : view;",
+    );
+  });
+
+  it("uses tighter tracking for rail labels and project heading", () => {
+    const source = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
+    );
+
+    expect(source).toContain("tracking-[0.08em]");
+    expect(source).toContain("tracking-[0.1em]");
+    expect(source).not.toContain("tracking-[0.24em]");
+  });
 });

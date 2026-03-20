@@ -63,6 +63,7 @@ export interface AppShellStoreState {
   initialize(): Promise<void>;
   reload(): Promise<void>;
   sendPrompt(): Promise<void>;
+  cancelPrompt(): Promise<void>;
   setDraft(draft: string): void;
   switchModel(request: ModelSwitchRequest): Promise<void>;
   updateAppPreferences(updates: Partial<AppPreferences>): Promise<void>;
@@ -308,6 +309,10 @@ export function createAppShellStore(api: PiDeskApi) {
     },
     async sendPrompt() {
       await shellModel.sendPrompt();
+      set({ shellState: shellModel.getState() });
+    },
+    async cancelPrompt() {
+      await shellModel.cancelPrompt();
       set({ shellState: shellModel.getState() });
     },
     setDraft(draft) {

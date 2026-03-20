@@ -23,8 +23,8 @@ const FALLBACK_LAYOUT: WindowLayoutState = {
   windows: [],
   nextZIndex: 1,
   focusedWindowId: null,
-  snapGridSize: 16,
-  zoom: 1,
+  snapGridSize: 24,
+  zoom: 0.9,
   panX: 0,
   panY: 0,
 };

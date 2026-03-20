@@ -50,6 +50,7 @@ export interface PiDeskApi {
     getSettings(): Promise<SettingsSnapshot>;
     getSnapshot(): Promise<AgentSnapshot>;
     prompt(text: string): Promise<void>;
+    cancelPrompt(): Promise<void>;
     reset(): Promise<void>;
     switchModel(request: ModelSwitchRequest): Promise<void>;
     getDiscovery(): Promise<PiDiscoveryResult>;

@@ -69,6 +69,7 @@ type AgentDesktopHost = {
   getSettings(): Promise<SettingsSnapshot>;
   getSnapshot(): Promise<AgentSnapshot>;
   prompt(text: string): Promise<void>;
+  cancelPrompt(): Promise<void>;
   reset(): Promise<void>;
   subscribe(listener: (event: PiDeskAgentEvent) => void): () => void;
 };
@@ -93,6 +94,9 @@ function createBootstrapErrorHost(message: string): AgentDesktopHost {
     },
     async prompt(text: string) {
       await unavailableHost.prompt(text);
+    },
+    async cancelPrompt() {
+      await unavailableHost.cancelPrompt();
     },
     async reset() {
       return Promise.resolve();
@@ -573,6 +577,7 @@ async function bootstrapDesktop() {
       getSettings: () => currentHost.getSettings(),
       getSnapshot: () => currentHost.getSnapshot(),
       prompt: (text) => currentHost.prompt(text),
+      cancelPrompt: () => currentHost.cancelPrompt(),
       reset: () => currentHost.reset(),
       addRepository: async (targetPath) => {
         commitAttachment(await attachToPath(targetPath));

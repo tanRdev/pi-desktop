@@ -53,6 +53,11 @@ type CreateModelRegistry = (
   modelsFilePath: string,
 ) => ModelRegistryLike;
 
+type AgentSessionLike = AgentSession & {
+  prompt: (text: string, options?: { signal?: AbortSignal }) => Promise<void>;
+  waitForIdle?: () => Promise<void>;
+};
+
 type CreateSettingsManager = (
   cwd: string,
   agentDir: string,
@@ -145,13 +150,15 @@ export class PiSdkAgentRuntime {
 
   private readonly agentDir?: string;
 
-  private session: AgentSession | null = null;
+  private session: AgentSessionLike | null = null;
 
   private unsubscribeSession: (() => void) | null = null;
 
   private modelRegistry: ModelRegistryLike | null = null;
 
   private settingsManager: SettingsManagerLike | null = null;
+
+  private promptAbortController: AbortController | null = null;
 
   private snapshot: AgentSnapshot = {
     sessionId: "",
@@ -198,7 +205,7 @@ export class PiSdkAgentRuntime {
         agentDir: this.agentDir,
       });
 
-      this.session = result.session;
+      this.session = result.session as AgentSessionLike;
       this.unsubscribeSession?.();
       this.unsubscribeSession = this.session.subscribe(
         (event: AgentSessionEvent) => {
@@ -230,7 +237,7 @@ export class PiSdkAgentRuntime {
         agentDir: this.agentDir,
       });
 
-      this.session = result.session;
+      this.session = result.session as AgentSessionLike;
       this.unsubscribeSession = this.session.subscribe(
         (event: AgentSessionEvent) => {
           const normalized = normalizeAgentSessionEvent(event);
@@ -385,13 +392,44 @@ export class PiSdkAgentRuntime {
       lastError: null,
     };
 
+    const abortController = new AbortController();
+    this.promptAbortController = abortController;
+
     try {
-      await this.session.prompt(text);
+      await this.session.prompt(text, { signal: abortController.signal });
       this.refreshSnapshot("ready");
     } catch (error) {
+      if (abortController.signal.aborted) {
+        this.refreshSnapshot("ready");
+        return;
+      }
       this.setErrorState(error, this.session.sessionId);
       throw error;
+    } finally {
+      if (this.promptAbortController === abortController) {
+        this.promptAbortController = null;
+      }
     }
+  }
+
+  async cancelPrompt(): Promise<void> {
+    const abortController = this.promptAbortController;
+
+    if (!abortController || abortController.signal.aborted) {
+      return;
+    }
+
+    abortController.abort();
+
+    if (typeof this.session?.waitForIdle === "function") {
+      try {
+        await this.session.waitForIdle();
+      } catch {
+        // Ignore abort-related wait failures and reconcile from snapshot below.
+      }
+    }
+
+    this.refreshSnapshot("ready");
   }
 
   private refreshSnapshot(status: AgentSnapshot["status"]): void {

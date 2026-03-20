@@ -38,6 +38,7 @@ export interface AgentHostClient {
   getSettings(): Promise<SettingsSnapshot>;
   getSnapshot(): Promise<AgentSnapshot>;
   prompt(text: string): Promise<void>;
+  cancelPrompt(): Promise<void>;
   reset(): Promise<void>;
   subscribe(listener: AgentEventListener): () => void;
 }
@@ -148,6 +149,9 @@ export function createAgentHostClient(
     },
     async prompt(text) {
       await send({ type: "prompt", text });
+    },
+    async cancelPrompt() {
+      await send({ type: "cancelPrompt" });
     },
     async reset() {
       await send({ type: "reset" });

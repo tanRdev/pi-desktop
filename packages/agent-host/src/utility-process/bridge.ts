@@ -97,6 +97,19 @@ export function wireAgentHostParentPort({
           })
           .catch(respondWithError);
         return;
+      case "cancelPrompt":
+        void Promise.resolve(runtime.cancelPrompt())
+          .then(() => {
+            parentPort.postMessage({
+              type: "response",
+              response: {
+                requestId: request.requestId,
+                kind: "ack",
+              },
+            });
+          })
+          .catch(respondWithError);
+        return;
     }
   });
 

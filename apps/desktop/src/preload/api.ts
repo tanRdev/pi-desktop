@@ -74,6 +74,9 @@ export function createPiDeskApi({
       prompt(text: string) {
         return invoke<void>(IPC_CHANNELS.agent.prompt, { text });
       },
+      cancelPrompt() {
+        return invoke<void>(IPC_CHANNELS.agent.cancelPrompt, undefined);
+      },
       reset() {
         return invoke<void>(IPC_CHANNELS.agent.reset, undefined);
       },

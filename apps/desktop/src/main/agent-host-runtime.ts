@@ -24,6 +24,7 @@ type EnsureDirectory = (directory: string) => void;
 type UnavailableAgentHost = {
   getSnapshot(): Promise<AgentSnapshot>;
   prompt(text: string): Promise<void>;
+  cancelPrompt(): Promise<void>;
 };
 
 function resolveAgentRuntimeMode(
@@ -116,6 +117,9 @@ export function createUnavailableAgentHost(
     },
     async prompt() {
       throw new Error(message);
+    },
+    async cancelPrompt() {
+      return Promise.resolve();
     },
   };
 }

@@ -21,6 +21,10 @@ export function useShellModel() {
     return store.getState().sendPrompt();
   }, [store]);
 
+  const cancelPrompt = useCallback(() => {
+    return store.getState().cancelPrompt();
+  }, [store]);
+
   const setDraft = useCallback(
     (draft: string) => {
       store.getState().setDraft(draft);
@@ -78,6 +82,7 @@ export function useShellModel() {
     updateAppPreferences: store.getState().updateAppPreferences,
     updateRepositoryPreferences: store.getState().updateRepositoryPreferences,
     sendPrompt,
+    cancelPrompt,
     setDraft,
     reset,
     reload,

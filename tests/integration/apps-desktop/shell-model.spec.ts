@@ -292,6 +292,7 @@ describe("createShellModel", () => {
       agent: {
         getSnapshot: vi.fn(async () => createAgentSnapshotFixture()),
         prompt,
+        cancelPrompt: vi.fn(async () => undefined),
         subscribe: vi.fn(() => () => {}),
       },
       state: createStateApiFixture(),
@@ -341,6 +342,7 @@ describe("createShellModel", () => {
           messages: [...snapshot.messages],
         })),
         prompt,
+        cancelPrompt: vi.fn(async () => undefined),
         subscribe: vi.fn(() => () => {}),
       },
       state: createStateApiFixture(),
@@ -394,6 +396,7 @@ describe("createShellModel", () => {
           messages: [...snapshot.messages],
         })),
         prompt,
+        cancelPrompt: vi.fn(async () => undefined),
         subscribe: vi.fn(() => () => {}),
       },
       state: createStateApiFixture(),
@@ -410,6 +413,61 @@ describe("createShellModel", () => {
       status: "error",
       lastError: "Missing SDK auth",
     });
+  });
+
+  test("cancels in-flight prompts through the transport and refreshes the snapshot", async () => {
+    const api = {
+      shell: {
+        getSnapshot: vi.fn(async () => createShellSnapshotFixture()),
+      },
+      agent: {
+        getSnapshot: vi
+          .fn()
+          .mockResolvedValueOnce(
+            createAgentSnapshotFixture({
+              sessionId: "sdk-session",
+              status: "streaming",
+              messages: [
+                {
+                  id: "assistant-1",
+                  role: "assistant",
+                  text: "Working...",
+                  status: "streaming",
+                  timestamp: 1,
+                },
+              ],
+            }),
+          )
+          .mockResolvedValueOnce(
+            createAgentSnapshotFixture({
+              sessionId: "sdk-session",
+              status: "ready",
+              messages: [
+                {
+                  id: "assistant-1",
+                  role: "assistant",
+                  text: "Working...",
+                  status: "streaming",
+                  timestamp: 1,
+                },
+              ],
+            }),
+          ),
+        prompt: vi.fn(async () => undefined),
+        cancelPrompt: vi.fn(async () => undefined),
+        subscribe: vi.fn(() => () => {}),
+      },
+      state: createStateApiFixture(),
+    } as unknown as ShellModelApi;
+
+    const model = createShellModel(api);
+    await model.load();
+
+    await model.cancelPrompt();
+
+    expect(api.agent.cancelPrompt).toHaveBeenCalledTimes(1);
+    expect(api.agent.getSnapshot).toHaveBeenCalledTimes(2);
+    expect(model.getState().agent.status).toBe("ready");
   });
 
   test("preserves existing messages when prompt and snapshot refresh both fail", async () => {
@@ -441,6 +499,7 @@ describe("createShellModel", () => {
             new Error("Agent host request getSnapshot timed out after 25ms"),
           ),
         prompt,
+        cancelPrompt: vi.fn(async () => undefined),
         subscribe: vi.fn(() => () => {}),
       },
       state: createStateApiFixture(),
@@ -498,6 +557,7 @@ describe("createShellModel", () => {
           .mockResolvedValueOnce(createAgentSnapshotFixture())
           .mockResolvedValueOnce(createAgentSnapshotFixture()),
         prompt,
+        cancelPrompt: vi.fn(async () => undefined),
         subscribe: vi.fn((listener) => {
           eventListener = listener;
           return () => {
@@ -592,6 +652,7 @@ describe("createShellModel", () => {
               }),
           ),
         prompt,
+        cancelPrompt: vi.fn(async () => undefined),
         subscribe: vi.fn((listener) => {
           eventListener = listener;
           return () => {

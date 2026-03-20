@@ -2,6 +2,36 @@ import { describe, expect, it } from "vitest";
 import { createUiInteractionStore } from "../../../apps/desktop/src/renderer/src/stores/ui-interaction-store";
 
 describe("ui-interaction-store", () => {
+  it("switches between launcher and file-tree overlays and resets launcher search state", () => {
+    const store = createUiInteractionStore();
+
+    store.getState().openLauncherOverlay();
+    store.getState().setLauncherQuery("workspace-shell");
+    store.getState().setLauncherResults([
+      {
+        type: "file",
+        path: "/tmp/repo/workspace-shell.tsx",
+        name: "workspace-shell.tsx",
+      },
+    ]);
+    store.getState().setLauncherSelectedIndex(0);
+    store.getState().openFileTreeOverlay();
+
+    expect(store.getState().overlays.fileTree.isOpen).toBe(true);
+    expect(store.getState().overlays.launcher.isOpen).toBe(false);
+    expect(store.getState().overlays.launcher.query).toBe("");
+    expect(store.getState().overlays.launcher.results).toEqual([]);
+    expect(store.getState().overlays.launcher.selectedIndex).toBe(-1);
+
+    store.getState().closeLauncherOverlay();
+
+    expect(store.getState().overlays.launcher.isOpen).toBe(false);
+    expect(store.getState().overlays.launcher.query).toBe("");
+    expect(store.getState().overlays.launcher.results).toEqual([]);
+    expect(store.getState().overlays.launcher.selectedIndex).toBe(-1);
+    expect(store.getState().overlays.fileTree.isOpen).toBe(true);
+  });
+
   it("tracks transient snap, drag, resize, hover, dialog, and autocomplete state separately", () => {
     const store = createUiInteractionStore();
 
@@ -73,6 +103,9 @@ describe("ui-interaction-store", () => {
         description: "Deploy",
       },
     ]);
+    store.getState().openLauncherOverlay();
+    store.getState().setLauncherQuery("notes");
+    store.getState().openFileTreeOverlay();
 
     store.getState().clearWorkspaceScopedState();
 
@@ -82,6 +115,9 @@ describe("ui-interaction-store", () => {
     expect(store.getState().snapPreview).toBeNull();
     expect(store.getState().promptAutocompleteSuggestions).toEqual([]);
     expect(store.getState().promptAutocompleteSelectedIndex).toBe(-1);
+    expect(store.getState().overlays.launcher.isOpen).toBe(false);
+    expect(store.getState().overlays.launcher.query).toBe("");
+    expect(store.getState().overlays.fileTree.isOpen).toBe(false);
     expect(store.getState().dialogs.settings).toBe(true);
     expect(store.getState().dialogs.createWorktree).toBe(true);
   });

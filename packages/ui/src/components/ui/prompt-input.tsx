@@ -91,7 +91,10 @@ function PromptInput({
           role="presentation"
           onClick={handleClick}
           className={cn(
-            "shell-input-frame cursor-text border border-[#474747]/30 bg-[#0e0e0e] p-2 transition-colors focus-within:border-white focus-within:ring-0",
+            "shell-input-frame relative isolate cursor-text overflow-hidden border border-[#474747]/20 bg-[linear-gradient(180deg,rgba(14,14,14,0.94)_0%,rgba(10,10,10,0.98)_100%)] p-2",
+            "transition-[border-color,background-color,transform] duration-200 ease-[var(--ease-out)]",
+            "before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-white/[0.07] before:content-['']",
+            "focus-within:border-white/55 focus-within:bg-[linear-gradient(180deg,rgba(18,18,18,0.96)_0%,rgba(11,11,11,1)_100%)] focus-within:ring-0",
             disabled && "cursor-not-allowed opacity-60",
             className,
           )}
@@ -137,6 +140,8 @@ function PromptInputTextarea({
   useLayoutEffect(() => {
     if (!textareaRef.current || disableAutosize) return;
 
+    void value;
+
     const el = textareaRef.current;
     el.style.height = "auto";
 
@@ -145,7 +150,7 @@ function PromptInputTextarea({
     } else {
       el.style.height = `min(${el.scrollHeight}px, ${maxHeight})`;
     }
-  }, [maxHeight, disableAutosize, textareaRef]);
+  }, [maxHeight, disableAutosize, textareaRef, value]);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     adjustHeight(e.target);
@@ -170,7 +175,8 @@ function PromptInputTextarea({
       onChange={handleChange}
       onKeyDown={handleKeyDown}
       className={cn(
-        "min-h-[44px] w-full resize-none border-none bg-transparent shadow-none outline-none focus-visible:border-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:shadow-none",
+        "min-h-[44px] w-full resize-none border-none bg-transparent shadow-none outline-none",
+        "focus-visible:border-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:shadow-none",
         className,
       )}
       rows={1}
