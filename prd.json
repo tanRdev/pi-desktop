@@ -57,7 +57,7 @@
         "Typecheck passes"
       ],
       "priority": 1,
-      "passes": false,
+      "passes": true,
       "notes": "File: left-sidebar.tsx, workspace-shell.tsx - add proper left margin or padding"
     },
     {

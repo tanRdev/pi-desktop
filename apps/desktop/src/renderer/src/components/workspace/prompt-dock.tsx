@@ -115,7 +115,9 @@ export function PromptDock({
     <div
       className={cn(
         "relative pb-4 pt-3",
-        "transition-opacity duration-100 ease-[var(--ease-out)]",
+        "transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]",
+        !activeThreadId && "opacity-0 translate-y-8 pointer-events-none",
+        activeThreadId && "opacity-100 translate-y-0",
       )}
     >
       <div className="mx-auto max-w-4xl px-6">

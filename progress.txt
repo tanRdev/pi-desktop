@@ -28,3 +28,13 @@ Started: Fri Mar 20 10:36:15 EDT 2026
   - Grid is positioned with absolute inset-0 z-0 behind canvas content
   - Effective visibility = dot opacity * wrapper opacity (e.g., 0.3 * 0.5 = 0.15)
 ---
+## Fri Mar 20 11:00:00 EDT 2026 - US-004
+- Added ml-16 (margin-left: 64px) to both LeftSidebar and main content area
+- LeftRail uses fixed positioning with w-16 (64px width), so it overlays content
+- Both the sidebar and main canvas needed the left margin to avoid overlap
+- Files changed: apps/desktop/src/renderer/src/components/workspace/left-sidebar.tsx, apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx
+- **Learnings for future iterations:**
+  - LeftRail is fixed positioned at left-0, so it doesn't affect flex layout
+  - Any content that should not be overlapped needs ml-16 to account for rail width
+  - The resize handler in LeftSidebar already accounts for 64px offset in its calculation
+---
