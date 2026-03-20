@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OBSIDIAN_CMD // PI_HARNESS</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;family=Inter:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "outline": "#919191",
+                        "on-secondary-fixed": "#1b1c1c",
+                        "on-secondary-fixed-variant": "#3c3b3b",
+                        "inverse-on-surface": "#303030",
+                        "on-error": "#690005",
+                        "primary-fixed": "#5d5f5f",
+                        "on-primary-fixed-variant": "#e2e2e2",
+                        "inverse-surface": "#e2e2e2",
+                        "on-tertiary-fixed": "#ffffff",
+                        "surface": "#131313",
+                        "surface-bright": "#393939",
+                        "on-tertiary-container": "#000000",
+                        "on-tertiary": "#1b1c1c",
+                        "on-tertiary-fixed-variant": "#e4e2e1",
+                        "surface-dim": "#131313",
+                        "on-error-container": "#ffdad6",
+                        "secondary-fixed": "#c8c6c5",
+                        "on-primary": "#1a1c1c",
+                        "outline-variant": "#474747",
+                        "tertiary-fixed": "#5f5e5e",
+                        "primary-container": "#d4d4d4",
+                        "primary-fixed-dim": "#454747",
+                        "surface-container-highest": "#353535",
+                        "primary": "#ffffff",
+                        "surface-tint": "#c6c6c7",
+                        "tertiary": "#e4e2e1",
+                        "on-secondary": "#1b1c1c",
+                        "error": "#ffb4ab",
+                        "inverse-primary": "#5d5f5f",
+                        "on-primary-fixed": "#ffffff",
+                        "surface-container-lowest": "#0e0e0e",
+                        "tertiary-fixed-dim": "#474747",
+                        "secondary": "#c8c6c5",
+                        "surface-container-high": "#2a2a2a",
+                        "on-surface-variant": "#c6c6c6",
+                        "on-secondary-container": "#e5e2e1",
+                        "error-container": "#93000a",
+                        "on-background": "#e2e2e2",
+                        "surface-variant": "#353535",
+                        "on-primary-container": "#000000",
+                        "surface-container-low": "#1b1b1b",
+                        "secondary-container": "#474746",
+                        "on-surface": "#e2e2e2",
+                        "surface-container": "#1f1f1f",
+                        "tertiary-container": "#919090",
+                        "background": "#131313",
+                        "secondary-fixed-dim": "#adabaa"
+                    },
+                    fontFamily: {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Space Grotesk"],
+                        "mono": ["JetBrains Mono"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0px",
+                        "lg": "0px",
+                        "xl": "0px",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
+            font-size: 18px;
+        }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: #0e0e0e; }
+        ::-webkit-scrollbar-thumb { background: #474747; }
+        ::-webkit-scrollbar-thumb:hover { background: #ffffff; }
+        .editor-bg { background-image: radial-gradient(#1f1f1f 1px, transparent 1px); background-size: 20px 20px; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body overflow-hidden h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="flex justify-between items-center w-full px-3 h-10 bg-[#0e0e0e] border-b border-[#474747]/30 fixed top-0 z-50">
+<div class="flex items-center gap-6">
+<span class="text-sm font-black text-white tracking-tighter font-headline">OBSIDIAN_CMD</span>
+<nav class="hidden md:flex gap-4 h-full items-center">
+<a class="font-['JetBrains_Mono'] text-[11px] tracking-tight uppercase text-white border-b border-white pb-1" href="#">TERMINAL</a>
+<a class="font-['JetBrains_Mono'] text-[11px] tracking-tight uppercase text-[#474747] hover:text-white transition-colors" href="#">LOGS</a>
+<a class="font-['JetBrains_Mono'] text-[11px] tracking-tight uppercase text-[#474747] hover:text-white transition-colors" href="#">FILES</a>
+<a class="font-['JetBrains_Mono'] text-[11px] tracking-tight uppercase text-[#474747] hover:text-white transition-colors" href="#">NETWORK</a>
+</nav>
+</div>
+<div class="flex items-center gap-3">
+<div class="bg-surface-container-low border border-outline-variant/30 px-2 py-1 flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px]">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-[10px] font-mono w-32 uppercase tracking-widest outline-none" placeholder="GOTO_FILE..." type="text"/>
+</div>
+<span class="material-symbols-outlined text-[#474747] hover:text-white cursor-pointer transition-all">settings</span>
+<span class="material-symbols-outlined text-[#474747] hover:text-white cursor-pointer transition-all">developer_mode</span>
+</div>
+</header>
+<div class="flex flex-1 pt-10 overflow-hidden">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-10 h-full w-16 flex flex-col items-center py-4 gap-6 bg-[#0e0e0e] border-r border-[#474747]/30 z-40">
+<div class="flex flex-col items-center gap-1 mb-4 opacity-50">
+<div class="w-8 h-8 bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-xs">terminal</span>
+</div>
+</div>
+<div class="flex flex-col gap-6 w-full items-center">
+<button class="w-full flex justify-center py-2 bg-white text-black rounded-none transition-transform duration-75 scale-95">
+<span class="material-symbols-outlined" data-icon="folder_open">folder_open</span>
+</button>
+<button class="w-full flex justify-center py-2 text-[#474747] hover:text-white hover:bg-[#353535] transition-all">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+</button>
+<button class="w-full flex justify-center py-2 text-[#474747] hover:text-white hover:bg-[#353535] transition-all">
+<span class="material-symbols-outlined" data-icon="account_tree">account_tree</span>
+</button>
+<button class="w-full flex justify-center py-2 text-[#474747] hover:text-white hover:bg-[#353535] transition-all">
+<span class="material-symbols-outlined" data-icon="bug_report">bug_report</span>
+</button>
+<button class="w-full flex justify-center py-2 text-[#474747] hover:text-white hover:bg-[#353535] transition-all">
+<span class="material-symbols-outlined" data-icon="extension">extension</span>
+</button>
+</div>
+<div class="mt-auto flex flex-col gap-4 w-full items-center pb-12">
+<button class="text-[#474747] hover:text-white transition-all">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<button class="text-[#474747] hover:text-white transition-all">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+</button>
+</div>
+</aside>
+<!-- Main Workspace Canvas -->
+<main class="ml-16 flex-1 flex overflow-hidden">
+<!-- Left Sidebar: Explorer -->
+<section class="w-60 bg-surface-container-lowest border-r border-outline-variant/20 flex flex-col hidden lg:flex">
+<div class="p-3 border-b border-outline-variant/10 flex justify-between items-center">
+<span class="font-mono text-[10px] font-bold tracking-widest text-outline">EXPLORER</span>
+<span class="material-symbols-outlined text-[14px] text-outline">more_horiz</span>
+</div>
+<div class="flex-1 overflow-y-auto p-2 font-mono text-[11px] space-y-1">
+<div class="flex items-center gap-2 px-2 py-1 text-on-surface-variant hover:bg-surface-container-highest cursor-pointer">
+<span class="material-symbols-outlined text-[16px]">expand_more</span>
+<span class="uppercase">pi-core-v2</span>
+</div>
+<div class="ml-4 space-y-1">
+<div class="flex items-center gap-2 px-2 py-1 text-primary hover:bg-surface-container-highest cursor-pointer">
+<span class="material-symbols-outlined text-[16px] text-yellow-500">javascript</span>
+<span>engine.js</span>
+</div>
+<div class="flex items-center gap-2 px-2 py-1 text-on-surface-variant hover:bg-surface-container-highest cursor-pointer">
+<span class="material-symbols-outlined text-[16px] text-blue-400">css</span>
+<span>monolith.css</span>
+</div>
+<div class="flex items-center gap-2 px-2 py-1 text-on-surface-variant hover:bg-surface-container-highest cursor-pointer">
+<span class="material-symbols-outlined text-[16px] text-orange-400">html</span>
+<span>index.html</span>
+</div>
+<div class="flex items-center gap-2 px-2 py-1 text-on-surface-variant hover:bg-surface-container-highest cursor-pointer">
+<span class="material-symbols-outlined text-[16px] text-blue-500">settings</span>
+<span>config.json</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Center: Editor -->
+<section class="flex-1 flex flex-col min-w-0 editor-bg">
+<div class="h-9 bg-surface-container-low border-b border-outline-variant/10 flex items-center px-1">
+<div class="bg-surface border-t-2 border-primary h-full px-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px] text-yellow-500">javascript</span>
+<span class="font-mono text-[10px] tracking-tighter">engine.js</span>
+<span class="material-symbols-outlined text-[12px] opacity-40 hover:opacity-100 cursor-pointer">close</span>
+</div>
+<div class="h-full px-4 flex items-center gap-2 opacity-40 hover:opacity-100 cursor-pointer">
+<span class="material-symbols-outlined text-[14px] text-blue-400">css</span>
+<span class="font-mono text-[10px] tracking-tighter">monolith.css</span>
+</div>
+</div>
+<div class="flex-1 p-6 font-mono text-[13px] leading-relaxed overflow-y-auto selection:bg-primary/20">
+<div class="flex gap-6">
+<div class="text-outline-variant text-right select-none opacity-50 w-8">
+                            1<br/>2<br/>3<br/>4<br/>5<br/>6<br/>7<br/>8<br/>9<br/>10<br/>11<br/>12<br/>13
+                        </div>
+<div class="text-on-surface">
+<span class="text-purple-400">import</span> { piHarness } <span class="text-purple-400">from</span> <span class="text-green-400">'@obsidian/core'</span>;<br/><br/>
+<span class="text-outline-variant">// Initialize PI agent with elevated root access</span><br/>
+<span class="text-purple-400">const</span> agent = <span class="text-blue-400">new</span> <span class="text-yellow-200">piHarness</span>({<br/>
+                              id: <span class="text-green-400">'OPERATOR_01'</span>,<br/>
+                              mode: <span class="text-green-400">'ROOT_ACCESS'</span>,<br/>
+                              density: <span class="text-orange-300">0.95</span><br/>
+                            });<br/><br/>
+<span class="text-purple-400">async function</span> <span class="text-blue-300">executeSequence</span>() {<br/>
+                              <span class="text-purple-400">const</span> result = <span class="text-purple-400">await</span> agent.<span class="text-blue-300">optimize</span>();<br/>
+                              console.<span class="text-blue-300">log</span>(<span class="text-green-400">`OPTIMIZATION_COMPLETE: ${result}`</span>);<br/>
+                            }<br/><br/>
+<span class="text-blue-300">executeSequence</span>();
+                        </div>
+</div>
+</div>
+</section>
+<!-- Right Sidebar: PI AI Agent Chat -->
+<section class="w-80 bg-[#0e0e0e] border-l border-outline-variant/30 flex flex-col">
+<div class="p-3 border-b border-outline-variant/10 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+<span class="font-mono text-[10px] font-bold tracking-widest">PI_AGENT_01</span>
+</div>
+<span class="text-[9px] font-mono text-outline-variant">LATENCY: 12ms</span>
+</div>
+<div class="flex-1 overflow-y-auto p-4 space-y-6">
+<!-- Agent Message -->
+<div class="space-y-2">
+<div class="flex justify-between items-center opacity-40">
+<span class="font-mono text-[9px] uppercase">PI_AGENT</span>
+<span class="font-mono text-[9px]">14:20:01</span>
+</div>
+<div class="bg-surface-container-high p-3 border-l-2 border-primary">
+<p class="font-mono text-[11px] leading-relaxed">System scan complete. I have identified 3 optimization points in <span class="text-primary underline">engine.js</span>. Shall I execute the monolith compression?</p>
+</div>
+</div>
+<!-- User Message -->
+<div class="space-y-2">
+<div class="flex justify-between items-center opacity-40">
+<span class="font-mono text-[9px] uppercase text-outline">OPERATOR</span>
+<span class="font-mono text-[9px]">14:20:45</span>
+</div>
+<div class="bg-surface-container-low p-3 border border-outline-variant/20">
+<p class="font-mono text-[11px] leading-relaxed">Proceed with compression. Use max density settings.</p>
+</div>
+</div>
+<!-- System Event -->
+<div class="py-2 border-y border-outline-variant/10 text-center">
+<span class="font-mono text-[9px] text-outline-variant uppercase tracking-[0.2em]">Executing Optimization Sequence...</span>
+</div>
+</div>
+<!-- Input Field -->
+<div class="p-3 bg-surface-container-lowest">
+<div class="relative">
+<textarea class="w-full bg-[#131313] border border-outline-variant/30 p-2 font-mono text-[11px] focus:border-primary focus:ring-0 resize-none outline-none placeholder:opacity-30" placeholder="COMMAND_INPUT..." rows="3"></textarea>
+<div class="absolute bottom-2 right-2 flex gap-2">
+<button class="bg-primary text-on-primary-container px-3 py-1 text-[10px] font-mono font-bold uppercase tracking-tight">EXECUTE</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+</div>
+<!-- Status Bar -->
+<footer class="h-6 bg-surface-container-lowest border-t border-outline-variant/20 flex items-center justify-between px-3 z-50">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-1 text-[10px] font-mono font-medium text-outline">
+<span class="material-symbols-outlined text-[12px]">account_tree</span>
+<span>main*</span>
+</div>
+<div class="flex items-center gap-1 text-[10px] font-mono font-medium text-outline">
+<span class="material-symbols-outlined text-[12px]">sync</span>
+<span>0↓ 1↑</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-[10px] font-mono font-medium text-outline uppercase tracking-tighter">UTF-8</span>
+<span class="text-[10px] font-mono font-medium text-outline uppercase tracking-tighter">Javascript</span>
+<div class="flex items-center gap-1 text-[10px] font-mono font-medium text-primary">
+<span class="material-symbols-outlined text-[12px]">check_circle</span>
+<span>SYSTEM_READY</span>
+</div>
+</div>
+</footer>
+</body></html>

@@ -333,8 +333,8 @@ function ResponseStream({
   // fadeStyle is the style for the fade animation
   const fadeStyle = `
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(2px); }
-      to { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; transform: scaleY(0.95); }
+      to { opacity: 1; transform: scaleY(1); }
     }
 
     @keyframes streamingPulse {
@@ -357,7 +357,7 @@ function ResponseStream({
       width: 0.5em;
       height: 0.5em;
       background-color: currentColor;
-      border-radius: 50%;
+      border-radius: 0;
       margin-left: 0.25em;
       animation: streamingPulse 1.5s ease-in-out infinite;
     }

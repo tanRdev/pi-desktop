@@ -47,7 +47,7 @@ const INITIAL_COMPONENTS: Partial<Components> = {
   h1: function H1Component({ children, ...props }) {
     return (
       <h1
-        className="mt-8 mb-4 text-2xl font-semibold tracking-tight text-foreground"
+        className="mt-8 mb-4 text-2xl font-sans font-semibold tracking-tight text-foreground"
         {...props}
       >
         {children}
@@ -57,7 +57,7 @@ const INITIAL_COMPONENTS: Partial<Components> = {
   h2: function H2Component({ children, ...props }) {
     return (
       <h2
-        className="mt-8 mb-4 text-xl font-semibold tracking-tight text-foreground"
+        className="mt-8 mb-4 text-xl font-sans font-semibold tracking-tight text-foreground"
         {...props}
       >
         {children}
@@ -67,7 +67,7 @@ const INITIAL_COMPONENTS: Partial<Components> = {
   h3: function H3Component({ children, ...props }) {
     return (
       <h3
-        className="mt-6 mb-3 text-lg font-semibold tracking-tight text-foreground"
+        className="mt-6 mb-3 text-lg font-sans font-semibold tracking-tight text-foreground"
         {...props}
       >
         {children}
@@ -77,7 +77,7 @@ const INITIAL_COMPONENTS: Partial<Components> = {
   h4: function H4Component({ children, ...props }) {
     return (
       <h4
-        className="mt-6 mb-2 text-base font-semibold tracking-tight text-foreground"
+        className="mt-6 mb-2 text-base font-sans font-semibold tracking-tight text-foreground"
         {...props}
       >
         {children}
@@ -163,7 +163,7 @@ const INITIAL_COMPONENTS: Partial<Components> = {
   ul: function UlComponent({ children, ...props }) {
     return (
       <ul
-        className="my-4 ml-6 list-disc text-sm leading-7 text-foreground/90"
+        className="my-4 ml-6 list-none text-sm leading-7 text-foreground/90"
         {...props}
       >
         {children}
@@ -182,8 +182,9 @@ const INITIAL_COMPONENTS: Partial<Components> = {
   },
   li: function LiComponent({ children, ...props }) {
     return (
-      <li className="my-1.5 pl-1 marker:text-muted-foreground" {...props}>
-        {children}
+      <li className="my-1.5 pl-1 flex items-start gap-2" {...props}>
+        <span className="text-muted-foreground mt-1.5 size-1 bg-current shrink-0" />
+        <div>{children}</div>
       </li>
     );
   },
@@ -210,7 +211,7 @@ const INITIAL_COMPONENTS: Partial<Components> = {
       return (
         <code
           className={cn(
-            "rounded bg-surface-3 px-1.5 py-0.5 font-mono text-xs",
+            "rounded-none bg-surface-3 px-1.5 py-0.5 font-mono text-xs",
             "text-foreground",
             "transition-all duration-150 ease-out",
             "hover:bg-surface-4",
@@ -295,9 +296,8 @@ const INITIAL_COMPONENTS: Partial<Components> = {
         src={src}
         alt={alt}
         className={cn(
-          "my-6 rounded-lg border border-border shadow-sm max-w-full",
+          "my-6 rounded-none border border-border max-w-full",
           "transition-all duration-200 ease-out",
-          "hover:shadow-md hover:scale-[1.02]",
         )}
         {...props}
       />

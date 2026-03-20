@@ -34,10 +34,10 @@ export function RuntimeStatusChip({
     <span
       data-testid={testId}
       className={cn(
-        "inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide",
+        "inline-flex items-center border px-2 py-0.5 text-[10px] font-mono font-medium uppercase tracking-widest",
         "transition-all duration-[var(--duration-normal)] motion-reduce:transition-none",
-        "hover:scale-105 active:scale-[0.97] motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+        "hover:bg-primary hover:text-[#131313] active:scale-[0.98] motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
+        "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0",
         STATUS_STYLES[status],
         STATUS_ANIMATIONS[status],
         className,

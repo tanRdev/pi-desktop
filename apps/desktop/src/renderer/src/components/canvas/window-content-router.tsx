@@ -101,9 +101,7 @@ export function WindowContentRouter({
 
   if (win.kind === "file") {
     return (
-      <div
-        className="h-full animate-[window-enter_300ms_cubic-bezier(0.23,1,0.32,1)_forwards] motion-reduce:animate-none"
-      >
+      <div className="h-full animate-[window-enter_150ms_linear_forwards] motion-reduce:animate-none">
         <FileWindowContent
           filePath={win.filePath}
           content={fileData?.content ?? null}
@@ -122,9 +120,7 @@ export function WindowContentRouter({
     const conversation = threadConversation ?? EMPTY_THREAD_CONVERSATION;
 
     return (
-      <div
-        className="h-full animate-[window-enter_300ms_cubic-bezier(0.23,1,0.32,1)_forwards] motion-reduce:animate-none"
-      >
+      <div className="h-full animate-[window-enter_150ms_linear_forwards] motion-reduce:animate-none">
         <ChatWindowContent
           threadTitle={getThreadWindowTitle(threadLookup.get(win.threadId))}
           isActiveThread={win.threadId === activeThreadId}
@@ -139,9 +135,7 @@ export function WindowContentRouter({
 
   if (win.kind === "note") {
     return (
-      <div
-        className="h-full animate-[window-enter_300ms_cubic-bezier(0.23,1,0.32,1)_forwards] motion-reduce:animate-none"
-      >
+      <div className="h-full animate-[window-enter_150ms_linear_forwards] motion-reduce:animate-none">
         <NoteWindowContent
           content={noteData?.content ?? ""}
           onContentChange={(content) => onNoteContentChange(win.id, content)}
@@ -153,9 +147,7 @@ export function WindowContentRouter({
 
   if (win.kind === "terminal") {
     return (
-      <div
-        className="h-full animate-[window-enter_300ms_cubic-bezier(0.23,1,0.32,1)_forwards] motion-reduce:animate-none"
-      >
+      <div className="h-full animate-[window-enter_150ms_linear_forwards] motion-reduce:animate-none">
         <TerminalWindowContent
           terminalId={win.terminalId}
           cwd={win.cwd}
@@ -169,9 +161,7 @@ export function WindowContentRouter({
 
   if (win.kind === "git") {
     return (
-      <div
-        className="h-full animate-[window-enter_300ms_cubic-bezier(0.23,1,0.32,1)_forwards] motion-reduce:animate-none"
-      >
+      <div className="h-full animate-[window-enter_150ms_linear_forwards] motion-reduce:animate-none">
         <TerminalWindowContent
           terminalId={win.terminalId}
           cwd={win.repositoryPath}
@@ -184,9 +174,7 @@ export function WindowContentRouter({
 
   if (win.kind === "search") {
     return (
-      <div
-        className="h-full animate-[window-enter_300ms_cubic-bezier(0.23,1,0.32,1)_forwards] motion-reduce:animate-none"
-      >
+      <div className="h-full animate-[window-enter_150ms_linear_forwards] motion-reduce:animate-none">
         <SearchWindowContent
           query={win.query}
           results={win.results}
@@ -226,18 +214,14 @@ export function WindowContentRouter({
 
   if (win.kind === "graph") {
     return (
-      <div
-        className="h-full animate-[window-enter_300ms_cubic-bezier(0.23,1,0.32,1)_forwards] motion-reduce:animate-none"
-      >
+      <div className="h-full animate-[window-enter_150ms_linear_forwards] motion-reduce:animate-none">
         <GraphWindowContent nodes={graphNodes} links={graphLinks} />
       </div>
     );
   }
 
   return (
-    <div
-      className="p-4 text-muted-foreground animate-[window-enter_300ms_cubic-bezier(0.23,1,0.32,1)_forwards] motion-reduce:animate-none"
-    >
+    <div className="p-4 text-muted-foreground animate-[window-enter_150ms_linear_forwards] motion-reduce:animate-none">
       Window type: {win.kind}
     </div>
   );

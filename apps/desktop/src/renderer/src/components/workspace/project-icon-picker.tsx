@@ -11,6 +11,7 @@ import {
   Settings,
   Terminal,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -18,7 +19,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
-import { cn } from "@/lib/utils";
 
 export interface ProjectIconOption {
   id: string;
@@ -120,17 +120,18 @@ export function ProjectIconPicker({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Project icon</DialogTitle>
-          <DialogDescription>
-            Pick a sober icon for {repositoryName}. Auto derives from the
-            project name.
+      <DialogContent className="sm:max-w-md p-0 gap-0">
+        <DialogHeader className="p-6">
+          <DialogTitle className="text-sm font-bold uppercase tracking-[0.2em] font-headline text-white">
+            Project Icon
+          </DialogTitle>
+          <DialogDescription className="text-[10px] font-mono text-[#474747] uppercase tracking-wider mt-2">
+            SELECT A TECHNICAL GLYPH FOR {repositoryName}.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-2 gap-2 pt-2 sm:grid-cols-3">
-          {PROJECT_ICON_OPTIONS.map((option, index) => {
+        <div className="grid grid-cols-3 gap-0 border-t border-[#474747]/20 bg-[#131313]">
+          {PROJECT_ICON_OPTIONS.map((option) => {
             const Icon = option.icon;
             const isSelected = option.id === selectedIconId;
 
@@ -143,23 +144,19 @@ export function ProjectIconPicker({
                   onOpenChange(false);
                 }}
                 className={cn(
-                  "flex items-center gap-2 rounded-xl border px-3 py-3 text-left",
-                  "transition-all duration-[var(--duration-fast)] motion-reduce:transition-none",
-                  "hover:scale-[1.02] active:scale-[0.97] motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+                  "flex flex-col items-center justify-center gap-3 p-6 text-center border-b border-r border-[#474747]/10 transition-all duration-75",
+                  "hover:bg-[#353535] hover:text-white",
                   isSelected
-                    ? "border-border bg-surface-2 text-foreground shadow-sm"
-                    : "border-border/70 bg-surface-1 text-muted-foreground hover:border-border hover:bg-surface-2 hover:text-foreground",
+                    ? "bg-[#0e0e0e] text-white border-b-white"
+                    : "text-[#474747]",
                 )}
-                style={{
-                  transitionTimingFunction: "var(--ease-out)",
-                  animationDelay: `${index * 30}ms`,
-                }}
               >
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-surface-2 transition-transform duration-[var(--duration-fast)] motion-reduce:transition-none group-hover:scale-105">
-                  <Icon className="h-4 w-4" />
+                <span className="flex h-10 w-10 items-center justify-center rounded-none border border-[#474747]/30 bg-[#131313]">
+                  <Icon className="h-5 w-5" />
                 </span>
-                <span className="text-xs font-medium">{option.label}</span>
+                <span className="text-[9px] font-mono font-bold uppercase tracking-[0.1em]">
+                  {option.label}
+                </span>
               </button>
             );
           })}

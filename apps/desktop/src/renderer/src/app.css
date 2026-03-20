@@ -2,43 +2,30 @@
 @import "@pidesk/ui/styles/pidesk-shell.css";
 
 /* ============================================
-   EMIL DESIGN SYSTEM - Custom Easing & Motion
+   OBSIDIAN COMMAND - Technical Transitions
    ============================================ */
 
-/* Custom easing curves - stronger, more intentional */
 :root {
-  /* Strong ease-out for UI interactions - responsive feel */
-  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
-  /* Strong ease-in-out for on-screen movement */
-  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
-  /* iOS-like drawer curve */
-  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
-  /* Snappy button press */
-  --ease-press: cubic-bezier(0.4, 0, 0.2, 1);
-  /* Spring-like bounce (subtle) */
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 
-  /* Durations - fast for responsiveness */
-  --duration-instant: 100ms;
-  --duration-fast: 150ms;
-  --duration-normal: 200ms;
-  --duration-slow: 300ms;
-
-  /* Stagger delays */
-  --stagger-base: 30ms;
-  --stagger-increment: 40ms;
+  --duration-instant: 50ms;
+  --duration-fast: 100ms;
+  --duration-normal: 150ms;
+  --duration-slow: 200ms;
 }
 
 /* Desktop-specific styles */
 body {
   -webkit-app-region: drag;
-  font-family: var(--app-font-sans);
+  font-family: var(--app-font-mono);
   letter-spacing: -0.01em;
-  background: color-mix(in oklch, var(--background) 96%, black 4%);
+  background: var(--background);
 }
 
 * {
   -webkit-app-region: no-drag;
+  border-radius: 0px !important;
 }
 
 [data-drag-region="true"] {
@@ -51,26 +38,21 @@ body {
 
 .titlebar {
   -webkit-app-region: drag;
-  border-bottom: 1px solid color-mix(in oklch, var(--border) 88%, black 12%);
+  border-bottom: 1px solid rgba(71, 71, 71, 0.3);
+  background: #0e0e0e;
 }
 
 /* ============================================
-   MICRO-INTERACTIONS - Button Press Feedback
+   MICRO-INTERACTIONS - Sharp Feedback
    ============================================ */
 
-/* Press feedback - tactile response */
 button:not(:disabled):active,
 [role="button"]:not(:disabled):active {
-  transform: scale(0.97);
-  transition: transform var(--duration-instant) var(--ease-press);
+  opacity: 0.8;
+  transition: opacity var(--duration-instant) var(--ease-out);
 }
 
-/* Icon buttons - more pronounced feedback */
-.chrome-icon-button:active {
-  transform: scale(0.95);
-}
-
-/* Smooth transitions for interactive elements - specific properties only */
+/* Smooth transitions for interactive elements */
 button,
 a,
 input,
@@ -80,76 +62,51 @@ select {
     background-color var(--duration-fast) var(--ease-out),
     border-color var(--duration-fast) var(--ease-out),
     color var(--duration-fast) var(--ease-out),
-    box-shadow var(--duration-fast) var(--ease-out),
-    transform var(--duration-instant) var(--ease-press);
-  will-change: transform;
+    opacity var(--duration-instant) var(--ease-out);
 }
 
 /* ============================================
-   FOCUS STATES - Visible but subtle
+   WINDOW ANIMATIONS - Snappy
    ============================================ */
 
-button:focus-visible,
-a:focus-visible,
-input:focus-visible,
-textarea:focus-visible,
-select:focus-visible {
-  outline: 2px solid color-mix(in oklch, var(--foreground) 14%, transparent);
-  outline-offset: 2px;
-  transition: outline var(--duration-fast) var(--ease-out);
-}
-
-/* ============================================
-   WINDOW ANIMATIONS - Enter/Exit states
-   ============================================ */
-
-/* Window entrance - scale from 0.95 with fade */
 @keyframes window-enter {
   from {
     opacity: 0;
-    transform: scale(0.95) translateY(8px);
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
-    transform: scale(1) translateY(0);
+    transform: translateY(0);
   }
 }
 
-/* Window exit - faster than entrance */
 @keyframes window-exit {
   from {
     opacity: 1;
-    transform: scale(1) translateY(0);
+    transform: translateY(0);
   }
   to {
     opacity: 0;
-    transform: scale(0.95) translateY(4px);
+    transform: translateY(2px);
   }
 }
 
 .shell-window {
-  animation: window-enter var(--duration-slow) var(--ease-out) forwards;
+  animation: window-enter var(--duration-normal) var(--ease-out) forwards;
 }
 
 .shell-window.closing {
   animation: window-exit var(--duration-fast) var(--ease-in-out) forwards;
 }
 
-/* Focus transition - subtle border glow */
-.shell-window {
-  transition:
-    border-color var(--duration-normal) var(--ease-out),
-    box-shadow var(--duration-normal) var(--ease-out);
-}
-
 /* ============================================
-   STAGGERED REVEALS - List items cascade
+   STAGGERED REVEALS
    ============================================ */
 
 @keyframes stagger-fade-in {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(2px);
   }
   to {
     opacity: 1;
@@ -162,34 +119,25 @@ select:focus-visible {
   animation: stagger-fade-in var(--duration-normal) var(--ease-out) forwards;
 }
 
-.stagger-item:nth-child(1) { animation-delay: calc(var(--stagger-base) * 0); }
-.stagger-item:nth-child(2) { animation-delay: calc(var(--stagger-base) * 1); }
-.stagger-item:nth-child(3) { animation-delay: calc(var(--stagger-base) * 2); }
-.stagger-item:nth-child(4) { animation-delay: calc(var(--stagger-base) * 3); }
-.stagger-item:nth-child(5) { animation-delay: calc(var(--stagger-base) * 4); }
-.stagger-item:nth-child(6) { animation-delay: calc(var(--stagger-base) * 5); }
-.stagger-item:nth-child(7) { animation-delay: calc(var(--stagger-base) * 6); }
-.stagger-item:nth-child(8) { animation-delay: calc(var(--stagger-base) * 7); }
-
 /* ============================================
-   POPOVER ANIMATIONS - Origin-aware scaling
+   POPOVER ANIMATIONS
    ============================================ */
 
 @keyframes popover-enter {
   from {
     opacity: 0;
-    transform: scale(0.96);
+    transform: translateY(2px);
   }
   to {
     opacity: 1;
-    transform: scale(1);
+    transform: translateY(0);
   }
 }
 
 [data-radix-popper-content-wrapper] > div {
-  transform-origin: var(--radix-popover-content-transform-origin);
   animation: popover-enter var(--duration-fast) var(--ease-out) forwards;
 }
+
 
 /* ============================================
    DOCK INPUT ANIMATIONS

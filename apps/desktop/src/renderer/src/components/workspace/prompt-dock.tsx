@@ -114,9 +114,8 @@ export function PromptDock({
   return (
     <div
       className={cn(
-        "relative z-20 bg-background/80 pb-4 pt-3 backdrop-blur-sm",
-        "transition-opacity duration-200 ease-[var(--ease-out)]",
-        "motion-reduce:transition-none",
+        "relative z-20 bg-[#131313] pb-4 pt-3",
+        "transition-opacity duration-100 ease-[var(--ease-out)]",
       )}
     >
       <div className="mx-auto max-w-4xl px-6">
@@ -125,29 +124,25 @@ export function PromptDock({
           onValueChange={onDraftChange}
           onSubmit={() => void onSend()}
           className={cn(
-            "shell-dock bg-surface-1 px-4 py-3",
-            "transition-all duration-200 ease-[var(--ease-out)]",
-            "motion-reduce:transition-none",
-            isFocused && "border-border-hover shadow-md",
+            "shell-dock bg-[#0e0e0e] px-4 py-3 border border-[#474747]/30",
+            "transition-all duration-100 ease-[var(--ease-out)]",
+            isFocused && "border-white",
           )}
         >
           <PromptInputTextarea
             data-testid="chat-input"
             placeholder={
-              activeThreadId
-                ? "Ask Pi, use / for skills, @ for files or terminals..."
-                : "Select a thread to start..."
+              activeThreadId ? "ASK_PI... (CMD + K)" : "SELECT_THREAD..."
             }
             disabled={!activeThreadId}
             onKeyDown={onPromptKeyDown}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             className={cn(
-              "min-h-20 resize-none border-0 bg-transparent px-0.5 py-0.5 text-[13px] leading-6",
-              "text-foreground placeholder:text-muted-foreground outline-none",
+              "min-h-20 resize-none border-0 bg-transparent px-0.5 py-0.5 text-[11px] leading-tight font-mono uppercase",
+              "text-white placeholder:text-[#474747]/50 outline-none",
               "focus-visible:border-transparent focus-visible:ring-0 disabled:opacity-50",
-              "transition-colors duration-150 ease-[var(--ease-out)]",
-              "motion-reduce:transition-none",
+              "transition-colors duration-100 ease-[var(--ease-out)]",
             )}
           />
           <PromptAutocomplete
@@ -158,16 +153,8 @@ export function PromptDock({
             onHover={onAutocompleteHover}
             className="absolute left-0 right-0 top-full mt-2"
           />
-          <PromptInputActions className="mt-2 items-center justify-between gap-3 border-t border-border-subtle pt-2">
+          <PromptInputActions className="mt-2 items-center justify-between gap-3 border-t border-[#474747]/20 pt-2">
             <div className="flex items-center gap-1.5">
-              <span
-                data-testid="agent-status"
-                data-runtime-mode={runtimeModeLabel}
-                aria-live="polite"
-                className="shell-token sr-only"
-              >
-                {displayAgentStatus}
-              </span>
               <Popover open={modelOpen} onOpenChange={handleModelOpenChange}>
                 <PopoverTrigger asChild>
                   <button
@@ -176,12 +163,11 @@ export function PromptDock({
                       isSwitchingModel || providerSnapshots.length === 0
                     }
                     className={cn(
-                      "flex items-center gap-1.5 rounded-sm bg-surface-2/80 px-2 py-0.5 text-[10px] text-muted-foreground",
-                      "transition-all duration-150 ease-[var(--ease-out)]",
-                      "hover:bg-surface-2 hover:text-foreground hover:translate-y-[-1px]",
-                      "active:scale-[0.97] active:translate-y-0",
-                      "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/50 focus-visible:outline-offset-2",
-                      "disabled:opacity-50 motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:active:scale-100",
+                      "flex items-center gap-1.5 bg-[#1f1f1f] px-2 py-1 text-[9px] text-[#919191] font-mono uppercase tracking-widest border border-[#474747]/30",
+                      "transition-all duration-100 ease-[var(--ease-out)]",
+                      "hover:bg-white hover:text-black",
+                      "focus-visible:outline-none",
+                      "disabled:opacity-50",
                     )}
                   >
                     <span className="max-w-[120px] truncate">
@@ -189,8 +175,7 @@ export function PromptDock({
                     </span>
                     <ChevronDown
                       className={cn(
-                        "h-3 w-3 opacity-70 transition-transform duration-150 ease-[var(--ease-out)]",
-                        "motion-reduce:transition-none",
+                        "h-3 w-3 opacity-70 transition-transform duration-100 ease-[var(--ease-out)]",
                         modelOpen && "rotate-180",
                       )}
                     />
@@ -200,19 +185,15 @@ export function PromptDock({
                   align="start"
                   side="top"
                   sideOffset={8}
-                  className="w-56 p-1"
+                  className="w-56 p-0 bg-[#2a2a2a] border border-[#474747] shadow-none"
                 >
                   <div className="max-h-48 overflow-y-auto">
                     {providerSnapshots.map((provider, providerIndex) => (
-                      <div
-                        key={provider.id}
-                        className="stagger-item py-1"
-                        style={{ animationDelay: `${providerIndex * 30}ms` }}
-                      >
-                        <div className="px-2 py-1 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                      <div key={provider.id} className="py-1">
+                        <div className="px-2 py-1 text-[9px] font-bold text-[#474747] uppercase tracking-widest border-b border-[#474747]/10">
                           {provider.name}
                         </div>
-                        {provider.models.map((model, modelIndex) => {
+                        {provider.models.map((model) => {
                           const value = `${provider.id}::${model.id}`;
                           const isSelected = value === currentModelValue;
                           return (
@@ -221,18 +202,12 @@ export function PromptDock({
                               type="button"
                               onClick={() => handleModelSelect(value)}
                               className={cn(
-                                "w-full rounded-sm px-2 py-1.5 text-left text-[11px]",
-                                "transition-all duration-150 ease-[var(--ease-out)]",
-                                "hover:translate-x-0.5",
-                                "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/50 focus-visible:outline-offset-2",
-                                "motion-reduce:transition-none motion-reduce:hover:translate-x-0",
+                                "w-full px-2 py-1.5 text-left text-[10px] font-mono uppercase",
+                                "transition-all duration-100 ease-[var(--ease-out)]",
                                 isSelected
-                                  ? "bg-surface-2 text-foreground"
-                                  : "text-muted-foreground hover:bg-surface-1 hover:text-foreground",
+                                  ? "bg-white text-black"
+                                  : "text-[#919191] hover:bg-white hover:text-black",
                               )}
-                              style={{
-                                animationDelay: `${(providerIndex * 30) + ((modelIndex + 1) * 20)}ms`,
-                              }}
                             >
                               {model.name}
                             </button>
@@ -246,35 +221,24 @@ export function PromptDock({
             </div>
             <div className="flex items-center gap-2.5">
               {currentContextWindow != null ? (
-                <span className="text-[10px] tabular-nums text-muted-foreground/70">
-                  {formatTokenCount(currentContextWindow)} ctx
+                <span className="text-[9px] tabular-nums text-[#474747] font-mono uppercase">
+                  {formatTokenCount(currentContextWindow)} CTX
                 </span>
               ) : null}
-              <PromptInputAction tooltip="Send message">
+              <PromptInputAction tooltip="EXECUTE_PROMPT">
                 <Button
                   type="button"
                   data-testid="chat-send"
-                  variant="ghost"
-                  size="icon"
+                  variant="default"
+                  size="sm"
                   disabled={!canSend}
                   onClick={() => void onSend()}
                   className={cn(
-                    "shell-send-button size-8 rounded-sm border border-border-subtle bg-surface-2 text-foreground",
-                    "transition-all duration-150 ease-[var(--ease-out)]",
-                    "hover:bg-surface-3 hover:border-border hover:shadow-sm hover:translate-y-[-1px]",
-                    "active:scale-[0.97] active:translate-y-0",
-                    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/50 focus-visible:outline-offset-2",
-                    "disabled:opacity-50 motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:active:scale-100",
-                    canSend && "hover:shadow-sm",
+                    "h-6 px-4 text-[10px] font-bold uppercase tracking-widest",
+                    !canSend && "opacity-30",
                   )}
                 >
-                  <ArrowUp
-                    className={cn(
-                      "size-4 transition-transform duration-150 ease-[var(--ease-out)]",
-                      "motion-reduce:transition-none",
-                      canSend && "group-hover:-translate-y-0.5",
-                    )}
-                  />
+                  EXECUTE
                 </Button>
               </PromptInputAction>
             </div>

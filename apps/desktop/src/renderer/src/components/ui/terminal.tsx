@@ -35,7 +35,7 @@ export function Terminal({
 
     const terminal = new XTerm({
       theme: {
-        background: "#121212",
+        background: "#131313",
         foreground: "#e5e5e5",
         cursor: "#e5e5e5",
         cursorAccent: "#121212",
@@ -162,7 +162,7 @@ export function Terminal({
             Run{" "}
             <code
               className={cn(
-                "rounded bg-surface-2 px-1",
+                "rounded-none bg-surface-2 px-1",
                 "transition-all duration-150 [transition-timing-function:var(--ease-out)]",
                 "hover:bg-surface-3 hover:scale-105",
                 "active:scale-[0.97] motion-reduce:active:scale-100",

@@ -88,8 +88,12 @@ export function ProjectCustomizationMenu({
             ? "pointer-events-auto visible opacity-100"
             : "pointer-events-none invisible opacity-0",
           side === "right"
-            ? (open ? "translate-x-0" : "-translate-x-2")
-            : (open ? "translate-x-0" : "translate-x-2"),
+            ? open
+              ? "translate-x-0"
+              : "-translate-x-2"
+            : open
+              ? "translate-x-0"
+              : "translate-x-2",
           className,
         )}
         style={{ transitionTimingFunction: "var(--ease-out)" }}
@@ -99,18 +103,19 @@ export function ProjectCustomizationMenu({
       >
         <div
           className={cn(
-            "w-80 rounded-lg border border-border/40 bg-surface-1/96 p-4 shadow-sm",
-            "transition-all duration-[var(--duration-normal)] motion-reduce:transition-none",
-            open && "shadow-md",
+            "w-80 rounded-none border border-[#474747]/30 bg-[#131313] p-4 shadow-none",
+            "transition-all duration-100",
           )}
-          style={{ transitionTimingFunction: "var(--ease-out)" }}
         >
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div>
-              <label htmlFor="project-custom-name" className="chrome-eyebrow">
-                Display name
+              <label
+                htmlFor="project-custom-name"
+                className="text-[10px] font-bold uppercase tracking-[0.15em] font-headline text-[#474747]"
+              >
+                Display Name
               </label>
-              <div className="mt-2 space-y-2">
+              <div className="mt-2">
                 <input
                   id="project-custom-name"
                   value={customName}
@@ -125,52 +130,51 @@ export function ProjectCustomizationMenu({
                     }
                   }}
                   placeholder={fallbackName}
-                  className="project-customization-field"
+                  className="w-full bg-[#0e0e0e] border border-[#474747]/20 p-2 text-[12px] font-mono text-white placeholder:text-[#474747]/50 focus:outline-none focus:border-white transition-colors uppercase"
                   aria-label="Project display name"
                 />
-                <p className="text-[11px] text-muted-foreground">
-                  Leave blank to use the repository folder name.
+                <p className="mt-1.5 text-[9px] font-mono text-[#474747] uppercase tracking-tight">
+                  EMPTY FOR FOLDER NAME.
                 </p>
               </div>
             </div>
 
             <div>
-              <div className="chrome-eyebrow">Icon</div>
+              <div className="text-[10px] font-bold uppercase tracking-[0.15em] font-headline text-[#474747]">
+                Icon
+              </div>
               <Button
                 type="button"
                 variant="outline"
                 size="default"
                 className={cn(
-                  "mt-2 h-10 w-full justify-between rounded-xl border-border bg-surface-2 px-3 text-left",
-                  "transition-all duration-[var(--duration-fast)] motion-reduce:transition-none",
-                  "hover:bg-surface-3 hover:border-border-hover hover:scale-[1.01]",
-                  "active:scale-[0.97] motion-reduce:active:scale-100",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+                  "mt-2 h-10 w-full justify-between rounded-none border-[#474747]/30 bg-[#0e0e0e] px-3 text-left hover:bg-[#1f1f1f] hover:border-[#474747]",
                 )}
-                style={{ transitionTimingFunction: "var(--ease-out)" }}
                 onClick={() => setIconPickerOpen(true)}
               >
                 <span className="flex items-center gap-2">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-border bg-surface-1">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-none border border-[#474747]/30 bg-[#131313]">
                     <currentIcon.icon className="h-4 w-4" />
                   </span>
-                  <span className="text-xs font-medium">
+                  <span className="text-[10px] font-mono uppercase tracking-wider">
                     {currentIcon.label}
                   </span>
                 </span>
-                <span className="text-[11px] text-muted-foreground">
-                  Choose
+                <span className="text-[9px] font-mono text-[#474747] uppercase tracking-widest">
+                  Change
                 </span>
               </Button>
             </div>
 
             <div>
               <div className="flex items-center gap-2">
-                <Palette className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="chrome-eyebrow">Accent color</span>
+                <Palette className="h-3 w-3 text-[#474747]" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.15em] font-headline text-[#474747]">
+                  Accent Color
+                </span>
               </div>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {PROJECT_ACCENT_OPTIONS.map((option, index) => {
+              <div className="mt-2 flex flex-wrap gap-1">
+                {PROJECT_ACCENT_OPTIONS.map((option) => {
                   const isActive = option.value === currentAccent.value;
 
                   return (
@@ -183,21 +187,15 @@ export function ProjectCustomizationMenu({
                         });
                       }}
                       className={cn(
-                        "flex items-center gap-2 rounded-full border px-2.5 py-1.5 text-[11px]",
-                        "transition-all duration-[var(--duration-fast)] motion-reduce:transition-none",
-                        "hover:scale-105 active:scale-[0.95] motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
-                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+                        "flex items-center gap-2 rounded-none border px-2 py-1.5 text-[9px] font-mono uppercase tracking-widest",
+                        "transition-all duration-75",
                         isActive
-                          ? "border-border bg-surface-2 text-foreground shadow-sm"
-                          : "border-border/70 bg-surface-1 text-muted-foreground hover:border-border hover:bg-surface-2 hover:text-foreground",
+                          ? "border-white bg-[#353535] text-white"
+                          : "border-[#474747]/30 bg-[#0e0e0e] text-[#474747] hover:border-white hover:text-white",
                       )}
-                      style={{
-                        transitionTimingFunction: "var(--ease-out)",
-                        animationDelay: `${index * 30}ms`,
-                      }}
                     >
                       <span
-                        className="h-2.5 w-2.5 rounded-full border border-black/10 transition-transform duration-[var(--duration-fast)] motion-reduce:transition-none"
+                        className="h-2 w-2 rounded-none"
                         style={{ backgroundColor: option.swatch }}
                       />
                       {option.label}

@@ -1,8 +1,8 @@
 "use client";
 
-import { ChevronDown } from "@/components/ui/icons";
 import type React from "react";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { ChevronDown } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { Markdown } from "./markdown";
 
@@ -174,6 +174,7 @@ function ReasoningContent({
         ref={innerRef}
         className={cn(
           "text-muted-foreground prose prose-sm dark:prose-invert",
+          "bg-surface-2 p-3 mt-2",
           "stagger-item",
           contentClassName,
         )}

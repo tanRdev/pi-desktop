@@ -3,12 +3,18 @@ import {
   type RepositoryDisplayMetadata,
   type RepositorySnapshot,
 } from "@pidesk/shared";
-import { Plus, Settings } from "lucide-react";
+import {
+  Bug,
+  FolderOpen,
+  Network,
+  Puzzle,
+  Search,
+  Settings,
+  Share2,
+} from "lucide-react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { Button } from "../ui/button";
 import { ProjectAvatar } from "./project-avatar";
-import { ProjectCustomizationMenu } from "./project-customization-menu";
 
 export interface LeftRailProps {
   repositories: RepositorySnapshot[];
@@ -79,112 +85,91 @@ export function LeftRail({
   return (
     <aside
       className={cn(
-        "flex h-full w-16 shrink-0 flex-col border-r border-border bg-surface-1",
-        "motion-safe:[animation:stagger-fade-in_0.2s_var(--ease-out)_forwards]",
+        "fixed left-0 top-10 h-[calc(100vh-40px)] w-16 flex flex-col items-center py-4 gap-6 bg-[#0e0e0e] border-r border-[#474747]/30 z-40",
       )}
     >
-      <div className="flex flex-1 flex-col gap-2 overflow-x-hidden overflow-y-auto px-2 pb-3 pt-3">
-        {orderedRepositories.map((repository, index) => (
-          <div
-            key={repository.id}
-            className={cn(
-              "group relative flex justify-center",
-              "stagger-item",
-            )}
-            style={{ animationDelay: `${index * 40}ms` }}
-            onMouseEnter={() => setOpenRepositoryId(repository.id)}
-            onMouseLeave={() =>
-              setOpenRepositoryId((currentId) =>
-                currentId === repository.id ? null : currentId,
-              )
-            }
-            onFocusCapture={() => setOpenRepositoryId(repository.id)}
-            onBlurCapture={(event) => {
-              if (
-                event.currentTarget.contains(event.relatedTarget as Node | null)
-              ) {
-                return;
-              }
+      <div className="flex flex-col gap-6 items-center flex-1 w-full">
+        <button
+          type="button"
+          className="flex flex-col items-center gap-1 group w-full"
+        >
+          <FolderOpen className="size-4 text-[#474747] group-hover:text-white transition-colors" />
+          <span className="font-mono text-[8px] text-[#474747] uppercase group-hover:text-white">
+            EXPLORER
+          </span>
+        </button>
+        <button
+          type="button"
+          className="flex flex-col items-center gap-1 group w-full"
+        >
+          <Search className="size-4 text-[#474747] group-hover:text-white transition-colors" />
+          <span className="font-mono text-[8px] text-[#474747] uppercase group-hover:text-white">
+            SEARCH
+          </span>
+        </button>
+        <button
+          type="button"
+          className="flex flex-col items-center gap-1 group bg-white text-black py-2 w-full"
+        >
+          <Share2 className="size-4" />
+          <span className="font-mono text-[8px] uppercase">SOURCE</span>
+        </button>
+        <button
+          type="button"
+          className="flex flex-col items-center gap-1 group w-full"
+        >
+          <Bug className="size-4 text-[#474747] group-hover:text-white transition-colors" />
+          <span className="font-mono text-[8px] text-[#474747] uppercase group-hover:text-white">
+            DEBUG
+          </span>
+        </button>
+        <button
+          type="button"
+          className="flex flex-col items-center gap-1 group w-full"
+        >
+          <Puzzle className="size-4 text-[#474747] group-hover:text-white transition-colors" />
+          <span className="font-mono text-[8px] text-[#474747] uppercase group-hover:text-white">
+            EXTENSIONS
+          </span>
+        </button>
 
-              setOpenRepositoryId((currentId) =>
-                currentId === repository.id ? null : currentId,
-              );
-            }}
-            onDragOver={(event) => {
-              if (
-                !draggedRepositoryId ||
-                draggedRepositoryId === repository.id
-              ) {
-                return;
+        <div className="w-full border-t border-[#474747]/20 pt-4 flex flex-col gap-4 items-center">
+          {orderedRepositories.map((repository) => (
+            <div
+              key={repository.id}
+              className="group relative flex justify-center"
+              onMouseEnter={() => setOpenRepositoryId(repository.id)}
+              onMouseLeave={() =>
+                setOpenRepositoryId((currentId) =>
+                  currentId === repository.id ? null : currentId,
+                )
               }
-
-              event.preventDefault();
-              event.dataTransfer.dropEffect = "move";
-            }}
-            onDrop={(event) => {
-              event.preventDefault();
-              handleDrop(repository.id);
-            }}
-          >
-            <ProjectAvatar
-              repository={repository}
-              isActive={repository.id === activeRepositoryId}
-              onClick={() => onSelectRepository(repository.id)}
-              draggable={orderedRepositories.length > 1}
-              onDragStart={(event) => {
-                setDraggedRepositoryId(repository.id);
-                event.dataTransfer.effectAllowed = "move";
-                event.dataTransfer.setData("text/plain", repository.id);
-              }}
-              onDragEnd={() => setDraggedRepositoryId(null)}
-              ariaControls={`project-customization-${repository.id}`}
-              ariaExpanded={openRepositoryId === repository.id}
-            />
-            <ProjectCustomizationMenu
-              repository={repository}
-              open={openRepositoryId === repository.id}
-              updateRepositoryPreferences={onUpdateRepositoryPreferences}
-              side="right"
-              className="absolute left-full top-1/2 z-20 -translate-y-1/2 pl-2"
-            />
-          </div>
-        ))}
+            >
+              <ProjectAvatar
+                repository={repository}
+                isActive={repository.id === activeRepositoryId}
+                onClick={() => onSelectRepository(repository.id)}
+                className="size-8"
+              />
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div className="flex flex-col items-center gap-1.5 border-t border-border px-2 py-2.5">
-        <Button
+      <div className="flex flex-col gap-4 items-center mb-4">
+        <button
           type="button"
-          variant="ghost"
-          size="icon"
-          className={cn(
-            "h-9 w-9 rounded-lg text-muted-foreground",
-            "transition-all duration-150 ease-[var(--ease-out)]",
-            "hover:scale-105 hover:text-foreground active:scale-[0.97]",
-            "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/50 focus-visible:outline-offset-2",
-            "motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
-          )}
-          onClick={onAddRepository}
-          aria-label="Add repository"
-        >
-          <Plus className="h-5 w-5" />
-        </Button>
-
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className={cn(
-            "h-9 w-9 rounded-lg text-muted-foreground",
-            "transition-all duration-150 ease-[var(--ease-out)]",
-            "hover:scale-105 hover:text-foreground active:scale-[0.97]",
-            "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/50 focus-visible:outline-offset-2",
-            "motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
-          )}
           onClick={onOpenSettings}
-          aria-label="Open settings"
+          className="text-[#474747] hover:text-white transition-colors"
         >
-          <Settings className="h-5 w-5" />
-        </Button>
+          <Settings className="size-4" />
+        </button>
+        <button
+          type="button"
+          className="text-[#474747] hover:text-white transition-colors"
+        >
+          <Network className="size-4" />
+        </button>
       </div>
     </aside>
   );

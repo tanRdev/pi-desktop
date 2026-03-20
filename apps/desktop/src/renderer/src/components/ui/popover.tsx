@@ -21,15 +21,15 @@ const PopoverContent = React.forwardRef<
       align={align}
       sideOffset={sideOffset}
       className={cn(
-        "z-50 w-72 rounded-md border border-border bg-popover p-4 text-popover-foreground shadow-lg outline-none",
+        "z-50 w-72 rounded-none border border-[#474747]/30 bg-[#2a2a2a] p-3 text-white shadow-none outline-none font-mono text-[11px] uppercase tracking-wider",
         "origin-[var(--radix-popover-content-transform-origin)]",
-        "animate-in fade-in-0 zoom-in-95 duration-[200ms] ease-[var(--ease-out)]",
-        "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:duration-[150ms]",
-        "data-[side=bottom]:slide-in-from-top-2",
-        "data-[side=left]:slide-in-from-right-2",
-        "data-[side=right]:slide-in-from-left-2",
-        "data-[side=top]:slide-in-from-bottom-2",
-        "motion-reduce:animate-none motion-reduce:duration-0",
+        "animate-in fade-in-0 zoom-in-[0.98] duration-[150ms] ease-out",
+        "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-[0.98] data-[state=closed]:duration-[100ms]",
+        "data-[side=bottom]:slide-in-from-top-1",
+        "data-[side=left]:slide-in-from-right-1",
+        "data-[side=right]:slide-in-from-left-1",
+        "data-[side=top]:slide-in-from-bottom-1",
+        "motion-reduce:animate-none",
         className,
       )}
       {...props}

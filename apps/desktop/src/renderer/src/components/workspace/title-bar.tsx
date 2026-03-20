@@ -44,156 +44,69 @@ export function TitleBar({
   return (
     <div
       data-drag-region="true"
-      className="titlebar shell-chrome relative flex h-11 shrink-0 items-center justify-between pr-3"
+      className="titlebar relative flex h-10 shrink-0 items-center justify-between px-3 bg-[#0e0e0e] border-b border-[#474747]/30 z-50"
     >
-      <div
-        className="flex min-w-0 items-center gap-2.5"
-        style={{ paddingLeft: `${leftPadding}px` }}
-      >
-        <button
-          type="button"
-          data-no-drag="true"
-          onClick={onToggleLeftSidebar}
-          className={cn(
-            "chrome-icon-button flex h-8 w-8 items-center justify-center rounded-md",
-            "transition-all duration-150 ease-[var(--ease-out)]",
-            "hover:scale-105 active:scale-[0.97]",
-            "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/50 focus-visible:outline-offset-2",
-            "motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
-            isLeftSidebarCollapsed
-              ? "text-muted-foreground hover:text-foreground"
-              : "text-foreground",
-          )}
-          aria-label={
-            isLeftSidebarCollapsed
-              ? "Expand left sidebar"
-              : "Collapse left sidebar"
-          }
-          title={isLeftSidebarCollapsed ? "Show sidebar" : "Hide sidebar"}
-        >
-          {isLeftSidebarCollapsed ? (
-            <PanelLeft className="size-3.5" />
-          ) : (
-            <PanelLeftClose className="size-3.5" />
-          )}
-        </button>
-
-        <button
-          type="button"
-          data-no-drag="true"
-          data-testid="app-title"
-          onClick={onOpenLauncher}
-          className={cn(
-            "text-lg transition-all duration-150 ease-[var(--ease-out)]",
-            "hover:scale-110 active:scale-[0.97]",
-            "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/50 focus-visible:outline-offset-2",
-            "motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
-            "text-muted-foreground/60 hover:text-muted-foreground",
-          )}
-          aria-label="Open launcher"
-          title="Pi launcher"
-        >
-          π
-        </button>
-
-        <div className="flex min-w-0 items-center gap-2" data-no-drag="true">
-          <span
-            data-testid="titlebar-project-name"
+      <div className="flex items-center gap-6">
+        <div className="flex gap-4" data-no-drag="true">
+          <button
+            type="button"
+            onClick={onOpenTerminal}
+            className="font-mono text-[11px] tracking-tight uppercase text-[#474747] hover:text-white transition-colors"
+          >
+            TERMINAL
+          </button>
+          <button
+            type="button"
+            className="font-mono text-[11px] tracking-tight uppercase text-[#474747] hover:text-white transition-colors"
+          >
+            LOGS
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              setSidebarView(sidebarView === "files" ? null : "files")
+            }
             className={cn(
-              "truncate text-sm transition-colors duration-150",
-              activeRepository ? "text-foreground" : "text-muted-foreground/80",
+              "font-mono text-[11px] tracking-tight uppercase transition-colors",
+              sidebarView === "files"
+                ? "text-white"
+                : "text-[#474747] hover:text-white",
             )}
           >
-            {activeRepository?.name ?? "No project selected"}
-          </span>
-          {activeWorktreeLabel ? (
-            <>
-              <span className="text-muted-foreground/40">·</span>
-              <span
-                data-testid="titlebar-worktree-label"
-                className="truncate text-sm text-muted-foreground/60"
-              >
-                {activeWorktreeLabel}
-              </span>
-            </>
-          ) : null}
+            FILES
+          </button>
+          <button
+            type="button"
+            className="font-mono text-[11px] tracking-tight uppercase text-[#474747] hover:text-white transition-colors"
+          >
+            NETWORK
+          </button>
         </div>
       </div>
 
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-3" data-no-drag="true">
+        <div className="bg-[#1f1f1f] h-6 flex items-center px-2 border border-[#474747]/30">
+          <span className="text-[#474747] mr-2">
+            <PanelLeft className="size-3" />
+          </span>
+          <input
+            className="bg-transparent border-none text-[10px] focus:ring-0 w-32 uppercase placeholder:text-[#474747]/50 font-mono"
+            placeholder="CMD + K"
+            type="text"
+          />
+        </div>
         <button
           type="button"
-          data-no-drag="true"
-          onClick={() =>
-            setSidebarView(sidebarView === "files" ? null : "files")
-          }
-          className={cn(
-            "chrome-icon-button flex h-8 w-8 items-center justify-center rounded-md",
-            "transition-all duration-150 ease-[var(--ease-out)]",
-            "hover:scale-105 active:scale-[0.97]",
-            "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/50 focus-visible:outline-offset-2",
-            "motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
-            sidebarView === "files"
-              ? "bg-surface-3 text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground",
-          )}
-          aria-label="Toggle files sidebar"
-          title="Files"
+          onClick={onToggleLeftSidebar}
+          className="text-[#474747] hover:text-white transition-colors"
         >
-          <FolderTree className="size-3.5" />
+          <PanelLeft className="size-4" />
         </button>
         <button
           type="button"
-          data-no-drag="true"
-          onClick={onOpenGit}
-          className={cn(
-            "chrome-icon-button flex h-8 w-8 items-center justify-center rounded-md",
-            "transition-all duration-150 ease-[var(--ease-out)]",
-            "hover:scale-105 active:scale-[0.97]",
-            "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/50 focus-visible:outline-offset-2",
-            "motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
-            "text-muted-foreground hover:text-foreground",
-          )}
-          aria-label="Open git view"
-          title="Git"
+          className="text-[#474747] hover:text-white transition-colors"
         >
-          <GitBranch className="size-3.5" />
-        </button>
-        <button
-          type="button"
-          data-no-drag="true"
-          onClick={onOpenNote}
-          className={cn(
-            "chrome-icon-button flex h-8 w-8 items-center justify-center rounded-md",
-            "transition-all duration-150 ease-[var(--ease-out)]",
-            "hover:scale-105 active:scale-[0.97]",
-            "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/50 focus-visible:outline-offset-2",
-            "motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
-            hasOpenNotes
-              ? "bg-surface-3 text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground",
-          )}
-          aria-label="Open notes"
-          title="Notes"
-        >
-          <StickyNote className="size-3.5" />
-        </button>
-        <button
-          type="button"
-          data-no-drag="true"
-          onClick={onOpenTerminal}
-          className={cn(
-            "chrome-icon-button flex h-8 w-8 items-center justify-center rounded-md",
-            "transition-all duration-150 ease-[var(--ease-out)]",
-            "hover:scale-105 active:scale-[0.97]",
-            "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/50 focus-visible:outline-offset-2",
-            "motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
-            "text-muted-foreground hover:text-foreground",
-          )}
-          aria-label="Open terminal"
-          title="Terminal"
-        >
-          <Terminal className="size-3.5" />
+          <StickyNote className="size-4" />
         </button>
       </div>
     </div>

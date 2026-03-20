@@ -1,69 +1,50 @@
-import type { ThreadSnapshot } from "@pidesk/shared";
+import { GitBranch, RefreshCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface StatusBarProps {
-  tmuxSessionName?: string | null;
-  activeThread: ThreadSnapshot | null;
-  agentStatus: string;
+  activeWorktreeLabel: string | null;
+  className?: string;
 }
 
-export function StatusBar({
-  tmuxSessionName,
-  activeThread,
-  agentStatus,
-}: StatusBarProps) {
-  // Determine running state
-  const isRunning = activeThread
-    ? activeThread.runtime.status === "streaming"
-    : agentStatus === "streaming";
+export function StatusBar({ activeWorktreeLabel, className }: StatusBarProps) {
   return (
-    <div
+    <footer
       className={cn(
-        "flex h-6 items-center justify-between border-b border-border bg-surface-1 px-3 text-[10px]",
-        "transition-colors duration-[var(--duration-fast)]",
-        "motion-reduce:transition-none",
+        "fixed bottom-0 left-0 w-full h-6 bg-[#0e0e0e] border-t border-[#474747]/20 flex items-center justify-between px-3 z-50",
+        className,
       )}
-      style={{ transitionTimingFunction: "var(--ease-out)" }}
     >
-      {/* Left: tmux session name */}
-      <div className="flex items-center gap-1.5 text-muted-foreground">
-        {tmuxSessionName && (
-          <>
-            <span className="opacity-50">tmux:</span>
-            <span
-              className={cn(
-                "font-mono text-foreground/70",
-                "transition-colors duration-[var(--duration-fast)] motion-reduce:transition-none",
-              )}
-              style={{ transitionTimingFunction: "var(--ease-out)" }}
-            >
-              {tmuxSessionName}
-            </span>
-          </>
-        )}
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-1.5 group cursor-pointer">
+          <GitBranch className="size-3 text-white" />
+          <span className="text-[9px] font-medium text-[#474747] group-hover:text-white uppercase font-mono">
+            {activeWorktreeLabel ?? "no-branch"}
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 group cursor-pointer">
+          <RefreshCcw className="size-3 text-white" />
+          <span className="text-[9px] font-medium text-[#474747] group-hover:text-white uppercase font-mono">
+            Syncing...
+          </span>
+        </div>
       </div>
-
-      {/* Right: running indicator */}
-      <div className="flex items-center gap-1.5">
-        <span
-          className={cn(
-            "h-1.5 w-1.5 rounded-full transition-all duration-[var(--duration-slow)] motion-reduce:transition-none",
-            isRunning
-              ? "bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)] animate-pulse motion-reduce:animate-none"
-              : "bg-zinc-400",
-          )}
-          style={{ transitionTimingFunction: "var(--ease-out)" }}
-        />
-        <span
-          className={cn(
-            "text-muted-foreground transition-colors duration-[var(--duration-fast)] motion-reduce:transition-none",
-            isRunning && "text-emerald-500/80",
-          )}
-          style={{ transitionTimingFunction: "var(--ease-out)" }}
-        >
-          {isRunning ? "Running" : "Idle"}
+      <div className="flex items-center gap-4">
+        <span className="text-[9px] text-[#474747] uppercase font-mono">
+          Line 143, Col 12
         </span>
+        <span className="text-[9px] text-[#474747] uppercase font-mono">
+          UTF-8
+        </span>
+        <span className="text-[9px] text-[#474747] uppercase font-mono">
+          Rust (Pi-Harness)
+        </span>
+        <div className="flex items-center gap-1">
+          <div className="w-1.5 h-1.5 bg-white"></div>
+          <span className="text-[9px] font-bold text-white uppercase font-mono">
+            Operator_01
+          </span>
+        </div>
       </div>
-    </div>
+    </footer>
   );
 }

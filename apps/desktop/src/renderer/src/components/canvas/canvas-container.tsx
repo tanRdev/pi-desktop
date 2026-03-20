@@ -335,29 +335,31 @@ export function CanvasContainer({
         {state.snapPreview && (
           <div
             className={cn(
-              "pointer-events-none absolute rounded-lg border-2 border-dashed border-neutral-400/60 bg-neutral-200/5",
+              "pointer-events-none absolute rounded-none border-2 border-dashed border-neutral-400/60 bg-neutral-200/5",
               "transition-[transform,opacity] duration-[200ms] ease-[cubic-bezier(0.23,1,0.32,1)]",
               "motion-reduce:duration-100 motion-reduce:ease-out motion-reduce:transition-opacity",
               "origin-center",
               "scale-[0.98] opacity-95",
             )}
-            style={{
-              left: state.snapPreview.position.x,
-              top: state.snapPreview.position.y,
-              width: state.snapPreview.position.width,
-              height: state.snapPreview.position.height,
-              "--ease-out": "cubic-bezier(0.23, 1, 0.32, 1)",
-            } as React.CSSProperties}
+            style={
+              {
+                left: state.snapPreview.position.x,
+                top: state.snapPreview.position.y,
+                width: state.snapPreview.position.width,
+                height: state.snapPreview.position.height,
+                "--ease-out": "cubic-bezier(0.23, 1, 0.32, 1)",
+              } as React.CSSProperties
+            }
           />
         )}
       </div>
 
       {/* Zoom controls */}
-      <div className="absolute bottom-4 right-4 flex items-center gap-1 rounded-lg border border-border bg-surface-1/90 p-1 shadow-lg backdrop-blur-sm">
+      <div className="absolute bottom-4 right-4 flex items-center gap-1 rounded-none border border-border bg-surface-1/90 p-1 backdrop-blur-sm">
         <button
           type="button"
           onClick={() => store.zoomOut()}
-          className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
+          className="flex h-7 w-7 items-center justify-center rounded-none text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
           title="Zoom out"
         >
           <svg
@@ -381,7 +383,7 @@ export function CanvasContainer({
         <button
           type="button"
           onClick={() => store.zoomIn()}
-          className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
+          className="flex h-7 w-7 items-center justify-center rounded-none text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
           title="Zoom in"
         >
           <svg
@@ -431,7 +433,7 @@ export function MinimizedWindowsBar({
           key={win.id}
           type="button"
           className={cn(
-            "flex h-8 items-center gap-2 rounded border border-border bg-surface-2 px-3 text-xs shadow",
+            "flex h-8 items-center gap-2 rounded-none border border-border bg-surface-2 px-3 text-xs",
             "transition-all duration-[250ms] motion-reduce:duration-150",
             "ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:ease-out",
             "hover:bg-surface-3 hover:shadow-md hover:-translate-y-0.5 motion-reduce:hover:translate-y-0",
@@ -441,11 +443,13 @@ export function MinimizedWindowsBar({
             "animate-in fade-in slide-in-from-bottom-2",
             "opacity-0 [animation-fill-mode:forwards]",
           )}
-          style={{
-            animationDelay: `${index * 40}ms`,
-            animationDuration: "250ms",
-            "--ease-out": "cubic-bezier(0.23, 1, 0.32, 1)",
-          } as React.CSSProperties}
+          style={
+            {
+              animationDelay: `${index * 40}ms`,
+              animationDuration: "250ms",
+              "--ease-out": "cubic-bezier(0.23, 1, 0.32, 1)",
+            } as React.CSSProperties
+          }
           onClick={() => {
             store.updateWindow(win.id, { state: "normal" });
             onRestore?.(win.id);

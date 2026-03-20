@@ -78,14 +78,13 @@ export function ThreadListItem({
         }
       }}
       className={cn(
-        "motion-safe:stagger-item group flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left",
-        "transition-[transform,opacity,background-color] duration-200 ease-out",
-        "hover:bg-surface-2/50 hover:translate-y-[-1px]",
-        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/10",
-        "active:scale-[0.97] active:duration-100",
+        "motion-safe:stagger-item group flex w-full items-center gap-2 px-2 py-1.5 text-left font-mono",
+        "transition-all duration-200 ease-out",
+        "hover:bg-[#353535]",
+        "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary",
         isActive
-          ? "bg-surface-3/80 text-foreground"
-          : "text-muted-foreground hover:text-foreground",
+          ? "bg-[#353535] text-[#ffffff]"
+          : "text-[#ffffff]/60 hover:text-[#ffffff]",
         !isEditing && "cursor-pointer",
       )}
     >
@@ -101,15 +100,15 @@ export function ThreadListItem({
             onBlur={handleConfirmRename}
             onClick={(e) => e.stopPropagation()}
             className={cn(
-              "block w-full rounded-sm border border-border bg-surface-2 px-1 py-0 text-sm text-foreground outline-none",
-              "transition-[border-color,box-shadow] duration-150 ease-out",
-              "focus:border-accent focus:ring-1 focus:ring-accent/30",
+              "block w-full border-b border-outline-variant bg-transparent px-1 py-0 text-sm text-[#ffffff] outline-none",
+              "transition-all duration-150 ease-out",
+              "focus:border-primary",
             )}
           />
         ) : (
           <span
             data-testid={isActive ? "current-thread-title" : undefined}
-            className="block truncate text-sm"
+            className="block truncate text-[12px] font-medium tracking-tight uppercase"
           >
             {thread.title || "Untitled thread"}
           </span>
@@ -120,11 +119,10 @@ export function ThreadListItem({
           type="button"
           onClick={handleStartRename}
           className={cn(
-            "ml-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-sm",
-            "opacity-0 transition-[opacity,transform,background-color] duration-150 ease-out",
-            "hover:bg-surface-3 hover:scale-110",
-            "focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-foreground/10",
-            "active:scale-[0.97] active:duration-100",
+            "ml-0.5 flex h-5 w-5 shrink-0 items-center justify-center",
+            "opacity-0 transition-all duration-150 ease-out",
+            "hover:bg-[#474747] hover:scale-105",
+            "focus-visible:opacity-100",
             "group-hover:opacity-100",
           )}
           aria-label="Rename thread"
@@ -141,11 +139,10 @@ export function ThreadListItem({
             onClose();
           }}
           className={cn(
-            "ml-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-sm",
-            "opacity-0 transition-[opacity,transform,background-color] duration-150 ease-out",
-            "hover:bg-surface-3 hover:scale-110",
-            "focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-foreground/10",
-            "active:scale-[0.97] active:duration-100",
+            "ml-0.5 flex h-5 w-5 shrink-0 items-center justify-center",
+            "opacity-0 transition-all duration-150 ease-out",
+            "hover:bg-[#474747] hover:scale-105",
+            "focus-visible:opacity-100",
             "group-hover:opacity-100",
           )}
           aria-label="Close thread"

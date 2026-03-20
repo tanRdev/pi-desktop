@@ -12,7 +12,7 @@ const Avatar = React.forwardRef<
   <AvatarPrimitive.Root
     ref={ref}
     className={cn(
-      "relative flex h-8 w-8 shrink-0 overflow-hidden rounded-md",
+      "relative flex h-8 w-8 shrink-0 overflow-hidden rounded-none border border-[#474747]/20",
       "transition-all duration-150 ease-out",
       className,
     )}
@@ -28,8 +28,8 @@ const AvatarImage = React.forwardRef<
   <AvatarPrimitive.Image
     ref={ref}
     className={cn(
-      "aspect-square h-full w-full object-cover",
-      "transition-all duration-[150ms] ease-[var(--ease-out)]",
+      "aspect-square h-full w-full object-cover grayscale brightness-90 contrast-125",
+      "transition-all duration-[150ms] ease-out",
       "data-[loaded=false]:opacity-0 data-[loaded=true]:opacity-100",
       "motion-reduce:transition-none",
       className,
@@ -46,10 +46,10 @@ const AvatarFallback = React.forwardRef<
   <AvatarPrimitive.Fallback
     ref={ref}
     className={cn(
-      "flex h-full w-full items-center justify-center rounded-md bg-surface-2 text-xs font-medium text-muted-foreground",
-      "transition-all duration-[150ms] ease-[var(--ease-out)]",
-      "animate-in fade-in-0 zoom-in-95 duration-[200ms]",
-      "motion-reduce:animate-none motion-reduce:transition-none",
+      "flex h-full w-full items-center justify-center rounded-none bg-[#0e0e0e] text-[10px] font-bold font-mono text-[#474747] uppercase tracking-tighter",
+      "transition-all duration-[150ms] ease-out",
+      "animate-in fade-in-0 zoom-in-[0.9] duration-[200ms]",
+      "motion-reduce:animate-none",
       className,
     )}
     {...props}

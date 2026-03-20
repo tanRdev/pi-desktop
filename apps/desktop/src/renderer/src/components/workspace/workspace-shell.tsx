@@ -9,6 +9,7 @@ import type {
 } from "@pidesk/shared";
 import * as React from "react";
 import { useStore } from "zustand";
+import { cn } from "@/lib/utils";
 import { uiInteractionStore } from "../../stores/ui-interaction-store";
 import { CanvasContainer, CanvasGrid, WindowContentRouter } from "../canvas";
 import type { GraphLink, GraphNode } from "../canvas/graph-window-content";
@@ -17,8 +18,8 @@ import { ScrollArea } from "../ui/scroll-area";
 import { LeftRail } from "./left-rail";
 import { LeftSidebar } from "./left-sidebar";
 import { PromptDock } from "./prompt-dock";
+import { StatusBar } from "./status-bar";
 import { TitleBar } from "./title-bar";
-import { cn } from "@/lib/utils";
 
 export interface WorkspaceShellProps {
   repositories: RepositorySnapshot[];
@@ -113,25 +114,23 @@ function CanvasEmptyState({
     <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-8 py-10">
       <div
         className={cn(
-          "w-full max-w-xl rounded-lg border border-border/40 bg-surface-1/80 px-6 py-5 shadow-sm",
-          "motion-safe:animate-[window-enter_0.3s_var(--ease-out)_forwards]",
+          "w-full max-w-xl border border-[#474747]/30 bg-[#0e0e0e] px-6 py-5",
+          "motion-safe:animate-[window-enter_0.15s_var(--ease-out)_forwards]",
         )}
       >
-        <div className="space-y-4 text-sm leading-6 text-muted-foreground">
-          <div
-            className="stagger-item"
-            style={{ animationDelay: "0ms" }}
-          >
-            <p className="text-base font-semibold text-foreground"># Canvas</p>
+        <div className="space-y-4 text-sm leading-6 text-[#919191] font-mono">
+          <div className="stagger-item" style={{ animationDelay: "0ms" }}>
+            <p className="text-base font-bold text-white uppercase tracking-widest">
+              # Canvas
+            </p>
             <p className="mt-1">
               Arrange chats, terminals, notes, and files here as you work.
             </p>
           </div>
-          <div
-            className="stagger-item"
-            style={{ animationDelay: "40ms" }}
-          >
-            <p className="font-medium text-foreground">## Quick start</p>
+          <div className="stagger-item" style={{ animationDelay: "40ms" }}>
+            <p className="font-bold text-white uppercase tracking-widest">
+              ## Quick start
+            </p>
             <p className="mt-1">
               - Pick a thread from the left sidebar to bring chat onto the
               canvas.
@@ -389,7 +388,7 @@ export function WorkspaceShell({
         </main>
 
         {sidebarView === "files" ? (
-          <aside className="relative z-10 flex h-full w-64 shrink-0 flex-col border-l border-border bg-surface-1">
+          <aside className="relative z-10 flex h-full w-64 shrink-0 flex-col border-l border-[#474747]/20 bg-[#0e0e0e]">
             <ScrollArea className="min-h-0 flex-1">
               <div className="p-2">
                 <FileTree
@@ -401,6 +400,14 @@ export function WorkspaceShell({
           </aside>
         ) : null}
       </div>
+
+      <StatusBar
+        activeWorktreeLabel={
+          activeRepository?.worktrees.find(
+            (worktree) => worktree.id === activeWorktreeId,
+          )?.label ?? null
+        }
+      />
     </>
   );
 }

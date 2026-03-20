@@ -93,7 +93,7 @@ export function WindowChrome({
         "ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:duration-150 motion-reduce:ease-out",
         "motion-reduce:transition-colors",
         "origin-top",
-        window.isFocused && "border-border-hover shadow-lg",
+        window.isFocused && "border-border-hover bg-surface-1",
         !window.isFocused && "border-border-subtle",
         isMinimized && "opacity-50 scale-[0.98]",
         className,
@@ -137,7 +137,7 @@ export function WindowChrome({
             aria-label="Close window"
             data-control="close"
             className={cn(
-              "shell-control-dot flex h-4 w-4 items-center justify-center rounded-full",
+              "shell-control-dot flex h-4 w-4 items-center justify-center rounded-none",
               "transition-all duration-[200ms] ease-[cubic-bezier(0.23,1,0.32,1)]",
               "motion-reduce:duration-150 motion-reduce:ease-out",
               "focus:outline-none focus-visible:ring-1 focus-visible:ring-ring/60",
@@ -168,7 +168,7 @@ export function WindowChrome({
             aria-label="Minimize window"
             data-control="minimize"
             className={cn(
-              "shell-control-dot flex h-4 w-4 items-center justify-center rounded-full",
+              "shell-control-dot flex h-4 w-4 items-center justify-center rounded-none",
               "transition-all duration-[200ms] ease-[cubic-bezier(0.23,1,0.32,1)]",
               "motion-reduce:duration-150 motion-reduce:ease-out",
               "focus:outline-none focus-visible:ring-1 focus-visible:ring-ring/60",
@@ -198,7 +198,7 @@ export function WindowChrome({
             aria-label="Maximize or restore window"
             data-control="maximize"
             className={cn(
-              "shell-control-dot flex h-4 w-4 items-center justify-center rounded-full",
+              "shell-control-dot flex h-4 w-4 items-center justify-center rounded-none",
               "transition-all duration-[200ms] ease-[cubic-bezier(0.23,1,0.32,1)]",
               "motion-reduce:duration-150 motion-reduce:ease-out",
               "focus:outline-none focus-visible:ring-1 focus-visible:ring-ring/60",
@@ -245,7 +245,7 @@ export function WindowChrome({
                 }}
                 onBlur={commitEdit}
                 className={cn(
-                  "pointer-events-auto w-full min-w-[60px] max-w-[200px] truncate rounded-sm",
+                  "pointer-events-auto w-full min-w-[60px] max-w-[200px] truncate rounded-none",
                   "border border-border-subtle bg-surface-2 px-1.5 py-0.5",
                   "text-xs font-normal tracking-normal text-foreground outline-none",
                   "focus:border-ring/60 transition-colors duration-150",
@@ -255,9 +255,11 @@ export function WindowChrome({
             ) : (
               <span
                 className={cn(
-                  "truncate text-xs font-normal tracking-normal pointer-events-auto cursor-default",
+                  "truncate text-xs font-sans font-medium tracking-tight pointer-events-auto cursor-default",
                   "transition-colors duration-150",
-                  window.isFocused ? "text-foreground" : "text-muted-foreground",
+                  window.isFocused
+                    ? "text-foreground"
+                    : "text-muted-foreground",
                 )}
                 onDoubleClick={(e) => {
                   e.stopPropagation();
@@ -398,10 +400,10 @@ export function WindowMinimized({
   return (
     <div
       className={cn(
-        "flex h-8 w-48 items-center justify-between rounded-sm border border-border-subtle bg-surface-1 px-2 py-1",
+        "flex h-8 w-48 items-center justify-between rounded-none border border-border-subtle bg-surface-1 px-2 py-1",
         "transition-all duration-[250ms] ease-[cubic-bezier(0.23,1,0.32,1)]",
         "motion-reduce:duration-150 motion-reduce:ease-out",
-        "hover:border-border-hover hover:shadow-sm",
+        "hover:border-border-hover",
         "motion-reduce:hover:shadow-none",
       )}
       onDoubleClick={onRestore}
@@ -413,7 +415,7 @@ export function WindowMinimized({
         type="button"
         onClick={onClose}
         className={cn(
-          "flex h-5 w-5 items-center justify-center rounded-sm",
+          "flex h-5 w-5 items-center justify-center rounded-none",
           "transition-all duration-[200ms] ease-[cubic-bezier(0.23,1,0.32,1)]",
           "motion-reduce:duration-150 motion-reduce:ease-out",
           "hover:bg-surface-2 hover:scale-110 motion-reduce:hover:scale-100",

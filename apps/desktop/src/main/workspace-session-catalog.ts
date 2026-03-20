@@ -330,6 +330,9 @@ export function sanitizeWorkspaceSession(
         getString(layout.focusedWindowId) ?? defaults.layout.focusedWindowId,
       snapGridSize:
         getNumber(layout.snapGridSize) ?? defaults.layout.snapGridSize,
+      zoom: getNumber(layout.zoom) ?? defaults.layout.zoom,
+      panX: getNumber(layout.panX) ?? defaults.layout.panX,
+      panY: getNumber(layout.panY) ?? defaults.layout.panY,
     },
     sidebar: {
       activePanel:

@@ -47,31 +47,27 @@ export function RepositorySwitcher({
         <Button
           variant="ghost"
           className={cn(
-            "h-auto w-full justify-between rounded border border-border bg-surface-2 px-3 py-2 text-left text-sm font-medium text-foreground shadow-sm",
-            "transition-all duration-[var(--duration-fast)] motion-reduce:transition-none",
-            "hover:border-border-hover hover:bg-surface-3 hover:scale-[1.01]",
-            "active:scale-[0.97] motion-reduce:active:scale-100",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+            "h-auto w-full justify-between rounded-none border border-[#474747]/30 bg-[#0e0e0e] px-3 py-2 text-left text-[11px] font-mono uppercase tracking-wider text-white shadow-none",
+            "transition-all duration-100 hover:bg-[#131313] hover:border-[#474747]",
           )}
-          style={{ transitionTimingFunction: "var(--ease-out)" }}
         >
           <div className="min-w-0 flex-1">
-            <div className="truncate">
-              {activeRepository?.name ?? "Add a repository"}
+            <div className="truncate font-bold tracking-[0.1em]">
+              {activeRepository?.name ?? "ADD_REPO"}
             </div>
-            <div className="mt-1 truncate text-xs text-muted-foreground">
-              {activeWorktree?.path ?? "No repository selected"}
+            <div className="mt-0.5 truncate text-[9px] text-[#474747] font-mono">
+              {activeWorktree?.path ?? "NULL_TARGET"}
             </div>
           </div>
-          <ChevronDown className="ml-2 size-4 shrink-0 text-muted-foreground" />
+          <ChevronDown className="ml-2 size-3 shrink-0 text-[#474747]" />
         </Button>
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="w-[var(--radix-popover-trigger-width)] rounded border border-border bg-popover p-2 shadow-lg"
+        className="w-[var(--radix-popover-trigger-width)] rounded-none border border-[#474747]/40 bg-[#131313] p-0 shadow-none overflow-hidden"
       >
-        <div className="space-y-1">
-          {repositories.map((repository, index) => {
+        <div className="flex flex-col">
+          {repositories.map((repository) => {
             const repositoryWorktree =
               repository.worktrees.find((worktree) => worktree.isMain) ??
               repository.worktrees[0] ??
@@ -83,20 +79,19 @@ export function RepositorySwitcher({
                 type="button"
                 onClick={() => onSelect(repository.id)}
                 className={cn(
-                  "flex w-full items-start gap-3 rounded px-2 py-2 text-left text-sm",
-                  "transition-all duration-[var(--duration-fast)] motion-reduce:transition-none",
-                  "hover:bg-surface-3 hover:translate-x-0.5",
-                  "active:scale-[0.97] motion-reduce:active:scale-100",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+                  "flex w-full items-start gap-3 border-b border-[#474747]/10 px-3 py-2.5 text-left text-[11px] font-mono transition-all duration-75",
+                  "hover:bg-[#353535] hover:text-white group",
+                  repository.id === activeRepositoryId
+                    ? "bg-[#0e0e0e]"
+                    : "text-[#474747]",
                 )}
-                style={{ transitionTimingFunction: "var(--ease-out)", animationDelay: `${index * 30}ms` }}
               >
-                <FolderGit className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+                <FolderGit className="mt-0.5 size-3.5 shrink-0 opacity-40 group-hover:opacity-100" />
                 <div className="min-w-0 flex-1">
-                  <div className="truncate font-medium text-foreground">
+                  <div className="truncate font-bold uppercase tracking-widest text-inherit">
                     {repository.name}
                   </div>
-                  <div className="mt-0.5 truncate text-xs text-muted-foreground">
+                  <div className="mt-0.5 truncate text-[9px] text-inherit opacity-60">
                     {repository.rootPath}
                   </div>
                 </div>
@@ -106,21 +101,15 @@ export function RepositorySwitcher({
               </button>
             );
           })}
-          {repositories.length > 0 && <Separator className="my-1" />}
           <button
             type="button"
             onClick={() => onAdd()}
             className={cn(
-              "flex w-full items-center gap-2 rounded px-2 py-1.5 text-sm text-foreground",
-              "transition-all duration-[var(--duration-fast)] motion-reduce:transition-none",
-              "hover:bg-surface-3 hover:translate-x-0.5",
-              "active:scale-[0.97] motion-reduce:active:scale-100",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+              "flex w-full items-center gap-2 px-3 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[#474747] transition-all hover:bg-[#353535] hover:text-white",
             )}
-            style={{ transitionTimingFunction: "var(--ease-out)" }}
           >
-            <Plus className="size-4 shrink-0 text-muted-foreground" />
-            Add Repository
+            <Plus className="size-3.5 shrink-0" />
+            ADD REPOSITORY
           </button>
         </div>
       </PopoverContent>

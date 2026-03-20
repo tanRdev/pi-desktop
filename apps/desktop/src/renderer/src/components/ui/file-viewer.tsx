@@ -1,6 +1,14 @@
 import type { FileContent } from "@pidesk/shared";
-import { Binary, FileIcon, FileText, FileWarning, Image, Terminal, X } from "@/components/ui/icons";
 import * as React from "react";
+import {
+  Binary,
+  FileIcon,
+  FileText,
+  FileWarning,
+  Image,
+  Terminal,
+  X,
+} from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { CodeBlockCode } from "./code-block";
 import { Markdown } from "./markdown";
@@ -164,7 +172,7 @@ export function FileViewer({
               type="button"
               onClick={onOpenTerminal}
               className={cn(
-                "rounded p-1 text-muted-foreground",
+                "rounded-none p-1 text-muted-foreground",
                 "transition-all duration-150 ease-out",
                 "hover:bg-surface-3 hover:text-foreground",
                 "active:scale-95",
@@ -179,7 +187,7 @@ export function FileViewer({
               type="button"
               onClick={onClose}
               className={cn(
-                "rounded p-1 text-muted-foreground",
+                "rounded-none p-1 text-muted-foreground",
                 "transition-all duration-150 ease-out",
                 "hover:bg-surface-3 hover:text-foreground",
                 "active:scale-95",
@@ -225,7 +233,7 @@ export function FileViewer({
           >
             <div
               className={cn(
-                "flex h-16 w-16 items-center justify-center rounded-xl bg-surface-2",
+                "flex h-16 w-16 items-center justify-center rounded-none bg-surface-2",
                 "transition-all duration-150 ease-out",
                 "hover:scale-105",
               )}
@@ -268,7 +276,7 @@ export function FileViewer({
           >
             <div
               className={cn(
-                "flex h-16 w-16 items-center justify-center rounded-xl bg-surface-2",
+                "flex h-16 w-16 items-center justify-center rounded-none bg-surface-2",
                 "transition-all duration-150 ease-out",
                 "hover:scale-105",
               )}
@@ -331,7 +339,7 @@ export function FileViewer({
           >
             <div
               className={cn(
-                "flex h-16 w-16 items-center justify-center rounded-xl bg-surface-2",
+                "flex h-16 w-16 items-center justify-center rounded-none bg-surface-2",
                 "transition-all duration-150 ease-out",
                 "hover:scale-105",
               )}

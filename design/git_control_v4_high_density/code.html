@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OBSIDIAN_CMD // GIT_CONTROL</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "outline": "#919191",
+                        "on-secondary-fixed": "#1b1c1c",
+                        "on-secondary-fixed-variant": "#3c3b3b",
+                        "inverse-on-surface": "#303030",
+                        "on-error": "#690005",
+                        "primary-fixed": "#5d5f5f",
+                        "on-primary-fixed-variant": "#e2e2e2",
+                        "inverse-surface": "#e2e2e2",
+                        "on-tertiary-fixed": "#ffffff",
+                        "surface": "#131313",
+                        "surface-bright": "#393939",
+                        "on-tertiary-container": "#000000",
+                        "on-tertiary": "#1b1c1c",
+                        "on-tertiary-fixed-variant": "#e4e2e1",
+                        "surface-dim": "#131313",
+                        "on-error-container": "#ffdad6",
+                        "secondary-fixed": "#c8c6c5",
+                        "on-primary": "#1a1c1c",
+                        "outline-variant": "#474747",
+                        "tertiary-fixed": "#5f5e5e",
+                        "primary-container": "#d4d4d4",
+                        "primary-fixed-dim": "#454747",
+                        "surface-container-highest": "#353535",
+                        "primary": "#ffffff",
+                        "surface-tint": "#c6c6c7",
+                        "tertiary": "#e4e2e1",
+                        "on-secondary": "#1b1c1c",
+                        "error": "#ffb4ab",
+                        "inverse-primary": "#5d5f5f",
+                        "on-primary-fixed": "#ffffff",
+                        "surface-container-lowest": "#0e0e0e",
+                        "tertiary-fixed-dim": "#474747",
+                        "secondary": "#c8c6c5",
+                        "surface-container-high": "#2a2a2a",
+                        "on-surface-variant": "#c6c6c6",
+                        "on-secondary-container": "#e5e2e1",
+                        "error-container": "#93000a",
+                        "on-background": "#e2e2e2",
+                        "surface-variant": "#353535",
+                        "on-primary-container": "#000000",
+                        "surface-container-low": "#1b1b1b",
+                        "secondary-container": "#474746",
+                        "on-surface": "#e2e2e2",
+                        "surface-container": "#1f1f1f",
+                        "tertiary-container": "#919090",
+                        "background": "#131313",
+                        "secondary-fixed-dim": "#adabaa"
+                    },
+                    fontFamily: {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Space Grotesk"],
+                        "mono": ["JetBrains Mono"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0px",
+                        "lg": "0px",
+                        "xl": "0px",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+            font-size: 18px;
+        }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: #0e0e0e; }
+        ::-webkit-scrollbar-thumb { background: #474747; }
+        ::-webkit-scrollbar-thumb:hover { background: #ffffff; }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-mono selection:bg-primary selection:text-black">
+<!-- TopNavBar Implementation -->
+<nav class="flex justify-between items-center w-full px-3 h-10 fixed top-0 z-50 bg-[#0e0e0e] border-b border-[#474747]/30">
+<div class="flex items-center gap-6">
+<span class="text-sm font-black text-white tracking-tighter">OBSIDIAN_CMD</span>
+<div class="flex gap-4">
+<a class="font-['JetBrains_Mono'] text-[11px] tracking-tight uppercase text-[#474747] hover:text-white transition-colors" href="#">TERMINAL</a>
+<a class="font-['JetBrains_Mono'] text-[11px] tracking-tight uppercase text-[#474747] hover:text-white transition-colors" href="#">LOGS</a>
+<a class="font-['JetBrains_Mono'] text-[11px] tracking-tight uppercase text-[#474747] hover:text-white transition-colors" href="#">FILES</a>
+<a class="font-['JetBrains_Mono'] text-[11px] tracking-tight uppercase text-[#474747] hover:text-white transition-colors" href="#">NETWORK</a>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="bg-surface-container h-6 flex items-center px-2 border border-outline-variant/30">
+<span class="material-symbols-outlined text-outline-variant mr-2">search</span>
+<input class="bg-transparent border-none text-[10px] focus:ring-0 w-32 uppercase placeholder:text-outline-variant/50" placeholder="CMD + K" type="text"/>
+</div>
+<span class="material-symbols-outlined text-outline-variant hover:text-white cursor-pointer transition-all active:opacity-80">settings</span>
+<span class="material-symbols-outlined text-outline-variant hover:text-white cursor-pointer transition-all active:opacity-80">developer_mode</span>
+</div>
+</nav>
+<!-- SideNavBar Implementation -->
+<aside class="fixed left-0 top-10 h-[calc(100vh-40px)] w-16 flex flex-col items-center py-4 gap-6 bg-[#0e0e0e] border-r border-[#474747]/30 z-40">
+<div class="flex flex-col gap-6 items-center flex-1">
+<button class="flex flex-col items-center gap-1 group">
+<span class="material-symbols-outlined text-[#474747] group-hover:text-white transition-transform scale-95 duration-75">folder_open</span>
+<span class="font-['JetBrains_Mono'] text-[8px] text-[#474747] uppercase">EXPLORER</span>
+</button>
+<button class="flex flex-col items-center gap-1 group">
+<span class="material-symbols-outlined text-[#474747] group-hover:text-white transition-transform scale-95 duration-75">search</span>
+<span class="font-['JetBrains_Mono'] text-[8px] text-[#474747] uppercase">SEARCH</span>
+</button>
+<button class="flex flex-col items-center gap-1 group bg-white text-black p-1 w-full">
+<span class="material-symbols-outlined transition-transform scale-95 duration-75">account_tree</span>
+<span class="font-['JetBrains_Mono'] text-[8px] uppercase">SOURCE</span>
+</button>
+<button class="flex flex-col items-center gap-1 group">
+<span class="material-symbols-outlined text-[#474747] group-hover:text-white transition-transform scale-95 duration-75">bug_report</span>
+<span class="font-['JetBrains_Mono'] text-[8px] text-[#474747] uppercase">DEBUG</span>
+</button>
+<button class="flex flex-col items-center gap-1 group">
+<span class="material-symbols-outlined text-[#474747] group-hover:text-white transition-transform scale-95 duration-75">extension</span>
+<span class="font-['JetBrains_Mono'] text-[8px] text-[#474747] uppercase">EXTENSIONS</span>
+</button>
+</div>
+<div class="flex flex-col gap-4 items-center mb-4">
+<span class="material-symbols-outlined text-[#474747] hover:text-white cursor-pointer">settings</span>
+<span class="material-symbols-outlined text-[#474747] hover:text-white cursor-pointer">help_outline</span>
+</div>
+</aside>
+<!-- Main Workspace -->
+<main class="ml-16 mt-10 h-[calc(100vh-64px)] grid grid-cols-12 overflow-hidden">
+<!-- Left Panel: Branch Manager & Staging -->
+<section class="col-span-3 bg-surface-container-lowest border-r border-outline-variant/20 flex flex-col">
+<div class="p-3 border-b border-outline-variant/20">
+<div class="flex justify-between items-center mb-2">
+<h2 class="font-headline text-[10px] font-bold tracking-widest uppercase text-outline">Source Control</h2>
+<span class="material-symbols-outlined text-[14px] text-outline">more_horiz</span>
+</div>
+<div class="bg-surface border border-outline-variant/30 px-2 py-1.5 flex justify-between items-center cursor-pointer group">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-primary">call_split</span>
+<span class="text-[11px] font-medium">feature/pi-engine-v2</span>
+</div>
+<span class="text-[9px] text-outline group-hover:text-white">REF: 8f2a1c</span>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto">
+<!-- Staged Changes -->
+<div class="p-3">
+<div class="flex justify-between items-center mb-2">
+<span class="text-[9px] font-bold text-outline-variant uppercase">Staged Changes (3)</span>
+<span class="material-symbols-outlined text-[14px] text-outline">remove_done</span>
+</div>
+<div class="space-y-1">
+<div class="flex items-center justify-between group py-1 px-2 bg-surface-container-high/40 hover:bg-surface-container-high transition-colors cursor-pointer">
+<div class="flex items-center gap-2 overflow-hidden">
+<span class="material-symbols-outlined text-[14px] text-primary">description</span>
+<span class="text-[10px] truncate">src/kernel/pi_main.rs</span>
+</div>
+<span class="text-[9px] font-bold text-primary">M</span>
+</div>
+<div class="flex items-center justify-between group py-1 px-2 hover:bg-surface-container-high transition-colors cursor-pointer">
+<div class="flex items-center gap-2 overflow-hidden">
+<span class="material-symbols-outlined text-[14px] text-primary">description</span>
+<span class="text-[10px] truncate">lib/math/tensor.c</span>
+</div>
+<span class="text-[9px] font-bold text-primary">M</span>
+</div>
+<div class="flex items-center justify-between group py-1 px-2 hover:bg-surface-container-high transition-colors cursor-pointer">
+<div class="flex items-center gap-2 overflow-hidden">
+<span class="material-symbols-outlined text-[14px] text-error">add_box</span>
+<span class="text-[10px] truncate">docs/spec_v4.md</span>
+</div>
+<span class="text-[9px] font-bold text-error">A</span>
+</div>
+</div>
+</div>
+<!-- Unstaged Changes -->
+<div class="p-3">
+<div class="flex justify-between items-center mb-2">
+<span class="text-[9px] font-bold text-outline-variant uppercase">Modified (12)</span>
+<span class="material-symbols-outlined text-[14px] text-outline">add</span>
+</div>
+<div class="space-y-0.5">
+<div class="flex items-center justify-between group py-1 px-2 hover:bg-surface-container-high transition-colors cursor-pointer">
+<div class="flex items-center gap-2 overflow-hidden">
+<span class="material-symbols-outlined text-[14px] text-outline-variant">description</span>
+<span class="text-[10px] truncate text-on-surface/70">config/harness.json</span>
+</div>
+<span class="text-[9px] font-bold text-outline-variant">M</span>
+</div>
+<!-- Repeated for density -->
+<div class="flex items-center justify-between group py-1 px-2 hover:bg-surface-container-high transition-colors cursor-pointer">
+<div class="flex items-center gap-2 overflow-hidden">
+<span class="material-symbols-outlined text-[14px] text-outline-variant">description</span>
+<span class="text-[10px] truncate text-on-surface/70">src/ui/layout.js</span>
+</div>
+<span class="text-[9px] font-bold text-outline-variant">M</span>
+</div>
+<div class="flex items-center justify-between group py-1 px-2 hover:bg-surface-container-high transition-colors cursor-pointer">
+<div class="flex items-center gap-2 overflow-hidden">
+<span class="material-symbols-outlined text-[14px] text-outline-variant">description</span>
+<span class="text-[10px] truncate text-on-surface/70">src/api/auth.rs</span>
+</div>
+<span class="text-[9px] font-bold text-outline-variant">M</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Commit Input -->
+<div class="p-3 bg-surface-container-low border-t border-outline-variant/20">
+<textarea class="w-full bg-surface-container-lowest border-none text-[10px] focus:ring-1 focus:ring-primary h-16 p-2 mb-2 resize-none placeholder:text-outline-variant/50" placeholder="COMMIT_MESSAGE..."></textarea>
+<button class="w-full bg-primary text-black py-1.5 text-[10px] font-bold uppercase tracking-widest hover:bg-primary-container transition-all">Execute Commit</button>
+</div>
+</section>
+<!-- Right Panel: Diff Viewer -->
+<section class="col-span-9 bg-surface flex flex-col relative overflow-hidden">
+<!-- Diff Header -->
+<header class="h-10 border-b border-outline-variant/20 flex items-center justify-between px-4 bg-surface-container-lowest/50">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-primary">history</span>
+<span class="text-[11px] font-bold uppercase tracking-tighter">Diff: pi_main.rs</span>
+</div>
+<div class="flex gap-1">
+<span class="px-2 py-0.5 bg-surface-container-high text-[9px] font-bold">UNIFIED</span>
+<span class="px-2 py-0.5 border border-outline-variant/30 text-[9px] font-bold text-outline-variant hover:text-white cursor-pointer">SPLIT</span>
+</div>
+</div>
+<div class="flex gap-3">
+<span class="material-symbols-outlined text-outline-variant hover:text-white cursor-pointer">unfold_more</span>
+<span class="material-symbols-outlined text-outline-variant hover:text-white cursor-pointer">close</span>
+</div>
+</header>
+<!-- Diff Body -->
+<div class="flex-1 overflow-auto p-0 font-mono text-[11px] leading-tight">
+<table class="w-full border-collapse">
+<tbody class="divide-y divide-outline-variant/5">
+<tr class="bg-surface-container-low/30">
+<td class="w-10 text-right pr-2 text-outline-variant/40 select-none border-r border-outline-variant/10">142</td>
+<td class="w-10 text-right pr-2 text-outline-variant/40 select-none border-r border-outline-variant/10">142</td>
+<td class="pl-4 text-on-surface-variant">    pub fn initialize_harness() {</td>
+</tr>
+<tr class="bg-error-container/20">
+<td class="w-10 text-right pr-2 text-error select-none border-r border-outline-variant/10">143</td>
+<td class="w-10 text-right pr-2 text-outline-variant/40 select-none border-r border-outline-variant/10"></td>
+<td class="pl-4 text-error">-       let config = load_default_v1();</td>
+</tr>
+<tr class="bg-primary/10">
+<td class="w-10 text-right pr-2 text-outline-variant/40 select-none border-r border-outline-variant/10"></td>
+<td class="w-10 text-right pr-2 text-primary select-none border-r border-outline-variant/10">143</td>
+<td class="pl-4 text-primary">+       let config = load_pi_engine_v2_core();</td>
+</tr>
+<tr class="bg-primary/10">
+<td class="w-10 text-right pr-2 text-outline-variant/40 select-none border-r border-outline-variant/10"></td>
+<td class="w-10 text-right pr-2 text-primary select-none border-r border-outline-variant/10">144</td>
+<td class="pl-4 text-primary">+       log_system_event("INIT_V2", Severity::High);</td>
+</tr>
+<tr>
+<td class="w-10 text-right pr-2 text-outline-variant/40 select-none border-r border-outline-variant/10">144</td>
+<td class="w-10 text-right pr-2 text-outline-variant/40 select-none border-r border-outline-variant/10">145</td>
+<td class="pl-4 text-on-surface-variant">        harness::mount(config);</td>
+</tr>
+<tr>
+<td class="w-10 text-right pr-2 text-outline-variant/40 select-none border-r border-outline-variant/10">145</td>
+<td class="w-10 text-right pr-2 text-outline-variant/40 select-none border-r border-outline-variant/10">146</td>
+<td class="pl-4 text-on-surface-variant">    }</td>
+</tr>
+<!-- Empty Lines for space -->
+<tr><td class="h-4 border-r border-outline-variant/10" colspan="3"></td></tr>
+<tr class="bg-surface-container-low/30">
+<td class="w-10 text-right pr-2 text-outline-variant/40 select-none border-r border-outline-variant/10">210</td>
+<td class="w-10 text-right pr-2 text-outline-variant/40 select-none border-r border-outline-variant/10">211</td>
+<td class="pl-4 text-outline-variant font-italic">// System override for tensor processing</td>
+</tr>
+<tr class="bg-error-container/20">
+<td class="w-10 text-right pr-2 text-error select-none border-r border-outline-variant/10">211</td>
+<td class="w-10 text-right pr-2 text-outline-variant/40 select-none border-r border-outline-variant/10"></td>
+<td class="pl-4 text-error">-   if core_load &gt; 0.85 { throttle(); }</td>
+</tr>
+<tr class="bg-primary/10">
+<td class="w-10 text-right pr-2 text-outline-variant/40 select-none border-r border-outline-variant/10"></td>
+<td class="w-10 text-right pr-2 text-primary select-none border-r border-outline-variant/10">212</td>
+<td class="pl-4 text-primary">+   if core_load &gt; 0.98 { throttle_aggressive(); }</td>
+</tr>
+<tr class="bg-primary/10">
+<td class="w-10 text-right pr-2 text-outline-variant/40 select-none border-r border-outline-variant/10"></td>
+<td class="w-10 text-right pr-2 text-primary select-none border-r border-outline-variant/10">213</td>
+<td class="pl-4 text-primary">+   else { optimize_throughput(); }</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Floating Diff Control -->
+<div class="absolute bottom-6 right-6 flex gap-2">
+<button class="bg-surface-container-highest border border-outline-variant/30 text-white px-4 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-colors">Discard Diff</button>
+<button class="bg-primary text-black px-6 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-primary-container transition-all">Stage All</button>
+</div>
+</section>
+</main>
+<!-- Status Bar -->
+<footer class="fixed bottom-0 left-0 w-full h-6 bg-surface-container-lowest border-t border-outline-variant/20 flex items-center justify-between px-3 z-50">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-1.5 group cursor-pointer">
+<span class="material-symbols-outlined text-[12px] text-primary">call_split</span>
+<span class="text-[9px] font-medium text-outline-variant group-hover:text-white uppercase">feature/pi-engine-v2</span>
+</div>
+<div class="flex items-center gap-1.5 group cursor-pointer">
+<span class="material-symbols-outlined text-[12px] text-primary">sync</span>
+<span class="text-[9px] font-medium text-outline-variant group-hover:text-white uppercase">Syncing...</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-[9px] text-outline-variant uppercase">Line 143, Col 12</span>
+<span class="text-[9px] text-outline-variant uppercase">UTF-8</span>
+<span class="text-[9px] text-outline-variant uppercase">Rust (Pi-Harness)</span>
+<div class="flex items-center gap-1">
+<div class="w-1.5 h-1.5 bg-primary"></div>
+<span class="text-[9px] font-bold text-white uppercase">Operator_01</span>
+</div>
+</div>
+</footer>
+</body></html>

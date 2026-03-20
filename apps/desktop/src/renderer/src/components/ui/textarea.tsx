@@ -11,12 +11,11 @@ const Textarea = React.forwardRef<
       ref={ref}
       data-slot="textarea"
       className={cn(
-        "flex field-sizing-content min-h-16 w-full rounded-md border border-input bg-surface-1 px-3 py-2 text-sm shadow-sm",
-        "transition-all duration-[150ms] ease-[var(--ease-out)]",
-        "placeholder:text-muted-foreground",
-        "focus-visible:border-border-hover focus-visible:ring-1 focus-visible:ring-ring focus-visible:shadow-sm focus-visible:outline-none",
+        "flex field-sizing-content min-h-16 w-full border-b border-[#474747] bg-[#0e0e0e] px-3 py-2 text-[11px] font-mono",
+        "transition-all duration-[100ms] ease-[var(--ease-out)]",
+        "placeholder:text-[#474747]/50",
+        "focus-visible:border-white focus-visible:bg-white/10 focus-visible:outline-none",
         "disabled:cursor-not-allowed disabled:opacity-50",
-        "motion-reduce:transition-none motion-reduce:duration-0",
         className,
       )}
       {...props}

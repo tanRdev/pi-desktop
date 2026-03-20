@@ -15,8 +15,8 @@ export interface GitStatusChipProps {
   className?: string;
 }
 
-const iconClass = "h-3 w-3 transition-all duration-[var(--duration-fast)] motion-reduce:transition-none";
-const iconStyle = { transitionTimingFunction: "var(--ease-out)" };
+const iconClass =
+  "h-3 w-3 transition-all duration-[var(--duration-fast)] motion-reduce:transition-none";
 
 export function GitStatusChip({ git, className }: GitStatusChipProps) {
   // Hide completely if clean (no changes, no ahead/behind)
@@ -28,28 +28,27 @@ export function GitStatusChip({ git, className }: GitStatusChipProps) {
   if (git.status !== "ready") {
     const statusIcons: Record<string, React.ReactNode> = {
       loading: (
-        <Loader2 className={cn(iconClass, "animate-spin text-amber-400")} />
+        <Loader2 className={cn(iconClass, "animate-spin text-primary/50")} />
       ),
-      error: <AlertCircle className={cn(iconClass, "text-rose-400")} />,
-      disconnected: <WifiOff className={cn(iconClass, "text-amber-400")} />,
+      error: <AlertCircle className={cn(iconClass, "text-primary")} />,
+      disconnected: <WifiOff className={cn(iconClass, "text-primary/60")} />,
       starting: (
-        <Loader2 className={cn(iconClass, "animate-spin text-sky-400")} />
+        <Loader2 className={cn(iconClass, "animate-spin text-primary/80")} />
       ),
-      missing: <AlertCircle className={cn(iconClass, "text-rose-400")} />,
-      unavailable: <WifiOff className={cn(iconClass, "text-amber-400")} />,
+      missing: <AlertCircle className={cn(iconClass, "text-primary")} />,
+      unavailable: <WifiOff className={cn(iconClass, "text-primary/60")} />,
     };
     return (
       <span
         className={cn(
           "shrink-0",
-          "transition-all duration-[var(--duration-fast)] motion-reduce:transition-none",
-          "hover:scale-110 active:scale-95 motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
+          "transition-all duration-[var(--duration-fast)]",
+          "hover:scale-[1.1] active:scale-[0.95]",
           className,
         )}
-        style={{ transitionTimingFunction: "var(--ease-out)" }}
       >
         {statusIcons[git.status] ?? (
-          <AlertCircle className={cn(iconClass, "text-amber-400")} style={iconStyle} />
+          <AlertCircle className={cn(iconClass, "text-primary/50")} />
         )}
       </span>
     );
@@ -61,13 +60,12 @@ export function GitStatusChip({ git, className }: GitStatusChipProps) {
       <span
         className={cn(
           "shrink-0",
-          "transition-all duration-[var(--duration-fast)] motion-reduce:transition-none",
-          "hover:scale-110 active:scale-95 motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
+          "transition-all duration-[var(--duration-fast)]",
+          "hover:scale-[1.1] active:scale-[0.95]",
           className,
         )}
-        style={{ transitionTimingFunction: "var(--ease-out)" }}
       >
-        <Pencil className={cn(iconClass, "text-amber-400")} style={iconStyle} />
+        <Pencil className={cn(iconClass, "text-primary/80")} />
       </span>
     );
   }
@@ -82,13 +80,12 @@ export function GitStatusChip({ git, className }: GitStatusChipProps) {
       <span
         className={cn(
           "shrink-0",
-          "transition-all duration-[var(--duration-fast)] motion-reduce:transition-none",
-          "hover:scale-110 active:scale-95 motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
+          "transition-all duration-[var(--duration-fast)]",
+          "hover:scale-[1.1] active:scale-[0.95]",
           className,
         )}
-        style={{ transitionTimingFunction: "var(--ease-out)" }}
       >
-        <GitFork className={cn(iconClass, "text-violet-400")} style={iconStyle} />
+        <GitFork className={cn(iconClass, "text-primary/90")} />
       </span>
     );
   }
@@ -99,13 +96,12 @@ export function GitStatusChip({ git, className }: GitStatusChipProps) {
       <span
         className={cn(
           "shrink-0",
-          "transition-all duration-[var(--duration-fast)] motion-reduce:transition-none",
-          "hover:scale-110 active:scale-95 motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
+          "transition-all duration-[var(--duration-fast)]",
+          "hover:scale-[1.1] active:scale-[0.95]",
           className,
         )}
-        style={{ transitionTimingFunction: "var(--ease-out)" }}
       >
-        <ArrowUp className={cn(iconClass, "text-sky-400")} style={iconStyle} />
+        <ArrowUp className={cn(iconClass, "text-primary")} />
       </span>
     );
   }
@@ -115,13 +111,12 @@ export function GitStatusChip({ git, className }: GitStatusChipProps) {
     <span
       className={cn(
         "shrink-0",
-        "transition-all duration-[var(--duration-fast)] motion-reduce:transition-none",
-        "hover:scale-110 active:scale-95 motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
+        "transition-all duration-[var(--duration-fast)]",
+        "hover:scale-[1.1] active:scale-[0.95]",
         className,
       )}
-      style={{ transitionTimingFunction: "var(--ease-out)" }}
     >
-      <ArrowDown className={cn(iconClass, "text-orange-400")} style={iconStyle} />
+      <ArrowDown className={cn(iconClass, "text-primary/70")} />
     </span>
   );
 }
