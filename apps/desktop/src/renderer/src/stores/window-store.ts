@@ -124,7 +124,6 @@ export function getDefaultWindowPosition(existingWindows: CanvasWindow[]): {
   const cascadeOffset = 48;
   const maxOffset = 288;
 
-  // Calculate cascade position based on existing windows
   const count = existingWindows.length;
   const offset = Math.min(count * cascadeOffset, maxOffset);
 
@@ -340,7 +339,6 @@ export function windowReducer(
   switch (action.type) {
     case "CREATE_WINDOW": {
       const newWindow = action.payload.window;
-      // Defocus all other windows
       const windows = state.layout.windows.map((w) => ({
         ...w,
         isFocused: false,

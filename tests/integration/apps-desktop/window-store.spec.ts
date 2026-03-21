@@ -235,13 +235,13 @@ describe("window-store", () => {
   it("updateWindow supports renderer updates while preserving stable identity", () => {
     const store = createWindowStore();
 
-    const term = store.createWindow({ kind: "terminal", backend: "pi-linked" });
+    const term = store.createWindow({ kind: "terminal", backend: "shell" });
     const originalId = term.id;
     const originalZ = term.zIndex;
 
     store.updateWindow(term.id, {
-      linkedThreadId: "thread-1",
       title: "My Terminal",
+      cwd: "/tmp/updated",
     });
     const updated = requireWindow(
       store.getState().layout.windows.find((w) => w.id === term.id),
@@ -251,8 +251,8 @@ describe("window-store", () => {
     const updatedTerminal = updated as TerminalWindow;
 
     expect(updated.id).toBe(originalId);
-    expect(updatedTerminal.linkedThreadId).toBe("thread-1");
     expect(updated.title).toBe("My Terminal");
+    expect(updatedTerminal.cwd).toBe("/tmp/updated");
     expect(updated.zIndex).toBe(originalZ);
   });
 

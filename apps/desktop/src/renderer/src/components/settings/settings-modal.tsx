@@ -50,14 +50,12 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   const [isAnimating, setIsAnimating] = useState(false);
   const { resetAll } = useSettings();
 
-  // Handle section change with animation
   const handleSectionChange = (section: SettingsModalSection) => {
     if (section === activeSection) return;
     setIsAnimating(true);
     setActiveSection(section);
   };
 
-  // Reset animation state after transition
   useEffect(() => {
     if (isAnimating) {
       const timer = setTimeout(() => setIsAnimating(false), 250);
@@ -67,7 +65,10 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[85vh] max-h-[85vh] w-[90vw] max-w-[1000px] flex-col gap-0 p-0 overflow-hidden">
+      <DialogContent
+        data-testid="settings-modal"
+        className="flex h-[85vh] max-h-[85vh] w-[90vw] max-w-[1000px] flex-col gap-0 p-0 overflow-hidden"
+      >
         <DialogHeader className="flex flex-row items-center justify-between border-b border-[#474747]/30 bg-[#0e0e0e] px-6 py-4">
           <DialogTitle className="text-sm font-bold uppercase tracking-[0.2em] font-headline text-white">
             Settings
@@ -88,13 +89,13 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
         </DialogHeader>
 
         <div className="flex flex-1 min-h-0">
-          {/* Sidebar Navigation */}
           <nav className="w-52 shrink-0 border-r border-[#474747]/20 bg-[#0e0e0e]">
             <div className="flex flex-col gap-0.5 p-2">
               {SETTINGS_MODAL_SECTIONS.map((item, index) => (
                 <button
                   type="button"
                   key={item.id}
+                  data-testid={`settings-nav-${item.id}`}
                   onClick={() => handleSectionChange(item.id)}
                   className={cn(
                     "flex items-center gap-3 rounded-none px-4 py-2.5 text-[11px] font-mono uppercase tracking-wider",
@@ -112,7 +113,6 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
             </div>
           </nav>
 
-          {/* Content Area */}
           <ScrollArea className="flex-1 bg-[#131313]">
             <div className="p-8">
               <div
@@ -129,7 +129,6 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
           </ScrollArea>
         </div>
 
-        {/* Footer */}
         <div className="flex items-center justify-between border-t border-[#474747]/30 px-6 py-4 bg-[#0e0e0e]">
           <Button
             variant="ghost"

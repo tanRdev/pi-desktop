@@ -5,6 +5,7 @@ import {
   isFileBackedWindow,
   type RepositoryPreferences,
   type ShellCatalogSnapshot,
+  type TerminalWindow,
   type ThreadSnapshot,
   type WorkspaceSession,
 } from "@pidesk/shared";
@@ -93,23 +94,34 @@ function reconcileWorkspaceSessions(
     });
     const validWindows = candidateWindows.map((window) => {
       if (window.kind === "terminal") {
-        const hasValidLinkedThread =
-          window.linkedThreadId !== undefined &&
-          validThreadIds.has(window.linkedThreadId);
+        const normalizedBackend =
+          window.backend === "lazygit"
+            ? ("lazygit" as const)
+            : ("shell" as const);
 
-        return {
-          ...window,
+        const normalizedWindow: TerminalWindow = {
+          id: window.id,
+          kind: window.kind,
+          title: window.title,
+          x: window.x,
+          y: window.y,
+          width: window.width,
+          height: window.height,
+          zIndex: window.zIndex,
+          isFocused: window.isFocused,
+          state: window.state,
+          ...(window.linkColor ? { linkColor: window.linkColor } : {}),
+          ...(window.linkTargetIds
+            ? { linkTargetIds: window.linkTargetIds }
+            : {}),
+          terminalId: window.terminalId,
+          backend: normalizedBackend,
           cwd: isWithinWorktree(session.worktreeId, window.cwd)
             ? window.cwd
             : session.worktreeId,
-          ...(hasValidLinkedThread
-            ? {}
-            : {
-                backend: "shell" as const,
-                linkedThreadId: undefined,
-                tmuxSessionName: undefined,
-              }),
         };
+
+        return normalizedWindow;
       }
 
       if (window.kind === "git") {

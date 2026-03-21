@@ -1,5 +1,4 @@
 import type {
-  CanvasWindow,
   MentionSuggestion,
   ProviderSnapshot,
   RepositoryDisplayMetadata,
@@ -7,19 +6,23 @@ import type {
   SlashSuggestion,
   ThreadSnapshot,
 } from "@pidesk/shared";
+import type { AgentLiveFeed } from "@pidesk/shell-model";
 import * as React from "react";
 import { useStore } from "zustand";
 import { cn } from "@/lib/utils";
 import { uiInteractionStore } from "../../stores/ui-interaction-store";
-import { CanvasContainer, CanvasGrid, WindowContentRouter } from "../canvas";
-import type { GraphLink, GraphNode } from "../canvas/graph-window-content";
-import type { SearchWindowAction } from "../canvas/search-window-content";
+import { ChatThreadPanel } from "./chat-thread-panel";
 import { LeftRail, type RailView } from "./left-rail";
 import { LeftSidebar } from "./left-sidebar";
 import { PromptDock } from "./prompt-dock";
 import { StatusBar } from "./status-bar";
 import { TitleBar } from "./title-bar";
+import { WorkspaceActivityPanel } from "./workspace-activity-panel";
 import { FileTreeOverlay, LauncherOverlay } from "./workspace-overlays";
+import type { WorkspaceSearchAction } from "./workspace-search-content";
+import { WorkspaceSurfacePanel } from "./workspace-surface-panel";
+
+type ContextSurfaceKey = "activity" | string;
 
 export interface WorkspaceShellProps {
   platform: string | null;
@@ -32,11 +35,6 @@ export interface WorkspaceShellProps {
   draft: string;
   canSend: boolean;
   leftSidebarWidth: number;
-  snapGridSize: number;
-  windowCount: number;
-  threadLookup: Map<string, ThreadSnapshot>;
-  graphNodes: GraphNode[];
-  graphLinks: GraphLink[];
   autocompleteSuggestions: (SlashSuggestion | MentionSuggestion)[];
   autocompleteSelectedIndex: number;
   displayAgentStatus: string;
@@ -52,6 +50,18 @@ export interface WorkspaceShellProps {
   launcherResults: import("@pidesk/shared").SearchMatch[];
   launcherSelectedIndex: number;
   launcherIsLoading: boolean;
+  threadMessages: import("@pidesk/shared").AgentMessageSnapshot[];
+  threadLastError: string | null;
+  liveFeed: AgentLiveFeed;
+  contextWindows: Array<
+    Extract<
+      import("@pidesk/shared").CanvasWindow,
+      { kind: "file" | "note" | "terminal" | "git" }
+    >
+  >;
+  selectedContextSurface: ContextSurfaceKey;
+  onSelectContextSurface: (surfaceKey: ContextSurfaceKey) => void;
+  onCloseContextSurface: (surfaceKey: string) => void;
   onModelMenuOpenChange: (open: boolean) => void | Promise<void>;
   onAddRepository: () => void | Promise<void>;
   onSelectRepository: (repositoryId: string) => void | Promise<void>;
@@ -71,32 +81,18 @@ export interface WorkspaceShellProps {
   onCloseLauncher: () => void;
   onOpenFileTree: () => void;
   onCloseFileTree: () => void;
-  onOpenBlankStateChat: (
-    canvasBounds: DOMRect | null,
-  ) => boolean | Promise<boolean>;
   onOpenNote: () => void;
   onOpenGit: () => void;
   onOpenTerminal: () => void;
-  onOpenGraph: () => void;
   onFileClick: (filePath: string) => void | Promise<void>;
   onFileContentChange: (windowId: string, content: string) => void;
   onFileSave: (windowId: string, filePath: string) => void | Promise<void>;
   onNoteContentChange: (windowId: string, content: string) => void;
   onNoteSave: (windowId: string, storagePath?: string) => void | Promise<void>;
-  onSearchQueryChange: (
-    windowId: string,
-    query: string,
-  ) => void | Promise<void>;
-  onSearchSelect: (match: import("@pidesk/shared").SearchMatch) => void;
-  onSearchHover: (windowId: string, index: number) => void;
-  onSearchKeyDown: (
-    windowId: string,
-  ) => React.KeyboardEventHandler<HTMLInputElement>;
   onLauncherQueryChange: (query: string) => void | Promise<void>;
   onLauncherSelect: (match: import("@pidesk/shared").SearchMatch) => void;
   onLauncherHover: (index: number) => void;
   onLauncherKeyDown: React.KeyboardEventHandler<HTMLInputElement>;
-  onWindowFocus: (window: CanvasWindow) => void | Promise<void>;
   onDraftChange: (draft: string) => void;
   onSend: () => void | Promise<void>;
   onCancelPrompt: () => void | Promise<void>;
@@ -110,85 +106,40 @@ export interface WorkspaceShellProps {
   ) => void | Promise<void>;
 }
 
-function CanvasEmptyState({
+function WorkspaceEmptyState({
+  activeThreadTitle,
+  onCreateThread,
   activeWorktreeId,
-  activeThreadId,
-  onOpenBlankStateChat,
 }: {
+  activeThreadTitle: string | null;
+  onCreateThread: (worktreeId: string) => void | Promise<void>;
   activeWorktreeId: string | null;
-  activeThreadId: string | null;
-  onOpenBlankStateChat: (
-    canvasBounds: DOMRect | null,
-  ) => boolean | Promise<boolean>;
 }) {
-  const containerRef = React.useRef<HTMLDivElement | null>(null);
-  const attemptedLaunchKeyRef = React.useRef<string | null>(null);
-  const [isLaunching, setIsLaunching] = React.useState(false);
-
-  React.useEffect(() => {
-    const launchKey = `${activeWorktreeId ?? "no-worktree"}:${activeThreadId ?? "blank"}`;
-    if (attemptedLaunchKeyRef.current === launchKey) {
-      return;
-    }
-
-    attemptedLaunchKeyRef.current = launchKey;
-    let cancelled = false;
-    const canvasBounds = containerRef.current?.getBoundingClientRect() ?? null;
-
-    setIsLaunching(true);
-    void Promise.resolve(onOpenBlankStateChat(canvasBounds)).finally(() => {
-      if (!cancelled) {
-        setIsLaunching(false);
-      }
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [activeThreadId, activeWorktreeId, onOpenBlankStateChat]);
-
   return (
-    <div
-      ref={containerRef}
-      className="pointer-events-none absolute inset-0 flex items-center justify-center px-8 py-10"
-    >
-      <div
-        className={cn(
-          "w-full max-w-xl border border-[#474747]/30 bg-[#0e0e0e] px-6 py-5",
-          "motion-safe:animate-[window-enter_0.15s_var(--ease-out)_forwards]",
-        )}
-      >
-        <div className="space-y-4 text-sm leading-6 text-[#919191] font-mono">
-          <div className="stagger-item" style={{ animationDelay: "0ms" }}>
-            <p className="text-base font-bold text-white uppercase tracking-widest">
-              # Canvas
-            </p>
-            <p className="mt-1">
-              Arrange chats, terminals, notes, and files here as you work.
-            </p>
+    <div className="flex h-full flex-col items-center justify-center px-8 text-center">
+      <div className="max-w-2xl space-y-4 border border-[#474747]/18 bg-[#101010] px-8 py-8">
+        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#6f6f6f]">
+          Chat-first workspace
+        </p>
+        <h2 className="text-2xl text-white">
+          {activeThreadTitle?.trim() || "Start the next conversation"}
+        </h2>
+        <p className="text-sm leading-7 text-[#8f8f8f]">
+          PiDesk now centers the chat, planning, reasoning, and execution loop.
+          Use the context panel for files, notes, terminal, and git without the
+          old floating canvas.
+        </p>
+        {activeWorktreeId ? (
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={() => void onCreateThread(activeWorktreeId)}
+              className="border border-[#474747]/20 bg-white px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-black transition-colors hover:bg-[#d9d9d9]"
+            >
+              New thread
+            </button>
           </div>
-          <div className="stagger-item" style={{ animationDelay: "40ms" }}>
-            <p className="font-bold text-white uppercase tracking-widest">
-              ## Quick start
-            </p>
-            <p className="mt-1">
-              - Blank canvases now boot into chat first so the workspace opens
-              in conversation mode.
-            </p>
-            <p>
-              - Use the title bar for launcher, files, notes, and git while the
-              rail handles project navigation.
-            </p>
-            <p>
-              -{" "}
-              {activeThreadId
-                ? "The active thread is being centered on the canvas now."
-                : isLaunching
-                  ? "Preparing a thread so chat can open in the center of the canvas."
-                  : "Waiting for a thread so chat can claim the center of the canvas."}
-            </p>
-          </div>
-        </div>
+        ) : null}
       </div>
     </div>
   );
@@ -205,11 +156,6 @@ export function WorkspaceShell({
   draft,
   canSend,
   leftSidebarWidth,
-  snapGridSize,
-  windowCount,
-  threadLookup,
-  graphNodes,
-  graphLinks,
   autocompleteSuggestions,
   autocompleteSelectedIndex,
   displayAgentStatus,
@@ -225,6 +171,13 @@ export function WorkspaceShell({
   launcherResults,
   launcherSelectedIndex,
   launcherIsLoading,
+  threadMessages,
+  threadLastError,
+  liveFeed,
+  contextWindows,
+  selectedContextSurface,
+  onSelectContextSurface,
+  onCloseContextSurface,
   onModelMenuOpenChange,
   onAddRepository,
   onSelectRepository,
@@ -241,25 +194,18 @@ export function WorkspaceShell({
   onCloseLauncher,
   onOpenFileTree,
   onCloseFileTree,
-  onOpenBlankStateChat,
   onOpenNote,
   onOpenGit,
   onOpenTerminal,
-  onOpenGraph,
   onFileClick,
   onFileContentChange,
   onFileSave,
   onNoteContentChange,
   onNoteSave,
-  onSearchQueryChange,
-  onSearchSelect,
-  onSearchHover,
-  onSearchKeyDown,
   onLauncherQueryChange,
   onLauncherSelect,
   onLauncherHover,
   onLauncherKeyDown,
-  onWindowFocus,
   onDraftChange,
   onSend,
   onCancelPrompt,
@@ -295,13 +241,6 @@ export function WorkspaceShell({
     };
   }, []);
 
-  const handleCanvasWindowFocus = React.useCallback(
-    (window: CanvasWindow) => {
-      void onWindowFocus(window);
-    },
-    [onWindowFocus],
-  );
-
   const [isLeftSidebarCollapsed, setIsLeftSidebarCollapsed] =
     React.useState(false);
   const [leftRailMode, setLeftRailMode] = React.useState<
@@ -317,7 +256,7 @@ export function WorkspaceShell({
     ) ?? null;
   const activeWorktreeLabel = activeWorktree?.label ?? null;
 
-  const launcherActions = React.useMemo<SearchWindowAction[]>(
+  const launcherActions = React.useMemo<WorkspaceSearchAction[]>(
     () => [
       {
         id: "terminal",
@@ -343,16 +282,8 @@ export function WorkspaceShell({
           onOpenNote();
         },
       },
-      {
-        id: "graph",
-        label: "Graph",
-        onSelect: () => {
-          onCloseLauncher();
-          onOpenGraph();
-        },
-      },
     ],
-    [onCloseLauncher, onOpenGit, onOpenGraph, onOpenNote, onOpenTerminal],
+    [onCloseLauncher, onOpenGit, onOpenNote, onOpenTerminal],
   );
 
   const handleToggleLeftSidebar = React.useCallback(() => {
@@ -382,49 +313,13 @@ export function WorkspaceShell({
     }
   }, []);
 
-  const renderWindowContent = React.useCallback(
-    (win: CanvasWindow) => (
-      <WindowContentRouter
-        win={win}
-        activeWorktreeId={activeWorktreeId}
-        activeThreadId={activeThreadId}
-        threadLookup={threadLookup}
-        graphNodes={graphNodes}
-        graphLinks={graphLinks}
-        onFileContentChange={onFileContentChange}
-        onFileSave={onFileSave}
-        onNoteContentChange={onNoteContentChange}
-        onNoteSave={onNoteSave}
-        onSearchQueryChange={onSearchQueryChange}
-        onSearchSelect={onSearchSelect}
-        onSearchHover={onSearchHover}
-        onSearchKeyDown={onSearchKeyDown}
-        onOpenTerminal={onOpenTerminal}
-        onOpenGit={onOpenGit}
-        onOpenNote={onOpenNote}
-        onOpenGraph={onOpenGraph}
-      />
-    ),
-    [
-      activeThreadId,
-      activeWorktreeId,
-      graphLinks,
-      graphNodes,
-      onFileContentChange,
-      onFileSave,
-      onNoteContentChange,
-      onNoteSave,
-      onOpenGit,
-      onOpenGraph,
-      onOpenNote,
-      onOpenTerminal,
-      onSearchHover,
-      onSearchKeyDown,
-      onSearchQueryChange,
-      onSearchSelect,
-      threadLookup,
-    ],
-  );
+  const hasActiveThread = activeThreadId !== null;
+  const selectedSurfaceKey =
+    selectedContextSurface === "activity"
+      ? "activity"
+      : contextWindows.some((window) => window.id === selectedContextSurface)
+        ? selectedContextSurface
+        : "activity";
 
   return (
     <>
@@ -477,54 +372,88 @@ export function WorkspaceShell({
         />
 
         <main
+          data-testid="chat-first-layout"
           className={cn(
-            "relative z-10 flex min-w-0 flex-1 flex-col",
+            "relative z-10 flex min-w-0 flex-1 flex-col bg-[#0b0b0b]",
             (isLeftSidebarCollapsed || leftRailMode === "projects") && "ml-16",
           )}
         >
-          <CanvasGrid
-            snapGridSize={snapGridSize}
-            className="pointer-events-none absolute inset-0 z-0 opacity-70"
-          />
-          <div className="relative min-h-0 flex-1">
-            <CanvasContainer
-              className="h-full"
-              onWindowFocus={handleCanvasWindowFocus}
-              renderWindowContent={renderWindowContent}
-            />
-            {windowCount === 0 ? (
-              <CanvasEmptyState
-                activeWorktreeId={activeWorktreeId}
-                activeThreadId={activeThreadId}
-                onOpenBlankStateChat={onOpenBlankStateChat}
-              />
-            ) : null}
-            <div className="pointer-events-none absolute bottom-6 left-1/2 z-20 w-full max-w-[38rem] -translate-x-1/2 px-4">
-              <div className="pointer-events-auto">
-                <PromptDock
-                  draft={draft}
-                  onDraftChange={onDraftChange}
-                  onSend={onSend}
-                  onCancelPrompt={onCancelPrompt}
-                  activeThreadId={activeThreadId}
-                  activeThreadTitle={activeThreadTitle}
-                  canSend={canSend}
-                  isVisible={isPromptVisible}
-                  isPromptExecuting={isPromptExecuting}
-                  autocompleteSuggestions={autocompleteSuggestions}
-                  autocompleteSelectedIndex={autocompleteSelectedIndex}
-                  onAutocompleteSelect={onAutocompleteSelect}
-                  onAutocompleteHover={onAutocompleteHover}
-                  onPromptKeyDown={onPromptKeyDown}
-                  displayAgentStatus={displayAgentStatus}
-                  runtimeModeLabel={runtimeModeLabel}
-                  providerSnapshots={providerSnapshots}
-                  currentModelValue={currentModelValue}
-                  isSwitchingModel={isSwitchingModel}
-                  onModelMenuOpenChange={onModelMenuOpenChange}
-                  onModelSelection={onModelSelection}
-                />
+          <div className="min-h-0 flex flex-1">
+            <section className="relative flex min-h-0 min-w-0 flex-1 flex-col">
+              <div className="min-h-0 flex-1 overflow-hidden">
+                {hasActiveThread ? (
+                  <ChatThreadPanel
+                    threadTitle={activeThreadTitle ?? "Untitled thread"}
+                    messages={threadMessages}
+                    isStreaming={isPromptExecuting}
+                    lastError={threadLastError}
+                    className="h-full"
+                  />
+                ) : (
+                  <WorkspaceEmptyState
+                    activeThreadTitle={activeThreadTitle}
+                    activeWorktreeId={activeWorktreeId}
+                    onCreateThread={onCreateThread}
+                  />
+                )}
               </div>
+
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 px-5 pb-8 pt-16 bg-[linear-gradient(180deg,rgba(11,11,11,0)_0%,rgba(11,11,11,0.7)_35%,rgba(8,8,8,0.98)_100%)]">
+                <div className="pointer-events-auto mx-auto w-full max-w-[52rem]">
+                  <PromptDock
+                    draft={draft}
+                    onDraftChange={onDraftChange}
+                    onSend={onSend}
+                    onCancelPrompt={onCancelPrompt}
+                    activeThreadId={activeThreadId}
+                    activeThreadTitle={activeThreadTitle}
+                    canSend={canSend}
+                    isVisible={isPromptVisible}
+                    isPromptExecuting={isPromptExecuting}
+                    autocompleteSuggestions={autocompleteSuggestions}
+                    autocompleteSelectedIndex={autocompleteSelectedIndex}
+                    onAutocompleteSelect={onAutocompleteSelect}
+                    onAutocompleteHover={onAutocompleteHover}
+                    onPromptKeyDown={onPromptKeyDown}
+                    displayAgentStatus={displayAgentStatus}
+                    runtimeModeLabel={runtimeModeLabel}
+                    providerSnapshots={providerSnapshots}
+                    currentModelValue={currentModelValue}
+                    isSwitchingModel={isSwitchingModel}
+                    onModelMenuOpenChange={onModelMenuOpenChange}
+                    onModelSelection={onModelSelection}
+                  />
+                </div>
+              </div>
+            </section>
+
+            <div data-testid="workspace-context-panel" className="contents">
+              <WorkspaceSurfacePanel
+                activeWorktreeId={activeWorktreeId}
+                selectedSurfaceKey={selectedSurfaceKey}
+                windows={contextWindows}
+                onSelectActivity={() => onSelectContextSurface("activity")}
+                onSelectWindow={onSelectContextSurface}
+                onCloseWindow={onCloseContextSurface}
+                onOpenFileTree={onOpenFileTree}
+                onOpenNote={onOpenNote}
+                onOpenTerminal={onOpenTerminal}
+                onOpenGit={onOpenGit}
+                onFileContentChange={onFileContentChange}
+                onFileSave={onFileSave}
+                onNoteContentChange={onNoteContentChange}
+                onNoteSave={onNoteSave}
+                activityContent={
+                  <WorkspaceActivityPanel
+                    threadTitle={activeThreadTitle}
+                    worktreeLabel={activeWorktreeLabel}
+                    runtimeModeLabel={runtimeModeLabel}
+                    displayAgentStatus={displayAgentStatus}
+                    liveFeed={liveFeed}
+                    className="h-full"
+                  />
+                }
+              />
             </div>
           </div>
         </main>
@@ -532,7 +461,6 @@ export function WorkspaceShell({
 
       {isLauncherOpen ? (
         <LauncherOverlay
-          // aria-label="Launcher overlay"
           ariaLabel="Launcher overlay"
           projectName={projectName}
           activeWorktreeLabel={activeWorktreeLabel}
@@ -551,7 +479,6 @@ export function WorkspaceShell({
 
       {isFileTreeOpen ? (
         <FileTreeOverlay
-          // aria-label="File tree overlay"
           ariaLabel="File tree overlay"
           projectName={projectName}
           activeWorktree={activeWorktree}

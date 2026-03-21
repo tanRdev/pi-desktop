@@ -296,7 +296,10 @@ export function PromptDock({
               {isSwitchingModel ? (
                 <Loader label="Switching" />
               ) : (
-                <TextShimmer className="text-[9px] uppercase tracking-[0.12em] text-white/58">
+                <TextShimmer
+                  data-testid="agent-status"
+                  className="text-[9px] uppercase tracking-[0.12em] text-white/58"
+                >
                   {agentLabel}
                 </TextShimmer>
               )}
@@ -371,6 +374,7 @@ export function PromptDock({
                   <PopoverTrigger asChild>
                     <button
                       type="button"
+                      data-testid="model-selector-trigger"
                       disabled={
                         !hasActiveThread ||
                         isSwitchingModel ||
@@ -415,6 +419,7 @@ export function PromptDock({
                               <button
                                 key={`${provider.id}:${model.id}`}
                                 type="button"
+                                data-testid={`model-option-${provider.id}-${model.id}`}
                                 onClick={() => handleModelSelect(value)}
                                 className={cn(
                                   "w-full px-2 py-1.5 text-left text-[10px] font-mono uppercase",

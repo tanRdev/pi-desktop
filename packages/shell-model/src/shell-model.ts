@@ -119,27 +119,21 @@ function determineAgentStatus(
   preserveLiveState: boolean,
   hasStreamingMessages: boolean,
 ): AgentSnapshot["status"] {
-  // Priority 1: Error status always wins
   if (incoming.status === "error") {
     return incoming.status;
   }
 
-  // Priority 2: Streaming messages take precedence
   if (hasStreamingMessages) {
     return "streaming";
   }
 
-  // Priority 3: Preserve existing live state when requested
   if (preserveLiveState) {
-    // When current status is "starting", use incoming status
-    // Otherwise preserve the current (live) status
     if (current.status === "starting") {
       return incoming.status;
     }
     return current.status;
   }
 
-  // Default: use incoming status
   return incoming.status;
 }
 
@@ -257,7 +251,6 @@ export function createShellModel(api: PiDeskApi) {
         await api.agent.prompt(prompt);
       } catch (error) {
         console.debug("[shell-model] prompt failed:", error);
-        // Refresh snapshot below so renderer can surface runtime error state.
       }
 
       let agent = state.agent;

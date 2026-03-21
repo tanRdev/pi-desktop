@@ -8,18 +8,16 @@ function readSource(relativePath: string): string {
 
 describe("chunk5 ui", () => {
   it("removes glassy gradients and decorative blur from the chat chrome", () => {
-    const windowSource = readSource(
-      "apps/desktop/src/renderer/src/components/canvas/window-chrome.tsx",
+    const shellSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx",
     );
     const promptDockSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/prompt-dock.tsx",
     );
 
-    expect(windowSource).not.toContain("rounded-lg");
-    expect(windowSource).not.toContain("shadow-xl");
-    expect(windowSource).not.toContain("ring-neutral-200/50");
-    expect(windowSource).not.toContain("bg-gradient-to-b");
-    expect(windowSource).not.toContain("backdrop-blur-sm");
+    expect(shellSource).not.toContain("CanvasContainer");
+    expect(shellSource).not.toContain("CanvasGrid");
+    expect(shellSource).not.toContain("WindowContentRouter");
 
     expect(promptDockSource).not.toContain("bg-gradient-to-t");
     expect(promptDockSource).not.toContain("text-zinc-500");
@@ -29,8 +27,8 @@ describe("chunk5 ui", () => {
 
   it("adds flatter shell hooks that centralize the mission-control styling", () => {
     const shellSource = readSource("packages/ui/src/styles/pidesk-shell.css");
-    const windowSource = readSource(
-      "apps/desktop/src/renderer/src/components/canvas/window-chrome.tsx",
+    const workspaceShellSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx",
     );
     const promptDockSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/prompt-dock.tsx",
@@ -50,10 +48,8 @@ describe("chunk5 ui", () => {
     expect(shellSource).toContain(".shell-send-button");
     expect(shellSource).toContain(".shell-input-frame");
 
-    expect(windowSource).toContain("shell-window");
-    expect(windowSource).toContain("shell-titlebar");
-    expect(windowSource).toContain("shell-control-dot");
-    expect(windowSource).toContain("shell-backdrop");
+    expect(workspaceShellSource).toContain("chat-first-layout");
+    expect(workspaceShellSource).toContain("workspace-context-panel");
     expect(promptDockSource).toContain("shell-dock");
     expect(promptDockSource).toContain("shell-token");
     expect(promptDockSource).toContain("shell-send-button");
@@ -62,7 +58,7 @@ describe("chunk5 ui", () => {
 
   it("tightens transcript density while preserving required chat selectors", () => {
     const chatSource = readSource(
-      "apps/desktop/src/renderer/src/components/canvas/chat-window-content.tsx",
+      "apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx",
     );
     const promptDockSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/prompt-dock.tsx",
@@ -73,12 +69,11 @@ describe("chunk5 ui", () => {
     expect(promptDockSource).toContain('data-testid="chat-send"');
     expect(promptDockSource).toContain('data-testid="agent-status"');
 
-    expect(chatSource).toContain("gap-3");
-    expect(chatSource).toContain("px-4 py-4");
+    expect(chatSource).toContain("gap-4");
+    expect(chatSource).toContain("px-5 py-5");
     expect(chatSource).toContain("text-[13px] leading-6");
-    expect(chatSource).toContain("shell-console-panel");
-    expect(chatSource).not.toContain("gap-5");
-    expect(chatSource).not.toContain("px-5 py-5");
+    expect(chatSource).not.toContain("canvas preview");
+    expect(chatSource).not.toContain("latest canvas state");
     expect(chatSource).not.toContain("text-base leading-relaxed");
     expect(chatSource).not.toContain("border-dashed");
     expect(chatSource).not.toContain("rounded-lg border border-dashed");

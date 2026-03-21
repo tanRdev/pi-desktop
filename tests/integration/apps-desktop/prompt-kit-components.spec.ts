@@ -36,9 +36,9 @@ describe("prompt kit workspace coverage", () => {
     expect(source).toContain("Image");
   });
 
-  it("uses the Prompt Kit transcript surfaces inside chat windows", () => {
+  it("uses the Prompt Kit transcript surfaces inside the chat-first thread panel", () => {
     const source = readSource(
-      "apps/desktop/src/renderer/src/components/canvas/chat-window-content.tsx",
+      "apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx",
     );
 
     expect(source).toContain("FeedbackBar");

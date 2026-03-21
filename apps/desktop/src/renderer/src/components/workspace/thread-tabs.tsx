@@ -15,8 +15,6 @@ export function ThreadTabs({
   onSelectThread,
   onCloseThread,
 }: ThreadTabsProps) {
-  // Only show non-archived threads that have been "opened"
-  // For now, show all non-archived threads as "open"
   const openThreads = threads.filter((t) => !t.isArchived);
 
   if (openThreads.length === 0) {

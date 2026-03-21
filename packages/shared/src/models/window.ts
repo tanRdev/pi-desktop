@@ -73,20 +73,16 @@ export interface FileWindow extends CanvasWindowBase {
 }
 
 /**
- * Terminal window - tmux-backed shell or special mode (lazygit, pi).
+ * Terminal window - local shell or git surface.
  */
 export interface TerminalWindow extends CanvasWindowBase {
   kind: "terminal";
-  /** Terminal session ID (maps to tmux session or node-pty) */
+  /** Terminal session ID */
   terminalId: string;
   /** Terminal backend mode */
-  backend: "shell" | "lazygit" | "pi-linked" | "tmux-attach";
+  backend: "shell" | "lazygit";
   /** Working directory */
   cwd: string;
-  /** Linked Pi thread ID if backend is pi-linked */
-  linkedThreadId?: string;
-  /** tmux session name if using tmux */
-  tmuxSessionName?: string;
 }
 
 /**

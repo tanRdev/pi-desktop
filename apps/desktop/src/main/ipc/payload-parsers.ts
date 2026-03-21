@@ -125,13 +125,6 @@ export function parseTerminalCreateOptions(
     rows,
     ownerWindowId,
     cwd: getStringField(payload, "cwd"),
-    backend:
-      backend === "shell" ||
-      backend === "lazygit" ||
-      backend === "pi-linked" ||
-      backend === "tmux-attach"
-        ? backend
-        : undefined,
-    linkedThreadId: getStringField(payload, "linkedThreadId"),
+    backend: backend === "shell" || backend === "lazygit" ? backend : undefined,
   };
 }

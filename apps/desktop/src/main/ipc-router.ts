@@ -5,8 +5,6 @@ import {
   IPC_CHANNELS,
   type ModelSwitchRequest,
   type PiDiscoveryResult,
-  type PiTerminalRouteRequest,
-  type PiTerminalRouteResult,
   type ProviderSnapshot,
   type SearchRequest,
   type SearchResponse,
@@ -70,9 +68,6 @@ export interface RegisterIpcHandlersDependencies {
   getSlashSuggestions?(
     context: AutocompleteContext,
   ): Promise<AutocompleteSuggestions>;
-  routeToTerminal?(
-    request: PiTerminalRouteRequest,
-  ): Promise<PiTerminalRouteResult>;
   threadCatalog?: ThreadCatalog;
 }
 
@@ -87,14 +82,13 @@ export function registerIpcHandlers({
   switchModel,
   getDiscovery,
   getSlashSuggestions,
-  routeToTerminal,
   threadCatalog,
 }: RegisterIpcHandlersDependencies): void {
   const tm = terminalManagerOverride ?? terminalManager;
 
   registerTerminalHandlers({ handle, mainWindow, terminalManager: tm });
   registerRepositoryHandlers({ handle, agentHost });
-  registerThreadHandlers({ handle, agentHost, routeToTerminal, threadCatalog });
+  registerThreadHandlers({ handle, agentHost, threadCatalog });
   registerDialogHandlers({ handle });
   registerFilesystemHandlers({ handle, getShellSnapshot });
   registerStateHandlers({ handle, stateHost });

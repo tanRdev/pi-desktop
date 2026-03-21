@@ -2,12 +2,12 @@ import type { SearchMatch, WorktreeSnapshot } from "@pidesk/shared";
 import { FolderTree, GitBranch, Search } from "lucide-react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import {
-  type SearchWindowAction,
-  SearchWindowContent,
-} from "../canvas/search-window-content";
 import { FileTree } from "../ui/file-tree";
 import { ScrollArea } from "../ui/scroll-area";
+import {
+  type WorkspaceSearchAction as SearchWindowAction,
+  WorkspaceSearchContent,
+} from "./workspace-search-content";
 
 interface WorkspaceOverlayFrameProps {
   ariaLabel: string;
@@ -115,7 +115,7 @@ export function LauncherOverlay({
         </p>
       </div>
       <div className="max-h-[min(72vh,720px)] bg-[#101010]">
-        <SearchWindowContent
+        <WorkspaceSearchContent
           query={query}
           onQueryChange={onQueryChange}
           isLoading={isLoading}

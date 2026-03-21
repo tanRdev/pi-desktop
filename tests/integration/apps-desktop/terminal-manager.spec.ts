@@ -5,7 +5,6 @@ import {
   TerminalManager,
   type TerminalManagerDependencies,
 } from "../../../apps/desktop/src/main/terminal-manager";
-import { createTmuxThreadSessionName } from "../../../apps/desktop/src/main/tmux-session-naming";
 import { IPC_CHANNELS } from "../../../packages/shared/src";
 
 class FakePty {
@@ -63,44 +62,18 @@ class FakeChildProcess extends EventEmitter {
   }
 }
 
-function createSpawnSyncMock(tmuxAvailable: boolean) {
-  return vi.fn((_program: string, args: string[]) => {
-    if (args[0] === "-V") {
-      return {
-        status: tmuxAvailable ? 0 : 1,
-        stdout: tmuxAvailable ? "tmux 3.4" : "",
-        stderr: "",
-        error: null,
-      };
-    }
-
-    return {
-      status: 0,
-      stdout: "",
-      stderr: "",
-      error: null,
-    };
-  });
-}
-
 type TestSession = {
   status: string;
   lastActivityAt?: number;
 };
 
 type SpawnFn = NonNullable<TerminalManagerDependencies["spawn"]>;
-type SpawnSyncFn = NonNullable<TerminalManagerDependencies["spawnSync"]>;
 type PtyModule = NonNullable<TerminalManagerDependencies["ptyModule"]>;
 
-function createTerminalManagerHarness({
-  tmuxAvailable,
-}: {
-  tmuxAvailable: boolean;
-}) {
+function createTerminalManagerHarness() {
   const ptyInstances: FakePty[] = [];
   const childProcesses: FakeChildProcess[] = [];
   const send = vi.fn<(channel: string, payload: unknown) => void>();
-  const spawnSync = createSpawnSyncMock(tmuxAvailable);
   const spawn = vi.fn(
     (program: string, args: string[], options: Record<string, unknown>) => {
       const child = new FakeChildProcess(program, args, options);
@@ -118,7 +91,6 @@ function createTerminalManagerHarness({
 
   const manager = new TerminalManager({
     spawn: spawn as unknown as SpawnFn,
-    spawnSync: spawnSync as unknown as SpawnSyncFn,
     ptyModule: {
       spawn: ptySpawn as unknown as PtyModule["spawn"],
     } as PtyModule,
@@ -135,7 +107,6 @@ function createTerminalManagerHarness({
     manager,
     send,
     spawn,
-    spawnSync,
     ptyInstances,
     childProcesses,
     ptySpawn,
@@ -147,8 +118,8 @@ afterEach(() => {
 });
 
 describe("future terminal modules (RED)", () => {
-  it("terminal-backends: resolveLocalShellProgram and buildTmuxLaunchSpec behaviors", async () => {
-    const { resolveLocalShellProgram, buildTmuxLaunchSpec } = await import(
+  it("terminal-backends: resolveLocalShellProgram behaviors", async () => {
+    const { resolveLocalShellProgram } = await import(
       "../../../apps/desktop/src/main/terminal/terminal-backends"
     );
 
@@ -161,53 +132,6 @@ describe("future terminal modules (RED)", () => {
     ).toBe("/bin/fish");
 
     expect(resolveLocalShellProgram({ platform: "darwin" })).toBe("/bin/zsh");
-
-    const lazySpec = buildTmuxLaunchSpec({
-      id: "lazygit-1",
-      backend: "lazygit",
-      cwd: "/tmp/project",
-      platform: "darwin",
-    });
-
-    expect(lazySpec.tmuxSessionName).toBeDefined();
-    expect(lazySpec.createArgs).toEqual([
-      "new-session",
-      "-d",
-      "-s",
-      lazySpec.tmuxSessionName,
-      "-c",
-      "/tmp/project",
-      "lazygit",
-    ]);
-    expect(lazySpec.attachCommand).toEqual({
-      program: "tmux",
-      args: ["attach", "-t", lazySpec.tmuxSessionName],
-    });
-
-    const linkedThreadId = "thread-42";
-    const attachSpec = buildTmuxLaunchSpec({
-      id: "tmux-attach-1",
-      backend: "tmux-attach",
-      cwd: "/tmp/project",
-      linkedThreadId,
-      platform: "darwin",
-    });
-
-    expect(attachSpec.createArgs.slice(-4)).toEqual([
-      "tmux",
-      "attach",
-      "-t",
-      createTmuxThreadSessionName(linkedThreadId),
-    ]);
-
-    expect(() =>
-      buildTmuxLaunchSpec({
-        id: "tmux-attach-2",
-        backend: "tmux-attach",
-        cwd: "/tmp/project",
-        platform: "darwin",
-      }),
-    ).toThrow("tmux-attach backend requires linkedThreadId");
   });
 
   it("terminal-session-events: bindPtySessionEvents and bindChildProcessSessionEvents forward events", async () => {
@@ -291,10 +215,10 @@ describe("future terminal modules (RED)", () => {
 });
 
 describe("terminalManager", () => {
-  it("falls back to local node-pty for 'shell' when tmux is unavailable", async () => {
+  it("creates local node-pty sessions for shell backends", async () => {
     await import("../../../apps/desktop/src/main/ipc-router");
 
-    const harness = createTerminalManagerHarness({ tmuxAvailable: false });
+    const harness = createTerminalManagerHarness();
     const expectedShell =
       process.platform === "win32"
         ? "powershell.exe"
@@ -335,8 +259,8 @@ describe("terminalManager", () => {
     });
   });
 
-  it("creates tmux-backed session for 'lazygit' when tmux is available", async () => {
-    const harness = createTerminalManagerHarness({ tmuxAvailable: true });
+  it("creates local lazygit sessions", async () => {
+    const harness = createTerminalManagerHarness();
     const session = harness.manager.create("lazygit-terminal", {
       cols: 100,
       rows: 30,
@@ -345,23 +269,15 @@ describe("terminalManager", () => {
       cwd: "/tmp/project-beta",
     });
 
-    const createCall = harness.spawnSync.mock.calls.find(
-      (call: unknown[]) => call[1]?.[0] === "new-session",
-    );
-
-    expect(session.tmuxSessionName).toBeDefined();
-    expect(createCall?.[1]).toEqual([
-      "new-session",
-      "-d",
-      "-s",
-      session.tmuxSessionName,
-      "-c",
-      "/tmp/project-beta",
-      "lazygit",
-    ]);
+    expect(session).toMatchObject({
+      id: "lazygit-terminal",
+      backend: "lazygit",
+      cwd: "/tmp/project-beta",
+      status: "ready",
+    });
     expect(harness.ptySpawn).toHaveBeenCalledWith(
-      "tmux",
-      ["attach", "-t", session.tmuxSessionName],
+      "lazygit",
+      [],
       expect.objectContaining({
         cols: 100,
         rows: 30,
@@ -370,52 +286,57 @@ describe("terminalManager", () => {
     );
   });
 
-  it("creates a tmux-attach wrapper session for the linked thread when tmux is available", async () => {
-    const harness = createTerminalManagerHarness({ tmuxAvailable: true });
-    const linkedThreadId = "thread-42";
-    const session = harness.manager.create("tmux-attach-terminal", {
-      cols: 80,
-      rows: 24,
-      ownerWindowId: "terminal-tmux-attach",
-      backend: "tmux-attach",
-      cwd: "/tmp/project-gamma",
-      linkedThreadId,
+  it("falls back to child_process when node-pty is unavailable", () => {
+    const send = vi.fn<(channel: string, payload: unknown) => void>();
+    const spawn = vi.fn(
+      (program: string, args: string[], options: Record<string, unknown>) => {
+        return new FakeChildProcess(program, args, options);
+      },
+    );
+    const manager = new TerminalManager({
+      spawn: spawn as unknown as SpawnFn,
+      nodeRequire: Object.assign(
+        () => {
+          throw new Error("node-pty unavailable");
+        },
+        {
+          cache: {} as NodeJS.Dict<NodeModule>,
+          extensions: {} as NodeJS.RequireExtensions,
+          main: undefined as NodeModule | undefined,
+          resolve: () => "node-pty",
+        },
+      ) as unknown as NonNullable<TerminalManagerDependencies["nodeRequire"]>,
+      env: process.env,
+      platform: process.platform,
+      cwd: () => process.cwd(),
+      now: Date.now,
     });
 
-    const createCall = harness.spawnSync.mock.calls.find(
-      (call: unknown[]) => call[1]?.[0] === "new-session",
+    manager.setMainWindow({
+      webContents: { send },
+    } as unknown as BrowserWindow);
+    manager.initialize();
+
+    const session = manager.create("fallback-shell", {
+      cols: 90,
+      rows: 25,
+      ownerWindowId: "terminal-fallback-shell",
+      backend: "shell",
+      cwd: "/tmp/project-delta",
+    });
+
+    expect(session.status).toBe("ready");
+    expect(spawn).toHaveBeenCalledWith(
+      process.platform === "win32"
+        ? "powershell.exe"
+        : process.env.SHELL || "/bin/zsh",
+      [],
+      expect.objectContaining({ cwd: "/tmp/project-delta" }),
     );
-
-    expect(createCall?.[1]).toEqual([
-      "new-session",
-      "-d",
-      "-s",
-      session.tmuxSessionName,
-      "-c",
-      "/tmp/project-gamma",
-      "tmux",
-      "attach",
-      "-t",
-      createTmuxThreadSessionName(linkedThreadId),
-    ]);
   });
 
-  it("throws when creating tmux-only backend while tmux is unavailable", async () => {
-    const harness = createTerminalManagerHarness({ tmuxAvailable: false });
-
-    expect(() =>
-      harness.manager.create("lazygit-without-tmux", {
-        cols: 90,
-        rows: 25,
-        ownerWindowId: "terminal-lazygit-without-tmux",
-        backend: "lazygit",
-        cwd: "/tmp/project-delta",
-      }),
-    ).toThrow("Unsupported terminal backend without tmux: lazygit");
-  });
-
-  it("destroy() and destroyAll() remove sessions and attempt to kill tmux sessions", async () => {
-    const harness = createTerminalManagerHarness({ tmuxAvailable: true });
+  it("destroy() and destroyAll() remove local sessions", async () => {
+    const harness = createTerminalManagerHarness();
     const first = harness.manager.create("destroy-one", {
       cols: 80,
       rows: 24,
@@ -433,72 +354,20 @@ describe("terminalManager", () => {
 
     harness.manager.destroy("destroy-one");
 
-    const firstKillCall = harness.spawnSync.mock.calls.find(
-      (call: unknown[]) =>
-        call[1]?.[0] === "kill-session" &&
-        call[1]?.[2] === first.tmuxSessionName,
-    );
-
     expect(harness.ptyInstances[0]?.kill).toHaveBeenCalled();
-    expect(firstKillCall?.[1]).toEqual([
-      "kill-session",
-      "-t",
-      first.tmuxSessionName,
-    ]);
     expect(harness.manager.get("destroy-one")).toBeUndefined();
 
     harness.manager.destroyAll();
 
-    const secondKillCall = harness.spawnSync.mock.calls.find(
-      (call: unknown[]) =>
-        call[1]?.[0] === "kill-session" &&
-        call[1]?.[2] === second.tmuxSessionName,
-    );
-
     expect(harness.ptyInstances[1]?.kill).toHaveBeenCalled();
-    expect(secondKillCall?.[1]).toEqual([
-      "kill-session",
-      "-t",
-      second.tmuxSessionName,
-    ]);
     expect(harness.manager.getSessions()).toEqual([]);
   });
 
   it("resize() is a no-op for missing sessions", async () => {
-    const harness = createTerminalManagerHarness({ tmuxAvailable: true });
+    const harness = createTerminalManagerHarness();
 
     expect(() =>
       harness.manager.resize("missing-terminal", 132, 48),
     ).not.toThrow();
-    expect(
-      harness.spawnSync.mock.calls.find(
-        (call: unknown[]) => call[1]?.[0] === "resize-window",
-      ),
-    ).toBeUndefined();
-  });
-
-  it("REGRESSION: tmux-backed pty exit should also remove tmux session", async () => {
-    const harness = createTerminalManagerHarness({ tmuxAvailable: true });
-    const session = harness.manager.create("tmux-exit-cleanup", {
-      cols: 80,
-      rows: 24,
-      ownerWindowId: "terminal-tmux-exit-cleanup",
-      backend: "lazygit",
-      cwd: "/tmp/project-theta",
-    });
-
-    harness.spawnSync.mockClear();
-    harness.ptyInstances[0]?.emitExit(0);
-
-    const killCall = harness.spawnSync.mock.calls.find(
-      (call: unknown[]) => call[1]?.[0] === "kill-session",
-    );
-
-    expect(harness.manager.get("tmux-exit-cleanup")).toBeUndefined();
-    expect(killCall?.[1]).toEqual([
-      "kill-session",
-      "-t",
-      session.tmuxSessionName,
-    ]);
   });
 });

@@ -41,7 +41,7 @@ test("opens launcher as an overlay and dismisses it on close or selection", asyn
     const page = await app.firstWindow();
 
     await expect(page.getByTestId("app-ready")).toBeVisible();
-    await expect(page.getByTestId("canvas-grid")).toBeVisible();
+    await expect(page.getByTestId("chat-first-layout")).toBeVisible();
     await page.getByRole("button", { name: "Open launcher" }).click();
     const launcherOverlay = page.getByRole("dialog", {
       name: "Launcher overlay",
@@ -65,7 +65,7 @@ test("opens launcher as an overlay and dismisses it on close or selection", asyn
     await expect(
       page.getByRole("dialog", { name: "Launcher overlay" }),
     ).toHaveCount(0);
-    await expect(page.locator('[data-window-kind="note"]')).toBeVisible();
+    await expect(page.getByTestId("workspace-context-panel")).toBeVisible();
   } finally {
     await app.close();
     launchContext.cleanup();

@@ -51,6 +51,7 @@ export function TitleBar({
 
   return (
     <div
+      data-testid="title-bar"
       data-drag-region="true"
       className="titlebar relative z-50 flex h-10 shrink-0 items-center gap-3 border-b border-[#474747]/30 bg-[#0e0e0e] px-3"
     >
@@ -60,7 +61,10 @@ export function TitleBar({
         style={{ paddingLeft: `${leftPadding}px` }}
       >
         <div className="min-w-0" data-no-drag="true">
-          <p className="truncate text-[11px] font-medium text-white">
+          <p
+            data-testid="titlebar-project-name"
+            className="truncate text-[11px] font-medium text-white"
+          >
             {projectName}
           </p>
         </div>
@@ -84,7 +88,7 @@ export function TitleBar({
             >
               <span className="flex min-w-0 items-center gap-2">
                 <GitBranch className="size-3.5 shrink-0" />
-                <span className="truncate">
+                <span data-testid="current-worktree-label" className="truncate">
                   {activeWorktreeLabel ?? "No branch"}
                 </span>
               </span>

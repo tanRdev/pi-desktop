@@ -7,8 +7,6 @@ import type {
   ModelSwitchRequest,
   PiDeskAgentEvent,
   PiDiscoveryResult,
-  PiTerminalRouteRequest,
-  PiTerminalRouteResult,
   ProviderSnapshot,
   SearchRequest,
   SearchResponse,
@@ -28,7 +26,6 @@ import {
 } from "./agent-host-socket-transport";
 import { AppPreferencesCatalog } from "./app-preferences-catalog";
 import { switchModelForContext } from "./bootstrap/model-switch";
-import { routePromptToTerminal } from "./bootstrap/route-to-terminal";
 import {
   buildThreadContext as buildThreadContextFromHelper,
   type ResolvedRepositoryInspection,
@@ -36,6 +33,7 @@ import {
 } from "./bootstrap/thread-context";
 import { GitWorktreeService } from "./git-worktree-service";
 import { registerIpcHandlers } from "./ipc-router";
+import { LocalThreadRuntimeManager } from "./local-thread-runtime-manager";
 import {
   discoverPiResources,
   getPiSlashSuggestions,
@@ -48,7 +46,6 @@ import { createShellSnapshot } from "./shell-snapshot";
 import { terminalManager } from "./terminal-manager";
 import { ThreadCatalog, type ThreadCatalogEntry } from "./thread-catalog";
 import { createThreadRuntimeLaunchDetails } from "./thread-runtime-launch";
-import { TmuxThreadRuntimeManager } from "./tmux-thread-runtime-manager";
 import {
   createMainWindowOptions,
   resolvePreloadTarget,
@@ -183,7 +180,7 @@ async function bootstrapDesktop() {
   const appPreferencesCatalog = new AppPreferencesCatalog(userDataPath);
   const threadCatalog = new ThreadCatalog(userDataPath);
   const selectionState = new SelectionState(userDataPath);
-  const runtimeManager = new TmuxThreadRuntimeManager();
+  const runtimeManager = new LocalThreadRuntimeManager();
   const runtimeSocketDirectory = path.join(app.getPath("temp"), "pd");
   mkdirSync(runtimeSocketDirectory, { recursive: true });
 
@@ -252,15 +249,6 @@ async function bootstrapDesktop() {
     request: SearchRequest,
   ): Promise<SearchResponse> {
     return workspaceSearchService.search(request);
-  }
-
-  async function handleRouteToTerminal(
-    request: PiTerminalRouteRequest,
-  ): Promise<PiTerminalRouteResult> {
-    return routePromptToTerminal(request, {
-      terminalManager,
-      delay,
-    });
   }
 
   async function connectSocketHost(socketPath: string): Promise<{
@@ -643,7 +631,6 @@ async function bootstrapDesktop() {
     switchModel: handleSwitchModel,
     getDiscovery: handleGetDiscovery,
     getSlashSuggestions: handleGetSlashSuggestions,
-    routeToTerminal: handleRouteToTerminal,
     threadCatalog,
   });
 

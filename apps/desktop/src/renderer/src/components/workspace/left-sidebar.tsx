@@ -738,6 +738,8 @@ export function LeftSidebar({
 
   return (
     <aside
+      data-testid="left-sidebar"
+      data-state={isCollapsed ? "collapsed" : "expanded"}
       className={cn(
         "relative z-10 flex h-full shrink-0 overflow-hidden bg-[#0e0e0e]",
         "transition-[margin-left,width] duration-150 ease-[var(--ease-out)]",

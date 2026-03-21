@@ -111,6 +111,7 @@ export function WindowChrome({
       role="presentation"
       data-window-id={window.id}
       data-window-kind={window.kind}
+      data-window-state={window.state}
       data-focus-state={window.isFocused ? "active" : "inactive"}
     >
       {/* Title bar */}
@@ -147,6 +148,7 @@ export function WindowChrome({
             )}
           >
             <svg
+              aria-hidden="true"
               viewBox="0 0 24 24"
               className="h-2 w-2 opacity-0 transition-opacity group-hover:opacity-100"
               fill="none"
@@ -178,6 +180,7 @@ export function WindowChrome({
             )}
           >
             <svg
+              aria-hidden="true"
               viewBox="0 0 24 24"
               className="h-2 w-2 opacity-0 transition-opacity group-hover:opacity-100"
               fill="none"
@@ -208,6 +211,7 @@ export function WindowChrome({
             )}
           >
             <svg
+              aria-hidden="true"
               viewBox="0 0 24 24"
               className="h-2 w-2 opacity-0 transition-opacity group-hover:opacity-100"
               fill="none"
@@ -233,6 +237,7 @@ export function WindowChrome({
             {isEditingTitle ? (
               <input
                 ref={inputRef}
+                data-testid="window-title-input"
                 type="text"
                 value={editValue}
                 onChange={(e) => setEditValue(e.target.value)}
@@ -254,6 +259,7 @@ export function WindowChrome({
               />
             ) : (
               <span
+                data-testid="window-title"
                 className={cn(
                   "truncate text-xs font-sans font-medium tracking-tight pointer-events-auto cursor-default",
                   "transition-colors duration-150",

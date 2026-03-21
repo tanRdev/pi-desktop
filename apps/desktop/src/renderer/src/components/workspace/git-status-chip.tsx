@@ -19,12 +19,10 @@ const iconClass =
   "h-3 w-3 transition-all duration-[var(--duration-fast)] motion-reduce:transition-none";
 
 export function GitStatusChip({ git, className }: GitStatusChipProps) {
-  // Hide completely if clean (no changes, no ahead/behind)
   if (git.status === "ready" && !git.hasChanges && !git.ahead && !git.behind) {
     return null;
   }
 
-  // Not ready states
   if (git.status !== "ready") {
     const statusIcons: Record<string, React.ReactNode> = {
       loading: (
@@ -54,7 +52,6 @@ export function GitStatusChip({ git, className }: GitStatusChipProps) {
     );
   }
 
-  // Ready + has local changes (dirty)
   if (git.hasChanges) {
     return (
       <span
@@ -70,12 +67,10 @@ export function GitStatusChip({ git, className }: GitStatusChipProps) {
     );
   }
 
-  // Ready, clean, but ahead and/or behind remote
   const ahead = git.ahead ?? 0;
   const behind = git.behind ?? 0;
 
   if (ahead > 0 && behind > 0) {
-    // Diverged — local and remote have diverged
     return (
       <span
         className={cn(
@@ -91,7 +86,6 @@ export function GitStatusChip({ git, className }: GitStatusChipProps) {
   }
 
   if (ahead > 0) {
-    // Ahead of remote — needs push
     return (
       <span
         className={cn(
@@ -106,7 +100,6 @@ export function GitStatusChip({ git, className }: GitStatusChipProps) {
     );
   }
 
-  // Behind remote — needs pull
   return (
     <span
       className={cn(

@@ -152,7 +152,6 @@ export function WindowContentRouter({
           terminalId={win.terminalId}
           cwd={win.cwd}
           backend={win.backend}
-          linkedThreadId={win.linkedThreadId}
           ownerWindowId={win.id}
         />
       </div>

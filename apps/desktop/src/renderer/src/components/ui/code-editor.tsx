@@ -122,7 +122,6 @@ export function CodeEditor({
   const handleMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
 
-    // Configure editor options
     editor.updateOptions({
       minimap: { enabled: false },
       fontSize: 13,
@@ -141,10 +140,8 @@ export function CodeEditor({
       lineNumbersMinChars: 3,
     });
 
-    // Focus the editor
     editor.focus();
 
-    // Call user callback
     onMount?.(editor, monaco);
   };
 
@@ -152,7 +149,6 @@ export function CodeEditor({
     onChange?.(value ?? "");
   };
 
-  // Determine language from file path if not provided
   const detectedLanguage =
     language ?? (filePath ? getLanguageFromPath(filePath) : "plaintext");
 

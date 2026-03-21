@@ -14,9 +14,7 @@ export interface TerminalWindowContentProps {
   /** Working directory */
   cwd: string;
   /** Terminal backend mode */
-  backend?: "shell" | "lazygit" | "pi-linked" | "tmux-attach";
-  /** Linked Pi thread ID if backend is pi-linked */
-  linkedThreadId?: string;
+  backend?: "shell" | "lazygit";
   /** Owning window ID */
   ownerWindowId?: string;
   /** Additional class name */
@@ -30,7 +28,6 @@ export function TerminalWindowContent({
   terminalId,
   cwd,
   backend = "shell",
-  linkedThreadId,
   ownerWindowId,
   className,
 }: TerminalWindowContentProps) {
@@ -40,14 +37,13 @@ export function TerminalWindowContent({
         "h-full w-full",
         // Window enter animation - scale from 0.95 with translateY
         "animate-[window-enter_300ms_cubic-bezier(0.23,1,0.32,1)_forwards]",
-        className
+        className,
       )}
     >
       <Terminal
         id={terminalId}
         cwd={cwd}
         backend={backend}
-        linkedThreadId={linkedThreadId}
         ownerWindowId={ownerWindowId ?? `terminal-${terminalId}`}
         className="h-full w-full rounded-none border-0"
       />

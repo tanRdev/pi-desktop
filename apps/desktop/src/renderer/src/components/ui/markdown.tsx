@@ -42,7 +42,6 @@ function extractLanguage(className?: string): string {
   return language ?? "plaintext";
 }
 
-// Enhanced prose styles for rich markdown rendering
 const INITIAL_COMPONENTS: Partial<Components> = {
   h1: function H1Component({ children, ...props }) {
     return (

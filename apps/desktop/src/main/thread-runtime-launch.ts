@@ -1,6 +1,5 @@
 import path from "node:path";
 import type { CreateAgentRuntimeOptions } from "@pidesk/agent-host";
-import { createTmuxThreadSessionName } from "./tmux-session-naming";
 
 type AgentRuntimeMode = CreateAgentRuntimeOptions["mode"];
 
@@ -18,7 +17,7 @@ export interface CreateThreadRuntimeLaunchDetailsOptions {
 export interface ThreadRuntimeLaunchDetails {
   threadId: string;
   worktreePath: string;
-  sessionName: string;
+  runtimeId: string;
   socketPath: string;
   command: string[];
 }
@@ -33,7 +32,6 @@ export function createThreadRuntimeLaunchDetails({
   nodeEnv,
   agentDirectory,
 }: CreateThreadRuntimeLaunchDetailsOptions): ThreadRuntimeLaunchDetails {
-  const sessionName = createTmuxThreadSessionName(threadId);
   const socketFileName = `pd-${threadId.slice(0, 8) || "thread"}.sock`;
   const socketPath = path.join(socketDirectory, socketFileName);
   const resolvedAgentDirectory =
@@ -42,7 +40,7 @@ export function createThreadRuntimeLaunchDetails({
   return {
     threadId,
     worktreePath,
-    sessionName,
+    runtimeId: `local-${threadId}`,
     socketPath,
     command: [
       "env",

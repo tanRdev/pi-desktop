@@ -7,7 +7,6 @@ import {
 } from "../form-components";
 import { useSettings } from "../settings-context";
 
-// Custom easing for Emil Design
 const EASE_OUT = "cubic-bezier(0.23, 1, 0.32, 1)";
 
 export function InterfaceSettingsSection() {
@@ -33,6 +32,8 @@ export function InterfaceSettingsSection() {
             description="Width of the sidebar in pixels"
           >
             <SettingsSlider
+              testId="settings-sidebar-width-slider"
+              ariaLabel="Sidebar Width"
               value={ui.sidebarWidth}
               onChange={(value) =>
                 updateSettings("interface", { sidebarWidth: value })
@@ -46,9 +47,7 @@ export function InterfaceSettingsSection() {
       </SettingsSection>
 
       <div
-        className={cn(
-          "flex justify-end pt-4 stagger-item"
-        )}
+        className={cn("flex justify-end pt-4 stagger-item")}
         style={{
           animationDelay: "40ms",
           animationFillMode: "forwards",

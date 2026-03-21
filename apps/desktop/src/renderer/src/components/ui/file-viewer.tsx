@@ -20,7 +20,6 @@ interface FileViewerProps {
   className?: string;
 }
 
-// Map file extensions to language identifiers for syntax highlighting
 const EXTENSION_TO_LANGUAGE: Record<string, string> = {
   ".js": "javascript",
   ".jsx": "jsx",

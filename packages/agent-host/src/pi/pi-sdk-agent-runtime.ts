@@ -180,17 +180,14 @@ export class PiSdkAgentRuntime {
     this.agentDir = agentDir;
     this.createAgentSession = createAgentSession;
 
-    // Initialize Pi SDK components
     const globalAgentDir = path.join(homedir(), ".pi", "agent");
     const resolvedAgentDir = agentDir ?? globalAgentDir;
 
-    // Initialize model registry with auth storage
     this.modelRegistry = createModelRegistry(
       path.join(globalAgentDir, "auth.json"),
       path.join(globalAgentDir, "models.json"),
     );
 
-    // Initialize settings manager
     this.settingsManager = createSettingsManager(cwd, resolvedAgentDir);
   }
 
@@ -226,7 +223,6 @@ export class PiSdkAgentRuntime {
   }
 
   async reset(): Promise<void> {
-    // Dispose existing session if present, then create a fresh session.
     try {
       this.unsubscribeSession?.();
       this.unsubscribeSession = null;
@@ -250,7 +246,6 @@ export class PiSdkAgentRuntime {
       );
 
       this.refreshSnapshot("ready");
-      // Notify listeners that a reset happened
       this.emit({ type: "agent_end" });
       this.emit({ type: "agent_start" });
     } catch (error) {
@@ -264,13 +259,10 @@ export class PiSdkAgentRuntime {
       return [];
     }
 
-    // Refresh the registry so newly-added providers (e.g. via CLI) are picked up
     this.modelRegistry.refresh();
 
-    // Get all available models
     const models = this.modelRegistry.getAvailable();
 
-    // Group by provider
     const providerMap = new Map<string, ModelSnapshot[]>();
 
     for (const model of models) {
@@ -289,15 +281,14 @@ export class PiSdkAgentRuntime {
       });
     }
 
-    // Convert to ProviderSnapshot array
     const result: ProviderSnapshot[] = [];
 
     for (const [providerId, providerModels] of providerMap) {
       result.push({
         id: providerId,
-        name: providerId, // TODO: get provider display name
+        name: providerId,
         models: providerModels,
-        isConfigured: true, // getAvailable only returns configured models
+        isConfigured: true,
       });
     }
 
@@ -350,11 +341,9 @@ export class PiSdkAgentRuntime {
       throw new Error("Settings manager not initialized");
     }
 
-    // Update settings
     this.settingsManager.setDefaultProvider(request.providerId);
     this.settingsManager.setDefaultModel(request.modelId);
 
-    // Emit model change event
     this.emit({
       type: "model_changed",
       providerId: request.providerId,

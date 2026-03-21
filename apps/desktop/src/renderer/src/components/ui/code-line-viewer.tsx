@@ -1,7 +1,10 @@
 "use client";
 
+import {
+  Message01Icon as MessageSquare,
+  PlusSignIcon as Plus,
+} from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Message01Icon as MessageSquare, PlusSignIcon as Plus } from "@hugeicons/core-free-icons";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { CodeBlockCode } from "./code-block";
@@ -58,10 +61,8 @@ export function CodeLineViewer({
   );
   const lineRefsRef = React.useRef<Map<number, HTMLDivElement>>(new Map());
 
-  // Clear selection when clicking outside
   React.useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      // Don't clear if clicking inside popover
       const popover = containerRef.current?.querySelector('[class*="z-20"]');
       if (popover?.contains(e.target as Node)) return;
 
@@ -77,7 +78,6 @@ export function CodeLineViewer({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Show popover when selection changes
   React.useEffect(() => {
     if (selection) {
       if (popoverTimeoutRef.current) {
@@ -96,7 +96,6 @@ export function CodeLineViewer({
     };
   }, [selection]);
 
-  // Add/remove document-level mouse event listeners for drag
   React.useEffect(() => {
     if (!dragState?.isDragging) return;
 
@@ -136,7 +135,6 @@ export function CodeLineViewer({
           const endLine = Math.max(dragState.startLine, lineNumber);
           setSelection({ startLine, endLine });
 
-          // Calculate popover position at the middle of selection
           const midLine = Math.floor((startLine + endLine) / 2);
           const lineElement = lineRefsRef.current.get(midLine);
           if (lineElement && containerRef.current) {
@@ -162,7 +160,6 @@ export function CodeLineViewer({
     };
   }, [dragState]);
 
-  // Handle mouse down on line row - start drag selection
   function handleMouseDown(lineNumber: number, e: React.MouseEvent) {
     e.preventDefault();
     setDragState({
@@ -174,17 +171,14 @@ export function CodeLineViewer({
     setShowPopover(false);
   }
 
-  // Handle click on Plus button - toggle or extend selection
   function handleLineClick(lineNumber: number, e: React.MouseEvent) {
     e.stopPropagation();
 
     if (e.shiftKey && selection) {
-      // Extend selection
       const startLine = Math.min(selection.startLine, lineNumber);
       const endLine = Math.max(selection.endLine, lineNumber);
       setSelection({ startLine, endLine });
     } else {
-      // Toggle selection
       if (
         selection?.startLine === lineNumber &&
         selection.endLine === lineNumber
@@ -196,7 +190,6 @@ export function CodeLineViewer({
       }
     }
 
-    // Position popover near the clicked line
     const lineElement = lineRefsRef.current.get(lineNumber);
     if (lineElement && containerRef.current) {
       const rect = lineElement.getBoundingClientRect();

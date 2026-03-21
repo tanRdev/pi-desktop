@@ -35,7 +35,6 @@ interface FileTreeItemProps {
   selectedPath?: string | null;
 }
 
-// File extension to icon mapping
 const getFileIcon = (filename: string, isSelected: boolean) => {
   const ext = filename.split(".").pop()?.toLowerCase();
   const className = cn(

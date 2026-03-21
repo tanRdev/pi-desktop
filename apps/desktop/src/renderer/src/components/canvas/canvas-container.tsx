@@ -70,7 +70,6 @@ export function CanvasContainer({
 }: CanvasContainerProps) {
   const { state, store } = useWindowStore();
 
-  // Handle drag
   const handleDragStart = React.useCallback(
     (windowId: string) => (e: React.MouseEvent) => {
       e.preventDefault();
@@ -94,7 +93,6 @@ export function CanvasContainer({
           gridSize,
         );
 
-        // Move the actual window while also showing snap preview
         store.moveWindow(windowId, pos.x, pos.y);
         store.setSnapPreview({
           windowId,
@@ -120,7 +118,6 @@ export function CanvasContainer({
     [state.layout.windows, state.layout.snapGridSize, store],
   );
 
-  // Handle resize
   const handleResizeStart = React.useCallback(
     (windowId: string) => (e: React.MouseEvent, direction: ResizeDirection) => {
       e.preventDefault();
@@ -160,7 +157,6 @@ export function CanvasContainer({
           y: g.y,
         });
 
-        // Show snap preview for resize
         store.setSnapPreview({
           windowId,
           position: {
@@ -185,7 +181,6 @@ export function CanvasContainer({
     [state.layout.windows, state.layout.snapGridSize, store],
   );
 
-  // Handle window state changes
   const handleMinimize = React.useCallback(
     (windowId: string) => () => {
       store.updateWindow(windowId, { state: "minimized" });
@@ -240,7 +235,6 @@ export function CanvasContainer({
     [renderWindowContent, state.layout.windows],
   );
 
-  // Handle wheel zoom (Ctrl/Cmd + wheel)
   const handleWheel = React.useCallback(
     (e: React.WheelEvent) => {
       if (e.ctrlKey || e.metaKey) {
@@ -252,13 +246,11 @@ export function CanvasContainer({
     [state.layout.zoom, store],
   );
 
-  // Handle canvas pan (middle mouse drag or space+drag)
   const [isPanning, setIsPanning] = React.useState(false);
   const panStartRef = React.useRef({ x: 0, y: 0 });
 
   const handleMouseDown = React.useCallback(
     (e: React.MouseEvent) => {
-      // Middle mouse button or space key held starts panning
       if (e.button === 1 || (e.button === 0 && e.altKey)) {
         e.preventDefault();
         setIsPanning(true);

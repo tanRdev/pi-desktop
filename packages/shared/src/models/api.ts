@@ -21,12 +21,7 @@ import type {
   SearchResponse,
 } from "./search.js";
 import type { ShellSnapshot } from "./shell.js";
-import type {
-  PiTerminalRouteRequest,
-  PiTerminalRouteResult,
-  TerminalCreateOptions,
-  TerminalSession,
-} from "./terminal.js";
+import type { TerminalCreateOptions, TerminalSession } from "./terminal.js";
 import type {
   CanvasWindow,
   CreateWindowAction,
@@ -73,9 +68,11 @@ export interface PiDeskApi {
     select(threadId: string): Promise<void>;
     archive(threadId: string): Promise<void>;
     rename(threadId: string, title: string): Promise<void>;
-    routeToTerminal(
-      request: PiTerminalRouteRequest,
-    ): Promise<PiTerminalRouteResult>;
+    routeToTerminal?(request: {
+      terminalId: string;
+      prompt: string;
+      startPiIfNotLinked?: boolean;
+    }): Promise<{ success: boolean; error?: string; threadId?: string }>;
   };
   dialog: {
     showOpenDialog(options: OpenDialogOptions): Promise<string[] | null>;

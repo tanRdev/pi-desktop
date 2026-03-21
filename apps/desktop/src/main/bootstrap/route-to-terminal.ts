@@ -1,8 +1,16 @@
-import type {
-  PiTerminalRouteRequest,
-  PiTerminalRouteResult,
-  TerminalBackend,
-} from "@pidesk/shared";
+import type { TerminalBackend } from "@pidesk/shared";
+
+type PiTerminalRouteRequest = {
+  terminalId: string;
+  prompt: string;
+  startPiIfNotLinked?: boolean;
+};
+
+type PiTerminalRouteResult = {
+  success: boolean;
+  error?: string;
+  threadId?: string;
+};
 
 type TerminalSessionLike = {
   id: string;

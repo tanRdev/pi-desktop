@@ -1,8 +1,19 @@
 "use client";
 
 import type { FileContent } from "@pidesk/shared";
-import { Binary, Check, FileIcon, FileText, FileWarning, Image, Loader2, Pencil, Terminal, X } from "@/components/ui/icons";
 import * as React from "react";
+import {
+  Binary,
+  Check,
+  FileIcon,
+  FileText,
+  FileWarning,
+  Image,
+  Loader2,
+  Pencil,
+  Terminal,
+  X,
+} from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { CodeLineViewer } from "./code-line-viewer";
 import { Markdown } from "./markdown";
@@ -116,7 +127,6 @@ export interface MultiFileViewerProps {
     filePath: string;
   }) => void;
   className?: string;
-  // Terminal tab props
   isTerminalOpen?: boolean;
   isTerminalActive?: boolean;
   onTerminalClick?: () => void;

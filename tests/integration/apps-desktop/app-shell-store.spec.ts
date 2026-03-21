@@ -6,11 +6,14 @@ import {
 import { createAppShellStore } from "../../../apps/desktop/src/renderer/src/stores/app-shell-store";
 import type {
   PiDeskAgentEvent,
-  PiDeskApi,
   ShellSnapshot,
 } from "../../../packages/shared/src";
 
-function createApiFixture(overrides: Partial<PiDeskApi> = {}): PiDeskApi {
+type AppShellStoreApi = Parameters<typeof createAppShellStore>[0];
+
+function createApiFixture(
+  overrides: Partial<AppShellStoreApi> = {},
+): AppShellStoreApi {
   const listeners = new Set<(event: PiDeskAgentEvent) => void>();
 
   return {
@@ -87,7 +90,9 @@ function createApiFixture(overrides: Partial<PiDeskApi> = {}): PiDeskApi {
     threads: {
       create: vi.fn(async () => undefined),
       select: vi.fn(async () => undefined),
-      routeToTerminal: vi.fn(async () => ({ success: true })),
+      routeToTerminal: vi.fn(async () => ({ success: false })),
+      archive: vi.fn(async () => undefined),
+      rename: vi.fn(async () => undefined),
     },
     dialog: {
       showOpenDialog: vi.fn(async () => null),
@@ -168,7 +173,7 @@ function createApiFixture(overrides: Partial<PiDeskApi> = {}): PiDeskApi {
       })),
     },
     ...overrides,
-  } as PiDeskApi;
+  } as AppShellStoreApi;
 }
 
 afterEach(() => {

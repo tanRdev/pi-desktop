@@ -13,7 +13,6 @@ import type {
 type SharpInstance = import("sharp").Sharp;
 type SharpMetadata = import("sharp").Metadata;
 
-// Lazy load sharp to handle optional dependency
 let sharpModule: ((input?: string | Buffer) => SharpInstance) | null = null;
 
 function isSharpFactory(

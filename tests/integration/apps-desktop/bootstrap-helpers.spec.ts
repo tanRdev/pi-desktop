@@ -11,7 +11,7 @@ describe("bootstrap helpers (RED)", () => {
     const getSessions = () => [
       {
         id: "shell-unlinked",
-        backend: "shell",
+        backend: "shell" as const,
         cwd: "/tmp/project",
         status: "ready",
         ownerWindowId: "win-1",
@@ -19,7 +19,7 @@ describe("bootstrap helpers (RED)", () => {
       },
       {
         id: "shell-linked",
-        backend: "shell",
+        backend: "shell" as const,
         cwd: "/tmp/project",
         status: "ready",
         ownerWindowId: "win-2",
@@ -28,7 +28,7 @@ describe("bootstrap helpers (RED)", () => {
       },
       {
         id: "lazygit-session",
-        backend: "lazygit",
+        backend: "lazygit" as const,
         cwd: "/tmp/project",
         status: "ready",
         ownerWindowId: "win-3",
@@ -202,7 +202,7 @@ describe("bootstrap helpers (RED)", () => {
     };
     const ensureDirectory = vi.fn();
     const resolveRuntimeOptions = vi.fn(() => ({
-      mode: "mock",
+      mode: "mock" as const,
       cwd: "/tmp/project",
       agentDir: "/tmp/project/.pi/agent",
     }));

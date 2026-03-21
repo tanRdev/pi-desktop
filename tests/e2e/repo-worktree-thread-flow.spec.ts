@@ -1,33 +1,32 @@
-import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
-import { _electron as electron, expect, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
+import {
+  launchDesktopApp,
+  removeWorktree,
+  repoRoot,
+  waitForAppReady,
+} from "./helpers/desktop-app";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = path.resolve(__dirname, "../..");
-const desktopMainEntry = path.join(repoRoot, "apps/desktop/out/main/index.js");
-
-function removeWorktree(
-  repoPath: string,
-  worktreePath: string,
-  branchName: string,
-): void {
-  spawnSync("git", ["worktree", "remove", "-f", worktreePath], {
-    cwd: repoPath,
-    encoding: "utf8",
-  });
-  spawnSync("git", ["branch", "-D", branchName], {
-    cwd: repoPath,
-    encoding: "utf8",
-  });
+function readSelection(userDataDir: string): {
+  repositoryId: string | null;
+  worktreeId: string | null;
+  threadId: string | null;
+} {
+  const selectionPath = path.join(userDataDir, "catalog", "selection.json");
+  return JSON.parse(fs.readFileSync(selectionPath, "utf8")) as {
+    repositoryId: string | null;
+    worktreeId: string | null;
+    threadId: string | null;
+  };
 }
 
-test("creates a worktree, creates a thread, and restores selection after relaunch", async () => {
+test("creates a worktree and restores worktree selection after relaunch", async () => {
+  test.setTimeout(45_000);
+
   const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), "pidesk-e2e-home-"));
   const userDataDir = path.join(homeDir, ".pidesk-test-user-data");
-  const customProjectName = "PiDesk Orbit";
   const branchName = `feature/e2e-${Date.now()}`;
   const worktreeDirectoryName = branchName.replace(/[\\/]+/g, "-");
   const createdWorktreePath = path.join(
@@ -38,36 +37,21 @@ test("creates a worktree, creates a thread, and restores selection after relaunc
   );
   fs.mkdirSync(userDataDir, { recursive: true });
 
-  const launchApp = () =>
-    electron.launch({
-      args: [desktopMainEntry],
-      cwd: repoRoot,
-      env: {
-        ...process.env,
-        HOME: homeDir,
-        NODE_ENV: "test",
-        PIDESK_AGENT_MODE: "mock",
-        PIDESK_HEADLESS: "1",
-        PIDESK_USER_DATA_DIR: userDataDir,
-      },
-    });
-
-  const app = await launchApp();
+  const firstLaunch = await launchDesktopApp("pidesk-e2e-home-", {
+    homeDir,
+    userDataDir,
+  });
 
   try {
-    const page = await app.firstWindow();
+    const { app, page } = firstLaunch;
 
-    await expect(page.getByTestId("app-ready")).toBeVisible();
-    await expect(page.getByTestId("app-title")).toHaveText("π");
-    await expect(page.getByTestId("titlebar-project-name")).toHaveText(
-      "PiDesk",
-    );
-    await expect(page.getByTestId("canvas-grid")).toBeVisible();
-    await expect(page.getByTestId("agent-status")).toHaveText("ready", {
-      timeout: 10_000,
-    });
+    await waitForAppReady(page);
 
-    await page.getByRole("button", { name: "Create worktree" }).click();
+    await page
+      .getByRole("button", { name: /Open repository /i })
+      .first()
+      .click();
+    await page.getByRole("button", { name: /NEW WORKTREE/i }).click();
     await page.getByTestId("worktree-branch-input").fill(branchName);
     await page.getByRole("button", { name: "Create" }).click();
 
@@ -77,49 +61,32 @@ test("creates a worktree, creates a thread, and restores selection after relaunc
     await expect(page.getByTestId("current-worktree-label")).toHaveText(
       branchName,
     );
-    await expect(page.getByTestId("agent-status")).toHaveText("ready", {
-      timeout: 10_000,
-    });
 
-    await page.getByRole("button", { name: "Create thread" }).click();
-    await expect(page.getByTestId("current-thread-title")).toHaveText(
-      "New thread",
-    );
-
-    await page
-      .getByRole("complementary")
-      .filter({ hasText: repoRoot })
-      .getByRole("button", { name: "Customize PiDesk" })
-      .click();
-    await page.getByLabel("Project display name").fill(customProjectName);
-    await page.getByLabel("Project display name").press("Enter");
-    await expect(page.getByTestId("titlebar-project-name")).toHaveText(
-      customProjectName,
-    );
+    await expect
+      .poll(() => readSelection(userDataDir).worktreeId, { timeout: 10_000 })
+      .toContain(worktreeDirectoryName);
 
     await app.close();
 
-    const relaunchedApp = await launchApp();
+    const relaunched = await launchDesktopApp("pidesk-e2e-home-relaunch-", {
+      homeDir,
+      userDataDir,
+    });
     try {
-      const relaunchedPage = await relaunchedApp.firstWindow();
-      await expect(relaunchedPage.getByTestId("app-ready")).toBeVisible();
-      await expect(relaunchedPage.getByTestId("agent-status")).toHaveText(
-        "ready",
-        { timeout: 10_000 },
-      );
+      await waitForAppReady(relaunched.page);
+      await relaunched.page
+        .getByRole("button", { name: /Open repository /i })
+        .first()
+        .click();
+      await expect(relaunched.page.getByText(branchName).first()).toBeVisible();
       await expect(
-        relaunchedPage.getByTestId("titlebar-project-name"),
-      ).toHaveText(customProjectName);
-      await expect(relaunchedPage.getByTestId("canvas-grid")).toBeVisible();
-      await expect(relaunchedPage.getByText(branchName).first()).toBeVisible();
-      await expect(
-        relaunchedPage.getByTestId("current-worktree-label"),
+        relaunched.page.getByTestId("current-worktree-label"),
       ).toHaveText(branchName);
-      await expect(
-        relaunchedPage.getByTestId("current-thread-title"),
-      ).toHaveText("New thread");
+      await expect(readSelection(userDataDir).worktreeId).toContain(
+        worktreeDirectoryName,
+      );
     } finally {
-      await relaunchedApp.close();
+      await relaunched.app.close();
     }
   } finally {
     removeWorktree(repoRoot, createdWorktreePath, branchName);

@@ -50,7 +50,12 @@ export function WorktreeSection({
   );
 
   return (
-    <div className="mb-0.5">
+    <div
+      data-testid="worktree-section"
+      data-worktree-id={worktree.id}
+      data-worktree-label={worktree.label}
+      className="mb-0.5"
+    >
       <button
         type="button"
         onClick={onToggleExpand}
@@ -85,7 +90,9 @@ export function WorktreeSection({
       <div
         className={cn(
           "grid transition-all duration-200 ease-out",
-          isExpanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+          isExpanded
+            ? "grid-rows-[1fr] opacity-100"
+            : "grid-rows-[0fr] opacity-0",
         )}
       >
         <div className="overflow-hidden">
@@ -103,7 +110,9 @@ export function WorktreeSection({
                       isActive={thread.id === activeThreadId}
                       onClick={() => onSelectThread(thread.id)}
                       onClose={
-                        onCloseThread ? () => onCloseThread(thread.id) : undefined
+                        onCloseThread
+                          ? () => onCloseThread(thread.id)
+                          : undefined
                       }
                       onRename={
                         onRenameThread
@@ -122,6 +131,7 @@ export function WorktreeSection({
 
             <button
               type="button"
+              data-testid="create-thread-button"
               aria-label="Create thread"
               disabled={isCreatingThread}
               className={cn(

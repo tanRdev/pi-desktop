@@ -3,8 +3,8 @@
  */
 
 import type { FileContent } from "@pidesk/shared";
-import { Save, Loader2, File, FileText, Image } from "@/components/ui/icons";
 import * as React from "react";
+import { File, FileText, Image, Loader2, Save } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { CodeEditor } from "../ui/code-editor";
 import { Markdown } from "../ui/markdown";
@@ -148,17 +148,14 @@ export function FileWindowContent({
   const fileName = getFileNameFromPath(filePath);
   const isMarkdown = isMarkdownFile(filePath);
 
-  // Track local content for editing
   const [localContent, setLocalContent] = React.useState<string | null>(null);
 
-  // Sync local content with prop when it changes
   React.useEffect(() => {
     if (content?.type === "text") {
       setLocalContent(content.content);
     }
   }, [content]);
 
-  // Handle content change
   const handleContentChange = React.useCallback(
     (newContent: string) => {
       setLocalContent(newContent);
@@ -182,7 +179,6 @@ export function FileWindowContent({
       </div>
     ) : null;
 
-  // Loading state
   if (isLoading) {
     return (
       <div className={cn("flex h-full items-center justify-center", className)}>
@@ -194,7 +190,6 @@ export function FileWindowContent({
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className={cn("flex h-full items-center justify-center", className)}>
@@ -206,7 +201,6 @@ export function FileWindowContent({
     );
   }
 
-  // No content
   if (!content) {
     return (
       <div className={cn("flex h-full items-center justify-center", className)}>
@@ -218,7 +212,6 @@ export function FileWindowContent({
     );
   }
 
-  // Binary file
   if (content.type === "binary") {
     return (
       <div className={cn("flex h-full items-center justify-center", className)}>
@@ -233,7 +226,6 @@ export function FileWindowContent({
     );
   }
 
-  // Unsupported file type
   if (content.type === "unsupported") {
     return (
       <div className={cn("flex h-full items-center justify-center", className)}>
@@ -245,7 +237,6 @@ export function FileWindowContent({
     );
   }
 
-  // Image file
   if (content.type === "image") {
     const imageSrc = content.content.startsWith("data:")
       ? content.content
@@ -266,9 +257,7 @@ export function FileWindowContent({
     );
   }
 
-  // Text file
   if (content.type === "text") {
-    // Markdown - render with markdown viewer (read-only for now)
     if (isMarkdown) {
       return (
         <div className={cn("flex h-full flex-col", className)}>
@@ -282,7 +271,6 @@ export function FileWindowContent({
       );
     }
 
-    // Code - render with Monaco editor
     return (
       <div className={cn("flex h-full flex-col", className)}>
         {renderEditorToolbar()}
@@ -300,7 +288,6 @@ export function FileWindowContent({
     );
   }
 
-  // Unknown type
   return (
     <div className={cn("flex h-full items-center justify-center", className)}>
       <div className="flex flex-col items-center gap-3 text-muted-foreground motion-safe:animate-[fade-in_0.3s_var(--ease-out)]">

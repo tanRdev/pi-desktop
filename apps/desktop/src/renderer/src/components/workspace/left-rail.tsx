@@ -143,6 +143,8 @@ export function LeftRail({
 
   return (
     <aside
+      data-testid="left-rail"
+      data-mode={mode}
       className={cn(
         "fixed left-0 top-10 z-40 h-[calc(100vh-64px)] bg-[#0e0e0e]",
       )}

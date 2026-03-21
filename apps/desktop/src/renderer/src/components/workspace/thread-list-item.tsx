@@ -65,9 +65,9 @@ export function ThreadListItem({
   }, [isEditing]);
 
   return (
-    // Using div with role="button" to avoid nesting interactive <button> elements (invalid HTML).
     // biome-ignore lint/a11y/useSemanticElements: contains nested interactive buttons for close/rename
     <div
+      data-testid="thread-list-item"
       role="button"
       tabIndex={0}
       onClick={isEditing ? undefined : onClick}
@@ -93,6 +93,7 @@ export function ThreadListItem({
         {isEditing ? (
           <input
             ref={inputRef}
+            data-testid="thread-rename-input"
             type="text"
             value={editValue}
             onChange={(e) => setEditValue(e.target.value)}
@@ -117,6 +118,7 @@ export function ThreadListItem({
       {!isEditing && onRename && (
         <button
           type="button"
+          data-testid="thread-rename-button"
           onClick={handleStartRename}
           className={cn(
             "ml-0.5 flex h-5 w-5 shrink-0 items-center justify-center",
@@ -134,6 +136,7 @@ export function ThreadListItem({
       {!isEditing && onClose && (
         <button
           type="button"
+          data-testid="thread-close-button"
           onClick={(e) => {
             e.stopPropagation();
             onClose();

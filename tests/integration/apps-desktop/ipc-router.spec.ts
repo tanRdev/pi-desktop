@@ -231,7 +231,6 @@ import {
   createEmptyWorkspaceSession,
   IPC_CHANNELS,
   type PiDiscoveryResult,
-  type PiTerminalRouteResult,
   type RepositoryPreferences,
   type SearchResponse,
   type ShellSnapshot,
@@ -781,7 +780,7 @@ describe("registerIpcHandlers", () => {
     });
   });
 
-  it("delegates discovery, slash suggestions, search, model switch, and terminal routing", async () => {
+  it("delegates discovery, slash suggestions, search, and model switch", async () => {
     const harness = createHandlerHarness();
     const discovery: PiDiscoveryResult = {
       isInstalled: true,
@@ -814,16 +813,10 @@ describe("registerIpcHandlers", () => {
       total: 1,
       duration: 4,
     };
-    const routeResult: PiTerminalRouteResult = {
-      success: true,
-      threadId: "thread-123",
-    };
-
     const switchModel = vi.fn(async () => undefined);
     const getDiscovery = vi.fn(async () => discovery);
     const getSlashSuggestions = vi.fn(async () => slashSuggestions);
     const searchFiles = vi.fn(async () => searchResponse);
-    const routeToTerminal = vi.fn(async () => routeResult);
 
     registerIpcHandlers({
       handle: harness.handle,
@@ -834,7 +827,6 @@ describe("registerIpcHandlers", () => {
       getDiscovery,
       getSlashSuggestions,
       searchFiles,
-      routeToTerminal,
     });
 
     await expect(
@@ -857,14 +849,6 @@ describe("registerIpcHandlers", () => {
         rootPath: "/tmp/pidesk",
       }),
     ).resolves.toEqual(searchResponse);
-    await expect(
-      harness.handlers.get(IPC_CHANNELS.threads.routeToTerminal)?.(undefined, {
-        terminalId: "term-1",
-        prompt: "echo hello",
-        startPiIfNotLinked: true,
-      }),
-    ).resolves.toEqual(routeResult);
-
     await harness.handlers.get(IPC_CHANNELS.agent.switchModel)?.(undefined, {
       providerId: "google",
       modelId: "gemini-2.5-pro",
@@ -880,11 +864,6 @@ describe("registerIpcHandlers", () => {
     expect(searchFiles).toHaveBeenCalledWith({
       query: "app",
       rootPath: "/tmp/pidesk",
-    });
-    expect(routeToTerminal).toHaveBeenCalledWith({
-      terminalId: "term-1",
-      prompt: "echo hello",
-      startPiIfNotLinked: true,
     });
     expect(switchModel).toHaveBeenCalledWith({
       providerId: "google",
@@ -926,36 +905,6 @@ describe("registerIpcHandlers", () => {
     });
 
     expect(callOrder).toEqual(["setMainWindow", "initialize"]);
-  });
-
-  it("threads.routeToTerminal defaults startPiIfNotLinked to false when omitted", async () => {
-    const harness = createHandlerHarness();
-    const routeToTerminal = vi.fn(async () => ({
-      success: true,
-      threadId: "t-1",
-    }));
-
-    registerIpcHandlers({
-      handle: harness.handle,
-      getShellSnapshot: vi.fn(createShellSnapshot),
-      agentHost: createAgentHost(createAgentSnapshot()),
-      mainWindow: null,
-      routeToTerminal,
-    });
-
-    await harness.handlers.get(IPC_CHANNELS.threads.routeToTerminal)?.(
-      undefined,
-      {
-        terminalId: "term-1",
-        prompt: "echo hi",
-      },
-    );
-
-    expect(routeToTerminal).toHaveBeenCalledWith({
-      terminalId: "term-1",
-      prompt: "echo hi",
-      startPiIfNotLinked: false,
-    });
   });
 
   it("terminal.create malformed payload should mention ownerWindowId in the error", async () => {

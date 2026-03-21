@@ -89,7 +89,6 @@ export function useShellModel() {
   };
 }
 
-// Pure helpers expected by tests
 export function parseModelSelectionValue(
   value: string,
 ): { providerId: string; modelId: string } | null {

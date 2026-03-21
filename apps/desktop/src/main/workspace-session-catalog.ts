@@ -126,10 +126,7 @@ function sanitizeWindow(input: unknown): CanvasWindow | null {
       if (
         !terminalId ||
         !cwd ||
-        (backend !== "shell" &&
-          backend !== "lazygit" &&
-          backend !== "pi-linked" &&
-          backend !== "tmux-attach")
+        (backend !== "shell" && backend !== "lazygit")
       ) {
         return null;
       }
@@ -139,12 +136,6 @@ function sanitizeWindow(input: unknown): CanvasWindow | null {
         terminalId,
         backend,
         cwd,
-        ...(getString(input.linkedThreadId)
-          ? { linkedThreadId: getString(input.linkedThreadId) }
-          : {}),
-        ...(getString(input.tmuxSessionName)
-          ? { tmuxSessionName: getString(input.tmuxSessionName) }
-          : {}),
       };
     }
     case "chat": {

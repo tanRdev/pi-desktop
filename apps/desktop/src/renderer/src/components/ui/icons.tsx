@@ -4,109 +4,80 @@
  * - Reduced motion support
  * - Custom easing via CSS variable --ease-out
  */
-import { HugeiconsIcon } from "@hugeicons/react";
+
 import type { HugeiconsIconProps, IconSvgElement } from "@hugeicons/react";
+import { HugeiconsIcon } from "@hugeicons/react";
 import * as React from "react";
 export type { IconSvgElement };
 export type Icon = React.ComponentType<any>;
 
-// Import all icons we need from core-free-icons
 import {
-  // Navigation & Arrows
-  ArrowUp01Icon,
+  Add01Icon,
+  AddSquareIcon,
+  AlertCircleIcon,
+  AlertSquareIcon,
+  Archive01Icon,
   ArrowDown01Icon,
-  ArrowRight01Icon,
   ArrowLeft01Icon,
-
-  // Cancellation
+  ArrowRight01Icon,
+  ArrowUp01Icon,
+  AtIcon,
+  BinaryCodeIcon,
+  BinaryCodeIcon as BinaryIcon,
+  BotIcon,
+  PackageIcon as BoxIcon,
   Cancel01Icon,
   CancelCircleIcon,
-
-  // Files & Folders
+  CheckmarkCircle02Icon,
+  CodeIcon,
+  ColorsIcon,
+  CommandIcon,
+  ComputerIcon,
+  ComputerTerminal01Icon,
+  CpuIcon,
+  Database01Icon,
+  Database02Icon,
+  Database01Icon as DatabaseIcon,
+  Delete01Icon,
+  Edit02Icon,
   File01Icon,
   File02Icon,
   Folder01Icon,
   Folder02Icon,
   FolderOpenIcon,
   FolderTreeIcon,
-  SaveIcon,
-
-  // Communication
+  GitBranchIcon,
+  GlobeIcon,
+  Image01Icon,
+  Image02Icon,
+  KeyboardIcon,
+  LayersIcon,
+  Layout01Icon,
+  LayoutLeftIcon,
+  LayoutRightIcon,
+  Link02Icon,
+  Loading02Icon,
+  MagicWand01Icon,
   Message01Icon,
-
-  // Actions / UI
-  Add01Icon,
-  AddSquareIcon,
-  CheckmarkCircle02Icon,
-  Delete01Icon,
-  Edit02Icon,
+  ComputerIcon as MonitorIcon,
+  PackageIcon,
   Edit02Icon as PencilEdit02Icon,
   RefreshIcon,
   RotateLeftIcon,
-
-  // Status
-  AlertCircleIcon,
-  AlertSquareIcon,
-  Tick01Icon,
-  Loading02Icon,
-
-  // Media
-  Image01Icon,
-  Image02Icon,
-
-  // Development
-  CodeIcon,
-  CommandIcon,
-  GitBranchIcon,
-  ComputerTerminal01Icon,
-  ComputerTerminal01Icon as TerminalIcon,
-
-  // Layout / Visual
-  LayoutLeftIcon,
-  Layout01Icon,
-  LayoutRightIcon,
+  SaveIcon,
+  ServerStack01Icon as ServerIcon,
+  ServerStack01Icon,
   Settings01Icon,
   Settings02Icon,
-  StickyNote01Icon,
-  StickyNote02Icon,
-
-  // Business / Links
-  Archive01Icon,
-  AtIcon,
-  Link02Icon,
-
-  // Devices / Hardware
-  SmartPhone01Icon,
-  SmartPhone01Icon as SmartphoneIcon,
-  ComputerIcon,
-  ComputerIcon as MonitorIcon,
-  ServerStack01Icon,
-  ServerStack01Icon as ServerIcon,
-
-  // Database
-  Database01Icon,
-  Database01Icon as DatabaseIcon,
-  Database02Icon,
-
-  // Security / Misc
   Shield01Icon,
   Shield02Icon,
-  BinaryCodeIcon,
-  BinaryCodeIcon as BinaryIcon,
-  PackageIcon,
-  PackageIcon as BoxIcon,
-  CpuIcon,
-  GlobeIcon,
-  LayersIcon,
+  SmartPhone01Icon,
+  SmartPhone01Icon as SmartphoneIcon,
+  StickyNote01Icon,
+  StickyNote02Icon,
+  ComputerTerminal01Icon as TerminalIcon,
+  Tick01Icon,
   ZapIcon,
-
-  // AI / Misc
-  BotIcon,
-  MagicWand01Icon,
-
-  // Keyboard / Colors
-  KeyboardIcon,
-  ColorsIcon,
 } from "@hugeicons/core-free-icons";
 
 /**
@@ -114,15 +85,10 @@ import {
  * These classes enable consistent hover/active animations across all icons
  */
 export const iconStateClasses = {
-  // Base interactive state classes for icons
   interactive: "motion-safe:transition-transform motion-safe:duration-150",
-  // Hover state: subtle scale up
   hover: "motion-safe:hover:scale-110",
-  // Active state: subtle scale down for pressed feedback
   active: "motion-safe:active:scale-90",
-  // Combined hover and active states
   hoverActive: "motion-safe:hover:scale-110 motion-safe:active:scale-90",
-  // Reduced motion: disable transitions
   motionReduce: "motion-reduce:transition-none motion-reduce:transform-none",
 } as const;
 
@@ -142,29 +108,25 @@ export const EMIL_DURATIONS = {
   slow: 300,
 } as const;
 
-// Helper to create an icon component with Emil Design interactions
 function createIconComponent(
   icon: HugeiconsIconProps["icon"],
   defaultProps?: Partial<HugeiconsIconProps> & {
     enableHoverScale?: boolean;
     enableActiveScale?: boolean;
-  }
+  },
 ) {
   const IconComponent = React.forwardRef<
     HTMLSpanElement,
     Omit<HugeiconsIconProps, "icon"> & {
       className?: string;
-      // Emil Design: allow consumers to opt into hover/active states
       interactive?: boolean;
     }
   >(({ className, size, color, strokeWidth, interactive, ...props }, ref) => {
-    // Extract size from className (e.g., "size-4" -> 16)
     let iconSize = size || 24;
     if (className?.includes("size-")) {
       const sizeMatch = className.match(/size-(\d+\.?\d*)/);
       if (sizeMatch) {
         const sizeValue = parseFloat(sizeMatch[1] ?? "0");
-        // Tailwind size-* is typically in rems (0.25rem = 4px)
         iconSize = sizeValue * 4;
       }
     }
@@ -181,7 +143,6 @@ function createIconComponent(
       }
     }
 
-    // Build className with Emil Design state classes when interactive
     const enhancedClassName = React.useMemo(() => {
       const classes: string[] = [className || ""];
 
@@ -214,7 +175,6 @@ function createIconComponent(
         ref={ref}
         className={enhancedClassName}
         style={{
-          // Emil Design: consistent transition timing
           transitionTimingFunction: "var(--ease-out, " + EMIL_EASE_OUT + ")",
           display: "inline-flex",
           alignItems: "center",
@@ -234,7 +194,6 @@ function createIconComponent(
   return IconComponent;
 }
 
-// Export icon components
 export const AlertCircle = createIconComponent(AlertCircleIcon);
 export const Archive = createIconComponent(Archive01Icon);
 export const ArrowUp = createIconComponent(ArrowUp01Icon);
@@ -247,7 +206,7 @@ export const ChevronDown = createIconComponent(ArrowDown01Icon);
 export const ChevronRight = createIconComponent(ArrowRight01Icon);
 export const ChevronLeft = createIconComponent(ArrowLeft01Icon);
 export const ChevronUp = createIconComponent(ArrowUp01Icon);
-export const Circle = createIconComponent(CancelCircleIcon); // Using cancel circle as placeholder
+export const Circle = createIconComponent(CancelCircleIcon);
 export const Code2 = createIconComponent(CodeIcon);
 export const Command = createIconComponent(CommandIcon);
 export const Cpu = createIconComponent(CpuIcon);
@@ -291,23 +250,17 @@ export const X = createIconComponent(Cancel01Icon);
 export const XCircle = createIconComponent(CancelCircleIcon);
 export const Zap = createIconComponent(ZapIcon);
 
-// Special components that need different handling
 export const CheckCircle = createIconComponent(CheckmarkCircle02Icon);
 
-// Re-export HugeiconsIcon for direct usage
 export { HugeiconsIcon };
 
-// Also export raw icon objects for direct use with HugeiconsIcon
 export {
-  // Navigation & Arrows
   ArrowUp01Icon,
   ArrowDown01Icon,
   ArrowRight01Icon,
   ArrowLeft01Icon,
   Cancel01Icon,
   CancelCircleIcon,
-
-  // Files & Folders
   File01Icon,
   File02Icon,
   Folder01Icon,
@@ -315,11 +268,7 @@ export {
   FolderOpenIcon,
   FolderTreeIcon,
   SaveIcon,
-
-  // Communication
   Message01Icon,
-
-  // Actions / UI
   Add01Icon,
   AddSquareIcon,
   CheckmarkCircle02Icon,
@@ -327,24 +276,16 @@ export {
   PencilEdit02Icon,
   RefreshIcon,
   RotateLeftIcon,
-
-  // Status
   AlertCircleIcon,
   AlertSquareIcon,
   Tick01Icon,
   Loading02Icon,
-
-  // Media
   Image01Icon,
   Image02Icon,
-
-  // Development
   CodeIcon,
   CommandIcon,
   GitBranchIcon,
   ComputerTerminal01Icon,
-
-  // Layout / Visual
   LayoutLeftIcon,
   Layout01Icon,
   LayoutRightIcon,
@@ -352,22 +293,14 @@ export {
   Settings02Icon,
   StickyNote01Icon,
   StickyNote02Icon,
-
-  // Business / Links
   Archive01Icon,
   AtIcon,
   Link02Icon,
-
-  // Devices / Hardware
   SmartPhone01Icon,
   ComputerIcon,
   ServerStack01Icon,
-
-  // Database
   Database01Icon,
   Database02Icon,
-
-  // Security / Misc
   Shield01Icon,
   Shield02Icon,
   BinaryCodeIcon,
@@ -376,12 +309,8 @@ export {
   GlobeIcon,
   LayersIcon,
   ZapIcon,
-
-  // AI / Misc
   BotIcon,
   MagicWand01Icon,
-
-  // Keyboard / Colors
   KeyboardIcon,
   ColorsIcon,
 };

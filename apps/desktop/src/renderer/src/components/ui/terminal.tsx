@@ -8,8 +8,7 @@ import "@xterm/xterm/css/xterm.css";
 interface TerminalProps {
   id: string;
   cwd?: string;
-  backend?: "shell" | "lazygit" | "pi-linked" | "tmux-attach";
-  linkedThreadId?: string;
+  backend?: "shell" | "lazygit";
   ownerWindowId?: string;
   className?: string;
   onExit?: () => void;
@@ -19,7 +18,6 @@ export function Terminal({
   id,
   cwd,
   backend = "shell",
-  linkedThreadId,
   ownerWindowId,
   className,
   onExit,
@@ -68,7 +66,6 @@ export function Terminal({
     terminal.loadAddon(fitAddon);
     terminal.open(containerRef.current);
 
-    // Wait for the container to be visible before fitting
     requestAnimationFrame(() => {
       fitAddon.fit();
     });
@@ -76,7 +73,6 @@ export function Terminal({
     terminalRef.current = terminal;
     fitAddonRef.current = fitAddon;
 
-    // Create PTY via main process
     const { cols, rows } = terminal;
     (async () => {
       try {
@@ -87,9 +83,7 @@ export function Terminal({
           cwd,
           ownerWindowId: ownerWindowId ?? `terminal-${id}`,
           backend,
-          linkedThreadId,
         });
-        // The API returns a rich TerminalSession descriptor; surface any immediate errors
         if (session?.status === "error") {
           const errorMessage = "Failed to create terminal session";
           setError(errorMessage);
@@ -106,12 +100,10 @@ export function Terminal({
       }
     })();
 
-    // Handle terminal input
     terminal.onData((data) => {
       window.pidesk.terminal.write(id, data).catch(console.error);
     });
 
-    // Handle resize
     const handleResize = () => {
       if (fitAddonRef.current && terminalRef.current) {
         fitAddonRef.current.fit();
@@ -123,7 +115,6 @@ export function Terminal({
     const resizeObserver = new ResizeObserver(handleResize);
     resizeObserver.observe(containerRef.current);
 
-    // Handle terminal events from main process
     const unsubscribe = window.pidesk.terminal.onEvent((event) => {
       if (event.id !== id) return;
 
@@ -144,7 +135,7 @@ export function Terminal({
       terminalRef.current = null;
       fitAddonRef.current = null;
     };
-  }, [id, cwd, backend, linkedThreadId, ownerWindowId, onExit]);
+  }, [id, cwd, backend, ownerWindowId, onExit]);
 
   if (error) {
     return (

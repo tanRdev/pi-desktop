@@ -14,8 +14,6 @@ import {
   type PiDeskAgentEvent,
   type PiDeskApi,
   type PiDiscoveryResult,
-  type PiTerminalRouteRequest,
-  type PiTerminalRouteResult,
   type ProviderSnapshot,
   type RepositoryDisplayMetadata,
   type RepositoryPreferences,
@@ -135,12 +133,6 @@ export function createPiDeskApi({
       },
       rename(threadId: string, title: string) {
         return invoke<void>(IPC_CHANNELS.threads.rename, { threadId, title });
-      },
-      routeToTerminal(request: PiTerminalRouteRequest) {
-        return invoke<PiTerminalRouteResult>(
-          IPC_CHANNELS.threads.routeToTerminal,
-          request,
-        );
       },
     },
     dialog: {

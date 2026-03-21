@@ -1,9 +1,8 @@
-import { HugeiconsIcon, RotateCcw } from "@/components/ui/icons";
 import type React from "react";
+import { HugeiconsIcon, RotateCcw } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 
-// Custom easing for Emil Design
 const EASE_OUT = "cubic-bezier(0.23, 1, 0.32, 1)";
 
 interface SelectOption {
@@ -11,7 +10,6 @@ interface SelectOption {
   label: string;
 }
 
-// Settings Section wrapper
 interface SettingsSectionProps {
   title: string;
   description?: string;
@@ -36,7 +34,6 @@ export function SettingsSection({
   );
 }
 
-// Settings Row wrapper
 interface SettingsRowProps {
   label: string;
   description?: string;
@@ -61,13 +58,14 @@ export function SettingsRow({
   );
 }
 
-// Select dropdown
 interface SettingsSelectProps {
   value: string;
   onChange: (value: string) => void;
   options: readonly SelectOption[] | SelectOption[];
   placeholder?: string;
   disabled?: boolean;
+  testId?: string;
+  ariaLabel?: string;
 }
 
 export function SettingsSelect({
@@ -75,9 +73,13 @@ export function SettingsSelect({
   onChange,
   options,
   disabled = false,
+  testId,
+  ariaLabel,
 }: SettingsSelectProps) {
   return (
     <select
+      data-testid={testId}
+      aria-label={ariaLabel}
       value={value}
       onChange={(e) => onChange(e.target.value)}
       disabled={disabled}
@@ -87,7 +89,7 @@ export function SettingsSelect({
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
         "hover:border-border-hover",
         "active:scale-[0.99]",
-        "disabled:cursor-not-allowed disabled:opacity-50"
+        "disabled:cursor-not-allowed disabled:opacity-50",
       )}
       style={{ transitionTimingFunction: EASE_OUT }}
     >
@@ -100,7 +102,6 @@ export function SettingsSelect({
   );
 }
 
-// Switch toggle
 interface SettingsSwitchProps {
   checked: boolean;
   onChange: (checked: boolean) => void;
@@ -125,7 +126,7 @@ export function SettingsSwitch({
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         "active:scale-[0.97]",
         "disabled:cursor-not-allowed disabled:opacity-50",
-        checked ? "bg-primary" : "bg-input"
+        checked ? "bg-primary" : "bg-input",
       )}
       style={{ transitionTimingFunction: EASE_OUT }}
     >
@@ -133,7 +134,7 @@ export function SettingsSwitch({
         className={cn(
           "pointer-events-none block h-4 w-4 rounded-full bg-background shadow ring-0",
           "transition-transform duration-150",
-          checked ? "translate-x-4" : "translate-x-0"
+          checked ? "translate-x-4" : "translate-x-0",
         )}
         style={{ transitionTimingFunction: EASE_OUT }}
       />
@@ -141,7 +142,6 @@ export function SettingsSwitch({
   );
 }
 
-// Slider
 interface SettingsSliderProps {
   value: number;
   onChange: (value: number) => void;
@@ -150,6 +150,8 @@ interface SettingsSliderProps {
   step?: number;
   showValue?: boolean;
   disabled?: boolean;
+  testId?: string;
+  ariaLabel?: string;
 }
 
 export function SettingsSlider({
@@ -160,10 +162,14 @@ export function SettingsSlider({
   step = 1,
   showValue = true,
   disabled = false,
+  testId,
+  ariaLabel,
 }: SettingsSliderProps) {
   return (
     <div className="flex items-center gap-3">
       <input
+        data-testid={testId}
+        aria-label={ariaLabel}
         type="range"
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
@@ -175,7 +181,7 @@ export function SettingsSlider({
           "w-[120px] h-2 bg-surface-2 rounded-lg appearance-none cursor-pointer accent-primary",
           "transition-all duration-150",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
-          "disabled:opacity-50"
+          "disabled:opacity-50",
         )}
         style={{ transitionTimingFunction: EASE_OUT }}
       />
@@ -188,7 +194,6 @@ export function SettingsSlider({
   );
 }
 
-// Text Input
 interface SettingsInputProps {
   value: string;
   onChange: (value: string) => void;
@@ -220,14 +225,13 @@ export function SettingsInput({
         "file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
         "hover:border-border-hover",
-        "disabled:cursor-not-allowed disabled:opacity-50"
+        "disabled:cursor-not-allowed disabled:opacity-50",
       )}
       style={{ transitionTimingFunction: EASE_OUT }}
     />
   );
 }
 
-// Number Input
 interface SettingsNumberInputProps {
   value: number;
   onChange: (value: number) => void;
@@ -262,19 +266,17 @@ export function SettingsNumberInput({
         "transition-all duration-150",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
         "hover:border-border-hover",
-        "disabled:cursor-not-allowed disabled:opacity-50"
+        "disabled:cursor-not-allowed disabled:opacity-50",
       )}
       style={{ transitionTimingFunction: EASE_OUT }}
     />
   );
 }
 
-// Divider
 export function SettingsDivider() {
   return <div className="border-t border-border my-4" />;
 }
 
-// Reset Button
 interface ResetButtonProps {
   onClick: () => void;
   label?: string;
@@ -296,7 +298,7 @@ export function ResetButton({
         "h-7 px-2 text-xs text-muted-foreground hover:text-foreground",
         "transition-all duration-150",
         "hover:bg-surface-2",
-        "active:scale-[0.97]"
+        "active:scale-[0.97]",
       )}
       style={{ transitionTimingFunction: EASE_OUT }}
     >
@@ -306,7 +308,6 @@ export function ResetButton({
   );
 }
 
-// Textarea
 interface SettingsTextareaProps {
   value: string;
   onChange: (value: string) => void;
@@ -338,7 +339,7 @@ export function SettingsTextarea({
         "placeholder:text-muted-foreground",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
         "hover:border-border-hover",
-        "disabled:cursor-not-allowed disabled:opacity-50"
+        "disabled:cursor-not-allowed disabled:opacity-50",
       )}
       style={{ transitionTimingFunction: EASE_OUT }}
     />

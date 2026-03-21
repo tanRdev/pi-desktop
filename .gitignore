@@ -10,3 +10,6 @@ test-results/
 *.log
 .pi/
 .todos/
+.agents/
+.factory/
+.opencode/

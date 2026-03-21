@@ -282,13 +282,13 @@ function useTextStream({
 export type ResponseStreamProps = {
   textStream: string | AsyncIterable<string>;
   mode?: Mode;
-  speed?: number; // 1-100, where 1 is slowest and 100 is fastest
+  speed?: number;
   className?: string;
   onComplete?: () => void;
-  as?: keyof React.JSX.IntrinsicElements; // Element type to render
-  fadeDuration?: number; // Custom fade duration in ms (overrides speed)
-  segmentDelay?: number; // Custom delay between segments in ms (overrides speed)
-  characterChunkSize?: number; // Custom characters per frame for typewriter mode (overrides speed)
+  as?: keyof React.JSX.IntrinsicElements;
+  fadeDuration?: number;
+  segmentDelay?: number;
+  characterChunkSize?: number;
 };
 
 function ResponseStream({
@@ -330,7 +330,6 @@ function ResponseStream({
     }
   }, [isComplete]);
 
-  // fadeStyle is the style for the fade animation
   const fadeStyle = `
     @keyframes fadeIn {
       from { opacity: 0; transform: scaleY(0.95); }

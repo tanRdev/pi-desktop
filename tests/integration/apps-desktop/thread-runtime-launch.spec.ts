@@ -1,10 +1,9 @@
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { createThreadRuntimeLaunchDetails } from "../../../apps/desktop/src/main/thread-runtime-launch";
-import { createTmuxThreadSessionName } from "../../../apps/desktop/src/main/tmux-session-naming";
 
 describe("createThreadRuntimeLaunchDetails", () => {
-  it("derives a stable socket path and tmux launch command for a thread runtime", () => {
+  it("derives a stable socket path and local runtime command for a thread runtime", () => {
     const launch = createThreadRuntimeLaunchDetails({
       threadId: "thread-alpha",
       worktreePath: "/tmp/worktrees/feature-alpha",
@@ -16,11 +15,10 @@ describe("createThreadRuntimeLaunchDetails", () => {
       nodeEnv: "test",
     });
 
-    const sessionName = createTmuxThreadSessionName("thread-alpha");
     expect(launch).toEqual({
       threadId: "thread-alpha",
       worktreePath: "/tmp/worktrees/feature-alpha",
-      sessionName,
+      runtimeId: "local-thread-alpha",
       socketPath: path.join("/tmp/pidesk-runtime-sockets", "pd-thread-a.sock"),
       command: [
         "env",

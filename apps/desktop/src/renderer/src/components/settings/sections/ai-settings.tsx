@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { useShellModel } from "../../../hooks/use-shell-model";
 import { getRuntimeProviders, getRuntimeSelection } from "../ai-runtime";
 import {
@@ -5,9 +6,7 @@ import {
   SettingsSection,
   SettingsSelect,
 } from "../form-components";
-import { cn } from "@/lib/utils";
 
-// Custom easing for Emil Design
 const EASE_OUT = "cubic-bezier(0.23, 1, 0.32, 1)";
 
 export function AISettingsSection() {
@@ -61,10 +60,7 @@ export function AISettingsSection() {
         description="Choose from providers and models available in the current runtime"
       >
         <div
-          className={cn(
-            "transition-all duration-200",
-            "stagger-item"
-          )}
+          className={cn("transition-all duration-200", "stagger-item")}
           style={{
             animationDelay: "0ms",
             animationFillMode: "forwards",
@@ -76,6 +72,8 @@ export function AISettingsSection() {
             description="Runtime-backed provider selection"
           >
             <SettingsSelect
+              testId="settings-provider-select"
+              ariaLabel="Provider"
               value={currentProvider?.id ?? ""}
               onChange={(value) => {
                 void handleProviderChange(value);
@@ -87,10 +85,7 @@ export function AISettingsSection() {
         </div>
 
         <div
-          className={cn(
-            "transition-all duration-200",
-            "stagger-item"
-          )}
+          className={cn("transition-all duration-200", "stagger-item")}
           style={{
             animationDelay: "40ms",
             animationFillMode: "forwards",
@@ -102,6 +97,8 @@ export function AISettingsSection() {
             description="Model currently available for that provider"
           >
             <SettingsSelect
+              testId="settings-model-select"
+              ariaLabel="Model"
               value={currentModelId}
               onChange={(value) => {
                 void handleModelChange(value);
@@ -119,9 +116,7 @@ export function AISettingsSection() {
 
       {runtimeProviders.length === 0 ? (
         <p
-          className={cn(
-            "text-sm text-muted-foreground stagger-item"
-          )}
+          className={cn("text-sm text-muted-foreground stagger-item")}
           style={{
             animationDelay: "80ms",
             animationFillMode: "forwards",

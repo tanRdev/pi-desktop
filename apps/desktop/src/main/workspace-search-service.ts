@@ -10,11 +10,9 @@ import type {
 const DEFAULT_TIMEOUT_MS = 10_000;
 
 function globToRegExp(pattern: string): RegExp {
-  // escape regex meta
   const esc = pattern.replace(/[.+^${}()|\\]/g, "\\$&");
-  // convert /**/ and * -> regex
   const withGlob = esc
-    .replace(/\\\\\*\\\\\*/g, "__DOUBLE_STAR__") // protect already-escaped
+    .replace(/\\\\\*\\\\\*/g, "__DOUBLE_STAR__")
     .replace(/\\\*\*/g, "__DOUBLE_STAR__")
     .replace(/\*\*/g, ".*")
     .replace(/\*/g, "[^/]*")
@@ -30,7 +28,6 @@ function matchesAnyPattern(relativePath: string, patterns?: string[]): boolean {
       const re = globToRegExp(p);
       return re.test(relativePath);
     } catch {
-      // fallback to simple substring match
       return relativePath.includes(p);
     }
   });
