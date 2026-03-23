@@ -33,7 +33,7 @@ describe("titlebar chrome", () => {
     );
 
     expect(source).toContain("canOpenFileTree");
-    expect(source).toContain("disabled={!canOpenFileTree}");
+    expect(source).toContain("disabled: !canOpenFileTree");
     expect(source).toContain('? "Browse files"');
     expect(source).toContain(': "Select a worktree to browse files"');
   });

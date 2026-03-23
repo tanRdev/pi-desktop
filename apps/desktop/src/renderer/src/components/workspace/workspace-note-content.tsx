@@ -1,7 +1,8 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { CodeEditor } from "../ui/code-editor";
+import { Markdown } from "../ui/markdown";
 import { ScrollArea } from "../ui/scroll-area";
-import { Textarea } from "../ui/textarea";
 
 export interface WorkspaceNoteContentProps {
   content?: string;
@@ -17,6 +18,7 @@ export function WorkspaceNoteContent({
   className,
 }: WorkspaceNoteContentProps) {
   const [draft, setDraft] = React.useState(content);
+  const [isEditorFocused, setIsEditorFocused] = React.useState(true);
 
   React.useEffect(() => {
     setDraft(content);
@@ -43,7 +45,7 @@ export function WorkspaceNoteContent({
   );
 
   const handleKeyDown = React.useCallback(
-    (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    (event: React.KeyboardEvent<HTMLDivElement>) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "s") {
         event.preventDefault();
         onSave?.();
@@ -52,20 +54,55 @@ export function WorkspaceNoteContent({
     [onSave],
   );
 
+  const handleEditorMount = React.useCallback<
+    NonNullable<React.ComponentProps<typeof CodeEditor>["onMount"]>
+  >((editor) => {
+    editor.onDidFocusEditorWidget(() => {
+      setIsEditorFocused(true);
+    });
+
+    editor.onDidBlurEditorText(() => {
+      window.setTimeout(() => {
+        if (!editor.hasTextFocus()) {
+          setIsEditorFocused(false);
+        }
+      }, 0);
+    });
+  }, []);
+
   return (
     <div className={cn("flex h-full flex-col bg-[#0d0d0d]", className)}>
-      <div className="border-b border-[#474747]/18 px-4 py-3 font-mono text-[10px] uppercase tracking-[0.12em] text-[#666]">
-        Project notes
+      <div className="min-h-0 flex-1 overflow-hidden" onKeyDown={handleKeyDown}>
+        {isEditorFocused ? (
+          <CodeEditor
+            filePath="project-notes.md"
+            value={draft}
+            language="markdown"
+            onChange={handleChange}
+            onMount={handleEditorMount}
+            className="h-full"
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={() => setIsEditorFocused(true)}
+            className="flex h-full w-full flex-col text-left"
+            aria-label="Edit project notes"
+          >
+            <ScrollArea className="min-h-0 flex-1">
+              <div className="px-5 py-4">
+                {draft.trim() ? (
+                  <Markdown>{draft}</Markdown>
+                ) : (
+                  <p className="text-[13px] leading-7 text-[#555]">
+                    Capture decisions, snippets, and reminders...
+                  </p>
+                )}
+              </div>
+            </ScrollArea>
+          </button>
+        )}
       </div>
-      <ScrollArea className="min-h-0 flex-1">
-        <Textarea
-          value={draft}
-          onChange={(event) => handleChange(event.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Capture decisions, snippets, and reminders..."
-          className="min-h-full w-full resize-none border-0 bg-transparent px-5 py-4 text-[13px] leading-7 text-white outline-none placeholder:text-[#555]"
-        />
-      </ScrollArea>
     </div>
   );
 }

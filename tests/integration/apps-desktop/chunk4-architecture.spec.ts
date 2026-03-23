@@ -7,7 +7,7 @@ function readSource(relativePath: string): string {
 }
 
 describe("chunk4 architecture", () => {
-  it("threads repository customization actions through the renderer shell", () => {
+  it("keeps repository preference wiring in the controller even after removing left-rail customization chrome", () => {
     const shellSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx",
     );
@@ -33,9 +33,6 @@ describe("chunk4 architecture", () => {
       "onUpdateRepositoryPreferences: updateRepositoryPreferences",
     );
     expect(shellSource).toContain("onUpdateRepositoryPreferences");
-    expect(shellSource).toContain(
-      "onUpdateRepositoryPreferences={onUpdateRepositoryPreferences}",
-    );
     expect(appSource).toContain("useAppShellController");
     expect(appSource).toContain("controller.workspaceShellProps");
   });
@@ -59,7 +56,7 @@ describe("chunk4 architecture", () => {
 
     expect(titleBarSource).toContain("activeWorktree");
     expect(titleBarSource).not.toContain('className="w-16"');
-    expect(leftRailSource).toContain("ProjectCustomizationMenu");
+    expect(leftRailSource).not.toContain("ProjectCustomizationMenu");
     expect(customizationSource).toContain("updateRepositoryPreferences");
     expect(customizationSource).toContain("accentColor");
     expect(iconPickerSource).toContain("PROJECT_ICON_OPTIONS");

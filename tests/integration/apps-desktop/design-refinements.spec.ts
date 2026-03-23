@@ -264,10 +264,10 @@ describe("design refinements – shell chrome & layout", () => {
     );
 
     expect(src).not.toContain(">Sidecar<");
-    expect(src).toContain('label: "Files"');
-    expect(src).toContain('label: "Notes"');
-    expect(src).toContain('label: "Terminal"');
-    expect(src).toContain('label: "Git"');
+    expect(src).not.toContain('label: "Files"');
+    expect(src).not.toContain('label: "Notes"');
+    expect(src).not.toContain('label: "Terminal"');
+    expect(src).not.toContain('label: "Git"');
   });
 
   it("prompt dock removes the old enter-to-send helper chrome", () => {

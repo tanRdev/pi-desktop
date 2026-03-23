@@ -129,6 +129,16 @@ describe("moveRepositorySnapshots", () => {
     expect(worktreeSource).toContain("create-thread-button");
   });
 
+  it("keeps non-selected projects collapsed while only the active project can stay expanded", () => {
+    const source = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
+    );
+
+    expect(source).toContain("const expandedWorktreeId = isActive");
+    expect(source).toContain("? resolveExpandedWorktreeId(");
+    expect(source).toContain(": null;");
+  });
+
   it("keeps the shell free of an extra helper column next to the sessions rail", () => {
     const shellSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx",

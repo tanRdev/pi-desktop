@@ -47,13 +47,7 @@ test("renders AI settings controls and persists interface settings across relaun
 
     await expect(
       firstLaunch.page.getByTestId("settings-provider-select"),
-    ).toHaveValue("google");
-    await expect(
-      firstLaunch.page.getByTestId("settings-provider-select"),
     ).toContainText("Google");
-    await expect(
-      firstLaunch.page.getByTestId("settings-model-select"),
-    ).toHaveValue("gemini-2.5-pro");
     await expect(
       firstLaunch.page.getByTestId("settings-model-select"),
     ).toContainText("Gemini 2.5 Pro");

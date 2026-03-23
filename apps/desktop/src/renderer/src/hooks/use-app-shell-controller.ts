@@ -22,9 +22,7 @@ import {
 import { uiInteractionStore } from "../stores/ui-interaction-store";
 import {
   openFileWindowForWorktree,
-  openProjectNoteWindowForWorktree,
   saveFileWindowForWorktree,
-  saveNoteWindowForWorktree,
   syncActiveThreadConversation,
   updateFileDraftForWorktree,
 } from "../stores/workspace-session-runtime";
@@ -37,6 +35,7 @@ import { useWindowStore, workspaceSessionStore } from "./use-window-store";
 
 const EMPTY_AUTOCOMPLETE_SUGGESTIONS: (SlashSuggestion | MentionSuggestion)[] =
   [];
+const PENDING_SURFACE_PREFIX = "__pending_surface__";
 
 function getThreadWindowTitle(
   thread: ThreadSnapshot | null | undefined,
@@ -49,6 +48,10 @@ function getInitialContextSurface(
   windows: WorkspaceShellProps["contextWindows"],
   current: WorkspaceShellProps["selectedContextSurface"] | null,
 ): WorkspaceShellProps["selectedContextSurface"] {
+  if (current === null) {
+    return current;
+  }
+
   if (current === "activity") {
     return current;
   }
@@ -57,7 +60,7 @@ function getInitialContextSurface(
     return current;
   }
 
-  return windows[0]?.id ?? "activity";
+  return current;
 }
 
 export interface AppShellController {
@@ -151,16 +154,10 @@ export function useAppShellController(): AppShellController {
     string | null
   >(null);
   const [selectedContextSurface, setSelectedContextSurface] =
-    React.useState<WorkspaceShellProps["selectedContextSurface"]>("activity");
+    React.useState<WorkspaceShellProps["selectedContextSurface"]>(null);
   const threadBootstrapAttemptKeyRef = React.useRef<string | null>(null);
   const launcherRequestIdRef = React.useRef(0);
 
-  const setNoteContentState = React.useCallback(
-    (windowId: string, value: string) => {
-      workspaceSessionStore.getState().setNoteContent(windowId, value);
-    },
-    [],
-  );
   const setAutocompleteSuggestions = React.useCallback(
     (suggestions: (SlashSuggestion | MentionSuggestion)[]) => {
       uiInteractionStore.getState().setPromptAutocomplete(suggestions);
@@ -266,6 +263,7 @@ export function useAppShellController(): AppShellController {
 
   const handleFileClick = React.useCallback(
     async (filePath: string) => {
+      setSelectedContextSurface(`${PENDING_SURFACE_PREFIX}:file`);
       const createdWindowId = await openFileWindowForWorktree({
         sessionStore: workspaceSessionStore,
         windowActions: {
@@ -302,6 +300,10 @@ export function useAppShellController(): AppShellController {
       > => window.kind === "terminal",
     );
     if (existingTerminal) {
+      if (existingTerminal.id === selectedContextSurface) {
+        setSelectedContextSurface(null);
+        return;
+      }
       windowStore.focusWindow(existingTerminal.id);
       setSelectedContextSurface(existingTerminal.id);
       return;
@@ -316,7 +318,12 @@ export function useAppShellController(): AppShellController {
       activeWorktreePath ?? undefined,
     );
     setSelectedContextSurface(terminalWindow.id);
-  }, [activeWorktreePath, windowState.layout.windows, windowStore]);
+  }, [
+    activeWorktreePath,
+    selectedContextSurface,
+    windowState.layout.windows,
+    windowStore,
+  ]);
 
   const handleOpenGit = React.useCallback(() => {
     if (!activeWorktreePath) {
@@ -333,6 +340,10 @@ export function useAppShellController(): AppShellController {
         window.kind === "git" && window.repositoryPath === activeWorktreePath,
     );
     if (existingGitWindow) {
+      if (existingGitWindow.id === selectedContextSurface) {
+        setSelectedContextSurface(null);
+        return;
+      }
       windowStore.focusWindow(existingGitWindow.id);
       setSelectedContextSurface(existingGitWindow.id);
       return;
@@ -349,31 +360,16 @@ export function useAppShellController(): AppShellController {
   }, [
     activeRepository?.name,
     activeWorktreePath,
+    selectedContextSurface,
     windowState.layout.windows,
     windowStore,
   ]);
 
-  const handleOpenNote = React.useCallback(() => {
-    void openProjectNoteWindowForWorktree({
-      sessionStore: workspaceSessionStore,
-      windowActions: {
-        createWindow: windowStore.createWindow,
-        focusWindow: windowStore.focusWindow,
-        updateWindow: windowStore.updateWindow,
-      },
-      windows: windowState.layout.windows,
-      worktreeId: activeWorktreeId,
-      worktreePath: activeWorktreePath,
-      readFile: (filePath) => window.pidesk.fs.readFile(filePath),
-    }).then((noteWindowId) => {
-      setSelectedContextSurface(noteWindowId);
-    });
-  }, [
-    activeWorktreeId,
-    activeWorktreePath,
-    windowState.layout.windows,
-    windowStore,
-  ]);
+  const handleOpenActivity = React.useCallback(() => {
+    setSelectedContextSurface((current) =>
+      current === "activity" ? null : "activity",
+    );
+  }, []);
 
   const handleFileContentChange = React.useCallback(
     (windowId: string, newContent: string) => {
@@ -404,35 +400,6 @@ export function useAppShellController(): AppShellController {
         }
       } catch (error) {
         console.error("Failed to save file:", error);
-      }
-    },
-    [activeWorktreeId, windowStore],
-  );
-
-  const handleNoteContentChange = React.useCallback(
-    (windowId: string, newContent: string) => {
-      setNoteContentState(windowId, newContent);
-      windowStore.setDirty(windowId, true);
-    },
-    [setNoteContentState, windowStore],
-  );
-
-  const handleNoteSave = React.useCallback(
-    async (windowId: string, storagePath?: string) => {
-      try {
-        const didSave = await saveNoteWindowForWorktree({
-          sessionStore: workspaceSessionStore,
-          worktreeId: activeWorktreeId,
-          windowId,
-          storagePath,
-          writeFile: (nextFilePath, content) =>
-            window.pidesk.fs.writeFile(nextFilePath, content),
-        });
-        if (didSave) {
-          windowStore.setDirty(windowId, false);
-        }
-      } catch (error) {
-        console.error("Failed to save note:", error);
       }
     },
     [activeWorktreeId, windowStore],
@@ -625,7 +592,7 @@ export function useAppShellController(): AppShellController {
     async (threadId: string) => {
       await window.pidesk.threads.archive(threadId);
       if (activeThreadId === threadId) {
-        setSelectedContextSurface("activity");
+        setSelectedContextSurface(null);
       }
       await reload();
     },
@@ -642,6 +609,7 @@ export function useAppShellController(): AppShellController {
 
   const handleSelectThread = React.useCallback(
     async (threadId: string) => {
+      setSelectedContextSurface(null);
       await window.pidesk.threads.select(threadId);
       await reload();
     },
@@ -825,7 +793,6 @@ export function useAppShellController(): AppShellController {
       windowState.layout.windows.filter(
         (window): window is WorkspaceShellProps["contextWindows"][number] =>
           window.kind === "file" ||
-          window.kind === "note" ||
           window.kind === "terminal" ||
           window.kind === "git",
       ),
@@ -833,25 +800,76 @@ export function useAppShellController(): AppShellController {
   );
 
   React.useEffect(() => {
+    const noteWindows = windowState.layout.windows.filter(
+      (window) => window.kind === "note",
+    );
+
+    if (noteWindows.length === 0) {
+      return;
+    }
+
+    noteWindows.forEach((window) => {
+      windowStore.closeWindow(window.id);
+    });
+  }, [windowState.layout.windows, windowStore]);
+
+  React.useEffect(() => {
     setSelectedContextSurface((current) =>
       getInitialContextSurface(contextWindows, current),
     );
   }, [contextWindows]);
 
+  React.useEffect(() => {
+    if (selectedContextSurface === null) {
+      contextWindows.forEach((window) => {
+        windowStore.closeWindow(window.id);
+      });
+      return;
+    }
+
+    if (selectedContextSurface === "activity") {
+      contextWindows.forEach((window) => {
+        windowStore.closeWindow(window.id);
+      });
+      return;
+    }
+
+    if (selectedContextSurface?.startsWith(PENDING_SURFACE_PREFIX)) {
+      return;
+    }
+
+    const hasSelectedWindow = contextWindows.some(
+      (window) => window.id === selectedContextSurface,
+    );
+    if (!hasSelectedWindow) {
+      return;
+    }
+
+    contextWindows.forEach((window) => {
+      if (window.id !== selectedContextSurface) {
+        windowStore.closeWindow(window.id);
+      }
+    });
+  }, [contextWindows, selectedContextSurface, windowStore]);
+
   const handleSelectContextSurface = React.useCallback(
     (surfaceKey: WorkspaceShellProps["selectedContextSurface"]) => {
+      if (surfaceKey === selectedContextSurface) {
+        setSelectedContextSurface(null);
+        return;
+      }
       setSelectedContextSurface(surfaceKey);
-      if (surfaceKey !== "activity") {
+      if (surfaceKey && surfaceKey !== "activity") {
         windowStore.focusWindow(surfaceKey);
       }
     },
-    [windowStore],
+    [selectedContextSurface, windowStore],
   );
 
   const handleCloseContextSurface = React.useCallback(
     (surfaceKey: string) => {
       windowStore.closeWindow(surfaceKey);
-      setSelectedContextSurface("activity");
+      setSelectedContextSurface(null);
     },
     [windowStore],
   );
@@ -903,14 +921,12 @@ export function useAppShellController(): AppShellController {
     onCloseLauncher: closeLauncherOverlay,
     onOpenFileTree: openFileTreeOverlay,
     onCloseFileTree: closeFileTreeOverlay,
-    onOpenNote: handleOpenNote,
     onOpenGit: handleOpenGit,
     onOpenTerminal: handleOpenTerminal,
+    onOpenActivity: handleOpenActivity,
     onFileClick: handleFileClick,
     onFileContentChange: handleFileContentChange,
     onFileSave: handleFileSave,
-    onNoteContentChange: handleNoteContentChange,
-    onNoteSave: handleNoteSave,
     onLauncherQueryChange: handleLauncherQueryChange,
     onLauncherSelect: handleLauncherSelect,
     onLauncherHover: handleLauncherHover,

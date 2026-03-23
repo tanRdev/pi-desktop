@@ -1,7 +1,8 @@
 import type React from "react";
-import { RotateCcw } from "@/components/ui/icons";
+import { Check, ChevronDown, RotateCcw } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 
 const EASE_OUT = "cubic-bezier(0.23, 1, 0.32, 1)";
 
@@ -76,29 +77,59 @@ export function SettingsSelect({
   testId,
   ariaLabel,
 }: SettingsSelectProps) {
+  const selectedOption =
+    options.find((option) => option.value === value) ?? options[0] ?? null;
+
   return (
-    <select
-      data-testid={testId}
-      aria-label={ariaLabel}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      disabled={disabled}
-      className={cn(
-        "flex h-9 w-[180px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm",
-        "transition-all duration-150",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
-        "hover:border-border-hover",
-        "active:scale-[0.99]",
-        "disabled:cursor-not-allowed disabled:opacity-50",
-      )}
-      style={{ transitionTimingFunction: EASE_OUT }}
-    >
-      {options.map((option) => (
-        <option key={option.value} value={option.value}>
-          {option.label}
-        </option>
-      ))}
-    </select>
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          data-testid={testId}
+          aria-label={ariaLabel}
+          disabled={disabled}
+          className={cn(
+            "flex h-9 w-[220px] items-center justify-between gap-2 border border-input bg-background px-3 py-1 text-sm shadow-sm",
+            "transition-all duration-150",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+            "hover:border-border-hover",
+            "active:scale-[0.99]",
+            "disabled:cursor-not-allowed disabled:opacity-50",
+          )}
+          style={{ transitionTimingFunction: EASE_OUT }}
+        >
+          <span className="truncate text-left">
+            {selectedOption?.label ?? "Select option"}
+          </span>
+          <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+        </button>
+      </PopoverTrigger>
+
+      <PopoverContent align="end" sideOffset={6} className="w-[220px] p-1">
+        <div className="space-y-1">
+          {options.map((option) => {
+            const isSelected = option.value === value;
+
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => onChange(option.value)}
+                className={cn(
+                  "flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-[11px]",
+                  isSelected
+                    ? "bg-white text-black"
+                    : "text-[#b8b8b8] hover:bg-[#1f1f1f] hover:text-white",
+                )}
+              >
+                <span className="truncate">{option.label}</span>
+                {isSelected ? <Check className="h-3.5 w-3.5 shrink-0" /> : null}
+              </button>
+            );
+          })}
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 

@@ -1,7 +1,6 @@
 import type { RepositorySnapshot } from "@pidesk/shared";
-import { ChevronDown, FolderGit, Plus } from "@/components/ui/icons";
+import { FolderGit, Plus } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
-import { Button } from "../ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { GitStatusChip } from "./git-status-chip";
 
@@ -10,6 +9,10 @@ export interface RepositorySwitcherProps {
   activeRepositoryId: string | null;
   onSelect: (repositoryId: string) => void | Promise<void>;
   onAdd: () => void | Promise<void>;
+  triggerLabel?: string;
+  triggerSubtitle?: string;
+  triggerAriaLabel?: string;
+  className?: string;
 }
 
 function getActiveRepository(
@@ -28,6 +31,10 @@ export function RepositorySwitcher({
   activeRepositoryId,
   onSelect,
   onAdd,
+  triggerLabel,
+  triggerSubtitle,
+  triggerAriaLabel,
+  className,
 }: RepositorySwitcherProps) {
   const activeRepository = getActiveRepository(
     repositories,
@@ -43,23 +50,24 @@ export function RepositorySwitcher({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
+        <button
+          type="button"
+          aria-label={triggerAriaLabel}
           className={cn(
-            "h-auto w-full justify-between rounded-none border border-[#474747]/30 bg-[#0e0e0e] px-3 py-2 text-left text-[11px] font-mono uppercase tracking-wider text-white shadow-none",
-            "transition-all duration-100 hover:bg-[#131313] hover:border-[#474747]",
+            "flex h-auto w-full items-start justify-between gap-3 px-1 py-0.5 text-left text-white",
+            "transition-opacity duration-100 hover:opacity-80",
+            className,
           )}
         >
           <div className="min-w-0 flex-1">
-            <div className="truncate font-bold tracking-[0.1em]">
-              {activeRepository?.name ?? "ADD_REPO"}
+            <div className="truncate text-[15px] font-medium leading-none tracking-[-0.01em]">
+              {triggerLabel ?? activeRepository?.name ?? "ADD_REPO"}
             </div>
-            <div className="mt-0.5 truncate text-[9px] text-[#474747] font-mono">
-              {activeWorktree?.path ?? "NULL_TARGET"}
+            <div className="mt-1 truncate font-mono text-[10px] uppercase tracking-[0.08em] text-[#6f6f6f]">
+              {triggerSubtitle ?? activeWorktree?.path ?? "NULL_TARGET"}
             </div>
           </div>
-          <ChevronDown className="ml-2 size-3 shrink-0 text-[#474747]" />
-        </Button>
+        </button>
       </PopoverTrigger>
       <PopoverContent
         align="start"

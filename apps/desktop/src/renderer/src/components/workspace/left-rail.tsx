@@ -1,15 +1,10 @@
-import type {
-  RepositoryDisplayMetadata,
-  RepositorySnapshot,
-  ThreadSnapshot,
-  WorktreeSnapshot,
-} from "@pidesk/shared";
+import type { RepositorySnapshot, WorktreeSnapshot } from "@pidesk/shared";
 import { moveRepositorySnapshots } from "@pidesk/shared";
-import { FolderPlus, Settings, Sparkles } from "lucide-react";
+import { FolderPlus } from "lucide-react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { ProjectAvatar } from "./project-avatar";
-import { ProjectCustomizationMenu } from "./project-customization-menu";
+import { RepositorySwitcher } from "./repository-switcher";
 import { WorktreeSection } from "./worktree-section";
 
 export const LEFT_RAIL_WIDTH = 320;
@@ -26,6 +21,26 @@ function getRepositorySubtitle(repository: RepositorySnapshot): string {
   );
 
   return `${repository.worktrees.length} worktrees · ${visibleThreadCount} threads`;
+}
+
+function getAllProjectsSummary(repositories: RepositorySnapshot[]): string {
+  const worktreeCount = repositories.reduce(
+    (count, repository) => count + repository.worktrees.length,
+    0,
+  );
+  const threadCount = repositories.reduce(
+    (count, repository) =>
+      count +
+      repository.worktrees.reduce(
+        (threadTotal, worktree) =>
+          threadTotal +
+          worktree.threads.filter((thread) => !thread.isArchived).length,
+        0,
+      ),
+    0,
+  );
+
+  return `${repositories.length} projects · ${worktreeCount} worktrees · ${threadCount} threads`;
 }
 
 function resolveExpandedWorktreeId(
@@ -61,13 +76,7 @@ export interface LeftRailProps {
   onCreateThread: (worktreeId: string) => void | Promise<void>;
   onCloseThread?: (threadId: string) => void;
   onRenameThread?: (threadId: string, title: string) => void;
-  onCreateWorktree: () => void;
-  onUpdateRepositoryPreferences: (
-    repositoryId: string,
-    updates: Partial<RepositoryDisplayMetadata>,
-  ) => void | Promise<void>;
   onAddRepository: () => void;
-  onOpenSettings: () => void;
 }
 
 export function LeftRail({
@@ -81,18 +90,13 @@ export function LeftRail({
   onCreateThread,
   onCloseThread,
   onRenameThread,
-  onCreateWorktree,
-  onUpdateRepositoryPreferences,
   onAddRepository,
-  onOpenSettings,
 }: LeftRailProps) {
   const [orderedRepositories, setOrderedRepositories] =
     React.useState(repositories);
   const [draggedRepositoryId, setDraggedRepositoryId] = React.useState<
     string | null
   >(null);
-  const [customizationRepositoryId, setCustomizationRepositoryId] =
-    React.useState<string | null>(null);
   const [expandedWorktreesByRepositoryId, setExpandedWorktreesByRepositoryId] =
     React.useState<Record<string, string | null>>({});
 
@@ -134,18 +138,11 @@ export function LeftRail({
   );
 
   const handleAddRepository = React.useCallback(() => {
-    setCustomizationRepositoryId(null);
     onAddRepository();
   }, [onAddRepository]);
 
-  const handleOpenSettings = React.useCallback(() => {
-    setCustomizationRepositoryId(null);
-    onOpenSettings();
-  }, [onOpenSettings]);
-
   const handleSelectRepositoryItem = React.useCallback(
     (repositoryId: string) => {
-      setCustomizationRepositoryId(null);
       onSelectRepository(repositoryId);
     },
     [onSelectRepository],
@@ -198,7 +195,23 @@ export function LeftRail({
       style={{ width: LEFT_RAIL_WIDTH }}
     >
       <div className="border-b border-[#474747]/18 px-4 py-4">
-        <div className="flex items-center justify-end gap-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <RepositorySwitcher
+              repositories={orderedRepositories}
+              activeRepositoryId={activeRepositoryId}
+              onSelect={handleSelectRepositoryItem}
+              onAdd={handleAddRepository}
+              triggerLabel={
+                activeRepository
+                  ? getRepositoryName(activeRepository)
+                  : "Projects"
+              }
+              triggerSubtitle={getAllProjectsSummary(orderedRepositories)}
+              triggerAriaLabel="Switch projects"
+            />
+          </div>
+
           <button
             type="button"
             onClick={handleAddRepository}
@@ -214,18 +227,18 @@ export function LeftRail({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-hidden px-3 py-3">
-        <div className="h-full space-y-3 overflow-hidden">
+      <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
+        <div className="space-y-3">
           {orderedRepositories.map((repository) => {
             const repositoryName = getRepositoryName(repository);
             const isActive = repository.id === activeRepositoryId;
-            const isCustomizationOpen =
-              customizationRepositoryId === repository.id;
-            const expandedWorktreeId = resolveExpandedWorktreeId(
-              repository.worktrees,
-              isActive ? activeWorktreeId : null,
-              expandedWorktreesByRepositoryId[repository.id] ?? null,
-            );
+            const expandedWorktreeId = isActive
+              ? resolveExpandedWorktreeId(
+                  repository.worktrees,
+                  activeWorktreeId,
+                  expandedWorktreesByRepositoryId[repository.id] ?? null,
+                )
+              : null;
 
             return (
               <section
@@ -260,7 +273,7 @@ export function LeftRail({
                   <ProjectAvatar
                     repository={repository}
                     isActive={isActive}
-                    className="size-9 shrink-0"
+                    className="size-8 shrink-0"
                   />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-medium text-white">
@@ -271,27 +284,6 @@ export function LeftRail({
                     </span>
                   </span>
                 </button>
-
-                {isActive ? (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setCustomizationRepositoryId((currentId) =>
-                        currentId === repository.id ? null : repository.id,
-                      )
-                    }
-                    className={cn(
-                      "absolute right-3 top-3 flex h-7 items-center gap-1.5 border border-[#474747]/20 bg-[#121212] px-2",
-                      "font-mono text-[9px] uppercase tracking-[0.08em] text-[#7a7a7a] transition-colors",
-                      "hover:border-white/35 hover:text-white",
-                    )}
-                    aria-label={`Customize ${repositoryName}`}
-                    aria-expanded={isCustomizationOpen}
-                  >
-                    <Sparkles className="size-3" />
-                    Edit
-                  </button>
-                ) : null}
 
                 <div className="border-t border-[#474747]/12 px-3 py-2">
                   <div className="space-y-1.5">
@@ -329,53 +321,9 @@ export function LeftRail({
                     )}
                   </div>
                 </div>
-
-                <ProjectCustomizationMenu
-                  repository={repository}
-                  open={isCustomizationOpen}
-                  updateRepositoryPreferences={onUpdateRepositoryPreferences}
-                  side="right"
-                  className="pointer-events-auto absolute left-full top-1 z-50 ml-3"
-                />
               </section>
             );
           })}
-        </div>
-      </div>
-
-      <div className="border-t border-[#474747]/18 px-3 py-3">
-        <div className="grid gap-2">
-          <button
-            type="button"
-            onClick={onCreateWorktree}
-            className={cn(
-              "flex w-full items-center gap-3 border border-[#474747]/20 px-3 py-2.5 text-left",
-              "text-[#7a7a7a] transition-colors hover:border-white/35 hover:bg-[#121212] hover:text-white",
-            )}
-            aria-label="Create worktree"
-            title="Create worktree"
-          >
-            <FolderPlus className="size-4 shrink-0" />
-            <span className="font-mono text-[10px] uppercase tracking-[0.08em]">
-              New worktree
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleOpenSettings}
-            className={cn(
-              "flex w-full items-center gap-3 border border-[#474747]/20 px-3 py-2.5 text-left",
-              "text-[#7a7a7a] transition-colors hover:border-white/35 hover:bg-[#121212] hover:text-white",
-            )}
-            aria-label="Open settings"
-            title="Open settings"
-          >
-            <Settings className="size-4 shrink-0" />
-            <span className="font-mono text-[10px] uppercase tracking-[0.08em]">
-              Settings
-            </span>
-          </button>
         </div>
       </div>
     </aside>

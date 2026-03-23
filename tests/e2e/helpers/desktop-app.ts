@@ -124,10 +124,23 @@ export function getWorkspaceContextPanel(page: Page) {
   return page.getByTestId("workspace-context-panel").first();
 }
 
+export function getWorkspacePrimarySurface(page: Page) {
+  return page.getByTestId("workspace-context-panel").first();
+}
+
 export function getContextPanelAction(page: Page, name: string) {
-  return getWorkspaceContextPanel(page).getByTestId(
-    `sidecar-action-${name.toLowerCase()}`,
-  );
+  const actionNames: Record<string, string> = {
+    Launcher: "Open launcher",
+    Files: "Browse files",
+    Terminal: "Open terminal",
+    Git: "Open git",
+    Activity: "Open activity",
+    Settings: "Open settings",
+  };
+
+  return page.getByRole("button", {
+    name: actionNames[name] ?? name,
+  });
 }
 
 export function getCurrentBranchName(): string {

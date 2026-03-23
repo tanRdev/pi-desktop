@@ -28,27 +28,21 @@ describe("workspace regressions", () => {
     );
   });
 
-  it("uses controlled repository customization visibility instead of hover-only CSS", () => {
+  it("removes repository customization chrome from the left rail", () => {
     const railSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
     );
-    const customizationSource = readSource(
-      "apps/desktop/src/renderer/src/components/workspace/project-customization-menu.tsx",
-    );
 
-    expect(railSource).toContain('side="right"');
-    expect(railSource).toContain("customizationRepositoryId");
-    expect(customizationSource).not.toContain("PencilLine");
-    expect(customizationSource).not.toContain("group-hover:block");
+    expect(railSource).not.toContain("ProjectCustomizationMenu");
+    expect(railSource).not.toContain("customizationRepositoryId");
   });
 
-  it("keeps new worktree creation reachable from the sessions rail", () => {
-    const railSource = readSource(
-      "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
+  it("removes new worktree creation from the title bar", () => {
+    const titleBarSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/title-bar.tsx",
     );
 
-    expect(railSource).toContain("New worktree");
-    expect(railSource).not.toContain("New session");
+    expect(titleBarSource).not.toContain("Create worktree");
   });
 
   it("adds prompt input padding and suppresses the inner focus treatment", () => {
@@ -91,8 +85,42 @@ describe("workspace regressions", () => {
     expect(dockSource).not.toContain('"EXECUTE"');
     expect(dockSource).not.toContain("PromptSuggestionGroup");
     expect(surfacePanelSource).not.toContain("Sidecar");
+    expect(surfacePanelSource).not.toContain(">Activity<");
     expect(activitySource).not.toContain("Current thread");
     expect(chatSource).not.toContain('label="Role"');
     expect(chatSource).not.toContain('label="Transcript"');
+  });
+
+  it("removes the version badge, notes entry points, and surface panel tab header", () => {
+    const titleBarSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/title-bar.tsx",
+    );
+    const surfacePanelSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/workspace-surface-panel.tsx",
+    );
+    const shellSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx",
+    );
+
+    expect(titleBarSource).not.toContain("desktopPackage");
+    expect(titleBarSource).not.toContain("appVersion");
+    expect(titleBarSource).not.toContain("Open notes");
+    expect(titleBarSource).toContain("activeSurfaceKind");
+    expect(surfacePanelSource).not.toContain("getSurfaceLabel");
+    expect(surfacePanelSource).not.toContain("getSurfaceIcon");
+    expect(surfacePanelSource).not.toContain("WorkspaceNoteContent");
+    expect(shellSource).not.toContain('label: "Note"');
+    expect(shellSource).not.toContain("onOpenNote");
+  });
+
+  it("clears the surface panel when selecting a thread", () => {
+    const controllerSource = readSource(
+      "apps/desktop/src/renderer/src/hooks/use-app-shell-controller.ts",
+    );
+
+    expect(controllerSource).toContain(
+      "const handleSelectThread = React.useCallback(",
+    );
+    expect(controllerSource).toContain("setSelectedContextSurface(null)");
   });
 });

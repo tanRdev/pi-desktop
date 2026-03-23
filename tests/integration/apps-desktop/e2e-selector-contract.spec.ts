@@ -24,8 +24,10 @@ describe("e2e selector contract", () => {
     expect(surfacePanelSource).toContain(
       'data-testid="workspace-context-panel"',
     );
-    expect(surfacePanelSource).toContain('testId: "sidecar-action-launcher"');
-    expect(surfacePanelSource).toContain('testId: "sidecar-action-files"');
+    expect(titleBarSource).toContain('data-slot="titlebar-controls"');
+    expect(titleBarSource).toContain('data-slot="titlebar-controls"');
+    expect(titleBarSource).toContain('label: "Open launcher"');
+    expect(titleBarSource).toContain('? "Browse files"');
   });
 
   it("adds stable settings and window chrome selectors for e2e flows", () => {

@@ -31,13 +31,14 @@ test("opens launcher as an overlay and dismisses it on close or selection", asyn
       name: "Launcher overlay",
     });
     await expect(reopenedOverlay).toBeVisible();
-    await reopenedOverlay.getByRole("button", { name: "Note" }).click();
+    await reopenedOverlay.getByRole("button", { name: "Terminal" }).click();
     await expect(
       page.getByRole("dialog", { name: "Launcher overlay" }),
     ).toHaveCount(0);
     await expect(
       page.getByTestId("workspace-context-panel").first(),
     ).toBeVisible();
+    await getContextPanelAction(page, "Activity").click();
   } finally {
     await app.close();
     launchContext.cleanup();

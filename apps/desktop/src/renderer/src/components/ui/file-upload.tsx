@@ -1,6 +1,5 @@
 import { ImageIcon, Paperclip, X } from "lucide-react";
 import type * as React from "react";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export interface UploadedFile {
@@ -19,26 +18,14 @@ export interface FileUploadProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export function FileUpload({
   files,
-  disabled,
-  onPickFiles,
+  disabled: _disabled,
+  onPickFiles: _onPickFiles,
   onRemoveFile,
   className,
   ...props
 }: FileUploadProps) {
   return (
     <div className={cn("space-y-2", className)} {...props}>
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        disabled={disabled}
-        onClick={() => void onPickFiles()}
-        className="h-7 border border-[#474747]/20 bg-[#141414] px-2 text-[9px] text-[#a0a0a0] hover:border-white/35 hover:bg-[#1a1a1a] hover:text-white"
-      >
-        <Paperclip className="size-3.5" />
-        Attach files
-      </Button>
-
       {files.length > 0 ? (
         <div className="flex flex-wrap gap-2">
           {files.map((file) => (

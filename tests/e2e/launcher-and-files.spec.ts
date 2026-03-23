@@ -1,12 +1,12 @@
 import { expect, test } from "@playwright/test";
 import {
   getContextPanelAction,
-  getWorkspaceContextPanel,
+  getWorkspacePrimarySurface,
   launchDesktopApp,
   waitForAppReady,
 } from "./helpers/desktop-app";
 
-test("opens launcher and file overlays, then routes note and file actions into sidecar surfaces", async () => {
+test("opens launcher and file overlays, then routes terminal and file actions into sidecar surfaces", async () => {
   test.setTimeout(45_000);
 
   const { app, page, launchContext } = await launchDesktopApp(
@@ -32,19 +32,18 @@ test("opens launcher and file overlays, then routes note and file actions into s
       launcherOverlay.getByRole("button", { name: "Git" }),
     ).toBeVisible();
     await expect(
-      launcherOverlay.getByRole("button", { name: "Note" }),
+      launcherOverlay.getByRole("button", { name: "Terminal" }),
     ).toBeVisible();
 
     await page.keyboard.press("Escape");
     await expect(launcherOverlay).toHaveCount(0);
 
     await getContextPanelAction(page, "Launcher").click();
-    await launcherOverlay.getByRole("button", { name: "Note" }).click();
+    await launcherOverlay.getByRole("button", { name: "Terminal" }).click();
 
     await expect(launcherOverlay).toHaveCount(0);
-    const contextPanel = getWorkspaceContextPanel(page);
+    const contextPanel = getWorkspacePrimarySurface(page);
     await expect(contextPanel).toBeVisible();
-    await expect(contextPanel).toContainText(/project notes/i);
 
     await getContextPanelAction(page, "Files").click();
 

@@ -107,9 +107,7 @@ test("creates, renames, finds, and closes a thread across workspace rail views",
     );
     await focusChatThread(page);
 
-    await expect(
-      page.getByTestId("workspace-context-panel").first(),
-    ).toBeVisible();
+    await expect(page.getByTestId("chat-transcript")).toBeVisible();
 
     const closeButton = renamedThreadInExplorer.getByTestId(
       "thread-close-button",
@@ -139,9 +137,7 @@ test("keeps the shell to sessions rail, chat, and sidecar only", async () => {
 
     await expect(page.getByTestId("left-rail")).toBeVisible();
     await expect(page.getByTestId("chat-first-layout")).toBeVisible();
-    await expect(
-      page.getByTestId("workspace-context-panel").first(),
-    ).toBeVisible();
+    await expect(page.getByTestId("chat-transcript")).toBeVisible();
     await expect(page.getByTestId("left-sidebar")).toHaveCount(0);
   } finally {
     await app.close();

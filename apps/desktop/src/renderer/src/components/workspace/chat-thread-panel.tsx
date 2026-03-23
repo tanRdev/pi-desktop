@@ -10,10 +10,7 @@ import { FeedbackBar, type FeedbackValue } from "../ui/feedback-bar";
 import { Loader } from "../ui/loader";
 import { Message, MessageAvatar, MessageContent } from "../ui/message";
 import { ScrollButton } from "../ui/scroll-button";
-import { StepItem, Steps } from "../ui/steps";
 import { SystemMessage } from "../ui/system-message";
-import { TextShimmer } from "../ui/text-shimmer";
-import { ThinkingBar } from "../ui/thinking-bar";
 import { Tool } from "../ui/tool";
 
 function getMessageLabel(message: AgentMessageSnapshot) {
@@ -166,11 +163,12 @@ export function ChatThreadPanel({
                   key={message.id}
                   className={cn(
                     (isSystem || isTool) && "my-2 justify-center",
+                    message.role === "user" && "justify-end",
                     "stagger-item",
                   )}
                   style={{ animationDelay: `${(index % 8) * 40}ms` }}
                 >
-                  {!isSystem && !isTool ? (
+                  {!isSystem && !isTool && message.role !== "user" ? (
                     <MessageAvatar
                       src=""
                       alt={getMessageLabel(message)}
@@ -182,6 +180,7 @@ export function ChatThreadPanel({
                   <div
                     className={cn(
                       "min-w-0 flex-1",
+                      message.role === "user" && "max-w-[75%] flex-initial",
                       (isSystem || isTool) && "flex-initial",
                     )}
                   >
@@ -210,7 +209,11 @@ export function ChatThreadPanel({
                       <div className="mt-1 space-y-3">
                         <MessageContent
                           markdown={message.role !== "user"}
-                          className="max-w-none text-[14px] leading-7 text-foreground"
+                          className={cn(
+                            "max-w-none text-[14px] leading-7 text-foreground",
+                            message.role === "user" &&
+                              "border-white/20 bg-[#151515] text-white",
+                          )}
                         >
                           {message.text || " "}
                         </MessageContent>
@@ -235,31 +238,11 @@ export function ChatThreadPanel({
           )}
 
           {isStreaming ? (
-            <div className="space-y-3 border border-[#474747]/18 bg-[#101010] px-3 py-3">
-              <ThinkingBar text="PiDesk is responding" />
-              <div className="flex items-center gap-3">
-                <Loader label="Streaming" />
-                <TextShimmer className="text-[11px] uppercase tracking-[0.18em] text-white/65">
-                  Reading, planning, and drafting
-                </TextShimmer>
-              </div>
-              <Steps>
-                <StepItem
-                  title="Inspect current context"
-                  detail="Reviewing the active thread and current context."
-                  state="complete"
-                />
-                <StepItem
-                  title="Reason through the task"
-                  detail="Coordinating plan, tools, and response."
-                  state="current"
-                />
-                <StepItem
-                  title="Return grounded output"
-                  detail="The reply lands with context and next steps."
-                  state="pending"
-                />
-              </Steps>
+            <div className="flex items-center gap-3 border border-[#474747]/18 bg-[#101010] px-3 py-3">
+              <Loader label="Responding" />
+              <span className="text-[11px] uppercase tracking-[0.14em] text-white/70">
+                Pi is responding
+              </span>
             </div>
           ) : null}
 

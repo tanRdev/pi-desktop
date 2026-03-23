@@ -9,7 +9,7 @@ import {
   PromptInputActions,
   PromptInputTextarea,
 } from "@pidesk/ui";
-import { ChevronDown, Square } from "lucide-react";
+import { ChevronDown, Paperclip, Square } from "lucide-react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { buildFileMention } from "../../lib/prompt-routing";
@@ -19,7 +19,6 @@ import { Image } from "../ui/image";
 import { Loader } from "../ui/loader";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import PromptAutocomplete from "../ui/prompt-autocomplete";
-import { TextShimmer } from "../ui/text-shimmer";
 
 function formatTokenCount(tokens: number): string {
   if (tokens >= 1_000_000) {
@@ -203,21 +202,21 @@ export function PromptDock({
     [draft, onDraftChange],
   );
 
-  const agentLabel = displayAgentStatus.trim() || "Idle";
+  void displayAgentStatus;
 
   return (
     <div
       aria-hidden={!isVisible}
       className={cn(
-        "relative w-full",
+        "relative mt-auto w-full border-t border-[#474747]/18 bg-[#0b0b0b] px-0 pb-0 pt-0",
         "transition-[max-height,padding] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]",
         "motion-reduce:transition-none",
-        isVisible ? "max-h-[42rem] pb-5 pt-5" : "max-h-0 pb-0 pt-0",
+        isVisible ? "max-h-[42rem]" : "max-h-0 overflow-hidden",
       )}
     >
       <div
         className={cn(
-          "relative mx-auto w-full max-w-[58rem]",
+          "relative w-full",
           "transition-[opacity,transform,filter] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]",
           "motion-reduce:transition-none",
           isVisible
@@ -232,9 +231,9 @@ export function PromptDock({
             void (isPromptExecuting ? onCancelPrompt() : onSend())
           }
           className={cn(
-            "shell-dock border border-[#474747]/18 bg-[#0e0e0e] px-5 pb-4 pt-4",
+            "shell-dock border-0 bg-transparent px-6 pb-4 pt-4",
             "transition-[border-color,background-color] duration-150 ease-[var(--ease-out)]",
-            isFocused && "border-white/60",
+            isFocused && "bg-[#0d0d0d]",
           )}
         >
           <FileUpload
@@ -270,10 +269,10 @@ export function PromptDock({
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             className={cn(
-              "min-h-[96px] resize-none border-0 border-b border-[#474747]/24 bg-transparent px-0 py-0 pb-3",
+              "min-h-[84px] resize-none border-0 bg-transparent px-0 py-0 pb-3",
               "text-[12px] leading-[1.6] text-white",
               "placeholder:text-[#5a5a5a] outline-none",
-              "focus-visible:border-b focus-visible:border-white/55 focus-visible:ring-0 disabled:opacity-50",
+              "focus-visible:ring-0 disabled:opacity-50",
               "transition-colors duration-100 ease-[var(--ease-out)]",
             )}
           />
@@ -287,8 +286,23 @@ export function PromptDock({
             className="absolute left-0 right-0 top-full z-20 mt-2"
           />
 
-          <PromptInputActions className="mt-3 items-center justify-between gap-3 pt-2">
+          <PromptInputActions className="mt-2 items-center justify-between gap-3 border-t border-[#474747]/18 pt-3">
             <div className="flex items-center gap-2">
+              <PromptInputAction tooltip="ATTACH_FILES">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  disabled={!hasActiveThread}
+                  onClick={() => void handlePickFiles()}
+                  aria-label="Attach files"
+                  title="Attach files"
+                  className="border border-[#474747]/20 bg-[#181818] text-[#919191] hover:border-white/50 hover:bg-white hover:text-black"
+                >
+                  <Paperclip className="size-3.5" />
+                </Button>
+              </PromptInputAction>
+
               <PromptInputAction tooltip="MODEL_ROUTER">
                 <Popover open={modelOpen} onOpenChange={handleModelOpenChange}>
                   <PopoverTrigger asChild>
@@ -361,16 +375,8 @@ export function PromptDock({
               </PromptInputAction>
             </div>
 
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-1.5">
               {isSwitchingModel ? <Loader label="Switching" /> : null}
-              {!isSwitchingModel ? (
-                <TextShimmer
-                  data-testid="agent-status"
-                  className="text-[9px] font-mono uppercase tracking-[0.12em] text-white/58"
-                >
-                  {agentLabel}
-                </TextShimmer>
-              ) : null}
               {currentContextWindow != null ? (
                 <span className="text-[9px] tabular-nums text-[#626262] font-mono uppercase tracking-[0.08em]">
                   {formatTokenCount(currentContextWindow)} CTX
