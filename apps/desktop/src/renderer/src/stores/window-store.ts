@@ -4,8 +4,6 @@
  */
 
 import type {
-  CanvasWindow,
-  CanvasWindowBase,
   ChatWindow,
   CreateWindowAction,
   FileWindow,
@@ -17,6 +15,8 @@ import type {
   TerminalWindow,
   WindowLayoutState,
   WindowPosition,
+  WorkspaceWindow,
+  WorkspaceWindowBase,
 } from "@pidesk/shared";
 
 /**
@@ -50,7 +50,7 @@ export type WindowUpdates =
   | Omit<Partial<ImageWindow>, "kind">;
 
 export type WindowAction =
-  | { type: "CREATE_WINDOW"; payload: { window: CanvasWindow } }
+  | { type: "CREATE_WINDOW"; payload: { window: WorkspaceWindow } }
   | { type: "CLOSE_WINDOW"; payload: { windowId: string } }
   | { type: "FOCUS_WINDOW"; payload: { windowId: string } }
   | { type: "MOVE_WINDOW"; payload: { windowId: string; x: number; y: number } }
@@ -60,7 +60,7 @@ export type WindowAction =
     }
   | {
       type: "SET_WINDOW_STATE";
-      payload: { windowId: string; state: CanvasWindow["state"] };
+      payload: { windowId: string; state: WorkspaceWindow["state"] };
     }
   | {
       type: "SET_SNAP_PREVIEW";
@@ -110,14 +110,14 @@ export const initialWindowStoreState: WindowStoreState =
 /**
  * Generate a unique window ID.
  */
-export function generateWindowId(kind: CanvasWindow["kind"]): string {
+export function generateWindowId(kind: WorkspaceWindow["kind"]): string {
   return `${kind}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
 /**
  * Get default window position (cascading from top-left).
  */
-export function getDefaultWindowPosition(existingWindows: CanvasWindow[]): {
+export function getDefaultWindowPosition(existingWindows: WorkspaceWindow[]): {
   x: number;
   y: number;
 } {
@@ -167,15 +167,15 @@ export function getCenteredWindowPosition({
  */
 export function createWindowFromAction(
   action: CreateWindowAction,
-  existingWindows: CanvasWindow[],
+  existingWindows: WorkspaceWindow[],
   nextZIndex: number,
   cwd?: string,
   options?: WindowCreationOptions,
-): CanvasWindow {
+): WorkspaceWindow {
   const id = generateWindowId(action.kind);
   const position = getDefaultWindowPosition(existingWindows);
 
-  const base: Omit<CanvasWindowBase, "kind"> = {
+  const base: Omit<WorkspaceWindowBase, "kind"> = {
     id,
     title: "",
     x: options?.x ?? position.x,
@@ -271,9 +271,9 @@ export function createWindowFromAction(
 }
 
 function applyWindowUpdates(
-  window: CanvasWindow,
+  window: WorkspaceWindow,
   updates: WindowUpdates,
-): CanvasWindow {
+): WorkspaceWindow {
   const {
     id: _ignoredId,
     isFocused: _ignoredFocus,
@@ -305,7 +305,7 @@ function applyWindowUpdates(
   }
 }
 
-function pickNextFocusableWindowId(windows: CanvasWindow[]): string | null {
+function pickNextFocusableWindowId(windows: WorkspaceWindow[]): string | null {
   const focusableWindows = windows.filter(
     (window) => window.state !== "minimized",
   );
@@ -320,9 +320,9 @@ function pickNextFocusableWindowId(windows: CanvasWindow[]): string | null {
 }
 
 function syncFocusedWindowState(
-  windows: CanvasWindow[],
+  windows: WorkspaceWindow[],
   focusedWindowId: string | null,
-): CanvasWindow[] {
+): WorkspaceWindow[] {
   return windows.map((window) => ({
     ...window,
     isFocused: window.id === focusedWindowId,
@@ -483,7 +483,7 @@ export function windowReducer(
 
     case "SET_DIRTY": {
       const { windowId, isDirty } = action.payload;
-      const windows = state.layout.windows.map((w): CanvasWindow => {
+      const windows = state.layout.windows.map((w): WorkspaceWindow => {
         if (w.id !== windowId) return w;
         if (w.kind === "file" || w.kind === "note") {
           return { ...w, isDirty };
@@ -595,7 +595,7 @@ export function createWindowStore() {
       action: CreateWindowAction,
       cwd?: string,
       options?: WindowCreationOptions,
-    ): CanvasWindow {
+    ): WorkspaceWindow {
       const window = createWindowFromAction(
         action,
         state.layout.windows,

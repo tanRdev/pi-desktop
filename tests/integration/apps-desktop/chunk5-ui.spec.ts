@@ -23,12 +23,18 @@ describe("chunk5 ui", () => {
     expect(promptDockSource).not.toContain("text-zinc-500");
     expect(promptDockSource).not.toContain("bg-white/[0.06]");
     expect(promptDockSource).not.toContain("border-white/8");
+    expect(promptDockSource).not.toContain(
+      "linear-gradient(180deg,rgba(19,19,19,0)_0%",
+    );
   });
 
   it("adds flatter shell hooks that centralize the mission-control styling", () => {
     const shellSource = readSource("packages/ui/src/styles/pidesk-shell.css");
     const workspaceShellSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx",
+    );
+    const workspaceSurfacePanelSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/workspace-surface-panel.tsx",
     );
     const promptDockSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/prompt-dock.tsx",
@@ -49,9 +55,8 @@ describe("chunk5 ui", () => {
     expect(shellSource).toContain(".shell-input-frame");
 
     expect(workspaceShellSource).toContain("chat-first-layout");
-    expect(workspaceShellSource).toContain("workspace-context-panel");
+    expect(workspaceSurfacePanelSource).toContain("workspace-context-panel");
     expect(promptDockSource).toContain("shell-dock");
-    expect(promptDockSource).toContain("shell-token");
     expect(promptDockSource).toContain("shell-send-button");
     expect(promptInputSource).toContain("shell-input-frame");
   });
@@ -67,16 +72,30 @@ describe("chunk5 ui", () => {
     expect(chatSource).toContain('data-testid="chat-transcript"');
     expect(promptDockSource).toContain('data-testid="chat-input"');
     expect(promptDockSource).toContain('data-testid="chat-send"');
-    expect(promptDockSource).toContain('data-testid="agent-status"');
+    expect(promptDockSource).not.toContain("PromptSuggestionGroup");
 
-    expect(chatSource).toContain("gap-4");
-    expect(chatSource).toContain("px-5 py-5");
-    expect(chatSource).toContain("text-[13px] leading-6");
+    expect(chatSource).toContain("gap-6");
+    expect(chatSource).toContain("px-8 py-8");
+    expect(chatSource).toContain("text-[14px] leading-7");
     expect(chatSource).not.toContain("canvas preview");
     expect(chatSource).not.toContain("latest canvas state");
     expect(chatSource).not.toContain("text-base leading-relaxed");
     expect(chatSource).not.toContain("border-dashed");
     expect(chatSource).not.toContain("rounded-lg border border-dashed");
+  });
+
+  it("keeps the workspace at three columns max", () => {
+    const shellSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx",
+    );
+    const railSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
+    );
+
+    expect(shellSource).toContain("LeftRail");
+    expect(shellSource).not.toContain("LeftSidebar");
+    expect(shellSource).toContain("WorkspaceSurfacePanel");
+    expect(railSource).not.toContain("NAVIGATION_ITEMS");
   });
 
   it("reshapes message and shared prompt primitives for compact console surfaces", () => {

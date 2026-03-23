@@ -124,6 +124,17 @@ describe("bootstrap helpers (RED)", () => {
     expect(delay).not.toHaveBeenCalled();
   });
 
+  test("routePromptToTerminal remains a local helper and is not wired into desktop IPC", async () => {
+    const source = await import("node:fs/promises").then((fs) =>
+      fs.readFile(
+        new URL("../../../apps/desktop/src/main/index.ts", import.meta.url),
+        "utf8",
+      ),
+    );
+
+    expect(source).not.toContain("routePromptToTerminal");
+  });
+
   test("switchModelForContext preserves active-context validation and restart flow", async () => {
     const { switchModelForContext } = await import(
       "../../../apps/desktop/src/main/bootstrap/model-switch"
@@ -209,7 +220,7 @@ describe("bootstrap helpers (RED)", () => {
     const createLaunchDetails = vi.fn(() => ({
       threadId: "thread-1",
       worktreePath: "/tmp/project",
-      sessionName: "pidesk-thread-session",
+      runtimeId: "pidesk-thread-runtime",
       socketPath: "/tmp/pidesk/thread.sock",
       command: ["env", "NODE_ENV=test", "node", "/tmp/session-server.mjs"],
     }));
@@ -220,7 +231,7 @@ describe("bootstrap helpers (RED)", () => {
       title: "Current thread",
       archivedAt: null,
       lastActivityAt: null,
-      runtimeSessionName: null,
+      runtimeId: null,
       createdAt: "2026-03-17T00:00:00.000Z",
       updatedAt: "2026-03-17T00:00:00.000Z",
     };
@@ -278,7 +289,7 @@ describe("bootstrap helpers (RED)", () => {
       worktreePath: "/tmp/project",
       thread,
       socketPath: "/tmp/pidesk/thread.sock",
-      sessionName: "pidesk-thread-session",
+      runtimeId: "pidesk-thread-runtime",
       command: ["env", "NODE_ENV=test", "node", "/tmp/session-server.mjs"],
       agentMode: "mock",
       agentDirectory: "/tmp/project/.pi/agent",
@@ -294,7 +305,7 @@ describe("bootstrap helpers (RED)", () => {
     const createLaunchDetails = vi.fn(() => ({
       threadId: "thread-2",
       worktreePath: "/tmp/project",
-      sessionName: "thread-2-session",
+      runtimeId: "thread-2-runtime",
       socketPath: "/tmp/pidesk/thread-2.sock",
       command: ["node", "/tmp/session-server.mjs"],
     }));
@@ -312,7 +323,7 @@ describe("bootstrap helpers (RED)", () => {
         title: "New thread",
         archivedAt: null,
         lastActivityAt: null,
-        runtimeSessionName: null,
+        runtimeId: null,
         createdAt: "2026-03-17T00:00:00.000Z",
         updatedAt: "2026-03-17T00:00:00.000Z",
       },

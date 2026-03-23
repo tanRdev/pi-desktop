@@ -23,10 +23,10 @@ import type {
 import type { ShellSnapshot } from "./shell.js";
 import type { TerminalCreateOptions, TerminalSession } from "./terminal.js";
 import type {
-  CanvasWindow,
   CreateWindowAction,
   WindowLayoutState,
   WindowPosition,
+  WorkspaceWindow,
 } from "./window.js";
 import type {
   AppPreferences,
@@ -68,11 +68,6 @@ export interface PiDeskApi {
     select(threadId: string): Promise<void>;
     archive(threadId: string): Promise<void>;
     rename(threadId: string, title: string): Promise<void>;
-    routeToTerminal?(request: {
-      terminalId: string;
-      prompt: string;
-      startPiIfNotLinked?: boolean;
-    }): Promise<{ success: boolean; error?: string; threadId?: string }>;
   };
   dialog: {
     showOpenDialog(options: OpenDialogOptions): Promise<string[] | null>;
@@ -125,7 +120,7 @@ export interface PiDeskApi {
     }>;
   };
   window: {
-    create(action: CreateWindowAction): Promise<CanvasWindow>;
+    create(action: CreateWindowAction): Promise<WorkspaceWindow>;
     close(windowId: string): Promise<void>;
     focus(windowId: string): Promise<void>;
     getFullscreenState(): Promise<boolean>;

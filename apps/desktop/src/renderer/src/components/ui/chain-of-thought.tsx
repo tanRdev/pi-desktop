@@ -1,10 +1,14 @@
-import { HugeiconsIcon, ArrowDown01Icon, CancelCircleIcon } from "@/components/ui/icons";
 import React from "react";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  ArrowDown01Icon,
+  CancelCircleIcon,
+  HugeiconsIcon,
+} from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 
 export type ChainOfThoughtItemProps = React.ComponentProps<"div">;
@@ -74,10 +78,15 @@ export const ChainOfThoughtTrigger = ({
         </span>
       ) : (
         <span className="relative inline-flex size-4 items-center justify-center">
-          <HugeiconsIcon icon={CancelCircleIcon} className="size-2 fill-current transition-transform duration-150 ease-out group-hover:scale-110" />
+          <HugeiconsIcon
+            icon={CancelCircleIcon}
+            className="size-2 fill-current transition-transform duration-150 ease-out group-hover:scale-110"
+          />
         </span>
       )}
-      <span className="transition-transform duration-150 ease-out">{children}</span>
+      <span className="transition-transform duration-150 ease-out">
+        {children}
+      </span>
     </div>
     {!leftIcon && (
       <HugeiconsIcon
@@ -159,11 +168,7 @@ export const ChainOfThoughtStep = ({
 }: ChainOfThoughtStepProps & React.ComponentProps<typeof Collapsible>) => {
   return (
     <Collapsible
-      className={cn(
-        "group",
-        "transition-all duration-150 ease-out",
-        className,
-      )}
+      className={cn("group", "transition-all duration-150 ease-out", className)}
       data-last={isLast}
       {...props}
     >

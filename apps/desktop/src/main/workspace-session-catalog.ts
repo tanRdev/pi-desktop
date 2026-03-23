@@ -1,8 +1,8 @@
 import path from "node:path";
 import {
-  type CanvasWindow,
   createEmptyWorkspaceSession,
   type WorkspaceSession,
+  type WorkspaceWindow,
 } from "@pidesk/shared";
 import { PersistentJsonFile } from "./persistent-json-file";
 
@@ -41,7 +41,7 @@ function getBoolean(value: unknown): boolean | undefined {
 
 function sanitizeWindowBase(
   input: Record<string, unknown>,
-): Omit<CanvasWindow, "kind"> | null {
+): Omit<WorkspaceWindow, "kind"> | null {
   const id = getString(input.id);
   const title = getString(input.title);
   const x = getNumber(input.x);
@@ -83,12 +83,14 @@ function sanitizeWindowBase(
     zIndex,
     isFocused,
     state,
-    ...(linkColor ? { linkColor: linkColor as CanvasWindow["linkColor"] } : {}),
+    ...(linkColor
+      ? { linkColor: linkColor as WorkspaceWindow["linkColor"] }
+      : {}),
     ...(linkTargetIds ? { linkTargetIds } : {}),
   };
 }
 
-function sanitizeWindow(input: unknown): CanvasWindow | null {
+function sanitizeWindow(input: unknown): WorkspaceWindow | null {
   if (!isRecord(input)) {
     return null;
   }

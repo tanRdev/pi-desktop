@@ -26,7 +26,7 @@ if (typeof storageHost.localStorage === "undefined") {
 }
 
 const LEFT_SIDEBAR_KEY = "pidesk.leftSidebarWidth";
-const DEFAULT_WIDTH = 180;
+const DEFAULT_WIDTH = 280;
 const MIN_WIDTH = 140;
 const MAX_WIDTH = 400;
 

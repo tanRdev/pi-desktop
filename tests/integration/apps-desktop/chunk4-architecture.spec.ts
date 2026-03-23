@@ -47,9 +47,6 @@ describe("chunk4 architecture", () => {
     const leftRailSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
     );
-    const leftSidebarSource = readSource(
-      "apps/desktop/src/renderer/src/components/workspace/left-sidebar.tsx",
-    );
     const avatarSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/project-avatar.tsx",
     );
@@ -60,10 +57,9 @@ describe("chunk4 architecture", () => {
       "apps/desktop/src/renderer/src/components/workspace/project-icon-picker.tsx",
     );
 
-    expect(titleBarSource).toContain("activeRepository");
+    expect(titleBarSource).toContain("activeWorktree");
     expect(titleBarSource).not.toContain('className="w-16"');
     expect(leftRailSource).toContain("ProjectCustomizationMenu");
-    expect(leftSidebarSource).not.toContain("ProjectCustomizationMenu");
     expect(customizationSource).toContain("updateRepositoryPreferences");
     expect(customizationSource).toContain("accentColor");
     expect(iconPickerSource).toContain("PROJECT_ICON_OPTIONS");
@@ -82,9 +78,6 @@ describe("chunk4 architecture", () => {
     const shellSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx",
     );
-    const leftSidebarSource = readSource(
-      "apps/desktop/src/renderer/src/components/workspace/left-sidebar.tsx",
-    );
     const titleBarSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/title-bar.tsx",
     );
@@ -96,13 +89,11 @@ describe("chunk4 architecture", () => {
     );
 
     expect(shellSource).not.toContain("onShowArchived={() => {}}");
-    expect(leftSidebarSource).not.toContain("Archived");
+    expect(shellSource).not.toContain("LeftSidebar");
     expect(shellSource).not.toContain("backdrop-blur-sm");
-    expect(titleBarSource).toContain('aria-label="Open launcher"');
-    expect(titleBarSource).toContain('aria-label="Toggle files sidebar"');
-    expect(titleBarSource).toContain('aria-label="Open git view"');
-    expect(titleBarSource).toContain('aria-label="Open notes"');
-    expect(titleBarSource).toContain('aria-label="Open terminal"');
+    expect(titleBarSource).not.toContain(
+      'aria-label="Toggle workspace sidebar"',
+    );
     const repositoryNameExpression = `${"$"}{displayName}`;
     expect(avatarSource).toContain(
       `aria-label={\`Open repository ${repositoryNameExpression}\`}`,
@@ -112,7 +103,6 @@ describe("chunk4 architecture", () => {
     );
     expect(customizationSource).not.toContain("group-hover:block");
     expect(customizationSource).not.toContain("group-focus-within:block");
-    expect(customizationSource).toContain("pointer-events-none");
     expect(customizationSource).toContain('htmlFor="project-custom-name"');
     expect(customizationSource).toContain('id="project-custom-name"');
     expect(customizationSource).toContain('aria-label="Project display name"');

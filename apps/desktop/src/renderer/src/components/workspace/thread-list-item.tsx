@@ -78,13 +78,13 @@ export function ThreadListItem({
         }
       }}
       className={cn(
-        "motion-safe:stagger-item group flex w-full items-center gap-2 px-2 py-1.5 text-left font-mono",
+        "motion-safe:stagger-item group flex w-full items-center gap-2 rounded-md px-2 py-1 text-left font-mono",
         "transition-all duration-200 ease-out",
-        "hover:bg-[#353535]",
+        "hover:bg-surface-2/80",
         "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary",
         isActive
-          ? "bg-[#353535] text-[#ffffff]"
-          : "text-[#ffffff]/60 hover:text-[#ffffff]",
+          ? "bg-surface-3/80 text-foreground"
+          : "text-muted-foreground hover:text-foreground",
         !isEditing && "cursor-pointer",
       )}
     >
@@ -109,7 +109,7 @@ export function ThreadListItem({
         ) : (
           <span
             data-testid={isActive ? "current-thread-title" : undefined}
-            className="block truncate text-[12px] font-medium tracking-tight uppercase"
+            className="block truncate text-[11px] font-medium tracking-tight"
           >
             {thread.title || "Untitled thread"}
           </span>

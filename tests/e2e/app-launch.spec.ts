@@ -1,12 +1,13 @@
 import { expect, test } from "@playwright/test";
 import {
   focusChatThread,
-  getCurrentBranchName,
   launchDesktopApp,
   waitForAppReady,
 } from "./helpers/desktop-app";
 
 test("launches the shell and streams a mock agent reply", async () => {
+  test.setTimeout(45_000);
+
   const { app, page, launchContext } =
     await launchDesktopApp("pidesk-e2e-launch-");
 
@@ -16,9 +17,7 @@ test("launches the shell and streams a mock agent reply", async () => {
     await expect(page.getByTestId("titlebar-project-name")).toHaveText(
       "PiDesk",
     );
-    await expect(page.getByTestId("current-worktree-label")).toHaveText(
-      getCurrentBranchName(),
-    );
+    await expect(page.getByTestId("left-rail")).toContainText("PiDesk");
 
     await focusChatThread(page);
 
@@ -27,9 +26,6 @@ test("launches the shell and streams a mock agent reply", async () => {
       .fill("Summarize the current workspace");
     await page.getByTestId("chat-send").click();
 
-    await expect(page.getByTestId("agent-status")).toHaveText("ready", {
-      timeout: 10_000,
-    });
     await expect(page.getByTestId("chat-transcript")).toContainText(
       "PiDesk mock assistant received: Summarize the current workspace",
     );

@@ -7,13 +7,13 @@ export interface InterfaceSettings {
   sidebarWidth: number;
 }
 
-export type EditorSettings = {};
+export type EditorSettings = Record<string, never>;
 
-export type TerminalSettings = {};
+export type TerminalSettings = Record<string, never>;
 
-export type KeybindingSettings = {};
+export type KeybindingSettings = Record<string, never>;
 
-export type AdvancedSettings = {};
+export type AdvancedSettings = Record<string, never>;
 
 export interface Settings {
   ai: AISettings;

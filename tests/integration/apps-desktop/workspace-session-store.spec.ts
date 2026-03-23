@@ -85,6 +85,10 @@ describe("workspace-session-store", () => {
             draft: "Remember the migration",
           },
         },
+        sidebar: expect.objectContaining({
+          activePanel: null,
+          isCollapsed: false,
+        }),
       }),
     );
   });
@@ -116,12 +120,6 @@ describe("workspace-session-store", () => {
       isLoading: false,
       error: "late result",
     });
-    store
-      .getState()
-      .setSearchUiStateForWorktree("/tmp/repo-a", "search-window-a", {
-        isLoading: false,
-        selectedIndex: 2,
-      });
 
     expect(
       store
@@ -144,20 +142,7 @@ describe("workspace-session-store", () => {
       error: "late result",
     });
     expect(
-      store
-        .getState()
-        .sessionsByWorktreeId["/tmp/repo-a"]?.searchUiState.get(
-          "search-window-a",
-        ),
-    ).toEqual({
-      isLoading: false,
-      selectedIndex: 2,
-    });
-    expect(
       store.getState().sessionsByWorktreeId["/tmp/repo-b"]?.fileContents.size,
-    ).toBe(0);
-    expect(
-      store.getState().sessionsByWorktreeId["/tmp/repo-b"]?.searchUiState.size,
     ).toBe(0);
   });
 
@@ -281,5 +266,45 @@ describe("workspace-session-store", () => {
     expect(refreshed?.layout.snapGridSize).toBe(32);
     expect(refreshed?.threadConversations.has("thread-a")).toBe(true);
     expect(refreshed?.fileContents.has("file-window-a")).toBe(true);
+  });
+
+  it("ignores stale async hydration when worktree switches race", async () => {
+    let resolveRepoA:
+      | ((
+          session: ReturnType<typeof createEmptyWorkspaceSession> | null,
+        ) => void)
+      | undefined;
+    const getWorkspaceSession = vi.fn(
+      (worktreeId: string) =>
+        new Promise<ReturnType<typeof createEmptyWorkspaceSession> | null>(
+          (resolve) => {
+            if (worktreeId === "/tmp/repo-a") {
+              resolveRepoA = resolve;
+              return;
+            }
+
+            resolve(createEmptyWorkspaceSession(worktreeId));
+          },
+        ),
+    );
+
+    const store = createWorkspaceSessionStore({
+      getWorkspaceSession,
+      saveWorkspaceSession: vi.fn(async (session) => session),
+      persistDelayMs: 5,
+    });
+
+    const pendingRepoA = store.getState().setActiveWorktree("/tmp/repo-a");
+    await store.getState().setActiveWorktree("/tmp/repo-b");
+
+    if (!resolveRepoA) {
+      throw new Error("Expected repo-a hydration to be pending");
+    }
+
+    resolveRepoA(createEmptyWorkspaceSession("/tmp/repo-a"));
+    await pendingRepoA;
+
+    expect(store.getState().activeWorktreeId).toBe("/tmp/repo-b");
+    expect(store.getState().activeWorktreeVersion).toBe(2);
   });
 });

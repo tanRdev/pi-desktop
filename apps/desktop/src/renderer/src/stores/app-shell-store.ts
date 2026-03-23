@@ -101,22 +101,10 @@ function mergeSettingsState(
       ...base.interface,
       ...(isRecord(parsed.interface) ? parsed.interface : {}),
     },
-    editor: {
-      ...base.editor,
-      ...(isRecord(parsed.editor) ? parsed.editor : {}),
-    },
-    terminal: {
-      ...base.terminal,
-      ...(isRecord(parsed.terminal) ? parsed.terminal : {}),
-    },
-    keybindings: {
-      ...base.keybindings,
-      ...(isRecord(parsed.keybindings) ? parsed.keybindings : {}),
-    },
-    advanced: {
-      ...base.advanced,
-      ...(isRecord(parsed.advanced) ? parsed.advanced : {}),
-    },
+    editor: base.editor,
+    terminal: base.terminal,
+    keybindings: base.keybindings,
+    advanced: base.advanced,
   };
 }
 

@@ -8,7 +8,7 @@ export interface ThreadCatalogEntry {
   title: string;
   archivedAt: number | null;
   lastActivityAt: number | null;
-  runtimeSessionName: string | null;
+  runtimeId: string | null;
   createdAt: number;
   updatedAt: number;
 }
@@ -26,6 +26,11 @@ type ThreadCatalogOptions = {
 type CreateThreadInput = {
   worktreeId: string;
   title: string;
+};
+
+type LegacyThreadCatalogEntry = Omit<ThreadCatalogEntry, "runtimeId"> & {
+  runtimeId?: string | null;
+  runtimeSessionName?: string | null;
 };
 
 const DEFAULT_STATE: ThreadCatalogState = {
@@ -73,18 +78,43 @@ export class ThreadCatalog {
     this.createId = options.createId ?? (() => randomUUID());
   }
 
+  private readThreads(): ThreadCatalogEntry[] {
+    const state = this.store.get() as unknown as {
+      version: 1;
+      threads?: LegacyThreadCatalogEntry[];
+    };
+
+    const legacyThreads = state.threads ?? [];
+    const threads: ThreadCatalogEntry[] = legacyThreads.map((thread) => ({
+      ...thread,
+      runtimeId: thread.runtimeId ?? thread.runtimeSessionName ?? null,
+    }));
+
+    const hasLegacyRuntimeField = threads.some(
+      (thread, index) =>
+        legacyThreads[index]?.runtimeId !== thread.runtimeId ||
+        "runtimeSessionName" in (legacyThreads[index] ?? {}),
+    );
+
+    if (hasLegacyRuntimeField) {
+      this.store.set({
+        version: 1,
+        threads,
+      });
+    }
+
+    return threads;
+  }
+
   listByWorktree(worktreeId: string): ThreadCatalogEntry[] {
     const normalizedWorktreeId = normalizePathId(worktreeId);
-    return this.store
-      .get()
-      .threads.filter((thread) => thread.worktreeId === normalizedWorktreeId)
+    return this.readThreads()
+      .filter((thread) => thread.worktreeId === normalizedWorktreeId)
       .sort(sortThreads);
   }
 
   get(threadId: string): ThreadCatalogEntry | null {
-    return (
-      this.store.get().threads.find((thread) => thread.id === threadId) ?? null
-    );
+    return this.readThreads().find((thread) => thread.id === threadId) ?? null;
   }
 
   create(input: CreateThreadInput): ThreadCatalogEntry {
@@ -96,7 +126,7 @@ export class ThreadCatalog {
       title: input.title,
       archivedAt: null,
       lastActivityAt: null,
-      runtimeSessionName: null,
+      runtimeId: null,
       createdAt: currentTime,
       updatedAt: currentTime,
     };
@@ -146,11 +176,11 @@ export class ThreadCatalog {
 
   updateRuntimeSession(
     threadId: string,
-    runtimeSessionName: string | null,
+    runtimeId: string | null,
   ): ThreadCatalogEntry | null {
     return this.updateThread(threadId, (thread, currentTime) => ({
       ...thread,
-      runtimeSessionName,
+      runtimeId,
       updatedAt: currentTime,
     }));
   }

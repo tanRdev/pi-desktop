@@ -1,4 +1,4 @@
-import type { CanvasWindow, WindowLayoutState } from "./window.js";
+import type { WindowLayoutState, WorkspaceWindow } from "./window.js";
 
 export interface RepositoryDisplayMetadata {
   customName: string | null;
@@ -103,7 +103,7 @@ export function createEmptyWorkspaceSession(
 }
 
 export function isFileBackedWindow(
-  window: CanvasWindow,
-): window is Extract<CanvasWindow, { filePath: string }> {
+  window: WorkspaceWindow,
+): window is Extract<WorkspaceWindow, { filePath: string }> {
   return window.kind === "file" || window.kind === "image";
 }

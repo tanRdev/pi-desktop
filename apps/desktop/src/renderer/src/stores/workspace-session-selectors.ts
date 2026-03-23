@@ -3,7 +3,6 @@ import type {
   FileWindowState,
   NoteWindowState,
   RendererWorkspaceSession,
-  SearchUiState,
   ThreadConversationState,
   WorkspaceSessionStoreState,
 } from "./workspace-session-store";
@@ -37,6 +36,12 @@ export function selectActiveWorkspaceSnapGridSize(
   return selectActiveWorkspaceLayout(state).snapGridSize;
 }
 
+export function selectActiveWorkspaceSidebarCollapsed(
+  state: WorkspaceSessionStoreState,
+): boolean {
+  return selectActiveWorkspaceSession(state)?.sidebar.isCollapsed ?? false;
+}
+
 export function selectFileWindowStateByWorktree(
   state: WorkspaceSessionStoreState,
   worktreeId: string | null,
@@ -61,12 +66,4 @@ export function selectNoteWindowStateByWorktree(
   windowId: string,
 ): NoteWindowState | undefined {
   return getSessionByWorktree(state, worktreeId)?.noteContents.get(windowId);
-}
-
-export function selectSearchUiStateByWorktree(
-  state: WorkspaceSessionStoreState,
-  worktreeId: string | null,
-  windowId: string,
-): SearchUiState | undefined {
-  return getSessionByWorktree(state, worktreeId)?.searchUiState.get(windowId);
 }

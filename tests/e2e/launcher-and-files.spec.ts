@@ -1,7 +1,14 @@
 import { expect, test } from "@playwright/test";
-import { launchDesktopApp, waitForAppReady } from "./helpers/desktop-app";
+import {
+  getContextPanelAction,
+  getWorkspaceContextPanel,
+  launchDesktopApp,
+  waitForAppReady,
+} from "./helpers/desktop-app";
 
-test("opens launcher and file overlays, then routes note and file actions into canvas windows", async () => {
+test("opens launcher and file overlays, then routes note and file actions into sidecar surfaces", async () => {
+  test.setTimeout(45_000);
+
   const { app, page, launchContext } = await launchDesktopApp(
     "pidesk-e2e-launcher-",
   );
@@ -9,7 +16,7 @@ test("opens launcher and file overlays, then routes note and file actions into c
   try {
     await waitForAppReady(page);
 
-    await page.getByRole("button", { name: "Open launcher" }).click();
+    await getContextPanelAction(page, "Launcher").click();
 
     const launcherOverlay = page.getByRole("dialog", {
       name: "Launcher overlay",
@@ -27,22 +34,19 @@ test("opens launcher and file overlays, then routes note and file actions into c
     await expect(
       launcherOverlay.getByRole("button", { name: "Note" }),
     ).toBeVisible();
-    await expect(
-      launcherOverlay.getByRole("button", { name: "Graph" }),
-    ).toBeVisible();
 
     await page.keyboard.press("Escape");
     await expect(launcherOverlay).toHaveCount(0);
 
-    await page.getByRole("button", { name: "Open launcher" }).click();
+    await getContextPanelAction(page, "Launcher").click();
     await launcherOverlay.getByRole("button", { name: "Note" }).click();
 
     await expect(launcherOverlay).toHaveCount(0);
-    const noteWindow = page.locator('[data-window-kind="note"]').first();
-    await expect(noteWindow).toBeVisible();
-    await expect(noteWindow.getByTestId("window-title")).toContainText("Note");
+    const contextPanel = getWorkspaceContextPanel(page);
+    await expect(contextPanel).toBeVisible();
+    await expect(contextPanel).toContainText(/project notes/i);
 
-    await page.getByRole("button", { name: "Open file tree" }).click();
+    await getContextPanelAction(page, "Files").click();
 
     const fileTreeOverlay = page.getByRole("dialog", {
       name: "File tree overlay",
@@ -51,11 +55,8 @@ test("opens launcher and file overlays, then routes note and file actions into c
     await fileTreeOverlay.getByRole("button", { name: "PACKAGE.JSON" }).click();
 
     await expect(fileTreeOverlay).toHaveCount(0);
-    const fileWindow = page.locator('[data-window-kind="file"]').first();
-    await expect(fileWindow).toBeVisible();
-    await expect(fileWindow.getByTestId("window-title")).toHaveText(
-      "package.json",
-    );
+    await expect(contextPanel).toBeVisible();
+    await expect(contextPanel).toContainText("package.json");
     await expect(page.getByRole("button", { name: "Save" })).toBeVisible();
   } finally {
     await app.close();

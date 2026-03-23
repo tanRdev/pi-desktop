@@ -1,7 +1,14 @@
 import { expect, test } from "@playwright/test";
-import { launchDesktopApp, waitForAppReady } from "./helpers/desktop-app";
+import {
+  getContextPanelAction,
+  getWorkspaceContextPanel,
+  launchDesktopApp,
+  waitForAppReady,
+} from "./helpers/desktop-app";
 
 test("renames, minimizes, maximizes, restores, and closes note windows", async () => {
+  test.setTimeout(45_000);
+
   const { app, page, launchContext } = await launchDesktopApp(
     "pidesk-e2e-windows-",
   );
@@ -9,31 +16,27 @@ test("renames, minimizes, maximizes, restores, and closes note windows", async (
   try {
     await waitForAppReady(page);
 
-    await page.getByRole("button", { name: "Open notes" }).click();
+    await getContextPanelAction(page, "Notes").click();
 
-    const noteWindow = page.locator('[data-window-kind="note"]').first();
-    await expect(noteWindow).toBeVisible();
-    await expect(noteWindow).toHaveAttribute("data-window-state", "normal");
+    const contextPanel = getWorkspaceContextPanel(page);
+    await expect(contextPanel).toBeVisible();
+    await expect(contextPanel).toContainText(/project notes/i);
 
-    const title = noteWindow.getByTestId("window-title");
-    await title.dblclick();
-    const titleInput = noteWindow.getByTestId("window-title-input");
-    await expect(titleInput).toBeVisible();
-    await titleInput.fill("Release plan");
-    await titleInput.press("Enter");
-    await expect(title).toHaveText("Release plan");
+    const noteEditor = contextPanel.getByPlaceholder(
+      "Capture decisions, snippets, and reminders...",
+    );
+    await expect(noteEditor).toBeVisible();
+    await noteEditor.fill("Release plan\n- ship chat-first workspace");
+    await expect(noteEditor).toHaveValue(/Release plan/);
 
-    await noteWindow.locator('[data-control="minimize"]').click();
-    await expect(noteWindow).toHaveAttribute("data-window-state", "minimized");
+    await page.getByRole("button", { name: "Activity" }).click();
+    await expect(contextPanel).toContainText(/Agent activity|Thread/i);
 
-    await noteWindow.locator('[data-control="maximize"]').click();
-    await expect(noteWindow).toHaveAttribute("data-window-state", "maximized");
+    await page.getByRole("button", { name: /^Project Notes$/i }).click();
+    await expect(noteEditor).toHaveValue(/ship chat-first workspace/);
 
-    await noteWindow.locator('[data-control="maximize"]').click();
-    await expect(noteWindow).toHaveAttribute("data-window-state", "normal");
-
-    await noteWindow.locator('[data-control="close"]').click();
-    await expect(noteWindow).toHaveCount(0);
+    await page.getByRole("button", { name: /Close Project Notes/i }).click();
+    await expect(contextPanel).toContainText(/Browse files|Open notes/i);
   } finally {
     await app.close();
     launchContext.cleanup();

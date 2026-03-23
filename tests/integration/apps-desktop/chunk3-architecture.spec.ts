@@ -7,16 +7,16 @@ function readSource(relativePath: string): string {
 }
 
 describe("chunk3 architecture", () => {
-  it("keeps chat/file/note/search routing store-backed without threading agent props", () => {
-    const routerSource = readSource(
-      "apps/desktop/src/renderer/src/components/canvas/window-content-router.tsx",
+  it("keeps chat/file/note surfaces store-backed without threading agent props", () => {
+    const panelSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/workspace-surface-panel.tsx",
     );
     const shellSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx",
     );
 
-    expect(routerSource).not.toContain("agent: ThreadConversationState");
-    expect(routerSource).not.toContain("? agent");
+    expect(panelSource).not.toContain("agent: ThreadConversationState");
+    expect(panelSource).not.toContain("? agent");
     expect(shellSource).not.toContain("agent: AgentState");
     expect(shellSource).not.toContain("agent={agent}");
   });

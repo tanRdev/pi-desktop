@@ -4,16 +4,16 @@ import type {
 } from "./thread-runtime-manager";
 
 export interface ReconcileThreadRuntimeStatesInput {
-  managedSessionNames: string[];
+  managedRuntimeIds: string[];
   threadStates: ThreadRuntimeDescriptor[];
 }
 
 export function reconcileThreadRuntimeStates({
-  managedSessionNames,
+  managedRuntimeIds,
   threadStates,
 }: ReconcileThreadRuntimeStatesInput): ThreadRuntimeReconcileReport {
-  const knownSessionNames = new Set(
-    threadStates.map((thread) => thread.sessionName),
+  const knownRuntimeIds = new Set(
+    threadStates.map((thread) => thread.runtimeId),
   );
 
   return {
@@ -21,8 +21,8 @@ export function reconcileThreadRuntimeStates({
     missingThreadIds: threadStates
       .filter((thread) => thread.status === "exited")
       .map((thread) => thread.threadId),
-    staleSessionNames: managedSessionNames.filter(
-      (sessionName) => !knownSessionNames.has(sessionName),
+    staleRuntimeIds: managedRuntimeIds.filter(
+      (runtimeId) => !knownRuntimeIds.has(runtimeId),
     ),
   };
 }

@@ -11,10 +11,16 @@ describe("chat-first workspace shell", () => {
     const shellSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx",
     );
+    const surfacePanelSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/workspace-surface-panel.tsx",
+    );
 
     expect(shellSource).toContain('data-testid="chat-first-layout"');
-    expect(shellSource).toContain('data-testid="workspace-context-panel"');
     expect(shellSource).toContain("WorkspaceSurfacePanel");
+    expect(shellSource).not.toContain("LeftSidebar");
+    expect(surfacePanelSource).toContain(
+      'data-testid="workspace-context-panel"',
+    );
     expect(shellSource).not.toContain("CanvasContainer");
     expect(shellSource).not.toContain("CanvasGrid");
     expect(shellSource).not.toContain("WindowContentRouter");
@@ -38,6 +44,7 @@ describe("chat-first workspace shell", () => {
     );
 
     expect(chatSource).toContain('data-testid="chat-transcript"');
+    expect(chatSource).not.toContain("Chat-first workspace");
     expect(chatSource).not.toContain("canvas preview");
     expect(chatSource).not.toContain("latest canvas state");
   });

@@ -1,13 +1,7 @@
-import type {
-  CanvasWindow,
-  FileContent,
-  SearchMatch,
-  SearchResponse,
-} from "@pidesk/shared";
+import type { FileContent, WorkspaceWindow } from "@pidesk/shared";
 import {
   selectFileWindowStateByWorktree,
   selectNoteWindowStateByWorktree,
-  selectSearchUiStateByWorktree,
 } from "./workspace-session-selectors";
 import type {
   ThreadConversationState,
@@ -49,14 +43,14 @@ export async function openFileWindowForWorktree({
     createWindow: WorkspaceSessionStoreState["createWindow"];
     focusWindow: WorkspaceSessionStoreState["focusWindow"];
   };
-  windows: CanvasWindow[];
+  windows: WorkspaceWindow[];
   worktreeId: string | null;
   worktreePath: string | null;
   filePath: string;
   readFile: (filePath: string) => Promise<FileContent>;
 }): Promise<string> {
   const existingWindow = windows.find(
-    (window): window is Extract<CanvasWindow, { kind: "file" }> =>
+    (window): window is Extract<WorkspaceWindow, { kind: "file" }> =>
       window.kind === "file" && window.filePath === filePath,
   );
 
@@ -203,11 +197,11 @@ function buildProjectNoteStoragePath(worktreePath: string): string {
 }
 
 function findExistingProjectNoteWindow(
-  windows: CanvasWindow[],
+  windows: WorkspaceWindow[],
   storagePath: string,
-): Extract<CanvasWindow, { kind: "note" }> | undefined {
+): Extract<WorkspaceWindow, { kind: "note" }> | undefined {
   return windows.find(
-    (window): window is Extract<CanvasWindow, { kind: "note" }> =>
+    (window): window is Extract<WorkspaceWindow, { kind: "note" }> =>
       window.kind === "note" && window.storagePath === storagePath,
   );
 }
@@ -226,7 +220,7 @@ export async function openProjectNoteWindowForWorktree({
     focusWindow: WorkspaceSessionStoreState["focusWindow"];
     updateWindow: WorkspaceSessionStoreState["updateWindow"];
   };
-  windows: CanvasWindow[];
+  windows: WorkspaceWindow[];
   worktreeId: string | null;
   worktreePath: string | null;
   readFile: (filePath: string) => Promise<FileContent>;
@@ -288,163 +282,4 @@ export async function openProjectNoteWindowForWorktree({
   }
 
   return createdWindow.id;
-}
-
-export function initializeSearchWindowForWorktree({
-  sessionStore,
-  worktreeId,
-  windowId,
-}: {
-  sessionStore: WorkspaceSessionStore;
-  worktreeId: string | null;
-  windowId: string;
-}) {
-  if (!worktreeId) {
-    return;
-  }
-
-  sessionStore.getState().setSearchUiStateForWorktree(worktreeId, windowId, {
-    isLoading: false,
-    selectedIndex: -1,
-  });
-}
-
-export async function updateSearchWindowQueryForWorktree({
-  sessionStore,
-  requestVersions,
-  worktreeId,
-  worktreePath,
-  windowId,
-  query,
-  searchFiles,
-}: {
-  sessionStore: WorkspaceSessionStore;
-  requestVersions: Map<string, number>;
-  worktreeId: string | null;
-  worktreePath: string | null;
-  windowId: string;
-  query: string;
-  searchFiles: (args: {
-    query: string;
-    rootPath: string;
-    maxResults: number;
-  }) => Promise<SearchResponse>;
-}) {
-  if (!worktreeId) {
-    return;
-  }
-
-  sessionStore.getState().updateWindowForWorktree(worktreeId, windowId, {
-    query,
-    results: [],
-  });
-
-  const requestVersion = (requestVersions.get(windowId) ?? 0) + 1;
-  requestVersions.set(windowId, requestVersion);
-  sessionStore.getState().setSearchUiStateForWorktree(worktreeId, windowId, {
-    isLoading: true,
-    selectedIndex: -1,
-  });
-
-  if (!query.trim() || !worktreePath) {
-    sessionStore.getState().setSearchUiStateForWorktree(worktreeId, windowId, {
-      isLoading: false,
-      selectedIndex: -1,
-    });
-    return;
-  }
-
-  try {
-    const response = await searchFiles({
-      query,
-      rootPath: worktreePath,
-      maxResults: 20,
-    });
-
-    if (requestVersions.get(windowId) !== requestVersion) {
-      return;
-    }
-
-    sessionStore.getState().updateWindowForWorktree(worktreeId, windowId, {
-      query,
-      results: response.results,
-    });
-    sessionStore.getState().setSearchUiStateForWorktree(worktreeId, windowId, {
-      isLoading: false,
-      selectedIndex: response.results.length > 0 ? 0 : -1,
-    });
-  } catch {
-    sessionStore.getState().setSearchUiStateForWorktree(worktreeId, windowId, {
-      isLoading: false,
-      selectedIndex: -1,
-    });
-  }
-}
-
-export function hoverSearchResultForWorktree({
-  sessionStore,
-  worktreeId,
-  windowId,
-  index,
-}: {
-  sessionStore: WorkspaceSessionStore;
-  worktreeId: string | null;
-  windowId: string;
-  index: number;
-}) {
-  if (!worktreeId) {
-    return;
-  }
-
-  const uiState = selectSearchUiStateByWorktree(
-    sessionStore.getState(),
-    worktreeId,
-    windowId,
-  );
-  sessionStore.getState().setSearchUiStateForWorktree(worktreeId, windowId, {
-    isLoading: uiState?.isLoading ?? false,
-    selectedIndex: index,
-  });
-}
-
-export function selectSearchResultIndexForWorktree({
-  sessionStore,
-  worktreeId,
-  windowId,
-  results,
-  direction,
-}: {
-  sessionStore: WorkspaceSessionStore;
-  worktreeId: string | null;
-  windowId: string;
-  results: SearchMatch[];
-  direction: "next" | "previous";
-}) {
-  if (!worktreeId) {
-    return -1;
-  }
-
-  const currentIndex =
-    selectSearchUiStateByWorktree(sessionStore.getState(), worktreeId, windowId)
-      ?.selectedIndex ?? -1;
-
-  if (results.length === 0) {
-    sessionStore.getState().setSearchUiStateForWorktree(worktreeId, windowId, {
-      isLoading: false,
-      selectedIndex: -1,
-    });
-    return -1;
-  }
-
-  const nextIndex =
-    direction === "next"
-      ? (currentIndex + 1) % results.length
-      : (currentIndex - 1 + results.length) % results.length;
-
-  sessionStore.getState().setSearchUiStateForWorktree(worktreeId, windowId, {
-    isLoading: false,
-    selectedIndex: nextIndex,
-  });
-
-  return nextIndex;
 }

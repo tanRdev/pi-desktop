@@ -1,78 +1,100 @@
-import {
-  moveRepositorySnapshots,
-  type RepositoryDisplayMetadata,
-  type RepositorySnapshot,
+import type {
+  RepositoryDisplayMetadata,
+  RepositorySnapshot,
+  ThreadSnapshot,
+  WorktreeSnapshot,
 } from "@pidesk/shared";
-import {
-  ArrowLeft,
-  Bug,
-  FolderOpen,
-  FolderPlus,
-  Puzzle,
-  Search,
-  Settings,
-  Share2,
-} from "lucide-react";
+import { moveRepositorySnapshots } from "@pidesk/shared";
+import { FolderPlus, Settings, Sparkles } from "lucide-react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { ProjectAvatar } from "./project-avatar";
+import { ProjectCustomizationMenu } from "./project-customization-menu";
+import { WorktreeSection } from "./worktree-section";
 
-export type RailView =
-  | "explorer"
-  | "search"
-  | "source"
-  | "debug"
-  | "extensions"
-  | null;
-export const LEFT_RAIL_WIDTH = 64;
+export const LEFT_RAIL_WIDTH = 320;
 
-const NAVIGATION_ITEMS: Array<{
-  view: Exclude<RailView, null>;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-}> = [
-  { view: "explorer", label: "EXPLORER", icon: FolderOpen },
-  { view: "search", label: "SEARCH", icon: Search },
-  { view: "source", label: "SOURCE", icon: Share2 },
-  { view: "debug", label: "DEBUG", icon: Bug },
-  { view: "extensions", label: "EXT", icon: Puzzle },
-];
+function getRepositoryName(repository: RepositorySnapshot): string {
+  return repository.customName?.trim() || repository.name;
+}
+
+function getRepositorySubtitle(repository: RepositorySnapshot): string {
+  const visibleThreadCount = repository.worktrees.reduce(
+    (count, worktree) =>
+      count + worktree.threads.filter((thread) => !thread.isArchived).length,
+    0,
+  );
+
+  return `${repository.worktrees.length} worktrees · ${visibleThreadCount} threads`;
+}
+
+function resolveExpandedWorktreeId(
+  worktrees: WorktreeSnapshot[],
+  activeWorktreeId: string | null,
+  expandedRepositoryId: string | null,
+): string | null {
+  if (
+    expandedRepositoryId &&
+    worktrees.some((worktree) => worktree.id === expandedRepositoryId)
+  ) {
+    return expandedRepositoryId;
+  }
+
+  if (
+    activeWorktreeId &&
+    worktrees.some((worktree) => worktree.id === activeWorktreeId)
+  ) {
+    return activeWorktreeId;
+  }
+
+  return worktrees[0]?.id ?? null;
+}
 
 export interface LeftRailProps {
   repositories: RepositorySnapshot[];
-  mode: "projects" | "workspace";
   activeRepositoryId: string | null;
-  activeView: RailView;
+  activeWorktreeId: string | null;
+  activeThreadId: string | null;
   onSelectRepository: (repositoryId: string) => void;
+  onSelectWorktree: (worktreeId: string) => void;
+  onSelectThread: (threadId: string) => void;
+  onCreateThread: (worktreeId: string) => void | Promise<void>;
+  onCloseThread?: (threadId: string) => void;
+  onRenameThread?: (threadId: string, title: string) => void;
+  onCreateWorktree: () => void;
   onUpdateRepositoryPreferences: (
     repositoryId: string,
     updates: Partial<RepositoryDisplayMetadata>,
   ) => void | Promise<void>;
   onAddRepository: () => void;
   onOpenSettings: () => void;
-  onShowProjects: () => void;
-  onEnterWorkspace: (view: Exclude<RailView, null>) => void;
-  onSelectView: (view: RailView) => void;
 }
 
 export function LeftRail({
   repositories,
-  mode,
   activeRepositoryId,
-  activeView,
+  activeWorktreeId,
+  activeThreadId,
   onSelectRepository,
-  onUpdateRepositoryPreferences: _onUpdateRepositoryPreferences,
+  onSelectWorktree,
+  onSelectThread,
+  onCreateThread,
+  onCloseThread,
+  onRenameThread,
+  onCreateWorktree,
+  onUpdateRepositoryPreferences,
   onAddRepository,
   onOpenSettings,
-  onShowProjects,
-  onEnterWorkspace,
-  onSelectView,
 }: LeftRailProps) {
   const [orderedRepositories, setOrderedRepositories] =
     React.useState(repositories);
   const [draggedRepositoryId, setDraggedRepositoryId] = React.useState<
     string | null
   >(null);
+  const [customizationRepositoryId, setCustomizationRepositoryId] =
+    React.useState<string | null>(null);
+  const [expandedWorktreesByRepositoryId, setExpandedWorktreesByRepositoryId] =
+    React.useState<Record<string, string | null>>({});
 
   const persistRepositoryOrder = React.useCallback(
     async (nextRepositories: RepositorySnapshot[]) => {
@@ -111,196 +133,248 @@ export function LeftRail({
     [draggedRepositoryId, persistRepositoryOrder],
   );
 
-  const handleSelectProject = React.useCallback(
+  const handleAddRepository = React.useCallback(() => {
+    setCustomizationRepositoryId(null);
+    onAddRepository();
+  }, [onAddRepository]);
+
+  const handleOpenSettings = React.useCallback(() => {
+    setCustomizationRepositoryId(null);
+    onOpenSettings();
+  }, [onOpenSettings]);
+
+  const handleSelectRepositoryItem = React.useCallback(
     (repositoryId: string) => {
+      setCustomizationRepositoryId(null);
       onSelectRepository(repositoryId);
-      onEnterWorkspace("explorer");
     },
-    [onEnterWorkspace, onSelectRepository],
+    [onSelectRepository],
   );
 
-  const handleShowProjects = React.useCallback(() => {
-    onShowProjects();
-  }, [onShowProjects]);
+  const handleToggleWorktree = React.useCallback(
+    (repositoryId: string, worktreeId: string) => {
+      setExpandedWorktreesByRepositoryId((currentState) => {
+        const nextExpandedId =
+          currentState[repositoryId] === worktreeId ? null : worktreeId;
 
-  const handleSelectNavigationView = React.useCallback(
-    (view: Exclude<RailView, null>) => {
-      if (activeView === view) {
-        return;
+        return {
+          ...currentState,
+          [repositoryId]: nextExpandedId,
+        };
+      });
+
+      if (activeWorktreeId !== worktreeId) {
+        onSelectWorktree(worktreeId);
+      }
+    },
+    [activeWorktreeId, onSelectWorktree],
+  );
+
+  const handleSelectThreadFromRepository = React.useCallback(
+    (repositoryId: string, worktreeId: string, threadId: string) => {
+      setExpandedWorktreesByRepositoryId((currentState) => ({
+        ...currentState,
+        [repositoryId]: worktreeId,
+      }));
+
+      if (activeWorktreeId !== worktreeId) {
+        onSelectWorktree(worktreeId);
       }
 
-      onSelectView(view);
+      onSelectThread(threadId);
     },
-    [activeView, onSelectView],
+    [activeWorktreeId, onSelectThread, onSelectWorktree],
   );
 
   const activeRepository = orderedRepositories.find(
     (repository) => repository.id === activeRepositoryId,
   );
-  const isProjectSelectionMode = mode === "projects";
-  const activeRepositoryName =
-    activeRepository?.customName ?? activeRepository?.name;
 
   return (
     <aside
       data-testid="left-rail"
-      data-mode={mode}
-      className={cn(
-        "fixed left-0 top-10 z-40 h-[calc(100vh-64px)] bg-[#0e0e0e]",
-      )}
+      data-mode="workspace"
+      className="relative z-20 flex h-full shrink-0 flex-col border-r border-[#474747]/18 bg-[#090909]"
       style={{ width: LEFT_RAIL_WIDTH }}
     >
-      <div className="flex h-full flex-col border-r border-[#474747]/15">
-        <div className="flex h-12 items-center justify-center border-b border-[#474747]/15 px-1.5">
-          {isProjectSelectionMode ? (
-            <span className="px-1.5 text-center font-mono text-[9px] uppercase leading-none tracking-[0.08em] text-[#6f6f6f]">
-              Projects
-            </span>
-          ) : (
-            <button
-              type="button"
-              onClick={handleShowProjects}
-              className={cn(
-                "flex h-8 w-full items-center justify-center gap-1.5 px-2 text-[#919191]",
-                "transition-[transform,background-color,color] duration-200 ease-out",
-                "hover:bg-[#1a1a1a] hover:text-white active:scale-[0.97]",
-              )}
-              aria-label="Return to project selection"
-              title="Return to project selection"
-            >
-              <ArrowLeft className="size-3.5" />
-              <span className="font-mono text-[8px] uppercase tracking-[0.08em]">
-                Back
-              </span>
-            </button>
-          )}
-        </div>
-
-        <div className="relative min-h-0 flex-1 overflow-hidden">
-          <div
+      <div className="border-b border-[#474747]/18 px-4 py-4">
+        <div className="flex items-center justify-end gap-3">
+          <button
+            type="button"
+            onClick={handleAddRepository}
             className={cn(
-              "absolute inset-0 flex flex-col items-center gap-3 px-2 py-3",
-              "transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]",
-              isProjectSelectionMode
-                ? "translate-x-0 opacity-100"
-                : "-translate-x-6 opacity-0 pointer-events-none",
+              "chrome-icon-button flex size-9 items-center justify-center border border-[#474747]/20 bg-[#121212] text-[#8a8a8a]",
+              "hover:border-white/35 hover:bg-[#171717] hover:text-white",
             )}
+            aria-label="Add repository"
+            title="Add repository"
           >
-            <div className="flex w-full flex-col items-center gap-3 overflow-y-auto pb-3">
-              {orderedRepositories.map((repository, index) => (
-                <div
-                  key={repository.id}
-                  className="flex justify-center"
-                  style={{
-                    transitionDelay: isProjectSelectionMode
-                      ? `${Math.min(index * 28, 180)}ms`
-                      : "0ms",
-                  }}
-                  onDragOver={(event) => {
-                    event.preventDefault();
-                  }}
-                  onDrop={() => handleDrop(repository.id)}
+            <FolderPlus className="size-4" />
+          </button>
+        </div>
+      </div>
+
+      <div className="min-h-0 flex-1 overflow-hidden px-3 py-3">
+        <div className="h-full space-y-3 overflow-hidden">
+          {orderedRepositories.map((repository) => {
+            const repositoryName = getRepositoryName(repository);
+            const isActive = repository.id === activeRepositoryId;
+            const isCustomizationOpen =
+              customizationRepositoryId === repository.id;
+            const expandedWorktreeId = resolveExpandedWorktreeId(
+              repository.worktrees,
+              isActive ? activeWorktreeId : null,
+              expandedWorktreesByRepositoryId[repository.id] ?? null,
+            );
+
+            return (
+              <section
+                key={repository.id}
+                className={cn(
+                  "relative overflow-hidden border",
+                  isActive
+                    ? "border-[#474747]/28 bg-[#101010]"
+                    : "border-[#474747]/14 bg-[#0c0c0c]",
+                )}
+                onDragOver={(event) => {
+                  event.preventDefault();
+                }}
+                onDrop={() => handleDrop(repository.id)}
+              >
+                <button
+                  type="button"
+                  data-testid="project-rail-item"
+                  data-active={isActive ? "true" : "false"}
+                  draggable
+                  onDragStart={() => setDraggedRepositoryId(repository.id)}
+                  onDragEnd={() => setDraggedRepositoryId(null)}
+                  onClick={() => handleSelectRepositoryItem(repository.id)}
+                  className={cn(
+                    "flex w-full items-center justify-start gap-3 px-4 py-3 text-left",
+                    "transition-[background-color,border-color,color,transform] duration-150 ease-out",
+                    "hover:bg-[#141414]",
+                    draggedRepositoryId === repository.id && "opacity-50",
+                  )}
+                  aria-label={`Open repository ${repositoryName}`}
                 >
                   <ProjectAvatar
                     repository={repository}
-                    isActive={repository.id === activeRepositoryId}
-                    onClick={() => handleSelectProject(repository.id)}
-                    draggable
-                    onDragStart={() => setDraggedRepositoryId(repository.id)}
-                    onDragEnd={() => setDraggedRepositoryId(null)}
-                    className={cn(
-                      "size-8",
-                      draggedRepositoryId === repository.id && "opacity-50",
-                    )}
+                    isActive={isActive}
+                    className="size-9 shrink-0"
                   />
-                </div>
-              ))}
-            </div>
-
-            <button
-              type="button"
-              onClick={onAddRepository}
-              className={cn(
-                "flex h-9 w-9 items-center justify-center border border-[#474747]/25 bg-[#151515] text-[#919191]",
-                "transition-[transform,background-color,color,border-color] duration-200 ease-out",
-                "hover:border-[#8c8c8c]/40 hover:bg-white hover:text-black active:scale-[0.96]",
-              )}
-              aria-label="Add repository"
-              title="Add repository"
-            >
-              <FolderPlus className="size-4" />
-            </button>
-          </div>
-
-          <div
-            className={cn(
-              "absolute inset-0 flex flex-col items-center gap-3 px-2 py-3",
-              "transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]",
-              isProjectSelectionMode
-                ? "translate-x-6 opacity-0 pointer-events-none"
-                : "translate-x-0 opacity-100",
-            )}
-          >
-            <div className="flex w-full flex-col items-center gap-3">
-              {activeRepository ? (
-                <div className="flex flex-col items-center gap-1.5">
-                  <ProjectAvatar
-                    repository={activeRepository}
-                    isActive
-                    className="size-8"
-                  />
-                  <span
-                    className="max-w-full truncate px-1 text-center font-mono text-[8px] uppercase tracking-[0.08em] text-[#6f6f6f]"
-                    title={activeRepositoryName}
-                  >
-                    {activeRepositoryName}
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium text-white">
+                      {repositoryName}
+                    </span>
+                    <span className="mt-0.5 block truncate font-mono text-[10px] uppercase tracking-[0.08em] text-[#7a7a7a]">
+                      {getRepositorySubtitle(repository)}
+                    </span>
                   </span>
+                </button>
+
+                {isActive ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setCustomizationRepositoryId((currentId) =>
+                        currentId === repository.id ? null : repository.id,
+                      )
+                    }
+                    className={cn(
+                      "absolute right-3 top-3 flex h-7 items-center gap-1.5 border border-[#474747]/20 bg-[#121212] px-2",
+                      "font-mono text-[9px] uppercase tracking-[0.08em] text-[#7a7a7a] transition-colors",
+                      "hover:border-white/35 hover:text-white",
+                    )}
+                    aria-label={`Customize ${repositoryName}`}
+                    aria-expanded={isCustomizationOpen}
+                  >
+                    <Sparkles className="size-3" />
+                    Edit
+                  </button>
+                ) : null}
+
+                <div className="border-t border-[#474747]/12 px-3 py-2">
+                  <div className="space-y-1.5">
+                    {repository.worktrees.length > 0 ? (
+                      repository.worktrees.map((worktree, index) => (
+                        <div
+                          key={worktree.id}
+                          className="stagger-item"
+                          style={{ animationDelay: `${index * 30}ms` }}
+                        >
+                          <WorktreeSection
+                            worktree={worktree}
+                            activeThreadId={isActive ? activeThreadId : null}
+                            isExpanded={expandedWorktreeId === worktree.id}
+                            onToggleExpand={() =>
+                              handleToggleWorktree(repository.id, worktree.id)
+                            }
+                            onSelectThread={(threadId: string) =>
+                              handleSelectThreadFromRepository(
+                                repository.id,
+                                worktree.id,
+                                threadId,
+                              )
+                            }
+                            onCreateThread={() => onCreateThread(worktree.id)}
+                            onCloseThread={onCloseThread}
+                            onRenameThread={onRenameThread}
+                          />
+                        </div>
+                      ))
+                    ) : (
+                      <div className="chrome-empty-state px-3 py-3 text-sm text-[#7a7a7a]">
+                        No worktrees yet.
+                      </div>
+                    )}
+                  </div>
                 </div>
-              ) : null}
 
-              <div className="flex w-full flex-col gap-2">
-                {NAVIGATION_ITEMS.map(({ view, label, icon: Icon }) => {
-                  const isActive = activeView === view;
-
-                  return (
-                    <button
-                      key={view}
-                      type="button"
-                      onClick={() => handleSelectNavigationView(view)}
-                      className={cn(
-                        "flex w-full flex-col items-center gap-1 px-1.5 py-2 font-mono text-[8px] uppercase tracking-[0.08em]",
-                        "transition-[transform,background-color,color] duration-200 ease-out",
-                        "active:scale-[0.97]",
-                        isActive
-                          ? "bg-white text-black"
-                          : "text-[#5d5d5d] hover:bg-[#1a1a1a] hover:text-white",
-                      )}
-                    >
-                      <Icon className="size-4" />
-                      <span>{label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="mt-auto h-9" />
-          </div>
+                <ProjectCustomizationMenu
+                  repository={repository}
+                  open={isCustomizationOpen}
+                  updateRepositoryPreferences={onUpdateRepositoryPreferences}
+                  side="right"
+                  className="pointer-events-auto absolute left-full top-1 z-50 ml-3"
+                />
+              </section>
+            );
+          })}
         </div>
+      </div>
 
-        <div className="flex items-center justify-center border-t border-[#474747]/15 px-2 py-2">
+      <div className="border-t border-[#474747]/18 px-3 py-3">
+        <div className="grid gap-2">
           <button
             type="button"
-            onClick={onOpenSettings}
+            onClick={onCreateWorktree}
             className={cn(
-              "flex h-8 w-8 items-center justify-center text-[#5d5d5d]",
-              "transition-[transform,background-color,color] duration-200 ease-out",
-              "hover:bg-[#1a1a1a] hover:text-white active:scale-[0.96]",
+              "flex w-full items-center gap-3 border border-[#474747]/20 px-3 py-2.5 text-left",
+              "text-[#7a7a7a] transition-colors hover:border-white/35 hover:bg-[#121212] hover:text-white",
+            )}
+            aria-label="Create worktree"
+            title="Create worktree"
+          >
+            <FolderPlus className="size-4 shrink-0" />
+            <span className="font-mono text-[10px] uppercase tracking-[0.08em]">
+              New worktree
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleOpenSettings}
+            className={cn(
+              "flex w-full items-center gap-3 border border-[#474747]/20 px-3 py-2.5 text-left",
+              "text-[#7a7a7a] transition-colors hover:border-white/35 hover:bg-[#121212] hover:text-white",
             )}
             aria-label="Open settings"
             title="Open settings"
           >
-            <Settings className="size-4" />
+            <Settings className="size-4 shrink-0" />
+            <span className="font-mono text-[10px] uppercase tracking-[0.08em]">
+              Settings
+            </span>
           </button>
         </div>
       </div>

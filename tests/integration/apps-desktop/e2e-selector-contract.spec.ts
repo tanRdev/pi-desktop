@@ -11,26 +11,21 @@ describe("e2e selector contract", () => {
     const titleBarSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/title-bar.tsx",
     );
-    const promptDockSource = readSource(
-      "apps/desktop/src/renderer/src/components/workspace/prompt-dock.tsx",
-    );
     const leftRailSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
     );
-    const leftSidebarSource = readSource(
-      "apps/desktop/src/renderer/src/components/workspace/left-sidebar.tsx",
+    const surfacePanelSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/workspace-surface-panel.tsx",
     );
-
     expect(titleBarSource).toContain('data-testid="titlebar-project-name"');
-    expect(titleBarSource).toContain('data-testid="current-worktree-label"');
-    expect(promptDockSource).toContain('data-testid="agent-status"');
-    expect(promptDockSource).toContain('data-testid="model-selector-trigger"');
     expect(leftRailSource).toContain('data-testid="left-rail"');
-    expect(leftRailSource).toContain("data-mode={mode}");
-    expect(leftSidebarSource).toContain('data-testid="left-sidebar"');
-    expect(leftSidebarSource).toContain(
-      'data-state={isCollapsed ? "collapsed" : "expanded"}',
+    expect(leftRailSource).toContain('data-mode="workspace"');
+    expect(leftRailSource).toContain('data-testid="project-rail-item"');
+    expect(surfacePanelSource).toContain(
+      'data-testid="workspace-context-panel"',
     );
+    expect(surfacePanelSource).toContain('testId: "sidecar-action-launcher"');
+    expect(surfacePanelSource).toContain('testId: "sidecar-action-files"');
   });
 
   it("adds stable settings and window chrome selectors for e2e flows", () => {
@@ -49,10 +44,13 @@ describe("e2e selector contract", () => {
     const workspaceShellSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx",
     );
+    const workspaceSurfacePanelSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/workspace-surface-panel.tsx",
+    );
 
     expect(settingsModalSource).toContain('data-testid="settings-modal"');
     expect(settingsModalSource).toContain(
-      "data-testid={`settings-nav-${item.id}`}",
+      `data-testid={\`settings-nav-\${item.id}\`}`,
     );
     expect(aiSettingsSource).toContain('testId="settings-provider-select"');
     expect(aiSettingsSource).toContain('testId="settings-model-select"');
@@ -61,7 +59,7 @@ describe("e2e selector contract", () => {
     );
     expect(formComponentsSource).toContain("testId?: string");
     expect(workspaceShellSource).toContain('data-testid="chat-first-layout"');
-    expect(workspaceShellSource).toContain(
+    expect(workspaceSurfacePanelSource).toContain(
       'data-testid="workspace-context-panel"',
     );
   });

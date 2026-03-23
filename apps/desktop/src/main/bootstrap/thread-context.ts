@@ -8,7 +8,7 @@ export type SelectedThreadContext<
   worktreePath: string;
   thread: TThread;
   socketPath: string;
-  sessionName: string | null;
+  runtimeId: string | null;
   command: string[];
   agentMode: "mock" | "sdk";
   agentDirectory: string | null;
@@ -32,7 +32,6 @@ type RuntimeOptions = {
 type LaunchDetails = {
   socketPath: string;
   runtimeId?: string;
-  sessionName?: string;
   command: string[];
 };
 
@@ -124,7 +123,7 @@ export function buildThreadContext<TThread extends { id: string }>(
     worktreePath: inspection.currentWorktreePath,
     thread,
     socketPath: launch.socketPath,
-    sessionName: launch.runtimeId ?? launch.sessionName ?? null,
+    runtimeId: launch.runtimeId ?? null,
     command: launch.command,
     agentMode: runtimeOptions.mode,
     agentDirectory: runtimeOptions.agentDir ?? null,

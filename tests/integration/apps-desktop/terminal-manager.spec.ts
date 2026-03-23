@@ -134,6 +134,15 @@ describe("future terminal modules (RED)", () => {
     expect(resolveLocalShellProgram({ platform: "darwin" })).toBe("/bin/zsh");
   });
 
+  it("removes tmux launch helpers from terminal backends", async () => {
+    const terminalBackendSource = await import(
+      "../../../apps/desktop/src/main/terminal/terminal-backends"
+    );
+
+    expect("buildTmuxLaunchSpec" in terminalBackendSource).toBe(false);
+    expect("isTmuxLaunchBackend" in terminalBackendSource).toBe(false);
+  });
+
   it("terminal-session-events: bindPtySessionEvents and bindChildProcessSessionEvents forward events", async () => {
     const { bindPtySessionEvents, bindChildProcessSessionEvents } =
       await import(
@@ -337,14 +346,14 @@ describe("terminalManager", () => {
 
   it("destroy() and destroyAll() remove local sessions", async () => {
     const harness = createTerminalManagerHarness();
-    const first = harness.manager.create("destroy-one", {
+    harness.manager.create("destroy-one", {
       cols: 80,
       rows: 24,
       ownerWindowId: "terminal-destroy-one",
       backend: "lazygit",
       cwd: "/tmp/project-epsilon",
     });
-    const second = harness.manager.create("destroy-two", {
+    harness.manager.create("destroy-two", {
       cols: 80,
       rows: 24,
       ownerWindowId: "terminal-destroy-two",

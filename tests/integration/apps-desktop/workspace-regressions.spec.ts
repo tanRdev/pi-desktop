@@ -7,23 +7,25 @@ function readSource(relativePath: string): string {
 }
 
 describe("workspace regressions", () => {
-  it("replaces the old empty canvas copy with an embedded canvas guide", () => {
+  it("removes the old empty canvas copy from the live workspace shell", () => {
     const shellSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx",
     );
 
-    expect(shellSource).toContain("CanvasEmptyState");
+    expect(shellSource).not.toContain("CanvasEmptyState");
     expect(shellSource).not.toContain("Open threads in their own windows");
   });
 
-  it("removes the repository summary header from the left sidebar", () => {
-    const sidebarSource = readSource(
-      "apps/desktop/src/renderer/src/components/workspace/left-sidebar.tsx",
+  it("keeps old navigation chrome out of the sessions rail", () => {
+    const railSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
     );
 
-    expect(sidebarSource).not.toContain("ProjectAvatar");
-    expect(sidebarSource).not.toContain("ProjectCustomizationMenu");
-    expect(sidebarSource).not.toContain("repository.defaultBranch");
+    expect(railSource).not.toContain("SEARCH");
+    expect(railSource).not.toContain("DEBUG");
+    expect(railSource).not.toContain(
+      "Projects, worktrees, and threads stay together in one focused",
+    );
   });
 
   it("uses controlled repository customization visibility instead of hover-only CSS", () => {
@@ -35,19 +37,18 @@ describe("workspace regressions", () => {
     );
 
     expect(railSource).toContain('side="right"');
-    expect(railSource).toContain("open={");
+    expect(railSource).toContain("customizationRepositoryId");
     expect(customizationSource).not.toContain("PencilLine");
     expect(customizationSource).not.toContain("group-hover:block");
-    expect(customizationSource).toContain("pointer-events-none");
   });
 
-  it("renames the left sidebar footer action to New worktree", () => {
-    const sidebarSource = readSource(
-      "apps/desktop/src/renderer/src/components/workspace/left-sidebar.tsx",
+  it("keeps new worktree creation reachable from the sessions rail", () => {
+    const railSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
     );
 
-    expect(sidebarSource).toContain("New worktree");
-    expect(sidebarSource).not.toContain("New session");
+    expect(railSource).toContain("New worktree");
+    expect(railSource).not.toContain("New session");
   });
 
   it("adds prompt input padding and suppresses the inner focus treatment", () => {
@@ -70,5 +71,28 @@ describe("workspace regressions", () => {
 
     expect(dockSource).toContain("onModelMenuOpenChange");
     expect(controllerSource).toContain("void reload();");
+  });
+
+  it("removes the added sidecar/chat workspace/execute copy from visible chrome", () => {
+    const dockSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/prompt-dock.tsx",
+    );
+    const surfacePanelSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/workspace-surface-panel.tsx",
+    );
+    const activitySource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/workspace-activity-panel.tsx",
+    );
+    const chatSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx",
+    );
+
+    expect(dockSource).not.toContain("Chat workspace");
+    expect(dockSource).not.toContain('"EXECUTE"');
+    expect(dockSource).not.toContain("PromptSuggestionGroup");
+    expect(surfacePanelSource).not.toContain("Sidecar");
+    expect(activitySource).not.toContain("Current thread");
+    expect(chatSource).not.toContain('label="Role"');
+    expect(chatSource).not.toContain('label="Transcript"');
   });
 });

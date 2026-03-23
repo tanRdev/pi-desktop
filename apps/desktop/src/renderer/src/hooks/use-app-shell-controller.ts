@@ -19,7 +19,6 @@ import {
   getPromptAutocompleteMatch,
   replacePromptToken,
 } from "../lib/prompt-routing";
-import { getEffectiveLeftSidebarWidth } from "../stores/app-shell-store";
 import { uiInteractionStore } from "../stores/ui-interaction-store";
 import {
   openFileWindowForWorktree,
@@ -153,13 +152,8 @@ export function useAppShellController(): AppShellController {
   >(null);
   const [selectedContextSurface, setSelectedContextSurface] =
     React.useState<WorkspaceShellProps["selectedContextSurface"]>("activity");
-  const [threadBootstrapAttemptKeyRef, setThreadBootstrapAttemptKeyRef] =
-    React.useState<string | null>(null);
-
-  const leftSidebarWidth = React.useMemo(
-    () => getEffectiveLeftSidebarWidth(appPreferences),
-    [appPreferences],
-  );
+  const threadBootstrapAttemptKeyRef = React.useRef<string | null>(null);
+  const launcherRequestIdRef = React.useRef(0);
 
   const setNoteContentState = React.useCallback(
     (windowId: string, value: string) => {
@@ -202,18 +196,6 @@ export function useAppShellController(): AppShellController {
     setSettingsOpen(true);
   }, [setSettingsOpen]);
 
-  const threadLookup = React.useMemo(() => {
-    const lookup = new Map<string, ThreadSnapshot>();
-    for (const repository of repositories) {
-      for (const worktree of repository.worktrees) {
-        for (const thread of worktree.threads) {
-          lookup.set(thread.id, thread);
-        }
-      }
-    }
-    return lookup;
-  }, [repositories]);
-
   React.useEffect(() => {
     syncActiveThreadConversation({
       sessionStore: workspaceSessionStore,
@@ -245,12 +227,12 @@ export function useAppShellController(): AppShellController {
 
   React.useEffect(() => {
     const bootstrapKey = `${activeWorktreeId ?? "no-worktree"}:${activeThreadId ?? "no-thread"}`;
-    if (threadBootstrapAttemptKeyRef === bootstrapKey) {
+    if (threadBootstrapAttemptKeyRef.current === bootstrapKey) {
       return;
     }
 
     if (!activeWorktreeId || activeThreadId) {
-      setThreadBootstrapAttemptKeyRef(bootstrapKey);
+      threadBootstrapAttemptKeyRef.current = bootstrapKey;
       return;
     }
 
@@ -258,7 +240,7 @@ export function useAppShellController(): AppShellController {
       (thread) => !thread.isArchived,
     )?.id;
     if (!nextThreadId) {
-      setThreadBootstrapAttemptKeyRef(bootstrapKey);
+      threadBootstrapAttemptKeyRef.current = bootstrapKey;
       void window.pidesk.threads
         .create(activeWorktreeId, "New thread")
         .then(() => {
@@ -267,17 +249,11 @@ export function useAppShellController(): AppShellController {
       return;
     }
 
-    setThreadBootstrapAttemptKeyRef(bootstrapKey);
+    threadBootstrapAttemptKeyRef.current = bootstrapKey;
     void window.pidesk.threads.select(nextThreadId).then(() => {
       void reload();
     });
-  }, [
-    activeThreadId,
-    activeWorktree?.threads,
-    activeWorktreeId,
-    reload,
-    threadBootstrapAttemptKeyRef,
-  ]);
+  }, [activeThreadId, activeWorktree?.threads, activeWorktreeId, reload]);
 
   const canSend =
     draft.trim().length > 0 &&
@@ -287,13 +263,6 @@ export function useAppShellController(): AppShellController {
   const isPromptExecuting =
     agent.status === "starting" || agent.status === "streaming";
   const isPromptVisible = activeThreadId !== null;
-
-  const handleLeftSidebarResize = React.useCallback(
-    (width: number) => {
-      void updateAppPreferences({ leftSidebarWidth: width });
-    },
-    [updateAppPreferences],
-  );
 
   const handleFileClick = React.useCallback(
     async (filePath: string) => {
@@ -473,6 +442,8 @@ export function useAppShellController(): AppShellController {
     async (query: string) => {
       const interactions = uiInteractionStore.getState();
       interactions.setLauncherQuery(query);
+      launcherRequestIdRef.current += 1;
+      const requestId = launcherRequestIdRef.current;
 
       if (!query.trim() || !activeWorktreePath) {
         interactions.setLauncherResults([]);
@@ -490,9 +461,17 @@ export function useAppShellController(): AppShellController {
           maxResults: 20,
         });
 
+        if (launcherRequestIdRef.current !== requestId) {
+          return;
+        }
+
         interactions.setLauncherResults(response.results);
         interactions.setLauncherLoading(false);
       } catch {
+        if (launcherRequestIdRef.current !== requestId) {
+          return;
+        }
+
         interactions.setLauncherResults([]);
         interactions.setLauncherSelectedIndex(-1);
         interactions.setLauncherLoading(false);
@@ -887,7 +866,6 @@ export function useAppShellController(): AppShellController {
     activeThreadTitle: activeThread ? getThreadWindowTitle(activeThread) : null,
     draft,
     canSend,
-    leftSidebarWidth,
     autocompleteSuggestions,
     autocompleteSelectedIndex,
     displayAgentStatus,
@@ -921,7 +899,6 @@ export function useAppShellController(): AppShellController {
     onCloseThread: handleCloseThread,
     onRenameThread: handleRenameThread,
     onCreateWorktree: handleCreateWorktree,
-    onLeftSidebarResize: handleLeftSidebarResize,
     onOpenLauncher: openLauncherOverlay,
     onCloseLauncher: closeLauncherOverlay,
     onOpenFileTree: openFileTreeOverlay,

@@ -13,10 +13,10 @@ describe("design refinements – CSS foundation", () => {
   it("uses refined surface depth progression", () => {
     const css = shellCss();
     // Surface layers should be distinct enough to create visual depth
-    expect(css).toContain("--surface-1: #121212");
-    expect(css).toContain("--surface-2: #1a1a1a");
-    expect(css).toContain("--surface-3: #212121");
-    expect(css).toContain("--surface-4: #282828");
+    expect(css).toContain("--surface-1: #131313");
+    expect(css).toContain("--surface-2: #0e0e0e");
+    expect(css).toContain("--surface-3: #1b1b1b");
+    expect(css).toContain("--surface-4: #1f1f1f");
   });
 
   it("has a shadow-xs token for micro-elevation", () => {
@@ -65,28 +65,17 @@ describe("design refinements – CSS foundation", () => {
   it("muted-foreground uses lower lightness for stronger dimming", () => {
     const css = shellCss();
     // Muted foreground should be ≤ 58% lightness for proper contrast
-    const match = css.match(/--muted-foreground:\s*oklch\((\d+)%/);
-    expect(match).not.toBeNull();
-    const lightness = Number.parseInt(match?.[1] ?? "0", 10);
-    expect(lightness).toBeLessThanOrEqual(58);
+    expect(css).toContain("--muted-foreground: #919191");
   });
 
   it("border opacity is tuned for visible but non-intrusive edges", () => {
     const css = shellCss();
     // Border should use moderate opacity (0.4-0.5 range)
-    const borderMatch = css.match(/--border:\s*oklch\([^)]+\/\s*([\d.]+)\)/);
-    expect(borderMatch).not.toBeNull();
-    const opacity = Number.parseFloat(borderMatch?.[1] ?? "0");
-    expect(opacity).toBeGreaterThanOrEqual(0.4);
-    expect(opacity).toBeLessThanOrEqual(0.55);
+    expect(css).toContain("--border: #474747");
   });
 });
 
 describe("design refinements – sidebar components", () => {
-  const sidebarSrc = () =>
-    readSource(
-      "apps/desktop/src/renderer/src/components/workspace/left-sidebar.tsx",
-    );
   const worktreeSrc = () =>
     readSource(
       "apps/desktop/src/renderer/src/components/workspace/worktree-section.tsx",
@@ -96,21 +85,6 @@ describe("design refinements – sidebar components", () => {
       "apps/desktop/src/renderer/src/components/workspace/thread-list-item.tsx",
     );
 
-  it("left sidebar removes the old repository summary card entirely", () => {
-    const src = sidebarSrc();
-    expect(src).not.toContain("ProjectAvatar");
-    expect(src).not.toContain("ProjectCustomizationMenu");
-    expect(src).not.toContain("repository.defaultBranch");
-  });
-
-  it("empty states use chrome-empty-state instead of dashed borders", () => {
-    const src = sidebarSrc();
-    expect(src).toContain("chrome-empty-state");
-    // No dashed border patterns in sidebar
-    expect(src).not.toContain("border-dashed");
-    expect(src).not.toContain("rounded-2xl border border-dashed");
-  });
-
   it("worktree section uses the shared git status chip instead of bespoke badges", () => {
     const src = worktreeSrc();
     expect(src).toContain("<GitStatusChip git={worktree.git} />");
@@ -119,7 +93,7 @@ describe("design refinements – sidebar components", () => {
 
   it("worktree section uses tighter padding and spacing", () => {
     const src = worktreeSrc();
-    expect(src).toContain("rounded-md px-2 py-1.5");
+    expect(src).toContain("rounded-md px-2 py-1");
     expect(src).toContain("space-y-0.5");
     expect(src).not.toContain("space-y-1 pl-8");
   });
@@ -133,7 +107,7 @@ describe("design refinements – sidebar components", () => {
   it("thread list items use tighter vertical rhythm", () => {
     const src = threadSrc();
     // Should use rounded-md py-1.5 (not rounded-lg py-2)
-    expect(src).toContain("rounded-md px-2 py-1.5");
+    expect(src).toContain("rounded-md px-2 py-1");
     expect(src).not.toContain("rounded-lg px-2 py-2");
   });
 
@@ -193,9 +167,8 @@ describe("design refinements – shell chrome & layout", () => {
 
   it("prompt dock tokens use transparent surface for cohesion", () => {
     const src = dockSrc();
-    expect(src).toContain("bg-surface-2/80");
-    // Tokens should use py-0.5 for tighter sizing
-    expect(src).toContain("py-0.5");
+    expect(src).toContain("text-white/58");
+    expect(src).toContain("text-[#626262]");
   });
 
   it("prompt dock token area uses tighter gap (gap-1.5)", () => {
@@ -211,22 +184,33 @@ describe("design refinements – shell chrome & layout", () => {
 
   it("prompt dock uses tighter tracking and a stop label while executing", () => {
     const src = dockSrc();
-    expect(src).toContain('isPromptExecuting ? "STOP" : "EXECUTE"');
+    expect(src).toContain('isPromptExecuting ? "STOP" : "SEND"');
     expect(src).toContain("tracking-[0.12em]");
     expect(src).not.toContain("tracking-[0.24em]");
   });
 
+  it("prompt dock removes canned prompt suggestion chips and extra chat labeling", () => {
+    const src = dockSrc();
+    expect(src).not.toContain("PromptSuggestionGroup");
+    expect(src).not.toContain("Chat workspace");
+  });
+
+  it("prompt dock uses larger textarea rhythm for readability", () => {
+    const src = dockSrc();
+    expect(src).toContain("min-h-[96px]");
+    expect(src).toContain("text-[12px] leading-[1.6] text-white");
+    expect(src).not.toContain("font-mono uppercase tracking-[0.04em]");
+  });
+
   it("title bar uses refined spacing (gap-2.5)", () => {
     const src = titleSrc();
-    expect(src).toContain("gap-2.5");
+    expect(src).toContain("gap-4");
   });
 
   it("left rail bottom section uses tighter spacing", () => {
     const src = railSrc();
-    expect(src).toContain("gap-1.5");
-    expect(src).toContain("py-2.5");
-    // Should NOT use the looser original spacing
-    expect(src).not.toContain("gap-2 py-3");
+    expect(src).toContain("space-y-3");
+    expect(src).toContain("px-4 py-4");
   });
 
   it("left rail and title bar reduce excessive tracking", () => {
@@ -234,7 +218,7 @@ describe("design refinements – shell chrome & layout", () => {
     const title = titleSrc();
     expect(rail).toContain("tracking-[0.08em]");
     expect(rail).not.toContain("tracking-[0.24em]");
-    expect(title).toContain("tracking-[0.08em]");
+    expect(title).not.toContain("tracking-[0.24em]");
   });
 
   it("status bar uses proportional sizing (10px text, 1.5×1.5 dot)", () => {
@@ -242,6 +226,48 @@ describe("design refinements – shell chrome & layout", () => {
     expect(src).toContain("text-[10px]");
     expect(src).toContain("h-1.5 w-1.5");
     expect(src).toContain("gap-1.5");
+  });
+
+  it("left rail becomes the dedicated sessions-and-threads column", () => {
+    const src = railSrc();
+    expect(src).toContain("export const LEFT_RAIL_WIDTH = 320");
+    expect(src).toContain("WorktreeSection");
+    expect(src).not.toContain("NAVIGATION_ITEMS");
+    expect(src).not.toContain(
+      "Projects, worktrees, and threads stay together in one focused",
+    );
+  });
+
+  it("prompt dock widens spacing and removes the old gradient band", () => {
+    const src = dockSrc();
+    expect(src).toContain("max-w-[58rem]");
+    expect(src).toContain(
+      "border border-[#474747]/18 bg-[#0e0e0e] px-5 pb-4 pt-4",
+    );
+    expect(src).not.toContain("linear-gradient(180deg,rgba(19,19,19,0)_0%");
+  });
+
+  it("chat transcript and empty state use calmer roomy spacing", () => {
+    const src = shellSrc();
+    const chatSrc = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx",
+    );
+
+    expect(chatSrc).toContain("max-w-[68rem] flex-1 flex-col gap-6 px-8 py-8");
+    expect(chatSrc).toContain("max-w-[56rem] flex-col gap-6 px-8 py-10");
+    expect(src).not.toContain('"ml-16"');
+  });
+
+  it("sidecar remains the third column instead of holding primary navigation", () => {
+    const src = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/workspace-surface-panel.tsx",
+    );
+
+    expect(src).not.toContain(">Sidecar<");
+    expect(src).toContain('label: "Files"');
+    expect(src).toContain('label: "Notes"');
+    expect(src).toContain('label: "Terminal"');
+    expect(src).toContain('label: "Git"');
   });
 
   it("prompt dock removes the old enter-to-send helper chrome", () => {
@@ -253,7 +279,6 @@ describe("design refinements – shell chrome & layout", () => {
 
 describe("design refinements – no design anti-patterns", () => {
   const allWorkspaceFiles = [
-    "apps/desktop/src/renderer/src/components/workspace/left-sidebar.tsx",
     "apps/desktop/src/renderer/src/components/workspace/project-customization-menu.tsx",
     "apps/desktop/src/renderer/src/components/workspace/worktree-section.tsx",
     "apps/desktop/src/renderer/src/components/workspace/thread-list-item.tsx",

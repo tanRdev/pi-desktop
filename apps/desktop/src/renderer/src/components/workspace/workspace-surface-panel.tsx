@@ -1,4 +1,4 @@
-import type { CanvasWindow } from "@pidesk/shared";
+import type { WorkspaceWindow } from "@pidesk/shared";
 import {
   Activity,
   FileCode2,
@@ -15,12 +15,12 @@ import {
   selectFileWindowStateByWorktree,
   selectNoteWindowStateByWorktree,
 } from "../../stores/workspace-session-selectors";
-import { FileWindowContent } from "../canvas/file-window-content";
-import { NoteWindowContent } from "../canvas/note-window-content";
 import { Terminal } from "../ui/terminal";
+import { WorkspaceFileContent } from "./workspace-file-content";
+import { WorkspaceNoteContent } from "./workspace-note-content";
 
 type SurfaceWindow = Extract<
-  CanvasWindow,
+  WorkspaceWindow,
   { kind: "file" | "note" | "terminal" | "git" }
 >;
 
@@ -57,6 +57,7 @@ export interface WorkspaceSurfacePanelProps {
   onSelectActivity: () => void;
   onSelectWindow: (windowId: string) => void;
   onCloseWindow: (windowId: string) => void;
+  onOpenLauncher: () => void;
   onOpenFileTree: () => void;
   onOpenNote: () => void;
   onOpenTerminal: () => void;
@@ -76,6 +77,7 @@ export function WorkspaceSurfacePanel({
   onSelectActivity,
   onSelectWindow,
   onCloseWindow,
+  onOpenLauncher,
   onOpenFileTree,
   onOpenNote,
   onOpenTerminal,
@@ -115,7 +117,7 @@ export function WorkspaceSurfacePanel({
 
     if (selectedWindow.kind === "file") {
       return (
-        <FileWindowContent
+        <WorkspaceFileContent
           filePath={selectedWindow.filePath}
           content={fileData?.content ?? null}
           isLoading={fileData?.isLoading}
@@ -133,7 +135,7 @@ export function WorkspaceSurfacePanel({
 
     if (selectedWindow.kind === "note") {
       return (
-        <NoteWindowContent
+        <WorkspaceNoteContent
           content={noteData?.content ?? ""}
           onContentChange={(content) =>
             onNoteContentChange(selectedWindow.id, content)
@@ -177,27 +179,47 @@ export function WorkspaceSurfacePanel({
     <aside
       data-testid="workspace-context-panel"
       className={cn(
-        "flex min-h-0 w-[min(32rem,38vw)] min-w-[22rem] max-w-[36rem] shrink-0 flex-col border-l border-[#474747]/20 bg-[#0b0b0b]",
+        "flex min-h-0 w-[min(28rem,30vw)] min-w-[18rem] max-w-[32rem] shrink-0 flex-col border-l border-[#474747]/20 bg-[#0b0b0b]",
         className,
       )}
     >
-      <div className="border-b border-[#474747]/18 px-3 py-3">
-        <div className="mb-2 flex items-center justify-between gap-2">
-          <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#6f6f6f]">
-            Context surfaces
-          </p>
-          <div className="flex items-center gap-1">
+      <div className="border-b border-[#474747]/18 px-4 py-4">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div />
+          <div className="flex items-center gap-1.5">
             {[
-              { label: "Files", onClick: onOpenFileTree },
-              { label: "Notes", onClick: onOpenNote },
-              { label: "Terminal", onClick: onOpenTerminal },
-              { label: "Git", onClick: onOpenGit },
+              {
+                label: "Launcher",
+                onClick: onOpenLauncher,
+                testId: "sidecar-action-launcher",
+              },
+              {
+                label: "Files",
+                onClick: onOpenFileTree,
+                testId: "sidecar-action-files",
+              },
+              {
+                label: "Notes",
+                onClick: onOpenNote,
+                testId: "sidecar-action-notes",
+              },
+              {
+                label: "Terminal",
+                onClick: onOpenTerminal,
+                testId: "sidecar-action-terminal",
+              },
+              {
+                label: "Git",
+                onClick: onOpenGit,
+                testId: "sidecar-action-git",
+              },
             ].map((action) => (
               <button
                 key={action.label}
                 type="button"
                 onClick={action.onClick}
-                className="border border-[#474747]/20 bg-[#111111] px-2 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-[#8a8a8a] transition-colors hover:border-white/40 hover:text-white"
+                data-testid={action.testId}
+                className="border border-[#474747]/20 bg-[#111111] px-2.5 py-1.5 font-mono text-[9px] uppercase tracking-[0.08em] text-[#8a8a8a] transition-colors hover:border-white/40 hover:text-white"
               >
                 {action.label}
               </button>
@@ -210,7 +232,7 @@ export function WorkspaceSurfacePanel({
             type="button"
             onClick={onSelectActivity}
             className={cn(
-              "flex shrink-0 items-center gap-2 border px-2 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] transition-colors",
+              "flex shrink-0 items-center gap-2 border px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.08em] transition-colors",
               selectedWindow === null
                 ? "border-white/50 bg-white text-black"
                 : "border-[#474747]/20 bg-[#111111] text-[#8a8a8a] hover:text-white",
@@ -230,7 +252,7 @@ export function WorkspaceSurfacePanel({
                   type="button"
                   onClick={() => onSelectWindow(window.id)}
                   className={cn(
-                    "flex items-center gap-2 border px-2 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] transition-colors",
+                    "flex items-center gap-2 border px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.08em] transition-colors",
                     isSelected
                       ? "border-white/50 bg-white text-black"
                       : "border-[#474747]/20 bg-[#111111] text-[#8a8a8a] hover:text-white",
@@ -257,19 +279,7 @@ export function WorkspaceSurfacePanel({
 
       <div className="min-h-0 flex-1 overflow-hidden">
         {selectedWindow === null && windows.length === 0 ? (
-          <div className="flex h-full flex-col items-center justify-center gap-4 px-6 text-center">
-            <div className="space-y-2">
-              <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#6f6f6f]">
-                Context panel
-              </p>
-              <h3 className="text-base text-white">
-                Open a supporting surface
-              </h3>
-              <p className="text-sm leading-6 text-[#8f8f8f]">
-                Files, notes, terminal, and git now live beside chat instead of
-                floating on a canvas.
-              </p>
-            </div>
+          <div className="flex h-full items-center justify-center px-8">
             <div className="flex flex-wrap items-center justify-center gap-2">
               {[
                 { label: "Browse files", onClick: onOpenFileTree },
@@ -281,7 +291,7 @@ export function WorkspaceSurfacePanel({
                   key={action.label}
                   type="button"
                   onClick={action.onClick}
-                  className="border border-[#474747]/20 bg-[#111111] px-3 py-2 font-mono text-[10px] uppercase tracking-[0.12em] text-[#8a8a8a] transition-colors hover:border-white/40 hover:text-white"
+                  className="border border-[#474747]/20 bg-[#111111] px-3 py-2 font-mono text-[10px] uppercase tracking-[0.08em] text-[#8a8a8a] transition-colors hover:border-white/40 hover:text-white"
                 >
                   {action.label}
                 </button>

@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -39,7 +39,7 @@ describe("ThreadCatalog", () => {
     catalog.touch(first.id, 100);
     catalog.touch(second.id, 200);
     catalog.archive(first.id);
-    catalog.updateRuntimeSession(second.id, "pidesk-thread-2");
+    catalog.updateRuntimeSession(second.id, "local-thread-2");
 
     const reloaded = new ThreadCatalog(userDataPath, { now, createId });
     expect(reloaded.listByWorktree("/tmp/work/repo-one")).toEqual([
@@ -49,7 +49,7 @@ describe("ThreadCatalog", () => {
         title: "Second thread",
         archivedAt: null,
         lastActivityAt: 200,
-        runtimeSessionName: "pidesk-thread-2",
+        runtimeId: "local-thread-2",
         createdAt: 2,
         updatedAt: 6,
       },
@@ -59,7 +59,7 @@ describe("ThreadCatalog", () => {
         title: "First thread",
         archivedAt: 5,
         lastActivityAt: 100,
-        runtimeSessionName: null,
+        runtimeId: null,
         createdAt: 1,
         updatedAt: 5,
       },
@@ -91,10 +91,45 @@ describe("ThreadCatalog", () => {
         title: "Current thread",
         archivedAt: null,
         lastActivityAt: null,
-        runtimeSessionName: null,
+        runtimeId: null,
         createdAt: 1,
         updatedAt: 1,
       },
     ]);
+  });
+
+  it("migrates legacy runtimeSessionName fields on read", () => {
+    const userDataPath = createUserDataPath();
+    const catalogPath = path.join(userDataPath, "catalog", "threads.json");
+
+    mkdirSync(path.dirname(catalogPath), { recursive: true });
+    writeFileSync(
+      catalogPath,
+      `${JSON.stringify(
+        {
+          version: 1,
+          threads: [
+            {
+              id: "thread-1",
+              worktreeId: "/tmp/work/repo-one",
+              title: "Legacy thread",
+              archivedAt: null,
+              lastActivityAt: 7,
+              runtimeSessionName: "legacy-runtime",
+              createdAt: 1,
+              updatedAt: 2,
+            },
+          ],
+        },
+        null,
+        2,
+      )}\n`,
+    );
+
+    const catalog = new ThreadCatalog(userDataPath);
+
+    expect(catalog.get("thread-1")).toMatchObject({
+      runtimeId: "legacy-runtime",
+    });
   });
 });

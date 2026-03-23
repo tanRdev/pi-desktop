@@ -24,12 +24,10 @@ describe("shared ui package foundation (chunk-2a-ui-foundation)", () => {
     const p = path.join(ROOT, "packages/ui/src/styles/pidesk-shell.css");
     const content = read(p);
     if (content === null) throw new Error(`Missing ${p}`);
-    if (!content.includes("--background: oklch(12% 0.01 270);"))
-      throw new Error(
-        "Expected --background: oklch(12% 0.01 270); in pidesk-shell.css",
-      );
-    if (!content.includes("--radius-sm: 0.125rem;"))
-      throw new Error("Expected --radius-sm: 0.125rem; in pidesk-shell.css");
+    if (!content.includes("--background: #131313;"))
+      throw new Error("Expected --background: #131313; in pidesk-shell.css");
+    if (!content.includes("--radius-sm: 0px;"))
+      throw new Error("Expected --radius-sm: 0px; in pidesk-shell.css");
     if (!content.includes("::-webkit-scrollbar"))
       throw new Error("Expected ::-webkit-scrollbar in pidesk-shell.css");
     if (!/--app-font-sans:\s*"Space Grotesk"/m.test(content))

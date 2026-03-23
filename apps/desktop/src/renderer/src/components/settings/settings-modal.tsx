@@ -91,7 +91,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
         <div className="flex flex-1 min-h-0">
           <nav className="w-52 shrink-0 border-r border-[#474747]/20 bg-[#0e0e0e]">
             <div className="flex flex-col gap-0.5 p-2">
-              {SETTINGS_MODAL_SECTIONS.map((item, index) => (
+              {SETTINGS_MODAL_SECTIONS.map((item) => (
                 <button
                   type="button"
                   key={item.id}

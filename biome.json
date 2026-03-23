@@ -26,6 +26,10 @@
       "!!**/coverage",
       "!!**/playwright-report",
       "!!**/test-results",
+      "!!.opencode",
+      "!!.pi",
+      "!!.todos",
+      "!!design",
       "!!**/*.css"
     ]
   }

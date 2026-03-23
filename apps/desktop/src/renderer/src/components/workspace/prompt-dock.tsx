@@ -19,10 +19,6 @@ import { Image } from "../ui/image";
 import { Loader } from "../ui/loader";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import PromptAutocomplete from "../ui/prompt-autocomplete";
-import {
-  PromptSuggestion,
-  PromptSuggestionGroup,
-} from "../ui/prompt-suggestion";
 import { TextShimmer } from "../ui/text-shimmer";
 
 function formatTokenCount(tokens: number): string {
@@ -38,27 +34,6 @@ function formatTokenCount(tokens: number): string {
 function isImagePath(filePath: string): boolean {
   return /\.(png|jpe?g|gif|webp|svg)$/i.test(filePath);
 }
-
-const DEFAULT_PROMPT_SUGGESTIONS = [
-  {
-    title: "Map this repo",
-    description: "Summarize the architecture and identify the fastest way in.",
-    value:
-      "Map this repository and tell me the fastest way to start changing it.",
-  },
-  {
-    title: "Tighten the UI",
-    description: "Review the current surface and propose the sharpest cleanup.",
-    value:
-      "Audit the current UI, call out the weakest spots, and propose targeted fixes.",
-  },
-  {
-    title: "Ship a fix",
-    description: "Describe the bug, write the failing test, and make it pass.",
-    value:
-      "Reproduce the current bug with a failing test first, then implement the fix.",
-  },
-];
 
 export interface PromptDockProps {
   draft: string;
@@ -104,7 +79,7 @@ export function PromptDock({
   onAutocompleteHover,
   onPromptKeyDown,
   displayAgentStatus,
-  runtimeModeLabel,
+  runtimeModeLabel: _runtimeModeLabel,
   providerSnapshots,
   currentModelValue,
   isSwitchingModel,
@@ -142,8 +117,6 @@ export function PromptDock({
     () => uploadedFiles.filter((file) => file.kind === "image"),
     [uploadedFiles],
   );
-
-  const showPromptSuggestions = hasActiveThread && draft.trim().length === 0;
 
   const handleModelSelect = React.useCallback(
     (value: string) => {
@@ -230,15 +203,6 @@ export function PromptDock({
     [draft, onDraftChange],
   );
 
-  const handleSuggestionSelect = React.useCallback(
-    (value: string) => {
-      onDraftChange(value);
-    },
-    [onDraftChange],
-  );
-
-  const threadLabel = activeThreadTitle?.trim() || "Active thread";
-  const modeLabel = runtimeModeLabel.trim() || "Command";
   const agentLabel = displayAgentStatus.trim() || "Idle";
 
   return (
@@ -248,25 +212,17 @@ export function PromptDock({
         "relative w-full",
         "transition-[max-height,padding] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]",
         "motion-reduce:transition-none",
-        isVisible ? "max-h-[42rem] pb-5 pt-3" : "max-h-0 pb-0 pt-0",
+        isVisible ? "max-h-[42rem] pb-5 pt-5" : "max-h-0 pb-0 pt-0",
       )}
     >
       <div
-        aria-hidden="true"
         className={cn(
-          "pointer-events-none absolute inset-x-0 bottom-0 top-0 bg-[linear-gradient(180deg,rgba(19,19,19,0)_0%,rgba(19,19,19,0.56)_24%,rgba(11,11,11,0.98)_100%)]",
-          "transition-opacity duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]",
-          isVisible ? "opacity-100" : "opacity-0",
-        )}
-      />
-      <div
-        className={cn(
-          "relative w-full",
+          "relative mx-auto w-full max-w-[58rem]",
           "transition-[opacity,transform,filter] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]",
           "motion-reduce:transition-none",
           isVisible
             ? "translate-y-0 opacity-100"
-            : "translate-y-10 opacity-0 pointer-events-none",
+            : "translate-y-6 opacity-0 pointer-events-none",
         )}
       >
         <PromptInput
@@ -276,59 +232,21 @@ export function PromptDock({
             void (isPromptExecuting ? onCancelPrompt() : onSend())
           }
           className={cn(
-            "shell-dock px-4 pb-3 pt-3",
-            "bg-[linear-gradient(180deg,rgba(13,13,13,0.84)_0%,rgba(8,8,8,0.98)_100%)]",
-            "border-[#474747]/15 backdrop-blur-[1px]",
+            "shell-dock border border-[#474747]/18 bg-[#0e0e0e] px-5 pb-4 pt-4",
             "transition-[border-color,background-color] duration-150 ease-[var(--ease-out)]",
             isFocused && "border-white/60",
           )}
         >
-          <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-[9px] font-mono uppercase tracking-[0.12em] text-[#6f6f6f]">
-            <div className="flex min-w-0 items-center gap-2">
-              <span className="shrink-0 text-[#8b8b8b]">Thread</span>
-              <span className="truncate text-[10px] tracking-[0.08em] text-white/72 normal-case">
-                {threadLabel}
-              </span>
-            </div>
-            <div className="flex shrink-0 items-center gap-2 whitespace-nowrap">
-              <span>{modeLabel}</span>
-              <span className="text-white/25">/</span>
-              {isSwitchingModel ? (
-                <Loader label="Switching" />
-              ) : (
-                <TextShimmer
-                  data-testid="agent-status"
-                  className="text-[9px] uppercase tracking-[0.12em] text-white/58"
-                >
-                  {agentLabel}
-                </TextShimmer>
-              )}
-            </div>
-          </div>
-
-          {showPromptSuggestions ? (
-            <PromptSuggestionGroup className="mb-2">
-              {DEFAULT_PROMPT_SUGGESTIONS.map((suggestion) => (
-                <PromptSuggestion
-                  key={suggestion.title}
-                  title={suggestion.title}
-                  description={suggestion.description}
-                  onClick={() => handleSuggestionSelect(suggestion.value)}
-                />
-              ))}
-            </PromptSuggestionGroup>
-          ) : null}
-
           <FileUpload
             files={uploadedFiles}
             disabled={!hasActiveThread}
             onPickFiles={handlePickFiles}
             onRemoveFile={handleRemoveFile}
-            className="mb-3"
+            className="mb-4"
           />
 
           {imageFiles.length > 0 ? (
-            <div className="mb-3 grid grid-cols-2 gap-2">
+            <div className="mb-4 grid grid-cols-2 gap-3">
               {imageFiles.slice(0, 2).map((file) => (
                 <Image
                   key={file.id}
@@ -343,15 +261,17 @@ export function PromptDock({
           <PromptInputTextarea
             data-testid="chat-input"
             placeholder={
-              hasActiveThread ? "ASK_PI... (CMD + K)" : "SELECT_THREAD..."
+              hasActiveThread
+                ? "Ask PiDesk to inspect, plan, fix, or ship…"
+                : "Select a thread to start typing…"
             }
             disabled={!hasActiveThread}
             onKeyDown={onPromptKeyDown}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             className={cn(
-              "min-h-[84px] resize-none border-0 border-b border-[#474747]/24 bg-transparent px-0 py-0 pb-2",
-              "text-[11px] leading-[1.4] font-mono uppercase tracking-[0.04em] text-white",
+              "min-h-[96px] resize-none border-0 border-b border-[#474747]/24 bg-transparent px-0 py-0 pb-3",
+              "text-[12px] leading-[1.6] text-white",
               "placeholder:text-[#5a5a5a] outline-none",
               "focus-visible:border-b focus-visible:border-white/55 focus-visible:ring-0 disabled:opacity-50",
               "transition-colors duration-100 ease-[var(--ease-out)]",
@@ -367,7 +287,7 @@ export function PromptDock({
             className="absolute left-0 right-0 top-full z-20 mt-2"
           />
 
-          <PromptInputActions className="mt-2 items-center justify-between gap-3 pt-1">
+          <PromptInputActions className="mt-3 items-center justify-between gap-3 pt-2">
             <div className="flex items-center gap-2">
               <PromptInputAction tooltip="MODEL_ROUTER">
                 <Popover open={modelOpen} onOpenChange={handleModelOpenChange}>
@@ -381,7 +301,7 @@ export function PromptDock({
                         providerSnapshots.length === 0
                       }
                       className={cn(
-                        "flex items-center gap-1.5 bg-[#181818] px-2 py-1 text-[9px] text-[#919191] font-mono uppercase tracking-[0.22em] border border-[#474747]/20",
+                        "flex items-center gap-1.5 border border-[#474747]/20 bg-[#181818] px-2.5 py-1.5 font-mono text-[9px] uppercase tracking-[0.12em] text-[#919191]",
                         "transition-all duration-100 ease-[var(--ease-out)]",
                         "hover:border-white/50 hover:bg-white hover:text-black",
                         "focus-visible:outline-none",
@@ -439,12 +359,18 @@ export function PromptDock({
                   </PopoverContent>
                 </Popover>
               </PromptInputAction>
-              <span className="text-[9px] font-mono uppercase tracking-[0.12em] text-[#5f5f5f]">
-                Canvas input
-              </span>
             </div>
 
             <div className="flex items-center gap-2.5">
+              {isSwitchingModel ? <Loader label="Switching" /> : null}
+              {!isSwitchingModel ? (
+                <TextShimmer
+                  data-testid="agent-status"
+                  className="text-[9px] font-mono uppercase tracking-[0.12em] text-white/58"
+                >
+                  {agentLabel}
+                </TextShimmer>
+              ) : null}
               {currentContextWindow != null ? (
                 <span className="text-[9px] tabular-nums text-[#626262] font-mono uppercase tracking-[0.08em]">
                   {formatTokenCount(currentContextWindow)} CTX
@@ -463,14 +389,14 @@ export function PromptDock({
                     void (isPromptExecuting ? onCancelPrompt() : onSend())
                   }
                   className={cn(
-                    "h-6 px-4 text-[10px] font-bold uppercase tracking-[0.14em] transition-colors",
+                    "shell-send-button h-8 px-5 text-[10px] font-bold uppercase tracking-[0.12em] transition-colors",
                     !isPromptExecuting && !canSend && "opacity-30",
                   )}
                 >
                   {isPromptExecuting ? (
                     <Square className="size-3 fill-current" />
                   ) : null}
-                  {isPromptExecuting ? "STOP" : "EXECUTE"}
+                  {isPromptExecuting ? "STOP" : "SEND"}
                 </Button>
               </PromptInputAction>
             </div>

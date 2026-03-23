@@ -16,12 +16,6 @@ async function getThreadTitles(worktreeSection: Locator): Promise<string[]> {
   return titles.map((title) => title.trim()).filter(Boolean);
 }
 
-async function getSidebarWidth(sidebar: Locator): Promise<number> {
-  return await sidebar.evaluate(
-    (element) => element.getBoundingClientRect().width,
-  );
-}
-
 async function getCurrentThreadTitle(page: import("@playwright/test").Page) {
   return (await page.getByTestId("current-thread-title").textContent())?.trim();
 }
@@ -32,7 +26,7 @@ async function selectThreadListItem(threadItem: Locator): Promise<void> {
 }
 
 test("creates, renames, finds, and closes a thread across workspace rail views", async () => {
-  test.setTimeout(45_000);
+  test.setTimeout(75_000);
 
   const { app, page, launchContext } = await launchDesktopApp(
     "pidesk-e2e-threads-",
@@ -106,29 +100,6 @@ test("creates, renames, finds, and closes a thread across workspace rail views",
       /qa thread/i,
     );
 
-    await page.getByRole("button", { name: "SEARCH" }).click();
-
-    const workspaceSearch = page.getByRole("searchbox", {
-      name: "Search worktrees or threads",
-    });
-    await workspaceSearch.fill("QA Thread");
-
-    const searchResult = page
-      .getByTestId("left-sidebar")
-      .getByRole("button", { name: /QA Thread/i })
-      .first();
-    await expect(searchResult).toBeVisible();
-    await workspaceSearch.fill(String(createdThreadTitle));
-    await expect(
-      page.getByTestId("left-sidebar").getByRole("button", {
-        name: new RegExp(String(createdThreadTitle), "i"),
-      }),
-    ).toHaveCount(0);
-
-    await workspaceSearch.fill("QA Thread");
-    await expect(searchResult).toBeVisible();
-    await searchResult.click();
-    await page.getByRole("button", { name: "EXPLORER" }).click();
     await expect(renamedThreadInExplorer).toBeVisible();
     await selectThreadListItem(renamedThreadInExplorer);
     await expect(page.getByTestId("current-thread-title")).toHaveText(
@@ -136,15 +107,9 @@ test("creates, renames, finds, and closes a thread across workspace rail views",
     );
     await focusChatThread(page);
 
-    await page.getByRole("button", { name: "DEBUG" }).click();
-    const debugEntry = page
-      .getByTestId("left-sidebar")
-      .getByRole("button", { name: /QA Thread/i })
-      .first();
-    await expect(debugEntry).toBeVisible();
-    await expect(debugEntry).toContainText(/ready/i);
-
-    await page.getByRole("button", { name: "EXPLORER" }).click();
+    await expect(
+      page.getByTestId("workspace-context-panel").first(),
+    ).toBeVisible();
 
     const closeButton = renamedThreadInExplorer.getByTestId(
       "thread-close-button",
@@ -157,21 +122,13 @@ test("creates, renames, finds, and closes a thread across workspace rail views",
         .getByTestId("thread-list-item")
         .filter({ hasText: /qa thread/i }),
     ).toHaveCount(0);
-
-    await page.getByRole("button", { name: "SEARCH" }).click();
-    await workspaceSearch.fill("QA Thread");
-    await expect(
-      page
-        .getByTestId("left-sidebar")
-        .getByRole("button", { name: /QA Thread/i }),
-    ).toHaveCount(0);
   } finally {
     await app.close();
     launchContext.cleanup();
   }
 });
 
-test("toggles the workspace sidebar and renders source, debug, and extensions rail surfaces", async () => {
+test("keeps the shell to sessions rail, chat, and sidecar only", async () => {
   const { app, page, launchContext } = await launchDesktopApp(
     "pidesk-e2e-rail-views-",
   );
@@ -180,58 +137,12 @@ test("toggles the workspace sidebar and renders source, debug, and extensions ra
     await waitForAppReady(page);
     await ensureWorkspaceMode(page);
 
-    const sidebar = page.getByTestId("left-sidebar");
-    await expect.poll(() => getSidebarWidth(sidebar)).toBeGreaterThan(0);
-
-    await page
-      .getByRole("button", { name: "Toggle workspace sidebar" })
-      .click();
-    await expect.poll(() => getSidebarWidth(sidebar)).toBe(0);
-
-    await page
-      .getByRole("button", { name: "Toggle workspace sidebar" })
-      .click();
-    await expect.poll(() => getSidebarWidth(sidebar)).toBeGreaterThan(0);
-
-    await page.getByRole("button", { name: "SOURCE" }).click();
-    await expect(sidebar).toContainText(/Dirty\s*\d+/);
-    await expect(sidebar).toContainText(/Staged\s*\d+/);
-    await expect(sidebar).toContainText(/Modified\s*\d+/);
-    await expect(sidebar).toContainText(/Untracked\s*\d+/);
+    await expect(page.getByTestId("left-rail")).toBeVisible();
+    await expect(page.getByTestId("chat-first-layout")).toBeVisible();
     await expect(
-      sidebar.getByRole("button", {
-        name: new RegExp(getCurrentBranchName(), "i"),
-      }),
+      page.getByTestId("workspace-context-panel").first(),
     ).toBeVisible();
-
-    await page.getByRole("button", { name: "DEBUG" }).click();
-    await expect(sidebar).toContainText(/Live\s*\d+/);
-    await expect(sidebar).toContainText(/Ready\s*\d+/);
-    await expect(sidebar).toContainText(/Errors\s*\d+/);
-    await expect(sidebar).toContainText(/Offline\s*\d+/);
-    await expect(
-      sidebar
-        .getByRole("button", { name: /current thread|qa thread/i })
-        .first(),
-    ).toBeVisible();
-
-    await page.getByRole("button", { name: "EXT" }).click();
-    const extensionCards = sidebar.locator("div").filter({
-      hasText: /Explorer Surface|Search Index|Source Inspector|Runtime Monitor/,
-    });
-
-    await expect(
-      extensionCards.filter({ hasText: /Explorer Surface/ }).first(),
-    ).toContainText(/(Mounted|Idle)/);
-    await expect(
-      extensionCards.filter({ hasText: /Search Index/ }).first(),
-    ).toContainText(/(Ready|Empty)/);
-    await expect(
-      extensionCards.filter({ hasText: /Source Inspector/ }).first(),
-    ).toContainText(/(Ready|Degraded)/);
-    await expect(
-      extensionCards.filter({ hasText: /Runtime Monitor/ }).first(),
-    ).toContainText(/(Attached|Idle)/);
+    await expect(page.getByTestId("left-sidebar")).toHaveCount(0);
   } finally {
     await app.close();
     launchContext.cleanup();

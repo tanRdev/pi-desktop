@@ -1,7 +1,7 @@
 import type { ImageDimensions } from "./fs.js";
 /**
- * Canvas window descriptors for the PiDesk window manager.
- * Each window is a floating, draggable, resizable surface on the canvas.
+ * Workspace window descriptors for the PiDesk window manager.
+ * Each window is a draggable, resizable workspace surface.
  */
 
 export type WindowKind =
@@ -30,7 +30,7 @@ export type LinkColor =
 /**
  * Base window descriptor shared by all window kinds.
  */
-export interface CanvasWindowBase {
+export interface WorkspaceWindowBase {
   /** Unique window identifier */
   id: string;
   /** Window kind determines content and behavior */
@@ -60,7 +60,7 @@ export interface CanvasWindowBase {
 /**
  * File window - displays code/text/markdown files with Monaco or TipTap.
  */
-export interface FileWindow extends CanvasWindowBase {
+export interface FileWindow extends WorkspaceWindowBase {
   kind: "file";
   /** Absolute file path */
   filePath: string;
@@ -75,7 +75,7 @@ export interface FileWindow extends CanvasWindowBase {
 /**
  * Terminal window - local shell or git surface.
  */
-export interface TerminalWindow extends CanvasWindowBase {
+export interface TerminalWindow extends WorkspaceWindowBase {
   kind: "terminal";
   /** Terminal session ID */
   terminalId: string;
@@ -88,7 +88,7 @@ export interface TerminalWindow extends CanvasWindowBase {
 /**
  * Chat window - renders a Pi thread transcript inside a floating window.
  */
-export interface ChatWindow extends CanvasWindowBase {
+export interface ChatWindow extends WorkspaceWindowBase {
   kind: "chat";
   /** Linked Pi thread ID */
   threadId: string;
@@ -97,7 +97,7 @@ export interface ChatWindow extends CanvasWindowBase {
 /**
  * Note window - plain Markdown editor with file-backed autosave.
  */
-export interface NoteWindow extends CanvasWindowBase {
+export interface NoteWindow extends WorkspaceWindowBase {
   kind: "note";
   /** Note document ID */
   noteId: string;
@@ -110,7 +110,7 @@ export interface NoteWindow extends CanvasWindowBase {
 /**
  * Git window - lazygit in a terminal window.
  */
-export interface GitWindow extends CanvasWindowBase {
+export interface GitWindow extends WorkspaceWindowBase {
   kind: "git";
   /** Terminal session ID backing this git window */
   terminalId: string;
@@ -121,7 +121,7 @@ export interface GitWindow extends CanvasWindowBase {
 /**
  * Search window - fff-backed fuzzy file search.
  */
-export interface SearchWindow extends CanvasWindowBase {
+export interface SearchWindow extends WorkspaceWindowBase {
   kind: "search";
   /** Current search query */
   query: string;
@@ -132,7 +132,7 @@ export interface SearchWindow extends CanvasWindowBase {
 /**
  * Graph window - D3 force visualization of workspace relationships.
  */
-export interface GraphWindow extends CanvasWindowBase {
+export interface GraphWindow extends WorkspaceWindowBase {
   kind: "graph";
   /** Graph filter settings */
   filters: GraphFilters;
@@ -141,7 +141,7 @@ export interface GraphWindow extends CanvasWindowBase {
 /**
  * Image window - sharp-backed image preview.
  */
-export interface ImageWindow extends CanvasWindowBase {
+export interface ImageWindow extends WorkspaceWindowBase {
   kind: "image";
   /** Absolute file path */
   filePath: string;
@@ -152,9 +152,9 @@ export interface ImageWindow extends CanvasWindowBase {
 }
 
 /**
- * Union type for all canvas windows.
+ * Union type for all workspace windows.
  */
-export type CanvasWindow =
+export type WorkspaceWindow =
   | FileWindow
   | TerminalWindow
   | ChatWindow
@@ -163,6 +163,9 @@ export type CanvasWindow =
   | SearchWindow
   | GraphWindow
   | ImageWindow;
+
+export type CanvasWindow = WorkspaceWindow;
+export type CanvasWindowBase = WorkspaceWindowBase;
 
 /**
  * Search result from fff fuzzy file search.
@@ -197,22 +200,22 @@ export interface GraphFilters {
 }
 
 /**
- * Window layout state for the canvas.
+ * Window layout state for the workspace window system.
  */
 export interface WindowLayoutState {
   /** All open windows */
-  windows: CanvasWindow[];
+  windows: WorkspaceWindow[];
   /** Next z-index to assign */
   nextZIndex: number;
   /** ID of the focused window (if any) */
   focusedWindowId: string | null;
   /** Grid size for snapping (pixels) */
   snapGridSize: number;
-  /** Canvas zoom scale (1.0 = 100%) */
+  /** Workspace zoom scale (1.0 = 100%) */
   zoom: number;
-  /** Canvas pan offset X */
+  /** Workspace pan offset X */
   panX: number;
-  /** Canvas pan offset Y */
+  /** Workspace pan offset Y */
   panY: number;
 }
 

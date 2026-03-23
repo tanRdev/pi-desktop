@@ -32,16 +32,10 @@ export type NoteWindowState = {
   error: string | null;
 };
 
-export type SearchUiState = {
-  isLoading: boolean;
-  selectedIndex: number;
-};
-
 export interface RendererWorkspaceSession extends WorkspaceSession {
   threadConversations: Map<string, ThreadConversationState>;
   fileContents: Map<string, FileWindowState>;
   noteContents: Map<string, NoteWindowState>;
-  searchUiState: Map<string, SearchUiState>;
 }
 
 export interface WorkspaceSessionStoreDependencies {
@@ -52,6 +46,7 @@ export interface WorkspaceSessionStoreDependencies {
 
 export interface WorkspaceSessionStoreState {
   activeWorktreeId: string | null;
+  activeWorktreeVersion: number;
   sessionsByWorktreeId: Record<string, RendererWorkspaceSession>;
   setActiveWorktree(worktreeId: string | null): Promise<void>;
   hydrateCatalogSessions(sessions: WorkspaceSession[]): void;
@@ -89,12 +84,6 @@ export interface WorkspaceSessionStoreState {
     worktreeId: string,
     windowId: string,
     content: string,
-  ): void;
-  setSearchUiState(windowId: string, value: SearchUiState): void;
-  setSearchUiStateForWorktree(
-    worktreeId: string,
-    windowId: string,
-    value: SearchUiState,
   ): void;
   updateWindowForWorktree(
     worktreeId: string,
@@ -171,7 +160,6 @@ function cloneSession(session: WorkspaceSession): RendererWorkspaceSession {
         { content: note.draft, error: null },
       ]),
     ),
-    searchUiState: new Map(),
   };
 }
 
@@ -190,11 +178,6 @@ function mergeSession(
     threadConversations: currentSession.threadConversations,
     fileContents: currentSession.fileContents,
     noteContents: currentSession.noteContents,
-    searchUiState: new Map(
-      [...currentSession.searchUiState].filter(([windowId]) =>
-        clonedSession.layout.windows.some((window) => window.id === windowId),
-      ),
-    ),
   };
 }
 
@@ -245,6 +228,22 @@ function resolveNoteId(
   );
 }
 
+function updateSessionRecord(
+  sessionsByWorktreeId: Record<string, RendererWorkspaceSession>,
+  worktreeId: string,
+  updater: (session: RendererWorkspaceSession) => RendererWorkspaceSession,
+): Record<string, RendererWorkspaceSession> {
+  const currentSession = sessionsByWorktreeId[worktreeId];
+  if (!currentSession) {
+    return sessionsByWorktreeId;
+  }
+
+  return {
+    ...sessionsByWorktreeId,
+    [worktreeId]: updater(currentSession),
+  };
+}
+
 export type WorkspaceSessionStore = ReturnType<
   typeof createWorkspaceSessionStore
 >;
@@ -284,17 +283,17 @@ export function createWorkspaceSessionStore({
     }
 
     store.setState((state) => {
-      const currentSession = state.sessionsByWorktreeId[worktreeId];
-      if (!currentSession) {
+      if (!state.sessionsByWorktreeId[worktreeId]) {
         return state;
       }
 
       return {
         ...state,
-        sessionsByWorktreeId: {
-          ...state.sessionsByWorktreeId,
-          [worktreeId]: updater(currentSession),
-        },
+        sessionsByWorktreeId: updateSessionRecord(
+          state.sessionsByWorktreeId,
+          worktreeId,
+          updater,
+        ),
       };
     });
 
@@ -309,17 +308,17 @@ export function createWorkspaceSessionStore({
     options?: { persist?: boolean },
   ): void {
     store.setState((state) => {
-      const currentSession = state.sessionsByWorktreeId[worktreeId];
-      if (!currentSession) {
+      if (!state.sessionsByWorktreeId[worktreeId]) {
         return state;
       }
 
       return {
         ...state,
-        sessionsByWorktreeId: {
-          ...state.sessionsByWorktreeId,
-          [worktreeId]: updater(currentSession),
-        },
+        sessionsByWorktreeId: updateSessionRecord(
+          state.sessionsByWorktreeId,
+          worktreeId,
+          updater,
+        ),
       };
     });
 
@@ -330,6 +329,7 @@ export function createWorkspaceSessionStore({
 
   const store = createStore<WorkspaceSessionStoreState>()((set, get) => ({
     activeWorktreeId: null,
+    activeWorktreeVersion: 0,
     sessionsByWorktreeId: {},
     hydrateCatalogSessions(sessions) {
       set((state) => ({
@@ -350,13 +350,25 @@ export function createWorkspaceSessionStore({
     },
     async setActiveWorktree(worktreeId) {
       if (!worktreeId) {
-        set({ activeWorktreeId: null });
+        set((state) => ({
+          activeWorktreeId: null,
+          activeWorktreeVersion: state.activeWorktreeVersion + 1,
+        }));
         return;
       }
+
+      const nextVersion = get().activeWorktreeVersion + 1;
+      set({
+        activeWorktreeId: worktreeId,
+        activeWorktreeVersion: nextVersion,
+      });
 
       let session = get().sessionsByWorktreeId[worktreeId];
       if (!session) {
         const persisted = await getWorkspaceSession(worktreeId);
+        if (get().activeWorktreeVersion !== nextVersion) {
+          return;
+        }
         session = cloneSession(
           persisted ?? createEmptyWorkspaceSession(worktreeId),
         );
@@ -364,7 +376,6 @@ export function createWorkspaceSessionStore({
 
       set((state) => ({
         ...state,
-        activeWorktreeId: worktreeId,
         sessionsByWorktreeId: {
           ...state.sessionsByWorktreeId,
           [worktreeId]: session,
@@ -582,25 +593,6 @@ export function createWorkspaceSessionStore({
           },
         },
       }));
-    },
-    setSearchUiState(windowId, value) {
-      withActiveSession(
-        (session) => ({
-          ...session,
-          searchUiState: new Map(session.searchUiState).set(windowId, value),
-        }),
-        { persist: false },
-      );
-    },
-    setSearchUiStateForWorktree(worktreeId, windowId, value) {
-      withSession(
-        worktreeId,
-        (session) => ({
-          ...session,
-          searchUiState: new Map(session.searchUiState).set(windowId, value),
-        }),
-        { persist: false },
-      );
     },
     updateWindowForWorktree(worktreeId, windowId, updates) {
       withSession(

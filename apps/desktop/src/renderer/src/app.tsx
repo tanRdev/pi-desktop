@@ -1,4 +1,5 @@
 import { TooltipProvider } from "@pidesk/ui";
+import { cn } from "@/lib/utils";
 import { SettingsModal, SettingsProvider } from "./components/settings";
 import { Button } from "./components/ui/button";
 import {
@@ -10,7 +11,6 @@ import {
 } from "./components/ui/dialog";
 import { WorkspaceShell } from "./components/workspace/workspace-shell";
 import { useAppShellController } from "./hooks/use-app-shell-controller";
-import { cn } from "@/lib/utils";
 
 export default function App() {
   const controller = useAppShellController();

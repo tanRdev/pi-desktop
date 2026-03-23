@@ -1,5 +1,3 @@
-import type { TerminalBackend } from "@pidesk/shared";
-
 export interface ResolveLocalShellProgramOptions {
   platform: NodeJS.Platform;
   shell?: string | undefined;

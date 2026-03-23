@@ -4,7 +4,6 @@ import type {
   RepositoryDisplayMetadata,
   RepositorySnapshot,
   SlashSuggestion,
-  ThreadSnapshot,
 } from "@pidesk/shared";
 import type { AgentLiveFeed } from "@pidesk/shell-model";
 import * as React from "react";
@@ -12,8 +11,7 @@ import { useStore } from "zustand";
 import { cn } from "@/lib/utils";
 import { uiInteractionStore } from "../../stores/ui-interaction-store";
 import { ChatThreadPanel } from "./chat-thread-panel";
-import { LeftRail, type RailView } from "./left-rail";
-import { LeftSidebar } from "./left-sidebar";
+import { LeftRail } from "./left-rail";
 import { PromptDock } from "./prompt-dock";
 import { StatusBar } from "./status-bar";
 import { TitleBar } from "./title-bar";
@@ -23,6 +21,10 @@ import type { WorkspaceSearchAction } from "./workspace-search-content";
 import { WorkspaceSurfacePanel } from "./workspace-surface-panel";
 
 type ContextSurfaceKey = "activity" | string;
+type ContextWindow = Extract<
+  import("@pidesk/shared").WorkspaceWindow,
+  { kind: "file" | "note" | "terminal" | "git" }
+>;
 
 export interface WorkspaceShellProps {
   platform: string | null;
@@ -34,7 +36,6 @@ export interface WorkspaceShellProps {
   activeThreadTitle: string | null;
   draft: string;
   canSend: boolean;
-  leftSidebarWidth: number;
   autocompleteSuggestions: (SlashSuggestion | MentionSuggestion)[];
   autocompleteSelectedIndex: number;
   displayAgentStatus: string;
@@ -53,12 +54,7 @@ export interface WorkspaceShellProps {
   threadMessages: import("@pidesk/shared").AgentMessageSnapshot[];
   threadLastError: string | null;
   liveFeed: AgentLiveFeed;
-  contextWindows: Array<
-    Extract<
-      import("@pidesk/shared").CanvasWindow,
-      { kind: "file" | "note" | "terminal" | "git" }
-    >
-  >;
+  contextWindows: ContextWindow[];
   selectedContextSurface: ContextSurfaceKey;
   onSelectContextSurface: (surfaceKey: ContextSurfaceKey) => void;
   onCloseContextSurface: (surfaceKey: string) => void;
@@ -76,7 +72,6 @@ export interface WorkspaceShellProps {
   onCloseThread: (threadId: string) => void | Promise<void>;
   onRenameThread: (threadId: string, title: string) => void | Promise<void>;
   onCreateWorktree: () => void;
-  onLeftSidebarResize: (width: number) => void;
   onOpenLauncher: () => void;
   onCloseLauncher: () => void;
   onOpenFileTree: () => void;
@@ -117,18 +112,10 @@ function WorkspaceEmptyState({
 }) {
   return (
     <div className="flex h-full flex-col items-center justify-center px-8 text-center">
-      <div className="max-w-2xl space-y-4 border border-[#474747]/18 bg-[#101010] px-8 py-8">
-        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#6f6f6f]">
-          Chat-first workspace
-        </p>
+      <div className="chrome-empty-state max-w-xl space-y-4 rounded-lg border border-border/40 bg-surface-1/80 px-8 py-8">
         <h2 className="text-2xl text-white">
-          {activeThreadTitle?.trim() || "Start the next conversation"}
+          {activeThreadTitle?.trim() || "Start a conversation"}
         </h2>
-        <p className="text-sm leading-7 text-[#8f8f8f]">
-          PiDesk now centers the chat, planning, reasoning, and execution loop.
-          Use the context panel for files, notes, terminal, and git without the
-          old floating canvas.
-        </p>
         {activeWorktreeId ? (
           <div className="pt-2">
             <button
@@ -155,7 +142,6 @@ export function WorkspaceShell({
   activeThreadTitle,
   draft,
   canSend,
-  leftSidebarWidth,
   autocompleteSuggestions,
   autocompleteSelectedIndex,
   displayAgentStatus,
@@ -189,7 +175,6 @@ export function WorkspaceShell({
   onCloseThread,
   onRenameThread,
   onCreateWorktree,
-  onLeftSidebarResize,
   onOpenLauncher,
   onCloseLauncher,
   onOpenFileTree,
@@ -241,13 +226,6 @@ export function WorkspaceShell({
     };
   }, []);
 
-  const [isLeftSidebarCollapsed, setIsLeftSidebarCollapsed] =
-    React.useState(false);
-  const [leftRailMode, setLeftRailMode] = React.useState<
-    "projects" | "workspace"
-  >("projects");
-  const [activeRailView, setActiveRailView] = React.useState<RailView>(null);
-
   const projectName =
     activeRepository?.customName ?? activeRepository?.name ?? "PiDesk";
   const activeWorktree =
@@ -286,33 +264,6 @@ export function WorkspaceShell({
     [onCloseLauncher, onOpenGit, onOpenNote, onOpenTerminal],
   );
 
-  const handleToggleLeftSidebar = React.useCallback(() => {
-    setIsLeftSidebarCollapsed((prev) => !prev);
-  }, []);
-
-  const handleShowProjectSelector = React.useCallback(() => {
-    setLeftRailMode("projects");
-    setActiveRailView(null);
-    setIsLeftSidebarCollapsed(true);
-  }, []);
-
-  const handleEnterWorkspace = React.useCallback(
-    (view: Exclude<RailView, null>) => {
-      setLeftRailMode("workspace");
-      setActiveRailView(view);
-      setIsLeftSidebarCollapsed(false);
-    },
-    [],
-  );
-
-  const handleSelectRailView = React.useCallback((view: RailView) => {
-    setActiveRailView(view);
-    if (view !== null) {
-      setLeftRailMode("workspace");
-      setIsLeftSidebarCollapsed(false);
-    }
-  }, []);
-
   const hasActiveThread = activeThreadId !== null;
   const selectedSurfaceKey =
     selectedContextSurface === "activity"
@@ -330,52 +281,31 @@ export function WorkspaceShell({
         worktrees={activeRepository?.worktrees ?? []}
         activeWorktreeId={activeWorktreeId}
         isMainWindowFullscreen={isMainWindowFullscreen}
-        onToggleLeftSidebar={handleToggleLeftSidebar}
-        onOpenLauncher={onOpenLauncher}
-        onOpenFileTree={onOpenFileTree}
-        onOpenGit={onOpenGit}
-        onOpenNote={onOpenNote}
         onSelectWorktree={onSelectWorktree}
       />
 
       <div className="relative flex min-h-0 flex-1">
         <LeftRail
           repositories={repositories}
-          mode={leftRailMode}
           activeRepositoryId={activeRepositoryId}
-          activeView={activeRailView}
-          onSelectRepository={onSelectRepository}
-          onUpdateRepositoryPreferences={onUpdateRepositoryPreferences}
-          onAddRepository={onAddRepository}
-          onOpenSettings={onOpenSettings}
-          onShowProjects={handleShowProjectSelector}
-          onEnterWorkspace={handleEnterWorkspace}
-          onSelectView={handleSelectRailView}
-        />
-
-        <LeftSidebar
-          repository={activeRepository}
           activeWorktreeId={activeWorktreeId}
           activeThreadId={activeThreadId}
-          activeView={activeRailView}
-          onUpdateRepositoryPreferences={onUpdateRepositoryPreferences}
+          onSelectRepository={onSelectRepository}
           onSelectWorktree={onSelectWorktree}
           onSelectThread={onSelectThread}
           onCreateThread={onCreateThread}
           onCloseThread={onCloseThread}
           onRenameThread={onRenameThread}
           onCreateWorktree={onCreateWorktree}
-          width={leftSidebarWidth}
-          onResize={onLeftSidebarResize}
-          isCollapsed={isLeftSidebarCollapsed || leftRailMode === "projects"}
-          className="z-10"
+          onUpdateRepositoryPreferences={onUpdateRepositoryPreferences}
+          onAddRepository={onAddRepository}
+          onOpenSettings={onOpenSettings}
         />
 
         <main
           data-testid="chat-first-layout"
           className={cn(
-            "relative z-10 flex min-w-0 flex-1 flex-col bg-[#0b0b0b]",
-            (isLeftSidebarCollapsed || leftRailMode === "projects") && "ml-16",
+            "relative z-10 flex min-w-0 flex-1 flex-col overflow-hidden bg-[#0b0b0b]",
           )}
         >
           <div className="min-h-0 flex flex-1">
@@ -398,8 +328,8 @@ export function WorkspaceShell({
                 )}
               </div>
 
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 px-5 pb-8 pt-16 bg-[linear-gradient(180deg,rgba(11,11,11,0)_0%,rgba(11,11,11,0.7)_35%,rgba(8,8,8,0.98)_100%)]">
-                <div className="pointer-events-auto mx-auto w-full max-w-[52rem]">
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 px-6 pb-8 pt-16">
+                <div className="pointer-events-auto mx-auto w-full max-w-[72rem]">
                   <PromptDock
                     draft={draft}
                     onDraftChange={onDraftChange}
@@ -427,7 +357,7 @@ export function WorkspaceShell({
               </div>
             </section>
 
-            <div data-testid="workspace-context-panel" className="contents">
+            <div className="contents">
               <WorkspaceSurfacePanel
                 activeWorktreeId={activeWorktreeId}
                 selectedSurfaceKey={selectedSurfaceKey}
@@ -435,6 +365,7 @@ export function WorkspaceShell({
                 onSelectActivity={() => onSelectContextSurface("activity")}
                 onSelectWindow={onSelectContextSurface}
                 onCloseWindow={onCloseContextSurface}
+                onOpenLauncher={onOpenLauncher}
                 onOpenFileTree={onOpenFileTree}
                 onOpenNote={onOpenNote}
                 onOpenTerminal={onOpenTerminal}
@@ -447,7 +378,6 @@ export function WorkspaceShell({
                   <WorkspaceActivityPanel
                     threadTitle={activeThreadTitle}
                     worktreeLabel={activeWorktreeLabel}
-                    runtimeModeLabel={runtimeModeLabel}
                     displayAgentStatus={displayAgentStatus}
                     liveFeed={liveFeed}
                     className="h-full"

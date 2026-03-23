@@ -78,14 +78,18 @@ describe("moveRepositorySnapshots", () => {
     expect(source).toContain("window.pidesk.repositories.reorder");
   });
 
-  it("starts in project selection mode instead of jumping into workspace nav", () => {
+  it("drops the separate project/workspace rail modes from the shell", () => {
+    const shellSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx",
+    );
     const source = readSource(
       "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
     );
 
-    expect(source).not.toContain(
-      'activeRepositoryId ? "workspace" : "projects"',
-    );
+    expect(source).not.toContain('mode: "projects" | "workspace"');
+    expect(source).not.toContain("onShowProjects");
+    expect(source).not.toContain("onEnterWorkspace");
+    expect(shellSource).not.toContain("leftRailMode");
   });
 
   it("keeps workspace navigation views stable instead of toggling back to null", () => {
@@ -98,31 +102,47 @@ describe("moveRepositorySnapshots", () => {
     );
   });
 
-  it("uses tighter tracking across the left rail chrome", () => {
+  it("keeps the first column focused on projects instead of navigation controls", () => {
     const source = readSource(
       "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
-    );
-
-    expect(source).toContain("tracking-[0.08em]");
-    expect(source).not.toContain("tracking-[0.1em]");
-    expect(source).not.toContain("tracking-[0.24em]");
-  });
-
-  it("offsets the expandable sidebar from the fixed left rail", () => {
-    const sidebarSource = readSource(
-      "apps/desktop/src/renderer/src/components/workspace/left-sidebar.tsx",
     );
     const shellSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx",
     );
 
-    expect(sidebarSource).toMatch(
-      /style=\{\{\s*marginLeft:\s*isCollapsed\s*\?\s*0\s*:\s*LEFT_RAIL_WIDTH,\s*width:\s*isCollapsed\s*\?\s*0\s*:\s*width,\s*\}\}/s,
+    expect(source).toContain("export const LEFT_RAIL_WIDTH = 320");
+    expect(source).toContain("project-rail-item");
+    expect(source).toContain("handleSelectThreadFromRepository");
+    expect(source).not.toContain("NAVIGATION_ITEMS");
+    expect(shellSource).toContain("WorkspaceSurfacePanel");
+  });
+
+  it("renders compact thread rows under each project worktree", () => {
+    const source = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
     );
-    expect(sidebarSource).not.toContain("width + LEFT_RAIL_WIDTH");
-    expect(sidebarSource).not.toContain("flex min-w-0 flex-1 flex-col pl-16");
-    expect(shellSource).toContain(
-      '(isLeftSidebarCollapsed || leftRailMode === "projects") && "ml-16"',
+    const worktreeSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/worktree-section.tsx",
     );
+
+    expect(source).toContain("WorktreeSection");
+    expect(worktreeSource).toContain("create-thread-button");
+  });
+
+  it("keeps the shell free of an extra helper column next to the sessions rail", () => {
+    const shellSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx",
+    );
+
+    expect(shellSource).not.toContain("LeftSidebar");
+    expect(shellSource).not.toContain("ml-16");
+  });
+
+  it("marks the unified rail as workspace mode for selector stability", () => {
+    const source = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
+    );
+
+    expect(source).toContain('data-mode="workspace"');
   });
 });

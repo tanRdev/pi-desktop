@@ -1,5 +1,6 @@
 import { homedir } from "node:os";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { PiSdkAgentRuntime } from "../../../packages/agent-host/src/pi/pi-sdk-agent-runtime";
 
 const getAvailable = vi.fn(() => [
   {
@@ -33,10 +34,6 @@ describe("PiSdkAgentRuntime provider registry", () => {
   });
 
   it("loads provider auth and models from the shared home agent directory", async () => {
-    const { PiSdkAgentRuntime } = await import(
-      "../../../packages/agent-host/src/pi/pi-sdk-agent-runtime"
-    );
-
     const runtime = new PiSdkAgentRuntime({
       cwd: "/tmp/project",
       agentDir: "/tmp/project/.pi/agent",

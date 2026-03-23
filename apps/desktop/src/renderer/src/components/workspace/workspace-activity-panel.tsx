@@ -48,7 +48,6 @@ function formatTimestamp(timestamp: number | null) {
 export interface WorkspaceActivityPanelProps {
   threadTitle: string | null;
   worktreeLabel: string | null;
-  runtimeModeLabel: string;
   displayAgentStatus: string;
   liveFeed: AgentLiveFeed;
   className?: string;
@@ -57,7 +56,6 @@ export interface WorkspaceActivityPanelProps {
 export function WorkspaceActivityPanel({
   threadTitle,
   worktreeLabel,
-  runtimeModeLabel,
   displayAgentStatus,
   liveFeed,
   className,
@@ -86,26 +84,26 @@ export function WorkspaceActivityPanel({
         className,
       )}
     >
-      <div className="border-b border-[#474747]/18 px-4 py-3">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 space-y-1">
-            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#6f6f6f]">
+      <div className="border-b border-[#474747]/18 px-5 py-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0 space-y-1.5">
+            <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[#6f6f6f]">
               Agent activity
             </p>
-            <h2 className="truncate text-sm font-medium text-white">
-              {threadTitle?.trim() || "Current thread"}
+            <h2 className="truncate text-base font-medium text-white">
+              {threadTitle?.trim() || "Thread"}
             </h2>
-            <p className="truncate font-mono text-[10px] uppercase tracking-[0.12em] text-[#8a8a8a]">
-              {worktreeLabel ?? "No worktree"} / {runtimeModeLabel}
+            <p className="truncate font-mono text-[10px] uppercase tracking-[0.08em] text-[#8a8a8a]">
+              {worktreeLabel ?? "No worktree"}
             </p>
           </div>
           <RuntimeStatusChip status={safeStatus} />
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-2">
+      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
+        <div className="space-y-5">
+          <div className="grid grid-cols-2 gap-3">
             {[
               { label: "Turns", value: liveFeed.turns.length },
               { label: "Running", value: runningTurns },
@@ -114,19 +112,19 @@ export function WorkspaceActivityPanel({
             ].map((metric) => (
               <div
                 key={metric.label}
-                className="border border-[#474747]/16 bg-[#111111] px-3 py-2"
+                className="border border-[#474747]/16 bg-[#111111] px-3 py-3"
               >
                 <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-[#666]">
                   {metric.label}
                 </div>
-                <div className="mt-1 text-lg text-white">{metric.value}</div>
+                <div className="mt-2 text-2xl text-white">{metric.value}</div>
               </div>
             ))}
           </div>
 
-          <section className="space-y-2">
+          <section className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#6f6f6f]">
+              <h3 className="font-mono text-[10px] uppercase tracking-[0.12em] text-[#6f6f6f]">
                 Recent turns
               </h3>
               <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-[#555]">
@@ -134,17 +132,17 @@ export function WorkspaceActivityPanel({
               </span>
             </div>
             {liveFeed.turns.length > 0 ? (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {[...liveFeed.turns]
                   .slice(-6)
                   .reverse()
                   .map((turn) => (
                     <div
                       key={turn.id}
-                      className="border border-[#474747]/16 bg-[#111111] px-3 py-3"
+                      className="border border-[#474747]/16 bg-[#111111] px-4 py-4"
                     >
                       <div className="flex items-center justify-between gap-3">
-                        <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#8f8f8f]">
+                        <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-[#8f8f8f]">
                           {turn.id}
                         </span>
                         <RuntimeStatusChip
@@ -152,7 +150,7 @@ export function WorkspaceActivityPanel({
                           className="px-1.5 py-0 text-[9px]"
                         />
                       </div>
-                      <div className="mt-2 flex flex-wrap gap-3 font-mono text-[10px] uppercase tracking-[0.08em] text-[#666]">
+                      <div className="mt-3 flex flex-wrap gap-3 font-mono text-[10px] uppercase tracking-[0.08em] text-[#666]">
                         <span>{turn.messageIds.length} messages</span>
                         <span>{turn.toolCallIds.length} tools</span>
                       </div>
@@ -161,22 +159,21 @@ export function WorkspaceActivityPanel({
               </div>
             ) : (
               <div className="border border-[#474747]/16 bg-[#111111] px-3 py-4 font-mono text-[11px] text-[#777]">
-                The activity pane will fill with planning, tool calls, and
-                progress as soon as the agent starts working.
+                Activity appears here once the agent starts working.
               </div>
             )}
           </section>
 
-          <section className="space-y-2">
-            <h3 className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#6f6f6f]">
+          <section className="space-y-3">
+            <h3 className="font-mono text-[10px] uppercase tracking-[0.12em] text-[#6f6f6f]">
               Tool runs
             </h3>
             {tools.length > 0 ? (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {tools.slice(0, 8).map((tool) => (
                   <div
                     key={tool.toolCallId}
-                    className="border border-[#474747]/16 bg-[#111111] px-3 py-3"
+                    className="border border-[#474747]/16 bg-[#111111] px-4 py-4"
                   >
                     <div className="flex items-center justify-between gap-3">
                       <span className="truncate text-sm text-white">
@@ -187,7 +184,7 @@ export function WorkspaceActivityPanel({
                         className="px-1.5 py-0 text-[9px]"
                       />
                     </div>
-                    <div className="mt-2 font-mono text-[10px] uppercase tracking-[0.08em] text-[#666]">
+                    <div className="mt-3 font-mono text-[10px] uppercase tracking-[0.08em] text-[#666]">
                       {tool.turnId ?? "No turn"}
                     </div>
                   </div>
@@ -200,16 +197,16 @@ export function WorkspaceActivityPanel({
             )}
           </section>
 
-          <section className="space-y-2">
-            <h3 className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#6f6f6f]">
+          <section className="space-y-3">
+            <h3 className="font-mono text-[10px] uppercase tracking-[0.12em] text-[#6f6f6f]">
               Timeline
             </h3>
             {recentActivity.length > 0 ? (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {recentActivity.map((entry) => (
                   <div
                     key={entry.id}
-                    className="flex items-start justify-between gap-3 border border-[#474747]/16 bg-[#111111] px-3 py-2"
+                    className="flex items-start justify-between gap-3 border border-[#474747]/16 bg-[#111111] px-4 py-3"
                   >
                     <div className="min-w-0">
                       <div className="truncate text-sm text-white">

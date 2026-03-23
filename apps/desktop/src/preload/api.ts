@@ -3,7 +3,6 @@ import {
   type AppPreferences,
   type AutocompleteContext,
   type AutocompleteSuggestions,
-  type CanvasWindow,
   type CreateWindowAction,
   type ImageMetadata,
   type ImagePreview,
@@ -26,6 +25,7 @@ import {
   type WindowLayoutState,
   type WindowPosition,
   type WorkspaceSession,
+  type WorkspaceWindow,
 } from "@pidesk/shared";
 
 export type PreloadInvoke = <TReturn>(
@@ -258,7 +258,7 @@ export function createPiDeskApi({
     },
     window: {
       create(action: CreateWindowAction) {
-        return invoke<CanvasWindow>(IPC_CHANNELS.window.create, action);
+        return invoke<WorkspaceWindow>(IPC_CHANNELS.window.create, action);
       },
       close(windowId: string) {
         return invoke<void>(IPC_CHANNELS.window.close, { windowId });

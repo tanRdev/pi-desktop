@@ -37,6 +37,13 @@ describe("tmux removal contract", () => {
     expect(launchSource).not.toContain("sessionName");
   });
 
+  it("deletes legacy tmux implementation files", () => {
+    const mainDirectory = readSource("apps/desktop/src/main/index.ts");
+
+    expect(mainDirectory).not.toContain("./tmux-thread-runtime-manager");
+    expect(mainDirectory).not.toContain("./tmux-session-naming");
+  });
+
   it("removes tmux-only terminal launch helpers from the main process", () => {
     const terminalManagerSource = readSource(
       "apps/desktop/src/main/terminal-manager.ts",

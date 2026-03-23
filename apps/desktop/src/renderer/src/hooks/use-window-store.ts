@@ -3,7 +3,7 @@
  * Provides reactive access to the active worktree's layout state.
  */
 
-import type { CanvasWindow, WindowLayoutState } from "@pidesk/shared";
+import type { WindowLayoutState, WorkspaceWindow } from "@pidesk/shared";
 import { getActiveWorktree } from "@pidesk/shared";
 import { useSyncExternalStore } from "react";
 import {
@@ -140,12 +140,14 @@ function subscribe(listener: () => void): () => void {
     uiInteractionStore.subscribe(() => listener()),
   ];
 
-  void workspaceSessionStore
-    .getState()
-    .setActiveWorktree(
-      getActiveWorktree(getAppShellStore().getState().shellState.shell)?.id ??
-        null,
-    );
+  queueMicrotask(() => {
+    void workspaceSessionStore
+      .getState()
+      .setActiveWorktree(
+        getActiveWorktree(getAppShellStore().getState().shellState.shell)?.id ??
+          null,
+      );
+  });
 
   return () => {
     for (const unsubscribe of unsubscribers) {
@@ -214,19 +216,21 @@ export function useWindowStore() {
   };
 }
 
-export function useWindow(windowId: string | null): CanvasWindow | null {
+export function useWindow(windowId: string | null): WorkspaceWindow | null {
   const { state } = useWindowStore();
 
   if (!windowId) return null;
   return state.layout.windows.find((w) => w.id === windowId) ?? null;
 }
 
-export function useWindowsByKind(kind: CanvasWindow["kind"]): CanvasWindow[] {
+export function useWindowsByKind(
+  kind: WorkspaceWindow["kind"],
+): WorkspaceWindow[] {
   const { state } = useWindowStore();
   return state.layout.windows.filter((w) => w.kind === kind);
 }
 
-export function useFocusedWindow(): CanvasWindow | null {
+export function useFocusedWindow(): WorkspaceWindow | null {
   const { state } = useWindowStore();
 
   if (!state.layout.focusedWindowId) return null;

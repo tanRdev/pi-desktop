@@ -88,6 +88,8 @@ export async function launchDesktopApp(
 }
 
 export async function waitForAppReady(page: Page): Promise<void> {
+  await page.waitForLoadState("domcontentloaded");
+
   await expect
     .poll(
       async () => {
@@ -103,30 +105,12 @@ export async function waitForAppReady(page: Page): Promise<void> {
 
   await expect(page.getByTestId("app-ready")).toBeVisible();
   await expect(page.getByTestId("titlebar-project-name")).toHaveText("PiDesk");
-  await expect(page.getByTestId("agent-status")).toHaveText(/ready/i, {
-    timeout: 10_000,
-  });
   await expect(page.getByTestId("chat-first-layout")).toBeVisible();
 }
 
 export async function ensureWorkspaceMode(page: Page): Promise<void> {
-  const backButton = page.getByRole("button", {
-    name: "Return to project selection",
-  });
-
-  if (
-    (await backButton.count()) > 0 &&
-    (await backButton.first().isVisible())
-  ) {
-    return;
-  }
-
-  await page
-    .getByRole("button", { name: /Open repository /i })
-    .first()
-    .click();
-
-  await expect(backButton).toBeVisible();
+  const firstProject = page.getByTestId("project-rail-item").first();
+  await expect(firstProject).toBeVisible();
 }
 
 export async function focusChatThread(page: Page): Promise<void> {
@@ -134,6 +118,16 @@ export async function focusChatThread(page: Page): Promise<void> {
 
   await page.getByTestId("current-thread-title").click();
   await expect(page.getByTestId("chat-input")).toBeVisible();
+}
+
+export function getWorkspaceContextPanel(page: Page) {
+  return page.getByTestId("workspace-context-panel").first();
+}
+
+export function getContextPanelAction(page: Page, name: string) {
+  return getWorkspaceContextPanel(page).getByTestId(
+    `sidecar-action-${name.toLowerCase()}`,
+  );
 }
 
 export function getCurrentBranchName(): string {

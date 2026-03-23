@@ -13,7 +13,6 @@ import { ThreadListItem } from "./thread-list-item";
 
 export interface WorktreeSectionProps {
   worktree: WorktreeSnapshot;
-  activeWorktreeId: string | null;
   activeThreadId: string | null;
   isExpanded: boolean;
   onToggleExpand: () => void;
@@ -25,7 +24,6 @@ export interface WorktreeSectionProps {
 
 export function WorktreeSection({
   worktree,
-  activeWorktreeId,
   activeThreadId,
   isExpanded,
   onToggleExpand,
@@ -60,7 +58,7 @@ export function WorktreeSection({
         type="button"
         onClick={onToggleExpand}
         className={cn(
-          "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left",
+          "flex w-full items-center gap-2 rounded-md px-2 py-1 text-left",
           "transition-[transform,background-color,color] duration-200 ease-out",
           "hover:bg-surface-2/50 hover:translate-x-0.5",
           "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/10",
@@ -83,7 +81,9 @@ export function WorktreeSection({
           )}
         </span>
         <GitBranch className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-        <span className="truncate text-sm font-medium">{worktree.label}</span>
+        <span className="truncate text-[12px] font-medium">
+          {worktree.label}
+        </span>
         <GitStatusChip git={worktree.git} />
       </button>
 
@@ -96,7 +96,7 @@ export function WorktreeSection({
         )}
       >
         <div className="overflow-hidden">
-          <div className="py-1 pl-7 pr-2">
+          <div className="py-1 pl-6 pr-1">
             <div className="space-y-0.5">
               {visibleThreads.length > 0 ? (
                 visibleThreads.map((thread, index) => (
@@ -135,7 +135,7 @@ export function WorktreeSection({
               aria-label="Create thread"
               disabled={isCreatingThread}
               className={cn(
-                "mt-1 flex h-6 w-full items-center gap-1.5 rounded-md px-2 text-xs text-muted-foreground",
+                "mt-1 flex h-5 w-full items-center gap-1.5 rounded-md px-2 text-[11px] text-muted-foreground",
                 "transition-[transform,opacity,background-color,color] duration-150 ease-out",
                 "hover:bg-surface-2 hover:text-foreground",
                 "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/10",

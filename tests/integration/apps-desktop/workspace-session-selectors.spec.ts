@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   selectActiveWorkspaceLayout,
+  selectActiveWorkspaceSidebarCollapsed,
   selectActiveWorkspaceSnapGridSize,
   selectFileWindowStateByWorktree,
-  selectSearchUiStateByWorktree,
 } from "../../../apps/desktop/src/renderer/src/stores/workspace-session-selectors";
 import { createWorkspaceSessionStore } from "../../../apps/desktop/src/renderer/src/stores/workspace-session-store";
 import { createEmptyWorkspaceSession } from "../../../packages/shared/src";
@@ -28,15 +28,10 @@ describe("workspace-session-selectors", () => {
       isLoading: true,
       error: null,
     });
-    store
-      .getState()
-      .setSearchUiStateForWorktree("/tmp/repo-b", "search-window-b", {
-        isLoading: false,
-        selectedIndex: 1,
-      });
 
     expect(selectActiveWorkspaceLayout(store.getState()).snapGridSize).toBe(24);
     expect(selectActiveWorkspaceSnapGridSize(store.getState())).toBe(24);
+    expect(selectActiveWorkspaceSidebarCollapsed(store.getState())).toBe(false);
     expect(
       selectFileWindowStateByWorktree(
         store.getState(),
@@ -53,16 +48,6 @@ describe("workspace-session-selectors", () => {
 
     expect(selectActiveWorkspaceLayout(store.getState()).snapGridSize).toBe(40);
     expect(selectActiveWorkspaceSnapGridSize(store.getState())).toBe(40);
-    expect(
-      selectSearchUiStateByWorktree(
-        store.getState(),
-        "/tmp/repo-b",
-        "search-window-b",
-      ),
-    ).toEqual({
-      isLoading: false,
-      selectedIndex: 1,
-    });
   });
 
   it("reuses a stable empty layout when no active worktree session exists", () => {
@@ -79,5 +64,23 @@ describe("workspace-session-selectors", () => {
     const secondLayout = selectActiveWorkspaceLayout(emptyState);
 
     expect(secondLayout).toBe(firstLayout);
+  });
+
+  it("returns normalized sidebar collapsed state for the active worktree", async () => {
+    const session = createEmptyWorkspaceSession("/tmp/repo-a");
+    session.sidebar = {
+      ...session.sidebar,
+      isCollapsed: true,
+    };
+
+    const store = createWorkspaceSessionStore({
+      getWorkspaceSession: vi.fn(async () => null),
+      saveWorkspaceSession: vi.fn(async (value) => value),
+    });
+
+    store.getState().hydrateCatalogSessions([session]);
+    await store.getState().setActiveWorktree("/tmp/repo-a");
+
+    expect(selectActiveWorkspaceSidebarCollapsed(store.getState())).toBe(true);
   });
 });

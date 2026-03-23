@@ -90,7 +90,6 @@ function createApiFixture(
     threads: {
       create: vi.fn(async () => undefined),
       select: vi.fn(async () => undefined),
-      routeToTerminal: vi.fn(async () => ({ success: false })),
       archive: vi.fn(async () => undefined),
       rename: vi.fn(async () => undefined),
     },
@@ -624,10 +623,14 @@ describe("app-shell-store", () => {
       currentProviderId: "google",
       currentModelId: "gemini-2.5-pro",
     });
-    expect((store.getState().appPreferences.settings as any)?.ai).toEqual({
-      provider: "google",
-      model: "gemini-2.5-pro",
-    });
+    expect(store.getState().appPreferences.settings).toEqual(
+      expect.objectContaining({
+        ai: {
+          provider: "google",
+          model: "gemini-2.5-pro",
+        },
+      }),
+    );
     expect(api.state.updateAppPreferences).not.toHaveBeenCalled();
   });
 

@@ -9,7 +9,6 @@ import type { HugeiconsIconProps, IconSvgElement } from "@hugeicons/react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import * as React from "react";
 export type { IconSvgElement };
-export type Icon = React.ComponentType<any>;
 
 import {
   Add01Icon,
@@ -23,9 +22,7 @@ import {
   ArrowUp01Icon,
   AtIcon,
   BinaryCodeIcon,
-  BinaryCodeIcon as BinaryIcon,
   BotIcon,
-  PackageIcon as BoxIcon,
   Cancel01Icon,
   CancelCircleIcon,
   CheckmarkCircle02Icon,
@@ -37,9 +34,7 @@ import {
   CpuIcon,
   Database01Icon,
   Database02Icon,
-  Database01Icon as DatabaseIcon,
   Delete01Icon,
-  Edit02Icon,
   File01Icon,
   File02Icon,
   Folder01Icon,
@@ -59,23 +54,19 @@ import {
   Loading02Icon,
   MagicWand01Icon,
   Message01Icon,
-  ComputerIcon as MonitorIcon,
   PackageIcon,
   Edit02Icon as PencilEdit02Icon,
   RefreshIcon,
   RotateLeftIcon,
   SaveIcon,
-  ServerStack01Icon as ServerIcon,
   ServerStack01Icon,
   Settings01Icon,
   Settings02Icon,
   Shield01Icon,
   Shield02Icon,
   SmartPhone01Icon,
-  SmartPhone01Icon as SmartphoneIcon,
   StickyNote01Icon,
   StickyNote02Icon,
-  ComputerTerminal01Icon as TerminalIcon,
   Tick01Icon,
   ZapIcon,
 } from "@hugeicons/core-free-icons";
@@ -121,7 +112,7 @@ function createIconComponent(
       className?: string;
       interactive?: boolean;
     }
-  >(({ className, size, color, strokeWidth, interactive, ...props }, ref) => {
+  >(({ className, size, color, strokeWidth, interactive }, ref) => {
     let iconSize = size || 24;
     if (className?.includes("size-")) {
       const sizeMatch = className.match(/size-(\d+\.?\d*)/);
@@ -143,39 +134,27 @@ function createIconComponent(
       }
     }
 
-    const enhancedClassName = React.useMemo(() => {
-      const classes: string[] = [className || ""];
-
-      if (
-        interactive ||
-        defaultProps?.enableHoverScale ||
-        defaultProps?.enableActiveScale
-      ) {
-        classes.push(iconStateClasses.interactive);
-        classes.push(iconStateClasses.motionReduce);
-
-        if (interactive || defaultProps?.enableHoverScale) {
-          classes.push(iconStateClasses.hover);
-        }
-        if (interactive || defaultProps?.enableActiveScale) {
-          classes.push(iconStateClasses.active);
-        }
-      }
-
-      return classes.join(" ");
-    }, [
-      className,
-      interactive,
-      defaultProps?.enableHoverScale,
-      defaultProps?.enableActiveScale,
-    ]);
+    const enableHoverScale = Boolean(
+      interactive || defaultProps?.enableHoverScale,
+    );
+    const enableActiveScale = Boolean(
+      interactive || defaultProps?.enableActiveScale,
+    );
+    const enhancedClassName = [
+      className ?? "",
+      ...(enableHoverScale || enableActiveScale
+        ? [iconStateClasses.interactive, iconStateClasses.motionReduce]
+        : []),
+      ...(enableHoverScale ? [iconStateClasses.hover] : []),
+      ...(enableActiveScale ? [iconStateClasses.active] : []),
+    ].join(" ");
 
     return (
       <span
         ref={ref}
         className={enhancedClassName}
         style={{
-          transitionTimingFunction: "var(--ease-out, " + EMIL_EASE_OUT + ")",
+          transitionTimingFunction: `var(--ease-out, ${EMIL_EASE_OUT})`,
           display: "inline-flex",
           alignItems: "center",
           justifyContent: "center",

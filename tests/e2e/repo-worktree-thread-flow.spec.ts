@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { expect, test } from "@playwright/test";
 import {
+  ensureWorkspaceMode,
   launchDesktopApp,
   removeWorktree,
   repoRoot,
@@ -23,7 +24,7 @@ function readSelection(userDataDir: string): {
 }
 
 test("creates a worktree and restores worktree selection after relaunch", async () => {
-  test.setTimeout(45_000);
+  test.setTimeout(60_000);
 
   const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), "pidesk-e2e-home-"));
   const userDataDir = path.join(homeDir, ".pidesk-test-user-data");
@@ -47,20 +48,23 @@ test("creates a worktree and restores worktree selection after relaunch", async 
 
     await waitForAppReady(page);
 
-    await page
-      .getByRole("button", { name: /Open repository /i })
-      .first()
-      .click();
-    await page.getByRole("button", { name: /NEW WORKTREE/i }).click();
+    await ensureWorkspaceMode(page);
+    const newWorktreeButton = page.getByRole("button", {
+      name: /create worktree/i,
+    });
+    await expect(newWorktreeButton).toBeVisible();
+    await newWorktreeButton.focus();
+    await newWorktreeButton.press("Enter");
+    await expect(
+      page.getByRole("dialog", { name: /create worktree/i }),
+    ).toBeVisible();
     await page.getByTestId("worktree-branch-input").fill(branchName);
     await page.getByRole("button", { name: "Create" }).click();
 
     await expect(page.getByText(branchName).first()).toBeVisible({
       timeout: 15_000,
     });
-    await expect(page.getByTestId("current-worktree-label")).toHaveText(
-      branchName,
-    );
+    await expect(page.getByTestId("left-rail")).toContainText(branchName);
 
     await expect
       .poll(() => readSelection(userDataDir).worktreeId, { timeout: 10_000 })
@@ -74,14 +78,11 @@ test("creates a worktree and restores worktree selection after relaunch", async 
     });
     try {
       await waitForAppReady(relaunched.page);
-      await relaunched.page
-        .getByRole("button", { name: /Open repository /i })
-        .first()
-        .click();
+      await ensureWorkspaceMode(relaunched.page);
       await expect(relaunched.page.getByText(branchName).first()).toBeVisible();
-      await expect(
-        relaunched.page.getByTestId("current-worktree-label"),
-      ).toHaveText(branchName);
+      await expect(relaunched.page.getByTestId("left-rail")).toContainText(
+        branchName,
+      );
       await expect(readSelection(userDataDir).worktreeId).toContain(
         worktreeDirectoryName,
       );

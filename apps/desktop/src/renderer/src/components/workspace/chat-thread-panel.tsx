@@ -6,18 +6,10 @@ import {
 } from "@pidesk/ui";
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import {
-  ChainOfThought,
-  ChainOfThoughtContent,
-  ChainOfThoughtItem,
-  ChainOfThoughtStep,
-  ChainOfThoughtTrigger,
-} from "../ui/chain-of-thought";
 import { FeedbackBar, type FeedbackValue } from "../ui/feedback-bar";
 import { Loader } from "../ui/loader";
 import { Message, MessageAvatar, MessageContent } from "../ui/message";
 import { ScrollButton } from "../ui/scroll-button";
-import { Source, SourceList } from "../ui/source";
 import { StepItem, Steps } from "../ui/steps";
 import { SystemMessage } from "../ui/system-message";
 import { TextShimmer } from "../ui/text-shimmer";
@@ -66,89 +58,11 @@ function buildToolPart(message: AgentMessageSnapshot) {
 
 function ChatFirstEmptyState({ threadTitle }: { threadTitle: string }) {
   return (
-    <div className="space-y-4">
-      <SystemMessage tone="success" title="Chat-first workspace">
-        {threadTitle} is ready. Ask for a goal, and PiDesk will plan the work,
-        stream reasoning, and keep the latest context surfaces beside the chat.
-      </SystemMessage>
-
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)]">
-        <div className="space-y-4 border border-[#474747]/18 bg-[#0f0f0f]/94 p-4">
-          <div className="space-y-2">
-            <TextShimmer className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/72">
-              Autonomous execution loop
-            </TextShimmer>
-            <p className="text-[13px] leading-6 text-[#a3a3a3]">
-              Start from a high-level goal. PiDesk will explore the repo, form a
-              plan, stream tool activity, and keep the most relevant files,
-              notes, or git context in the side panel.
-            </p>
-          </div>
-
-          <ChainOfThought className="space-y-1">
-            <ChainOfThoughtStep defaultOpen>
-              <ChainOfThoughtTrigger className="font-mono text-[10px] uppercase tracking-[0.18em]">
-                Explore first
-              </ChainOfThoughtTrigger>
-              <ChainOfThoughtContent>
-                <ChainOfThoughtItem>
-                  Map the codebase before editing so backend, frontend, and data
-                  model changes stay aligned.
-                </ChainOfThoughtItem>
-              </ChainOfThoughtContent>
-            </ChainOfThoughtStep>
-            <ChainOfThoughtStep defaultOpen>
-              <ChainOfThoughtTrigger className="font-mono text-[10px] uppercase tracking-[0.18em]">
-                Work in public
-              </ChainOfThoughtTrigger>
-              <ChainOfThoughtContent>
-                <ChainOfThoughtItem>
-                  Live reasoning, tool calls, and progress history appear in the
-                  context pane as the agent works.
-                </ChainOfThoughtItem>
-              </ChainOfThoughtContent>
-            </ChainOfThoughtStep>
-          </ChainOfThought>
-
-          <Steps>
-            <StepItem
-              title="Describe the outcome"
-              detail="Ask for the feature, bugfix, or investigation in natural language."
-              state="current"
-            />
-            <StepItem
-              title="Review the plan"
-              detail="Watch the activity pane for running, done, or blocked work."
-              state="pending"
-            />
-            <StepItem
-              title="Inspect supporting context"
-              detail="Use files, notes, git, and terminal surfaces without leaving the thread."
-              state="pending"
-            />
-          </Steps>
-        </div>
-
-        <div className="space-y-4 border border-[#474747]/18 bg-[#101010] p-4">
-          <div className="space-y-2">
-            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#6f6f6f]">
-              Recommended starters
-            </p>
-            <SourceList>
-              <Source label="Map" detail="Summarize the architecture first" />
-              <Source label="Plan" detail="List the implementation steps" />
-              <Source
-                label="Fix"
-                detail="Write the failing test, then patch it"
-              />
-            </SourceList>
-          </div>
-          <div className="border border-[#474747]/18 bg-[#0c0c0c] px-3 py-3 text-[12px] leading-5 text-[#909090]">
-            The right panel stays synced to the conversation so you can inspect
-            context without the old floating canvas.
-          </div>
-        </div>
-      </div>
+    <div className="mx-auto flex max-w-[56rem] flex-col gap-6 px-8 py-10">
+      <h2 className="text-[26px] leading-[1.15] text-white">{threadTitle}</h2>
+      <p className="text-[14px] leading-7 text-[#969696]">
+        Start typing below.
+      </p>
     </div>
   );
 }
@@ -237,7 +151,7 @@ export function ChatThreadPanel({
       >
         <ChatContainerContent
           data-testid="chat-transcript"
-          className="flex flex-1 flex-col gap-4 px-5 py-5"
+          className="mx-auto flex w-full max-w-[68rem] flex-1 flex-col gap-6 px-8 py-8"
         >
           {messages.length === 0 ? (
             <ChatFirstEmptyState threadTitle={safeThreadTitle} />
@@ -296,25 +210,13 @@ export function ChatThreadPanel({
                       <div className="mt-1 space-y-3">
                         <MessageContent
                           markdown={message.role !== "user"}
-                          className="max-w-none text-[13px] leading-6 text-foreground"
+                          className="max-w-none text-[14px] leading-7 text-foreground"
                         >
                           {message.text || " "}
                         </MessageContent>
 
                         {isAssistant ? (
                           <>
-                            <SourceList>
-                              <Source label="Thread" detail={safeThreadTitle} />
-                              <Source
-                                label="Role"
-                                detail="Assistant response"
-                              />
-                              <Source
-                                label="Transcript"
-                                detail={`${message.status} state`}
-                              />
-                            </SourceList>
-
                             <FeedbackBar
                               value={feedbackByMessageId[message.id] ?? null}
                               onValueChange={(value) =>
@@ -338,23 +240,23 @@ export function ChatThreadPanel({
               <div className="flex items-center gap-3">
                 <Loader label="Streaming" />
                 <TextShimmer className="text-[11px] uppercase tracking-[0.18em] text-white/65">
-                  Planning, reading, and drafting in public
+                  Reading, planning, and drafting
                 </TextShimmer>
               </div>
               <Steps>
                 <StepItem
                   title="Inspect current context"
-                  detail="Reviewing the active thread, files, and runtime state."
+                  detail="Reviewing the active thread and current context."
                   state="complete"
                 />
                 <StepItem
                   title="Reason through the task"
-                  detail="Coordinating plan, tools, and output before the reply lands."
+                  detail="Coordinating plan, tools, and response."
                   state="current"
                 />
                 <StepItem
                   title="Return grounded output"
-                  detail="Sources, tool traces, and follow-up actions arrive with the answer."
+                  detail="The reply lands with context and next steps."
                   state="pending"
                 />
               </Steps>

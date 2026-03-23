@@ -10,7 +10,7 @@ export interface ThreadRuntimeLaunchSpec extends ThreadRuntimeRef {
 }
 
 export interface ThreadRuntimeDescriptor extends ThreadRuntimeRef {
-  sessionName: string;
+  runtimeId: string;
   status: ThreadRuntimeStatus;
   lastError: string | null;
 }
@@ -18,7 +18,7 @@ export interface ThreadRuntimeDescriptor extends ThreadRuntimeRef {
 export interface ThreadRuntimeReconcileReport {
   active: ThreadRuntimeDescriptor[];
   missingThreadIds: string[];
-  staleSessionNames: string[];
+  staleRuntimeIds: string[];
 }
 
 export interface ThreadRuntimeManager {

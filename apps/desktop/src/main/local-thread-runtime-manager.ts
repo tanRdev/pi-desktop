@@ -68,7 +68,7 @@ export class LocalThreadRuntimeManager implements ThreadRuntimeManager {
     const descriptor: ThreadRuntimeDescriptor = {
       threadId: spec.threadId,
       worktreePath,
-      sessionName: createRuntimeId(spec.threadId),
+      runtimeId: createRuntimeId(spec.threadId),
       status: "starting",
       lastError: null,
     };
@@ -119,7 +119,7 @@ export class LocalThreadRuntimeManager implements ThreadRuntimeManager {
       return {
         threadId: thread.threadId,
         worktreePath,
-        sessionName: createRuntimeId(thread.threadId),
+        runtimeId: createRuntimeId(thread.threadId),
         status: "exited",
         lastError: null,
       };
@@ -163,8 +163,8 @@ export class LocalThreadRuntimeManager implements ThreadRuntimeManager {
     );
 
     return reconcileThreadRuntimeStates({
-      managedSessionNames: Array.from(this.runtimes.values()).map(
-        (runtime) => runtime.descriptor.sessionName,
+      managedRuntimeIds: Array.from(this.runtimes.values()).map(
+        (runtime) => runtime.descriptor.runtimeId,
       ),
       threadStates,
     });
