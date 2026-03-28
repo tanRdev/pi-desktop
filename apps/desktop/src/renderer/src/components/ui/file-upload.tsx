@@ -1,4 +1,4 @@
-import { ImageIcon, Paperclip, X } from "lucide-react";
+import { Image, Paperclip, X } from "@phosphor-icons/react";
 import type * as React from "react";
 import { cn } from "@/lib/utils";
 
@@ -34,7 +34,7 @@ export function FileUpload({
               className="flex items-center gap-2 border border-[#474747]/20 bg-[#101010] px-2 py-1"
             >
               {file.kind === "image" ? (
-                <ImageIcon className="size-3.5 text-[#bfbfbf]" />
+                <Image className="size-3.5 text-[#bfbfbf]" />
               ) : (
                 <Paperclip className="size-3.5 text-[#bfbfbf]" />
               )}

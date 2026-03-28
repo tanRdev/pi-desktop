@@ -1,16 +1,16 @@
 import {
-  Box,
-  Code2,
+  Code,
   Cpu,
+  Cube,
   Database,
-  FolderGit,
+  Folder,
+  Gear,
+  HardDrives,
+  type Icon,
   Layout,
-  type LucideIcon,
   Monitor,
-  Server,
-  Settings,
-  Terminal,
-} from "lucide-react";
+  TerminalWindow,
+} from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -23,27 +23,27 @@ import {
 export interface ProjectIconOption {
   id: string;
   label: string;
-  icon: LucideIcon;
+  icon: Icon;
 }
 
 export const PROJECT_ICON_OPTIONS: ProjectIconOption[] = [
-  { id: "auto", label: "Auto", icon: FolderGit },
-  { id: "repository", label: "Repository", icon: FolderGit },
-  { id: "terminal", label: "Terminal", icon: Terminal },
-  { id: "server", label: "Service", icon: Server },
+  { id: "auto", label: "Auto", icon: Folder },
+  { id: "repository", label: "Repository", icon: Folder },
+  { id: "terminal", label: "Terminal", icon: TerminalWindow },
+  { id: "server", label: "Service", icon: HardDrives },
   { id: "database", label: "Database", icon: Database },
   { id: "layout", label: "Interface", icon: Layout },
-  { id: "package", label: "Package", icon: Box },
+  { id: "package", label: "Package", icon: Cube },
   { id: "system", label: "System", icon: Cpu },
-  { id: "code", label: "Code", icon: Code2 },
-  { id: "settings", label: "Config", icon: Settings },
+  { id: "code", label: "Code", icon: Code },
+  { id: "settings", label: "Config", icon: Gear },
   { id: "desktop", label: "Desktop", icon: Monitor },
 ];
 
 const DEFAULT_PROJECT_ICON_OPTION: ProjectIconOption = {
   id: "repository-fallback",
   label: "Repository",
-  icon: FolderGit,
+  icon: Folder,
 };
 
 function getProjectIconOptionById(iconId: string | null | undefined) {
@@ -151,7 +151,7 @@ export function ProjectIconPicker({
                     : "text-[#474747]",
                 )}
               >
-                <span className="flex h-10 w-10 items-center justify-center rounded-none border border-[#474747]/30 bg-[#131313]">
+                <span className="flex h-10 w-10 items-center justify-center rounded-md border border-[#474747]/30 bg-[#131313]">
                   <Icon className="h-5 w-5" />
                 </span>
                 <span className="text-[9px] font-mono font-bold uppercase tracking-[0.1em]">

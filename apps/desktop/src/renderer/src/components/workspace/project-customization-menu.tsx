@@ -1,8 +1,8 @@
+import { Palette } from "@phosphor-icons/react";
 import type {
   RepositoryDisplayMetadata,
   RepositorySnapshot,
 } from "@pidesk/shared";
-import { Palette } from "lucide-react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
@@ -103,7 +103,7 @@ export function ProjectCustomizationMenu({
       >
         <div
           className={cn(
-            "w-80 rounded-none border border-[#474747]/30 bg-[#131313] p-4 shadow-none",
+            "w-80 rounded-md border border-[#474747]/30 bg-[#131313] p-4 shadow-none",
             "transition-all duration-100",
           )}
         >
@@ -148,12 +148,12 @@ export function ProjectCustomizationMenu({
                 variant="outline"
                 size="default"
                 className={cn(
-                  "mt-2 h-10 w-full justify-between rounded-none border-[#474747]/30 bg-[#0e0e0e] px-3 text-left hover:bg-[#1f1f1f] hover:border-[#474747]",
+                  "mt-2 h-10 w-full justify-between rounded-md border-[#474747]/30 bg-[#0e0e0e] px-3 text-left hover:bg-[#1f1f1f] hover:border-[#474747]",
                 )}
                 onClick={() => setIconPickerOpen(true)}
               >
                 <span className="flex items-center gap-2">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-none border border-[#474747]/30 bg-[#131313]">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-md border border-[#474747]/30 bg-[#131313]">
                     <currentIcon.icon className="h-4 w-4" />
                   </span>
                   <span className="text-[10px] font-mono uppercase tracking-wider">
@@ -187,7 +187,7 @@ export function ProjectCustomizationMenu({
                         });
                       }}
                       className={cn(
-                        "flex items-center gap-2 rounded-none border px-2 py-1.5 text-[9px] font-mono uppercase tracking-widest",
+                        "flex items-center gap-2 rounded-md border px-2 py-1.5 text-[9px] font-mono uppercase tracking-widest",
                         "transition-all duration-75",
                         isActive
                           ? "border-white bg-[#353535] text-white"
@@ -195,7 +195,7 @@ export function ProjectCustomizationMenu({
                       )}
                     >
                       <span
-                        className="h-2 w-2 rounded-none"
+                        className="h-2 w-2 rounded-full"
                         style={{ backgroundColor: option.swatch }}
                       />
                       {option.label}

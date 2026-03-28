@@ -29,62 +29,84 @@ export const PROJECT_ACCENT_OPTIONS: ProjectAccentOption[] = [
     id: "neutral",
     value: null,
     label: "Neutral",
-    swatch: "oklch(56% 0.01 260)",
+    swatch: "#52525b",
     style: null,
   },
   {
     id: "slate",
     value: "slate",
     label: "Slate",
-    swatch: "oklch(54% 0.018 255)",
+    swatch: "#64748b",
     style: {
-      backgroundColor: "oklch(90% 0.014 255 / 0.9)",
-      borderColor: "oklch(62% 0.018 255 / 0.7)",
-      color: "oklch(36% 0.012 255)",
+      backgroundColor: "#1e293b",
+      borderColor: "#334155",
+      color: "#94a3b8",
     },
   },
   {
     id: "steel",
     value: "steel",
     label: "Steel",
-    swatch: "oklch(55% 0.022 225)",
+    swatch: "#52525b",
     style: {
-      backgroundColor: "oklch(90% 0.018 225 / 0.9)",
-      borderColor: "oklch(62% 0.022 225 / 0.7)",
-      color: "oklch(37% 0.018 225)",
+      backgroundColor: "#18181b",
+      borderColor: "#27272a",
+      color: "#a1a1aa",
     },
   },
   {
     id: "olive",
     value: "olive",
     label: "Olive",
-    swatch: "oklch(58% 0.03 140)",
+    swatch: "#65a30d",
     style: {
-      backgroundColor: "oklch(91% 0.018 140 / 0.92)",
-      borderColor: "oklch(63% 0.03 140 / 0.72)",
-      color: "oklch(40% 0.022 140)",
+      backgroundColor: "#1a2e05",
+      borderColor: "#365314",
+      color: "#84cc16",
     },
   },
   {
     id: "copper",
     value: "copper",
     label: "Copper",
-    swatch: "oklch(60% 0.05 45)",
+    swatch: "#ea580c",
     style: {
-      backgroundColor: "oklch(91% 0.024 45 / 0.92)",
-      borderColor: "oklch(65% 0.045 45 / 0.72)",
-      color: "oklch(42% 0.036 45)",
+      backgroundColor: "#431407",
+      borderColor: "#7c2d12",
+      color: "#fb923c",
     },
   },
   {
     id: "ink",
     value: "ink",
     label: "Ink",
-    swatch: "oklch(47% 0.024 285)",
+    swatch: "#4c1d95",
     style: {
-      backgroundColor: "oklch(89% 0.02 285 / 0.9)",
-      borderColor: "oklch(58% 0.028 285 / 0.68)",
-      color: "oklch(34% 0.022 285)",
+      backgroundColor: "#1e1b4b",
+      borderColor: "#312e81",
+      color: "#818cf8",
+    },
+  },
+  {
+    id: "sky",
+    value: "sky",
+    label: "Sky",
+    swatch: "#0284c7",
+    style: {
+      backgroundColor: "#0c4a6e",
+      borderColor: "#075985",
+      color: "#38bdf8",
+    },
+  },
+  {
+    id: "rose",
+    value: "rose",
+    label: "Rose",
+    swatch: "#e11d48",
+    style: {
+      backgroundColor: "#4c0519",
+      borderColor: "#881337",
+      color: "#fb7185",
     },
   },
 ];
@@ -93,7 +115,7 @@ const DEFAULT_PROJECT_ACCENT_OPTION: ProjectAccentOption = {
   id: "neutral-fallback",
   value: null,
   label: "Neutral",
-  swatch: "oklch(56% 0.01 260)",
+  swatch: "#52525b",
   style: null,
 };
 
@@ -130,35 +152,37 @@ export function ProjectAvatar({
     repository.name,
   );
   const accentStyle = resolveProjectAccentStyle(repository.accentColor);
-  const outerClassName = cn(
-    "group relative flex items-center justify-center border",
-    "transition-all duration-[var(--duration-fast)] motion-reduce:transition-none",
-    "hover:scale-105 active:scale-[0.95] motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
-    size === "md" ? "h-12 w-12 rounded-2xl" : "h-10 w-10 rounded-xl",
+
+  // Square avatar - sharp corners as requested
+  const avatarClassName = cn(
+    "relative flex items-center justify-center",
+    "border rounded-md", // Sharp corners, not circular
+    "transition-all duration-100",
+    "hover:scale-105 active:scale-95",
+    size === "md" ? "size-10" : "size-6",
     isActive
-      ? "border-border bg-surface-2 text-foreground shadow-sm"
-      : "border-transparent bg-transparent text-muted-foreground hover:border-border hover:bg-surface-2 hover:text-foreground",
+      ? "border-[#3f3f46] bg-[#1a1a1a] text-[#e7e7e7]"
+      : "border-[#27272a] bg-[#111111] text-[#6a6a6a] hover:border-[#3f3f46] hover:text-[#8a8a8a]",
     className,
   );
-  const innerClassName = cn(
-    "flex items-center justify-center border shadow-sm",
-    "transition-transform duration-[var(--duration-fast)] motion-reduce:transition-none",
-    size === "md" ? "h-10 w-10 rounded-2xl" : "h-8 w-8 rounded-lg",
-    accentStyle
-      ? "border-current/20"
-      : "border-border bg-surface-1 text-foreground/80",
-  );
-  const iconClassName = size === "md" ? "h-5 w-5" : "h-4 w-4";
+
+  const iconClassName = size === "md" ? "size-5" : "size-3.5";
 
   const content = (
-    <span className={innerClassName} style={accentStyle ?? undefined}>
+    <span
+      className={cn(
+        "flex items-center justify-center rounded-md",
+        size === "md" ? "size-8" : "size-4",
+        accentStyle ? "border" : "bg-[#0a0a0a]",
+      )}
+      style={accentStyle ?? undefined}
+    >
       <Icon className={iconClassName} />
     </span>
   );
 
   if (!onClick) {
-    return <div className={outerClassName}>{content}</div>;
+    return <div className={avatarClassName}>{content}</div>;
   }
 
   return (
@@ -168,7 +192,7 @@ export function ProjectAvatar({
       draggable={draggable}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
-      className={outerClassName}
+      className={avatarClassName}
       aria-controls={ariaControls}
       aria-expanded={ariaExpanded}
       aria-label={`Open repository ${displayName}`}

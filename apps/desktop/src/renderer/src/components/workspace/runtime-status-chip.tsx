@@ -34,7 +34,7 @@ export function RuntimeStatusChip({
     <span
       data-testid={testId}
       className={cn(
-        "inline-flex items-center border px-2 py-0.5 text-[10px] font-mono font-medium uppercase tracking-widest",
+        "inline-flex items-center border px-2 py-0.5 text-[10px] font-mono font-medium uppercase tracking-widest rounded-md",
         "transition-all duration-[var(--duration-normal)] motion-reduce:transition-none",
         "hover:bg-primary hover:text-[#131313] active:scale-[0.98] motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
         "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0",

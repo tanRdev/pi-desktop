@@ -2,30 +2,79 @@
 @import "@pidesk/ui/styles/pidesk-shell.css";
 
 /* ============================================
-   OBSIDIAN COMMAND - Technical Transitions
+   DESIGN SYSTEM - Semantic Variables
    ============================================ */
 
 :root {
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
-
-  --duration-instant: 50ms;
-  --duration-fast: 100ms;
-  --duration-normal: 150ms;
-  --duration-slow: 200ms;
+  /* Color System - Semantic Names */
+  --color-bg-primary: #0a0a0a;
+  --color-bg-secondary: #0f0f0f;
+  --color-bg-tertiary: #141414;
+  --color-bg-quaternary: #1a1a1a;
+  --color-bg-hover: #1f1f1f;
+  --color-bg-active: #242424;
+  
+  --color-border-subtle: #1f1f1f;
+  --color-border-default: #27272a;
+  --color-border-strong: #2a2a2a;
+  --color-border-hover: #3a3a3a;
+  
+  --color-text-primary: #e7e7e7;
+  --color-text-secondary: #a0a0a0;
+  --color-text-tertiary: #6a6a6a;
+  --color-text-quaternary: #525252;
+  --color-text-inverse: #0a0a0a;
+  
+  --color-accent: #3b82f6;
+  --color-accent-hover: #60a5fa;
+  --color-error: #ef4444;
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  
+  /* Spacing Scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  
+  /* Animation - Custom Easing Curves */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  
+  /* Animation - Durations */
+  --duration-instant: 80ms;
+  --duration-fast: 120ms;
+  --duration-normal: 180ms;
+  --duration-slow: 250ms;
+  --duration-slower: 350ms;
+  
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
 }
 
-/* Desktop-specific styles */
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
 body {
   -webkit-app-region: drag;
-  font-family: var(--app-font-mono);
-  letter-spacing: -0.01em;
-  background: var(--background);
+  font-family: var(--app-font-sans);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
 }
 
 * {
   -webkit-app-region: no-drag;
-  border-radius: 0px !important;
 }
 
 [data-drag-region="true"] {
@@ -36,67 +85,26 @@ body {
   -webkit-app-region: no-drag;
 }
 
-.titlebar {
-  -webkit-app-region: drag;
-  border-bottom: 1px solid rgba(71, 71, 71, 0.3);
-  background: #0e0e0e;
-}
-
 /* ============================================
-   MICRO-INTERACTIONS - Sharp Feedback
+   MICRO-INTERACTIONS - Button Press Feedback
    ============================================ */
 
 button:not(:disabled):active,
-[role="button"]:not(:disabled):active {
-  opacity: 0.8;
-  transition: opacity var(--duration-instant) var(--ease-out);
+[role="button"]:not(:disabled):active,
+.interactive:not(:disabled):active {
+  transform: scale(0.97);
+  transition: transform var(--duration-instant) var(--ease-out);
 }
 
-/* Smooth transitions for interactive elements */
+/* Button hover transition */
 button,
-a,
-input,
-textarea,
-select {
-  transition:
+[role="button"],
+.interactive {
+  transition: 
     background-color var(--duration-fast) var(--ease-out),
-    border-color var(--duration-fast) var(--ease-out),
     color var(--duration-fast) var(--ease-out),
-    opacity var(--duration-instant) var(--ease-out);
-}
-
-/* ============================================
-   WINDOW ANIMATIONS - Snappy
-   ============================================ */
-
-@keyframes window-enter {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes window-exit {
-  from {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(2px);
-  }
-}
-
-.shell-window {
-  animation: window-enter var(--duration-normal) var(--ease-out) forwards;
-}
-
-.shell-window.closing {
-  animation: window-exit var(--duration-fast) var(--ease-in-out) forwards;
+    border-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-instant) var(--ease-out);
 }
 
 /* ============================================
@@ -106,11 +114,11 @@ select {
 @keyframes stagger-fade-in {
   from {
     opacity: 0;
-    transform: translateY(2px);
+    transform: scale(0.95) translateY(4px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: scale(1) translateY(0);
   }
 }
 
@@ -119,99 +127,62 @@ select {
   animation: stagger-fade-in var(--duration-normal) var(--ease-out) forwards;
 }
 
+/* Stagger delays */
+.stagger-item:nth-child(1) { animation-delay: 0ms; }
+.stagger-item:nth-child(2) { animation-delay: 30ms; }
+.stagger-item:nth-child(3) { animation-delay: 60ms; }
+.stagger-item:nth-child(4) { animation-delay: 90ms; }
+.stagger-item:nth-child(5) { animation-delay: 120ms; }
+.stagger-item:nth-child(6) { animation-delay: 150ms; }
+.stagger-item:nth-child(7) { animation-delay: 180ms; }
+.stagger-item:nth-child(8) { animation-delay: 210ms; }
+
 /* ============================================
-   POPOVER ANIMATIONS
+   POPOVER ANIMATIONS - Origin Aware
    ============================================ */
 
 @keyframes popover-enter {
   from {
     opacity: 0;
-    transform: translateY(2px);
+    transform: scale(0.95) translateY(2px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: scale(1) translateY(0);
   }
 }
 
 [data-radix-popper-content-wrapper] > div {
+  transform-origin: var(--radix-popover-content-transform-origin, center);
   animation: popover-enter var(--duration-fast) var(--ease-out) forwards;
 }
 
-
 /* ============================================
-   DOCK INPUT ANIMATIONS
+   MODAL ANIMATIONS
    ============================================ */
 
-/* Input focus - subtle lift */
-.shell-dock:focus-within {
-  border-color: var(--border-hover);
-  box-shadow:
-    0 0 0 1px oklch(78% 0.018 95 / 0.1),
-    var(--shadow-md);
-  transition:
-    border-color var(--duration-normal) var(--ease-out),
-    box-shadow var(--duration-normal) var(--ease-out);
+@keyframes modal-backdrop-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-/* Send button - enhanced interaction */
-.shell-send-button {
-  transition:
-    background-color var(--duration-fast) var(--ease-out),
-    border-color var(--duration-fast) var(--ease-out),
-    transform var(--duration-instant) var(--ease-press),
-    box-shadow var(--duration-fast) var(--ease-out);
-}
-
-.shell-send-button:hover {
-  box-shadow: 0 0 0 1px oklch(78% 0.018 95 / 0.15);
-}
-
-.shell-send-button:active {
-  transform: scale(0.95);
-}
-
-/* ============================================
-   MESSAGE ANIMATIONS - Chat content
-   ============================================ */
-
-@keyframes message-enter {
+@keyframes modal-content-enter {
   from {
     opacity: 0;
-    transform: translateY(8px) scale(0.98);
+    transform: scale(0.95);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: scale(1);
   }
 }
 
-.shell-console-message {
-  animation: message-enter var(--duration-normal) var(--ease-out) forwards;
+[data-radix-dialog-overlay] {
+  animation: modal-backdrop-enter var(--duration-normal) var(--ease-out) forwards;
 }
 
-/* ============================================
-   SIDEBAR ANIMATIONS
-   ============================================ */
-
-/* Sidebar collapse/expand */
-aside[data-collapsible] {
-  transition: width var(--duration-slow) var(--ease-drawer);
-}
-
-/* Worktree section expand - height animation via grid */
-.worktree-section {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows var(--duration-normal) var(--ease-out);
-}
-
-.worktree-section.expanded {
-  grid-template-rows: 1fr;
-}
-
-.worktree-section > div {
-  overflow: hidden;
+[data-radix-dialog-content] {
+  animation: modal-content-enter var(--duration-slow) var(--ease-out) forwards;
 }
 
 /* ============================================
@@ -220,22 +191,20 @@ aside[data-collapsible] {
 
 @keyframes pulse-subtle {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+  50% { opacity: 0.5; }
 }
 
 .streaming-indicator {
-  animation: pulse-subtle 1.5s var(--ease-in-out) infinite;
+  animation: pulse-subtle 2s var(--ease-in-out) infinite;
 }
 
-/* Typing cursor - more elegant */
-@keyframes cursor-blink-enhanced {
-  0%, 45% { opacity: 1; }
-  50%, 95% { opacity: 0; }
-  100% { opacity: 1; }
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
-.cursor-blink {
-  animation: cursor-blink-enhanced 1.2s var(--ease-in-out) infinite;
+.spinner {
+  animation: spin 0.8s linear infinite;
 }
 
 /* ============================================
@@ -253,47 +222,44 @@ aside[data-collapsible] {
 }
 
 /* ============================================
-   MODAL ANIMATIONS
+   ACTIVE STATE ACCENTS
    ============================================ */
 
-@keyframes modal-backdrop-enter {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.active-accent-left {
+  position: relative;
 }
 
-@keyframes modal-content-enter {
-  from {
-    opacity: 0;
-    transform: scale(0.96) translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
+.active-accent-left::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 16px;
+  background: var(--color-accent);
+  border-radius: 0 2px 2px 0;
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
 }
 
-[data-radix-dialog-overlay] {
-  animation: modal-backdrop-enter var(--duration-normal) var(--ease-out) forwards;
-}
-
-[data-radix-dialog-content] {
-  animation: modal-content-enter var(--duration-slow) var(--ease-out) forwards;
+.active-accent-left[data-active="true"]::before,
+.active-accent-left.active::before {
+  opacity: 1;
 }
 
 /* ============================================
-   HOVER LIFT EFFECTS
+   HOVER STATES - Touch Device Protection
    ============================================ */
 
-.hover-lift {
-  transition: transform var(--duration-fast) var(--ease-out);
-}
-
-.hover-lift:hover {
-  transform: translateY(-1px);
-}
-
-.hover-lift:active {
-  transform: translateY(0);
+@media (hover: hover) and (pointer: fine) {
+  .hover-lift:hover {
+    transform: translateY(-1px);
+  }
+  
+  .hover-scale:hover {
+    transform: scale(1.02);
+  }
 }
 
 /* ============================================
@@ -310,96 +276,17 @@ aside[data-collapsible] {
     transform: none !important;
   }
 
-  .shell-window,
-  .stagger-item,
-  .shell-console-message {
+  .stagger-item {
     opacity: 1;
     transform: none;
     animation: none;
   }
 }
 
-.shell-chrome {
-  background: color-mix(in oklch, var(--surface-1) 94%, black 6%);
-}
+/* ============================================
+   CODE HIGHLIGHTING
+   ============================================ */
 
-.chrome-eyebrow {
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--muted-foreground);
-}
-
-/* Enhanced icon button - better press feedback */
-.chrome-icon-button {
-  border: 1px solid transparent;
-  background: transparent;
-  transition:
-    border-color var(--duration-fast) var(--ease-out),
-    background-color var(--duration-fast) var(--ease-out),
-    transform var(--duration-instant) var(--ease-press),
-    box-shadow var(--duration-fast) var(--ease-out);
-}
-
-.chrome-icon-button:hover {
-  border-color: var(--border);
-  background: var(--surface-2);
-  box-shadow: 0 0 0 1px oklch(100% 0 0 / 0.02);
-}
-
-.chrome-icon-button:active {
-  transform: scale(0.95);
-  border-color: var(--border-hover);
-}
-
-/* Active state with subtle glow */
-.chrome-icon-button.active {
-  background: var(--surface-3);
-  border-color: var(--border-hover);
-  box-shadow: inset 0 1px 0 oklch(100% 0 0 / 0.03);
-}
-
-.project-customization-trigger {
-  opacity: 0;
-  transform: translateY(-2px);
-  transition:
-    opacity var(--duration-fast) var(--ease-out),
-    transform var(--duration-fast) var(--ease-out),
-    background-color var(--duration-fast) var(--ease-out),
-    border-color var(--duration-fast) var(--ease-out);
-}
-
-.group:hover .project-customization-trigger,
-.group:focus-within .project-customization-trigger,
-.project-customization-trigger[data-state="open"] {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.project-customization-field {
-  width: 100%;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: color-mix(in oklch, var(--surface-2) 88%, black 12%);
-  padding: 0.625rem 0.75rem;
-  font-size: 0.875rem;
-  color: var(--foreground);
-  transition:
-    border-color var(--duration-fast) var(--ease-out),
-    box-shadow var(--duration-fast) var(--ease-out);
-}
-
-.project-customization-field:focus {
-  border-color: var(--border-hover);
-  box-shadow: 0 0 0 2px oklch(78% 0.018 95 / 0.1);
-}
-
-.project-customization-field::placeholder {
-  color: var(--muted-foreground);
-}
-
-/* Code highlighting - seamless integration with app theme */
 .shiki {
   background: transparent !important;
 }
@@ -408,7 +295,7 @@ aside[data-collapsible] {
   background: transparent !important;
   font-family: var(--app-font-mono);
   font-size: 13px;
-  line-height: 1.7;
+  line-height: 1.6;
 }
 
 .shiki pre {
@@ -417,133 +304,71 @@ aside[data-collapsible] {
   padding: 0;
 }
 
-/* Ensure code blocks use app surface colors */
 [class*="shiki"] {
   background: transparent !important;
 }
 
-/* Inline code styling - console-like with hover lift */
+/* Inline code styling */
 code:not(.shiki code):not(pre code) {
-  background: var(--surface-3);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  padding: 0.125rem 0.375rem;
+  background: var(--color-bg-quaternary);
+  border-radius: var(--radius-md);
+  padding: 0.15em 0.4em;
   font-family: var(--app-font-mono);
-  font-size: 0.875em;
-  color: var(--foreground);
-  transition:
-    background-color var(--duration-fast) var(--ease-out),
-    border-color var(--duration-fast) var(--ease-out);
-}
-
-code:not(.shiki code):not(pre code):hover {
-  background: color-mix(in oklch, var(--surface-3) 90%, white 10%);
-  border-color: var(--border);
+  font-size: 0.9em;
+  color: var(--color-text-secondary);
 }
 
 .shiki ::selection {
-  background: rgba(0,0,0,0.06);
-  color: var(--foreground);
+  background: rgba(255, 255, 255, 0.1);
 }
 
-/* Terminal-like cursor blink animation - enhanced */
-@keyframes cursor-blink {
-  0%, 45% { opacity: 1; }
-  50%, 95% { opacity: 0; }
-  100% { opacity: 1; }
+/* ============================================
+   SCROLLBAR - Minimal
+   ============================================ */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 
-.cursor-blink {
-  animation: cursor-blink 1.2s var(--ease-in-out) infinite;
+::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-.activity-indicator {
-  box-shadow: 0 0 6px rgba(0,0,0,0.06);
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-default);
+  border-radius: 8px;
 }
 
-.status-active {
-  background: var(--surface-3);
-  box-shadow: 0 0 4px rgba(0,0,0,0.06);
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-hover);
 }
 
-/* Panel elevation - layered dark glass with subtle animation */
-.panel-elevated {
-  background: var(--surface-2);
-  box-shadow:
-    0 1px 0 oklch(100% 0 0 / 0.03) inset,
-    0 4px 12px oklch(0% 0 0 / 0.4);
-  transition: box-shadow var(--duration-normal) var(--ease-out);
+/* ============================================
+   FOCUS STYLES
+   ============================================ */
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
-.panel-elevated:hover {
-  box-shadow:
-    0 1px 0 oklch(100% 0 0 / 0.04) inset,
-    0 6px 16px oklch(0% 0 0 / 0.45);
+button:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
-.row-active {
-  background: rgba(0,0,0,0.02);
-  transition: background-color var(--duration-fast) var(--ease-out);
+/* Remove focus ring for mouse users */
+:focus:not(:focus-visible) {
+  outline: none;
 }
 
-.hover-glow:hover {
-  border-color: var(--border-subtle);
-  box-shadow: 0 0 0 1px rgba(0,0,0,0.04);
-}
+/* ============================================
+   SELECTION
+   ============================================ */
 
-/* Monospace typography utilities */
-.text-mono-xs {
-  font-family: var(--app-font-mono);
-  font-size: 11px;
-  line-height: 1.4;
-}
-
-.text-mono-sm {
-  font-family: var(--app-font-mono);
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.text-mono-base {
-  font-family: var(--app-font-mono);
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-/* Tabular numbers for alignment */
-.tabular-nums {
-  font-feature-settings: "tnum" 1, "zero" 1;
-}
-
-/* Dimmed text - for secondary info */
-.text-dimmed {
-  color: oklch(65% 0.015 270);
-}
-
-/* Muted border - for subtle separators */
-.border-subtle {
-  border-color: oklch(40% 0.012 270 / 0.3);
-}
-
-/* Empty state - clean inline placeholder, no dashed borders */
-.chrome-empty-state {
-  border-radius: var(--radius-md);
-  background: oklch(18% 0.008 270 / 0.5);
-  color: var(--muted-foreground);
-  font-size: 12px;
-  line-height: 1.5;
-  transition:
-    background-color var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out);
-}
-
-.chrome-empty-state:hover {
-  background: oklch(20% 0.01 270 / 0.55);
-}
-
-/* Section separator - subtle horizontal rule */
-.chrome-divider {
-  height: 1px;
-  background: var(--border-subtle);
-  margin: 0.375rem 0;
+::selection {
+  background: rgba(59, 130, 246, 0.3);
+  color: var(--color-text-primary);
 }

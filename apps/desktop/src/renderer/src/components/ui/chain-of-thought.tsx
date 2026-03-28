@@ -1,14 +1,10 @@
+import { CaretDown, XCircle } from "@phosphor-icons/react";
 import React from "react";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import {
-  ArrowDown01Icon,
-  CancelCircleIcon,
-  HugeiconsIcon,
-} from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 
 export type ChainOfThoughtItemProps = React.ComponentProps<"div">;
@@ -66,8 +62,7 @@ export const ChainOfThoughtTrigger = ({
             {leftIcon}
           </span>
           {swapIconOnHover && (
-            <HugeiconsIcon
-              icon={ArrowDown01Icon}
+            <CaretDown
               className={cn(
                 "absolute size-4 opacity-0 transition-all duration-150 ease-out",
                 "group-hover:opacity-100 group-hover:scale-100",
@@ -78,10 +73,7 @@ export const ChainOfThoughtTrigger = ({
         </span>
       ) : (
         <span className="relative inline-flex size-4 items-center justify-center">
-          <HugeiconsIcon
-            icon={CancelCircleIcon}
-            className="size-2 fill-current transition-transform duration-150 ease-out group-hover:scale-110"
-          />
+          <XCircle className="size-2 fill-current transition-transform duration-150 ease-out group-hover:scale-110" />
         </span>
       )}
       <span className="transition-transform duration-150 ease-out">
@@ -89,8 +81,7 @@ export const ChainOfThoughtTrigger = ({
       </span>
     </div>
     {!leftIcon && (
-      <HugeiconsIcon
-        icon={ArrowDown01Icon}
+      <CaretDown
         className={cn(
           "size-4 transition-all duration-200 ease-out",
           "group-data-[state=open]:rotate-180",

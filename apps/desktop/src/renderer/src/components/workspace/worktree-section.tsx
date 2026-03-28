@@ -1,11 +1,11 @@
-import type { WorktreeSnapshot } from "@pidesk/shared";
 import {
-  ChevronDown,
-  ChevronRight,
+  CaretDown,
+  CaretRight,
   GitBranch,
-  Loader2,
   Plus,
-} from "lucide-react";
+  Spinner,
+} from "@phosphor-icons/react";
+import type { WorktreeSnapshot } from "@pidesk/shared";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { GitStatusChip } from "./git-status-chip";
@@ -52,38 +52,26 @@ export function WorktreeSection({
       data-testid="worktree-section"
       data-worktree-id={worktree.id}
       data-worktree-label={worktree.label}
-      className="mb-0.5"
     >
       <button
         type="button"
         onClick={onToggleExpand}
         className={cn(
-          "flex w-full items-center gap-2 rounded-md px-2 py-1 text-left",
-          "transition-[transform,background-color,color] duration-200 ease-out",
-          "hover:bg-surface-2/50 hover:translate-x-0.5",
-          "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/10",
-          "active:scale-[0.97] active:duration-100",
+          "flex w-full items-center gap-1.5 rounded-md px-1.5 py-1 text-left text-xs transition-colors",
           isExpanded
-            ? "text-foreground"
-            : "text-muted-foreground hover:text-foreground",
+            ? "text-[#e7e7e7]"
+            : "text-[#6a6a6a] hover:text-[#8a8a8a] hover:bg-[#1a1a1a]/50",
         )}
       >
-        <span
-          className={cn(
-            "flex h-4 w-4 shrink-0 items-center justify-center",
-            "transition-transform duration-200 ease-out",
-          )}
-        >
+        <span className="flex size-3.5 shrink-0 items-center justify-center text-[#6a6a6a]">
           {isExpanded ? (
-            <ChevronDown className="h-3.5 w-3.5" />
+            <CaretDown className="size-3" />
           ) : (
-            <ChevronRight className="h-3.5 w-3.5" />
+            <CaretRight className="size-3" />
           )}
         </span>
-        <GitBranch className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-        <span className="truncate text-[12px] font-medium">
-          {worktree.label}
-        </span>
+        <GitBranch className="size-3 shrink-0 text-[#6a6a6a]" />
+        <span className="truncate font-medium">{worktree.label}</span>
         <GitStatusChip git={worktree.git} />
       </button>
 
@@ -96,14 +84,14 @@ export function WorktreeSection({
         )}
       >
         <div className="overflow-hidden">
-          <div className="py-1 pl-6 pr-1">
-            <div className="space-y-0.5">
+          <div className="py-0.5 pl-6 pr-0.5">
+            <div className="space-y-0">
               {visibleThreads.length > 0 ? (
                 visibleThreads.map((thread, index) => (
                   <div
                     key={thread.id}
-                    className="motion-safe:stagger-item"
-                    style={{ animationDelay: `${Math.min(index * 30, 240)}ms` }}
+                    className="stagger-item"
+                    style={{ animationDelay: `${Math.min(index * 20, 160)}ms` }}
                   >
                     <ThreadListItem
                       thread={thread}
@@ -123,8 +111,8 @@ export function WorktreeSection({
                   </div>
                 ))
               ) : (
-                <div className="chrome-empty-state px-2 py-2 text-xs text-muted-foreground motion-safe:stagger-item">
-                  No visible threads
+                <div className="px-2 py-1.5 text-[11px] text-[#6a6a6a]">
+                  No threads
                 </div>
               )}
             </div>
@@ -135,11 +123,8 @@ export function WorktreeSection({
               aria-label="Create thread"
               disabled={isCreatingThread}
               className={cn(
-                "mt-1 flex h-5 w-full items-center gap-1.5 rounded-md px-2 text-[11px] text-muted-foreground",
-                "transition-[transform,opacity,background-color,color] duration-150 ease-out",
-                "hover:bg-surface-2 hover:text-foreground",
-                "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/10",
-                "active:scale-[0.97] active:duration-100",
+                "mt-0.5 flex h-5 w-full items-center gap-1 rounded px-1.5 text-[11px] text-[#6a6a6a]",
+                "transition-colors hover:bg-[#1a1a1a] hover:text-[#8a8a8a]",
                 isCreatingThread && "pointer-events-none opacity-50",
               )}
               onClick={(e) => {
@@ -148,9 +133,9 @@ export function WorktreeSection({
               }}
             >
               {isCreatingThread ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
+                <Spinner className="size-2.5 animate-spin" />
               ) : (
-                <Plus className="h-3 w-3" />
+                <Plus className="size-2.5" />
               )}
               {isCreatingThread ? "Creating…" : "New thread"}
             </button>

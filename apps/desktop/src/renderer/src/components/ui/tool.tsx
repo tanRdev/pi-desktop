@@ -92,7 +92,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
 
   const getStateBadge = () => {
     const baseClasses = cn(
-      "px-2 py-1 rounded-none text-xs font-medium",
+      "px-2 py-1 rounded-md text-xs font-medium",
       "transition-all duration-150 ease-out",
     );
     switch (state) {
@@ -168,7 +168,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
   return (
     <div
       className={cn(
-        "border-border mt-3 overflow-hidden rounded-none border",
+        "border-border mt-3 overflow-hidden rounded-md border",
         "transition-all duration-200 ease-out",
         "hover:border-border-hover",
         className,
@@ -179,7 +179,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
           <Button
             variant="ghost"
             className={cn(
-              "bg-background h-auto w-full justify-between rounded-none px-3 py-2 font-normal",
+              "bg-background h-auto w-full justify-between rounded-md px-3 py-2 font-normal",
               "transition-all duration-150 ease-out",
               "hover:bg-surface-2",
               "active:scale-[0.99]",
@@ -212,7 +212,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
                 <h4 className="text-muted-foreground mb-2 text-sm font-medium">
                   Input
                 </h4>
-                <div className="bg-background rounded-none border p-2 font-mono text-sm">
+                <div className="bg-background rounded-md border p-2 font-mono text-sm">
                   {Object.entries(input).map(([key, value]) => (
                     <div key={key} className="mb-1">
                       <span className="text-muted-foreground">{key}:</span>{" "}
@@ -228,7 +228,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
                 <h4 className="text-muted-foreground mb-2 text-sm font-medium">
                   Output
                 </h4>
-                <div className="bg-background max-h-60 overflow-auto rounded-none border p-2 font-mono text-sm">
+                <div className="bg-background max-h-60 overflow-auto rounded-md border p-2 font-mono text-sm">
                   <pre className="whitespace-pre-wrap">
                     {formatValue(output)}
                   </pre>
@@ -239,7 +239,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
             {state === "output-error" && toolPart.errorText && (
               <div>
                 <h4 className="mb-2 text-sm font-medium text-red-500">Error</h4>
-                <div className="bg-background rounded-none border border-red-200 p-2 text-sm dark:border-red-950 dark:bg-red-900/20">
+                <div className="bg-background rounded-md border border-red-200 p-2 text-sm dark:border-red-950 dark:bg-red-900/20">
                   {toolPart.errorText}
                 </div>
               </div>

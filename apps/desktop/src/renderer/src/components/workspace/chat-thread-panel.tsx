@@ -8,7 +8,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 import { FeedbackBar, type FeedbackValue } from "../ui/feedback-bar";
 import { Loader } from "../ui/loader";
-import { Message, MessageAvatar, MessageContent } from "../ui/message";
+import { MessageContent } from "../ui/message";
 import { ScrollButton } from "../ui/scroll-button";
 import { SystemMessage } from "../ui/system-message";
 import { Tool } from "../ui/tool";
@@ -26,7 +26,7 @@ function getMessageLabel(message: AgentMessageSnapshot) {
   }
 }
 
-function getMessageFallback(message: AgentMessageSnapshot) {
+function _getMessageFallback(message: AgentMessageSnapshot) {
   switch (message.role) {
     case "assistant":
       return "PI";
@@ -55,11 +55,13 @@ function buildToolPart(message: AgentMessageSnapshot) {
 
 function ChatFirstEmptyState({ threadTitle }: { threadTitle: string }) {
   return (
-    <div className="mx-auto flex max-w-[56rem] flex-col gap-6 px-8 py-10">
-      <h2 className="text-[26px] leading-[1.15] text-white">{threadTitle}</h2>
-      <p className="text-[14px] leading-7 text-[#969696]">
-        Start typing below.
-      </p>
+    <div className="flex h-full w-full flex-col items-center justify-center">
+      <div className="text-center px-6">
+        <h2 className="text-xl font-medium text-[#e7e7e7]">{threadTitle}</h2>
+        <p className="mt-2 text-sm text-[#6a6a6a]">
+          Start typing below to begin the conversation.
+        </p>
+      </div>
     </div>
   );
 }
@@ -102,7 +104,7 @@ export function ChatThreadPanel({
 
       const distanceFromBottom =
         viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight;
-      const shouldShow = distanceFromBottom > 80;
+      const shouldShow = distanceFromBottom > 100;
 
       setShowScrollButton(shouldShow);
       if (!shouldShow) {
@@ -138,7 +140,7 @@ export function ChatThreadPanel({
   return (
     <div
       className={cn(
-        "relative flex h-full min-h-0 flex-col bg-[#0d0d0d]",
+        "relative flex h-full min-h-0 flex-col bg-[#0a0a0a]",
         className,
       )}
     >
@@ -148,7 +150,7 @@ export function ChatThreadPanel({
       >
         <ChatContainerContent
           data-testid="chat-transcript"
-          className="mx-auto flex w-full max-w-[68rem] flex-1 flex-col gap-6 px-8 py-8"
+          className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-6 py-6"
         >
           {messages.length === 0 ? (
             <ChatFirstEmptyState threadTitle={safeThreadTitle} />
@@ -157,107 +159,127 @@ export function ChatThreadPanel({
               const isSystem = message.role === "system";
               const isTool = message.role === "tool";
               const isAssistant = message.role === "assistant";
+              const isUser = message.role === "user";
 
               return (
-                <Message
+                <div
                   key={message.id}
                   className={cn(
-                    (isSystem || isTool) && "my-2 justify-center",
-                    message.role === "user" && "justify-end",
+                    "group flex gap-3",
+                    isUser && "flex-row-reverse",
+                    (isSystem || isTool) && "justify-center",
                     "stagger-item",
                   )}
-                  style={{ animationDelay: `${(index % 8) * 40}ms` }}
+                  style={{ animationDelay: `${(index % 8) * 30}ms` }}
                 >
-                  {!isSystem && !isTool && message.role !== "user" ? (
-                    <MessageAvatar
-                      src=""
-                      alt={getMessageLabel(message)}
-                      fallback={getMessageFallback(message)}
-                      className="mt-0.5"
-                    />
-                  ) : null}
+                  {/* Avatar - only for assistant */}
+                  {isAssistant && (
+                    <div className="flex size-7 shrink-0 items-center justify-center rounded-lg border border-[#27272a] bg-[#111111]">
+                      <span className="text-[10px] font-semibold text-[#6a6a6a]">
+                        PI
+                      </span>
+                    </div>
+                  )}
 
+                  {/* Message content */}
                   <div
                     className={cn(
-                      "min-w-0 flex-1",
-                      message.role === "user" && "max-w-[75%] flex-initial",
-                      (isSystem || isTool) && "flex-initial",
+                      "min-w-0 flex-1 space-y-1",
+                      isUser && "max-w-[90%]",
+                      isAssistant && "max-w-[90%]",
+                      (isSystem || isTool) && "max-w-xl flex-initial",
                     )}
                   >
-                    {!isSystem && !isTool ? (
-                      <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
-                        {getMessageLabel(message)}
-                      </span>
-                    ) : null}
-
-                    {isSystem ? (
-                      <SystemMessage
-                        tone={message.status === "error" ? "error" : "info"}
-                        title="System message"
-                        className="mt-1"
-                      >
-                        {message.text}
-                      </SystemMessage>
-                    ) : isTool ? (
-                      <div className="mt-1 max-w-2xl">
-                        <Tool
-                          toolPart={buildToolPart(message)}
-                          defaultOpen={message.status !== "complete"}
-                        />
-                      </div>
-                    ) : (
-                      <div className="mt-1 space-y-3">
-                        <MessageContent
-                          markdown={message.role !== "user"}
-                          className={cn(
-                            "max-w-none text-[14px] leading-7 text-foreground",
-                            message.role === "user" &&
-                              "border-white/20 bg-[#151515] text-white",
-                          )}
-                        >
-                          {message.text || " "}
-                        </MessageContent>
-
-                        {isAssistant ? (
-                          <>
-                            <FeedbackBar
-                              value={feedbackByMessageId[message.id] ?? null}
-                              onValueChange={(value) =>
-                                handleFeedbackChange(message.id, value)
-                              }
-                              onCopy={() => handleCopyMessage(message.text)}
-                            />
-                          </>
-                        ) : null}
+                    {/* Sender label */}
+                    {!isSystem && !isTool && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] font-medium text-[#6a6a6a]">
+                          {getMessageLabel(message)}
+                        </span>
+                        {isAssistant && message.status === "streaming" && (
+                          <span className="flex size-1.5 rounded-full bg-[#3b82f6] animate-pulse" />
+                        )}
                       </div>
                     )}
+
+                    {/* Message body */}
+                    <div
+                      className={cn(
+                        "text-[15px] leading-relaxed",
+                        isUser && "text-[#e7e7e7]",
+                        isAssistant && "text-[#e7e7e7]",
+                        (isSystem || isTool) && "text-[#8a8a8a]",
+                      )}
+                    >
+                      {isSystem ? (
+                        <SystemMessage
+                          tone={message.status === "error" ? "error" : "info"}
+                          title="System"
+                        >
+                          {message.text}
+                        </SystemMessage>
+                      ) : isTool ? (
+                        <div className="max-w-xl">
+                          <Tool
+                            toolPart={buildToolPart(message)}
+                            defaultOpen={message.status !== "complete"}
+                          />
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <MessageContent
+                            markdown={message.role !== "user"}
+                            className={cn(
+                              "prose prose-invert max-w-none",
+                              isUser &&
+                                "rounded-xl border border-[#27272a] bg-[#111111] px-4 py-2.5",
+                            )}
+                          >
+                            {message.text || " "}
+                          </MessageContent>
+
+                          {isAssistant && (
+                            <div className="flex items-center gap-2 pt-1 opacity-0 transition-opacity group-hover:opacity-100">
+                              <FeedbackBar
+                                value={feedbackByMessageId[message.id] ?? null}
+                                onValueChange={(value) =>
+                                  handleFeedbackChange(message.id, value)
+                                }
+                                onCopy={() => handleCopyMessage(message.text)}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </Message>
+                </div>
               );
             })
           )}
 
-          {isStreaming ? (
-            <div className="flex items-center gap-3 border border-[#474747]/18 bg-[#101010] px-3 py-3">
+          {/* Streaming indicator */}
+          {isStreaming && (
+            <div className="flex items-center gap-3 rounded-lg border border-[#27272a] bg-[#111111] px-3 py-2">
               <Loader label="Responding" />
-              <span className="text-[11px] uppercase tracking-[0.14em] text-white/70">
-                Pi is responding
-              </span>
+              <span className="text-xs text-[#6a6a6a]">Responding…</span>
             </div>
-          ) : null}
+          )}
 
-          {lastError ? (
-            <SystemMessage tone="error" title="Runtime error">
+          {/* Error message */}
+          {lastError && (
+            <SystemMessage tone="error" title="Error">
               {lastError}
             </SystemMessage>
-          ) : null}
+          )}
 
           <ChatContainerScrollAnchor />
         </ChatContainerContent>
       </ChatContainerRoot>
 
-      {showScrollButton ? (
-        <div className="pointer-events-none absolute bottom-4 right-4 z-10">
+      {/* Scroll button */}
+      {showScrollButton && (
+        <div className="pointer-events-none absolute bottom-4 right-6 z-10">
           <ScrollButton
             className="pointer-events-auto"
             count={queuedMessageCount}
@@ -266,7 +288,7 @@ export function ChatThreadPanel({
             Jump to latest
           </ScrollButton>
         </div>
-      ) : null}
+      )}
     </div>
   );
 }

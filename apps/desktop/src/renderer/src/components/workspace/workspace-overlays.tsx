@@ -1,5 +1,5 @@
+import { FolderOpen, GitBranch, MagnifyingGlass } from "@phosphor-icons/react";
 import type { SearchMatch, WorktreeSnapshot } from "@pidesk/shared";
-import { FolderTree, GitBranch, Search } from "lucide-react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { FileTree } from "../ui/file-tree";
@@ -35,7 +35,7 @@ function WorkspaceOverlayFrame({
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-start justify-center bg-[#050505]/72 px-4 pb-10 pt-16 backdrop-blur-[3px] sm:px-6 sm:pt-20">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 px-4">
       <button
         type="button"
         aria-label="Close overlay"
@@ -48,8 +48,9 @@ function WorkspaceOverlayFrame({
         aria-label={ariaLabel}
         onKeyDown={(event) => event.stopPropagation()}
         className={cn(
-          "relative z-10 flex w-full flex-col overflow-hidden border border-[#474747]/30 bg-[#101010] shadow-[0_24px_100px_rgba(0,0,0,0.45)]",
-          "motion-safe:animate-[window-enter_0.16s_var(--ease-out)_forwards]",
+          "relative z-10 w-full max-w-xl overflow-hidden rounded-lg",
+          "bg-[#0a0a0a] border border-[#27272a]",
+          "animate-[modal-content-enter_0.15s_ease-out_forwards]",
           className,
         )}
         onClick={(event) => event.stopPropagation()}
@@ -92,42 +93,34 @@ export function LauncherOverlay({
   onKeyDown,
 }: LauncherOverlayProps) {
   return (
-    <WorkspaceOverlayFrame
-      ariaLabel={ariaLabel}
-      onClose={onClose}
-      className="max-w-3xl"
-    >
-      <div className="flex items-center justify-between border-b border-[#474747]/20 bg-[#0d0d0d] px-4 py-3">
-        <div className="min-w-0">
-          <p className="truncate text-[10px] font-mono uppercase tracking-[0.24em] text-[#6f6f6f]">
-            Launcher
-          </p>
-          <div className="mt-1 flex min-w-0 items-center gap-2 text-sm text-white">
-            <Search className="size-4 shrink-0 text-[#9f9f9f]" />
-            <span className="truncate">{projectName}</span>
-            <span className="truncate text-xs text-[#7d7d7d]">
+    <WorkspaceOverlayFrame ariaLabel={ariaLabel} onClose={onClose}>
+      <div className="flex flex-col">
+        <div className="flex items-center gap-3 border-b border-[#27272a] px-4 py-3">
+          <MagnifyingGlass className="size-5 text-[#6a6a6a] shrink-0" />
+          <div className="flex min-w-0 items-baseline gap-2">
+            <span className="text-sm font-medium text-[#e7e7e7]">
+              {projectName}
+            </span>
+            <span className="text-xs text-[#6a6a6a] truncate">
               {activeWorktreeLabel ?? "No worktree"}
             </span>
           </div>
         </div>
-        <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#666]">
-          Esc to close
-        </p>
-      </div>
-      <div className="max-h-[min(72vh,720px)] bg-[#101010]">
-        <WorkspaceSearchContent
-          query={query}
-          onQueryChange={onQueryChange}
-          isLoading={isLoading}
-          results={results}
-          selectedIndex={selectedIndex}
-          onSelect={onSelect}
-          onHover={onHover}
-          onKeyDown={onKeyDown}
-          actions={actions}
-          shouldFocusInput
-          className="bg-[#101010]"
-        />
+        <div className="max-h-[50vh]">
+          <WorkspaceSearchContent
+            query={query}
+            onQueryChange={onQueryChange}
+            isLoading={isLoading}
+            results={results}
+            selectedIndex={selectedIndex}
+            onSelect={onSelect}
+            onHover={onHover}
+            onKeyDown={onKeyDown}
+            actions={actions}
+            shouldFocusInput
+            className="bg-transparent"
+          />
+        </div>
       </div>
     </WorkspaceOverlayFrame>
   );
@@ -156,61 +149,43 @@ export function FileTreeOverlay({
   );
 
   return (
-    <WorkspaceOverlayFrame
-      ariaLabel={ariaLabel}
-      onClose={onClose}
-      className="max-w-3xl"
-    >
-      <div className="flex items-start justify-between gap-4 border-b border-[#474747]/20 bg-[#0d0d0d] px-4 py-3">
-        <div className="min-w-0">
-          <p className="truncate text-[10px] font-mono uppercase tracking-[0.24em] text-[#6f6f6f]">
-            Files
-          </p>
-          <div className="mt-1 flex min-w-0 items-center gap-2 text-sm text-white">
-            <FolderTree className="size-4 shrink-0 text-[#9f9f9f]" />
-            <span className="truncate">{projectName}</span>
-            {activeWorktree ? (
-              <span className="truncate text-xs text-[#7d7d7d]">
-                {activeWorktree.path}
-              </span>
-            ) : null}
+    <WorkspaceOverlayFrame ariaLabel={ariaLabel} onClose={onClose}>
+      <div className="flex flex-col">
+        <div className="flex items-center gap-3 border-b border-[#27272a] px-4 py-3">
+          <FolderOpen className="size-5 text-[#6a6a6a] shrink-0" />
+          <div className="flex min-w-0 items-baseline gap-2">
+            <span className="text-sm font-medium text-[#e7e7e7]">
+              {projectName}
+            </span>
+            {activeWorktree && (
+              <>
+                <GitBranch className="size-3 text-[#6a6a6a] shrink-0" />
+                <span className="text-xs text-[#6a6a6a] truncate">
+                  {activeWorktree.label}
+                </span>
+              </>
+            )}
           </div>
         </div>
-        <div className="flex shrink-0 items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.2em] text-[#666]">
-          <GitBranch className="size-3.5" />
-          <span>{activeWorktree?.label ?? "No worktree"}</span>
-        </div>
-      </div>
-      <ScrollArea className="max-h-[min(72vh,720px)] bg-[#101010]">
-        <div className="p-3">
+        <ScrollArea className="max-h-[50vh]">
           {activeWorktree ? (
-            <div className="overflow-hidden border border-[#474747]/25 bg-[#0d0d0d]">
-              <div className="border-b border-[#474747]/20 bg-[#111111] px-3 py-2">
-                <p className="truncate text-[10px] font-mono uppercase tracking-[0.2em] text-[#666]">
-                  {activeWorktree.path}
-                </p>
-              </div>
+            <div className="px-2 py-2">
               <FileTree
                 rootPath={activeWorktree.path}
                 onFileClick={handleFileClick}
-                className="py-2"
+                className="py-1"
               />
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center gap-3 border border-[#474747]/25 bg-[#0d0d0d] px-6 py-12 text-center">
-              <FolderTree className="size-8 text-[#5d5d5d]" />
-              <div className="space-y-1">
-                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-white">
-                  Select a repository or worktree to browse files
-                </p>
-                <p className="text-[10px] uppercase tracking-[0.14em] text-[#6f6f6f]">
-                  Choose a branch on the right, then open Files again.
-                </p>
-              </div>
+            <div className="flex flex-col items-center justify-center gap-2 px-6 py-12 text-center">
+              <FolderOpen className="size-8 text-[#6a6a6a]" />
+              <p className="text-sm text-[#6a6a6a]">
+                Select a worktree to browse files
+              </p>
             </div>
           )}
-        </div>
-      </ScrollArea>
+        </ScrollArea>
+      </div>
     </WorkspaceOverlayFrame>
   );
 }

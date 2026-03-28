@@ -155,6 +155,7 @@ export function useAppShellController(): AppShellController {
   >(null);
   const [selectedContextSurface, setSelectedContextSurface] =
     React.useState<WorkspaceShellProps["selectedContextSurface"]>(null);
+  const [leftRailWidth, setLeftRailWidth] = React.useState(260);
   const threadBootstrapAttemptKeyRef = React.useRef<string | null>(null);
   const launcherRequestIdRef = React.useRef(0);
 
@@ -874,6 +875,10 @@ export function useAppShellController(): AppShellController {
     [windowStore],
   );
 
+  const handleLeftRailResize = React.useCallback((width: number) => {
+    setLeftRailWidth(width);
+  }, []);
+
   const workspaceShellProps: WorkspaceShellProps = {
     platform,
     repositories,
@@ -904,19 +909,18 @@ export function useAppShellController(): AppShellController {
     liveFeed: live,
     contextWindows,
     selectedContextSurface,
+    leftRailWidth,
     onSelectContextSurface: handleSelectContextSurface,
-    onCloseContextSurface: handleCloseContextSurface,
+    onLeftRailResize: handleLeftRailResize,
     onModelMenuOpenChange: handleModelMenuOpenChange,
     onAddRepository: handleAddRepository,
     onSelectRepository: handleSelectRepository,
-    onUpdateRepositoryPreferences: updateRepositoryPreferences,
     onOpenSettings: handleOpenSettings,
     onSelectWorktree: handleSelectWorktree,
     onSelectThread: handleSelectThread,
     onCreateThread: handleCreateThread,
     onCloseThread: handleCloseThread,
     onRenameThread: handleRenameThread,
-    onCreateWorktree: handleCreateWorktree,
     onOpenLauncher: openLauncherOverlay,
     onCloseLauncher: closeLauncherOverlay,
     onOpenFileTree: openFileTreeOverlay,

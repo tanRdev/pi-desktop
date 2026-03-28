@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  Message01Icon as MessageSquare,
-  PlusSignIcon as Plus,
-} from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
+import { Chat, Plus } from "@phosphor-icons/react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { CodeBlockCode } from "./code-block";
@@ -320,7 +316,7 @@ export function CodeLineViewer({
                     )}
                     aria-label={`Select line ${lineNumber}`}
                   >
-                    <HugeiconsIcon icon={Plus} className="size-3.5" />
+                    <Plus className="size-3.5" />
                   </button>
 
                   {/* Line number */}
@@ -383,7 +379,7 @@ export function CodeLineViewer({
                 "motion-reduce:transform-none motion-reduce:transition-none",
               )}
             >
-              <HugeiconsIcon icon={MessageSquare} className="size-3" />
+              <Chat className="size-3" />
               Add to chat
             </button>
             <span className="px-2 py-1.5 text-xs text-muted-foreground">

@@ -153,7 +153,7 @@ export function Terminal({
             Run{" "}
             <code
               className={cn(
-                "rounded-none bg-surface-2 px-1",
+                "rounded-md bg-surface-2 px-1",
                 "transition-all duration-150 [transition-timing-function:var(--ease-out)]",
                 "hover:bg-surface-3 hover:scale-105",
                 "active:scale-[0.97] motion-reduce:active:scale-100",

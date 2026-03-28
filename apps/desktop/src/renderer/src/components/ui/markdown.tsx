@@ -210,7 +210,7 @@ const INITIAL_COMPONENTS: Partial<Components> = {
       return (
         <code
           className={cn(
-            "rounded-none bg-surface-3 px-1.5 py-0.5 font-mono text-xs",
+            "rounded-md bg-surface-3 px-1.5 py-0.5 font-mono text-xs",
             "text-foreground",
             "transition-all duration-150 ease-out",
             "hover:bg-surface-4",
@@ -295,7 +295,7 @@ const INITIAL_COMPONENTS: Partial<Components> = {
         src={src}
         alt={alt}
         className={cn(
-          "my-6 rounded-none border border-border max-w-full",
+          "my-6 rounded-md border border-border max-w-full",
           "transition-all duration-200 ease-out",
         )}
         {...props}

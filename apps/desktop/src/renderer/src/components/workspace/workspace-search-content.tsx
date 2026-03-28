@@ -52,36 +52,33 @@ export function WorkspaceSearchContent({
 
   return (
     <div className={cn("flex h-full min-h-0 flex-col", className)}>
-      <div className="border-b border-border-subtle p-3">
+      <div className="px-4 py-3">
         <input
           ref={inputRef}
           type="search"
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
           onKeyDown={onKeyDown}
-          placeholder="Search workspace..."
+          placeholder="Search..."
           aria-label="Search"
           className={cn(
-            "w-full rounded-md border border-border-subtle bg-transparent px-3 py-2 text-sm outline-none",
-            "transition-colors transition-shadow duration-[var(--duration-fast)] ease-[var(--ease-out)]",
-            "focus:ring-1 focus:ring-neutral-500/20 focus:border-border-hover",
-            "motion-reduce:transition-none motion-reduce:duration-0",
+            "w-full rounded-lg border-0 bg-[#1a1a1a] px-3 py-2.5 text-sm outline-none",
+            "text-foreground placeholder:text-muted-foreground",
+            "focus:ring-1 focus:ring-white/20",
           )}
         />
         {actions.length > 0 ? (
           <div className="mt-3 flex flex-wrap gap-2">
-            {actions.map((action, index) => (
+            {actions.map((action) => (
               <button
                 key={action.id}
                 type="button"
                 onClick={action.onSelect}
                 className={cn(
-                  "rounded-md border border-border bg-surface-2 px-3 py-1.5 text-xs text-foreground",
-                  "transition-colors transition-transform duration-[var(--duration-fast)] ease-[var(--ease-out)]",
-                  "hover:bg-surface-3 active:scale-[0.97]",
-                  "motion-reduce:transition-none motion-reduce:duration-0",
+                  "rounded-md bg-[#1a1a1a] px-3 py-1.5 text-xs text-foreground",
+                  "transition-colors active:scale-[0.97]",
+                  "hover:bg-[#252525]",
                 )}
-                style={{ animationDelay: `${index * 30}ms` }}
                 title={action.description ?? action.label}
               >
                 {action.label}
@@ -95,18 +92,13 @@ export function WorkspaceSearchContent({
         {isLoading ? (
           <div className="flex items-center justify-center p-6">
             <Loader2 className="size-5 animate-spin text-muted-foreground" />
-            <span className="ml-2 text-sm text-muted-foreground">
-              Searching…
-            </span>
           </div>
         ) : results.length === 0 ? (
-          <div className="p-4 text-sm text-muted-foreground">
-            {query
-              ? "No results"
-              : "Type to search or open a workspace surface."}
+          <div className="p-4 text-sm text-muted-foreground text-center">
+            {query ? "No results" : "Type to search"}
           </div>
         ) : (
-          <div className="divide-y divide-border-subtle">
+          <div>
             {results.map((result, index) => {
               const isSelected = index === selectedIndex;
               const Icon = result.type === "directory" ? Folder : File;
@@ -118,32 +110,25 @@ export function WorkspaceSearchContent({
                   onClick={() => onSelect?.(result)}
                   onMouseEnter={() => onHover?.(index)}
                   className={cn(
-                    "flex w-full items-center gap-3 px-3 py-2 text-left text-sm",
-                    "transition-colors transition-transform duration-[var(--duration-fast)] ease-[var(--ease-out)]",
-                    "hover:bg-surface-2 hover:text-foreground hover:translate-x-0.5",
-                    "active:scale-[0.97] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-foreground/20",
-                    "motion-reduce:transition-none motion-reduce:duration-0",
-                    isSelected && "bg-surface-2/60",
+                    "flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm",
+                    "transition-colors",
+                    "hover:bg-[#1a1a1a]",
+                    isSelected && "bg-[#1a1a1a]",
                   )}
                 >
                   <Icon
                     className={cn(
-                      "size-4 shrink-0 transition-colors duration-[var(--duration-fast)]",
+                      "size-4 shrink-0",
                       result.type === "directory"
                         ? "text-amber-400"
                         : "text-muted-foreground",
                     )}
                   />
                   <div className="min-w-0 flex-1">
-                    <div className="truncate font-[var(--app-font-mono)]">
-                      {result.name}
-                    </div>
+                    <div className="truncate">{result.name}</div>
                     <div className="truncate text-xs text-muted-foreground">
                       {result.path}
                     </div>
-                  </div>
-                  <div className="ml-2 text-xs uppercase text-muted-foreground">
-                    {result.type}
                   </div>
                 </button>
               );

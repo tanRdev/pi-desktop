@@ -54,7 +54,9 @@ export interface WorkspaceShellProps {
   liveFeed: AgentLiveFeed;
   contextWindows: ContextWindow[];
   selectedContextSurface: ContextSurfaceKey | null;
+  leftRailWidth: number;
   onSelectContextSurface: (surfaceKey: ContextSurfaceKey) => void;
+  onLeftRailResize: (width: number) => void;
   onModelMenuOpenChange: (open: boolean) => void | Promise<void>;
   onAddRepository: () => void | Promise<void>;
   onSelectRepository: (repositoryId: string) => void | Promise<void>;
@@ -102,20 +104,21 @@ function WorkspaceEmptyState({
 }) {
   return (
     <div className="flex h-full flex-col items-center justify-center px-8 text-center">
-      <div className="chrome-empty-state max-w-xl space-y-4 rounded-lg border border-border/40 bg-surface-1/80 px-8 py-8">
-        <h2 className="text-2xl text-white">
-          {activeThreadTitle?.trim() || "Start a conversation"}
+      <div className="max-w-xl space-y-6">
+        <h2 className="text-2xl font-medium text-[var(--color-text-primary)]">
+          {activeThreadTitle?.trim() || "New thread"}
         </h2>
+        <p className="text-sm text-[var(--color-text-tertiary)]">
+          Start typing below to begin the conversation.
+        </p>
         {activeWorktreeId ? (
-          <div className="pt-2">
-            <button
-              type="button"
-              onClick={() => void onCreateThread(activeWorktreeId)}
-              className="border border-[#474747]/20 bg-white px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-black transition-colors hover:bg-[#d9d9d9]"
-            >
-              New thread
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => void onCreateThread(activeWorktreeId)}
+            className="rounded-lg bg-[var(--color-text-primary)] px-4 py-2 text-sm font-medium text-[var(--color-text-inverse)] transition-all duration-[var(--duration-fast)] hover:bg-[var(--color-text-secondary)]"
+          >
+            Create thread
+          </button>
         ) : null}
       </div>
     </div>
@@ -152,6 +155,8 @@ export function WorkspaceShell({
   liveFeed,
   contextWindows,
   selectedContextSurface,
+  leftRailWidth,
+  onLeftRailResize,
   onModelMenuOpenChange,
   onAddRepository,
   onSelectRepository,
@@ -282,6 +287,8 @@ export function WorkspaceShell({
           activeRepositoryId={activeRepositoryId}
           activeWorktreeId={activeWorktreeId}
           activeThreadId={activeThreadId}
+          width={leftRailWidth}
+          onResize={onLeftRailResize}
           onSelectRepository={onSelectRepository}
           onSelectWorktree={onSelectWorktree}
           onSelectThread={onSelectThread}
@@ -341,7 +348,6 @@ export function WorkspaceShell({
               onSend={onSend}
               onCancelPrompt={onCancelPrompt}
               activeThreadId={activeThreadId}
-              activeThreadTitle={activeThreadTitle}
               canSend={canSend}
               isVisible={isPromptVisible}
               isPromptExecuting={isPromptExecuting}

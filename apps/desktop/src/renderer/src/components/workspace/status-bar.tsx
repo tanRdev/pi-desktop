@@ -1,4 +1,4 @@
-import { GitBranch } from "lucide-react";
+import { GitBranch } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import desktopPackage from "../../../../../package.json";
 

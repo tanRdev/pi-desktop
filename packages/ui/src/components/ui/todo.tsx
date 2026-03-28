@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckSquare, Square } from "lucide-react";
+import { CheckSquare, Square } from "@phosphor-icons/react";
 import { cn } from "../../lib/utils";
 
 interface TodoItem {

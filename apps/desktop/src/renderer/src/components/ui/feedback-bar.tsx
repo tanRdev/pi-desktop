@@ -1,4 +1,9 @@
-import { Copy, RotateCcw, ThumbsDown, ThumbsUp } from "lucide-react";
+import {
+  ArrowCounterClockwise,
+  Copy,
+  ThumbsDown,
+  ThumbsUp,
+} from "@phosphor-icons/react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -72,7 +77,7 @@ export function FeedbackBar({
           onClick={onRetry}
           aria-label="Retry response"
         >
-          <RotateCcw className="size-3" />
+          <ArrowCounterClockwise className="size-3" />
         </Button>
       ) : null}
     </div>

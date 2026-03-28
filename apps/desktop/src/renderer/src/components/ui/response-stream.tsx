@@ -356,7 +356,7 @@ function ResponseStream({
       width: 0.5em;
       height: 0.5em;
       background-color: currentColor;
-      border-radius: 0;
+      border-radius: 50%;
       margin-left: 0.25em;
       animation: streamingPulse 1.5s ease-in-out infinite;
     }

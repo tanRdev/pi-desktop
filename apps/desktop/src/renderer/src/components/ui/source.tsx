@@ -1,4 +1,4 @@
-import { ExternalLink } from "lucide-react";
+import { ArrowSquareOut } from "@phosphor-icons/react";
 import type * as React from "react";
 import { cn } from "@/lib/utils";
 
@@ -25,7 +25,7 @@ export function SourceItem({
       )}
       {...props}
     >
-      <ExternalLink className="size-3.5 shrink-0 text-[#7a7a7a]" />
+      <ArrowSquareOut className="size-3.5 shrink-0 text-[#7a7a7a]" />
       <span className="min-w-0">
         <span className="block truncate font-mono text-[10px] uppercase tracking-[0.16em] text-white/82">
           {label}

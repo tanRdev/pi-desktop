@@ -1,4 +1,4 @@
-import { Check, Circle, Loader2, X } from "lucide-react";
+import { Check, Circle, Spinner, X } from "@phosphor-icons/react";
 import type * as React from "react";
 import { cn } from "@/lib/utils";
 
@@ -15,7 +15,7 @@ function StepIcon({ state }: { state: StepState }) {
     case "complete":
       return <Check className="size-3.5" />;
     case "current":
-      return <Loader2 className="size-3.5 animate-spin" />;
+      return <Spinner className="size-3.5 animate-spin" />;
     case "error":
       return <X className="size-3.5" />;
     default:

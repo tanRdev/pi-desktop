@@ -178,7 +178,7 @@ export function CodeEditor({
             <div className="flex items-center gap-2">
               <div
                 className={cn(
-                  "size-4 animate-spin rounded-none border-2 border-border border-t-primary",
+                  "size-4 animate-spin rounded-md border-2 border-border border-t-primary",
                   "transition-all duration-150 [transition-timing-function:var(--ease-out)]",
                 )}
               />

@@ -1,4 +1,4 @@
-import { AlertTriangle, Info, Sparkles } from "lucide-react";
+import { Info, Star as Sparkles, Warning } from "@phosphor-icons/react";
 import type * as React from "react";
 import { cn } from "@/lib/utils";
 
@@ -17,11 +17,11 @@ const toneMap: Record<
     className: "border-[#2f6f51]/35 bg-[#0f1712] text-[#c6e6d3]",
   },
   warning: {
-    icon: AlertTriangle,
+    icon: Warning,
     className: "border-[#7c5d2a]/35 bg-[#18130d] text-[#ead7b2]",
   },
   error: {
-    icon: AlertTriangle,
+    icon: Warning,
     className: "border-[#7f4141]/35 bg-[#180f0f] text-[#f0c9c9]",
   },
 };

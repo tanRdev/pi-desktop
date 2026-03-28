@@ -54,24 +54,24 @@ export function RepositorySwitcher({
           type="button"
           aria-label={triggerAriaLabel}
           className={cn(
-            "flex h-auto w-full items-start justify-between gap-3 px-1 py-0.5 text-left text-white",
-            "transition-opacity duration-100 hover:opacity-80",
+            "flex h-auto w-full items-start justify-between gap-3 py-0.5 text-left text-foreground",
+            "transition-opacity duration-150 hover:opacity-80",
             className,
           )}
         >
           <div className="min-w-0 flex-1">
-            <div className="truncate text-[15px] font-medium leading-none tracking-[-0.01em]">
-              {triggerLabel ?? activeRepository?.name ?? "ADD_REPO"}
+            <div className="truncate text-sm font-medium">
+              {triggerLabel ?? activeRepository?.name ?? "Select project"}
             </div>
-            <div className="mt-1 truncate font-mono text-[10px] uppercase tracking-[0.08em] text-[#6f6f6f]">
-              {triggerSubtitle ?? activeWorktree?.path ?? "NULL_TARGET"}
+            <div className="mt-0.5 truncate text-xs text-muted-foreground">
+              {triggerSubtitle ?? activeWorktree?.path ?? ""}
             </div>
           </div>
         </button>
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="w-[var(--radix-popover-trigger-width)] rounded-none border border-[#474747]/40 bg-[#131313] p-0 shadow-none overflow-hidden"
+        className="w-[var(--radix-popover-trigger-width)] p-0 overflow-hidden"
       >
         <div className="flex flex-col">
           {repositories.map((repository) => {
@@ -86,19 +86,17 @@ export function RepositorySwitcher({
                 type="button"
                 onClick={() => onSelect(repository.id)}
                 className={cn(
-                  "flex w-full items-start gap-3 border-b border-[#474747]/10 px-3 py-2.5 text-left text-[11px] font-mono transition-all duration-75",
-                  "hover:bg-[#353535] hover:text-white group",
+                  "flex w-full items-start gap-3 border-b border-[#2a2a2a] px-3 py-2.5 text-left text-sm transition-colors",
+                  "hover:bg-[#1a1a1a] group",
                   repository.id === activeRepositoryId
-                    ? "bg-[#0e0e0e]"
-                    : "text-[#474747]",
+                    ? "bg-[#1a1a1a] text-foreground"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                <FolderGit className="mt-0.5 size-3.5 shrink-0 opacity-40 group-hover:opacity-100" />
+                <FolderGit className="mt-0.5 size-4 shrink-0 opacity-50 group-hover:opacity-100" />
                 <div className="min-w-0 flex-1">
-                  <div className="truncate font-bold uppercase tracking-widest text-inherit">
-                    {repository.name}
-                  </div>
-                  <div className="mt-0.5 truncate text-[9px] text-inherit opacity-60">
+                  <div className="truncate font-medium">{repository.name}</div>
+                  <div className="mt-0.5 truncate text-xs text-muted-foreground">
                     {repository.rootPath}
                   </div>
                 </div>
@@ -112,11 +110,12 @@ export function RepositorySwitcher({
             type="button"
             onClick={() => onAdd()}
             className={cn(
-              "flex w-full items-center gap-2 px-3 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[#474747] transition-all hover:bg-[#353535] hover:text-white",
+              "flex w-full items-center gap-2 px-3 py-3 text-sm font-medium text-muted-foreground",
+              "transition-colors hover:bg-[#1a1a1a] hover:text-foreground",
             )}
           >
-            <Plus className="size-3.5 shrink-0" />
-            ADD REPOSITORY
+            <Plus className="size-4 shrink-0" />
+            Add repository
           </button>
         </div>
       </PopoverContent>

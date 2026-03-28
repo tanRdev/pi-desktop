@@ -1,13 +1,13 @@
-import type { WorktreeGitSnapshot } from "@pidesk/shared";
 import {
-  AlertCircle,
   ArrowDown,
   ArrowUp,
   GitFork,
-  Loader2,
-  Pencil,
-  WifiOff,
-} from "lucide-react";
+  PencilSimple,
+  Spinner,
+  WarningCircle,
+  WifiSlash,
+} from "@phosphor-icons/react";
+import type { WorktreeGitSnapshot } from "@pidesk/shared";
 import { cn } from "@/lib/utils";
 
 export interface GitStatusChipProps {
@@ -26,15 +26,15 @@ export function GitStatusChip({ git, className }: GitStatusChipProps) {
   if (git.status !== "ready") {
     const statusIcons: Record<string, React.ReactNode> = {
       loading: (
-        <Loader2 className={cn(iconClass, "animate-spin text-primary/50")} />
+        <Spinner className={cn(iconClass, "animate-spin text-primary/50")} />
       ),
-      error: <AlertCircle className={cn(iconClass, "text-primary")} />,
-      disconnected: <WifiOff className={cn(iconClass, "text-primary/60")} />,
+      error: <WarningCircle className={cn(iconClass, "text-primary")} />,
+      disconnected: <WifiSlash className={cn(iconClass, "text-primary/60")} />,
       starting: (
-        <Loader2 className={cn(iconClass, "animate-spin text-primary/80")} />
+        <Spinner className={cn(iconClass, "animate-spin text-primary/80")} />
       ),
-      missing: <AlertCircle className={cn(iconClass, "text-primary")} />,
-      unavailable: <WifiOff className={cn(iconClass, "text-primary/60")} />,
+      missing: <WarningCircle className={cn(iconClass, "text-primary")} />,
+      unavailable: <WifiSlash className={cn(iconClass, "text-primary/60")} />,
     };
     return (
       <span
@@ -46,7 +46,7 @@ export function GitStatusChip({ git, className }: GitStatusChipProps) {
         )}
       >
         {statusIcons[git.status] ?? (
-          <AlertCircle className={cn(iconClass, "text-primary/50")} />
+          <WarningCircle className={cn(iconClass, "text-primary/50")} />
         )}
       </span>
     );
@@ -62,7 +62,7 @@ export function GitStatusChip({ git, className }: GitStatusChipProps) {
           className,
         )}
       >
-        <Pencil className={cn(iconClass, "text-primary/80")} />
+        <PencilSimple className={cn(iconClass, "text-primary/80")} />
       </span>
     );
   }

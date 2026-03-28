@@ -171,7 +171,7 @@ export function FileViewer({
               type="button"
               onClick={onOpenTerminal}
               className={cn(
-                "rounded-none p-1 text-muted-foreground",
+                "rounded-md p-1 text-muted-foreground",
                 "transition-all duration-150 ease-out",
                 "hover:bg-surface-3 hover:text-foreground",
                 "active:scale-95",
@@ -186,7 +186,7 @@ export function FileViewer({
               type="button"
               onClick={onClose}
               className={cn(
-                "rounded-none p-1 text-muted-foreground",
+                "rounded-md p-1 text-muted-foreground",
                 "transition-all duration-150 ease-out",
                 "hover:bg-surface-3 hover:text-foreground",
                 "active:scale-95",
@@ -232,7 +232,7 @@ export function FileViewer({
           >
             <div
               className={cn(
-                "flex h-16 w-16 items-center justify-center rounded-none bg-surface-2",
+                "flex h-16 w-16 items-center justify-center rounded-md bg-surface-2",
                 "transition-all duration-150 ease-out",
                 "hover:scale-105",
               )}
@@ -275,7 +275,7 @@ export function FileViewer({
           >
             <div
               className={cn(
-                "flex h-16 w-16 items-center justify-center rounded-none bg-surface-2",
+                "flex h-16 w-16 items-center justify-center rounded-md bg-surface-2",
                 "transition-all duration-150 ease-out",
                 "hover:scale-105",
               )}
@@ -338,7 +338,7 @@ export function FileViewer({
           >
             <div
               className={cn(
-                "flex h-16 w-16 items-center justify-center rounded-none bg-surface-2",
+                "flex h-16 w-16 items-center justify-center rounded-md bg-surface-2",
                 "transition-all duration-150 ease-out",
                 "hover:scale-105",
               )}

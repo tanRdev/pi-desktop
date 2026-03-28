@@ -1,5 +1,5 @@
+import { FolderPlus } from "@phosphor-icons/react";
 import type { RepositorySnapshot, WorktreeSnapshot } from "@pidesk/shared";
-import { FolderPlus } from "lucide-react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "../ui/scroll-area";
@@ -113,8 +113,9 @@ export function LeftSidebar({
       data-testid="left-sidebar"
       data-state={isCollapsed ? "collapsed" : "expanded"}
       className={cn(
-        "relative z-10 flex h-full shrink-0 overflow-hidden border-r border-[#474747]/18 bg-[#0c0c0c] pb-6",
-        "transition-[width] duration-150 ease-[var(--ease-out)]",
+        "relative z-10 flex h-full shrink-0 overflow-hidden bg-[#0f0f0f]",
+        "border-r border-[#2a2a2a]",
+        "transition-[width] duration-200 ease-out",
         isCollapsed && "overflow-hidden",
         className,
       )}
@@ -122,43 +123,40 @@ export function LeftSidebar({
         width: isCollapsed ? 0 : width,
       }}
     >
-      <div className="flex min-w-0 flex-1 flex-col pb-6">
+      <div className="flex min-w-0 flex-1 flex-col">
         {!isCollapsed && (
-          <div className="border-b border-[#474747]/15 px-4 py-4">
-            <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[#6f6f6f]">
-              Sidecar
-            </p>
-            <h2 className="mt-2 text-base font-medium text-white">
+          <div className="border-b border-[#2a2a2a] px-4 py-3">
+            <p className="text-xs font-medium text-muted-foreground">Sidecar</p>
+            <h2 className="mt-1 text-sm font-medium text-foreground">
               {repositoryLabel}
             </h2>
-            <p className="mt-1 text-[13px] leading-6 text-[#8a8a8a]">
-              Supporting context only: open files, notes, terminal, or git when
-              the thread needs it.
+            <p className="mt-1 text-xs text-muted-foreground">
+              Supporting context: files, terminal, or git
             </p>
           </div>
         )}
 
         {!repository ? (
           <div className="px-4 pt-4">
-            <div className="chrome-empty-state px-4 py-5 text-sm text-[#7a7a7a]">
-              Add a repository to start a workspace.
+            <div className="rounded-md bg-[#141414] px-4 py-4 text-sm text-muted-foreground">
+              Add a repository to start
             </div>
           </div>
         ) : null}
 
         <ScrollArea className="min-h-0 flex-1">
-          <div className="space-y-4 px-4 py-4">
+          <div className="space-y-3 px-3 py-3">
             <div className="space-y-3">
-              <div className="border border-[#474747]/16 bg-[#101010] px-4 py-4">
+              <div className="rounded-lg border border-[#2a2a2a] bg-[#141414] px-3 py-3">
                 <div className="flex items-center justify-between gap-3">
-                  <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-[#6f6f6f]">
-                    Active worktree
+                  <span className="text-xs font-medium text-muted-foreground">
+                    Worktrees
                   </span>
-                  <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-[#8a8a8a]">
+                  <span className="text-xs text-muted-foreground">
                     {worktrees.length}
                   </span>
                 </div>
-                <div className="mt-3 space-y-2">
+                <div className="mt-2 space-y-1">
                   {worktrees.length > 0 ? (
                     worktrees.map((worktree) => {
                       const isActive = worktree.id === activeWorktreeId;
@@ -169,44 +167,44 @@ export function LeftSidebar({
                           type="button"
                           onClick={() => onSelectWorktree(worktree.id)}
                           className={cn(
-                            "flex w-full flex-col gap-2 border px-3 py-3 text-left transition-colors",
+                            "flex w-full flex-col gap-1 rounded-md px-2 py-2 text-left transition-colors",
                             isActive
-                              ? "border-[#474747]/30 bg-[#171717]"
-                              : "border-[#474747]/14 bg-[#0d0d0d] hover:border-[#474747]/28 hover:bg-[#141414]",
+                              ? "bg-[#1a1a1a] text-foreground"
+                              : "hover:bg-[#1a1a1a]/50 text-muted-foreground hover:text-foreground",
                           )}
                         >
-                          <div className="flex items-center justify-between gap-3">
-                            <span className="truncate text-sm font-medium text-white">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="truncate text-sm font-medium">
                               {worktree.label}
                             </span>
-                            <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-[#7a7a7a]">
+                            <span className="text-xs text-muted-foreground">
                               {worktree.git.branch ?? "Detached"}
                             </span>
                           </div>
-                          <span className="truncate text-[12px] leading-5 text-[#8a8a8a]">
+                          <span className="truncate text-xs text-muted-foreground">
                             {formatGitSummary(worktree)}
                           </span>
                         </button>
                       );
                     })
                   ) : (
-                    <div className="chrome-empty-state px-4 py-4 text-sm text-[#7a7a7a]">
-                      No worktrees available.
+                    <div className="rounded-md bg-[#1a1a1a] px-3 py-3 text-sm text-muted-foreground">
+                      No worktrees
                     </div>
                   )}
                 </div>
               </div>
 
-              <div className="border border-[#474747]/16 bg-[#101010] px-4 py-4">
+              <div className="rounded-lg border border-[#2a2a2a] bg-[#141414] px-3 py-3">
                 <div className="flex items-center justify-between gap-3">
-                  <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-[#6f6f6f]">
-                    Focused thread
+                  <span className="text-xs font-medium text-muted-foreground">
+                    Active thread
                   </span>
-                  <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-[#8a8a8a]">
+                  <span className="text-xs text-muted-foreground">
                     {activeThreadId ? "Live" : "Idle"}
                   </span>
                 </div>
-                <div className="mt-3 space-y-2">
+                <div className="mt-2 space-y-1">
                   {activeThreadId ? (
                     worktrees.flatMap((worktree) =>
                       worktree.threads
@@ -218,20 +216,20 @@ export function LeftSidebar({
                           <button
                             key={thread.id}
                             type="button"
-                            className="flex w-full flex-col gap-1 border border-[#474747]/24 bg-[#171717] px-3 py-3 text-left"
+                            className="flex w-full flex-col gap-0.5 rounded-md px-2 py-2 text-left bg-[#1a1a1a]"
                           >
-                            <span className="truncate text-sm font-medium text-white">
+                            <span className="truncate text-sm font-medium text-foreground">
                               {thread.title}
                             </span>
-                            <span className="truncate text-[12px] text-[#8a8a8a]">
+                            <span className="truncate text-xs text-muted-foreground">
                               {worktree.label}
                             </span>
                           </button>
                         )),
                     )
                   ) : (
-                    <div className="chrome-empty-state px-4 py-4 text-sm text-[#7a7a7a]">
-                      Pick a thread from the first column to start chatting.
+                    <div className="rounded-md bg-[#1a1a1a] px-3 py-3 text-sm text-muted-foreground">
+                      Select a thread to begin
                     </div>
                   )}
                 </div>
@@ -241,17 +239,13 @@ export function LeftSidebar({
         </ScrollArea>
 
         {!isCollapsed && showNewWorktreeButton && (
-          <div className="mb-6 border-t border-[#474747]/15 px-4 py-3">
+          <div className="border-t border-[#2a2a2a] px-3 py-2">
             <button
               type="button"
-              className={cn(
-                "flex h-9 w-full items-center gap-2 border border-[#474747]/16 bg-[#131313] px-3 font-mono text-[11px] uppercase tracking-[0.08em] text-[#8a8a8a]",
-                "transition-[transform,background-color,color] duration-150 ease-out",
-                "hover:bg-[#181818] hover:text-white active:scale-[0.99]",
-              )}
+              className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-[#1a1a1a] hover:text-foreground"
               onClick={onCreateWorktree}
             >
-              <FolderPlus className="h-3.5 w-3.5" />
+              <FolderPlus className="size-4" />
               New worktree
             </button>
           </div>
@@ -262,9 +256,8 @@ export function LeftSidebar({
         <div
           className={cn(
             "absolute right-0 top-0 bottom-0 w-1 cursor-col-resize",
-            "hover:bg-ring/10 transition-colors duration-150 ease-[var(--ease-out)]",
-            "motion-reduce:transition-none",
-            isResizing && "bg-ring/20",
+            "hover:bg-[#3a3a3a] transition-colors duration-150",
+            isResizing && "bg-[#505050]",
           )}
           onMouseDown={() => setIsResizing(true)}
           title="Drag to resize"

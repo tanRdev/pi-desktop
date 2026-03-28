@@ -1,5 +1,5 @@
+import { ChatText, Plus } from "@phosphor-icons/react";
 import type { ThreadSnapshot } from "@pidesk/shared";
-import { MessageSquare, Plus } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { RuntimeStatusChip } from "./runtime-status-chip";
@@ -13,10 +13,25 @@ export interface ThreadListProps {
 
 function formatActivity(timestamp: number | null): string {
   if (!timestamp) {
-    return "No activity yet";
+    return "No activity";
   }
 
-  return new Date(timestamp).toLocaleString();
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+
+  return date.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  });
 }
 
 export function ThreadList({
@@ -26,67 +41,94 @@ export function ThreadList({
   onCreate,
 }: ThreadListProps) {
   return (
-    <section className="space-y-3 px-3 pt-4">
-      <div className="flex items-center justify-between border-b border-outline-variant/20 pb-2">
-        <p className="font-headline text-[10px] font-bold uppercase tracking-widest text-[#474747]">
-          Threads
-        </p>
+    <section className="space-y-[var(--space-3)] px-[var(--space-2)] pt-[var(--space-3)]">
+      {/* Header with clear hierarchy */}
+      <div className="flex items-center justify-between border-b border-[var(--color-border-default)] pb-[var(--space-2)] px-[var(--space-1)]">
+        <div className="flex items-center gap-[var(--space-2)]">
+          <p className="text-xs font-medium text-[var(--color-text-tertiary)] uppercase tracking-wider">
+            Threads
+          </p>
+          <span className="text-xs text-[var(--color-text-quaternary)]">
+            {threads.length}
+          </span>
+        </div>
         <Button
           type="button"
           variant="ghost"
           size="icon"
-          className={cn(
-            "size-6 border-none bg-primary text-[#131313]",
-            "transition-all duration-150 ease-out",
-            "hover:bg-[#d4d4d4] hover:scale-105",
-            "active:scale-[0.98]",
-          )}
+          className="size-7 rounded-md border border-[var(--color-border-default)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-hover)] hover:border-[var(--color-border-hover)] hover:text-[var(--color-text-primary)] transition-colors"
           onClick={() => onCreate()}
           aria-label="Create thread"
         >
           <Plus className="size-3.5" />
         </Button>
       </div>
-      <div className="space-y-0.5">
+
+      {/* Thread list with improved spacing and active states */}
+      <div className="space-y-[var(--space-1)]">
         {threads.length === 0 ? (
-          <div className="chrome-empty-state px-3 py-4 text-xs text-muted-foreground motion-safe:stagger-item">
-            No threads for this worktree yet.
+          <div className="rounded-lg bg-[var(--color-bg-tertiary)] px-[var(--space-3)] py-[var(--space-3)] text-sm text-[var(--color-text-tertiary)] stagger-item">
+            <p>No threads yet</p>
+            <p className="mt-[var(--space-1)] text-xs text-[var(--color-text-quaternary)]">
+              Create one to start chatting
+            </p>
           </div>
         ) : (
-          threads.map((thread, index) => (
-            <button
-              key={thread.id}
-              type="button"
-              onClick={() => onSelect(thread.id)}
-              className={cn(
-                "motion-safe:stagger-item group w-full p-3 text-left font-mono",
-                "transition-all duration-200 ease-out",
-                "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary",
-                thread.id === activeThreadId
-                  ? "bg-[#353535] text-[#ffffff]"
-                  : "bg-transparent text-[#ffffff]/60 hover:bg-[#353535]/50 hover:text-[#ffffff]",
-              )}
-              style={{ animationDelay: `${Math.min(index * 40, 320)}ms` }}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <MessageSquare className="size-3 shrink-0 text-inherit" />
-                    <span className="truncate text-[11px] font-bold uppercase tracking-tight">
-                      {thread.title}
-                    </span>
+          threads.map((thread, index) => {
+            const isActive = thread.id === activeThreadId;
+
+            return (
+              <button
+                key={thread.id}
+                type="button"
+                onClick={() => onSelect(thread.id)}
+                className={cn(
+                  "active-accent-left group relative w-full rounded-lg px-[var(--space-3)] py-[var(--space-2.5)] text-left transition-all duration-[var(--duration-fast)]",
+                  "hover:bg-[var(--color-bg-hover)]",
+                  isActive
+                    ? "bg-[var(--color-bg-tertiary)] active"
+                    : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]",
+                  "stagger-item",
+                )}
+                data-active={isActive}
+                style={{ animationDelay: `${Math.min(index * 40, 320)}ms` }}
+              >
+                <div className="flex items-start justify-between gap-[var(--space-2)]">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-[var(--space-2)]">
+                      <ChatText
+                        className={cn(
+                          "size-4 shrink-0 transition-colors",
+                          isActive
+                            ? "text-[var(--color-accent)]"
+                            : "text-[var(--color-text-quaternary)] group-hover:text-[var(--color-text-tertiary)]",
+                        )}
+                      />
+                      <span
+                        className={cn(
+                          "truncate text-sm font-medium",
+                          isActive
+                            ? "text-[var(--color-text-primary)]"
+                            : "text-[var(--color-text-secondary)]",
+                        )}
+                      >
+                        {thread.title}
+                      </span>
+                    </div>
+                    <div className="mt-[var(--space-1)] flex items-center gap-[var(--space-2)]">
+                      <span className="text-xs text-[var(--color-text-quaternary)]">
+                        {formatActivity(thread.lastActivityAt)}
+                      </span>
+                    </div>
                   </div>
-                  <div className="mt-1 truncate text-[9px] uppercase tracking-wider text-inherit/50">
-                    {formatActivity(thread.lastActivityAt)}
-                  </div>
+                  <RuntimeStatusChip
+                    status={thread.runtime.status}
+                    className="h-4 px-1.5 shrink-0"
+                  />
                 </div>
-                <RuntimeStatusChip
-                  status={thread.runtime.status}
-                  className="h-4 px-1.5"
-                />
-              </div>
-            </button>
-          ))
+              </button>
+            );
+          })
         )}
       </div>
     </section>

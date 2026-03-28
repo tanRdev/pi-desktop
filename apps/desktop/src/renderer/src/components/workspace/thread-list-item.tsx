@@ -1,5 +1,5 @@
+import { ChatText, PencilSimple, X } from "@phosphor-icons/react";
 import type { ThreadSnapshot } from "@pidesk/shared";
-import { MessageSquare, Pencil, X } from "lucide-react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
@@ -65,30 +65,19 @@ export function ThreadListItem({
   }, [isEditing]);
 
   return (
-    // biome-ignore lint/a11y/useSemanticElements: contains nested interactive buttons for close/rename
-    <div
+    <button
       data-testid="thread-list-item"
-      role="button"
-      tabIndex={0}
+      type="button"
       onClick={isEditing ? undefined : onClick}
-      onKeyDown={(e) => {
-        if (!isEditing && (e.key === "Enter" || e.key === " ")) {
-          e.preventDefault();
-          onClick();
-        }
-      }}
       className={cn(
-        "motion-safe:stagger-item group flex w-full items-center gap-2 rounded-md px-2 py-1 text-left font-mono",
-        "transition-all duration-200 ease-out",
-        "hover:bg-surface-2/80",
-        "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary",
+        "group flex w-full items-center gap-1.5 rounded px-1.5 py-1 text-left transition-colors",
         isActive
-          ? "bg-surface-3/80 text-foreground"
-          : "text-muted-foreground hover:text-foreground",
+          ? "bg-[#27272a] text-[#e7e7e7]"
+          : "text-[#6a6a6a] hover:bg-[#1a1a1a]/70 hover:text-[#8a8a8a]",
         !isEditing && "cursor-pointer",
       )}
     >
-      <MessageSquare className="h-3 w-3 shrink-0 text-muted-foreground" />
+      <ChatText className="size-3 shrink-0 text-[#6a6a6a]" />
       <div className="min-w-0 flex-1">
         {isEditing ? (
           <input
@@ -100,16 +89,12 @@ export function ThreadListItem({
             onKeyDown={handleInputKeyDown}
             onBlur={handleConfirmRename}
             onClick={(e) => e.stopPropagation()}
-            className={cn(
-              "block w-full border-b border-outline-variant bg-transparent px-1 py-0 text-sm text-[#ffffff] outline-none",
-              "transition-all duration-150 ease-out",
-              "focus:border-primary",
-            )}
+            className="block w-full rounded border border-[#3f3f46] bg-[#0a0a0a] px-1.5 py-0.5 text-xs text-[#e7e7e7] outline-none focus:border-[#3b82f6]"
           />
         ) : (
           <span
             data-testid={isActive ? "current-thread-title" : undefined}
-            className="block truncate text-[11px] font-medium tracking-tight"
+            className="block truncate text-xs"
           >
             {thread.title || "Untitled thread"}
           </span>
@@ -120,17 +105,11 @@ export function ThreadListItem({
           type="button"
           data-testid="thread-rename-button"
           onClick={handleStartRename}
-          className={cn(
-            "ml-0.5 flex h-5 w-5 shrink-0 items-center justify-center",
-            "opacity-0 transition-all duration-150 ease-out",
-            "hover:bg-[#474747] hover:scale-105",
-            "focus-visible:opacity-100",
-            "group-hover:opacity-100",
-          )}
+          className="ml-0.5 flex size-4 shrink-0 items-center justify-center rounded opacity-0 transition-opacity hover:bg-[#3f3f46] group-hover:opacity-100 focus-visible:opacity-100"
           aria-label="Rename thread"
           title="Rename thread"
         >
-          <Pencil className="h-3 w-3" />
+          <PencilSimple className="size-2.5" />
         </button>
       )}
       {!isEditing && onClose && (
@@ -141,19 +120,13 @@ export function ThreadListItem({
             e.stopPropagation();
             onClose();
           }}
-          className={cn(
-            "ml-0.5 flex h-5 w-5 shrink-0 items-center justify-center",
-            "opacity-0 transition-all duration-150 ease-out",
-            "hover:bg-[#474747] hover:scale-105",
-            "focus-visible:opacity-100",
-            "group-hover:opacity-100",
-          )}
+          className="ml-0.5 flex size-4 shrink-0 items-center justify-center rounded opacity-0 transition-opacity hover:bg-[#3f3f46] group-hover:opacity-100 focus-visible:opacity-100"
           aria-label="Close thread"
           title="Close thread"
         >
-          <X className="h-3 w-3" />
+          <X className="size-2.5" />
         </button>
       )}
-    </div>
+    </button>
   );
 }

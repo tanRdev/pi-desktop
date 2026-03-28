@@ -1,6 +1,6 @@
 import type React from "react";
 import { useEffect, useState } from "react";
-import { Bot, Palette, X } from "@/components/ui/icons";
+import { Bot, Palette } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
@@ -73,19 +73,6 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
           <DialogTitle className="text-sm font-bold uppercase tracking-[0.2em] font-headline text-white">
             Settings
           </DialogTitle>
-          <Button
-            variant="ghost"
-            size="icon"
-            className={cn(
-              "h-8 w-8 rounded-none",
-              "transition-all duration-150",
-              "hover:bg-[#353535] hover:text-white",
-              "active:scale-95",
-            )}
-            onClick={() => onOpenChange(false)}
-          >
-            <X className="h-4 w-4" />
-          </Button>
         </DialogHeader>
 
         <div className="flex flex-1 min-h-0">
@@ -98,7 +85,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                   data-testid={`settings-nav-${item.id}`}
                   onClick={() => handleSectionChange(item.id)}
                   className={cn(
-                    "flex items-center gap-3 rounded-none px-4 py-2.5 text-[11px] font-mono uppercase tracking-wider",
+                    "flex items-center gap-3 rounded-md px-4 py-2.5 text-[11px] font-mono uppercase tracking-wider",
                     "transition-all duration-100",
                     "hover:bg-[#131313] hover:text-white",
                     activeSection === item.id
@@ -137,7 +124,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
               resetAll();
             }}
             className={cn(
-              "text-[10px] font-mono uppercase tracking-widest text-[#474747] hover:text-white rounded-none",
+              "text-[10px] font-mono uppercase tracking-widest text-[#474747] hover:text-white rounded-md",
             )}
           >
             Reset All Settings
@@ -147,7 +134,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
             size="sm"
             onClick={() => onOpenChange(false)}
             className={cn(
-              "bg-white text-black text-[10px] font-bold uppercase tracking-[0.2em] rounded-none px-6",
+              "bg-white text-black text-[10px] font-bold uppercase tracking-[0.2em] rounded-md px-6",
               "hover:bg-[#d4d4d4] transition-all",
             )}
           >
