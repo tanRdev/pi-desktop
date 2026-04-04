@@ -1,22 +1,22 @@
+import type { WorktreeGitSnapshot } from "@pidesk/shared";
+import { cn } from "@/lib/utils";
 import {
   ArrowDown,
   ArrowUp,
-  GitFork,
+  GitBranch,
+  ICON_SIZE_SM,
   PencilSimple,
   Spinner,
   WarningCircle,
   WifiSlash,
-} from "@phosphor-icons/react";
-import type { WorktreeGitSnapshot } from "@pidesk/shared";
-import { cn } from "@/lib/utils";
+} from "@/components/ui/icons";
 
 export interface GitStatusChipProps {
   git: WorktreeGitSnapshot;
   className?: string;
 }
 
-const iconClass =
-  "h-3 w-3 transition-all duration-[var(--duration-fast)] motion-reduce:transition-none";
+const iconClass = `${ICON_SIZE_SM} transition-all duration-[var(--duration-fast)] motion-reduce:transition-none`;
 
 export function GitStatusChip({ git, className }: GitStatusChipProps) {
   if (git.status === "ready" && !git.hasChanges && !git.ahead && !git.behind) {
@@ -80,7 +80,7 @@ export function GitStatusChip({ git, className }: GitStatusChipProps) {
           className,
         )}
       >
-        <GitFork className={cn(iconClass, "text-primary/90")} />
+        <GitBranch className={cn(iconClass, "text-primary/90")} />
       </span>
     );
   }

@@ -8,7 +8,6 @@ import {
 import type { WorktreeSnapshot } from "@pidesk/shared";
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { GitStatusChip } from "./git-status-chip";
 import { ThreadListItem } from "./thread-list-item";
 
 export interface WorktreeSectionProps {
@@ -47,34 +46,62 @@ export function WorktreeSection({
     (thread) => !thread.isArchived,
   );
 
+  const hasActiveThread = visibleThreads.some(
+    (thread) => thread.id === activeThreadId,
+  );
+
   return (
     <div
       data-testid="worktree-section"
       data-worktree-id={worktree.id}
       data-worktree-label={worktree.label}
     >
+      {/* Worktree Header - Clean, compact row */}
       <button
         type="button"
         onClick={onToggleExpand}
         className={cn(
-          "flex w-full items-center gap-1.5 rounded-md px-1.5 py-1 text-left text-xs transition-colors",
-          isExpanded
-            ? "text-[#e7e7e7]"
-            : "text-[#6a6a6a] hover:text-[#8a8a8a] hover:bg-[#1a1a1a]/50",
+          "active-accent-left group flex w-full items-center gap-1.5 rounded-md px-1.5 py-1.5 text-left transition-all duration-[var(--duration-fast)]",
+          isExpanded || hasActiveThread
+            ? "text-[var(--color-text-secondary)]"
+            : "text-[var(--color-text-tertiary)] hover:bg-[var(--color-bg-hover)] hover:text-[var(--color-text-secondary)]",
         )}
+        data-active={hasActiveThread}
       >
-        <span className="flex size-3.5 shrink-0 items-center justify-center text-[#6a6a6a]">
+        <span
+          className={cn(
+            "flex size-3.5 shrink-0 items-center justify-center rounded transition-colors",
+            isExpanded
+              ? "text-[var(--color-text-secondary)]"
+              : "text-[var(--color-text-quaternary)] group-hover:text-[var(--color-text-tertiary)]",
+          )}
+        >
           {isExpanded ? (
-            <CaretDown className="size-3" />
+            <CaretDown className="size-3" weight="bold" />
           ) : (
-            <CaretRight className="size-3" />
+            <CaretRight className="size-3" weight="bold" />
           )}
         </span>
-        <GitBranch className="size-3 shrink-0 text-[#6a6a6a]" />
-        <span className="truncate font-medium">{worktree.label}</span>
-        <GitStatusChip git={worktree.git} />
+        <GitBranch
+          className={cn(
+            "size-3.5 shrink-0 transition-colors",
+            isExpanded || hasActiveThread
+              ? "text-[var(--color-text-tertiary)]"
+              : "text-[var(--color-text-quaternary)]",
+          )}
+          weight="regular"
+        />
+        <span className="min-w-0 flex-1 truncate text-[12px] font-medium leading-tight">
+          {worktree.label}
+        </span>
+        {worktree.git.branch && (
+          <span className="shrink-0 truncate max-w-[80px] text-[10px] text-[var(--color-text-quaternary)]">
+            {worktree.git.branch}
+          </span>
+        )}
       </button>
 
+      {/* Thread List - Collapsible with smooth animation */}
       <div
         className={cn(
           "grid transition-all duration-200 ease-out",
@@ -111,20 +138,21 @@ export function WorktreeSection({
                   </div>
                 ))
               ) : (
-                <div className="px-2 py-1.5 text-[11px] text-[#6a6a6a]">
+                <div className="px-2 py-1.5 text-[11px] text-[var(--color-text-quaternary)]">
                   No threads
                 </div>
               )}
             </div>
 
+            {/* New thread button - Subtle, minimal */}
             <button
               type="button"
               data-testid="create-thread-button"
               aria-label="Create thread"
               disabled={isCreatingThread}
               className={cn(
-                "mt-0.5 flex h-5 w-full items-center gap-1 rounded px-1.5 text-[11px] text-[#6a6a6a]",
-                "transition-colors hover:bg-[#1a1a1a] hover:text-[#8a8a8a]",
+                "mt-0.5 flex h-5 w-full items-center gap-1.5 rounded px-1.5 text-[11px] text-[var(--color-text-quaternary)]",
+                "transition-all duration-[var(--duration-fast)] hover:bg-[var(--color-bg-hover)] hover:text-[var(--color-text-tertiary)]",
                 isCreatingThread && "pointer-events-none opacity-50",
               )}
               onClick={(e) => {
@@ -133,11 +161,13 @@ export function WorktreeSection({
               }}
             >
               {isCreatingThread ? (
-                <Spinner className="size-2.5 animate-spin" />
+                <Spinner className="size-3 animate-spin" />
               ) : (
-                <Plus className="size-2.5" />
+                <Plus className="size-3" weight="bold" />
               )}
-              {isCreatingThread ? "Creating…" : "New thread"}
+              <span className="text-[11px]">
+                {isCreatingThread ? "Creating…" : "New thread"}
+              </span>
             </button>
           </div>
         </div>

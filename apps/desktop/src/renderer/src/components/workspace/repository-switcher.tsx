@@ -1,8 +1,7 @@
+import { Folder, Plus, Stack } from "@phosphor-icons/react";
 import type { RepositorySnapshot } from "@pidesk/shared";
-import { FolderGit, Plus } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { GitStatusChip } from "./git-status-chip";
 
 export interface RepositorySwitcherProps {
   repositories: RepositorySnapshot[];
@@ -54,24 +53,30 @@ export function RepositorySwitcher({
           type="button"
           aria-label={triggerAriaLabel}
           className={cn(
-            "flex h-auto w-full items-start justify-between gap-3 py-0.5 text-left text-foreground",
-            "transition-opacity duration-150 hover:opacity-80",
+            "group flex h-auto w-full items-center justify-between gap-2 py-0.5 text-left",
+            "transition-all duration-[var(--duration-fast)] hover:opacity-80",
             className,
           )}
         >
-          <div className="min-w-0 flex-1">
-            <div className="truncate text-sm font-medium">
-              {triggerLabel ?? activeRepository?.name ?? "Select project"}
-            </div>
-            <div className="mt-0.5 truncate text-xs text-muted-foreground">
-              {triggerSubtitle ?? activeWorktree?.path ?? ""}
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <Stack
+              className="size-4 shrink-0 text-[var(--color-text-tertiary)] group-hover:text-[var(--color-text-secondary)] transition-colors"
+              weight="regular"
+            />
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-[13px] font-medium text-[var(--color-text-primary)]">
+                {triggerLabel ?? activeRepository?.name ?? "Select project"}
+              </div>
+              <div className="truncate text-[11px] text-[var(--color-text-tertiary)]">
+                {triggerSubtitle ?? activeWorktree?.path ?? ""}
+              </div>
             </div>
           </div>
         </button>
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="w-[var(--radix-popover-trigger-width)] p-0 overflow-hidden"
+        className="w-[var(--radix-popover-trigger-width)] p-0 overflow-hidden border border-[var(--color-border-default)] bg-[var(--color-bg-secondary)]"
       >
         <div className="flex flex-col">
           {repositories.map((repository) => {
@@ -79,6 +84,7 @@ export function RepositorySwitcher({
               repository.worktrees.find((worktree) => worktree.isMain) ??
               repository.worktrees[0] ??
               null;
+            const isSelected = repository.id === activeRepositoryId;
 
             return (
               <button
@@ -86,23 +92,31 @@ export function RepositorySwitcher({
                 type="button"
                 onClick={() => onSelect(repository.id)}
                 className={cn(
-                  "flex w-full items-start gap-3 border-b border-[#2a2a2a] px-3 py-2.5 text-left text-sm transition-colors",
-                  "hover:bg-[#1a1a1a] group",
-                  repository.id === activeRepositoryId
-                    ? "bg-[#1a1a1a] text-foreground"
-                    : "text-muted-foreground hover:text-foreground",
+                  "active-accent-left flex w-full items-center gap-2 border-b border-[var(--color-border-default)] px-3 py-2.5 text-left transition-all duration-[var(--duration-fast)]",
+                  "hover:bg-[var(--color-bg-hover)]",
+                  isSelected
+                    ? "bg-[var(--color-bg-tertiary)] text-[var(--color-text-primary)] active"
+                    : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]",
                 )}
+                data-active={isSelected}
               >
-                <FolderGit className="mt-0.5 size-4 shrink-0 opacity-50 group-hover:opacity-100" />
+                <Folder
+                  className={cn(
+                    "size-4 shrink-0 transition-colors",
+                    isSelected
+                      ? "text-[var(--color-accent)]"
+                      : "text-[var(--color-text-quaternary)] group-hover:text-[var(--color-text-tertiary)]",
+                  )}
+                  weight="regular"
+                />
                 <div className="min-w-0 flex-1">
-                  <div className="truncate font-medium">{repository.name}</div>
-                  <div className="mt-0.5 truncate text-xs text-muted-foreground">
+                  <div className="truncate text-[13px] font-medium">
+                    {repository.name}
+                  </div>
+                  <div className="mt-0.5 truncate text-[11px] text-[var(--color-text-tertiary)]">
                     {repository.rootPath}
                   </div>
                 </div>
-                {repositoryWorktree && (
-                  <GitStatusChip git={repositoryWorktree.git} />
-                )}
               </button>
             );
           })}
@@ -110,11 +124,12 @@ export function RepositorySwitcher({
             type="button"
             onClick={() => onAdd()}
             className={cn(
-              "flex w-full items-center gap-2 px-3 py-3 text-sm font-medium text-muted-foreground",
-              "transition-colors hover:bg-[#1a1a1a] hover:text-foreground",
+              "flex w-full items-center gap-2 px-3 py-3 text-[13px] font-medium",
+              "text-[var(--color-text-tertiary)] transition-all duration-[var(--duration-fast)]",
+              "hover:bg-[var(--color-bg-hover)] hover:text-[var(--color-text-primary)]",
             )}
           >
-            <Plus className="size-4 shrink-0" />
+            <Plus className="size-4 shrink-0" weight="bold" />
             Add repository
           </button>
         </div>

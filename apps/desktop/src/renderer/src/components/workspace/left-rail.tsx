@@ -1,8 +1,8 @@
-import { FolderPlus } from "@phosphor-icons/react";
 import type { RepositorySnapshot, WorktreeSnapshot } from "@pidesk/shared";
 import { moveRepositorySnapshots } from "@pidesk/shared";
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { FolderPlus, Stack } from "@/components/ui/icons";
 import { ProjectAvatar } from "./project-avatar";
 import { RepositorySwitcher } from "./repository-switcher";
 import { WorktreeSection } from "./worktree-section";
@@ -196,11 +196,20 @@ export function LeftRail({
     <aside
       data-testid="left-rail"
       data-mode="workspace"
-      className="relative z-20 flex h-full shrink-0 flex-col border-r border-[var(--color-border-default)] bg-[var(--color-bg-secondary)]"
+      className={cn(
+        "relative z-20 flex h-full shrink-0 flex-col",
+        // Glass morphism sidebar
+        "glass-surface",
+        "border-r border-[var(--glass-border-default)]",
+      )}
       style={{ width }}
     >
-      {/* Header - Clean and minimal */}
-      <div className="flex items-center justify-between border-b border-[var(--color-border-default)] px-[var(--space-3)] py-[var(--space-3)]">
+      {/* Header - Glass effect with gradient */}
+      <div className={cn(
+        "flex items-center justify-between border-b px-3 py-3",
+        "border-[var(--glass-border-subtle)]",
+        "bg-gradient-to-b from-[var(--glass-bg-secondary)] to-transparent",
+      )}>
         <div className="min-w-0 flex-1">
           <RepositorySwitcher
             repositories={orderedRepositories}
@@ -220,17 +229,34 @@ export function LeftRail({
         <button
           type="button"
           onClick={onAddRepository}
-          className="ml-[var(--space-2)] flex size-7 items-center justify-center rounded-md text-[var(--color-text-tertiary)] hover:bg-[var(--color-bg-hover)] hover:text-[var(--color-text-primary)] transition-colors"
+          className="ml-2 flex size-7 items-center justify-center rounded-md text-[var(--color-text-tertiary)] transition-all duration-[var(--duration-fast)] hover:bg-[var(--color-bg-hover)] hover:text-[var(--color-text-primary)] active:scale-95"
           aria-label="Add repository"
           title="Add repository"
         >
-          <FolderPlus className="size-4" />
+          <FolderPlus className="size-4" weight="regular" />
         </button>
       </div>
 
-      {/* Repository List - Improved spacing and hierarchy */}
-      <div className="min-h-0 flex-1 overflow-y-auto py-[var(--space-2)]">
-        <div className="space-y-[var(--space-1)] px-[var(--space-2)]">
+      {/* Empty state */}
+      {orderedRepositories.length === 0 && (
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 py-8 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-[var(--color-border-default)] bg-[var(--color-bg-tertiary)]">
+            <Stack className="size-5 text-[var(--color-text-quaternary)]" />
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-[var(--color-text-secondary)]">
+              No projects yet
+            </p>
+            <p className="text-xs text-[var(--color-text-quaternary)]">
+              Add a repository to get started
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Repository List - Compact, clean hierarchy */}
+      <div className="min-h-0 flex-1 overflow-y-auto py-2">
+        <div className="space-y-0.5 px-2">
           {orderedRepositories.map((repository) => {
             const repositoryName = getRepositoryName(repository);
             const isActive = repository.id === activeRepositoryId;
@@ -254,7 +280,7 @@ export function LeftRail({
                 }}
                 onDrop={() => handleDrop(repository.id)}
               >
-                {/* Repository Header - Active accent */}
+                {/* Repository Header - Clean, minimal with active accent */}
                 <button
                   type="button"
                   data-testid="project-rail-item"
@@ -263,7 +289,7 @@ export function LeftRail({
                   onDragEnd={() => setDraggedRepositoryId(null)}
                   onClick={() => onSelectRepository(repository.id)}
                   className={cn(
-                    "active-accent-left flex w-full items-center gap-[var(--space-2)] rounded-lg px-[var(--space-2)] py-[var(--space-2)] text-left",
+                    "active-accent-left group flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left transition-all duration-[var(--duration-fast)]",
                     !isActive && "hover:bg-[var(--color-bg-hover)]",
                     draggedRepositoryId === repository.id && "opacity-50",
                     isActive && "active",
@@ -274,12 +300,12 @@ export function LeftRail({
                   <ProjectAvatar
                     repository={repository}
                     isActive={isActive}
-                    className="size-6 shrink-0"
+                    className="size-5 shrink-0"
                   />
                   <span className="min-w-0 flex-1">
                     <span
                       className={cn(
-                        "block truncate text-sm font-medium",
+                        "block truncate text-[13px] font-medium leading-tight",
                         isActive
                           ? "text-[var(--color-text-primary)]"
                           : "text-[var(--color-text-secondary)]",
@@ -290,15 +316,15 @@ export function LeftRail({
                   </span>
                 </button>
 
-                {/* Worktrees - Better nested spacing */}
+                {/* Worktrees - Nested with subtle left border */}
                 {isActive && repository.worktrees.length > 0 && (
-                  <div className="pb-[var(--space-2)] pl-[var(--space-8)] pr-[var(--space-2)]">
-                    <div className="space-y-[var(--space-1)] border-l border-[var(--color-border-subtle)] pl-[var(--space-2)]">
+                  <div className="pb-2 pl-7 pr-2">
+                    <div className="space-y-0.5 border-l border-[var(--color-border-subtle)] pl-3">
                       {repository.worktrees.map((worktree, index) => (
                         <div
                           key={worktree.id}
                           className="stagger-item"
-                          style={{ animationDelay: `${index * 40}ms` }}
+                          style={{ animationDelay: `${index * 30}ms` }}
                         >
                           <WorktreeSection
                             worktree={worktree}
@@ -329,11 +355,12 @@ export function LeftRail({
         </div>
       </div>
 
-      {/* Resize handle - Improved visibility */}
+      {/* Resize handle */}
       <div
         className={cn(
           "absolute right-0 top-0 bottom-0 w-[2px] cursor-col-resize",
-          "hover:bg-[var(--color-accent)] transition-colors duration-[var(--duration-normal)]",
+          "transition-colors duration-[var(--duration-normal)]",
+          "hover:bg-[var(--color-border-hover)]",
           isResizing && "bg-[var(--color-accent)]",
         )}
         onMouseDown={() => setIsResizing(true)}

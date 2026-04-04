@@ -1,6 +1,6 @@
-import { Image, Paperclip, X } from "@phosphor-icons/react";
 import type * as React from "react";
 import { cn } from "@/lib/utils";
+import { ICON_SIZE_SM, ICON_SIZE_XS, Image, Paperclip, X } from "@/components/ui/icons";
 
 export interface UploadedFile {
   id: string;
@@ -34,9 +34,9 @@ export function FileUpload({
               className="flex items-center gap-2 border border-[#474747]/20 bg-[#101010] px-2 py-1"
             >
               {file.kind === "image" ? (
-                <Image className="size-3.5 text-[#bfbfbf]" />
+                <Image className={`${ICON_SIZE_SM} text-[#bfbfbf]`} />
               ) : (
-                <Paperclip className="size-3.5 text-[#bfbfbf]" />
+                <Paperclip className={`${ICON_SIZE_SM} text-[#bfbfbf]`} />
               )}
               <span className="max-w-[12rem] truncate font-mono text-[10px] uppercase tracking-[0.16em] text-white/78">
                 {file.name}
@@ -47,7 +47,7 @@ export function FileUpload({
                 className="text-[#6f6f6f] transition-colors hover:text-white"
                 aria-label={`Remove ${file.name}`}
               >
-                <X className="size-3.5" />
+                <X className={ICON_SIZE_SM} />
               </button>
             </div>
           ))}

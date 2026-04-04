@@ -21,7 +21,11 @@ export default function App() {
         <div
           data-testid="app-ready"
           className={cn(
-            "relative flex h-screen flex-col overflow-hidden bg-background text-foreground",
+            // Glass morphism window chrome - root container
+            "relative flex h-screen flex-col overflow-hidden",
+            "rounded-[var(--window-radius)]",
+            // Subtle glass effect on app shell
+            "glass-panel-subtle",
             // App-level page transition animations
             "motion-safe:[&>*]:animate-in motion-safe:[&>*]:fade-in-0",
             "motion-safe:[&>*]:duration-300 motion-safe:[&>*]:fill-mode-forwards",
@@ -35,6 +39,15 @@ export default function App() {
             ["--duration-slow" as string]: "300ms",
           }}
         >
+          {/* Window chrome subtle border overlay */}
+          <div
+            className="pointer-events-none absolute inset-0 z-[100] rounded-[var(--window-radius)]"
+            style={{
+              boxShadow: "inset 0 0 0 1px var(--glass-border-subtle)",
+            }}
+            aria-hidden="true"
+          />
+
           <WorkspaceShell {...controller.workspaceShellProps} />
 
           <Dialog

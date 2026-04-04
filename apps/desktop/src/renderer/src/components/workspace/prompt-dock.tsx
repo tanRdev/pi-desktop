@@ -1,4 +1,3 @@
-import { Brain, CaretDown, Paperclip, Square } from "@phosphor-icons/react";
 import type {
   MentionSuggestion,
   ProviderSnapshot,
@@ -12,6 +11,15 @@ import {
 } from "@pidesk/ui";
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import {
+  CaretDown,
+  Cpu,
+  ICON_SIZE_MD,
+  ICON_SIZE_SM,
+  ICON_SIZE_XS,
+  Paperclip,
+  Square,
+} from "@/components/ui/icons";
 import { buildFileMention } from "../../lib/prompt-routing";
 import { Button } from "../ui/button";
 import { FileUpload, type UploadedFile } from "../ui/file-upload";
@@ -210,7 +218,10 @@ export function PromptDock({
     <div
       aria-hidden={!isVisible}
       className={cn(
-        "relative mt-auto w-full border-t border-[var(--color-border-default)] bg-[var(--color-bg-secondary)]",
+        "relative mt-auto w-full",
+        // Glass morphism prompt dock
+        "glass-surface",
+        "border-t border-[var(--glass-border-default)]",
         "transition-[max-height,opacity] duration-[var(--duration-slow)] ease-out",
         isVisible ? "max-h-[42rem]" : "max-h-0 overflow-hidden opacity-0",
       )}
@@ -298,7 +309,7 @@ export function PromptDock({
                   title="Attach files"
                   className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-hover)]"
                 >
-                  <Paperclip className="size-4" />
+                  <Paperclip className={ICON_SIZE_MD} />
                 </Button>
               </PromptInputAction>
 
@@ -326,7 +337,7 @@ export function PromptDock({
                       </span>
                       <CaretDown
                         className={cn(
-                          "size-3 transition-transform duration-[var(--duration-fast)] ease-out",
+                          `${ICON_SIZE_XS} transition-transform duration-[var(--duration-fast)] ease-out`,
                           modelOpen && "rotate-180",
                         )}
                       />
@@ -377,7 +388,7 @@ export function PromptDock({
               {isSwitchingModel ? <Loader label="Switching" /> : null}
               {currentContextWindow != null ? (
                 <div className="flex items-center gap-[var(--space-1)] text-xs text-[var(--color-text-tertiary)]">
-                  <Brain className="size-3.5" />
+                  <Cpu className={ICON_SIZE_SM} />
                   <span className="tabular-nums">
                     {getContextPercentage(currentContextWindow)}%
                   </span>
@@ -401,7 +412,7 @@ export function PromptDock({
                   )}
                 >
                   {isPromptExecuting ? (
-                    <Square className="mr-[var(--space-1.5)] size-3 fill-current" />
+                    <Square className={`mr-[var(--space-1.5)] ${ICON_SIZE_XS} fill-current`} />
                   ) : null}
                   {isPromptExecuting ? "Stop" : "Send"}
                 </Button>

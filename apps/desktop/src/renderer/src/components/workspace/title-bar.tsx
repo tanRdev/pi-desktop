@@ -1,13 +1,15 @@
+import type { WorktreeSnapshot } from "@pidesk/shared";
+import { cn } from "@/lib/utils";
 import {
   FolderOpen,
   GearSix,
   GitBranch,
+  ICON_SIZE_MD,
+  ICON_SIZE_SM,
   MagnifyingGlass,
   Pulse,
   TerminalWindow,
-} from "@phosphor-icons/react";
-import type { WorktreeSnapshot } from "@pidesk/shared";
-import { cn } from "@/lib/utils";
+} from "@/components/ui/icons";
 import { getTitleBarLeftPadding } from "../../lib/title-bar-layout";
 import { Button } from "../ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
@@ -55,7 +57,11 @@ export function TitleBar({
     <div
       data-testid="title-bar"
       data-drag-region="true"
-      className="relative z-50 flex h-11 shrink-0 items-center gap-[var(--space-4)] border-b border-[var(--color-border-default)] bg-[var(--color-bg-secondary)]"
+      className={cn(
+        "relative z-50 flex h-11 shrink-0 items-center gap-[var(--space-4)]",
+        // Glass morphism title bar - Cursor IDE style
+        "glass-titlebar",
+      )}
     >
       <div
         className="flex min-w-0 flex-1 items-center gap-[var(--space-3)]"
@@ -85,7 +91,7 @@ export function TitleBar({
                 )}
                 aria-label="Select worktree"
               >
-                <GitBranch className="size-3.5 shrink-0" />
+                <GitBranch className={`${ICON_SIZE_SM} shrink-0`} />
                 <span className="max-w-[12rem] truncate">
                   {activeWorktreeLabel ?? "Select worktree"}
                 </span>
@@ -143,7 +149,7 @@ export function TitleBar({
               "bg-[var(--color-bg-quaternary)] text-[var(--color-text-primary)]",
           )}
         >
-          <MagnifyingGlass className="size-4" />
+          <MagnifyingGlass className={ICON_SIZE_MD} />
         </Button>
 
         <Button
@@ -162,7 +168,7 @@ export function TitleBar({
             !canOpenFileTree && "opacity-40 cursor-not-allowed",
           )}
         >
-          <FolderOpen className="size-4" />
+          <FolderOpen className={ICON_SIZE_MD} />
         </Button>
 
         <Button
@@ -179,7 +185,7 @@ export function TitleBar({
               "bg-[var(--color-bg-quaternary)] text-[var(--color-text-primary)]",
           )}
         >
-          <TerminalWindow className="size-4" />
+          <TerminalWindow className={ICON_SIZE_MD} />
         </Button>
 
         <Button
@@ -196,7 +202,7 @@ export function TitleBar({
               "bg-[var(--color-bg-quaternary)] text-[var(--color-text-primary)]",
           )}
         >
-          <GitBranch className="size-4" />
+          <GitBranch className={ICON_SIZE_MD} />
         </Button>
 
         <Button
@@ -213,7 +219,7 @@ export function TitleBar({
               "bg-[var(--color-bg-quaternary)] text-[var(--color-text-primary)]",
           )}
         >
-          <Pulse className="size-4" />
+          <Pulse className={ICON_SIZE_MD} />
         </Button>
 
         <div className="mx-[var(--space-1)] h-4 w-px bg-[var(--color-border-default)]" />
@@ -230,7 +236,7 @@ export function TitleBar({
             "transition-all duration-[var(--duration-fast)] ease-out",
           )}
         >
-          <GearSix className="size-4" />
+          <GearSix className={ICON_SIZE_MD} />
         </Button>
       </div>
     </div>

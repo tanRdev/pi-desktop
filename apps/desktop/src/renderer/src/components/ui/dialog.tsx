@@ -1,10 +1,10 @@
 "use client";
 
-import { X } from "@phosphor-icons/react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
+import { ICON_SIZE_MD, X } from "@/components/ui/icons";
 
 const Dialog = DialogPrimitive.Root;
 
@@ -59,7 +59,7 @@ const DialogContent = React.forwardRef<
           "data-[state=open]:bg-[#1a1a1a]",
         )}
       >
-        <X className="size-4" />
+        <X className={ICON_SIZE_MD} />
         <span className="sr-only">Close</span>
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>

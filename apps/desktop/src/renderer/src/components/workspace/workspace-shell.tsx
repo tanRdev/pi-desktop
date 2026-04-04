@@ -301,7 +301,10 @@ export function WorkspaceShell({
         <main
           data-testid="chat-first-layout"
           className={cn(
-            "relative z-10 flex min-w-0 flex-1 flex-col overflow-hidden bg-[#0b0b0b]",
+            "relative z-10 flex min-w-0 flex-1 flex-col overflow-hidden",
+            // Glass effect main content area - subtle transparency
+            "bg-[var(--glass-bg-primary)]",
+            "backdrop-blur-sm",
           )}
         >
           <section className="relative flex min-h-0 min-w-0 flex-1 flex-col">

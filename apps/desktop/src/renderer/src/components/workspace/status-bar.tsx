@@ -1,5 +1,5 @@
-import { GitBranch } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
+import { GitBranch, ICON_SIZE_XS } from "@/components/ui/icons";
 import desktopPackage from "../../../../../package.json";
 
 const appVersion = `PiDesk v${desktopPackage.version}`;
@@ -20,7 +20,7 @@ export function StatusBar({ activeWorktreeLabel, className }: StatusBarProps) {
     >
       <div className="flex items-center gap-5">
         <div className="group flex items-center gap-1.5">
-          <GitBranch className="size-3 text-white" />
+          <GitBranch className={`${ICON_SIZE_XS} text-white`} />
           <span className="font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-[#474747] group-hover:text-white">
             {activeWorktreeLabel ?? "no-branch"}
           </span>
