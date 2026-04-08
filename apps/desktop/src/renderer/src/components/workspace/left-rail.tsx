@@ -1,7 +1,15 @@
 import type { RepositorySnapshot, WorktreeSnapshot } from "@pidesk/shared";
 import { moveRepositorySnapshots } from "@pidesk/shared";
 import * as React from "react";
-import { FolderOpen, Minus, SquaresFour, Stack } from "@/components/ui/icons";
+import {
+  FolderOpen,
+  Gear,
+  Minus,
+  Pi,
+  Plus,
+  SquaresFour,
+  Stack,
+} from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { ProjectAvatar } from "./project-avatar";
 import { WorktreeSection } from "./worktree-section";
@@ -211,6 +219,19 @@ export function LeftRail({
           <SquaresFour className="size-4" weight="regular" />
           <span>Marketplace</span>
         </button>
+        <button
+          type="button"
+          data-no-drag="true"
+          className={cn(
+            "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2",
+            "text-white/40 text-[13px]",
+            "transition-all duration-150",
+            "hover:bg-white/[0.05] hover:text-white/70",
+          )}
+        >
+          <Plus className="size-4" weight="regular" />
+          <span>Add new workspace</span>
+        </button>
       </div>
 
       {/* Item 21: Softer section divider (opacity 0.02 was 0.03) */}
@@ -349,38 +370,31 @@ export function LeftRail({
         </div>
       </div>
 
-      {/* Add Workspace */}
-      <div className="px-3 py-2 border-t border-white/[0.03]">
-        <button
-          type="button"
-          className={cn(
-            "flex w-full items-center gap-2 rounded-lg px-2.5 py-2",
-            "text-white/40 text-[12px]",
-            "transition-all duration-150",
-            "hover:bg-white/[0.05] hover:text-white/70",
-          )}
-        >
-          <FolderOpen className="size-4" weight="regular" />
-          <span>Add workspace</span>
-        </button>
-      </div>
+      {/* Divider above Pi branding */}
+      <div className="mx-3 h-px bg-white/[0.03]" />
 
-      {/* Marketplace - bottom */}
+      {/* Pi branding - bottom */}
       <div className="px-3 py-2">
-        <button
-          type="button"
-          data-no-drag="true"
-          onClick={onOpenMarketplace}
-          className={cn(
-            "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2",
-            "text-white/40 text-[13px]",
-            "transition-all duration-150",
-            "hover:bg-white/[0.05] hover:text-white/70",
-          )}
-        >
-          <SquaresFour className="size-4" weight="regular" />
-          <span>Marketplace</span>
-        </button>
+        <div className="flex items-center justify-between rounded-lg px-2.5 py-2">
+          <div className="flex items-center gap-2.5">
+            {/* Pi Logo */}
+            <Pi className="size-4 text-white/50" />
+            <span className="text-[13px] text-white/40">Pi Desktop v0.1.0</span>
+          </div>
+          <button
+            type="button"
+            data-no-drag="true"
+            onClick={onOpenSettings}
+            className={cn(
+              "flex items-center justify-center rounded p-1",
+              "text-white/40",
+              "transition-all duration-150",
+              "hover:bg-white/[0.05] hover:text-white/70",
+            )}
+          >
+            <Gear className="size-4" weight="regular" />
+          </button>
+        </div>
       </div>
 
       {/* Resize handle */}

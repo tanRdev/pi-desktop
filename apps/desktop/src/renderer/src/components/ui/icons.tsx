@@ -3,6 +3,29 @@
  * All icons are from @phosphor-icons/react
  */
 
+import * as React from "react";
+
+// ============================================
+// CUSTOM ICONS
+// ============================================
+
+/** Pi symbol icon - Math constant π */
+export function Pi({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="1em"
+      height="1em"
+      fill="currentColor"
+      viewBox="0 0 256 256"
+      className={className}
+    >
+      <title>Pi</title>
+      <path d="M200 64H56V48a8 8 0 0 0-16 0v16H32a8 8 0 0 0 0 16h8v112a8 8 0 0 0 16 0V80h60v112a8 8 0 0 0 16 0V80h52v96a8 8 0 0 0 16 0V80h8a8 8 0 0 0 0-16Z" />
+    </svg>
+  );
+}
+
 import {
   Archive,
   ArrowClockwise,
