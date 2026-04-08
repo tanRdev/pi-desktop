@@ -17,23 +17,23 @@ export function PromptSuggestion({
     <button
       type="button"
       className={cn(
-        "group inline-flex h-9 min-w-fit shrink-0 items-center gap-2.5 whitespace-nowrap border border-[#474747]/25 bg-[#111111]/92 px-3 text-left",
+        "group inline-flex h-9 min-w-fit shrink-0 items-center gap-2.5 whitespace-nowrap border border-white/[0.06] bg-[#111111] px-3 text-left",
         "transition-[transform,border-color,background-color,color] duration-150 ease-out",
-        "hover:border-white/35 hover:bg-[#171717] hover:text-white active:scale-[0.99]",
+        "hover:border-white/[0.12] hover:bg-white/[0.04] hover:text-white/80 active:scale-[0.99]",
         className,
       )}
       {...props}
     >
       <div className="flex min-w-0 items-center gap-1.5 truncate">
-        <span className="truncate font-mono text-[10px] uppercase tracking-[0.08em] text-white/88">
+        <span className="truncate font-mono text-[10px] uppercase tracking-[0.08em] text-white/80">
           {title}
         </span>
         {description ? (
           <>
-            <span aria-hidden="true" className="text-[#4f4f4f]">
+            <span aria-hidden="true" className="text-white/30">
               /
             </span>
-            <span className="truncate text-[10px] text-[#7e7e7e] group-hover:text-[#b5b5b5]">
+            <span className="truncate text-[10px] text-white/40 group-hover:text-white/60">
               {description}
             </span>
           </>

@@ -1,6 +1,12 @@
 import type * as React from "react";
+import {
+  ICON_SIZE_SM,
+  ICON_SIZE_XS,
+  Image,
+  Paperclip,
+  X,
+} from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
-import { ICON_SIZE_SM, ICON_SIZE_XS, Image, Paperclip, X } from "@/components/ui/icons";
 
 export interface UploadedFile {
   id: string;
@@ -31,20 +37,20 @@ export function FileUpload({
           {files.map((file) => (
             <div
               key={file.id}
-              className="flex items-center gap-2 border border-[#474747]/20 bg-[#101010] px-2 py-1"
+              className="flex items-center gap-2 border border-white/[0.06] bg-white/[0.04] px-2 py-1"
             >
               {file.kind === "image" ? (
-                <Image className={`${ICON_SIZE_SM} text-[#bfbfbf]`} />
+                <Image className={`${ICON_SIZE_SM} text-white/70`} />
               ) : (
-                <Paperclip className={`${ICON_SIZE_SM} text-[#bfbfbf]`} />
+                <Paperclip className={`${ICON_SIZE_SM} text-white/70`} />
               )}
-              <span className="max-w-[12rem] truncate font-mono text-[10px] uppercase tracking-[0.16em] text-white/78">
+              <span className="max-w-[12rem] truncate font-mono text-[10px] uppercase tracking-[0.16em] text-white/70">
                 {file.name}
               </span>
               <button
                 type="button"
                 onClick={() => onRemoveFile(file.id)}
-                className="text-[#6f6f6f] transition-colors hover:text-white"
+                className="text-white/30 transition-colors hover:text-white/60"
                 aria-label={`Remove ${file.name}`}
               >
                 <X className={ICON_SIZE_SM} />

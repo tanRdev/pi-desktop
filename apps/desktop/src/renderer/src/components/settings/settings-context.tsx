@@ -24,10 +24,6 @@ function cloneSettings(settings: Settings): Settings {
   return {
     ai: { ...settings.ai },
     interface: { ...settings.interface },
-    editor: { ...settings.editor },
-    terminal: { ...settings.terminal },
-    keybindings: { ...settings.keybindings },
-    advanced: { ...settings.advanced },
   };
 }
 

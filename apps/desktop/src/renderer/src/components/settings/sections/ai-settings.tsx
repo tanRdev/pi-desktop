@@ -56,8 +56,8 @@ export function AISettingsSection() {
   return (
     <div className="space-y-6">
       <SettingsSection
-        title="Provider & Model"
-        description="Choose from providers and models available in the current runtime"
+        title="Provider and model"
+        description="These controls are live. Changing them updates the active runtime immediately."
       >
         <div
           className={cn("transition-all duration-200", "stagger-item")}
@@ -69,7 +69,7 @@ export function AISettingsSection() {
         >
           <SettingsRow
             label="Provider"
-            description="Runtime-backed provider selection"
+            description="Available providers detected from the current thread runtime"
           >
             <SettingsSelect
               testId="settings-provider-select"
@@ -94,7 +94,7 @@ export function AISettingsSection() {
         >
           <SettingsRow
             label="Model"
-            description="Model currently available for that provider"
+            description="Model list scoped to the selected provider"
           >
             <SettingsSelect
               testId="settings-model-select"
@@ -115,15 +115,17 @@ export function AISettingsSection() {
       </SettingsSection>
 
       {runtimeProviders.length === 0 ? (
-        <p
-          className={cn("text-sm text-muted-foreground stagger-item")}
+        <div
+          className={cn(
+            "stagger-item rounded-md border border-white/[0.06] bg-white/[0.02] px-4 py-4 text-sm text-white/40",
+          )}
           style={{
             animationDelay: "80ms",
             animationFillMode: "forwards",
           }}
         >
           No configured providers are available in the current runtime.
-        </p>
+        </div>
       ) : null}
     </div>
   );

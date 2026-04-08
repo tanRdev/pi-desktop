@@ -1,0 +1,2104 @@
+$ electron-vite dev
+vite v8.0.0 building ssr environment for development...
+
+transforming (325) ../../node_modules/.bun/yaml
+transforming (323) ../../node_modules/.bun/@sin
+transforming (324) ../../node_modules/.bun/yaml
+transforming (326) ../../node_modules/.bun/yaml
+transforming (1273) ../../node_modules/.bun/@mi
+transforming (1274) ../../node_modules/.bun/zod
+transforming (1275) ../../node_modules/.bun/@mi
+✓ 1669 modules transformed.
+
+rendering chunks (1)...
+rendering chunks (2)...
+rendering chunks (3)...
+rendering chunks (4)...
+rendering chunks (5)...
+rendering chunks (6)...
+rendering chunks (7)...
+rendering chunks (8)...
+rendering chunks (9)...
+rendering chunks (10)...
+rendering chunks (11)...
+rendering chunks (12)...
+
+out/main/chunks/chunk-DzBkbe55.js                         1.77 kB
+out/main/chunks/multipart-parser-CFizDb9y.js              8.77 kB
+out/main/chunks/dist-DawivBCO.js                         15.62 kB
+out/main/chunks/src-3KIa4wXj.js                          42.97 kB
+out/main/chunks/photon_rs-CddgMvGP.js                   134.67 kB
+out/main/chunks/from-DFMrpB5x.js                        173.46 kB
+out/main/agent-host-session-server-entry-wl1UkfYQ.js  9,569.63 kB
+out/main/chunks/dist-CUlcGrGq.js                          0.11 kB
+out/main/agentHostSessionServer.js                        0.79 kB
+out/main/chunks/chunk-CyLJMB0t.js                         1.77 kB
+out/main/chunks/multipart-parser-DTsut5Zo.js              8.77 kB
+out/main/chunks/dist-ChahkRX2.js                         15.59 kB
+out/main/chunks/src-yoPeElRg.js                          22.42 kB
+out/main/chunks/agent-host-runtime-c2-7vIrR.js           22.58 kB
+out/main/chunks/src-DvFZuQ91.js                          42.97 kB
+out/main/index.js                                       114.30 kB
+out/main/chunks/photon_rs-DaxcJ9oO.js                   134.67 kB
+out/main/chunks/from-CI9XQQC3.js                        173.46 kB
+out/main/chunks/dist-DUuM0wB2.js                      9,528.06 kB
+
+
+✓ built in 1.22s
+
+electron main process built successfully
+
+-----
+
+vite v8.0.0 building ssr environment for development...
+
+ WARN  inlineDynamicImports option is deprecated, please use codeSplitting: false instead.
+
+
+✓ 19 modules transformed.
+
+rendering chunks (1)...
+
+out/preload/index.cjs  8.39 kB
+
+✓ built in 12ms
+
+electron preload scripts built successfully
+
+-----
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:01:38 AM [vite] warning: `esbuild` option was specified by "vite:react-babel" plugin. This option is deprecated, please use `oxc` instead.
+`optimizeDeps.rollupOptions` / `ssr.optimizeDeps.rollupOptions` is deprecated. Use `optimizeDeps.rolldownOptions` instead. Note that this option may be set by a plugin. Set VITE_DEPRECATION_TRACE=1 to see where it is called.
+[vite:react-babel] We recommend switching to `@vitejs/plugin-react-oxc` for improved performance. More information at https://vite.dev/rolldown
+dev server running for the electron renderer process at:
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+
+starting electron app...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:03:27 AM [vite] (client) hmr update /@fs/Users/tan/Dev/PiDesk/packages/ui/src/components/ui/prompt-input.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:03:30 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/left-rail.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:03:33 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/left-rail.tsx (x2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:03:36 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/title-bar.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:04:04 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/title-bar.tsx (x2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:04:13 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/left-rail.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:04:17 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/left-rail.tsx (x2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:04:24 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/prompt-dock.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:04:26 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/chat-thread-panel.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:04:26 AM [vite] Internal server error: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx: Unexpected token, expected "," (235:16)
+
+  233 |                   </div>
+  234 |                 );
+> 235 |               })}
+      |                 ^
+  236 |
+  237 |           {/* Streaming indicator */}
+  238 |           {isStreaming && (
+  Plugin: vite:react-babel
+  File: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx:235:16
+  233 |                    </div>
+  234 |                  );
+  235 |                })}
+      |                  ^
+  236 |  
+  237 |            {/* Streaming indicator */}
+      at constructor (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:365:19)
+      at TypeScriptParserMixin.raise (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6599:19)
+      at TypeScriptParserMixin.unexpected (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6619:16)
+      at TypeScriptParserMixin.expect (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6899:12)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11661:14)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11331:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4764:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11066:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11046:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9837:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10899:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10904:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10881:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9786:20)
+      at TypeScriptParserMixin.parseConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10893:29)
+      at TypeScriptParserMixin.parseConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9603:18)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10885:17)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9786:20)
+      at TypeScriptParserMixin.parseExpressionBase (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10784:23)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:39
+      at TypeScriptParserMixin.allowInAnd (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12426:12)
+      at TypeScriptParserMixin.parseExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:17)
+      at TypeScriptParserMixin.jsxParseExpressionContainer (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4632:31)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4711:36)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElement (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4749:17)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4759:19)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11066:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11046:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9837:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10899:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10904:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10881:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9775:39
+      at TypeScriptParserMixin.tryParse (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6907:20)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9775:18)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10800:39
+      at TypeScriptParserMixin.allowInAnd (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12426:12)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10800:17)
+      at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12493:17)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11675:28)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11331:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4764:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:04:26 AM [vite] Internal server error: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx: Unexpected token, expected "," (235:16)
+
+  233 |                   </div>
+  234 |                 );
+> 235 |               })}
+      |                 ^
+  236 |
+  237 |           {/* Streaming indicator */}
+  238 |           {isStreaming && (
+  Plugin: vite:react-babel
+  File: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx:235:16
+  233 |                    </div>
+  234 |                  );
+  235 |                })}
+      |                  ^
+  236 |  
+  237 |            {/* Streaming indicator */}
+      at constructor (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:365:19)
+      at TypeScriptParserMixin.raise (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6599:19)
+      at TypeScriptParserMixin.unexpected (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6619:16)
+      at TypeScriptParserMixin.expect (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6899:12)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11661:14)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11331:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4764:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11066:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11046:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9837:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10899:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10904:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10881:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9786:20)
+      at TypeScriptParserMixin.parseConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10893:29)
+      at TypeScriptParserMixin.parseConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9603:18)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10885:17)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9786:20)
+      at TypeScriptParserMixin.parseExpressionBase (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10784:23)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:39
+      at TypeScriptParserMixin.allowInAnd (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12426:12)
+      at TypeScriptParserMixin.parseExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:17)
+      at TypeScriptParserMixin.jsxParseExpressionContainer (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4632:31)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4711:36)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElement (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4749:17)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4759:19)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11066:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11046:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9837:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10899:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10904:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10881:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9775:39
+      at TypeScriptParserMixin.tryParse (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6907:20)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9775:18)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10800:39
+      at TypeScriptParserMixin.allowInAnd (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12426:12)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10800:17)
+      at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12493:17)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11675:28)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11331:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4764:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23) (x2)
+1:04:29 AM [vite] (client) Pre-transform error: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx: Unexpected token, expected "," (235:16)
+
+  233 |                   </div>
+  234 |                 );
+> 235 |               })}
+      |                 ^
+  236 |
+  237 |           {/* Streaming indicator */}
+  238 |           {isStreaming && (
+  Plugin: vite:react-babel
+  File: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx:235:16
+  233 |                    </div>
+  234 |                  );
+  235 |                })}
+      |                  ^
+  236 |  
+  237 |            {/* Streaming indicator */}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:04:29 AM [vite] Internal server error: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx: Unexpected token, expected "," (235:16)
+
+  233 |                   </div>
+  234 |                 );
+> 235 |               })}
+      |                 ^
+  236 |
+  237 |           {/* Streaming indicator */}
+  238 |           {isStreaming && (
+  Plugin: vite:react-babel
+  File: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx:235:16
+  233 |                    </div>
+  234 |                  );
+  235 |                })}
+      |                  ^
+  236 |  
+  237 |            {/* Streaming indicator */}
+      at constructor (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:365:19)
+      at TypeScriptParserMixin.raise (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6599:19)
+      at TypeScriptParserMixin.unexpected (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6619:16)
+      at TypeScriptParserMixin.expect (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6899:12)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11661:14)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11331:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4764:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11066:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11046:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9837:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10899:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10904:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10881:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9786:20)
+      at TypeScriptParserMixin.parseConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10893:29)
+      at TypeScriptParserMixin.parseConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9603:18)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10885:17)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9786:20)
+      at TypeScriptParserMixin.parseExpressionBase (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10784:23)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:39
+      at TypeScriptParserMixin.allowInAnd (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12426:12)
+      at TypeScriptParserMixin.parseExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:17)
+      at TypeScriptParserMixin.jsxParseExpressionContainer (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4632:31)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4711:36)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElement (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4749:17)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4759:19)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11066:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11046:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9837:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10899:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10904:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10881:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9775:39
+      at TypeScriptParserMixin.tryParse (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6907:20)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9775:18)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10800:39
+      at TypeScriptParserMixin.allowInAnd (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12426:12)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10800:17)
+      at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12493:17)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11675:28)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11331:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4764:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:04:30 AM [vite] Internal server error: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx: Unexpected token, expected "," (235:16)
+
+  233 |                   </div>
+  234 |                 );
+> 235 |               })}
+      |                 ^
+  236 |
+  237 |           {/* Streaming indicator */}
+  238 |           {isStreaming && (
+  Plugin: vite:react-babel
+  File: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx:235:16
+  233 |                    </div>
+  234 |                  );
+  235 |                })}
+      |                  ^
+  236 |  
+  237 |            {/* Streaming indicator */}
+      at constructor (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:365:19)
+      at TypeScriptParserMixin.raise (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6599:19)
+      at TypeScriptParserMixin.unexpected (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6619:16)
+      at TypeScriptParserMixin.expect (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6899:12)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11661:14)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11331:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4764:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11066:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11046:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9837:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10899:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10904:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10881:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9786:20)
+      at TypeScriptParserMixin.parseConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10893:29)
+      at TypeScriptParserMixin.parseConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9603:18)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10885:17)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9786:20)
+      at TypeScriptParserMixin.parseExpressionBase (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10784:23)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:39
+      at TypeScriptParserMixin.allowInAnd (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12426:12)
+      at TypeScriptParserMixin.parseExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:17)
+      at TypeScriptParserMixin.jsxParseExpressionContainer (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4632:31)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4711:36)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElement (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4749:17)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4759:19)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11066:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11046:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9837:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10899:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10904:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10881:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9775:39
+      at TypeScriptParserMixin.tryParse (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6907:20)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9775:18)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10800:39
+      at TypeScriptParserMixin.allowInAnd (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12426:12)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10800:17)
+      at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12493:17)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11675:28)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11331:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4764:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23) (x2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:04:36 AM [vite] (client) hmr update /src/app.css, /src/components/ui/terminal.tsx
+1:04:36 AM [vite] (client) Pre-transform error: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx: Unexpected token, expected "," (235:16)
+
+  233 |                   </div>
+  234 |                 );
+> 235 |               })}
+      |                 ^
+  236 |
+  237 |           {/* Streaming indicator */}
+  238 |           {isStreaming && (
+  Plugin: vite:react-babel
+  File: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx:235:16
+  233 |                    </div>
+  234 |                  );
+  235 |                })}
+      |                  ^
+  236 |  
+  237 |            {/* Streaming indicator */}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:04:36 AM [vite] Internal server error: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx: Unexpected token, expected "," (235:16)
+
+  233 |                   </div>
+  234 |                 );
+> 235 |               })}
+      |                 ^
+  236 |
+  237 |           {/* Streaming indicator */}
+  238 |           {isStreaming && (
+  Plugin: vite:react-babel
+  File: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx:235:16
+  233 |                    </div>
+  234 |                  );
+  235 |                })}
+      |                  ^
+  236 |  
+  237 |            {/* Streaming indicator */}
+      at constructor (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:365:19)
+      at TypeScriptParserMixin.raise (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6599:19)
+      at TypeScriptParserMixin.unexpected (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6619:16)
+      at TypeScriptParserMixin.expect (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6899:12)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11661:14)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11331:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4764:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11066:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11046:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9837:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10899:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10904:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10881:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9786:20)
+      at TypeScriptParserMixin.parseConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10893:29)
+      at TypeScriptParserMixin.parseConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9603:18)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10885:17)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9786:20)
+      at TypeScriptParserMixin.parseExpressionBase (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10784:23)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:39
+      at TypeScriptParserMixin.allowInAnd (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12426:12)
+      at TypeScriptParserMixin.parseExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:17)
+      at TypeScriptParserMixin.jsxParseExpressionContainer (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4632:31)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4711:36)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElement (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4749:17)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4759:19)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11066:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11046:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9837:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10899:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10904:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10881:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9775:39
+      at TypeScriptParserMixin.tryParse (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6907:20)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9775:18)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10800:39
+      at TypeScriptParserMixin.allowInAnd (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12426:12)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10800:17)
+      at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12493:17)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11675:28)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11331:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4764:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:04:36 AM [vite] Internal server error: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx: Unexpected token, expected "," (235:16)
+
+  233 |                   </div>
+  234 |                 );
+> 235 |               })}
+      |                 ^
+  236 |
+  237 |           {/* Streaming indicator */}
+  238 |           {isStreaming && (
+  Plugin: vite:react-babel
+  File: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx:235:16
+  233 |                    </div>
+  234 |                  );
+  235 |                })}
+      |                  ^
+  236 |  
+  237 |            {/* Streaming indicator */}
+      at constructor (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:365:19)
+      at TypeScriptParserMixin.raise (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6599:19)
+      at TypeScriptParserMixin.unexpected (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6619:16)
+      at TypeScriptParserMixin.expect (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6899:12)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11661:14)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11331:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4764:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11066:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11046:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9837:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10899:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10904:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10881:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9786:20)
+      at TypeScriptParserMixin.parseConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10893:29)
+      at TypeScriptParserMixin.parseConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9603:18)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10885:17)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9786:20)
+      at TypeScriptParserMixin.parseExpressionBase (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10784:23)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:39
+      at TypeScriptParserMixin.allowInAnd (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12426:12)
+      at TypeScriptParserMixin.parseExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:17)
+      at TypeScriptParserMixin.jsxParseExpressionContainer (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4632:31)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4711:36)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElement (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4749:17)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4759:19)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11066:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11046:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9837:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10899:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10904:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10881:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9775:39
+      at TypeScriptParserMixin.tryParse (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6907:20)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9775:18)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10800:39
+      at TypeScriptParserMixin.allowInAnd (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12426:12)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10800:17)
+      at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12493:17)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11675:28)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11331:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4764:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23) (x2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:04:43 AM [vite] (client) hmr update /src/app.css
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:04:44 AM [vite] Internal server error: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx: Unexpected token, expected "," (235:16)
+
+  233 |                   </div>
+  234 |                 );
+> 235 |               })}
+      |                 ^
+  236 |
+  237 |           {/* Streaming indicator */}
+  238 |           {isStreaming && (
+  Plugin: vite:react-babel
+  File: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx:235:16
+  233 |                    </div>
+  234 |                  );
+  235 |                })}
+      |                  ^
+  236 |  
+  237 |            {/* Streaming indicator */}
+      at constructor (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:365:19)
+      at TypeScriptParserMixin.raise (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6599:19)
+      at TypeScriptParserMixin.unexpected (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6619:16)
+      at TypeScriptParserMixin.expect (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6899:12)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11661:14)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11331:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4764:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11066:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11046:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9837:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10899:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10904:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10881:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9786:20)
+      at TypeScriptParserMixin.parseConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10893:29)
+      at TypeScriptParserMixin.parseConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9603:18)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10885:17)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9786:20)
+      at TypeScriptParserMixin.parseExpressionBase (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10784:23)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:39
+      at TypeScriptParserMixin.allowInAnd (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12426:12)
+      at TypeScriptParserMixin.parseExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:17)
+      at TypeScriptParserMixin.jsxParseExpressionContainer (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4632:31)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4711:36)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElement (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4749:17)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4759:19)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11066:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11046:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9837:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10899:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10904:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10881:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9775:39
+      at TypeScriptParserMixin.tryParse (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6907:20)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9775:18)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10800:39
+      at TypeScriptParserMixin.allowInAnd (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12426:12)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10800:17)
+      at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12493:17)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11675:28)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11331:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4764:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:04:44 AM [vite] Internal server error: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx: Unexpected token, expected "," (235:16)
+
+  233 |                   </div>
+  234 |                 );
+> 235 |               })}
+      |                 ^
+  236 |
+  237 |           {/* Streaming indicator */}
+  238 |           {isStreaming && (
+  Plugin: vite:react-babel
+  File: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx:235:16
+  233 |                    </div>
+  234 |                  );
+  235 |                })}
+      |                  ^
+  236 |  
+  237 |            {/* Streaming indicator */}
+      at constructor (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:365:19)
+      at TypeScriptParserMixin.raise (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6599:19)
+      at TypeScriptParserMixin.unexpected (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6619:16)
+      at TypeScriptParserMixin.expect (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6899:12)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11661:14)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11331:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4764:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11066:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11046:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9837:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10899:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10904:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10881:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9786:20)
+      at TypeScriptParserMixin.parseConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10893:29)
+      at TypeScriptParserMixin.parseConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9603:18)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10885:17)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9786:20)
+      at TypeScriptParserMixin.parseExpressionBase (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10784:23)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:39
+      at TypeScriptParserMixin.allowInAnd (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12426:12)
+      at TypeScriptParserMixin.parseExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:17)
+      at TypeScriptParserMixin.jsxParseExpressionContainer (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4632:31)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4711:36)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElement (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4749:17)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4759:19)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11066:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11046:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9837:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10899:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10904:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10881:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9775:39
+      at TypeScriptParserMixin.tryParse (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6907:20)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9775:18)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10800:39
+      at TypeScriptParserMixin.allowInAnd (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12426:12)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10800:17)
+      at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12493:17)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11675:28)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11331:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4764:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23) (x2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:04:50 AM [vite] (client) hmr update /src/components/workspace/workspace-shell.tsx, /src/app.css
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:04:50 AM [vite] Internal server error: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx: Unexpected token, expected "," (235:16)
+
+  233 |                   </div>
+  234 |                 );
+> 235 |               })}
+      |                 ^
+  236 |
+  237 |           {/* Streaming indicator */}
+  238 |           {isStreaming && (
+  Plugin: vite:react-babel
+  File: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx:235:16
+  233 |                    </div>
+  234 |                  );
+  235 |                })}
+      |                  ^
+  236 |  
+  237 |            {/* Streaming indicator */}
+      at constructor (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:365:19)
+      at TypeScriptParserMixin.raise (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6599:19)
+      at TypeScriptParserMixin.unexpected (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6619:16)
+      at TypeScriptParserMixin.expect (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6899:12)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11661:14)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11331:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4764:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11066:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11046:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9837:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10899:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10904:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10881:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9786:20)
+      at TypeScriptParserMixin.parseConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10893:29)
+      at TypeScriptParserMixin.parseConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9603:18)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10885:17)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9786:20)
+      at TypeScriptParserMixin.parseExpressionBase (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10784:23)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:39
+      at TypeScriptParserMixin.allowInAnd (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12426:12)
+      at TypeScriptParserMixin.parseExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:17)
+      at TypeScriptParserMixin.jsxParseExpressionContainer (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4632:31)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4711:36)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElement (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4749:17)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4759:19)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11066:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11046:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9837:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10899:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10904:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10881:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9775:39
+      at TypeScriptParserMixin.tryParse (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6907:20)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9775:18)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10800:39
+      at TypeScriptParserMixin.allowInAnd (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12426:12)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10800:17)
+      at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12493:17)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11675:28)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11331:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4764:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+1:04:50 AM [vite] (client) Pre-transform error: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx: Unexpected token, expected "," (235:16)
+
+  233 |                   </div>
+  234 |                 );
+> 235 |               })}
+      |                 ^
+  236 |
+  237 |           {/* Streaming indicator */}
+  238 |           {isStreaming && (
+  Plugin: vite:react-babel
+  File: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx:235:16
+  233 |                    </div>
+  234 |                  );
+  235 |                })}
+      |                  ^
+  236 |  
+  237 |            {/* Streaming indicator */}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:04:50 AM [vite] Internal server error: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx: Unexpected token, expected "," (235:16)
+
+  233 |                   </div>
+  234 |                 );
+> 235 |               })}
+      |                 ^
+  236 |
+  237 |           {/* Streaming indicator */}
+  238 |           {isStreaming && (
+  Plugin: vite:react-babel
+  File: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx:235:16
+  233 |                    </div>
+  234 |                  );
+  235 |                })}
+      |                  ^
+  236 |  
+  237 |            {/* Streaming indicator */}
+      at constructor (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:365:19)
+      at TypeScriptParserMixin.raise (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6599:19)
+      at TypeScriptParserMixin.unexpected (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6619:16)
+      at TypeScriptParserMixin.expect (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6899:12)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11661:14)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11331:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4764:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11066:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11046:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9837:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10899:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10904:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10881:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9786:20)
+      at TypeScriptParserMixin.parseConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10893:29)
+      at TypeScriptParserMixin.parseConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9603:18)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10885:17)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9786:20)
+      at TypeScriptParserMixin.parseExpressionBase (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10784:23)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:39
+      at TypeScriptParserMixin.allowInAnd (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12426:12)
+      at TypeScriptParserMixin.parseExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:17)
+      at TypeScriptParserMixin.jsxParseExpressionContainer (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4632:31)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4711:36)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElement (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4749:17)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4759:19)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11066:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11046:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9837:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10899:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10904:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10881:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9775:39
+      at TypeScriptParserMixin.tryParse (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6907:20)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9775:18)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10800:39
+      at TypeScriptParserMixin.allowInAnd (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12426:12)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10800:17)
+      at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12493:17)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11675:28)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11331:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4764:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:04:52 AM [vite] (client) hmr update /src/components/workspace/workspace-shell.tsx, /src/app.css
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:04:52 AM [vite] Internal server error: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx: Unexpected token, expected "," (235:16)
+
+  233 |                   </div>
+  234 |                 );
+> 235 |               })}
+      |                 ^
+  236 |
+  237 |           {/* Streaming indicator */}
+  238 |           {isStreaming && (
+  Plugin: vite:react-babel
+  File: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx:235:16
+  233 |                    </div>
+  234 |                  );
+  235 |                })}
+      |                  ^
+  236 |  
+  237 |            {/* Streaming indicator */}
+      at constructor (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:365:19)
+      at TypeScriptParserMixin.raise (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6599:19)
+      at TypeScriptParserMixin.unexpected (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6619:16)
+      at TypeScriptParserMixin.expect (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6899:12)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11661:14)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11331:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4764:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11066:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11046:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9837:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10899:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10904:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10881:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9786:20)
+      at TypeScriptParserMixin.parseConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10893:29)
+      at TypeScriptParserMixin.parseConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9603:18)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10885:17)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9786:20)
+      at TypeScriptParserMixin.parseExpressionBase (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10784:23)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:39
+      at TypeScriptParserMixin.allowInAnd (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12426:12)
+      at TypeScriptParserMixin.parseExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:17)
+      at TypeScriptParserMixin.jsxParseExpressionContainer (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4632:31)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4711:36)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElement (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4749:17)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4759:19)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11066:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11046:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9837:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10899:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10904:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10881:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9775:39
+      at TypeScriptParserMixin.tryParse (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6907:20)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9775:18)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10800:39
+      at TypeScriptParserMixin.allowInAnd (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12426:12)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10800:17)
+      at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12493:17)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11675:28)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11331:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4764:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+1:04:52 AM [vite] (client) Pre-transform error: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx: Unexpected token, expected "," (235:16)
+
+  233 |                   </div>
+  234 |                 );
+> 235 |               })}
+      |                 ^
+  236 |
+  237 |           {/* Streaming indicator */}
+  238 |           {isStreaming && (
+  Plugin: vite:react-babel
+  File: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx:235:16
+  233 |                    </div>
+  234 |                  );
+  235 |                })}
+      |                  ^
+  236 |  
+  237 |            {/* Streaming indicator */}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:04:53 AM [vite] Internal server error: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx: Unexpected token, expected "," (235:16)
+
+  233 |                   </div>
+  234 |                 );
+> 235 |               })}
+      |                 ^
+  236 |
+  237 |           {/* Streaming indicator */}
+  238 |           {isStreaming && (
+  Plugin: vite:react-babel
+  File: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx:235:16
+  233 |                    </div>
+  234 |                  );
+  235 |                })}
+      |                  ^
+  236 |  
+  237 |            {/* Streaming indicator */}
+      at constructor (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:365:19)
+      at TypeScriptParserMixin.raise (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6599:19)
+      at TypeScriptParserMixin.unexpected (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6619:16)
+      at TypeScriptParserMixin.expect (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6899:12)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11661:14)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11331:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4764:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11066:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11046:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9837:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10899:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10904:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10881:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9786:20)
+      at TypeScriptParserMixin.parseConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10893:29)
+      at TypeScriptParserMixin.parseConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9603:18)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10885:17)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9786:20)
+      at TypeScriptParserMixin.parseExpressionBase (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10784:23)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:39
+      at TypeScriptParserMixin.allowInAnd (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12426:12)
+      at TypeScriptParserMixin.parseExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:17)
+      at TypeScriptParserMixin.jsxParseExpressionContainer (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4632:31)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4711:36)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElement (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4749:17)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4759:19)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11066:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11046:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9837:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10899:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10904:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10881:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9775:39
+      at TypeScriptParserMixin.tryParse (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6907:20)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9775:18)
+      at /Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10800:39
+      at TypeScriptParserMixin.allowInAnd (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12426:12)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10800:17)
+      at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12493:17)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11675:28)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11331:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4764:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:05:08 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/chat-thread-panel.tsx

@@ -37,10 +37,6 @@ export function mergeSettingsWithDefaults(value: unknown): Settings {
       ...DEFAULT_SETTINGS.interface,
       ...(sidebarWidth === null ? {} : { sidebarWidth }),
     },
-    editor: {},
-    terminal: {},
-    keybindings: {},
-    advanced: {},
   };
 }
 
@@ -69,10 +65,6 @@ export const DEFAULT_SETTINGS: Settings = {
   interface: {
     sidebarWidth: 280,
   },
-  editor: {},
-  terminal: {},
-  keybindings: {},
-  advanced: {},
 };
 
 export const STORAGE_KEY = "pidesk-settings";

@@ -1,46 +1,29 @@
 import type { RepositorySnapshot, WorktreeSnapshot } from "@pidesk/shared";
 import { moveRepositorySnapshots } from "@pidesk/shared";
 import * as React from "react";
+import { FolderOpen, Minus, SquaresFour, Stack } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
-import { FolderPlus, Stack } from "@/components/ui/icons";
 import { ProjectAvatar } from "./project-avatar";
-import { RepositorySwitcher } from "./repository-switcher";
 import { WorktreeSection } from "./worktree-section";
 
-export const LEFT_RAIL_WIDTH = 260;
+// Item 3: reduced from 280
+export const SIDEBAR_WIDTH = 220;
 
 function getRepositoryName(repository: RepositorySnapshot): string {
   return repository.customName?.trim() || repository.name;
 }
 
-function getAllProjectsSummary(repositories: RepositorySnapshot[]): string {
-  const threadCount = repositories.reduce(
-    (count, repository) =>
-      count +
-      repository.worktrees.reduce(
-        (threadTotal, worktree) =>
-          threadTotal +
-          worktree.threads.filter((thread) => !thread.isArchived).length,
-        0,
-      ),
-    0,
-  );
-
-  return `${repositories.length} projects · ${threadCount} threads`;
-}
-
 function resolveExpandedWorktreeId(
   worktrees: WorktreeSnapshot[],
   activeWorktreeId: string | null,
-  expandedRepositoryId: string | null,
+  expandedRepositoryId: string | null | undefined,
 ): string | null {
-  if (
-    expandedRepositoryId &&
-    worktrees.some((worktree) => worktree.id === expandedRepositoryId)
-  ) {
-    return expandedRepositoryId;
+  // If explicitly set (including null meaning collapsed), respect it
+  if (expandedRepositoryId !== undefined) {
+    return expandedRepositoryId; // null = collapsed, string = expanded worktree
   }
 
+  // Default: use active worktree
   if (
     activeWorktreeId &&
     worktrees.some((worktree) => worktree.id === activeWorktreeId)
@@ -65,6 +48,10 @@ export interface LeftRailProps {
   onCloseThread?: (threadId: string) => void;
   onRenameThread?: (threadId: string, title: string) => void;
   onAddRepository: () => void;
+  onOpenSettings?: () => void;
+  onOpenFilter?: () => void;
+  onNewAgent?: () => void;
+  onOpenMarketplace?: () => void;
 }
 
 export function LeftRail({
@@ -80,7 +67,10 @@ export function LeftRail({
   onCreateThread,
   onCloseThread,
   onRenameThread,
-  onAddRepository,
+  onOpenSettings,
+  onOpenFilter,
+  onNewAgent,
+  onOpenMarketplace,
 }: LeftRailProps) {
   const [orderedRepositories, setOrderedRepositories] =
     React.useState(repositories);
@@ -95,7 +85,8 @@ export function LeftRail({
     if (!isResizing) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      const newWidth = Math.max(180, Math.min(400, e.clientX));
+      // Item 3: updated min/max constraints
+      const newWidth = Math.max(160, Math.min(320, e.clientX));
       onResize(newWidth);
     };
 
@@ -188,75 +179,61 @@ export function LeftRail({
     [activeWorktreeId, onSelectThread, onSelectWorktree],
   );
 
-  const activeRepository = orderedRepositories.find(
-    (repository) => repository.id === activeRepositoryId,
-  );
-
   return (
     <aside
       data-testid="left-rail"
       data-mode="workspace"
       className={cn(
         "relative z-20 flex h-full shrink-0 flex-col",
-        // Glass morphism sidebar
-        "glass-surface",
-        "border-r border-[var(--glass-border-default)]",
+        // Item 4: use CSS variable for sidebar background
+        "bg-[var(--color-bg-secondary)]",
+        "border-r border-white/[0.04]",
       )}
       style={{ width }}
     >
-      {/* Header - Glass effect with gradient */}
-      <div className={cn(
-        "flex items-center justify-between border-b px-3 py-3",
-        "border-[var(--glass-border-subtle)]",
-        "bg-gradient-to-b from-[var(--glass-bg-secondary)] to-transparent",
-      )}>
-        <div className="min-w-0 flex-1">
-          <RepositorySwitcher
-            repositories={orderedRepositories}
-            activeRepositoryId={activeRepositoryId}
-            onSelect={onSelectRepository}
-            onAdd={onAddRepository}
-            triggerLabel={
-              activeRepository
-                ? getRepositoryName(activeRepository)
-                : "Projects"
-            }
-            triggerSubtitle={getAllProjectsSummary(orderedRepositories)}
-            triggerAriaLabel="Switch projects"
-          />
-        </div>
+      {/* Item 2: Drag region for macOS traffic lights (44px clearance) */}
+      <div data-drag-region="true" className="h-11 w-full shrink-0" />
 
+      {/* Navigation Items */}
+      <div className="px-3 pb-2">
+        {/* Item 7: SquaresFour replaces Storefront (also fixes the Storefront bug) */}
         <button
           type="button"
-          onClick={onAddRepository}
-          className="ml-2 flex size-7 items-center justify-center rounded-md text-[var(--color-text-tertiary)] transition-all duration-[var(--duration-fast)] hover:bg-[var(--color-bg-hover)] hover:text-[var(--color-text-primary)] active:scale-95"
-          aria-label="Add repository"
-          title="Add repository"
+          data-no-drag="true"
+          onClick={onOpenMarketplace}
+          className={cn(
+            "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2",
+            "text-white/40 text-[13px]",
+            "transition-all duration-150",
+            "hover:bg-white/[0.05] hover:text-white/70",
+          )}
         >
-          <FolderPlus className="size-4" weight="regular" />
+          <SquaresFour className="size-4" weight="regular" />
+          <span>Marketplace</span>
         </button>
       </div>
 
+      {/* Item 21: Softer section divider (opacity 0.02 was 0.03) */}
+      <div className="mx-3 h-px bg-white/[0.03]" />
+
+      {/* Item 8: "Projects" section header REMOVED — list starts immediately */}
+
       {/* Empty state */}
       {orderedRepositories.length === 0 && (
-        <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 py-8 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-[var(--color-border-default)] bg-[var(--color-bg-tertiary)]">
-            <Stack className="size-5 text-[var(--color-text-quaternary)]" />
-          </div>
-          <div className="space-y-1">
-            <p className="text-sm font-medium text-[var(--color-text-secondary)]">
-              No projects yet
-            </p>
-            <p className="text-xs text-[var(--color-text-quaternary)]">
-              Add a repository to get started
+        <div className="flex flex-1 flex-col items-center justify-center gap-2 px-6 py-8 text-center">
+          <Stack className="size-4 text-white/20" />
+          <div className="space-y-0.5">
+            <p className="text-[12px] font-medium text-white/40">No projects</p>
+            <p className="text-[11px] text-white/20">
+              Open a workspace to begin
             </p>
           </div>
         </div>
       )}
 
-      {/* Repository List - Compact, clean hierarchy */}
-      <div className="min-h-0 flex-1 overflow-y-auto py-2">
-        <div className="space-y-0.5 px-2">
+      {/* Repository List */}
+      <div className="min-h-0 flex-1 overflow-y-auto py-1">
+        <div className="space-y-1 px-2">
           {orderedRepositories.map((repository) => {
             const repositoryName = getRepositoryName(repository);
             const isActive = repository.id === activeRepositoryId;
@@ -264,23 +241,30 @@ export function LeftRail({
               ? resolveExpandedWorktreeId(
                   repository.worktrees,
                   activeWorktreeId,
-                  expandedWorktreesByRepositoryId[repository.id] ?? null,
+                  expandedWorktreesByRepositoryId[repository.id],
                 )
               : null;
+
+            // Item 9: derive agent count for subtitle
+            const totalThreads = repository.worktrees.reduce(
+              (sum, wt) => sum + (wt.threads?.length ?? 0),
+              0,
+            );
+
+            const hasActiveThreadInRepo = repository.worktrees.some((wt) =>
+              wt.threads?.some((t) => t.id === activeThreadId),
+            );
 
             return (
               <div
                 key={repository.id}
-                className={cn(
-                  "rounded-lg transition-colors duration-[var(--duration-fast)]",
-                  isActive && "bg-[var(--color-bg-tertiary)]",
-                )}
+                className="transition-all duration-[var(--duration-fast)]"
                 onDragOver={(event) => {
                   event.preventDefault();
                 }}
                 onDrop={() => handleDrop(repository.id)}
               >
-                {/* Repository Header - Clean, minimal with active accent */}
+                {/* Project root - Linear style: refined, minimal, generous spacing */}
                 <button
                   type="button"
                   data-testid="project-rail-item"
@@ -289,63 +273,88 @@ export function LeftRail({
                   onDragEnd={() => setDraggedRepositoryId(null)}
                   onClick={() => onSelectRepository(repository.id)}
                   className={cn(
-                    "active-accent-left group flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left transition-all duration-[var(--duration-fast)]",
-                    !isActive && "hover:bg-[var(--color-bg-hover)]",
+                    "group flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left transition-all duration-150",
                     draggedRepositoryId === repository.id && "opacity-50",
-                    isActive && "active",
                   )}
-                  data-active={isActive}
                   aria-label={`Open repository ${repositoryName}`}
                 >
                   <ProjectAvatar
                     repository={repository}
                     isActive={isActive}
-                    className="size-5 shrink-0"
+                    className="size-3.5 shrink-0"
                   />
                   <span className="min-w-0 flex-1">
                     <span
                       className={cn(
-                        "block truncate text-[13px] font-medium leading-tight",
-                        isActive
-                          ? "text-[var(--color-text-primary)]"
-                          : "text-[var(--color-text-secondary)]",
+                        "block truncate text-[12px] leading-tight tracking-[-0.01em]",
+                        isActive || hasActiveThreadInRepo
+                          ? "text-white/90 font-medium"
+                          : "text-white/35 group-hover:text-white/55",
                       )}
                     >
                       {repositoryName}
                     </span>
+                    {totalThreads > 0 && (
+                      <span
+                        className={cn(
+                          "flex items-center gap-1 text-[11px] leading-tight mt-0.5",
+                          isActive || hasActiveThreadInRepo
+                            ? "text-white/25"
+                            : "text-white/20 group-hover:text-white/30",
+                        )}
+                      >
+                        <Minus className="size-2.5 shrink-0" weight="bold" />
+                        <span>
+                          {totalThreads} agent{totalThreads === 1 ? "" : "s"}
+                        </span>
+                      </span>
+                    )}
                   </span>
                 </button>
 
-                {/* Worktrees - Nested with subtle left border */}
+                {/* Worktrees — seamlessly connected with tree-like indentation */}
                 {isActive && repository.worktrees.length > 0 && (
-                  <div className="pb-2 pl-7 pr-2">
-                    <div className="space-y-0.5 border-l border-[var(--color-border-subtle)] pl-3">
-                      {repository.worktrees.map((worktree, index) => (
-                        <div
-                          key={worktree.id}
-                          className="stagger-item"
-                          style={{ animationDelay: `${index * 30}ms` }}
-                        >
-                          <WorktreeSection
-                            worktree={worktree}
-                            activeThreadId={activeThreadId}
-                            isExpanded={expandedWorktreeId === worktree.id}
-                            onToggleExpand={() =>
-                              handleToggleWorktree(repository.id, worktree.id)
-                            }
-                            onSelectThread={(threadId: string) =>
-                              handleSelectThreadFromRepository(
-                                repository.id,
-                                worktree.id,
-                                threadId,
-                              )
-                            }
-                            onCreateThread={() => onCreateThread(worktree.id)}
-                            onCloseThread={onCloseThread}
-                            onRenameThread={onRenameThread}
-                          />
-                        </div>
-                      ))}
+                  <div className="pb-2">
+                    <div className="relative pl-3">
+                      {/* Continuous vertical line connecting project to worktrees */}
+                      <div className="absolute left-[15px] top-0 bottom-2 w-px bg-gradient-to-b from-white/[0.08] via-white/[0.05] to-transparent" />
+                      <div className="space-y-0">
+                        {repository.worktrees.map((worktree, index) => (
+                          <div
+                            key={worktree.id}
+                            className="stagger-item relative"
+                            style={{ animationDelay: `${index * 30}ms` }}
+                          >
+                            {/* Horizontal connector line */}
+                            <div className="absolute left-0 top-[14px] w-3 h-px bg-white/[0.05]" />
+                            <div className="pl-4">
+                              <WorktreeSection
+                                worktree={worktree}
+                                activeThreadId={activeThreadId}
+                                isExpanded={expandedWorktreeId === worktree.id}
+                                onToggleExpand={() =>
+                                  handleToggleWorktree(
+                                    repository.id,
+                                    worktree.id,
+                                  )
+                                }
+                                onSelectThread={(threadId: string) =>
+                                  handleSelectThreadFromRepository(
+                                    repository.id,
+                                    worktree.id,
+                                    threadId,
+                                  )
+                                }
+                                onCreateThread={() =>
+                                  onCreateThread(worktree.id)
+                                }
+                                onCloseThread={onCloseThread}
+                                onRenameThread={onRenameThread}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -355,13 +364,29 @@ export function LeftRail({
         </div>
       </div>
 
+      {/* Add Workspace */}
+      <div className="px-3 py-2 border-t border-white/[0.03]">
+        <button
+          type="button"
+          className={cn(
+            "flex w-full items-center gap-2 rounded-lg px-2.5 py-2",
+            "text-white/40 text-[12px]",
+            "transition-all duration-150",
+            "hover:bg-white/[0.05] hover:text-white/70",
+          )}
+        >
+          <FolderOpen className="size-4" weight="regular" />
+          <span>Add workspace</span>
+        </button>
+      </div>
+
       {/* Resize handle */}
       <div
         className={cn(
-          "absolute right-0 top-0 bottom-0 w-[2px] cursor-col-resize",
+          "absolute right-0 top-0 bottom-0 w-[1px] cursor-col-resize",
           "transition-colors duration-[var(--duration-normal)]",
-          "hover:bg-[var(--color-border-hover)]",
-          isResizing && "bg-[var(--color-accent)]",
+          "bg-transparent hover:bg-[var(--color-accent)]/30",
+          isResizing && "bg-white/[0.12]",
         )}
         onMouseDown={() => setIsResizing(true)}
         title="Drag to resize"

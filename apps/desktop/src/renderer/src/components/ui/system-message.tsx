@@ -1,5 +1,5 @@
-import { Info, Star as Sparkles, Warning } from "@phosphor-icons/react";
 import type * as React from "react";
+import { Info, Sparkles, Warning } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 
 type SystemMessageTone = "info" | "success" | "warning" | "error";
@@ -10,19 +10,20 @@ const toneMap: Record<
 > = {
   info: {
     icon: Info,
-    className: "border-[#474747]/25 bg-[#111111] text-[#cfcfcf]",
+    className: "border-white/[0.05] bg-white/[0.02] text-white/50",
   },
   success: {
     icon: Sparkles,
-    className: "border-[#2f6f51]/35 bg-[#0f1712] text-[#c6e6d3]",
+    className:
+      "border-emerald-500/20 bg-emerald-500/[0.04] text-emerald-400/80",
   },
   warning: {
     icon: Warning,
-    className: "border-[#7c5d2a]/35 bg-[#18130d] text-[#ead7b2]",
+    className: "border-amber-500/20 bg-amber-500/[0.04] text-amber-400/80",
   },
   error: {
     icon: Warning,
-    className: "border-[#7f4141]/35 bg-[#180f0f] text-[#f0c9c9]",
+    className: "border-red-500/20 bg-red-500/[0.04] text-red-400/80",
   },
 };
 
@@ -44,7 +45,7 @@ export function SystemMessage({
   return (
     <div
       className={cn(
-        "flex items-start gap-3 border px-3 py-2.5",
+        "flex items-start gap-3 rounded-lg border px-4 py-3",
         toneClassName,
         className,
       )}
@@ -53,11 +54,11 @@ export function SystemMessage({
       <Icon className="mt-0.5 size-4 shrink-0" />
       <div className="min-w-0 space-y-1">
         {title ? (
-          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-current/80">
+          <div className="text-xs font-medium uppercase text-white/50">
             {title}
           </div>
         ) : null}
-        <div className="text-[12px] leading-5 text-current">{children}</div>
+        <div className="text-sm leading-5 text-white/60">{children}</div>
       </div>
     </div>
   );

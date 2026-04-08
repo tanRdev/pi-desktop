@@ -47,6 +47,15 @@ importers:
       '@effect/platform-node':
         specifier: ^0.76.21
         version: 0.76.22(@effect/cluster@0.29.22(@effect/platform@0.80.21(effect@3.21.0))(@effect/rpc@0.55.17(@effect/platform@0.80.21(effect@3.21.0))(effect@3.21.0))(@effect/sql@0.33.21(@effect/experimental@0.44.21(@effect/platform@0.80.21(effect@3.21.0))(effect@3.21.0))(@effect/platform@0.80.21(effect@3.21.0))(effect@3.21.0))(effect@3.21.0))(@effect/platform@0.80.21(effect@3.21.0))(@effect/rpc@0.55.17(@effect/platform@0.80.21(effect@3.21.0))(effect@3.21.0))(@effect/sql@0.33.21(@effect/experimental@0.44.21(@effect/platform@0.80.21(effect@3.21.0))(effect@3.21.0))(@effect/platform@0.80.21(effect@3.21.0))(effect@3.21.0))(effect@3.21.0)
+      '@fontsource-variable/geist':
+        specifier: ^5.2.8
+        version: 5.2.8
+      '@fontsource-variable/manrope':
+        specifier: ^5.2.8
+        version: 5.2.8
+      '@fontsource-variable/source-code-pro':
+        specifier: ^5.2.7
+        version: 5.2.7
       '@mariozechner/pi-coding-agent':
         specifier: 0.57.1
         version: 0.57.1(@modelcontextprotocol/sdk@1.27.1(zod@4.3.6))(ws@8.19.0)(zod@4.3.6)
@@ -850,6 +859,15 @@ packages:
 
   '@floating-ui/utils@0.2.11':
     resolution: {integrity: sha512-RiB/yIh78pcIxl6lLMG0CgBXAZ2Y0eVHqMPYugu+9U0AeT6YBeiJpf7lbdJNIugFP5SIjwNRgo4DhR1Qxi26Gg==}
+
+  '@fontsource-variable/geist@5.2.8':
+    resolution: {integrity: sha512-cJ6m9e+8MQ5dCYJsLylfZrgBh6KkG4bOLckB35Tr9J/EqdkEM6QllH5PxqP1dhTvFup+HtMRPuz9xOjxXJggxw==}
+
+  '@fontsource-variable/manrope@5.2.8':
+    resolution: {integrity: sha512-nc9lOuCRz73UHnovDE2bwXUdghE2SEOc7Aii0qGe3CLyE03W1a7VnY5Z6euRiapiKbCkGS+eXbY3s/kvWeGeSw==}
+
+  '@fontsource-variable/source-code-pro@5.2.7':
+    resolution: {integrity: sha512-kZ0VNwnhvSA7vu5MaiO52eicQ4zC+k+8HBLZb+1js0MK/RngLy25NEUFB1y/AKd0ZMwru88T433QBcFf9m/huw==}
 
   '@google/genai@1.45.0':
     resolution: {integrity: sha512-+sNRWhKiRibVgc4OKi7aBJJ0A7RcoVD8tGG+eFkqxAWRjASDW+ktS9lLwTDnAxZICzCVoeAdu8dYLJVTX60N9w==}
@@ -6156,6 +6174,12 @@ snapshots:
       react-dom: 19.2.4(react@19.2.4)
 
   '@floating-ui/utils@0.2.11': {}
+
+  '@fontsource-variable/geist@5.2.8': {}
+
+  '@fontsource-variable/manrope@5.2.8': {}
+
+  '@fontsource-variable/source-code-pro@5.2.7': {}
 
   '@google/genai@1.45.0(@modelcontextprotocol/sdk@1.27.1(zod@4.3.6))':
     dependencies:

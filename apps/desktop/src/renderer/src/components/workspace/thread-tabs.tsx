@@ -22,7 +22,7 @@ export function ThreadTabs({
   }
 
   return (
-    <div className="flex h-8 items-center border-b border-[#474747]/30 bg-[#0e0e0e] px-0">
+    <div className="flex h-8 items-center border-b border-white/[0.04] bg-[#0d0d0d] px-0">
       <div className="flex min-w-0 flex-1 h-full gap-0 overflow-x-auto no-scrollbar">
         {openThreads.map((thread) => {
           const isActive = thread.id === activeThreadId;
@@ -34,26 +34,26 @@ export function ThreadTabs({
               type="button"
               onClick={() => onSelectThread(thread.id)}
               className={cn(
-                "group flex min-w-0 max-w-[200px] flex-1 items-center gap-2 border-r border-[#474747]/20 px-3 h-full text-left transition-all duration-75",
+                "group flex min-w-0 max-w-[200px] flex-1 items-center gap-2 border-r border-white/[0.04] px-3 h-full text-left transition-all duration-75",
                 isActive
-                  ? "bg-white text-black"
-                  : "bg-[#0e0e0e] text-[#474747] hover:bg-[#131313] hover:text-[#919191]",
+                  ? "bg-white/[0.04] text-white/80"
+                  : "bg-transparent text-white/30 hover:bg-white/[0.02] hover:text-white/50",
               )}
             >
               {/* Status indicator */}
               <div
                 className={cn(
-                  "h-1.5 w-1.5 shrink-0 transition-all duration-300",
+                  "h-1.5 w-1.5 rounded-full shrink-0 transition-all duration-300",
                   isRunning
-                    ? "bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.5)] animate-pulse"
+                    ? "bg-emerald-400/70 shadow-[0_0_4px_rgba(16,185,129,0.4)] animate-pulse"
                     : isActive
-                      ? "bg-black/20"
-                      : "bg-[#474747]/30",
+                      ? "bg-white/20"
+                      : "bg-white/10",
                 )}
               />
 
               {/* Thread name */}
-              <span className="flex-1 truncate text-[10px] font-mono font-bold uppercase tracking-widest">
+              <span className="flex-1 truncate text-[10px] font-mono font-medium uppercase tracking-widest">
                 {thread.title || "UNTITLED_THREAD"}
               </span>
 
@@ -65,10 +65,10 @@ export function ThreadTabs({
                   onCloseThread(thread.id);
                 }}
                 className={cn(
-                  "flex h-4 w-4 shrink-0 items-center justify-center transition-all duration-75",
+                  "flex h-4 w-4 shrink-0 items-center justify-center rounded-sm transition-all duration-75",
                   isActive
-                    ? "text-black/40 hover:text-black hover:bg-black/5"
-                    : "text-[#474747] hover:text-white hover:bg-[#353535]",
+                    ? "text-white/30 hover:text-white/60 hover:bg-white/[0.06]"
+                    : "text-white/20 hover:text-white/50 hover:bg-white/[0.06]",
                   "opacity-0 group-hover:opacity-100",
                   isActive && "opacity-100",
                 )}

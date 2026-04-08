@@ -23,6 +23,9 @@
       "dependencies": {
         "@effect/platform": "^0.80.13",
         "@effect/platform-node": "^0.76.21",
+        "@fontsource-variable/geist": "^5.2.8",
+        "@fontsource-variable/manrope": "^5.2.8",
+        "@fontsource-variable/source-code-pro": "^5.2.7",
         "@mariozechner/pi-coding-agent": "0.57.1",
         "@monaco-editor/react": "^4.7.0",
         "@phosphor-icons/react": "^2.1.10",
@@ -354,6 +357,12 @@
     "@floating-ui/react-dom": ["@floating-ui/react-dom@2.1.8", "", { "dependencies": { "@floating-ui/dom": "1.7.6" }, "peerDependencies": { "react": "19.2.4", "react-dom": "19.2.4" } }, "sha512-cC52bHwM/n/CxS87FH0yWdngEZrjdtLW/qVruo68qg+prK7ZQ4YGdut2GyDVpoGeAYe/h899rVeOVm6Oi40k2A=="],
 
     "@floating-ui/utils": ["@floating-ui/utils@0.2.11", "", {}, "sha512-RiB/yIh78pcIxl6lLMG0CgBXAZ2Y0eVHqMPYugu+9U0AeT6YBeiJpf7lbdJNIugFP5SIjwNRgo4DhR1Qxi26Gg=="],
+
+    "@fontsource-variable/geist": ["@fontsource-variable/geist@5.2.8", "", {}, "sha512-cJ6m9e+8MQ5dCYJsLylfZrgBh6KkG4bOLckB35Tr9J/EqdkEM6QllH5PxqP1dhTvFup+HtMRPuz9xOjxXJggxw=="],
+
+    "@fontsource-variable/manrope": ["@fontsource-variable/manrope@5.2.8", "", {}, "sha512-nc9lOuCRz73UHnovDE2bwXUdghE2SEOc7Aii0qGe3CLyE03W1a7VnY5Z6euRiapiKbCkGS+eXbY3s/kvWeGeSw=="],
+
+    "@fontsource-variable/source-code-pro": ["@fontsource-variable/source-code-pro@5.2.7", "", {}, "sha512-kZ0VNwnhvSA7vu5MaiO52eicQ4zC+k+8HBLZb+1js0MK/RngLy25NEUFB1y/AKd0ZMwru88T433QBcFf9m/huw=="],
 
     "@google/genai": ["@google/genai@1.45.0", "", { "dependencies": { "google-auth-library": "10.6.1", "p-retry": "4.6.2", "protobufjs": "7.5.4", "ws": "8.19.0" } }, "sha512-+sNRWhKiRibVgc4OKi7aBJJ0A7RcoVD8tGG+eFkqxAWRjASDW+ktS9lLwTDnAxZICzCVoeAdu8dYLJVTX60N9w=="],
 

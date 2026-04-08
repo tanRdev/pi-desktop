@@ -234,7 +234,7 @@ export function CodeLineViewer({
       <div className="flex">
         {/* Line numbers column */}
         <div
-          className="sticky left-0 z-10 shrink-0 bg-background"
+          className="sticky left-0 z-10 shrink-0 bg-[#0a0a0a]"
           style={{ width: `${lineNumberWidth}rem` }}
         >
           <div className="flex flex-col font-mono text-[13px] leading-relaxed">
@@ -279,7 +279,7 @@ export function CodeLineViewer({
                   {isSelected && (
                     <div
                       className={cn(
-                        "pointer-events-none absolute inset-0 -left-4 right-0 bg-primary/10",
+                        "pointer-events-none absolute inset-0 -left-4 right-0 bg-white/[0.04]",
                         "origin-left transition-all duration-200 [transition-timing-function:var(--ease-out)]",
                         "motion-reduce:transition-none",
                         "animate-in fade-in-50 scale-x-95 duration-200",
@@ -291,7 +291,7 @@ export function CodeLineViewer({
                   {isHovered && !isSelected && (
                     <div
                       className={cn(
-                        "pointer-events-none absolute inset-0 -left-4 right-0 bg-surface-2/50",
+                        "pointer-events-none absolute inset-0 -left-4 right-0 bg-white/[0.02]",
                         "origin-left transition-all duration-200 [transition-timing-function:var(--ease-out)]",
                         "motion-reduce:transition-none",
                         "animate-in fade-in-50 scale-x-95 duration-200",
@@ -304,14 +304,14 @@ export function CodeLineViewer({
                     type="button"
                     onClick={(e) => handleLineClick(lineNumber, e)}
                     className={cn(
-                      "absolute left-0 flex size-5 items-center justify-center rounded text-muted-foreground",
+                      "absolute left-0 flex size-5 items-center justify-center rounded text-white/30",
                       "transition-all duration-200 [transition-timing-function:var(--ease-out)]",
                       "hover:scale-110 hover:-translate-y-[1px]",
                       "active:scale-[0.97] motion-reduce:active:scale-100",
-                      "focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary/50",
+                      "focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/[0.08]",
                       "motion-reduce:transform-none motion-reduce:transition-none",
                       isHovered || isSelected
-                        ? "opacity-100 hover:bg-surface-3 hover:text-foreground"
+                        ? "opacity-100 hover:bg-white/[0.06] hover:text-white/80"
                         : "opacity-0 scale-95",
                     )}
                     aria-label={`Select line ${lineNumber}`}
@@ -326,7 +326,7 @@ export function CodeLineViewer({
                       "transition-all duration-200 [transition-timing-function:var(--ease-out)]",
                       isSelected
                         ? "text-primary font-medium translate-x-[2px]"
-                        : "text-muted-foreground/50 hover:text-muted-foreground",
+                        : "text-white/30 hover:text-white/50",
                     )}
                     style={{ width: `${lineNumberWidth - 1.5}rem` }}
                   >
@@ -363,7 +363,7 @@ export function CodeLineViewer({
         >
           <div
             className={cn(
-              "flex items-center gap-1 rounded-lg border border-border bg-popover p-1 shadow-lg",
+              "flex items-center gap-1 rounded-lg border border-white/[0.06] bg-[#111111] p-1 shadow-[0_8px_32px_rgba(0,0,0,0.5)]",
               "transition-all duration-200 [transition-timing-function:var(--ease-out)]",
             )}
           >
@@ -371,18 +371,18 @@ export function CodeLineViewer({
               type="button"
               onClick={handleAddToChat}
               className={cn(
-                "flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-popover-foreground",
+                "flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-white/80",
                 "transition-all duration-200 [transition-timing-function:var(--ease-out)]",
-                "hover:bg-accent hover:scale-105 hover:-translate-y-[1px]",
+                "hover:bg-white/[0.06] hover:scale-105 hover:-translate-y-[1px]",
                 "active:scale-[0.97] motion-reduce:active:scale-100",
-                "focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary/50",
+                "focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/[0.08]",
                 "motion-reduce:transform-none motion-reduce:transition-none",
               )}
             >
               <Chat className="size-3" />
               Add to chat
             </button>
-            <span className="px-2 py-1.5 text-xs text-muted-foreground">
+            <span className="px-2 py-1.5 text-xs text-white/40">
               {selection.startLine === selection.endLine
                 ? `Line ${selection.startLine}`
                 : `Lines ${selection.startLine}-${selection.endLine}`}

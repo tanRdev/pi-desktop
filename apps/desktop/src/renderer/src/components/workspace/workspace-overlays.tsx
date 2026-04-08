@@ -1,6 +1,6 @@
-import { FolderOpen, GitBranch, MagnifyingGlass } from "@phosphor-icons/react";
 import type { SearchMatch, WorktreeSnapshot } from "@pidesk/shared";
 import * as React from "react";
+import { FolderOpen, GitBranch, MagnifyingGlass } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { FileTree } from "../ui/file-tree";
 import { ScrollArea } from "../ui/scroll-area";
@@ -35,7 +35,7 @@ function WorkspaceOverlayFrame({
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 px-4">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
       <button
         type="button"
         aria-label="Close overlay"
@@ -48,8 +48,8 @@ function WorkspaceOverlayFrame({
         aria-label={ariaLabel}
         onKeyDown={(event) => event.stopPropagation()}
         className={cn(
-          "relative z-10 w-full max-w-xl overflow-hidden rounded-lg",
-          "bg-[#0a0a0a] border border-[#27272a]",
+          "relative z-10 w-full max-w-xl overflow-hidden rounded-xl",
+          "bg-[#0e0e0e] border border-white/[0.06] shadow-[0_16px_48px_rgba(0,0,0,0.5)]",
           "animate-[modal-content-enter_0.15s_ease-out_forwards]",
           className,
         )}
@@ -95,13 +95,13 @@ export function LauncherOverlay({
   return (
     <WorkspaceOverlayFrame ariaLabel={ariaLabel} onClose={onClose}>
       <div className="flex flex-col">
-        <div className="flex items-center gap-3 border-b border-[#27272a] px-4 py-3">
-          <MagnifyingGlass className="size-5 text-[#6a6a6a] shrink-0" />
+        <div className="flex items-center gap-3 border-b border-white/[0.06] px-4 py-3">
+          <MagnifyingGlass className="size-5 text-white/20 shrink-0" />
           <div className="flex min-w-0 items-baseline gap-2">
-            <span className="text-sm font-medium text-[#e7e7e7]">
+            <span className="text-sm font-medium text-white/80">
               {projectName}
             </span>
-            <span className="text-xs text-[#6a6a6a] truncate">
+            <span className="text-xs text-white/40 truncate">
               {activeWorktreeLabel ?? "No worktree"}
             </span>
           </div>
@@ -151,16 +151,16 @@ export function FileTreeOverlay({
   return (
     <WorkspaceOverlayFrame ariaLabel={ariaLabel} onClose={onClose}>
       <div className="flex flex-col">
-        <div className="flex items-center gap-3 border-b border-[#27272a] px-4 py-3">
-          <FolderOpen className="size-5 text-[#6a6a6a] shrink-0" />
+        <div className="flex items-center gap-3 border-b border-white/[0.06] px-4 py-3">
+          <FolderOpen className="size-5 text-white/20 shrink-0" />
           <div className="flex min-w-0 items-baseline gap-2">
-            <span className="text-sm font-medium text-[#e7e7e7]">
+            <span className="text-sm font-medium text-white/80">
               {projectName}
             </span>
             {activeWorktree && (
               <>
-                <GitBranch className="size-3 text-[#6a6a6a] shrink-0" />
-                <span className="text-xs text-[#6a6a6a] truncate">
+                <GitBranch className="size-3 text-white/40 shrink-0" />
+                <span className="text-xs text-white/40 truncate">
                   {activeWorktree.label}
                 </span>
               </>
@@ -178,8 +178,8 @@ export function FileTreeOverlay({
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center gap-2 px-6 py-12 text-center">
-              <FolderOpen className="size-8 text-[#6a6a6a]" />
-              <p className="text-sm text-[#6a6a6a]">
+              <FolderOpen className="size-8 text-white/20" />
+              <p className="text-sm text-white/40">
                 Select a worktree to browse files
               </p>
             </div>

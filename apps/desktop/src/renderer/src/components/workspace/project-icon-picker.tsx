@@ -120,17 +120,17 @@ export function ProjectIconPicker({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md p-0 gap-0">
+      <DialogContent className="sm:max-w-md p-0 gap-0 border-white/[0.06] bg-[#0d0d0d]">
         <DialogHeader className="p-6">
-          <DialogTitle className="text-sm font-bold uppercase tracking-[0.2em] font-headline text-white">
+          <DialogTitle className="text-sm font-medium uppercase tracking-wider text-white/80">
             Project Icon
           </DialogTitle>
-          <DialogDescription className="text-[10px] font-mono text-[#474747] uppercase tracking-wider mt-2">
-            SELECT A TECHNICAL GLYPH FOR {repositoryName}.
+          <DialogDescription className="text-[11px] text-white/30 mt-2">
+            Select an icon for {repositoryName}.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-3 gap-0 border-t border-[#474747]/20 bg-[#131313]">
+        <div className="grid grid-cols-3 gap-0 border-t border-white/[0.04] bg-[#0a0a0a]">
           {PROJECT_ICON_OPTIONS.map((option) => {
             const Icon = option.icon;
             const isSelected = option.id === selectedIconId;
@@ -144,17 +144,17 @@ export function ProjectIconPicker({
                   onOpenChange(false);
                 }}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-3 p-6 text-center border-b border-r border-[#474747]/10 transition-all duration-75",
-                  "hover:bg-[#353535] hover:text-white",
+                  "flex flex-col items-center justify-center gap-3 p-6 text-center border-b border-r border-white/[0.04] transition-all duration-150",
+                  "hover:bg-white/[0.04] hover:text-white/70",
                   isSelected
-                    ? "bg-[#0e0e0e] text-white border-b-white"
-                    : "text-[#474747]",
+                    ? "bg-white/[0.06] text-white/80"
+                    : "text-white/30",
                 )}
               >
-                <span className="flex h-10 w-10 items-center justify-center rounded-md border border-[#474747]/30 bg-[#131313]">
+                <span className="flex h-10 w-10 items-center justify-center rounded-md border border-white/[0.06] bg-white/[0.02]">
                   <Icon className="h-5 w-5" />
                 </span>
-                <span className="text-[9px] font-mono font-bold uppercase tracking-[0.1em]">
+                <span className="text-[9px] font-mono font-medium uppercase tracking-wider">
                   {option.label}
                 </span>
               </button>

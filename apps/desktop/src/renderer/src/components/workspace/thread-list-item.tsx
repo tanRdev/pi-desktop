@@ -1,7 +1,13 @@
 import type { ThreadSnapshot } from "@pidesk/shared";
 import * as React from "react";
+import {
+  ChatText,
+  ICON_SIZE_SM,
+  ICON_SIZE_XS,
+  PencilSimple,
+  X,
+} from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
-import { ChatText, ICON_SIZE_XS, ICON_SIZE_SM, PencilSimple, X } from "@/components/ui/icons";
 
 export interface ThreadListItemProps {
   thread: ThreadSnapshot;
@@ -70,20 +76,17 @@ export function ThreadListItem({
       type="button"
       onClick={isEditing ? undefined : onClick}
       className={cn(
-        "active-accent-left group flex w-full items-center gap-1.5 rounded-md px-1.5 py-1.5 text-left transition-all duration-[var(--duration-fast)]",
-        isActive
-          ? "bg-[var(--color-bg-hover)] text-[var(--color-text-primary)] active"
-          : "text-[var(--color-text-tertiary)] hover:bg-[var(--color-bg-hover)]/60 hover:text-[var(--color-text-secondary)]",
+        "group flex w-full items-center gap-1.5 rounded-md px-1.5 py-1.5 text-left transition-all duration-[var(--duration-fast)]",
+        isActive ? "text-white/90" : "text-white/30 hover:text-white/55",
         !isEditing && "cursor-pointer",
       )}
-      data-active={isActive}
     >
       <ChatText
         className={cn(
-          `${ICON_SIZE_SM} shrink-0 transition-colors`,
+          "size-3 shrink-0 transition-colors duration-150",
           isActive
-            ? "text-[var(--color-accent)]"
-            : "text-[var(--color-text-quaternary)] group-hover:text-[var(--color-text-tertiary)]",
+            ? "text-white/60"
+            : "text-white/20 group-hover:text-white/35",
         )}
         weight="regular"
       />
@@ -104,10 +107,10 @@ export function ThreadListItem({
           <span
             data-testid={isActive ? "current-thread-title" : undefined}
             className={cn(
-              "block truncate text-[12px] leading-tight",
+              "block truncate text-[12px] leading-tight tracking-[-0.01em] transition-colors duration-150",
               isActive
-                ? "font-medium text-[var(--color-text-primary)]"
-                : "text-[var(--color-text-secondary)]",
+                ? "font-medium text-white/90"
+                : "text-white/45 group-hover:text-white/60",
             )}
           >
             {thread.title || "Untitled thread"}
@@ -115,28 +118,24 @@ export function ThreadListItem({
         )}
       </div>
       {!isEditing && onRename && (
-        <div
-          role="button"
-          tabIndex={0}
+        <button
+          type="button"
           data-testid="thread-rename-button"
           onClick={handleStartRename}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              handleStartRename(e as unknown as React.MouseEvent);
-            }
-          }}
-          className="ml-0.5 flex size-5 shrink-0 cursor-pointer items-center justify-center rounded opacity-0 transition-all duration-[var(--duration-fast)] hover:bg-[var(--color-bg-active)] group-hover:opacity-100 focus-visible:opacity-100"
+          className={cn(
+            "ml-0.5 flex size-5 shrink-0 cursor-pointer items-center justify-center rounded opacity-0 transition-all duration-[var(--duration-fast)]",
+            "hover:bg-white/[0.1] hover:text-white/80",
+            "group-hover:opacity-100 focus-visible:opacity-100",
+          )}
           aria-label="Rename thread"
           title="Rename thread"
         >
           <PencilSimple className={ICON_SIZE_XS} />
-        </div>
+        </button>
       )}
       {!isEditing && onClose && (
-        <div
-          role="button"
-          tabIndex={0}
+        <button
+          type="button"
           data-testid="thread-close-button"
           onClick={(e) => {
             e.stopPropagation();
@@ -149,12 +148,16 @@ export function ThreadListItem({
               onClose?.();
             }
           }}
-          className="ml-0.5 flex size-5 shrink-0 cursor-pointer items-center justify-center rounded opacity-0 transition-all duration-[var(--duration-fast)] hover:bg-[var(--color-bg-active)] group-hover:opacity-100 focus-visible:opacity-100"
+          className={cn(
+            "ml-0.5 flex size-5 shrink-0 cursor-pointer items-center justify-center rounded opacity-0 transition-all duration-[var(--duration-fast)]",
+            "hover:bg-white/[0.1] hover:text-white/80",
+            "group-hover:opacity-100 focus-visible:opacity-100",
+          )}
           aria-label="Close thread"
           title="Close thread"
         >
           <X className={ICON_SIZE_XS} />
-        </div>
+        </button>
       )}
     </button>
   );

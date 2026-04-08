@@ -21,11 +21,10 @@ export default function App() {
         <div
           data-testid="app-ready"
           className={cn(
-            // Glass morphism window chrome - root container
+            // Cursor Glass: solid near-black root, no glass effect
             "relative flex h-screen flex-col overflow-hidden",
             "rounded-[var(--window-radius)]",
-            // Subtle glass effect on app shell
-            "glass-panel-subtle",
+            "bg-[#0a0a0a]",
             // App-level page transition animations
             "motion-safe:[&>*]:animate-in motion-safe:[&>*]:fade-in-0",
             "motion-safe:[&>*]:duration-300 motion-safe:[&>*]:fill-mode-forwards",
@@ -39,15 +38,6 @@ export default function App() {
             ["--duration-slow" as string]: "300ms",
           }}
         >
-          {/* Window chrome subtle border overlay */}
-          <div
-            className="pointer-events-none absolute inset-0 z-[100] rounded-[var(--window-radius)]"
-            style={{
-              boxShadow: "inset 0 0 0 1px var(--glass-border-subtle)",
-            }}
-            aria-hidden="true"
-          />
-
           <WorkspaceShell {...controller.workspaceShellProps} />
 
           <Dialog
@@ -57,6 +47,8 @@ export default function App() {
             <DialogContent
               className={cn(
                 "sm:max-w-md",
+                // Cursor Glass: solid dark dialog
+                "bg-[#0e0e0e] border border-white/[0.06]",
                 // Dialog open/close transitions with Emil Design easing
                 "data-[state=open]:animate-in data-[state=closed]:animate-out",
                 "data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0",
@@ -84,10 +76,10 @@ export default function App() {
                   }
                   placeholder="feature/my-task"
                   className={cn(
-                    "w-full rounded border border-border bg-surface-2 px-3 py-2 text-sm text-foreground outline-none",
+                    "w-full rounded border border-white/[0.06] bg-[#141414] px-3 py-2 text-sm text-white/80 outline-none",
                     "motion-safe:transition-all",
-                    "focus:border-border-hover focus:ring-1 focus:ring-ring/30",
-                    "placeholder:text-muted-foreground",
+                    "focus:border-white/[0.12] focus:ring-1 focus:ring-white/[0.06]",
+                    "placeholder:text-white/30",
                   )}
                   style={{
                     transitionDuration: "var(--duration-fast)",

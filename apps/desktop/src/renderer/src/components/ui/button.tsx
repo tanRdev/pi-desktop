@@ -5,27 +5,27 @@ import type * as React from "react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md transition-all duration-[100ms] outline-none disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 font-medium",
+  "inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md transition-all duration-[var(--duration-fast)] outline-none disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 font-medium",
   {
     variants: {
       variant: {
         default:
-          "bg-white text-black hover:bg-[#d4d4d4] active:bg-[#b0b0b0] border-none font-bold",
+          "bg-white/[0.9] text-[#0d0d0d] hover:bg-white active:bg-white/80 border-none font-medium",
         destructive:
-          "bg-[#93000a] text-white hover:bg-[#ffdad6] active:bg-white border-none",
+          "bg-red-500/80 text-white hover:bg-red-500 active:bg-red-600 border-none",
         outline:
-          "border border-[#474747] bg-transparent text-white hover:border-white hover:text-white active:bg-white/10",
+          "border border-white/[0.08] bg-transparent text-white/70 hover:border-white/[0.15] hover:text-white active:bg-white/[0.04]",
         secondary:
-          "bg-[#353535] text-white hover:bg-[#474747] active:bg-[#5a5a5a] border-none",
+          "bg-white/[0.06] text-white/80 hover:bg-white/[0.1] active:bg-white/[0.14] border-none",
         ghost:
-          "text-[#474747] hover:text-white active:text-white active:bg-white/10",
+          "text-white/40 hover:text-white/70 hover:bg-white/[0.04] active:text-white active:bg-white/[0.06]",
         link: "text-white underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-7 px-4 py-1.5 text-[10px]",
-        xs: "h-5 gap-1 px-1.5 text-[8px] [&_svg]:size-3",
-        sm: "h-6 gap-1 px-2 text-[9px]",
-        lg: "h-9 px-6 text-[11px]",
+        default: "h-7 px-4 py-1.5 text-[12px]",
+        xs: "h-6 gap-1 px-1.5 text-[10px] [&_svg]:size-3",
+        sm: "h-6 gap-1 px-2 text-[11px]",
+        lg: "h-9 px-6 text-[13px]",
         icon: "size-7",
         "icon-xs": "size-5 [&_svg]:size-3",
         "icon-sm": "size-6",

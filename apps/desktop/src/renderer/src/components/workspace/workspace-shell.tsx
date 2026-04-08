@@ -7,12 +7,11 @@ import type {
 import type { AgentLiveFeed } from "@pidesk/shell-model";
 import * as React from "react";
 import { useStore } from "zustand";
+import { Terminal } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { uiInteractionStore } from "../../stores/ui-interaction-store";
 import { ChatThreadPanel } from "./chat-thread-panel";
-import { LeftRail } from "./left-rail";
-import { PromptDock } from "./prompt-dock";
-import { TitleBar } from "./title-bar";
+import { LeftRail, SIDEBAR_WIDTH } from "./left-rail";
 import { WorkspaceActivityPanel } from "./workspace-activity-panel";
 import { FileTreeOverlay, LauncherOverlay } from "./workspace-overlays";
 import type { WorkspaceSearchAction } from "./workspace-search-content";
@@ -93,40 +92,8 @@ export interface WorkspaceShellProps {
   ) => void | Promise<void>;
 }
 
-function WorkspaceEmptyState({
-  activeThreadTitle,
-  onCreateThread,
-  activeWorktreeId,
-}: {
-  activeThreadTitle: string | null;
-  onCreateThread: (worktreeId: string) => void | Promise<void>;
-  activeWorktreeId: string | null;
-}) {
-  return (
-    <div className="flex h-full flex-col items-center justify-center px-8 text-center">
-      <div className="max-w-xl space-y-6">
-        <h2 className="text-2xl font-medium text-[var(--color-text-primary)]">
-          {activeThreadTitle?.trim() || "New thread"}
-        </h2>
-        <p className="text-sm text-[var(--color-text-tertiary)]">
-          Start typing below to begin the conversation.
-        </p>
-        {activeWorktreeId ? (
-          <button
-            type="button"
-            onClick={() => void onCreateThread(activeWorktreeId)}
-            className="rounded-lg bg-[var(--color-text-primary)] px-4 py-2 text-sm font-medium text-[var(--color-text-inverse)] transition-all duration-[var(--duration-fast)] hover:bg-[var(--color-text-secondary)]"
-          >
-            Create thread
-          </button>
-        ) : null}
-      </div>
-    </div>
-  );
-}
-
 export function WorkspaceShell({
-  platform,
+  platform: _platform,
   repositories,
   activeRepository,
   activeRepositoryId,
@@ -135,16 +102,16 @@ export function WorkspaceShell({
   activeThreadTitle,
   draft,
   canSend,
-  autocompleteSuggestions,
-  autocompleteSelectedIndex,
+  autocompleteSuggestions: _autocompleteSuggestions,
+  autocompleteSelectedIndex: _autocompleteSelectedIndex,
   displayAgentStatus,
-  runtimeModeLabel,
-  providerSnapshots,
-  currentModelValue,
-  isSwitchingModel,
+  runtimeModeLabel: _runtimeModeLabel,
+  providerSnapshots: _providerSnapshots,
+  currentModelValue: _currentModelValue,
+  isSwitchingModel: _isSwitchingModel,
   isLauncherOpen,
   isFileTreeOpen,
-  isPromptVisible,
+  isPromptVisible: _isPromptVisible,
   isPromptExecuting,
   launcherQuery,
   launcherResults,
@@ -157,7 +124,7 @@ export function WorkspaceShell({
   selectedContextSurface,
   leftRailWidth,
   onLeftRailResize,
-  onModelMenuOpenChange,
+  onModelMenuOpenChange: _onModelMenuOpenChange,
   onAddRepository,
   onSelectRepository,
   onOpenSettings,
@@ -166,13 +133,13 @@ export function WorkspaceShell({
   onCreateThread,
   onCloseThread,
   onRenameThread,
-  onOpenLauncher,
+  onOpenLauncher: _onOpenLauncher,
   onCloseLauncher,
-  onOpenFileTree,
+  onOpenFileTree: _onOpenFileTree,
   onCloseFileTree,
   onOpenGit,
   onOpenTerminal,
-  onOpenActivity,
+  onOpenActivity: _onOpenActivity,
   onFileClick,
   onFileContentChange,
   onFileSave,
@@ -183,10 +150,10 @@ export function WorkspaceShell({
   onDraftChange,
   onSend,
   onCancelPrompt,
-  onAutocompleteSelect,
-  onAutocompleteHover,
-  onPromptKeyDown,
-  onModelSelection,
+  onAutocompleteSelect: _onAutocompleteSelect,
+  onAutocompleteHover: _onAutocompleteHover,
+  onPromptKeyDown: _onPromptKeyDown,
+  onModelSelection: _onModelSelection,
 }: WorkspaceShellProps) {
   const isMainWindowFullscreen = useStore(
     uiInteractionStore,
@@ -254,7 +221,7 @@ export function WorkspaceShell({
         : contextWindows.some((window) => window.id === selectedContextSurface)
           ? selectedContextSurface
           : null;
-  const activeSurfaceKind =
+  const _activeSurfaceKind =
     selectedSurfaceKey === null
       ? null
       : selectedSurfaceKey === "activity"
@@ -263,31 +230,18 @@ export function WorkspaceShell({
             ?.kind ?? null);
 
   return (
-    <>
-      <TitleBar
-        projectName={projectName}
-        platform={platform}
-        activeWorktreeLabel={activeWorktreeLabel}
-        worktrees={activeRepository?.worktrees ?? []}
-        activeWorktreeId={activeWorktreeId}
-        isMainWindowFullscreen={isMainWindowFullscreen}
-        onSelectWorktree={onSelectWorktree}
-        onOpenLauncher={onOpenLauncher}
-        onOpenFileTree={onOpenFileTree}
-        onOpenTerminal={onOpenTerminal}
-        onOpenGit={onOpenGit}
-        onOpenActivity={onOpenActivity}
-        onOpenSettings={onOpenSettings}
-        activeSurfaceKind={activeSurfaceKind}
-      />
+    <div className="flex h-screen w-full flex-col overflow-hidden">
+      {/* Item 2: TitleBar removed — drag region is in LeftRail */}
 
+      {/* Item 22: Main Layout — always-visible three-column layout */}
       <div className="relative flex min-h-0 flex-1">
+        {/* Item 3: Sidebar width 220, resize 160–320 */}
         <LeftRail
           repositories={repositories}
           activeRepositoryId={activeRepositoryId}
           activeWorktreeId={activeWorktreeId}
           activeThreadId={activeThreadId}
-          width={leftRailWidth}
+          width={Math.max(leftRailWidth, SIDEBAR_WIDTH)}
           onResize={onLeftRailResize}
           onSelectRepository={onSelectRepository}
           onSelectWorktree={onSelectWorktree}
@@ -296,81 +250,86 @@ export function WorkspaceShell({
           onCloseThread={onCloseThread}
           onRenameThread={onRenameThread}
           onAddRepository={onAddRepository}
+          onOpenSettings={onOpenSettings}
         />
 
+        {/* Item 18: Main area bg #0d0d0d */}
         <main
           data-testid="chat-first-layout"
           className={cn(
             "relative z-10 flex min-w-0 flex-1 flex-col overflow-hidden",
-            // Glass effect main content area - subtle transparency
-            "bg-[var(--glass-bg-primary)]",
-            "backdrop-blur-sm",
+            "bg-[var(--shell-main-bg)]",
           )}
         >
-          <section className="relative flex min-h-0 min-w-0 flex-1 flex-col">
-            <div className="min-h-0 flex-1 overflow-hidden">
-              {selectedSurfaceKey === null ? (
-                hasActiveThread ? (
-                  <ChatThreadPanel
-                    threadTitle={activeThreadTitle ?? "Untitled thread"}
-                    messages={threadMessages}
-                    isStreaming={isPromptExecuting}
-                    lastError={threadLastError}
+          {/* Item 14: Workspace header */}
+          <div
+            data-drag-region="true"
+            className="flex h-11 shrink-0 items-center justify-end px-4"
+          >
+            <button
+              type="button"
+              data-no-drag="true"
+              onClick={onOpenTerminal}
+              className="flex size-7 items-center justify-center rounded-md text-white/30 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/60"
+              aria-label="Open terminal"
+              title="Open terminal"
+            >
+              <Terminal className="size-4" />
+            </button>
+          </div>
+          <div className="flex min-h-0 flex-1 overflow-hidden">
+            {/* Chat panel - takes remaining space */}
+            <div
+              className={cn(
+                "min-h-0 flex-1 overflow-hidden",
+                "border-r border-white/[0.03]",
+              )}
+            >
+              {hasActiveThread ? (
+                <ChatThreadPanel
+                  threadTitle={activeThreadTitle ?? "Untitled thread"}
+                  messages={threadMessages}
+                  isStreaming={isPromptExecuting}
+                  lastError={threadLastError}
+                  className="h-full"
+                  draft={draft}
+                  onDraftChange={onDraftChange}
+                  onSend={onSend}
+                  onCancelPrompt={onCancelPrompt}
+                  canSend={canSend}
+                  isPromptExecuting={isPromptExecuting}
+                />
+              ) : null}
+            </div>
+
+            {/* Item 22: Right panel - only visible when a surface is selected */}
+            {selectedSurfaceKey !== null ? (
+              <div className="min-h-0 w-[400px] shrink-0 overflow-hidden border-l border-white/[0.04] bg-[var(--shell-overlay-bg)]">
+                {selectedSurfaceKey === "activity" ? (
+                  <WorkspaceActivityPanel
+                    threadTitle={activeThreadTitle}
+                    worktreeLabel={activeWorktreeLabel}
+                    displayAgentStatus={displayAgentStatus}
+                    liveFeed={liveFeed}
                     className="h-full"
                   />
                 ) : (
-                  <WorkspaceEmptyState
-                    activeThreadTitle={activeThreadTitle}
+                  <WorkspaceSurfacePanel
                     activeWorktreeId={activeWorktreeId}
-                    onCreateThread={onCreateThread}
+                    selectedSurfaceKey={selectedSurfaceKey ?? ""}
+                    windows={contextWindows}
+                    onFileContentChange={onFileContentChange}
+                    onFileSave={onFileSave}
+                    activityContent={null}
                   />
-                )
-              ) : (
-                <WorkspaceSurfacePanel
-                  activeWorktreeId={activeWorktreeId}
-                  selectedSurfaceKey={selectedSurfaceKey}
-                  windows={contextWindows}
-                  onFileContentChange={onFileContentChange}
-                  onFileSave={onFileSave}
-                  activityContent={
-                    <WorkspaceActivityPanel
-                      threadTitle={activeThreadTitle}
-                      worktreeLabel={activeWorktreeLabel}
-                      displayAgentStatus={displayAgentStatus}
-                      liveFeed={liveFeed}
-                      className="h-full"
-                    />
-                  }
-                />
-              )}
-            </div>
-
-            <PromptDock
-              draft={draft}
-              onDraftChange={onDraftChange}
-              onSend={onSend}
-              onCancelPrompt={onCancelPrompt}
-              activeThreadId={activeThreadId}
-              canSend={canSend}
-              isVisible={isPromptVisible}
-              isPromptExecuting={isPromptExecuting}
-              autocompleteSuggestions={autocompleteSuggestions}
-              autocompleteSelectedIndex={autocompleteSelectedIndex}
-              onAutocompleteSelect={onAutocompleteSelect}
-              onAutocompleteHover={onAutocompleteHover}
-              onPromptKeyDown={onPromptKeyDown}
-              displayAgentStatus={displayAgentStatus}
-              runtimeModeLabel={runtimeModeLabel}
-              providerSnapshots={providerSnapshots}
-              currentModelValue={currentModelValue}
-              isSwitchingModel={isSwitchingModel}
-              onModelMenuOpenChange={onModelMenuOpenChange}
-              onModelSelection={onModelSelection}
-            />
-          </section>
+                )}
+              </div>
+            ) : null}
+          </div>
         </main>
       </div>
 
+      {/* Overlays */}
       {isLauncherOpen ? (
         <LauncherOverlay
           ariaLabel="Launcher overlay"
@@ -398,6 +357,6 @@ export function WorkspaceShell({
           onFileClick={onFileClick}
         />
       ) : null}
-    </>
+    </div>
   );
 }

@@ -17,9 +17,9 @@ export function ScrollButton({
     <button
       type="button"
       className={cn(
-        "inline-flex items-center gap-2 border border-[#474747]/25 bg-[#0f0f0f]/96 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white shadow-[0_18px_40px_rgba(0,0,0,0.24)]",
+        "inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-[#1a1a1a] px-3 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/70 shadow-[0_8px_24px_rgba(0,0,0,0.3)]",
         "transition-[transform,border-color,background-color] duration-150 ease-out",
-        "hover:border-white/40 hover:bg-[#171717] active:scale-[0.98]",
+        "hover:border-white/[0.14] hover:bg-[#1e1e1e] active:scale-[0.98]",
         className,
       )}
       {...props}
@@ -27,7 +27,7 @@ export function ScrollButton({
       <ArrowDown className="size-3.5" />
       <span>{children ?? "Latest"}</span>
       {count > 0 ? (
-        <span className="inline-flex min-w-5 items-center justify-center border border-white/15 px-1 text-[9px]">
+        <span className="inline-flex min-w-5 items-center justify-center rounded-full border border-white/[0.08] px-1 text-[9px]">
           {count}
         </span>
       ) : null}

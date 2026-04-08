@@ -15,8 +15,8 @@ export function Loader({
   return (
     <div
       className={cn(
-        "inline-flex items-center gap-2 font-mono uppercase tracking-[0.18em] text-[#8a8a8a]",
-        size === "sm" ? "text-[9px]" : "text-[10px]",
+        "inline-flex items-center gap-2 font-mono uppercase tracking-[0.18em] text-white/30",
+        size === "sm" ? "text-[10px]" : "text-[11px]",
         className,
       )}
       {...props}

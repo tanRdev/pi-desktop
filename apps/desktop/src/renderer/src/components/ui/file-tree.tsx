@@ -39,7 +39,7 @@ const getFileIcon = (filename: string, isSelected: boolean) => {
   const ext = filename.split(".").pop()?.toLowerCase();
   const className = cn(
     "size-3.5 shrink-0 transition-all duration-200",
-    isSelected ? "text-primary" : "text-[#ffffff]/40",
+    isSelected ? "text-primary" : "text-white/30",
   );
 
   switch (ext) {
@@ -188,11 +188,9 @@ function FileTreeItem({
           "h-6 px-2",
           "text-[11px] leading-none uppercase tracking-tight font-mono",
           "transition-all duration-150 ease-out",
-          "hover:bg-[#353535]/50",
-          isSelected && ["bg-[#353535]", "text-[#ffffff]"],
-          !isSelected && [
-            isDirectory ? "text-[#ffffff]/80" : "text-[#ffffff]/60",
-          ],
+          "hover:bg-white/[0.04]",
+          isSelected && ["bg-white/[0.06]", "text-[#ffffff]"],
+          !isSelected && [isDirectory ? "text-white/70" : "text-white/70"],
         )}
         style={{ paddingLeft: `${indentSize + 4}px` }}
       >
@@ -207,7 +205,7 @@ function FileTreeItem({
         >
           <ChevronRight
             className={cn(
-              "size-3 shrink-0 text-[#ffffff]/30",
+              "size-3 shrink-0 text-white/30",
               "transition-transform duration-200",
               isExpanded && "rotate-90",
             )}
@@ -235,7 +233,7 @@ function FileTreeItem({
         <div className="relative">
           {isExpanded && depth < 3 && (
             <div
-              className="absolute w-px bg-outline-variant/10"
+              className="absolute w-px bg-white/[0.04]"
               style={{
                 left: `${indentSize + 11}px`,
                 height: "100%",
@@ -264,7 +262,7 @@ function FileTreeItem({
 
           {isLoading && (
             <div
-              className="flex items-center gap-2 h-6 px-2 text-[10px] text-[#ffffff]/40 font-mono"
+              className="flex items-center gap-2 h-6 px-2 text-[10px] text-white/40 font-mono"
               style={{ paddingLeft: `${(depth + 1) * 12 + 20}px` }}
             >
               <RefreshCw className="size-3 animate-spin" />
@@ -344,14 +342,14 @@ export function FileTree({ rootPath, onFileClick, className }: FileTreeProps) {
           className,
         )}
       >
-        <div className="flex h-12 w-12 items-center justify-center bg-[#0e0e0e] border border-outline-variant/30">
-          <Folder className="size-6 text-[#ffffff]/20" />
+        <div className="flex h-12 w-12 items-center justify-center bg-white/[0.02] border border-white/[0.04]">
+          <Folder className="size-6 text-white/30" />
         </div>
         <div className="space-y-1">
           <p className="font-headline text-[11px] font-bold uppercase tracking-widest text-primary">
             No workspace
           </p>
-          <p className="font-mono text-[9px] uppercase tracking-wider text-[#ffffff]/40">
+          <p className="font-mono text-[9px] uppercase tracking-wider text-white/40">
             Open a folder to browse files
           </p>
         </div>
@@ -370,8 +368,8 @@ export function FileTree({ rootPath, onFileClick, className }: FileTreeProps) {
               paddingLeft: `${i % 3 === 0 ? 4 : i % 3 === 1 ? 16 : 4}px`,
             }}
           >
-            <div className="h-3.5 w-3.5 bg-[#353535]" />
-            <div className="h-3 w-24 bg-[#353535]" />
+            <div className="h-3.5 w-3.5 bg-white/[0.04]" />
+            <div className="h-3 w-24 bg-white/[0.04]" />
           </div>
         ))}
       </div>
@@ -386,14 +384,14 @@ export function FileTree({ rootPath, onFileClick, className }: FileTreeProps) {
           className,
         )}
       >
-        <div className="flex h-12 w-12 items-center justify-center bg-[#0e0e0e] border border-outline-variant/30">
-          <Layers className="size-6 text-[#ffffff]/20" />
+        <div className="flex h-12 w-12 items-center justify-center bg-white/[0.02] border border-white/[0.04]">
+          <Layers className="size-6 text-white/30" />
         </div>
         <div className="space-y-1">
           <p className="font-headline text-[11px] font-bold uppercase tracking-widest text-primary">
             Empty directory
           </p>
-          <p className="font-mono text-[9px] uppercase tracking-wider text-[#ffffff]/40">
+          <p className="font-mono text-[9px] uppercase tracking-wider text-white/40">
             No files to display
           </p>
         </div>

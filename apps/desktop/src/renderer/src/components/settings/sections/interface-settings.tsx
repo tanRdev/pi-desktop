@@ -17,7 +17,7 @@ export function InterfaceSettingsSection() {
     <div className="space-y-6">
       <SettingsSection
         title="Layout"
-        description="Adjust the only interface preference currently wired into the workspace"
+        description="Trim the desktop shell to the density that feels closest to Cursor."
       >
         <div
           className={cn("transition-all duration-200 stagger-item")}
@@ -29,7 +29,7 @@ export function InterfaceSettingsSection() {
         >
           <SettingsRow
             label="Sidebar Width"
-            description="Width of the sidebar in pixels"
+            description="Controls the project rail width for the active desktop shell"
           >
             <SettingsSlider
               testId="settings-sidebar-width-slider"
@@ -53,7 +53,10 @@ export function InterfaceSettingsSection() {
           animationFillMode: "forwards",
         }}
       >
-        <ResetButton onClick={() => resetSection("interface")} />
+        <ResetButton
+          label="Reset layout"
+          onClick={() => resetSection("interface")}
+        />
       </div>
     </div>
   );

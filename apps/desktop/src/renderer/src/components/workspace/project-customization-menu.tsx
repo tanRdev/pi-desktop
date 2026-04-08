@@ -103,7 +103,7 @@ export function ProjectCustomizationMenu({
       >
         <div
           className={cn(
-            "w-80 rounded-md border border-[#474747]/30 bg-[#131313] p-4 shadow-none",
+            "w-80 rounded-md border border-white/[0.06] bg-[#0d0d0d] p-4 shadow-none",
             "transition-all duration-100",
           )}
         >
@@ -111,7 +111,7 @@ export function ProjectCustomizationMenu({
             <div>
               <label
                 htmlFor="project-custom-name"
-                className="text-[10px] font-bold uppercase tracking-[0.15em] font-headline text-[#474747]"
+                className="text-[10px] font-medium uppercase tracking-wider text-white/30"
               >
                 Display Name
               </label>
@@ -130,17 +130,17 @@ export function ProjectCustomizationMenu({
                     }
                   }}
                   placeholder={fallbackName}
-                  className="w-full bg-[#0e0e0e] border border-[#474747]/20 p-2 text-[12px] font-mono text-white placeholder:text-[#474747]/50 focus:outline-none focus:border-white transition-colors uppercase"
+                  className="w-full bg-transparent border-b border-white/[0.06] p-2 text-[12px] font-mono text-white/80 placeholder:text-white/20 focus:outline-none focus:border-white/[0.12] transition-colors"
                   aria-label="Project display name"
                 />
-                <p className="mt-1.5 text-[9px] font-mono text-[#474747] uppercase tracking-tight">
-                  EMPTY FOR FOLDER NAME.
+                <p className="mt-1.5 text-[9px] text-white/20">
+                  Leave empty to use folder name.
                 </p>
               </div>
             </div>
 
             <div>
-              <div className="text-[10px] font-bold uppercase tracking-[0.15em] font-headline text-[#474747]">
+              <div className="text-[10px] font-medium uppercase tracking-wider text-white/30">
                 Icon
               </div>
               <Button
@@ -148,19 +148,19 @@ export function ProjectCustomizationMenu({
                 variant="outline"
                 size="default"
                 className={cn(
-                  "mt-2 h-10 w-full justify-between rounded-md border-[#474747]/30 bg-[#0e0e0e] px-3 text-left hover:bg-[#1f1f1f] hover:border-[#474747]",
+                  "mt-2 h-10 w-full justify-between rounded-md border-white/[0.06] bg-transparent px-3 text-left text-white/50 hover:bg-white/[0.04] hover:border-white/[0.08] hover:text-white/70",
                 )}
                 onClick={() => setIconPickerOpen(true)}
               >
                 <span className="flex items-center gap-2">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-md border border-[#474747]/30 bg-[#131313]">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-md border border-white/[0.06] bg-white/[0.02]">
                     <currentIcon.icon className="h-4 w-4" />
                   </span>
                   <span className="text-[10px] font-mono uppercase tracking-wider">
                     {currentIcon.label}
                   </span>
                 </span>
-                <span className="text-[9px] font-mono text-[#474747] uppercase tracking-widest">
+                <span className="text-[9px] font-mono text-white/20 uppercase tracking-wider">
                   Change
                 </span>
               </Button>
@@ -168,8 +168,8 @@ export function ProjectCustomizationMenu({
 
             <div>
               <div className="flex items-center gap-2">
-                <Palette className="h-3 w-3 text-[#474747]" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.15em] font-headline text-[#474747]">
+                <Palette className="h-3 w-3 text-white/30" />
+                <span className="text-[10px] font-medium uppercase tracking-wider text-white/30">
                   Accent Color
                 </span>
               </div>
@@ -187,11 +187,11 @@ export function ProjectCustomizationMenu({
                         });
                       }}
                       className={cn(
-                        "flex items-center gap-2 rounded-md border px-2 py-1.5 text-[9px] font-mono uppercase tracking-widest",
-                        "transition-all duration-75",
+                        "flex items-center gap-2 rounded-md border px-2 py-1.5 text-[9px] font-mono uppercase tracking-wider",
+                        "transition-all duration-150",
                         isActive
-                          ? "border-white bg-[#353535] text-white"
-                          : "border-[#474747]/30 bg-[#0e0e0e] text-[#474747] hover:border-white hover:text-white",
+                          ? "border-white/[0.12] bg-white/[0.06] text-white/80"
+                          : "border-white/[0.04] bg-transparent text-white/30 hover:border-white/[0.08] hover:text-white/50",
                       )}
                     >
                       <span

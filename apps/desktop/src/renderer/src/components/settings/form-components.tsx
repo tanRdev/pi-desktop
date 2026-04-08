@@ -23,14 +23,18 @@ export function SettingsSection({
   children,
 }: SettingsSectionProps) {
   return (
-    <div className="space-y-4">
-      <div className="border-b border-border pb-3">
-        <h3 className="text-sm font-medium text-foreground">{title}</h3>
+    <div className="space-y-5 border-b border-white/[0.04] pb-6 last:border-b-0">
+      <div className="pb-1">
+        <h3 className="text-xs font-medium uppercase tracking-wider text-white/40">
+          {title}
+        </h3>
         {description && (
-          <p className="mt-1 text-xs text-muted-foreground">{description}</p>
+          <p className="mt-1.5 max-w-xl text-[13px] leading-6 text-white/40">
+            {description}
+          </p>
         )}
       </div>
-      <div className="space-y-4">{children}</div>
+      <div className="space-y-1">{children}</div>
     </div>
   );
 }
@@ -47,11 +51,13 @@ export function SettingsRow({
   children,
 }: SettingsRowProps) {
   return (
-    <div className="flex items-center justify-between gap-4 py-2">
+    <div className="flex items-center justify-between gap-6 px-0 py-3">
       <div className="flex-1">
-        <div className="text-sm font-medium text-foreground">{label}</div>
+        <div className="text-sm font-medium text-white/60">{label}</div>
         {description && (
-          <p className="text-xs text-muted-foreground">{description}</p>
+          <p className="mt-1 text-[12px] leading-5 text-white/40">
+            {description}
+          </p>
         )}
       </div>
       <div className="shrink-0">{children}</div>
@@ -89,10 +95,10 @@ export function SettingsSelect({
           aria-label={ariaLabel}
           disabled={disabled}
           className={cn(
-            "flex h-9 w-[220px] items-center justify-between gap-2 border border-input bg-background px-3 py-1 text-sm shadow-sm",
+            "flex h-10 w-[240px] items-center justify-between gap-2 rounded-md border border-white/[0.06] bg-[#141414] px-3.5 py-1 text-sm text-white/80",
             "transition-all duration-150",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
-            "hover:border-border-hover",
+            "hover:border-white/[0.12] hover:bg-white/[0.03]",
             "active:scale-[0.99]",
             "disabled:cursor-not-allowed disabled:opacity-50",
           )}
@@ -101,11 +107,15 @@ export function SettingsSelect({
           <span className="truncate text-left">
             {selectedOption?.label ?? "Select option"}
           </span>
-          <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <ChevronDown className="h-4 w-4 shrink-0 text-white/30" />
         </button>
       </PopoverTrigger>
 
-      <PopoverContent align="end" sideOffset={6} className="w-[220px] p-1">
+      <PopoverContent
+        align="end"
+        sideOffset={6}
+        className="w-[240px] rounded-md border border-white/[0.06] bg-[#111111] p-1"
+      >
         <div className="space-y-1">
           {options.map((option) => {
             const isSelected = option.value === value;
@@ -116,10 +126,10 @@ export function SettingsSelect({
                 type="button"
                 onClick={() => onChange(option.value)}
                 className={cn(
-                  "flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-[11px]",
+                  "flex w-full items-center justify-between gap-2 rounded-md px-3 py-2.5 text-left text-[12px] transition-colors",
                   isSelected
                     ? "bg-white text-black"
-                    : "text-[#b8b8b8] hover:bg-[#1f1f1f] hover:text-white",
+                    : "text-[#b8b8b8] hover:bg-white/[0.06] hover:text-white",
                 )}
               >
                 <span className="truncate">{option.label}</span>
@@ -209,7 +219,7 @@ export function SettingsSlider({
         step={step}
         disabled={disabled}
         className={cn(
-          "w-[120px] h-2 bg-surface-2 rounded-lg appearance-none cursor-pointer accent-primary",
+          "h-2 w-[144px] cursor-pointer appearance-none rounded-full bg-white/[0.06] accent-primary",
           "transition-all duration-150",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
           "disabled:opacity-50",
@@ -217,7 +227,7 @@ export function SettingsSlider({
         style={{ transitionTimingFunction: EASE_OUT }}
       />
       {showValue && (
-        <span className="w-10 text-right text-xs text-muted-foreground tabular-nums">
+        <span className="w-12 text-right text-[12px] font-medium text-white/40 tabular-nums">
           {value}
         </span>
       )}
@@ -251,11 +261,11 @@ export function SettingsInput({
       disabled={disabled}
       className={cn(
         className,
-        "flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm",
+        "flex h-9 rounded-md border border-white/[0.06] bg-[#141414] px-3 py-1 text-sm text-white/80 shadow-sm",
         "transition-all duration-150",
-        "file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
-        "hover:border-border-hover",
+        "file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-white/30",
+        "focus-visible:outline-none focus-visible:border-white/[0.12] focus-visible:ring-0",
+        "hover:border-white/[0.12]",
         "disabled:cursor-not-allowed disabled:opacity-50",
       )}
       style={{ transitionTimingFunction: EASE_OUT }}
@@ -293,10 +303,10 @@ export function SettingsNumberInput({
       disabled={disabled}
       className={cn(
         className,
-        "flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm",
+        "flex h-9 rounded-md border border-white/[0.06] bg-[#141414] px-3 py-1 text-sm text-white/80 shadow-sm",
         "transition-all duration-150",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
-        "hover:border-border-hover",
+        "focus-visible:outline-none focus-visible:border-white/[0.12] focus-visible:ring-0",
+        "hover:border-white/[0.12]",
         "disabled:cursor-not-allowed disabled:opacity-50",
       )}
       style={{ transitionTimingFunction: EASE_OUT }}
@@ -305,7 +315,7 @@ export function SettingsNumberInput({
 }
 
 export function SettingsDivider() {
-  return <div className="border-t border-border my-4" />;
+  return <div className="border-t border-white/[0.04] my-4" />;
 }
 
 interface ResetButtonProps {
@@ -326,14 +336,14 @@ export function ResetButton({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "h-7 px-2 text-xs text-muted-foreground hover:text-foreground",
+        "h-8 rounded-md px-3 text-[11px] text-white/40 hover:text-white/60",
         "transition-all duration-150",
-        "hover:bg-surface-2",
+        "hover:bg-white/[0.04]",
         "active:scale-[0.97]",
       )}
       style={{ transitionTimingFunction: EASE_OUT }}
     >
-      <RotateCcw className="mr-1 h-3 w-3" />
+      <RotateCcw className="mr-1 h-3.5 w-3.5" />
       {label}
     </Button>
   );
@@ -365,11 +375,11 @@ export function SettingsTextarea({
       disabled={disabled}
       className={cn(
         className,
-        "rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background",
+        "rounded-md border border-white/[0.06] bg-[#141414] px-3 py-2 text-sm text-white/80",
         "transition-all duration-150",
-        "placeholder:text-muted-foreground",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
-        "hover:border-border-hover",
+        "placeholder:text-white/30",
+        "focus-visible:outline-none focus-visible:border-white/[0.12] focus-visible:ring-0",
+        "hover:border-white/[0.12]",
         "disabled:cursor-not-allowed disabled:opacity-50",
       )}
       style={{ transitionTimingFunction: EASE_OUT }}

@@ -155,7 +155,7 @@ export function CodeEditor({
   return (
     <div
       className={cn(
-        "h-full w-full overflow-hidden",
+        "h-full w-full overflow-hidden bg-[#0a0a0a]",
         "animate-in fade-in zoom-in-95 duration-200 [transition-timing-function:var(--ease-out)]",
         "motion-reduce:animate-none",
         className,
@@ -171,14 +171,14 @@ export function CodeEditor({
         loading={
           <div
             className={cn(
-              "flex h-full items-center justify-center text-muted-foreground",
+              "flex h-full items-center justify-center text-white/50",
               "animate-in fade-in zoom-in-95 duration-200 [transition-timing-function:var(--ease-out)]",
             )}
           >
             <div className="flex items-center gap-2">
               <div
                 className={cn(
-                  "size-4 animate-spin rounded-md border-2 border-border border-t-primary",
+                  "size-4 animate-spin rounded-md border-2 border-white/[0.08] border-t-primary",
                   "transition-all duration-150 [transition-timing-function:var(--ease-out)]",
                 )}
               />

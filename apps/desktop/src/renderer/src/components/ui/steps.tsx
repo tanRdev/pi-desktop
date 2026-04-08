@@ -33,9 +33,9 @@ export function StepItem({
   return (
     <div
       className={cn(
-        "flex items-start gap-3 border border-[#474747]/20 bg-[#101010]/94 px-3 py-2.5",
-        state === "current" && "border-white/28",
-        state === "error" && "border-[#7f4141]/35 text-[#f0c9c9]",
+        "flex items-start gap-3 border border-white/[0.04] bg-white/[0.02] px-3 py-2.5",
+        state === "current" && "border-white/[0.08]",
+        state === "error" && "border-red-400/20 text-red-300/80",
         className,
       )}
       {...props}
@@ -44,11 +44,11 @@ export function StepItem({
         <StepIcon state={state} />
       </div>
       <div className="min-w-0">
-        <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/82">
+        <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/80">
           {title}
         </div>
         {detail ? (
-          <div className="mt-1 text-[12px] leading-5 text-[#818181]">
+          <div className="mt-1 text-[12px] leading-5 text-white/40">
             {detail}
           </div>
         ) : null}

@@ -153,33 +153,20 @@ export function ProjectAvatar({
   );
   const accentStyle = resolveProjectAccentStyle(repository.accentColor);
 
-  // Square avatar - sharp corners as requested
+  // Minimal flat icon - no backgrounds, just the icon
   const avatarClassName = cn(
     "relative flex items-center justify-center",
-    "border rounded-md", // Sharp corners, not circular
     "transition-all duration-100",
-    "hover:scale-105 active:scale-95",
     size === "md" ? "size-10" : "size-6",
     isActive
-      ? "border-[#3f3f46] bg-[#1a1a1a] text-[#e7e7e7]"
-      : "border-[#27272a] bg-[#111111] text-[#6a6a6a] hover:border-[#3f3f46] hover:text-[#8a8a8a]",
+      ? "text-white/50"
+      : "text-white/30 hover:text-white/50",
     className,
   );
 
   const iconClassName = size === "md" ? "size-5" : "size-3.5";
 
-  const content = (
-    <span
-      className={cn(
-        "flex items-center justify-center rounded-md",
-        size === "md" ? "size-8" : "size-4",
-        accentStyle ? "border" : "bg-[#0a0a0a]",
-      )}
-      style={accentStyle ?? undefined}
-    >
-      <Icon className={iconClassName} />
-    </span>
-  );
+  const content = <Icon className={iconClassName} />;
 
   if (!onClick) {
     return <div className={avatarClassName}>{content}</div>;

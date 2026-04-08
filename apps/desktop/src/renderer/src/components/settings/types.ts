@@ -18,10 +18,6 @@ export type AdvancedSettings = Record<string, never>;
 export interface Settings {
   ai: AISettings;
   interface: InterfaceSettings;
-  editor: EditorSettings;
-  terminal: TerminalSettings;
-  keybindings: KeybindingSettings;
-  advanced: AdvancedSettings;
 }
 
 export interface SettingsContextValue {
@@ -36,4 +32,4 @@ export interface SettingsContextValue {
   saveSettings: () => void;
 }
 
-export type SettingsSection = keyof Settings;
+export type SettingsSection = "ai" | "interface";

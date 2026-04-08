@@ -47,7 +47,7 @@ export type PromptInputProps = {
   children: React.ReactNode;
   className?: string;
   disabled?: boolean;
-} & React.ComponentProps<"div">;
+} & React.ComponentPropsWithoutRef<"div">;
 
 function PromptInput({
   className,
@@ -91,11 +91,13 @@ function PromptInput({
           role="presentation"
           onClick={handleClick}
           className={cn(
-            "shell-input-frame relative isolate cursor-text overflow-hidden border border-[#474747]/20 bg-[linear-gradient(180deg,rgba(14,14,14,0.94)_0%,rgba(10,10,10,0.98)_100%)] p-2",
-            "transition-[border-color,background-color,transform] duration-200 ease-[var(--ease-out)]",
-            "before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-white/[0.07] before:content-['']",
-            "focus-within:border-white/55 focus-within:bg-[linear-gradient(180deg,rgba(18,18,18,0.96)_0%,rgba(11,11,11,1)_100%)] focus-within:ring-0",
-            disabled && "cursor-not-allowed opacity-60",
+            "relative isolate cursor-text overflow-hidden rounded-2xl",
+            "border border-white/[0.06] bg-[#141414]/80",
+            "backdrop-blur-xl",
+            "transition-all duration-150 ease-out",
+            "focus-within:border-white/[0.12] focus-within:bg-[#141414]",
+            "focus-within:shadow-[0_0_0_1px_rgba(59,130,246,0.2),inset_0_1px_0_rgba(255,255,255,0.02)]",
+            disabled && "cursor-not-allowed opacity-50",
             className,
           )}
           {...props}

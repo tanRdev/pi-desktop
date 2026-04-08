@@ -20,7 +20,7 @@ export function WorktreeList({
   return (
     <section className="space-y-2 px-3">
       <div className="flex items-center justify-between">
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
+        <p className="text-[11px] font-medium uppercase tracking-wider text-white/30">
           Worktrees
         </p>
         <Button
@@ -28,10 +28,10 @@ export function WorktreeList({
           variant="ghost"
           size="icon"
           className={cn(
-            "size-7 rounded border border-border bg-surface-2 text-foreground",
-            "transition-[transform,background-color,border-color] duration-150 ease-out",
-            "hover:bg-surface-3 hover:scale-105",
-            "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/10",
+            "size-7 rounded-md border border-white/[0.06] bg-white/[0.02] text-white/50",
+            "transition-all duration-150 ease-out",
+            "hover:bg-white/[0.06] hover:text-white/70",
+            "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/10",
             "active:scale-[0.97] active:duration-100",
           )}
           onClick={() => onCreate()}
@@ -52,37 +52,37 @@ export function WorktreeList({
               type="button"
               onClick={() => onSelect(worktree.id)}
               className={cn(
-                "motion-safe:stagger-item w-full rounded-lg border p-3 text-left",
-                "transition-[transform,opacity,background-color,border-color,box-shadow] duration-200 ease-out",
-                "hover:translate-x-0.5 hover:shadow-sm",
-                "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/10",
-                "active:scale-[0.97] active:duration-100",
+                "w-full rounded-md border p-3 text-left",
+                "transition-all duration-150 ease-out",
+                "hover:bg-white/[0.04]",
+                "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/10",
+                "active:scale-[0.98] active:duration-100",
                 worktree.id === activeWorktreeId
-                  ? "border-border-hover bg-surface-2 shadow-sm"
-                  : "border-border bg-surface-1 hover:bg-surface-2",
+                  ? "border-white/[0.08] bg-white/[0.04]"
+                  : "border-white/[0.04] bg-transparent hover:border-white/[0.06]",
               )}
               style={{ animationDelay: `${Math.min(index * 40, 320)}ms` }}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <GitBranch className="size-3.5 shrink-0 text-muted-foreground" />
-                    <span className="truncate text-sm font-medium text-foreground">
+                    <GitBranch className="size-3.5 shrink-0 text-white/30" />
+                    <span className="truncate text-sm font-medium text-white/80">
                       {worktree.label}
                     </span>
                     {worktree.isMain && (
-                      <span className="rounded-full border border-border px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                      <span className="rounded-full border border-white/[0.08] px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-white/30">
                         main
                       </span>
                     )}
                   </div>
-                  <div className="mt-1 truncate text-xs text-muted-foreground">
+                  <div className="mt-1 truncate text-xs text-white/30">
                     {worktree.path}
                   </div>
                 </div>
                 <GitStatusChip git={worktree.git} />
               </div>
-              <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
+              <div className="mt-2 flex items-center justify-between text-[11px] text-white/30">
                 <span>
                   {liveThreadCount} live thread
                   {liveThreadCount === 1 ? "" : "s"}

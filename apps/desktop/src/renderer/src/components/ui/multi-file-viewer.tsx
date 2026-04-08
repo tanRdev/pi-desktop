@@ -160,14 +160,14 @@ function FileTab({
     <div
       onMouseDown={onClick}
       className={cn(
-        "group relative flex h-9 min-w-0 max-w-[200px] shrink-0 cursor-pointer items-center gap-2 border-r border-border px-3",
+        "group relative flex h-9 min-w-0 max-w-[200px] shrink-0 cursor-pointer items-center gap-2 border-r border-white/[0.04] px-3",
         "transition-all duration-200 [transition-timing-function:var(--ease-out)]",
         "hover:scale-[1.02] hover:-translate-y-[1px]",
         "motion-reduce:transform-none motion-reduce:transition-none",
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary/50",
         isActive
-          ? "bg-surface-2 text-foreground"
-          : "bg-surface-1 text-muted-foreground hover:bg-surface-2/50 hover:text-foreground/80",
+          ? "bg-white/[0.06] text-white/80"
+          : "bg-[#0a0a0a] text-white/50 hover:bg-white/[0.04] hover:text-white/70",
       )}
     >
       {isActive && (
@@ -192,8 +192,8 @@ function FileTab({
           "active:scale-[0.97] motion-reduce:active:scale-100",
           "focus-visible:opacity-100 focus-visible:outline focus-visible:outline-1 focus-visible:outline-primary/50",
           isActive
-            ? "opacity-100 hover:bg-surface-3"
-            : "group-hover:opacity-100 hover:bg-surface-2",
+            ? "opacity-100 hover:bg-white/[0.08]"
+            : "group-hover:opacity-100 hover:bg-white/[0.06]",
         )}
         aria-label={`Close ${fileName}`}
       >
@@ -216,14 +216,14 @@ function TerminalTab({
     <div
       onMouseDown={onClick}
       className={cn(
-        "group relative flex h-9 min-w-0 max-w-[200px] shrink-0 cursor-pointer items-center gap-2 border-r border-border px-3",
+        "group relative flex h-9 min-w-0 max-w-[200px] shrink-0 cursor-pointer items-center gap-2 border-r border-white/[0.04] px-3",
         "transition-all duration-200 [transition-timing-function:var(--ease-out)]",
         "hover:scale-[1.02] hover:-translate-y-[1px]",
         "motion-reduce:transform-none motion-reduce:transition-none",
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary/50",
         isActive
-          ? "bg-surface-2 text-foreground"
-          : "bg-surface-1 text-muted-foreground hover:bg-surface-2/50 hover:text-foreground/80",
+          ? "bg-white/[0.06] text-white/80"
+          : "bg-[#0a0a0a] text-white/50 hover:bg-white/[0.04] hover:text-white/70",
       )}
     >
       {isActive && (
@@ -248,8 +248,8 @@ function TerminalTab({
           "active:scale-[0.97] motion-reduce:active:scale-100",
           "focus-visible:opacity-100 focus-visible:outline focus-visible:outline-1 focus-visible:outline-primary/50",
           isActive
-            ? "opacity-100 hover:bg-surface-3"
-            : "group-hover:opacity-100 hover:bg-surface-2",
+            ? "opacity-100 hover:bg-white/[0.08]"
+            : "group-hover:opacity-100 hover:bg-white/[0.06]",
         )}
         aria-label="Close terminal"
       >
@@ -269,19 +269,17 @@ function EmptyState({ onCloseAll }: { onCloseAll?: () => void }) {
     >
       <div
         className={cn(
-          "flex h-16 w-16 items-center justify-center rounded-xl bg-surface-2",
+          "flex h-16 w-16 items-center justify-center rounded-xl bg-white/[0.02] border border-white/[0.04]",
           "transition-all duration-200 [transition-timing-function:var(--ease-out)]",
           "hover:scale-[1.02] hover:-translate-y-[1px] hover:shadow-sm",
           "motion-reduce:transform-none motion-reduce:transition-none",
         )}
       >
-        <FileText className="size-8 text-muted-foreground/50" />
+        <FileText className="size-8 text-white/30" />
       </div>
       <div className="space-y-1 animate-in fade-in slide-in-from-bottom-2 duration-300 [transition-timing-function:var(--ease-out)]">
-        <p className="text-sm font-medium text-muted-foreground">
-          No file open
-        </p>
-        <p className="text-xs text-muted-foreground/70">
+        <p className="text-sm font-medium text-white/50">No file open</p>
+        <p className="text-xs text-white/30">
           Select a file from the tree to view it
         </p>
       </div>
@@ -290,9 +288,9 @@ function EmptyState({ onCloseAll }: { onCloseAll?: () => void }) {
           type="button"
           onClick={onCloseAll}
           className={cn(
-            "mt-2 rounded border border-border bg-surface-2 px-3 py-1.5 text-xs text-muted-foreground",
+            "mt-2 rounded border border-white/[0.04] bg-white/[0.02] px-3 py-1.5 text-xs text-white/50",
             "transition-all duration-150 [transition-timing-function:var(--ease-out)]",
-            "hover:border-border-hover hover:bg-surface-3 hover:text-foreground hover:shadow-sm",
+            "hover:border-white/[0.08] hover:bg-white/[0.04] hover:text-white/80 hover:shadow-sm",
             "hover:-translate-y-[1px]",
             "active:scale-[0.97] motion-reduce:active:scale-100",
             "focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary/50",
@@ -369,14 +367,14 @@ function FileContentViewer({
     return (
       <div
         className={cn(
-          "flex h-full items-center justify-center text-sm text-muted-foreground",
+          "flex h-full items-center justify-center text-sm text-white/50",
           "animate-in fade-in duration-200 [transition-timing-function:var(--ease-out)]",
         )}
       >
         <div className="flex items-center gap-2">
           <div
             className={cn(
-              "size-4 animate-spin rounded-full border-2 border-border border-t-primary",
+              "size-4 animate-spin rounded-full border-2 border-white/[0.08] border-t-primary",
               "transition-all duration-150 [transition-timing-function:var(--ease-out)]",
             )}
           />
@@ -390,7 +388,7 @@ function FileContentViewer({
     return (
       <div
         className={cn(
-          "flex h-full items-center justify-center text-sm text-destructive",
+          "flex h-full items-center justify-center text-sm text-red-400/80",
           "animate-in fade-in zoom-in-95 duration-200 [transition-timing-function:var(--ease-out)]",
         )}
       >
@@ -409,19 +407,17 @@ function FileContentViewer({
       >
         <div
           className={cn(
-            "flex h-16 w-16 items-center justify-center rounded-xl bg-surface-2",
+            "flex h-16 w-16 items-center justify-center rounded-xl bg-white/[0.02] border border-white/[0.04]",
             "transition-all duration-200 [transition-timing-function:var(--ease-out)]",
             "hover:scale-[1.02] hover:-translate-y-[1px] hover:shadow-sm",
             "motion-reduce:transform-none motion-reduce:transition-none",
           )}
         >
-          <FileIcon className="size-8 text-muted-foreground" />
+          <FileIcon className="size-8 text-white/30" />
         </div>
         <div className="space-y-1">
-          <p className="text-sm font-medium text-foreground">Empty file</p>
-          <p className="text-xs text-muted-foreground">
-            This file has no content
-          </p>
+          <p className="text-sm font-medium text-white/80">Empty file</p>
+          <p className="text-xs text-white/40">This file has no content</p>
         </div>
       </div>
     );
@@ -437,17 +433,17 @@ function FileContentViewer({
       >
         <div
           className={cn(
-            "flex h-16 w-16 items-center justify-center rounded-xl bg-surface-2",
+            "flex h-16 w-16 items-center justify-center rounded-xl bg-white/[0.02] border border-white/[0.04]",
             "transition-all duration-200 [transition-timing-function:var(--ease-out)]",
             "hover:scale-[1.02] hover:-translate-y-[1px] hover:shadow-sm",
             "motion-reduce:transform-none motion-reduce:transition-none",
           )}
         >
-          <Binary className="size-8 text-muted-foreground" />
+          <Binary className="size-8 text-white/30" />
         </div>
         <div className="space-y-1">
-          <p className="text-sm font-medium text-foreground">Binary file</p>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm font-medium text-white/80">Binary file</p>
+          <p className="text-xs text-white/40">
             This file cannot be displayed in the text viewer
           </p>
         </div>
@@ -465,19 +461,19 @@ function FileContentViewer({
       >
         <div
           className={cn(
-            "flex h-16 w-16 items-center justify-center rounded-xl bg-surface-2",
+            "flex h-16 w-16 items-center justify-center rounded-xl bg-white/[0.02] border border-white/[0.04]",
             "transition-all duration-200 [transition-timing-function:var(--ease-out)]",
             "hover:scale-[1.02] hover:-translate-y-[1px] hover:shadow-sm",
             "motion-reduce:transform-none motion-reduce:transition-none",
           )}
         >
-          <FileWarning className="size-8 text-muted-foreground" />
+          <FileWarning className="size-8 text-white/30" />
         </div>
         <div className="space-y-1">
-          <p className="text-sm font-medium text-foreground">
+          <p className="text-sm font-medium text-white/80">
             Unsupported file type
           </p>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-white/40">
             This file format cannot be displayed
           </p>
         </div>
@@ -534,8 +530,8 @@ function FileContentViewer({
 
         {isEditing && !isTruncated ? (
           <div className="flex flex-1 flex-col">
-            <div className="flex items-center justify-between border-b border-border bg-surface-1 px-4 py-2">
-              <span className="text-xs text-muted-foreground">
+            <div className="flex items-center justify-between border-b border-white/[0.04] bg-[#0d0d0d] px-4 py-2">
+              <span className="text-xs text-white/40">
                 Editing mode (Cmd/Ctrl+S to save)
               </span>
               <button
@@ -574,9 +570,9 @@ function FileContentViewer({
               onChange={(e) => setEditContent(e.target.value)}
               onKeyDown={handleKeyDown}
               className={cn(
-                "flex-1 resize-none bg-background p-4 font-mono text-sm text-foreground outline-none",
+                "flex-1 resize-none bg-[#0a0a0a] p-4 font-mono text-sm text-white/80 outline-none",
                 "transition-all duration-150 [transition-timing-function:var(--ease-out)]",
-                "focus:bg-surface-1 focus:ring-1 focus:ring-primary/20",
+                "focus:bg-[#0d0d0d] focus:ring-1 focus:ring-white/[0.08]",
               )}
               spellCheck={false}
             />
@@ -598,14 +594,12 @@ function FileContentViewer({
           />
         ) : (
           <div className="flex h-full flex-col items-center justify-center gap-3 p-8 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-surface-2">
-              <FileIcon className="size-8 text-muted-foreground" />
+            <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-white/[0.02] border border-white/[0.04]">
+              <FileIcon className="size-8 text-white/30" />
             </div>
             <div className="space-y-1">
-              <p className="text-sm font-medium text-foreground">Empty file</p>
-              <p className="text-xs text-muted-foreground">
-                This file has no content
-              </p>
+              <p className="text-sm font-medium text-white/80">Empty file</p>
+              <p className="text-xs text-white/40">This file has no content</p>
             </div>
           </div>
         )}
@@ -622,19 +616,17 @@ function FileContentViewer({
     >
       <div
         className={cn(
-          "flex h-16 w-16 items-center justify-center rounded-xl bg-surface-2",
+          "flex h-16 w-16 items-center justify-center rounded-xl bg-white/[0.02] border border-white/[0.04]",
           "transition-all duration-200 [transition-timing-function:var(--ease-out)]",
           "hover:scale-[1.02] hover:-translate-y-[1px] hover:shadow-sm",
           "motion-reduce:transform-none motion-reduce:transition-none",
         )}
       >
-        <FileIcon className="size-8 text-muted-foreground" />
+        <FileIcon className="size-8 text-white/30" />
       </div>
       <div className="space-y-1">
-        <p className="text-sm font-medium text-foreground">Empty file</p>
-        <p className="text-xs text-muted-foreground">
-          This file has no content
-        </p>
+        <p className="text-sm font-medium text-white/80">Empty file</p>
+        <p className="text-xs text-white/40">This file has no content</p>
       </div>
     </div>
   );
@@ -711,15 +703,15 @@ export function MultiFileViewer({
   return (
     <div className={cn("flex h-full flex-col", className)}>
       {(hasFiles || isTerminalOpen) && (
-        <div className="flex h-10 shrink-0 items-center border-b border-border bg-surface-1">
+        <div className="flex h-10 shrink-0 items-center border-b border-white/[0.04] bg-[#0a0a0a]">
           {canScrollLeft && (
             <button
               type="button"
               onClick={() => scrollTabs("left")}
               className={cn(
-                "flex h-full w-6 shrink-0 items-center justify-center border-r border-border bg-surface-1 text-muted-foreground",
+                "flex h-full w-6 shrink-0 items-center justify-center border-r border-white/[0.04] bg-[#0a0a0a] text-white/30",
                 "transition-all duration-150 [transition-timing-function:var(--ease-out)]",
-                "hover:bg-surface-2 hover:text-foreground",
+                "hover:bg-white/[0.04] hover:text-white/80",
                 "hover:scale-105 hover:-translate-y-[1px]",
                 "active:scale-[0.97] motion-reduce:active:scale-100",
                 "focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary/50",
@@ -778,9 +770,9 @@ export function MultiFileViewer({
               type="button"
               onClick={() => scrollTabs("right")}
               className={cn(
-                "flex h-full w-6 shrink-0 items-center justify-center border-l border-border bg-surface-1 text-muted-foreground",
+                "flex h-full w-6 shrink-0 items-center justify-center border-l border-white/[0.04] bg-[#0a0a0a] text-white/30",
                 "transition-all duration-150 [transition-timing-function:var(--ease-out)]",
-                "hover:bg-surface-2 hover:text-foreground",
+                "hover:bg-white/[0.04] hover:text-white/80",
                 "hover:scale-105 hover:-translate-y-[1px]",
                 "active:scale-[0.97] motion-reduce:active:scale-100",
                 "focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary/50",
@@ -805,7 +797,7 @@ export function MultiFileViewer({
             </button>
           )}
 
-          <div className="flex shrink-0 items-center border-l border-border bg-surface-1 px-2">
+          <div className="flex shrink-0 items-center border-l border-white/[0.04] bg-[#0a0a0a] px-2">
             {canEdit && (
               <button
                 type="button"
@@ -818,7 +810,7 @@ export function MultiFileViewer({
                   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary/50",
                   isEditing
                     ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-surface-2 hover:text-foreground",
+                    : "text-white/30 hover:bg-white/[0.06] hover:text-white/80",
                 )}
                 aria-label={isEditing ? "Exit edit mode" : "Edit file"}
               >
@@ -831,9 +823,9 @@ export function MultiFileViewer({
                 onClick={onOpenTerminal}
                 className={cn(
                   "flex size-6 items-center justify-center rounded",
-                  "text-muted-foreground",
+                  "text-white/30",
                   "transition-all duration-150 [transition-timing-function:var(--ease-out)]",
-                  "hover:bg-surface-2 hover:text-foreground",
+                  "hover:bg-white/[0.06] hover:text-white/80",
                   "hover:scale-105 hover:-translate-y-[1px]",
                   "active:scale-[0.97] motion-reduce:active:scale-100",
                   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary/50",
@@ -848,9 +840,9 @@ export function MultiFileViewer({
               onClick={onCloseAll}
               className={cn(
                 "flex size-6 items-center justify-center rounded",
-                "text-muted-foreground",
+                "text-white/30",
                 "transition-all duration-150 [transition-timing-function:var(--ease-out)]",
-                "hover:bg-surface-2 hover:text-foreground",
+                "hover:bg-white/[0.06] hover:text-white/80",
                 "hover:scale-105 hover:-translate-y-[1px]",
                 "active:scale-[0.97] motion-reduce:active:scale-100",
                 "focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary/50",
@@ -863,7 +855,7 @@ export function MultiFileViewer({
         </div>
       )}
 
-      <div className="min-h-0 flex-1 overflow-hidden bg-background">
+      <div className="min-h-0 flex-1 overflow-hidden bg-[#0a0a0a]">
         {isTerminalActive ? (
           <TerminalComponent
             id={terminalId ?? "terminal"}

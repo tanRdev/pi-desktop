@@ -182,11 +182,57 @@ export function createShellModel(api: PiDeskApi) {
   let state: ShellModelState = INITIAL_STATE;
   let unsubscribe: (() => void) | undefined;
   const listeners = new Set<(state: ShellModelState) => void>();
+  let refreshVersion = 0;
 
   function notify(): void {
     for (const listener of listeners) {
       listener(state);
     }
+  }
+
+  async function refreshSnapshots(): Promise<void> {
+    const nextVersion = refreshVersion + 1;
+    refreshVersion = nextVersion;
+    const [shell, agent] = await Promise.all([
+      api.shell.getSnapshot(),
+      api.agent.getSnapshot(),
+    ]);
+
+    if (refreshVersion !== nextVersion) {
+      return;
+    }
+
+    state = {
+      ...state,
+      shell,
+      agent,
+      live: {
+        ...createAgentLiveFeedFromSnapshot(agent),
+        snapshotLoadedAt: Date.now(),
+      },
+    };
+    notify();
+  }
+
+  function handleAgentEvent(
+    event: PiDeskAgentEvent | MessageEnvelopeEvent,
+  ): void {
+    const normalized = normalizeEvent(event);
+
+    if (normalized.type === "session_changed") {
+      void refreshSnapshots();
+      return;
+    }
+
+    const receivedAt =
+      "timestamp" in normalized ? normalized.timestamp : Date.now();
+
+    state = {
+      ...state,
+      agent: applyAgentEvent(state.agent, normalized),
+      live: applyLiveAgentEvent(state.live, normalized, receivedAt),
+    };
+    notify();
   }
 
   return {
@@ -203,34 +249,9 @@ export function createShellModel(api: PiDeskApi) {
     },
 
     async load(): Promise<void> {
-      const [shell, agent] = await Promise.all([
-        api.shell.getSnapshot(),
-        api.agent.getSnapshot(),
-      ]);
-
-      state = {
-        ...state,
-        shell,
-        agent,
-        live: {
-          ...createAgentLiveFeedFromSnapshot(agent),
-          snapshotLoadedAt: Date.now(),
-        },
-      };
-      notify();
+      await refreshSnapshots();
       unsubscribe?.();
-      unsubscribe = api.agent.subscribe((event) => {
-        const normalized = normalizeEvent(event);
-        const receivedAt =
-          "timestamp" in normalized ? normalized.timestamp : Date.now();
-
-        state = {
-          ...state,
-          agent: applyAgentEvent(state.agent, normalized),
-          live: applyLiveAgentEvent(state.live, normalized, receivedAt),
-        };
-        notify();
-      });
+      unsubscribe = api.agent.subscribe(handleAgentEvent);
     },
 
     setDraft(draft: string): void {

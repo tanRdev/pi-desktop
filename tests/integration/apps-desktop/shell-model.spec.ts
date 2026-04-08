@@ -218,6 +218,76 @@ describe("createShellModel", () => {
     expect(eventListener).toBeUndefined();
   });
 
+  test("refreshes shell and agent snapshots when the active session changes", async () => {
+    let eventListener: ((event: PiDeskAgentEvent) => void) | undefined;
+    const shellSnapshot = createShellSnapshotFixture();
+    const nextShellSnapshot = {
+      ...createShellSnapshotFixture(),
+      catalog: {
+        ...createShellSnapshotFixture().catalog,
+        selection: {
+          repositoryId: "/tmp/other-repo",
+          worktreeId: "/tmp/other-repo",
+          threadId: "thread-other",
+        },
+      },
+    };
+    const initialAgentSnapshot = createAgentSnapshotFixture({
+      sessionId: "session-initial",
+      messages: [
+        {
+          id: "assistant-1",
+          role: "assistant",
+          text: "old transcript",
+          status: "complete",
+          timestamp: 1,
+        },
+      ],
+    });
+    const nextAgentSnapshot = createAgentSnapshotFixture({
+      sessionId: "session-other",
+      status: "ready",
+      messages: [],
+    });
+    const api = {
+      shell: {
+        getSnapshot: vi
+          .fn<() => Promise<ShellSnapshot>>()
+          .mockResolvedValueOnce(shellSnapshot)
+          .mockResolvedValueOnce(nextShellSnapshot),
+      },
+      agent: {
+        getSnapshot: vi
+          .fn<() => Promise<AgentSnapshot>>()
+          .mockResolvedValueOnce(initialAgentSnapshot)
+          .mockResolvedValueOnce(nextAgentSnapshot),
+        prompt: vi.fn(async () => {}),
+        reset: vi.fn(async () => {}),
+        subscribe: vi.fn((listener) => {
+          eventListener = listener;
+          return () => {
+            eventListener = undefined;
+          };
+        }),
+      },
+      state: createStateApiFixture(),
+    } as unknown as ShellModelApi;
+
+    const model = createShellModel(api);
+    await model.load();
+
+    eventListener?.({ type: "session_changed" });
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(model.getState().shell.catalog.selection).toEqual(
+      nextShellSnapshot.catalog.selection,
+    );
+    expect(model.getState().agent).toEqual(nextAgentSnapshot);
+
+    model.dispose();
+  });
+
   test("notifies renderer subscribers when live turn and tool events arrive", async () => {
     let eventListener: ((event: PiDeskAgentEvent) => void) | undefined;
     const api = {

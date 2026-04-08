@@ -31,6 +31,7 @@ import {
   type ResolvedRepositoryInspection,
   type SelectedThreadContext,
 } from "./bootstrap/thread-context";
+import { createContextSwitchController } from "./context-switch-controller";
 import { GitWorktreeService } from "./git-worktree-service";
 import { registerIpcHandlers } from "./ipc-router";
 import { LocalThreadRuntimeManager } from "./local-thread-runtime-manager";
@@ -205,6 +206,11 @@ async function bootstrapDesktop() {
     });
 
   let unsubscribe = subscribeToHost(currentHost, null);
+  const notifySessionChanged = () => {
+    mainWindow?.webContents.send(IPC_CHANNELS.agent.event, {
+      type: "session_changed",
+    });
+  };
 
   function resolveAgentDirectory(): string {
     return currentContext?.agentDirectory ?? defaultAgentDirectory;
@@ -484,6 +490,41 @@ async function bootstrapDesktop() {
     previousTransport?.close();
   }
 
+  const contextSwitchController = createContextSwitchController(
+    {
+      get context() {
+        return currentContext;
+      },
+      set context(value) {
+        currentContext = value;
+      },
+      get host() {
+        return currentHost;
+      },
+      set host(value) {
+        currentHost = value;
+      },
+      get transport() {
+        return currentTransport;
+      },
+      set transport(value) {
+        currentTransport = value;
+      },
+      get unsubscribe() {
+        return unsubscribe;
+      },
+      set unsubscribe(value) {
+        unsubscribe = value;
+      },
+    },
+    {
+      attachContext,
+      subscribeToHost: (host, thread) =>
+        subscribeToHost(host, thread ? threadCatalog.get(thread.id) : null),
+      notifySessionChanged,
+    },
+  );
+
   const preferredWorktreePath =
     selectionState.get().worktreeId ?? process.cwd();
 
@@ -569,26 +610,35 @@ async function bootstrapDesktop() {
       reset: () => currentHost.reset(),
       addRepository: async (targetPath) => {
         commitAttachment(await attachToPath(targetPath));
+        notifySessionChanged();
       },
       reorderRepositories: async (repositoryIds) => {
         repositoryCatalog.reorder(repositoryIds);
       },
       selectRepository: async (repositoryId) => {
-        commitAttachment(await attachToRepository(repositoryId));
+        await contextSwitchController.switchContext(() =>
+          resolveRepositoryContext(repositoryId),
+        );
       },
       createWorktree: async (repositoryId, branchName) => {
-        commitAttachment(
-          await createAndAttachWorktree(repositoryId, branchName),
+        await contextSwitchController.switchContext(() =>
+          createWorktreeContext(repositoryId, branchName),
         );
       },
       selectWorktree: async (worktreeId) => {
-        commitAttachment(await attachToPath(worktreeId));
+        await contextSwitchController.switchContext(() =>
+          resolveDefaultThreadContext(worktreeId),
+        );
       },
       createThread: async (worktreeId, title) => {
-        commitAttachment(await createAndAttachThread(worktreeId, title));
+        await contextSwitchController.switchContext(() =>
+          createThreadContext(worktreeId, title),
+        );
       },
       selectThread: async (threadId) => {
-        commitAttachment(await attachToThreadId(threadId));
+        await contextSwitchController.switchContext(() =>
+          resolveThreadContext(threadId),
+        );
       },
     },
     stateHost: {

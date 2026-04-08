@@ -52,7 +52,7 @@ export function WorkspaceSearchContent({
 
   return (
     <div className={cn("flex h-full min-h-0 flex-col", className)}>
-      <div className="px-4 py-3">
+      <div className="px-4 py-3 border-b border-white/[0.06]">
         <input
           ref={inputRef}
           type="search"
@@ -62,9 +62,9 @@ export function WorkspaceSearchContent({
           placeholder="Search..."
           aria-label="Search"
           className={cn(
-            "w-full rounded-lg border-0 bg-[#1a1a1a] px-3 py-2.5 text-sm outline-none",
-            "text-foreground placeholder:text-muted-foreground",
-            "focus:ring-1 focus:ring-white/20",
+            "w-full bg-transparent px-0 py-1.5 text-sm outline-none",
+            "text-white/80 placeholder:text-white/30",
+            "border-0",
           )}
         />
         {actions.length > 0 ? (
@@ -75,9 +75,9 @@ export function WorkspaceSearchContent({
                 type="button"
                 onClick={action.onSelect}
                 className={cn(
-                  "rounded-md bg-[#1a1a1a] px-3 py-1.5 text-xs text-foreground",
+                  "rounded-md bg-white/[0.04] border border-white/[0.06] px-3 py-1.5 text-xs text-white/50",
                   "transition-colors active:scale-[0.97]",
-                  "hover:bg-[#252525]",
+                  "hover:bg-white/[0.06] hover:text-white/70",
                 )}
                 title={action.description ?? action.label}
               >
@@ -91,10 +91,10 @@ export function WorkspaceSearchContent({
       <div className="min-h-0 flex-1 overflow-auto">
         {isLoading ? (
           <div className="flex items-center justify-center p-6">
-            <Loader2 className="size-5 animate-spin text-muted-foreground" />
+            <Loader2 className="size-5 animate-spin text-white/30" />
           </div>
         ) : results.length === 0 ? (
-          <div className="p-4 text-sm text-muted-foreground text-center">
+          <div className="p-4 text-sm text-white/30 text-center">
             {query ? "No results" : "Type to search"}
           </div>
         ) : (
@@ -112,21 +112,21 @@ export function WorkspaceSearchContent({
                   className={cn(
                     "flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm",
                     "transition-colors",
-                    "hover:bg-[#1a1a1a]",
-                    isSelected && "bg-[#1a1a1a]",
+                    "hover:bg-white/[0.04]",
+                    isSelected && "bg-white/[0.06]",
                   )}
                 >
                   <Icon
                     className={cn(
                       "size-4 shrink-0",
                       result.type === "directory"
-                        ? "text-amber-400"
-                        : "text-muted-foreground",
+                        ? "text-amber-400/60"
+                        : "text-white/30",
                     )}
                   />
                   <div className="min-w-0 flex-1">
-                    <div className="truncate">{result.name}</div>
-                    <div className="truncate text-xs text-muted-foreground">
+                    <div className="truncate text-white/80">{result.name}</div>
+                    <div className="truncate text-xs text-white/40">
                       {result.path}
                     </div>
                   </div>

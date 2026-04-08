@@ -146,23 +146,21 @@ export function FileViewer({
       {/* Header */}
       <div
         className={cn(
-          "flex h-12 shrink-0 items-center justify-between border-b border-border bg-surface-2 px-4",
+          "flex h-12 shrink-0 items-center justify-between border-b border-white/[0.04] bg-[#0d0d0d] px-4",
           "transition-colors duration-150 ease-out",
         )}
       >
         <div className="flex min-w-0 items-center gap-2">
           {fileContent?.type === "image" ? (
-            <Image className="size-4 shrink-0 text-muted-foreground" />
+            <Image className="size-4 shrink-0 text-white/30" />
           ) : (
-            <FileText className="size-4 shrink-0 text-muted-foreground" />
+            <FileText className="size-4 shrink-0 text-white/30" />
           )}
-          <span className="truncate text-sm font-medium text-foreground">
+          <span className="truncate text-sm font-medium text-white/80">
             {fileName}
           </span>
           {fileContent?.type === "text" && (
-            <span className="shrink-0 text-xs text-muted-foreground">
-              ({language})
-            </span>
+            <span className="shrink-0 text-xs text-white/40">({language})</span>
           )}
         </div>
         <div className="flex items-center gap-1">
@@ -171,9 +169,9 @@ export function FileViewer({
               type="button"
               onClick={onOpenTerminal}
               className={cn(
-                "rounded-md p-1 text-muted-foreground",
+                "rounded-md p-1 text-white/30",
                 "transition-all duration-150 ease-out",
-                "hover:bg-surface-3 hover:text-foreground",
+                "hover:bg-white/[0.06] hover:text-white/80",
                 "active:scale-95",
               )}
               aria-label="Open terminal"
@@ -186,9 +184,9 @@ export function FileViewer({
               type="button"
               onClick={onClose}
               className={cn(
-                "rounded-md p-1 text-muted-foreground",
+                "rounded-md p-1 text-white/30",
                 "transition-all duration-150 ease-out",
-                "hover:bg-surface-3 hover:text-foreground",
+                "hover:bg-white/[0.06] hover:text-white/80",
                 "active:scale-95",
               )}
               aria-label="Close file"
@@ -200,11 +198,11 @@ export function FileViewer({
       </div>
 
       {/* Content */}
-      <div className="min-h-0 flex-1 overflow-auto">
+      <div className="min-h-0 flex-1 overflow-auto bg-[#0a0a0a]">
         {isLoading && (
           <div
             className={cn(
-              "flex h-full items-center justify-center text-sm text-muted-foreground",
+              "flex h-full items-center justify-center text-sm text-white/50",
               "animate-pulse",
             )}
           >
@@ -232,16 +230,16 @@ export function FileViewer({
           >
             <div
               className={cn(
-                "flex h-16 w-16 items-center justify-center rounded-md bg-surface-2",
+                "flex h-16 w-16 items-center justify-center rounded-md bg-white/[0.02] border border-white/[0.04]",
                 "transition-all duration-150 ease-out",
                 "hover:scale-105",
               )}
             >
-              <Binary className="size-8 text-muted-foreground" />
+              <Binary className="size-8 text-white/30" />
             </div>
             <div className="space-y-1">
-              <p className="text-sm font-medium text-foreground">Binary file</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm font-medium text-white/80">Binary file</p>
+              <p className="text-xs text-white/40">
                 This file cannot be displayed in the text viewer
               </p>
             </div>
@@ -275,18 +273,18 @@ export function FileViewer({
           >
             <div
               className={cn(
-                "flex h-16 w-16 items-center justify-center rounded-md bg-surface-2",
+                "flex h-16 w-16 items-center justify-center rounded-md bg-white/[0.02] border border-white/[0.04]",
                 "transition-all duration-150 ease-out",
                 "hover:scale-105",
               )}
             >
-              <FileWarning className="size-8 text-muted-foreground" />
+              <FileWarning className="size-8 text-white/30" />
             </div>
             <div className="space-y-1">
-              <p className="text-sm font-medium text-foreground">
+              <p className="text-sm font-medium text-white/80">
                 Unsupported file type
               </p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-white/40">
                 This file format cannot be displayed
               </p>
             </div>
@@ -338,18 +336,16 @@ export function FileViewer({
           >
             <div
               className={cn(
-                "flex h-16 w-16 items-center justify-center rounded-md bg-surface-2",
+                "flex h-16 w-16 items-center justify-center rounded-md bg-white/[0.02] border border-white/[0.04]",
                 "transition-all duration-150 ease-out",
                 "hover:scale-105",
               )}
             >
-              <FileIcon className="size-8 text-muted-foreground" />
+              <FileIcon className="size-8 text-white/30" />
             </div>
             <div className="space-y-1">
-              <p className="text-sm font-medium text-foreground">Empty file</p>
-              <p className="text-xs text-muted-foreground">
-                This file has no content
-              </p>
+              <p className="text-sm font-medium text-white/80">Empty file</p>
+              <p className="text-xs text-white/40">This file has no content</p>
             </div>
           </div>
         )}

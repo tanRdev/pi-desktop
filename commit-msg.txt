@@ -1,0 +1,10 @@
+refactor(desktop): simplify left rail and workspace chrome
+
+- Remove user profile section from left rail
+- Remove New Agent button entirely  
+- Remove project selector from workspace header
+- Remove context bar from chat thread panel
+- Convert Add workspace to smaller text button
+- Simplify hover/selected states without background colors
+- Reduce project font size from 13px to 12px
+- Hide "No agents yet" text for empty projects

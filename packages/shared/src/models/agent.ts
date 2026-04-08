@@ -99,6 +99,9 @@ export interface AgentSnapshot {
  */
 export type PiDeskAgentEvent =
   | {
+      type: "session_changed";
+    }
+  | {
       type: "agent_end";
     }
   | {

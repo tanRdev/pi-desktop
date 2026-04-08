@@ -10,16 +10,18 @@ import {
   PromptInputTextarea,
 } from "@pidesk/ui";
 import * as React from "react";
-import { cn } from "@/lib/utils";
 import {
+  ArrowUp,
   CaretDown,
   Cpu,
   ICON_SIZE_MD,
   ICON_SIZE_SM,
   ICON_SIZE_XS,
+  Microphone,
   Paperclip,
   Square,
 } from "@/components/ui/icons";
+import { cn } from "@/lib/utils";
 import { buildFileMention } from "../../lib/prompt-routing";
 import { Button } from "../ui/button";
 import { FileUpload, type UploadedFile } from "../ui/file-upload";
@@ -97,6 +99,7 @@ export function PromptDock({
   onModelMenuOpenChange,
   onModelSelection,
 }: PromptDockProps) {
+  const modelSelectRef = React.useRef<HTMLSelectElement | null>(null);
   const [modelOpen, setModelOpen] = React.useState(false);
   const [isFocused, setIsFocused] = React.useState(false);
   const [uploadedFiles, setUploadedFiles] = React.useState<UploadedFile[]>([]);
@@ -129,16 +132,15 @@ export function PromptDock({
     [uploadedFiles],
   );
 
-  const handleModelSelect = React.useCallback(
-    (value: string) => {
-      const event = {
-        target: { value },
-      } as React.ChangeEvent<HTMLSelectElement>;
-      void onModelSelection(event);
-      setModelOpen(false);
-    },
-    [onModelSelection],
-  );
+  const handleModelSelect = React.useCallback((value: string) => {
+    if (modelSelectRef.current) {
+      modelSelectRef.current.value = value;
+      modelSelectRef.current.dispatchEvent(
+        new Event("change", { bubbles: true }),
+      );
+    }
+    setModelOpen(false);
+  }, []);
 
   const handleModelOpenChange = React.useCallback(
     (nextOpen: boolean) => {
@@ -218,10 +220,7 @@ export function PromptDock({
     <div
       aria-hidden={!isVisible}
       className={cn(
-        "relative mt-auto w-full",
-        // Glass morphism prompt dock
-        "glass-surface",
-        "border-t border-[var(--glass-border-default)]",
+        "relative mt-auto w-full overflow-visible border-0 bg-transparent",
         "transition-[max-height,opacity] duration-[var(--duration-slow)] ease-out",
         isVisible ? "max-h-[42rem]" : "max-h-0 overflow-hidden opacity-0",
       )}
@@ -234,16 +233,28 @@ export function PromptDock({
             : "translate-y-4 opacity-0 pointer-events-none",
         )}
       >
+        <select
+          ref={modelSelectRef}
+          className="sr-only"
+          aria-hidden="true"
+          tabIndex={-1}
+          onChange={(e) => void onModelSelection(e)}
+        >
+          {providerSnapshots.flatMap((p) =>
+            p.models.map((m) => (
+              <option key={`${p.id}::${m.id}`} value={`${p.id}::${m.id}`}>
+                {m.name}
+              </option>
+            )),
+          )}
+        </select>
         <PromptInput
           value={draft}
           onValueChange={onDraftChange}
           onSubmit={() =>
             void (isPromptExecuting ? onCancelPrompt() : onSend())
           }
-          className={cn(
-            "border-0 bg-transparent",
-            "px-[var(--space-4)] pb-[var(--space-4)] pt-[var(--space-4)]",
-          )}
+          className={cn("border-0 bg-transparent", "px-4 pb-3 pt-4")}
         >
           <FileUpload
             files={uploadedFiles}
@@ -278,8 +289,8 @@ export function PromptDock({
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             className={cn(
-              "min-h-[80px] resize-none border-0 bg-transparent px-0 py-0 pb-[var(--space-2)]",
-              "text-sm leading-relaxed text-[var(--color-text-primary)]",
+              "min-h-[72px] resize-none border-0 bg-transparent px-0 py-0 pb-2",
+              "text-[15px] leading-7 text-[var(--color-text-primary)]",
               "placeholder:text-[var(--color-text-tertiary)]",
               "focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none",
               "disabled:opacity-50",
@@ -293,11 +304,11 @@ export function PromptDock({
             selectedIndex={autocompleteSelectedIndex}
             onSelect={onAutocompleteSelect}
             onHover={onAutocompleteHover}
-            className="absolute left-0 right-0 top-full z-20 mt-[var(--space-2)]"
+            className="absolute left-0 right-0 top-full z-20 mt-2"
           />
 
-          <PromptInputActions className="mt-[var(--space-2)] items-center justify-between gap-[var(--space-3)] pt-[var(--space-2)] border-t border-[var(--color-border-subtle)]">
-            <div className="flex items-center gap-[var(--space-2)]">
+          <PromptInputActions className="mt-2 items-center justify-between gap-3 border-t border-white/[0.04] pt-3">
+            <div className="flex items-center gap-2">
               <PromptInputAction tooltip="Attach files">
                 <Button
                   type="button"
@@ -325,9 +336,9 @@ export function PromptDock({
                         providerSnapshots.length === 0
                       }
                       className={cn(
-                        "flex items-center gap-[var(--space-1)] rounded-md border border-[var(--color-border-default)] px-[var(--space-2)] py-[var(--space-1.5)] text-xs text-[var(--color-text-tertiary)]",
+                        "flex items-center gap-1 rounded-md px-2 py-1 text-xs text-[var(--color-text-tertiary)]",
                         "transition-all duration-[var(--duration-fast)]",
-                        "hover:text-[var(--color-text-primary)] hover:border-[var(--color-border-hover)]",
+                        "hover:text-[var(--color-text-primary)] hover:bg-white/[0.04]",
                         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]",
                         "disabled:opacity-50",
                       )}
@@ -347,12 +358,12 @@ export function PromptDock({
                     align="start"
                     side="top"
                     sideOffset={8}
-                    className="w-60 p-0 bg-[var(--color-bg-secondary)] border border-[var(--color-border-default)] rounded-lg shadow-lg"
+                    className="glass-floating w-60 rounded-md border border-white/[0.08] p-0"
                   >
                     <div className="max-h-48 overflow-y-auto">
                       {providerSnapshots.map((provider) => (
                         <div key={provider.id} className="py-[var(--space-1)]">
-                          <div className="border-b border-[var(--color-border-subtle)] px-[var(--space-2)] py-[var(--space-1)] text-xs font-medium text-[var(--color-text-tertiary)] uppercase tracking-wider">
+                          <div className="border-b border-white/[0.06] px-2 py-1.5 text-[11px] font-medium text-[var(--color-text-tertiary)] uppercase tracking-[0.14em]">
                             {provider.name}
                           </div>
                           {provider.models.map((model) => {
@@ -366,10 +377,10 @@ export function PromptDock({
                                 data-testid={`model-option-${provider.id}-${model.id}`}
                                 onClick={() => handleModelSelect(value)}
                                 className={cn(
-                                  "w-full px-[var(--space-2)] py-[var(--space-1.5)] text-left text-xs transition-colors duration-[var(--duration-fast)]",
+                                  "w-full px-2.5 py-2 text-left text-[12px] transition-colors duration-[var(--duration-fast)]",
                                   isSelected
                                     ? "bg-[var(--color-accent)] text-[var(--color-text-inverse)]"
-                                    : "text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-hover)] hover:text-[var(--color-text-primary)]",
+                                    : "text-[var(--color-text-secondary)] hover:bg-white/[0.05] hover:text-[var(--color-text-primary)]",
                                 )}
                               >
                                 {model.name}
@@ -387,34 +398,54 @@ export function PromptDock({
             <div className="flex items-center gap-[var(--space-3)]">
               {isSwitchingModel ? <Loader label="Switching" /> : null}
               {currentContextWindow != null ? (
-                <div className="flex items-center gap-[var(--space-1)] text-xs text-[var(--color-text-tertiary)]">
+                <div className="flex items-center gap-1 text-xs text-[var(--color-text-tertiary)]">
                   <Cpu className={ICON_SIZE_SM} />
                   <span className="tabular-nums">
                     {getContextPercentage(currentContextWindow)}%
                   </span>
                 </div>
               ) : null}
+
+              {/* Item 16: Microphone button */}
+              <PromptInputAction tooltip="Voice input">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  disabled={!hasActiveThread}
+                  aria-label="Voice input"
+                  title="Voice input"
+                  className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-hover)]"
+                >
+                  <Microphone className={ICON_SIZE_MD} />
+                </Button>
+              </PromptInputAction>
+
+              {/* Item 15: Circular ArrowUp send button */}
               <PromptInputAction tooltip={isPromptExecuting ? "Stop" : "Send"}>
                 <Button
                   type="button"
                   data-testid="chat-send"
                   variant={isPromptExecuting ? "destructive" : "default"}
-                  size="sm"
+                  size="icon"
                   disabled={isPromptExecuting ? false : !canSend}
                   onClick={() =>
                     void (isPromptExecuting ? onCancelPrompt() : onSend())
                   }
                   className={cn(
-                    "h-8 px-[var(--space-4)] text-xs font-medium rounded-full",
-                    !isPromptExecuting && !canSend && "opacity-30",
+                    "size-7 rounded-full p-0",
+                    !isPromptExecuting &&
+                      "bg-white/80 text-black hover:bg-white",
+                    !isPromptExecuting && !canSend && "opacity-20",
                     isPromptExecuting &&
                       "bg-[var(--color-error)] hover:bg-[var(--color-error)]/90",
                   )}
                 >
                   {isPromptExecuting ? (
-                    <Square className={`mr-[var(--space-1.5)] ${ICON_SIZE_XS} fill-current`} />
-                  ) : null}
-                  {isPromptExecuting ? "Stop" : "Send"}
+                    <Square className={`${ICON_SIZE_XS} fill-current`} />
+                  ) : (
+                    <ArrowUp className="size-4" weight="bold" />
+                  )}
                 </Button>
               </PromptInputAction>
             </div>

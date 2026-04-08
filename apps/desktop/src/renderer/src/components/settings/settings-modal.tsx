@@ -67,17 +67,22 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         data-testid="settings-modal"
-        className="flex h-[85vh] max-h-[85vh] w-[90vw] max-w-[1000px] flex-col gap-0 p-0 overflow-hidden"
+        className="flex h-[76vh] max-h-[76vh] w-[min(880px,calc(100vw-64px))] max-w-[880px] flex-col gap-0 overflow-hidden rounded-xl border border-white/[0.06] bg-[#0e0e0e] p-0 shadow-[0_16px_48px_rgba(0,0,0,0.5)]"
       >
-        <DialogHeader className="flex flex-row items-center justify-between border-b border-[#474747]/30 bg-[#0e0e0e] px-6 py-4">
-          <DialogTitle className="text-sm font-bold uppercase tracking-[0.2em] font-headline text-white">
-            Settings
-          </DialogTitle>
+        <DialogHeader className="flex flex-row items-center justify-between border-b border-white/[0.06] bg-[#0c0c0c] px-6 py-4">
+          <div className="space-y-1">
+            <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-white/40">
+              Preferences
+            </p>
+            <DialogTitle className="font-heading text-[18px] font-semibold tracking-[-0.02em] text-white/90">
+              Workspace settings
+            </DialogTitle>
+          </div>
         </DialogHeader>
 
         <div className="flex flex-1 min-h-0">
-          <nav className="w-52 shrink-0 border-r border-[#474747]/20 bg-[#0e0e0e]">
-            <div className="flex flex-col gap-0.5 p-2">
+          <nav className="w-52 shrink-0 border-r border-white/[0.06] bg-[#0a0a0a] px-2 py-4">
+            <div className="flex flex-col gap-1">
               {SETTINGS_MODAL_SECTIONS.map((item) => (
                 <button
                   type="button"
@@ -85,23 +90,29 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                   data-testid={`settings-nav-${item.id}`}
                   onClick={() => handleSectionChange(item.id)}
                   className={cn(
-                    "flex items-center gap-3 rounded-md px-4 py-2.5 text-[11px] font-mono uppercase tracking-wider",
-                    "transition-all duration-100",
-                    "hover:bg-[#131313] hover:text-white",
+                    "flex items-center gap-3 rounded-md px-3 py-2.5 text-left",
+                    "transition-all duration-150 ease-out",
+                    "hover:bg-white/[0.04] hover:text-white",
                     activeSection === item.id
-                      ? "bg-[#131313] text-white border-l-2 border-white"
-                      : "text-[#474747]",
+                      ? "bg-white/[0.06] text-white/90"
+                      : "text-white/40",
                   )}
                 >
-                  {item.icon}
-                  {item.label}
+                  <span className="flex size-7 shrink-0 items-center justify-center rounded-md text-white/40">
+                    {item.icon}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-medium text-current">
+                      {item.label}
+                    </span>
+                  </span>
                 </button>
               ))}
             </div>
           </nav>
 
-          <ScrollArea className="flex-1 bg-[#131313]">
-            <div className="p-8">
+          <ScrollArea className="flex-1 bg-[#0e0e0e]">
+            <div className="mx-auto max-w-2xl p-7">
               <div
                 className={cn(
                   "transition-all duration-150",
@@ -116,7 +127,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
           </ScrollArea>
         </div>
 
-        <div className="flex items-center justify-between border-t border-[#474747]/30 px-6 py-4 bg-[#0e0e0e]">
+        <div className="flex items-center justify-between border-t border-white/[0.06] bg-[#0c0c0c] px-6 py-4">
           <Button
             variant="ghost"
             size="sm"
@@ -124,17 +135,17 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
               resetAll();
             }}
             className={cn(
-              "text-[10px] font-mono uppercase tracking-widest text-[#474747] hover:text-white rounded-md",
+              "rounded-md px-3 text-[11px] font-medium text-white/40 hover:bg-white/[0.04] hover:text-white/80",
             )}
           >
-            Reset All Settings
+            Reset visible settings
           </Button>
           <Button
             variant="default"
             size="sm"
             onClick={() => onOpenChange(false)}
             className={cn(
-              "bg-white text-black text-[10px] font-bold uppercase tracking-[0.2em] rounded-md px-6",
+              "rounded-md bg-white px-5 text-[11px] font-semibold tracking-[-0.01em] text-black",
               "hover:bg-[#d4d4d4] transition-all",
             )}
           >

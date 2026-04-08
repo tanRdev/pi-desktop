@@ -22,7 +22,7 @@ export function ThinkingBar({
   return (
     <div
       className={cn(
-        "flex w-full items-center justify-between gap-3",
+        "flex w-full items-center justify-between gap-3 rounded-lg border border-white/[0.04] bg-white/[0.02] px-3 py-2",
         "transition-opacity duration-150 ease-out",
         className,
       )}
@@ -38,7 +38,7 @@ export function ThinkingBar({
           )}
         >
           <TextShimmer className="font-medium">{text}</TextShimmer>
-          <ChevronRight className="text-muted-foreground size-4 transition-transform duration-150 group-hover:translate-x-0.5" />
+          <ChevronRight className="size-4 text-white/20 transition-transform duration-150 group-hover:translate-x-0.5" />
         </button>
       ) : (
         <TextShimmer className="cursor-default font-medium">{text}</TextShimmer>
@@ -48,9 +48,9 @@ export function ThinkingBar({
           onClick={onStop}
           type="button"
           className={cn(
-            "text-muted-foreground border-muted-foreground/50 border-b border-dotted text-sm",
+            "text-white/30 border-white/[0.08] border-b border-dotted text-sm",
             "transition-all duration-150 ease-out",
-            "hover:text-foreground hover:border-foreground",
+            "hover:text-white/50 hover:border-white/20",
             "active:scale-95",
           )}
         >

@@ -104,15 +104,15 @@ export function WorkspaceFileContent({
   );
 
   const toolbar = onSave ? (
-    <div className="flex h-11 shrink-0 items-center justify-between border-b border-[#474747]/18 bg-[#101010] px-4">
-      <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-[#666]">
+    <div className="flex h-11 shrink-0 items-center justify-between border-b border-white/[0.04] bg-[#0d0d0d] px-4">
+      <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-white/40">
         {fileName}
       </div>
       <button
         type="button"
         onClick={onSave}
         disabled={isReadOnly || !isDirty}
-        className="flex h-7 items-center gap-1.5 border border-[#474747]/18 bg-[#151515] px-2.5 text-[10px] font-mono uppercase tracking-[0.12em] text-[#b9b9b9] transition-colors hover:border-white/40 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+        className="flex h-7 items-center gap-1.5 border border-white/[0.06] bg-white/[0.02] px-2.5 text-[10px] font-mono uppercase tracking-[0.12em] text-white/50 transition-colors hover:border-white/[0.12] hover:text-white/80 disabled:cursor-not-allowed disabled:opacity-40"
       >
         <Save className="h-3 w-3" />
         Save
@@ -123,7 +123,7 @@ export function WorkspaceFileContent({
   if (isLoading) {
     return (
       <div className={cn("flex h-full items-center justify-center", className)}>
-        <div className="flex flex-col items-center gap-3 text-[#7d7d7d]">
+        <div className="flex flex-col items-center gap-3 text-white/50">
           <Loader2 className="h-7 w-7 animate-spin" />
           <span className="text-sm">Loading {fileName}</span>
         </div>
@@ -134,7 +134,7 @@ export function WorkspaceFileContent({
   if (error) {
     return (
       <div className={cn("flex h-full items-center justify-center", className)}>
-        <div className="flex flex-col items-center gap-3 text-center text-[#d38c8c]">
+        <div className="flex flex-col items-center gap-3 text-center text-red-400/80">
           <File className="h-7 w-7" />
           <span className="text-sm">{error}</span>
         </div>
@@ -145,7 +145,7 @@ export function WorkspaceFileContent({
   if (!content) {
     return (
       <div className={cn("flex h-full items-center justify-center", className)}>
-        <div className="flex flex-col items-center gap-3 text-[#7d7d7d]">
+        <div className="flex flex-col items-center gap-3 text-white/50">
           <File className="h-7 w-7" />
           <span className="text-sm">No file loaded</span>
         </div>
@@ -156,10 +156,12 @@ export function WorkspaceFileContent({
   if (content.type === "binary") {
     return (
       <div className={cn("flex h-full items-center justify-center", className)}>
-        <div className="flex flex-col items-center gap-3 text-[#7d7d7d]">
+        <div className="flex flex-col items-center gap-3 text-white/50">
           <File className="h-7 w-7" />
           <span className="text-sm">Binary file</span>
-          <span className="text-xs text-[#555]">{content.size ?? 0} bytes</span>
+          <span className="text-xs text-white/30">
+            {content.size ?? 0} bytes
+          </span>
         </div>
       </div>
     );
@@ -168,7 +170,7 @@ export function WorkspaceFileContent({
   if (content.type === "unsupported") {
     return (
       <div className={cn("flex h-full items-center justify-center", className)}>
-        <div className="flex flex-col items-center gap-3 text-[#7d7d7d]">
+        <div className="flex flex-col items-center gap-3 text-white/50">
           <File className="h-7 w-7" />
           <span className="text-sm">Unsupported preview</span>
         </div>
@@ -182,7 +184,7 @@ export function WorkspaceFileContent({
       : `data:${content.mimeType ?? "image/png"};base64,${content.content}`;
 
     return (
-      <div className={cn("flex h-full flex-col bg-[#080808]", className)}>
+      <div className={cn("flex h-full flex-col bg-[#0a0a0a]", className)}>
         {toolbar}
         <div className="flex min-h-0 flex-1 items-center justify-center p-4">
           <img
@@ -228,7 +230,7 @@ export function WorkspaceFileContent({
 
   return (
     <div className={cn("flex h-full items-center justify-center", className)}>
-      <div className="flex flex-col items-center gap-3 text-[#7d7d7d]">
+      <div className="flex flex-col items-center gap-3 text-white/50">
         <ImageIcon className="h-7 w-7" />
         <span className="text-sm">No preview available</span>
       </div>

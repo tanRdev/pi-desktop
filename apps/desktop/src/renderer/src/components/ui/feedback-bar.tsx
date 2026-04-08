@@ -1,11 +1,11 @@
+import * as React from "react";
+import { Button } from "@/components/ui/button";
 import {
   ArrowCounterClockwise,
   Copy,
   ThumbsDown,
   ThumbsUp,
-} from "@phosphor-icons/react";
-import * as React from "react";
-import { Button } from "@/components/ui/button";
+} from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 
 export type FeedbackValue = "up" | "down" | null;
@@ -34,27 +34,32 @@ export function FeedbackBar({
 
   return (
     <div
-      className={cn(
-        "flex flex-wrap items-center gap-1.5 border-t border-[#474747]/18 pt-2",
-        className,
-      )}
+      className={cn("flex flex-wrap items-center gap-1 pt-1.5", className)}
       {...props}
     >
       <Button
         type="button"
         size="icon-xs"
-        variant={value === "up" ? "secondary" : "ghost"}
+        variant="ghost"
         onClick={() => toggleValue("up")}
         aria-label="Mark response helpful"
+        className={cn(
+          "text-white/20 hover:text-white/50 hover:bg-transparent",
+          value === "up" && "text-white/60",
+        )}
       >
         <ThumbsUp className="size-3" />
       </Button>
       <Button
         type="button"
         size="icon-xs"
-        variant={value === "down" ? "secondary" : "ghost"}
+        variant="ghost"
         onClick={() => toggleValue("down")}
         aria-label="Mark response unhelpful"
+        className={cn(
+          "text-white/20 hover:text-white/50 hover:bg-transparent",
+          value === "down" && "text-white/60",
+        )}
       >
         <ThumbsDown className="size-3" />
       </Button>
@@ -65,6 +70,7 @@ export function FeedbackBar({
           variant="ghost"
           onClick={onCopy}
           aria-label="Copy response"
+          className="text-white/20 hover:text-white/50 hover:bg-transparent"
         >
           <Copy className="size-3" />
         </Button>
@@ -76,6 +82,7 @@ export function FeedbackBar({
           variant="ghost"
           onClick={onRetry}
           aria-label="Retry response"
+          className="text-white/20 hover:text-white/50 hover:bg-transparent"
         >
           <ArrowCounterClockwise className="size-3" />
         </Button>

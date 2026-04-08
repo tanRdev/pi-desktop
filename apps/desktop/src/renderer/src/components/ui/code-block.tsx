@@ -124,7 +124,7 @@ function CodeBlock({ children, className, ...props }: CodeBlockProps) {
     <div
       className={cn(
         "not-prose flex w-full flex-col",
-        "transition-all duration-150 ease-out",
+        "transition-all duration-[var(--duration-fast)] ease-out",
         className,
       )}
       {...props}
@@ -228,7 +228,7 @@ function CodeBlockCode({
   }, [highlightedHtml]);
 
   const classNames = cn(
-    "relative w-full overflow-x-auto font-mono text-[13px] leading-relaxed",
+    "relative w-full overflow-x-auto rounded-lg border border-white/[0.04] bg-[#111111] font-mono text-[13px] leading-relaxed",
     className,
   );
 
@@ -238,8 +238,8 @@ function CodeBlockCode({
       <div className={classNames} {...props}>
         <div
           className={cn(
-            "sticky top-0 z-10 border-b border-border-subtle bg-surface-2/80 px-4 py-2 text-xs text-muted-foreground backdrop-blur",
-            "transition-all duration-150 ease-out",
+            "sticky top-0 z-10 border-b border-white/[0.04] bg-white/[0.02] px-4 py-2 text-xs text-white/20 backdrop-blur",
+            "transition-all duration-[var(--duration-fast)] ease-out",
           )}
         >
           File too large for syntax highlighting
@@ -259,8 +259,8 @@ function CodeBlockCode({
       {isHighlighting && (
         <div
           className={cn(
-            "sticky top-0 z-10 border-b border-border-subtle bg-surface-2/80 px-4 py-2 text-xs text-muted-foreground backdrop-blur",
-            "transition-all duration-150 ease-out",
+            "sticky top-0 z-10 border-b border-white/[0.04] bg-white/[0.02] px-4 py-2 text-xs text-white/20 backdrop-blur",
+            "transition-all duration-[var(--duration-fast)] ease-out",
           )}
         >
           Loading syntax highlighting...
@@ -269,10 +269,10 @@ function CodeBlockCode({
       {highlightedHtml ? (
         <div
           ref={containerRef}
-          className="p-4 transition-opacity duration-150 ease-out"
+          className="p-4 transition-opacity duration-[var(--duration-fast)] ease-out"
         />
       ) : (
-        <div className="p-4 transition-opacity duration-150 ease-out">
+        <div className="p-4 transition-opacity duration-[var(--duration-fast)] ease-out">
           <pre className="whitespace-pre-wrap break-words">
             <code>{code}</code>
           </pre>
@@ -293,7 +293,7 @@ function CodeBlockGroup({
     <div
       className={cn(
         "flex items-center justify-between",
-        "transition-all duration-150 ease-out",
+        "transition-all duration-[var(--duration-fast)] ease-out",
         className,
       )}
       {...props}

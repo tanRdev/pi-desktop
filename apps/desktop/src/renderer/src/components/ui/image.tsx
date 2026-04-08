@@ -14,7 +14,7 @@ export function Image({
   return (
     <div
       className={cn(
-        "overflow-hidden border border-[#474747]/25 bg-[#111111]",
+        "overflow-hidden rounded-lg border border-white/[0.06] bg-white/[0.02]",
         aspect === "square" && "aspect-square",
         aspect === "landscape" && "aspect-[16/10]",
       )}

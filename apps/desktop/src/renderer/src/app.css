@@ -1,5 +1,10 @@
 @import "tailwindcss";
 @import "@pidesk/ui/styles/pidesk-shell.css";
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/manrope";
+@import "@fontsource-variable/source-code-pro";
+
+@custom-variant dark (&:is(.dark *));
 
 /* ============================================
    DESIGN SYSTEM - Semantic Variables
@@ -11,19 +16,22 @@
   --color-bg-secondary: #0f0f0f;
   --color-bg-tertiary: #141414;
   --color-bg-quaternary: #1a1a1a;
-  --color-bg-hover: #1f1f1f;
+  --color-bg-hover: #1a1a1a;
   --color-bg-active: #242424;
 
   /* Glass Morphism System - Cursor IDE Style */
-  --glass-bg-primary: rgba(10, 10, 10, 0.75);
-  --glass-bg-secondary: rgba(15, 15, 15, 0.65);
-  --glass-bg-tertiary: rgba(20, 20, 20, 0.55);
-  --glass-bg-solid: rgba(10, 10, 10, 0.92);
+  --glass-bg-primary: rgba(13, 13, 13, 0.95);
+  --glass-bg-secondary: rgba(15, 15, 15, 0.90);
+  --glass-bg-tertiary: rgba(20, 20, 20, 0.85);
+  --glass-bg-solid: rgba(13, 13, 13, 1);
+  --shell-sidebar-bg: #0d0d0d;
+  --shell-main-bg: #0d0d0d;
+  --shell-overlay-bg: #0c0c0c;
 
-  --glass-border-subtle: rgba(255, 255, 255, 0.06);
-  --glass-border-default: rgba(255, 255, 255, 0.1);
-  --glass-border-strong: rgba(255, 255, 255, 0.15);
-  --glass-border-glow: rgba(59, 130, 246, 0.2);
+  --glass-border-subtle: rgba(255, 255, 255, 0.04);
+  --glass-border-default: rgba(255, 255, 255, 0.06);
+  --glass-border-strong: rgba(255, 255, 255, 0.10);
+  --glass-border-glow: rgba(59, 130, 246, 0.25);
 
   --glass-blur-sm: blur(8px);
   --glass-blur-md: blur(16px);
@@ -37,8 +45,8 @@
   --glass-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.02);
 
   --color-border-subtle: #1f1f1f;
-  --color-border-default: #27272a;
-  --color-border-strong: #2a2a2a;
+  --color-border-default: #1f1f23;
+  --color-border-strong: #222224;
   --color-border-hover: #3a3a3a;
 
   --color-text-primary: #e7e7e7;
@@ -79,8 +87,8 @@
   /* Border Radius */
   --radius-sm: 4px;
   --radius-md: 6px;
-  --radius-lg: 8px;
-  --radius-xl: 12px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
   --radius-2xl: 16px;
 
   /* Window Chrome */
@@ -129,37 +137,28 @@
 
   /* Window chrome title bar */
   .glass-titlebar {
-    background: linear-gradient(
-      180deg,
-      rgba(20, 20, 20, 0.85) 0%,
-      rgba(15, 15, 15, 0.7) 100%
-    );
+    background: rgba(13, 13, 13, 0.95);
     backdrop-filter: var(--glass-blur-md);
     -webkit-backdrop-filter: var(--glass-blur-md);
-    border-bottom: 1px solid var(--glass-border-default);
-    box-shadow:
-      0 1px 0 var(--glass-highlight-top),
-      inset 0 -1px 0 var(--glass-border-subtle);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   }
 
   /* Surface overlays */
   .glass-surface {
-    background: var(--glass-bg-secondary);
+    background: var(--shell-sidebar-bg);
     backdrop-filter: var(--glass-blur-sm);
     -webkit-backdrop-filter: var(--glass-blur-sm);
-    border: 1px solid var(--glass-border-subtle);
+    border: 0;
   }
 
   /* Floating elements */
   .glass-floating {
-    background: var(--glass-bg-solid);
-    backdrop-filter: var(--glass-blur-xl);
-    -webkit-backdrop-filter: var(--glass-blur-xl);
-    border: 1px solid var(--glass-border-default);
-    box-shadow:
-      0 20px 40px rgba(0, 0, 0, 0.4),
-      0 0 0 1px rgba(255, 255, 255, 0.02);
-    border-radius: var(--radius-lg);
+    background: var(--shell-overlay-bg);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.34);
+    border-radius: var(--radius-md);
   }
 
   /* Light mode glass adjustment */
@@ -342,33 +341,6 @@ button,
 }
 
 /* ============================================
-   ACTIVE STATE ACCENTS
-   ============================================ */
-
-.active-accent-left {
-  position: relative;
-}
-
-.active-accent-left::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 2px;
-  height: 16px;
-  background: var(--color-accent);
-  border-radius: 0 2px 2px 0;
-  opacity: 0;
-  transition: opacity var(--duration-fast) var(--ease-out);
-}
-
-.active-accent-left[data-active="true"]::before,
-.active-accent-left.active::before {
-  opacity: 1;
-}
-
-/* ============================================
    HOVER STATES - Touch Device Protection
    ============================================ */
 
@@ -376,7 +348,7 @@ button,
   .hover-lift:hover {
     transform: translateY(-1px);
   }
-  
+
   .hover-scale:hover {
     transform: scale(1.02);
   }
@@ -447,8 +419,8 @@ code:not(.shiki code):not(pre code) {
    ============================================ */
 
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
 }
 
 ::-webkit-scrollbar-track {
@@ -456,12 +428,12 @@ code:not(.shiki code):not(pre code) {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border-default);
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 8px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-border-hover);
+  background: rgba(255, 255, 255, 0.14);
 }
 
 /* ============================================
@@ -471,6 +443,12 @@ code:not(.shiki code):not(pre code) {
 :focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
+}
+
+/* Remove focus ring from text inputs */
+textarea:focus-visible,
+input:focus-visible {
+  outline: none;
 }
 
 button:focus-visible,
@@ -491,4 +469,48 @@ button:focus-visible,
 ::selection {
   background: rgba(59, 130, 246, 0.3);
   color: var(--color-text-primary);
+}
+
+@theme inline {
+  --font-heading: var(--font-geist);
+  --font-body: var(--font-manrope);
+  --font-mono: var(--font-source-code-pro);
+  --font-geist: Geist Variable;
+  --font-manrope: Manrope Variable;
+  --font-source-code-pro: Source Code Pro Variable;
+}
+
+@layer base {
+  h1 {
+    font-family: var(--font-heading);
+    font-size: 2.25rem;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    font-weight: 700;
+  }
+  h2 {
+    font-family: var(--font-heading);
+    font-size: 1.875rem;
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+    font-weight: 600;
+  }
+  h3 {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    font-weight: 600;
+  }
+  h4, h5, h6 {
+    font-family: var(--font-heading);
+    letter-spacing: -0.01em;
+  }
+  body, p {
+    font-family: var(--font-body);
+    line-height: 1.6;
+  }
+  code, pre {
+    font-family: var(--font-mono);
+  }
 }

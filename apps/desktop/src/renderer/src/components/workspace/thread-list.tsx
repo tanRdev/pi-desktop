@@ -42,25 +42,20 @@ export function ThreadList({
 }: ThreadListProps) {
   return (
     <section className="space-y-3 px-2 pt-3">
-      {/* Header - Clean, minimal */}
-      <div className="flex items-center justify-between border-b border-[var(--color-border-default)] pb-2 px-1">
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-white/[0.04] pb-2 px-1">
         <div className="flex items-center gap-2">
-          <ChatText
-            className="size-4 text-[var(--color-text-tertiary)]"
-            weight="regular"
-          />
-          <span className="text-[12px] font-medium text-[var(--color-text-tertiary)] uppercase tracking-wide">
+          <ChatText className="size-4 text-white/30" weight="regular" />
+          <span className="text-[11px] font-medium text-white/30 uppercase tracking-[0.16em]">
             Threads
           </span>
-          <span className="text-[11px] text-[var(--color-text-quaternary)]">
-            {threads.length}
-          </span>
+          <span className="text-[11px] text-white/20">{threads.length}</span>
         </div>
         <Button
           type="button"
           variant="ghost"
           size="icon"
-          className="size-7 rounded-md text-[var(--color-text-tertiary)] transition-all duration-[var(--duration-fast)] hover:bg-[var(--color-bg-hover)] hover:text-[var(--color-text-primary)] active:scale-95"
+          className="size-7 rounded-md text-white/30 transition-all duration-150 hover:bg-white/[0.04] hover:text-white/60 active:scale-95"
           onClick={() => onCreate()}
           aria-label="Create thread"
         >
@@ -68,14 +63,12 @@ export function ThreadList({
         </Button>
       </div>
 
-      {/* Thread list - Clean, minimal cards */}
+      {/* Thread list */}
       <div className="space-y-0.5">
         {threads.length === 0 ? (
-          <div className="rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-bg-tertiary)] px-3 py-4 text-center stagger-item">
-            <p className="text-[13px] text-[var(--color-text-secondary)]">
-              No threads yet
-            </p>
-            <p className="mt-1 text-[11px] text-[var(--color-text-quaternary)]">
+          <div className="rounded-md border border-white/[0.06] bg-white/[0.02] px-3 py-4 text-center">
+            <p className="text-[13px] text-white/50">No threads yet</p>
+            <p className="mt-1 text-[11px] text-white/30">
               Create one to start chatting
             </p>
           </div>
@@ -89,11 +82,10 @@ export function ThreadList({
                 type="button"
                 onClick={() => onSelect(thread.id)}
                 className={cn(
-                  "active-accent-left group relative w-full rounded-lg px-3 py-2.5 text-left transition-all duration-[var(--duration-fast)]",
+                  "group relative w-full rounded-md px-3 py-2.5 text-left transition-all duration-150",
                   isActive
-                    ? "bg-[var(--color-bg-tertiary)] text-[var(--color-text-primary)] active"
-                    : "text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-hover)] hover:text-[var(--color-text-primary)]",
-                  "stagger-item",
+                    ? "bg-white/[0.06] text-white/80"
+                    : "text-white/50 hover:bg-white/[0.04] hover:text-white/70",
                 )}
                 data-active={isActive}
                 style={{ animationDelay: `${Math.min(index * 40, 320)}ms` }}
@@ -105,24 +97,22 @@ export function ThreadList({
                         className={cn(
                           "size-4 shrink-0 transition-colors",
                           isActive
-                            ? "text-[var(--color-accent)]"
-                            : "text-[var(--color-text-quaternary)] group-hover:text-[var(--color-text-tertiary)]",
+                            ? "text-white/60"
+                            : "text-white/20 group-hover:text-white/30",
                         )}
                         weight="regular"
                       />
                       <span
                         className={cn(
                           "truncate text-[13px] font-medium leading-tight",
-                          isActive
-                            ? "text-[var(--color-text-primary)]"
-                            : "text-[var(--color-text-secondary)]",
+                          isActive ? "text-white/80" : "text-white/50",
                         )}
                       >
                         {thread.title}
                       </span>
                     </div>
-                    <div className="mt-1 flex items-center gap-2">
-                      <span className="text-[11px] text-[var(--color-text-quaternary)]">
+                    <div className="mt-1 flex items-center gap-2 pl-6">
+                      <span className="text-[11px] text-white/20">
                         {formatActivity(thread.lastActivityAt)}
                       </span>
                     </div>

@@ -173,8 +173,8 @@ function ReasoningContent({
       <div
         ref={innerRef}
         className={cn(
-          "text-muted-foreground prose prose-sm dark:prose-invert",
-          "bg-surface-2 p-3 mt-2",
+          "text-white/50 prose prose-sm dark:prose-invert",
+          "bg-white/[0.02] border border-white/[0.04] p-3 mt-2",
           "stagger-item",
           contentClassName,
         )}

@@ -3,7 +3,7 @@ import type { RepositorySnapshot, WorktreeSnapshot } from "@pidesk/shared";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "../ui/scroll-area";
-import { LEFT_RAIL_WIDTH } from "./left-rail";
+import { SIDEBAR_WIDTH } from "./left-rail";
 
 const MIN_SIDEBAR_WIDTH = 140;
 const MAX_SIDEBAR_WIDTH = 400;
@@ -82,7 +82,7 @@ export function LeftSidebar({
       const leftRailRight =
         document
           .querySelector('[data-testid="left-rail"]')
-          ?.getBoundingClientRect().right ?? LEFT_RAIL_WIDTH;
+          ?.getBoundingClientRect().right ?? SIDEBAR_WIDTH;
       const newWidth = e.clientX - leftRailRight;
       onResize(clampSidebarWidth(newWidth));
     };
@@ -113,8 +113,8 @@ export function LeftSidebar({
       data-testid="left-sidebar"
       data-state={isCollapsed ? "collapsed" : "expanded"}
       className={cn(
-        "relative z-10 flex h-full shrink-0 overflow-hidden bg-[#0f0f0f]",
-        "border-r border-[#2a2a2a]",
+        "relative z-10 flex h-full shrink-0 overflow-hidden bg-[#0a0a0a]",
+        "border-r border-white/[0.04]",
         "transition-[width] duration-200 ease-out",
         isCollapsed && "overflow-hidden",
         className,
@@ -125,12 +125,12 @@ export function LeftSidebar({
     >
       <div className="flex min-w-0 flex-1 flex-col">
         {!isCollapsed && (
-          <div className="border-b border-[#2a2a2a] px-4 py-3">
-            <p className="text-xs font-medium text-muted-foreground">Sidecar</p>
-            <h2 className="mt-1 text-sm font-medium text-foreground">
+          <div className="border-b border-white/[0.04] px-4 py-3">
+            <p className="text-xs font-medium text-white/30">Sidecar</p>
+            <h2 className="mt-1 text-sm font-medium text-white/80">
               {repositoryLabel}
             </h2>
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="mt-1 text-xs text-white/30">
               Supporting context: files, terminal, or git
             </p>
           </div>
@@ -138,7 +138,7 @@ export function LeftSidebar({
 
         {!repository ? (
           <div className="px-4 pt-4">
-            <div className="rounded-md bg-[#141414] px-4 py-4 text-sm text-muted-foreground">
+            <div className="rounded-md bg-white/[0.02] px-4 py-4 text-sm text-white/40">
               Add a repository to start
             </div>
           </div>
@@ -147,12 +147,12 @@ export function LeftSidebar({
         <ScrollArea className="min-h-0 flex-1">
           <div className="space-y-3 px-3 py-3">
             <div className="space-y-3">
-              <div className="rounded-lg border border-[#2a2a2a] bg-[#141414] px-3 py-3">
+              <div className="rounded-md border border-white/[0.04] bg-white/[0.02] px-3 py-3">
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs font-medium text-muted-foreground">
+                  <span className="text-xs font-medium text-white/40">
                     Worktrees
                   </span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-xs text-white/20">
                     {worktrees.length}
                   </span>
                 </div>
@@ -169,38 +169,38 @@ export function LeftSidebar({
                           className={cn(
                             "flex w-full flex-col gap-1 rounded-md px-2 py-2 text-left transition-colors",
                             isActive
-                              ? "bg-[#1a1a1a] text-foreground"
-                              : "hover:bg-[#1a1a1a]/50 text-muted-foreground hover:text-foreground",
+                              ? "bg-white/[0.04] text-white/80"
+                              : "hover:bg-white/[0.03] text-white/50 hover:text-white/70",
                           )}
                         >
                           <div className="flex items-center justify-between gap-2">
                             <span className="truncate text-sm font-medium">
                               {worktree.label}
                             </span>
-                            <span className="text-xs text-muted-foreground">
+                            <span className="text-xs text-white/30">
                               {worktree.git.branch ?? "Detached"}
                             </span>
                           </div>
-                          <span className="truncate text-xs text-muted-foreground">
+                          <span className="truncate text-xs text-white/30">
                             {formatGitSummary(worktree)}
                           </span>
                         </button>
                       );
                     })
                   ) : (
-                    <div className="rounded-md bg-[#1a1a1a] px-3 py-3 text-sm text-muted-foreground">
+                    <div className="rounded-md bg-white/[0.02] px-3 py-3 text-sm text-white/30">
                       No worktrees
                     </div>
                   )}
                 </div>
               </div>
 
-              <div className="rounded-lg border border-[#2a2a2a] bg-[#141414] px-3 py-3">
+              <div className="rounded-md border border-white/[0.04] bg-white/[0.02] px-3 py-3">
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs font-medium text-muted-foreground">
+                  <span className="text-xs font-medium text-white/40">
                     Active thread
                   </span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-xs text-white/20">
                     {activeThreadId ? "Live" : "Idle"}
                   </span>
                 </div>
@@ -216,19 +216,19 @@ export function LeftSidebar({
                           <button
                             key={thread.id}
                             type="button"
-                            className="flex w-full flex-col gap-0.5 rounded-md px-2 py-2 text-left bg-[#1a1a1a]"
+                            className="flex w-full flex-col gap-0.5 rounded-md px-2 py-2 text-left bg-white/[0.04]"
                           >
-                            <span className="truncate text-sm font-medium text-foreground">
+                            <span className="truncate text-sm font-medium text-white/80">
                               {thread.title}
                             </span>
-                            <span className="truncate text-xs text-muted-foreground">
+                            <span className="truncate text-xs text-white/30">
                               {worktree.label}
                             </span>
                           </button>
                         )),
                     )
                   ) : (
-                    <div className="rounded-md bg-[#1a1a1a] px-3 py-3 text-sm text-muted-foreground">
+                    <div className="rounded-md bg-white/[0.02] px-3 py-3 text-sm text-white/30">
                       Select a thread to begin
                     </div>
                   )}
@@ -239,10 +239,10 @@ export function LeftSidebar({
         </ScrollArea>
 
         {!isCollapsed && showNewWorktreeButton && (
-          <div className="border-t border-[#2a2a2a] px-3 py-2">
+          <div className="border-t border-white/[0.04] px-3 py-2">
             <button
               type="button"
-              className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-[#1a1a1a] hover:text-foreground"
+              className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-sm font-medium text-white/40 transition-colors hover:bg-white/[0.04] hover:text-white/60"
               onClick={onCreateWorktree}
             >
               <FolderPlus className="size-4" />
@@ -256,8 +256,8 @@ export function LeftSidebar({
         <div
           className={cn(
             "absolute right-0 top-0 bottom-0 w-1 cursor-col-resize",
-            "hover:bg-[#3a3a3a] transition-colors duration-150",
-            isResizing && "bg-[#505050]",
+            "hover:bg-white/[0.06] transition-colors duration-150",
+            isResizing && "bg-white/[0.08]",
           )}
           onMouseDown={() => setIsResizing(true)}
           title="Drag to resize"
