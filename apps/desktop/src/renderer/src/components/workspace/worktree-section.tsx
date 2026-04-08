@@ -104,11 +104,6 @@ export function WorktreeSection({
         >
           {worktree.label}
         </span>
-        {worktree.git.branch && (
-          <span className="shrink-0 truncate max-w-[80px] text-[10px] text-white/25 group-hover:text-white/35">
-            {worktree.git.branch}
-          </span>
-        )}
       </button>
 
       {/* Thread List - seamlessly connected with vertical line */}

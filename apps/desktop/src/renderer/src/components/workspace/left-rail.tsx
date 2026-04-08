@@ -294,21 +294,6 @@ export function LeftRail({
                     >
                       {repositoryName}
                     </span>
-                    {totalThreads > 0 && (
-                      <span
-                        className={cn(
-                          "flex items-center gap-1 text-[11px] leading-tight mt-0.5",
-                          isActive || hasActiveThreadInRepo
-                            ? "text-white/25"
-                            : "text-white/20 group-hover:text-white/30",
-                        )}
-                      >
-                        <Minus className="size-2.5 shrink-0" weight="bold" />
-                        <span>
-                          {totalThreads} agent{totalThreads === 1 ? "" : "s"}
-                        </span>
-                      </span>
-                    )}
                   </span>
                 </button>
 
@@ -377,6 +362,24 @@ export function LeftRail({
         >
           <FolderOpen className="size-4" weight="regular" />
           <span>Add workspace</span>
+        </button>
+      </div>
+
+      {/* Marketplace - bottom */}
+      <div className="px-3 py-2">
+        <button
+          type="button"
+          data-no-drag="true"
+          onClick={onOpenMarketplace}
+          className={cn(
+            "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2",
+            "text-white/40 text-[13px]",
+            "transition-all duration-150",
+            "hover:bg-white/[0.05] hover:text-white/70",
+          )}
+        >
+          <SquaresFour className="size-4" weight="regular" />
+          <span>Marketplace</span>
         </button>
       </div>
 
