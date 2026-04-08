@@ -254,7 +254,7 @@ function CursorChatInput({
       )}
 
       {/* Input area */}
-      <div className="flex flex-col gap-2 pt-3 pb-2">
+      <div className="flex flex-col gap-2 pt-4 pb-3">
         <textarea
           ref={textareaRef}
           value={draft}
@@ -660,7 +660,7 @@ export function ChatThreadPanel({
       {/* CursorChatInput — pinned to bottom */}
       {onDraftChange && onSend && onCancelPrompt && (
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d] to-transparent">
-          <div className="overflow-hidden border-t border-white/[0.06] bg-[var(--color-bg-secondary)]/95 shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.02)] backdrop-blur-xl">
+          <div className="overflow-hidden border-t border-white/[0.03] bg-[var(--color-bg-secondary)]/95 shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.02)] backdrop-blur-xl">
             <CursorChatInput
               draft={draft}
               onDraftChange={onDraftChange}
