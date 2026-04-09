@@ -275,6 +275,7 @@ export function WorkspaceShell({
           onAddRepository={onAddRepository}
           onOpenMarketplace={onOpenMarketplace}
           onOpenSettings={onOpenSettings}
+          onToggleVisible={() => setIsLeftRailVisible(false)}
         />}
 
         {/* Item 18: Main area bg #0d0d0d */}
@@ -291,27 +292,22 @@ export function WorkspaceShell({
             className="flex h-11 shrink-0 items-center justify-between px-4 select-none border-b border-white/[0.03]"
           >
             <div className="flex items-center gap-2 text-[12px] text-white/60">
-              <button
-                type="button"
-                onClick={() => setIsLeftRailVisible(!isLeftRailVisible)}
-                data-no-drag="true"
-                className="flex size-7 items-center justify-center rounded-md text-white/30 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/60"
-              >
-                <SidebarSimple className="size-4" />
-              </button>
+              {!isLeftRailVisible && (
+                <button
+                  type="button"
+                  onClick={() => setIsLeftRailVisible(true)}
+                  data-no-drag="true"
+                  className="flex size-7 items-center justify-center rounded-md text-white/30 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/60"
+                >
+                  <SidebarSimple className="size-4" />
+                </button>
+              )}
               <GitBranch className="size-3.5" />
               <span>{projectName}</span>
               <span className="text-white/30">→</span>
               <span>{activeWorktreeLabel ?? "main"}</span>
-              <span className="ml-2 rounded-full bg-white/[0.06] px-2 py-0.5 text-[10px] uppercase tracking-wider text-white/40">Archived</span>
             </div>
             <div className="flex items-center gap-1" data-no-drag="true">
-              <button className="flex size-7 items-center justify-center rounded-md text-white/30 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/60">
-                <Plus className="size-4" />
-              </button>
-              <button className="flex size-7 items-center justify-center rounded-md text-white/30 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/60">
-                <ClockCounterClockwise className="size-4" />
-              </button>
               <button
                 type="button"
                 onClick={() => setIsRightPanelVisible(!isRightPanelVisible)}

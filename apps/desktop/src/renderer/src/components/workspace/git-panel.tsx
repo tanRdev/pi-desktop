@@ -10,28 +10,28 @@ export function GitPanel({ className, projectName }: { className?: string; proje
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-        <div className="p-4">
-          <div className="space-y-3">
+        <div className="p-3">
+          <div className="space-y-2">
             <textarea
-              className="w-full resize-none rounded bg-transparent p-0 text-[13px] text-white/80 placeholder:text-white/30 focus:outline-none"
-              placeholder={`Message (⌘+Enter to commit on '${projectName ?? "project"}')`}
-              rows={3}
+              className="w-full resize-none rounded bg-transparent p-0 text-[12px] text-white/80 placeholder:text-white/30 focus:outline-none"
+              placeholder={`Message (⌘+Enter on '${projectName ?? "project"}')`}
+              rows={2}
             />
             <div className="flex items-center justify-between">
               <div />
-              <button className="flex items-center gap-1.5 rounded bg-white/[0.06] px-3 py-1.5 text-[12px] font-medium text-white/80 transition-colors hover:bg-white/[0.1] opacity-50 cursor-not-allowed">
-                <Check className="size-3.5" />
+              <button className="flex items-center gap-1 rounded bg-white/[0.06] px-2 py-1 text-[11px] font-medium text-white/80 transition-colors hover:bg-white/[0.1] opacity-50 cursor-not-allowed">
+                <Check className="size-3" />
                 Commit
               </button>
             </div>
-            <p className="text-[12px] text-[#90733a] pt-2">
+            <p className="text-[11px] text-[#90733a] pt-1">
               Select a workspace with a root path to open files here.
             </p>
           </div>
         </div>
 
-        <div className="border-t border-white/[0.03] p-4">
-          <h3 className="mb-3 text-[12px] font-medium text-white/80">Actions</h3>
+        <div className="border-t border-white/[0.03] p-3">
+          <h3 className="mb-2 text-[12px] font-medium text-white/80">Actions</h3>
           
           <div className="space-y-4">
             <div>

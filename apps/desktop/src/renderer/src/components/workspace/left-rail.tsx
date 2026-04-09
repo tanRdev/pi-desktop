@@ -23,6 +23,7 @@ import {
   SquaresFour,
   Stack,
   Trash,
+  SidebarSimple,
 } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { ProjectAvatar } from "./project-avatar";
@@ -48,6 +49,7 @@ export interface LeftRailProps {
   onCloseThread?: (threadId: string) => void;
   onRenameThread?: (threadId: string, title: string) => void;
   onAddRepository: () => void;
+  onToggleVisible?: () => void;
   onOpenSettings?: () => void;
   onOpenFilter?: () => void;
   onNewAgent?: () => void;
@@ -76,6 +78,7 @@ export function LeftRail({
   onCloseThread,
   onRenameThread,
   onAddRepository,
+  onToggleVisible,
   onOpenMarketplace,
   onOpenSettings,
 }: LeftRailProps) {
@@ -249,7 +252,16 @@ export function LeftRail({
       style={{ width }}
     >
       {/* Drag region for macOS traffic lights */}
-      <div data-drag-region="true" className="h-11 w-full shrink-0" />
+      <div data-drag-region="true" className="flex h-11 w-full shrink-0 items-center justify-end px-3">
+        <button
+          type="button"
+          onClick={onToggleVisible}
+          data-no-drag="true"
+          className="flex size-7 items-center justify-center rounded-md text-white/30 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/60"
+        >
+          <SidebarSimple className="size-4" />
+        </button>
+      </div>
 
       {/* Navigation Items */}
       <div className="px-3 pb-3">
@@ -378,11 +390,11 @@ export function LeftRail({
       <div className="mx-3 h-px bg-white/[0.06]" />
 
       {/* Pi branding - bottom */}
-      <div className="px-3 py-2">
-        <div className="flex items-center justify-between rounded-md px-2.5 py-2">
-          <div className="flex items-center gap-2.5">
-            <Pi className="size-4 text-[var(--color-text-secondary)]" />
-            <span className="text-[13px] text-[var(--color-text-muted)]">
+      <div className="px-3 py-1">
+        <div className="flex items-center justify-between rounded-md px-2 py-1">
+          <div className="flex items-center gap-2">
+            <Pi className="size-3.5 text-[var(--color-text-secondary)]" />
+            <span className="text-[11px] text-[var(--color-text-muted)]">
               Pi Desktop v0.1.0
             </span>
           </div>
@@ -391,13 +403,13 @@ export function LeftRail({
             data-no-drag="true"
             onClick={onOpenSettings}
             className={cn(
-              "flex items-center justify-center rounded p-1.5",
+              "flex items-center justify-center rounded p-1",
               "text-[var(--color-text-secondary)]",
               "transition-all duration-[var(--duration-fast)]",
               "hover:bg-[var(--color-surface-secondary)] hover:text-[var(--color-text-primary)]",
             )}
           >
-            <Gear className="size-4" />
+            <Gear className="size-3.5" />
           </button>
         </div>
       </div>
