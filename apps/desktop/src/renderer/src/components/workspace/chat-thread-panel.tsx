@@ -7,7 +7,7 @@ import {
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { FeedbackBar, type FeedbackValue } from "../ui/feedback-bar";
-import { At, Paperclip, Plus, Star, Stop, X } from "../ui/icons";
+import { ArrowUp, At, Paperclip, Plus, Stop, X } from "../ui/icons";
 import { Loader } from "../ui/loader";
 import { MessageContent } from "../ui/message";
 import { ScrollButton } from "../ui/scroll-button";
@@ -328,15 +328,14 @@ function CursorChatInput({
               onClick={() => void onSend()}
               disabled={!canSend}
               className={cn(
-                "flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[12px] font-medium transition-all",
+                "flex size-7 items-center justify-center rounded-md transition-all",
                 canSend
                   ? "bg-white/[0.08] text-white/80 hover:bg-white/[0.12] hover:text-white"
                   : "cursor-not-allowed bg-white/[0.03] text-white/20",
               )}
               title="Send"
             >
-              <Star className="size-3" />
-              <span>Send</span>
+              <ArrowUp className="size-3.5" />
             </button>
           )}
         </div>
