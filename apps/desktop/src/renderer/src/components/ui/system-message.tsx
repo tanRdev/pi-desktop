@@ -45,14 +45,14 @@ export function SystemMessage({
   return (
     <div
       className={cn(
-        "flex items-start gap-3 rounded-lg border px-4 py-3",
+        "flex items-start gap-3 rounded-lg border px-4 py-3 select-none",
         toneClassName,
         className,
       )}
       {...props}
     >
       <Icon className="mt-0.5 size-4 shrink-0" />
-      <div className="min-w-0 space-y-1">
+      <div className="min-w-0 space-y-1 select-none">
         {title ? (
           <div className="text-xs font-medium uppercase text-white/50">
             {title}

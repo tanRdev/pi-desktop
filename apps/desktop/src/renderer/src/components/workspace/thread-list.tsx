@@ -41,9 +41,9 @@ export function ThreadList({
   onCreate,
 }: ThreadListProps) {
   return (
-    <section className="space-y-3 px-2 pt-3">
+    <section className="space-y-3 px-2 pt-3 select-none">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-white/[0.04] pb-2 px-1">
+      <div className="flex items-center justify-between border-b border-white/[0.04] pb-2 px-1 select-none">
         <div className="flex items-center gap-2">
           <ChatText className="size-4 text-white/30" weight="regular" />
           <span className="text-[11px] font-medium text-white/30 uppercase tracking-[0.16em]">

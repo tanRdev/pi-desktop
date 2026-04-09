@@ -163,4 +163,27 @@ describe("moveRepositorySnapshots", () => {
 
     expect(source).toContain('data-mode="workspace"');
   });
+
+  it("prevents text selection in the rail while keeping rename inputs selectable", () => {
+    const source = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
+    );
+    const threadSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/thread-list-item.tsx",
+    );
+
+    expect(source).toContain("select-none flex-col");
+    expect(source).toContain("select-text bg-transparent");
+    expect(threadSource).toContain("select-text rounded border");
+  });
+
+  it("renames the marketplace action to packages and keeps the click handler hook", () => {
+    const source = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
+    );
+
+    expect(source).toContain("onOpenMarketplace");
+    expect(source).toContain(">Packages<");
+    expect(source).not.toContain(">Marketplace<");
+  });
 });

@@ -67,10 +67,10 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         data-testid="settings-modal"
-        className="flex h-[76vh] max-h-[76vh] w-[min(880px,calc(100vw-64px))] max-w-[880px] flex-col gap-0 overflow-hidden rounded-xl border border-white/[0.06] bg-[#0e0e0e] p-0 shadow-[0_16px_48px_rgba(0,0,0,0.5)]"
+        className="flex h-[76vh] max-h-[76vh] w-[min(880px,calc(100vw-64px))] max-w-[880px] flex-col gap-0 overflow-hidden rounded-xl border border-white/[0.06] bg-[#0e0e0e] p-0 shadow-[0_16px_48px_rgba(0,0,0,0.5)] select-none"
       >
-        <DialogHeader className="flex flex-row items-center justify-between border-b border-white/[0.06] bg-[#0c0c0c] px-6 py-4">
-          <div className="space-y-1">
+        <DialogHeader className="flex flex-row items-center justify-between border-b border-white/[0.06] bg-[#0c0c0c] px-6 py-4 select-none">
+          <div className="space-y-1 select-none">
             <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-white/40">
               Preferences
             </p>
@@ -81,7 +81,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
         </DialogHeader>
 
         <div className="flex flex-1 min-h-0">
-          <nav className="w-52 shrink-0 border-r border-white/[0.06] bg-[#0a0a0a] px-2 py-4">
+          <nav className="w-52 shrink-0 border-r border-white/[0.06] bg-[#0a0a0a] px-2 py-4 select-none">
             <div className="flex flex-col gap-1">
               {SETTINGS_MODAL_SECTIONS.map((item) => (
                 <button

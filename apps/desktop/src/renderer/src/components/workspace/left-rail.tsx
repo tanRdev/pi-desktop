@@ -293,7 +293,7 @@ export function LeftRail({
       data-testid="left-rail"
       data-mode="workspace"
       className={cn(
-        "relative z-20 flex h-full shrink-0 flex-col",
+        "relative z-20 flex h-full shrink-0 select-none flex-col",
         // Item 4: use CSS variable for sidebar background
         "bg-[var(--color-bg-secondary)]",
         "border-r border-white/[0.04]",
@@ -318,7 +318,7 @@ export function LeftRail({
           )}
         >
           <SquaresFour className="size-4" weight="regular" />
-          <span>Marketplace</span>
+          <span>Packages</span>
         </button>
         <button
           type="button"
@@ -433,7 +433,7 @@ export function LeftRail({
                             setRenameState(null);
                           }
                         }}
-                        className="w-full bg-transparent text-[12px] font-medium leading-tight tracking-[-0.01em] text-white/90 outline-none"
+                        className="w-full select-text bg-transparent text-[12px] font-medium leading-tight tracking-[-0.01em] text-white/90 outline-none"
                         aria-label="Rename project"
                         data-testid="project-rename-input"
                       />

@@ -101,7 +101,7 @@ export function ThreadListItem({
             onKeyDown={handleInputKeyDown}
             onBlur={handleConfirmRename}
             onClick={(e) => e.stopPropagation()}
-            className="block w-full rounded border border-[var(--color-border-strong)] bg-[var(--color-bg-primary)] px-1.5 py-0.5 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)]"
+            className="block w-full select-text rounded border border-[var(--color-border-strong)] bg-[var(--color-bg-primary)] px-1.5 py-0.5 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)]"
           />
         ) : (
           <span

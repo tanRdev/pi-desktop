@@ -35,7 +35,7 @@ function WorkspaceOverlayFrame({
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 select-none">
       <button
         type="button"
         aria-label="Close overlay"
@@ -48,7 +48,7 @@ function WorkspaceOverlayFrame({
         aria-label={ariaLabel}
         onKeyDown={(event) => event.stopPropagation()}
         className={cn(
-          "relative z-10 w-full max-w-xl overflow-hidden rounded-xl",
+          "relative z-10 w-full max-w-xl overflow-hidden rounded-xl select-none",
           "bg-[#0e0e0e] border border-white/[0.06] shadow-[0_16px_48px_rgba(0,0,0,0.5)]",
           "animate-[modal-content-enter_0.15s_ease-out_forwards]",
           className,

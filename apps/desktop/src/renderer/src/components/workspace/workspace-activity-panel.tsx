@@ -80,11 +80,11 @@ export function WorkspaceActivityPanel({
   return (
     <div
       className={cn(
-        "flex h-full min-h-0 flex-col bg-[#0d0d0d] text-white",
+        "flex h-full min-h-0 flex-col bg-[#0d0d0d] text-white select-none",
         className,
       )}
     >
-      <div className="border-b border-white/[0.04] px-5 py-4">
+      <div className="border-b border-white/[0.04] px-5 py-4 select-none">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 space-y-1.5">
             <p className="text-xs font-medium uppercase tracking-wider text-white/40">

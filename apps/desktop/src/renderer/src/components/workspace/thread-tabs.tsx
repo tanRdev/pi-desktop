@@ -22,8 +22,8 @@ export function ThreadTabs({
   }
 
   return (
-    <div className="flex h-8 items-center border-b border-white/[0.04] bg-[#0d0d0d] px-0">
-      <div className="flex min-w-0 flex-1 h-full gap-0 overflow-x-auto no-scrollbar">
+    <div className="flex h-8 items-center border-b border-white/[0.04] bg-[#0d0d0d] px-0 select-none">
+      <div className="flex min-w-0 flex-1 h-full gap-0 overflow-x-auto no-scrollbar select-none">
         {openThreads.map((thread) => {
           const isActive = thread.id === activeThreadId;
           const isRunning = thread.runtime.status === "streaming";

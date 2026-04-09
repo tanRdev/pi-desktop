@@ -150,7 +150,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
   return (
     <div
       className={cn(
-        "mt-3 overflow-hidden rounded-lg border border-white/[0.04] bg-white/[0.02]",
+        "mt-3 overflow-hidden rounded-lg border border-white/[0.04] bg-white/[0.02] select-none",
         "transition-all duration-[var(--duration-normal)] ease-out",
         "hover:border-white/[0.08]",
         state === "output-error" && "border-red-500/20",
@@ -162,7 +162,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
           <Button
             variant="ghost"
             className={cn(
-              "h-auto w-full justify-between rounded-lg px-3 py-2 font-normal",
+              "h-auto w-full justify-between rounded-lg px-3 py-2 font-normal select-none",
               "transition-all duration-[var(--duration-fast)] ease-out",
               "hover:bg-white/[0.03]",
               "active:scale-[0.99]",

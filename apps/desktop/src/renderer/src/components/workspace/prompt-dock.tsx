@@ -50,6 +50,8 @@ function isImagePath(filePath: string): boolean {
   return /\.(png|jpe?g|gif|webp|svg)$/i.test(filePath);
 }
 
+export type PromptMode = "build" | "plan";
+
 export interface PromptDockProps {
   draft: string;
   onDraftChange: (draft: string) => void;
@@ -71,6 +73,8 @@ export interface PromptDockProps {
   providerSnapshots: ProviderSnapshot[];
   currentModelValue: string;
   isSwitchingModel: boolean;
+  promptMode?: PromptMode;
+  onPromptModeChange?: (mode: PromptMode) => void;
   onModelMenuOpenChange?: (open: boolean) => void | Promise<void>;
   onModelSelection: (
     event: React.ChangeEvent<HTMLSelectElement>,
@@ -96,6 +100,8 @@ export function PromptDock({
   providerSnapshots,
   currentModelValue,
   isSwitchingModel,
+  promptMode = "build",
+  onPromptModeChange,
   onModelMenuOpenChange,
   onModelSelection,
 }: PromptDockProps) {
@@ -220,14 +226,14 @@ export function PromptDock({
     <div
       aria-hidden={!isVisible}
       className={cn(
-        "relative mt-auto w-full overflow-visible border-0 bg-transparent",
+        "relative w-full overflow-visible border-0 bg-transparent select-none",
         "transition-[max-height,opacity] duration-[var(--duration-slow)] ease-out",
         isVisible ? "max-h-[42rem]" : "max-h-0 overflow-hidden opacity-0",
       )}
     >
       <div
         className={cn(
-          "relative w-full transition-[transform,opacity] duration-[var(--duration-slow)] ease-out",
+          "relative w-full transition-[transform,opacity] duration-[var(--duration-slow)] ease-out select-none",
           isVisible
             ? "translate-y-0 opacity-100"
             : "translate-y-4 opacity-0 pointer-events-none",
@@ -254,7 +260,10 @@ export function PromptDock({
           onSubmit={() =>
             void (isPromptExecuting ? onCancelPrompt() : onSend())
           }
-          className={cn("border-0 bg-transparent", "px-4 pb-3 pt-4")}
+          className={cn(
+            "rounded-2xl border border-white/[0.08] bg-[var(--color-bg-secondary)] shadow-lg",
+            "px-4 pb-2 pt-1.5",
+          )}
         >
           <FileUpload
             files={uploadedFiles}
@@ -289,8 +298,8 @@ export function PromptDock({
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             className={cn(
-              "min-h-[72px] resize-none border-0 bg-transparent px-0 py-0 pb-2",
-              "text-[15px] leading-7 text-[var(--color-text-primary)]",
+              "min-h-[36px] resize-none border-0 bg-transparent px-0 py-0",
+              "text-[13px] leading-5 text-[var(--color-text-primary)]",
               "placeholder:text-[var(--color-text-tertiary)]",
               "focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none",
               "disabled:opacity-50",
@@ -308,7 +317,29 @@ export function PromptDock({
           />
 
           <PromptInputActions className="mt-2 items-center justify-between gap-3 border-t border-white/[0.04] pt-3">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
+              {/* Plan/Build mode toggle */}
+              <div className="inline-flex rounded-md border border-white/[0.06] bg-black/20 p-1 text-xs text-white/50">
+                {(["plan", "build"] as const).map((mode) => {
+                  const isActive = promptMode === mode;
+                  return (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={() => onPromptModeChange?.(mode)}
+                      className={cn(
+                        "rounded px-2.5 py-1 capitalize transition-colors",
+                        isActive
+                          ? "bg-white/[0.12] text-white"
+                          : "hover:bg-white/[0.05] hover:text-white/80",
+                      )}
+                    >
+                      {mode}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="h-4 w-px bg-white/[0.08]" />
               <PromptInputAction tooltip="Attach files">
                 <Button
                   type="button"
@@ -324,75 +355,89 @@ export function PromptDock({
                 </Button>
               </PromptInputAction>
 
-              <PromptInputAction tooltip="Select model">
-                <Popover open={modelOpen} onOpenChange={handleModelOpenChange}>
-                  <PopoverTrigger asChild>
-                    <button
-                      type="button"
-                      data-testid="model-selector-trigger"
-                      disabled={
-                        !hasActiveThread ||
-                        isSwitchingModel ||
-                        providerSnapshots.length === 0
-                      }
-                      className={cn(
-                        "flex items-center gap-1 rounded-md px-2 py-1 text-xs text-[var(--color-text-tertiary)]",
-                        "transition-all duration-[var(--duration-fast)]",
-                        "hover:text-[var(--color-text-primary)] hover:bg-white/[0.04]",
-                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]",
-                        "disabled:opacity-50",
-                      )}
-                    >
-                      <span className="max-w-[140px] truncate">
-                        {currentModelDisplay}
-                      </span>
-                      <CaretDown
-                        className={cn(
-                          `${ICON_SIZE_XS} transition-transform duration-[var(--duration-fast)] ease-out`,
-                          modelOpen && "rotate-180",
-                        )}
-                      />
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    align="start"
-                    side="top"
-                    sideOffset={8}
-                    className="glass-floating w-60 rounded-md border border-white/[0.08] p-0"
+              <Popover open={modelOpen} onOpenChange={handleModelOpenChange}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    data-testid="model-selector-trigger"
+                    disabled={
+                      !hasActiveThread ||
+                      isSwitchingModel ||
+                      providerSnapshots.length === 0
+                    }
+                    className={cn(
+                      "flex items-center gap-1.5 rounded-md px-2 py-1 text-[13px] text-white/60",
+                      "transition-all duration-[var(--duration-fast)]",
+                      "hover:text-white/90 hover:bg-white/[0.04]",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]",
+                      "disabled:opacity-50",
+                    )}
                   >
-                    <div className="max-h-48 overflow-y-auto">
-                      {providerSnapshots.map((provider) => (
-                        <div key={provider.id} className="py-[var(--space-1)]">
-                          <div className="border-b border-white/[0.06] px-2 py-1.5 text-[11px] font-medium text-[var(--color-text-tertiary)] uppercase tracking-[0.14em]">
-                            {provider.name}
-                          </div>
-                          {provider.models.map((model) => {
-                            const value = `${provider.id}::${model.id}`;
-                            const isSelected = value === currentModelValue;
-
-                            return (
-                              <button
-                                key={`${provider.id}:${model.id}`}
-                                type="button"
-                                data-testid={`model-option-${provider.id}-${model.id}`}
-                                onClick={() => handleModelSelect(value)}
-                                className={cn(
-                                  "w-full px-2.5 py-2 text-left text-[12px] transition-colors duration-[var(--duration-fast)]",
-                                  isSelected
-                                    ? "bg-[var(--color-accent)] text-[var(--color-text-inverse)]"
-                                    : "text-[var(--color-text-secondary)] hover:bg-white/[0.05] hover:text-[var(--color-text-primary)]",
-                                )}
-                              >
-                                {model.name}
-                              </button>
-                            );
-                          })}
+                    <span className="max-w-[140px] truncate">
+                      {currentModelDisplay}
+                    </span>
+                    <CaretDown
+                      className={cn(
+                        "size-3 transition-transform duration-[var(--duration-fast)] ease-out",
+                        modelOpen && "rotate-180",
+                      )}
+                    />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent
+                  align="start"
+                  side="top"
+                  sideOffset={8}
+                  className="w-64 rounded-xl border border-white/[0.08] bg-[#1c1c1c] p-2 shadow-xl"
+                >
+                  <div className="max-h-72 overflow-y-auto">
+                    {providerSnapshots.map((provider) => (
+                      <div key={provider.id}>
+                        <div className="px-2 py-1.5 text-[11px] text-white/40">
+                          {provider.name}
                         </div>
-                      ))}
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              </PromptInputAction>
+                        {provider.models.map((model) => {
+                          const value = `${provider.id}::${model.id}`;
+                          const isSelected = value === currentModelValue;
+
+                          return (
+                            <button
+                              key={`${provider.id}:${model.id}`}
+                              type="button"
+                              data-testid={`model-option-${provider.id}-${model.id}`}
+                              onClick={() => handleModelSelect(value)}
+                              className={cn(
+                                "flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-[13px] transition-colors",
+                                isSelected
+                                  ? "bg-white/[0.08] text-white"
+                                  : "text-white/70 hover:bg-white/[0.05] hover:text-white",
+                              )}
+                            >
+                              <span>{model.name}</span>
+                              {isSelected && (
+                                <svg
+                                  className="size-4 text-white/60"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                  strokeWidth={2}
+                                  aria-hidden="true"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M5 13l4 4L19 7"
+                                  />
+                                </svg>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div className="flex items-center gap-[var(--space-3)]">

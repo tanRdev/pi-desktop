@@ -478,7 +478,7 @@ export function ChatThreadPanel({
   return (
     <div
       className={cn(
-        "relative flex h-full min-h-0 flex-col bg-[var(--shell-main-bg)]",
+        "relative flex h-full min-h-0 flex-col bg-[var(--shell-main-bg)] select-none",
         className,
       )}
     >
@@ -489,7 +489,7 @@ export function ChatThreadPanel({
       >
         <ChatContainerContent
           data-testid="chat-transcript"
-          className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-6 pb-48 pt-6"
+          className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-6 pb-48 pt-6 select-text"
         >
           {messages.length === 0
             ? // Cursor Glass: completely empty, no placeholder text

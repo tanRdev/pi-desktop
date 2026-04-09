@@ -1,7 +1,7 @@
 // Cursor Glass Terminal Panel - Complete redesign to match Cursor exactly
 import * as React from "react";
+import { Plus, TerminalWindow, X } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
-import { X, Plus, TerminalWindow } from "@/components/ui/icons";
 
 interface CursorTerminalProps {
   className?: string;
@@ -9,9 +9,11 @@ interface CursorTerminalProps {
 
 export function CursorTerminal({ className }: CursorTerminalProps) {
   return (
-    <div className={cn("flex h-full flex-col bg-[#0c0c0c]", className)}>
+    <div
+      className={cn("flex h-full flex-col bg-[#0c0c0c] select-none", className)}
+    >
       {/* Terminal Header - Cursor style */}
-      <div className="flex h-9 items-center justify-between border-b border-white/[0.03] px-3">
+      <div className="flex h-9 items-center justify-between border-b border-white/[0.03] px-3 select-none">
         <div className="flex items-center gap-2">
           <TerminalWindow className="size-4 text-white/40" />
           <span className="text-[12px] font-medium text-white/60">zsh</span>
@@ -33,13 +35,13 @@ export function CursorTerminal({ className }: CursorTerminalProps) {
       </div>
 
       {/* Terminal Tabs - Cursor style */}
-      <div className="flex border-b border-white/[0.03]">
+      <div className="flex border-b border-white/[0.03] select-none">
         <button
           type="button"
           className={cn(
             "flex items-center gap-2 px-3 py-2 text-[12px]",
             "text-white/60 border-b border-white/20 -mb-px",
-            "bg-white/[0.02]"
+            "bg-white/[0.02]",
           )}
         >
           <span className="text-white/40">⌄</span>
@@ -48,7 +50,7 @@ export function CursorTerminal({ className }: CursorTerminalProps) {
       </div>
 
       {/* Terminal Content */}
-      <div className="flex-1 overflow-hidden p-3 font-mono text-[13px]">
+      <div className="flex-1 overflow-hidden p-3 font-mono text-[13px] select-none">
         <div className="text-white/50">~/Dev/PiDesk</div>
         <div className="flex items-center gap-2 text-white/70">
           <span className="text-white/40">❯</span>

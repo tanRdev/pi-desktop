@@ -1,7 +1,7 @@
 // Cursor Glass Chat - Complete redesign to match Cursor exactly
 import * as React from "react";
+import { ArrowRight, At, Paperclip, Plus, Star } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
-import { Star, Paperclip, At, Plus, ArrowRight } from "@/components/ui/icons";
 
 interface CursorChatProps {
   className?: string;
@@ -12,9 +12,11 @@ export function CursorChat({ className }: CursorChatProps) {
   const [showSkills, setShowSkills] = React.useState(false);
 
   return (
-    <div className={cn("flex h-full flex-col bg-[#0d0d0d]", className)}>
+    <div
+      className={cn("flex h-full flex-col bg-[#0d0d0d] select-none", className)}
+    >
       {/* Header - Context bar */}
-      <div className="flex h-10 items-center border-b border-white/[0.03] px-4">
+      <div className="flex h-10 items-center border-b border-white/[0.03] px-4 select-none">
         <div className="flex items-center gap-2 text-white/50">
           <span className="text-[13px]">tan/dev/pidesk</span>
           <span className="text-white/20">›</span>
@@ -23,7 +25,7 @@ export function CursorChat({ className }: CursorChatProps) {
       </div>
 
       {/* Chat Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto p-4 select-text">
         {/* Message from user */}
         <div className="mb-4 flex gap-3">
           <div className="flex size-6 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500 shrink-0">
@@ -31,7 +33,8 @@ export function CursorChat({ className }: CursorChatProps) {
           </div>
           <div className="flex-1">
             <div className="text-[13px] text-white/90 leading-relaxed">
-              this is the textbox to interact with the llm. notice how skills and slash commands are highlighted and can be invoked with /
+              this is the textbox to interact with the llm. notice how skills
+              and slash commands are highlighted and can be invoked with /
             </div>
           </div>
         </div>
@@ -40,7 +43,9 @@ export function CursorChat({ className }: CursorChatProps) {
         <div className="mb-4 ml-9">
           <div className="overflow-hidden rounded-xl border border-white/[0.06] bg-[#141414]/95 shadow-xl">
             <div className="border-b border-white/[0.04] px-3 py-2">
-              <span className="text-[11px] font-medium text-white/40 uppercase tracking-wider">Skills</span>
+              <span className="text-[11px] font-medium text-white/40 uppercase tracking-wider">
+                Skills
+              </span>
             </div>
             <div className="max-h-80 overflow-y-auto py-1">
               <SkillItem
@@ -80,26 +85,29 @@ export function CursorChat({ className }: CursorChatProps) {
       </div>
 
       {/* Input Area - Cursor Glass style */}
-      <div className="p-4">
+      <div className="p-4 select-none">
         <div
           className={cn(
-            "relative overflow-hidden rounded-2xl",
+            "relative overflow-hidden rounded-2xl select-none",
             "border border-white/[0.06] bg-[#141414]/95",
             "transition-all duration-150",
-            "focus-within:border-white/[0.12] focus-within:shadow-[0_0_0_1px_rgba(59,130,246,0.2)]"
+            "focus-within:border-white/[0.12] focus-within:shadow-[0_0_0_1px_rgba(59,130,246,0.2)]",
           )}
         >
           {/* Slash command hint */}
-          <div className="px-4 pt-3 pb-2">
+          <div className="px-4 pt-3 pb-2 select-text">
             <span className="text-[14px] text-white/30 font-mono">/</span>
-            <span className="text-[14px] text-amber-400/90">frontend-design</span>
+            <span className="text-[14px] text-amber-400/90">
+              frontend-design
+            </span>
             <span className="text-[14px] text-white/60 ml-1">
-              this is the textbox to interact with the llm. notice how skills and slash commands are highlighted and can be invoked with /
+              this is the textbox to interact with the llm. notice how skills
+              and slash commands are highlighted and can be invoked with /
             </span>
           </div>
 
           {/* Input toolbar */}
-          <div className="flex items-center justify-between border-t border-white/[0.04] px-3 py-2">
+          <div className="flex items-center justify-between border-t border-white/[0.04] px-3 py-2 select-none">
             <div className="flex items-center gap-1">
               <button
                 type="button"
@@ -154,7 +162,7 @@ function SkillItem({
     <div
       className={cn(
         "flex items-center gap-3 px-3 py-2 cursor-pointer transition-colors",
-        active ? "bg-white/[0.06]" : "hover:bg-white/[0.03]"
+        active ? "bg-white/[0.06]" : "hover:bg-white/[0.03]",
       )}
     >
       <div className="flex size-5 items-center justify-center rounded text-white/50">

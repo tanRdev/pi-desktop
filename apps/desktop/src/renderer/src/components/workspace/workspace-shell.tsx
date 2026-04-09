@@ -247,11 +247,11 @@ export function WorkspaceShell({
             ?.kind ?? null);
 
   return (
-    <div className="flex h-screen w-full flex-col overflow-hidden">
+    <div className="flex h-screen w-full flex-col overflow-hidden select-none">
       {/* Item 2: TitleBar removed — drag region is in LeftRail */}
 
       {/* Item 22: Main Layout — always-visible three-column layout */}
-      <div className="relative flex min-h-0 flex-1">
+      <div className="relative flex min-h-0 flex-1 select-none">
         {/* Item 3: Sidebar width 220, resize 160–320 */}
         <LeftRail
           repositories={repositories}
@@ -285,7 +285,7 @@ export function WorkspaceShell({
           {/* Item 14: Workspace header */}
           <div
             data-drag-region="true"
-            className="flex h-11 shrink-0 items-center justify-end px-4"
+            className="flex h-11 shrink-0 items-center justify-end px-4 select-none"
           >
             <button
               type="button"
@@ -298,11 +298,11 @@ export function WorkspaceShell({
               <Terminal className="size-4" />
             </button>
           </div>
-          <div className="flex min-h-0 flex-1 overflow-hidden">
+          <div className="flex min-h-0 flex-1 overflow-hidden select-none">
             {/* Chat panel - takes remaining space */}
             <div
               className={cn(
-                "min-h-0 flex-1 overflow-hidden",
+                "min-h-0 flex-1 overflow-hidden select-none",
                 "border-r border-white/[0.03]",
               )}
             >
@@ -316,30 +316,8 @@ export function WorkspaceShell({
                 />
               ) : null}
 
-              <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d] to-transparent px-6 pb-4 pt-16">
-                <div className="mx-auto max-w-3xl">
-                  <div className="mb-3 flex items-center justify-start">
-                    <div className="inline-flex rounded-md border border-white/[0.06] bg-black/20 p-1 text-xs text-white/50">
-                      {(["plan", "build"] as const).map((mode) => {
-                        const isActive = promptMode === mode;
-                        return (
-                          <button
-                            key={mode}
-                            type="button"
-                            onClick={() => onPromptModeChange(mode)}
-                            className={cn(
-                              "rounded px-2.5 py-1 capitalize transition-colors",
-                              isActive
-                                ? "bg-white/[0.12] text-white"
-                                : "hover:bg-white/[0.05] hover:text-white/80",
-                            )}
-                          >
-                            {mode}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
+              <div className="absolute inset-0 z-10 flex items-center justify-center select-none">
+                <div className="w-full max-w-2xl px-6">
                   <PromptDock
                     draft={draft}
                     onDraftChange={onDraftChange}
@@ -359,6 +337,8 @@ export function WorkspaceShell({
                     providerSnapshots={providerSnapshots}
                     currentModelValue={currentModelValue}
                     isSwitchingModel={isSwitchingModel}
+                    promptMode={promptMode}
+                    onPromptModeChange={onPromptModeChange}
                     onModelMenuOpenChange={_onModelMenuOpenChange}
                     onModelSelection={onModelSelection}
                   />
