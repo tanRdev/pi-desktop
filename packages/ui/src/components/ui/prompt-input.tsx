@@ -91,12 +91,7 @@ function PromptInput({
           role="presentation"
           onClick={handleClick}
           className={cn(
-            "relative isolate cursor-text overflow-hidden rounded-2xl",
-            "border border-white/[0.06] bg-[#141414]/80",
-            "backdrop-blur-xl",
-            "transition-all duration-150 ease-out",
-            "focus-within:border-white/[0.12] focus-within:bg-[#141414]",
-            "focus-within:shadow-[0_0_0_1px_rgba(59,130,246,0.2),inset_0_1px_0_rgba(255,255,255,0.02)]",
+            "relative isolate cursor-text overflow-hidden",
             disabled && "cursor-not-allowed opacity-50",
             className,
           )}

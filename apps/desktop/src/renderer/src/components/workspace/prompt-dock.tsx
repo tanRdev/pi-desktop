@@ -226,7 +226,7 @@ export function PromptDock({
     <div
       aria-hidden={!isVisible}
       className={cn(
-        "relative w-full overflow-visible border-0 bg-transparent select-none",
+        "relative w-full overflow-visible border-t border-white/[0.08] bg-[var(--color-bg-primary)] select-none",
         "transition-[max-height,opacity] duration-[var(--duration-slow)] ease-out",
         isVisible ? "max-h-[42rem]" : "max-h-0 overflow-hidden opacity-0",
       )}
@@ -236,7 +236,7 @@ export function PromptDock({
           "relative w-full transition-[transform,opacity] duration-[var(--duration-slow)] ease-out select-none",
           isVisible
             ? "translate-y-0 opacity-100"
-            : "translate-y-4 opacity-0 pointer-events-none",
+            : "translate-y-2 opacity-0 pointer-events-none",
         )}
       >
         <select
@@ -261,8 +261,7 @@ export function PromptDock({
             void (isPromptExecuting ? onCancelPrompt() : onSend())
           }
           className={cn(
-            "rounded-2xl border border-white/[0.08] bg-[var(--color-bg-secondary)] shadow-lg",
-            "px-4 pb-2 pt-1.5",
+            "px-6 pb-4 pt-4",
           )}
         >
           <FileUpload
@@ -313,33 +312,11 @@ export function PromptDock({
             selectedIndex={autocompleteSelectedIndex}
             onSelect={onAutocompleteSelect}
             onHover={onAutocompleteHover}
-            className="absolute left-0 right-0 top-full z-20 mt-2"
+            className="absolute bottom-full left-0 right-0 z-20 mb-2"
           />
 
-          <PromptInputActions className="mt-2 flex-wrap items-center justify-between gap-3 border-t border-white/[0.04] pt-3">
+          <PromptInputActions className="mt-3 flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              {/* Plan/Build mode toggle */}
-              <div className="inline-flex rounded-md border border-white/[0.06] bg-white/[0.02] p-1 text-xs text-white/50">
-                {(["plan", "build"] as const).map((mode) => {
-                  const isActive = promptMode === mode;
-                  return (
-                    <button
-                      key={mode}
-                      type="button"
-                      onClick={() => onPromptModeChange?.(mode)}
-                      className={cn(
-                        "rounded px-2.5 py-1 capitalize transition-colors",
-                        isActive
-                          ? "bg-white/[0.08] text-white"
-                          : "hover:bg-white/[0.04] hover:text-white/80",
-                      )}
-                    >
-                      {mode}
-                    </button>
-                  );
-                })}
-              </div>
-              <div className="h-4 w-px bg-white/[0.08]" />
               <PromptInputAction tooltip="Attach files">
                 <Button
                   type="button"
@@ -450,21 +427,6 @@ export function PromptDock({
                   </span>
                 </div>
               ) : null}
-
-              {/* Item 16: Microphone button */}
-              <PromptInputAction tooltip="Voice input">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  disabled={!hasActiveThread}
-                  aria-label="Voice input"
-                  title="Voice input"
-                  className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-hover)]"
-                >
-                  <Microphone className={ICON_SIZE_MD} />
-                </Button>
-              </PromptInputAction>
 
               {/* Item 15: Circular ArrowUp send button */}
               <PromptInputAction tooltip={isPromptExecuting ? "Stop" : "Send"}>

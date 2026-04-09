@@ -321,55 +321,47 @@ export function WorkspaceShell({
             {/* Chat panel - takes remaining space */}
             <div
               className={cn(
-                "relative min-h-0 flex-1 overflow-hidden select-none",
+                "relative flex min-h-0 flex-1 flex-col overflow-hidden select-none",
                 "border-r border-white/[0.06]",
               )}
             >
-              {hasActiveThread ? (
-                <ChatThreadPanel
-                  threadTitle={activeThreadTitle ?? "Untitled thread"}
-                  messages={threadMessages}
-                  isStreaming={isPromptExecuting}
-                  lastError={threadLastError}
-                  className="h-full"
-                />
-              ) : null}
-
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 px-6 pb-6 select-none">
-                <div
-                  data-composer-state={
-                    hasTranscriptHistory ? "docked" : "floating"
-                  }
-                  className={cn(
-                    "pointer-events-auto mx-auto w-full max-w-full px-4 md:max-w-3xl transition-transform duration-[var(--duration-slower)] ease-[var(--ease-drawer)]",
-                    "translate-y-0",
-                  )}
-                >
-                  <PromptDock
-                    draft={draft}
-                    onDraftChange={onDraftChange}
-                    onSend={onSend}
-                    onCancelPrompt={onCancelPrompt}
-                    activeThreadId={activeThreadId}
-                    canSend={canSend}
-                    isVisible={isPromptVisible}
-                    isPromptExecuting={isPromptExecuting}
-                    autocompleteSuggestions={autocompleteSuggestions}
-                    autocompleteSelectedIndex={autocompleteSelectedIndex}
-                    onAutocompleteSelect={onAutocompleteSelect}
-                    onAutocompleteHover={onAutocompleteHover}
-                    onPromptKeyDown={onPromptKeyDown}
-                    displayAgentStatus={displayAgentStatus}
-                    runtimeModeLabel={runtimeModeLabel}
-                    providerSnapshots={providerSnapshots}
-                    currentModelValue={currentModelValue}
-                    isSwitchingModel={isSwitchingModel}
-                    promptMode={promptMode}
-                    onPromptModeChange={onPromptModeChange}
-                    onModelMenuOpenChange={_onModelMenuOpenChange}
-                    onModelSelection={onModelSelection}
+              <div className="relative min-h-0 flex-1 overflow-hidden">
+                {hasActiveThread ? (
+                  <ChatThreadPanel
+                    threadTitle={activeThreadTitle ?? "Untitled thread"}
+                    messages={threadMessages}
+                    isStreaming={isPromptExecuting}
+                    lastError={threadLastError}
+                    className="h-full"
                   />
-                </div>
+                ) : null}
+              </div>
+
+              <div className="shrink-0">
+                <PromptDock
+                  draft={draft}
+                  onDraftChange={onDraftChange}
+                  onSend={onSend}
+                  onCancelPrompt={onCancelPrompt}
+                  activeThreadId={activeThreadId}
+                  canSend={canSend}
+                  isVisible={isPromptVisible}
+                  isPromptExecuting={isPromptExecuting}
+                  autocompleteSuggestions={autocompleteSuggestions}
+                  autocompleteSelectedIndex={autocompleteSelectedIndex}
+                  onAutocompleteSelect={onAutocompleteSelect}
+                  onAutocompleteHover={onAutocompleteHover}
+                  onPromptKeyDown={onPromptKeyDown}
+                  displayAgentStatus={displayAgentStatus}
+                  runtimeModeLabel={runtimeModeLabel}
+                  providerSnapshots={providerSnapshots}
+                  currentModelValue={currentModelValue}
+                  isSwitchingModel={isSwitchingModel}
+                  promptMode={promptMode}
+                  onPromptModeChange={onPromptModeChange}
+                  onModelMenuOpenChange={_onModelMenuOpenChange}
+                  onModelSelection={onModelSelection}
+                />
               </div>
             </div>
 
