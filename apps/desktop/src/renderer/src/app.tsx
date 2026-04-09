@@ -40,6 +40,12 @@ export default function App() {
         >
           <WorkspaceShell {...controller.workspaceShellProps} />
 
+          {controller.toastMessage ? (
+            <div className="pointer-events-none fixed bottom-5 right-5 z-[120] rounded-md border border-white/[0.08] bg-[#111111] px-3 py-2 text-[12px] text-white/80 shadow-[0_8px_24px_rgba(0,0,0,0.35)]">
+              {controller.toastMessage}
+            </div>
+          ) : null}
+
           <Dialog
             open={controller.isCreateWorktreeOpen}
             onOpenChange={controller.setCreateWorktreeOpen}
@@ -140,6 +146,103 @@ export default function App() {
             open={controller.isSettingsOpen}
             onOpenChange={controller.setSettingsOpen}
           />
+
+          <Dialog
+            open={controller.isCreateThreadOpen}
+            onOpenChange={controller.setCreateThreadOpen}
+          >
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Name your new thread</DialogTitle>
+                <DialogDescription>
+                  {controller.pendingThreadRepositoryName
+                    ? `Start a conversation in ${controller.pendingThreadRepositoryName}. Leave empty for a random name.`
+                    : "Leave empty for a random name."}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-3 pt-4 px-6">
+                <input
+                  data-testid="thread-name-input"
+                  value={controller.newThreadName}
+                  onChange={(e) => controller.setNewThreadName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      void controller.submitCreateThread();
+                    }
+                  }}
+                  placeholder="Leave empty for a random name"
+                  className="w-full rounded border border-white/[0.06] bg-[#141414] px-3 py-2 text-sm text-white/80 outline-none placeholder:text-white/30"
+                />
+                {controller.threadCreateError ? (
+                  <p className="text-sm text-destructive">
+                    {controller.threadCreateError}
+                  </p>
+                ) : null}
+              </div>
+              <div className="flex justify-end gap-2 px-6 py-4">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => controller.setCreateThreadOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => controller.setNewThreadName("")}
+                >
+                  Random Name
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => void controller.submitCreateThread()}
+                >
+                  Create Thread
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog
+            open={controller.isRemoveRepositoryOpen}
+            onOpenChange={controller.setRemoveRepositoryOpen}
+          >
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Remove project from rail?</DialogTitle>
+                <DialogDescription>
+                  {controller.confirmRemoveRepositoryName
+                    ? `This removes ${controller.confirmRemoveRepositoryName} from PiDesk only. The folder stays on disk.`
+                    : "This removes the project from PiDesk only. The folder stays on disk."}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-3 pt-4 px-6">
+                {controller.removeRepositoryError ? (
+                  <p className="text-sm text-destructive">
+                    {controller.removeRepositoryError}
+                  </p>
+                ) : null}
+              </div>
+              <div className="flex justify-end gap-2 px-6 py-4">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => controller.setRemoveRepositoryOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={() => void controller.submitRemoveRepository()}
+                >
+                  Remove Project
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </TooltipProvider>
     </SettingsProvider>

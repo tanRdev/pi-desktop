@@ -18,6 +18,8 @@ export const IPC_CHANNELS = {
     add: "repositories:add",
     reorder: "repositories:reorder",
     select: "repositories:select",
+    remove: "repositories:remove",
+    openInFinder: "repositories:openInFinder",
   },
   worktrees: {
     create: "worktrees:create",

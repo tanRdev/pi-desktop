@@ -123,4 +123,14 @@ export class RepositoryPreferencesCatalog {
 
     return imported;
   }
+
+  remove(repositoryId: string): void {
+    const normalizedRepositoryId = normalizePathId(repositoryId);
+    this.store.update((state) => ({
+      ...state,
+      repositories: state.repositories.filter(
+        (repository) => repository.repositoryId !== normalizedRepositoryId,
+      ),
+    }));
+  }
 }

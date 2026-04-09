@@ -59,6 +59,13 @@ export interface WorkspaceShellProps {
   onModelMenuOpenChange: (open: boolean) => void | Promise<void>;
   onAddRepository: () => void | Promise<void>;
   onSelectRepository: (repositoryId: string) => void | Promise<void>;
+  onRenameRepository: (
+    repositoryId: string,
+    name: string,
+  ) => void | Promise<void>;
+  onRemoveRepository: (repositoryId: string) => void | Promise<void>;
+  onCopyRepositoryPath: (repositoryId: string) => void | Promise<void>;
+  onOpenInFinder: (repositoryId: string) => void | Promise<void>;
   onOpenSettings: () => void;
   onSelectWorktree: (worktreeId: string) => void | Promise<void>;
   onSelectThread: (threadId: string) => void | Promise<void>;
@@ -127,6 +134,10 @@ export function WorkspaceShell({
   onModelMenuOpenChange: _onModelMenuOpenChange,
   onAddRepository,
   onSelectRepository,
+  onRenameRepository,
+  onRemoveRepository,
+  onCopyRepositoryPath,
+  onOpenInFinder,
   onOpenSettings,
   onSelectWorktree,
   onSelectThread,
@@ -244,6 +255,10 @@ export function WorkspaceShell({
           width={Math.max(leftRailWidth, SIDEBAR_WIDTH)}
           onResize={onLeftRailResize}
           onSelectRepository={onSelectRepository}
+          onRenameRepository={onRenameRepository}
+          onRemoveRepository={onRemoveRepository}
+          onCopyRepositoryPath={onCopyRepositoryPath}
+          onOpenInFinder={onOpenInFinder}
           onSelectWorktree={onSelectWorktree}
           onSelectThread={onSelectThread}
           onCreateThread={onCreateThread}

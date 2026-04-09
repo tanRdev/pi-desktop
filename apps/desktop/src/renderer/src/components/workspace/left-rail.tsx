@@ -2,13 +2,17 @@ import type { RepositorySnapshot, WorktreeSnapshot } from "@pidesk/shared";
 import { moveRepositorySnapshots } from "@pidesk/shared";
 import * as React from "react";
 import {
+  Copy,
+  Folder,
   FolderOpen,
   Gear,
   Minus,
+  PencilSimple,
   Pi,
   Plus,
   SquaresFour,
   Stack,
+  Trash,
 } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { ProjectAvatar } from "./project-avatar";
@@ -60,6 +64,10 @@ export interface LeftRailProps {
   onOpenFilter?: () => void;
   onNewAgent?: () => void;
   onOpenMarketplace?: () => void;
+  onRenameRepository?: (repositoryId: string, name: string) => void;
+  onRemoveRepository?: (repositoryId: string) => void;
+  onCopyRepositoryPath?: (repositoryId: string) => void;
+  onOpenInFinder?: (repositoryId: string) => void;
 }
 
 export function LeftRail({
@@ -79,6 +87,11 @@ export function LeftRail({
   onOpenFilter,
   onNewAgent,
   onOpenMarketplace,
+  onAddRepository,
+  onRenameRepository,
+  onRemoveRepository,
+  onCopyRepositoryPath,
+  onOpenInFinder,
 }: LeftRailProps) {
   const [orderedRepositories, setOrderedRepositories] =
     React.useState(repositories);
@@ -88,6 +101,28 @@ export function LeftRail({
   const [expandedWorktreesByRepositoryId, setExpandedWorktreesByRepositoryId] =
     React.useState<Record<string, string | null>>({});
   const [isResizing, setIsResizing] = React.useState(false);
+
+  // Context menu state
+  const [contextMenu, setContextMenu] = React.useState<{
+    isOpen: boolean;
+    x: number;
+    y: number;
+    repositoryId: string | null;
+    repositoryName: string;
+  }>({
+    isOpen: false,
+    x: 0,
+    y: 0,
+    repositoryId: null,
+    repositoryName: "",
+  });
+
+  const contextMenuRef = React.useRef<HTMLDivElement>(null);
+  const renameInputRef = React.useRef<HTMLInputElement>(null);
+  const [renameState, setRenameState] = React.useState<{
+    repositoryId: string;
+    value: string;
+  } | null>(null);
 
   React.useEffect(() => {
     if (!isResizing) return;
@@ -115,6 +150,34 @@ export function LeftRail({
     };
   }, [isResizing, onResize]);
 
+  // Close context menu on click outside
+  React.useEffect(() => {
+    if (!contextMenu.isOpen) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        contextMenuRef.current &&
+        !contextMenuRef.current.contains(e.target as Node)
+      ) {
+        setContextMenu((prev) => ({ ...prev, isOpen: false }));
+      }
+    };
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setContextMenu((prev) => ({ ...prev, isOpen: false }));
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [contextMenu.isOpen]);
+
   const persistRepositoryOrder = React.useCallback(
     async (nextRepositories: RepositorySnapshot[]) => {
       await window.pidesk.repositories.reorder(
@@ -127,6 +190,15 @@ export function LeftRail({
   React.useEffect(() => {
     setOrderedRepositories(repositories);
   }, [repositories]);
+
+  React.useEffect(() => {
+    if (!renameState) {
+      return;
+    }
+
+    renameInputRef.current?.focus();
+    renameInputRef.current?.select();
+  }, [renameState]);
 
   const handleDrop = React.useCallback(
     (targetRepositoryId: string) => {
@@ -187,6 +259,35 @@ export function LeftRail({
     [activeWorktreeId, onSelectThread, onSelectWorktree],
   );
 
+  const handleContextMenu = React.useCallback(
+    (e: React.MouseEvent, repository: RepositorySnapshot) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setContextMenu({
+        isOpen: true,
+        x: e.clientX,
+        y: e.clientY,
+        repositoryId: repository.id,
+        repositoryName: getRepositoryName(repository),
+      });
+    },
+    [],
+  );
+
+  const handleMenuAction = React.useCallback((action: () => void) => {
+    action();
+    setContextMenu((prev) => ({ ...prev, isOpen: false }));
+  }, []);
+
+  const commitRename = React.useCallback(() => {
+    if (!renameState) {
+      return;
+    }
+
+    void onRenameRepository?.(renameState.repositoryId, renameState.value);
+    setRenameState(null);
+  }, [onRenameRepository, renameState]);
+
   return (
     <aside
       data-testid="left-rail"
@@ -222,6 +323,7 @@ export function LeftRail({
         <button
           type="button"
           data-no-drag="true"
+          onClick={onAddRepository}
           className={cn(
             "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2",
             "text-white/40 text-[13px]",
@@ -293,8 +395,10 @@ export function LeftRail({
                   onDragStart={() => setDraggedRepositoryId(repository.id)}
                   onDragEnd={() => setDraggedRepositoryId(null)}
                   onClick={() => onSelectRepository(repository.id)}
+                  onContextMenu={(e) => handleContextMenu(e, repository)}
                   className={cn(
                     "group flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left transition-all duration-150",
+                    "hover:bg-white/[0.06] focus:bg-white/[0.06] focus:outline-none",
                     draggedRepositoryId === repository.id && "opacity-50",
                   )}
                   aria-label={`Open repository ${repositoryName}`}
@@ -305,16 +409,46 @@ export function LeftRail({
                     className="size-3.5 shrink-0"
                   />
                   <span className="min-w-0 flex-1">
-                    <span
-                      className={cn(
-                        "block truncate text-[12px] leading-tight tracking-[-0.01em]",
-                        isActive || hasActiveThreadInRepo
-                          ? "text-white/90 font-medium"
-                          : "text-white/35 group-hover:text-white/55",
-                      )}
-                    >
-                      {repositoryName}
-                    </span>
+                    {renameState?.repositoryId === repository.id ? (
+                      <input
+                        ref={renameInputRef}
+                        value={renameState.value}
+                        onChange={(event) =>
+                          setRenameState((current) =>
+                            current
+                              ? { ...current, value: event.target.value }
+                              : current,
+                          )
+                        }
+                        onBlur={commitRename}
+                        onClick={(event) => event.stopPropagation()}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            event.preventDefault();
+                            commitRename();
+                          }
+
+                          if (event.key === "Escape") {
+                            event.preventDefault();
+                            setRenameState(null);
+                          }
+                        }}
+                        className="w-full bg-transparent text-[12px] font-medium leading-tight tracking-[-0.01em] text-white/90 outline-none"
+                        aria-label="Rename project"
+                        data-testid="project-rename-input"
+                      />
+                    ) : (
+                      <span
+                        className={cn(
+                          "block truncate text-[12px] leading-tight tracking-[-0.01em]",
+                          isActive || hasActiveThreadInRepo
+                            ? "text-white/90 font-medium"
+                            : "text-white/35 group-hover:text-white/60",
+                        )}
+                      >
+                        {repositoryName}
+                      </span>
+                    )}
                   </span>
                 </button>
 
@@ -410,6 +544,103 @@ export function LeftRail({
         role="presentation"
         aria-hidden="true"
       />
+
+      {/* Context Menu */}
+      {contextMenu.isOpen && contextMenu.repositoryId && (
+        <div
+          ref={contextMenuRef}
+          className={cn(
+            "fixed z-[100] min-w-[160px] rounded-md border border-white/[0.06] bg-[#141414] p-1 shadow-[0_8px_32px_rgba(0,0,0,0.5)]",
+            "animate-in fade-in-0 zoom-in-[0.98] duration-150 ease-out",
+          )}
+          style={{
+            left: contextMenu.x,
+            top: contextMenu.y,
+          }}
+        >
+          <div className="px-2 py-1.5">
+            <span className="block truncate text-[11px] font-medium text-white/50">
+              {contextMenu.repositoryName}
+            </span>
+          </div>
+          <div className="my-1 h-px bg-white/[0.06]" />
+          <button
+            type="button"
+            onClick={() =>
+              handleMenuAction(() => {
+                const repository = repositories.find(
+                  (entry) => entry.id === contextMenu.repositoryId,
+                );
+                if (!repository) {
+                  return;
+                }
+
+                setRenameState({
+                  repositoryId: repository.id,
+                  value: repository.customName ?? repository.name,
+                });
+              })
+            }
+            className={cn(
+              "flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[12px] text-white/70",
+              "transition-colors duration-100",
+              "hover:bg-white/[0.08] hover:text-white/90",
+            )}
+          >
+            <PencilSimple className="size-3.5" weight="regular" />
+            <span>Rename</span>
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              handleMenuAction(() =>
+                onCopyRepositoryPath?.(contextMenu.repositoryId!),
+              )
+            }
+            className={cn(
+              "flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[12px] text-white/70",
+              "transition-colors duration-100",
+              "hover:bg-white/[0.08] hover:text-white/90",
+            )}
+          >
+            <Copy className="size-3.5" weight="regular" />
+            <span>Copy path</span>
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              handleMenuAction(() =>
+                onOpenInFinder?.(contextMenu.repositoryId!),
+              )
+            }
+            className={cn(
+              "flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[12px] text-white/70",
+              "transition-colors duration-100",
+              "hover:bg-white/[0.08] hover:text-white/90",
+            )}
+          >
+            <Folder className="size-3.5" weight="regular" />
+            <span>Open in Finder</span>
+          </button>
+          <div className="my-1 h-px bg-white/[0.06]" />
+          <button
+            type="button"
+            onClick={() =>
+              handleMenuAction(() =>
+                onRemoveRepository?.(contextMenu.repositoryId!),
+              )
+            }
+            className={cn(
+              "flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[12px] text-red-400/80",
+              "transition-colors duration-100",
+              "hover:bg-red-500/10 hover:text-red-400",
+            )}
+          >
+            <Trash className="size-3.5" weight="regular" />
+            <span>Remove</span>
+          </button>
+        </div>
+      )}
     </aside>
   );
 }

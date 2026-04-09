@@ -110,7 +110,7 @@ describe("moveRepositorySnapshots", () => {
       "apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx",
     );
 
-    expect(source).toContain("export const LEFT_RAIL_WIDTH = 320");
+    expect(source).toContain("export const SIDEBAR_WIDTH = 220");
     expect(source).toContain("project-rail-item");
     expect(source).toContain("handleSelectThreadFromRepository");
     expect(source).not.toContain("NAVIGATION_ITEMS");
@@ -127,6 +127,14 @@ describe("moveRepositorySnapshots", () => {
 
     expect(source).toContain("WorktreeSection");
     expect(worktreeSource).toContain("create-thread-button");
+  });
+
+  it("does not render the old empty-state no threads copy in worktree sections", () => {
+    const worktreeSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/worktree-section.tsx",
+    );
+
+    expect(worktreeSource).not.toContain("No threads");
   });
 
   it("keeps non-selected projects collapsed while only the active project can stay expanded", () => {

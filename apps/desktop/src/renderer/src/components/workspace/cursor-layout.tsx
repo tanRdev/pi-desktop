@@ -1,14 +1,10 @@
 // Cursor Glass Layout - Complete app shell matching Cursor exactly
 import * as React from "react";
+import { CornersOut, MagnifyingGlass, Minus, X } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
-import { CursorSidebar, SIDEBAR_WIDTH } from "./cursor-sidebar";
 import { CursorChat } from "./cursor-chat";
+import { CursorSidebar, SIDEBAR_WIDTH } from "./cursor-sidebar";
 import { CursorTerminal } from "./cursor-terminal";
-import {
-  MagnifyingGlass,
-  CornersOut,
-  X,
-} from "@/components/ui/icons";
 
 interface CursorLayoutProps {
   className?: string;
@@ -18,7 +14,12 @@ export function CursorLayout({ className }: CursorLayoutProps) {
   const [showTerminal, setShowTerminal] = React.useState(true);
 
   return (
-    <div className={cn("flex h-screen w-full overflow-hidden bg-[#0a0a0a]", className)}>
+    <div
+      className={cn(
+        "flex h-screen w-full overflow-hidden bg-[#0a0a0a]",
+        className,
+      )}
+    >
       {/* Left Sidebar */}
       <CursorSidebar />
 
@@ -44,7 +45,7 @@ export function CursorLayout({ className }: CursorLayoutProps) {
                 className="flex h-6 w-6 items-center justify-center rounded text-white/30 hover:text-white/50 hover:bg-white/[0.05] transition-colors"
               >
                 {showTerminal ? (
-                  <Minimize className="size-3.5" />
+                  <Minus className="size-3.5" />
                 ) : (
                   <CornersOut className="size-3.5" />
                 )}

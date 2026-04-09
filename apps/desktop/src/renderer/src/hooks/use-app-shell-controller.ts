@@ -69,6 +69,19 @@ export interface AppShellController {
   setSettingsOpen: (isOpen: boolean) => void;
   isCreateWorktreeOpen: boolean;
   setCreateWorktreeOpen: (isOpen: boolean) => void;
+  isCreateThreadOpen: boolean;
+  setCreateThreadOpen: (isOpen: boolean) => void;
+  pendingThreadRepositoryName: string | null;
+  newThreadName: string;
+  setNewThreadName: (value: string) => void;
+  threadCreateError: string | null;
+  submitCreateThread: () => Promise<void>;
+  confirmRemoveRepositoryName: string | null;
+  isRemoveRepositoryOpen: boolean;
+  setRemoveRepositoryOpen: (isOpen: boolean) => void;
+  removeRepositoryError: string | null;
+  submitRemoveRepository: () => Promise<void>;
+  toastMessage: string | null;
   newWorktreeBranch: string;
   setNewWorktreeBranch: (value: string) => void;
   worktreeCreateError: string | null;
@@ -148,15 +161,39 @@ export function useAppShellController(): AppShellController {
     uiInteractionStore,
     (storeState) => storeState.dialogs.createWorktree,
   );
+  const isCreateThreadOpen = useStore(
+    uiInteractionStore,
+    (storeState) => storeState.dialogs.createThread,
+  );
+  const isRemoveRepositoryOpen = useStore(
+    uiInteractionStore,
+    (storeState) => storeState.dialogs.confirmRemoveRepository,
+  );
 
   const [newWorktreeBranch, setNewWorktreeBranchState] = React.useState("");
   const [worktreeCreateError, setWorktreeCreateError] = React.useState<
     string | null
   >(null);
+  const [newThreadName, setNewThreadNameState] = React.useState("");
+  const [threadCreateError, setThreadCreateError] = React.useState<
+    string | null
+  >(null);
+  const [pendingThreadWorktreeId, setPendingThreadWorktreeId] = React.useState<
+    string | null
+  >(null);
+  const [pendingThreadRepositoryName, setPendingThreadRepositoryName] =
+    React.useState<string | null>(null);
+  const [confirmRemoveRepositoryId, setConfirmRemoveRepositoryId] =
+    React.useState<string | null>(null);
+  const [confirmRemoveRepositoryName, setConfirmRemoveRepositoryName] =
+    React.useState<string | null>(null);
+  const [removeRepositoryError, setRemoveRepositoryError] = React.useState<
+    string | null
+  >(null);
+  const [toastMessage, setToastMessage] = React.useState<string | null>(null);
   const [selectedContextSurface, setSelectedContextSurface] =
     React.useState<WorkspaceShellProps["selectedContextSurface"]>(null);
   const [leftRailWidth, setLeftRailWidth] = React.useState(260);
-  const threadBootstrapAttemptKeyRef = React.useRef<string | null>(null);
   const launcherRequestIdRef = React.useRef(0);
 
   const setAutocompleteSuggestions = React.useCallback(
@@ -177,6 +214,32 @@ export function useAppShellController(): AppShellController {
   const setCreateWorktreeOpen = React.useCallback((isOpen: boolean) => {
     uiInteractionStore.getState().setDialogOpen("createWorktree", isOpen);
   }, []);
+  const setCreateThreadDialogOpenState = React.useCallback(
+    (isOpen: boolean) => {
+      uiInteractionStore.getState().setDialogOpen("createThread", isOpen);
+    },
+    [],
+  );
+  const setCreateThreadOpen = React.useCallback(
+    (isOpen: boolean) => {
+      setCreateThreadDialogOpenState(isOpen);
+
+      if (isOpen) {
+        return;
+      }
+
+      setPendingThreadWorktreeId(null);
+      setPendingThreadRepositoryName(null);
+      setNewThreadNameState("");
+      setThreadCreateError(null);
+    },
+    [setCreateThreadDialogOpenState],
+  );
+  const setRemoveRepositoryOpen = React.useCallback((isOpen: boolean) => {
+    uiInteractionStore
+      .getState()
+      .setDialogOpen("confirmRemoveRepository", isOpen);
+  }, []);
   const openLauncherOverlay = React.useCallback(() => {
     uiInteractionStore.getState().openLauncherOverlay();
   }, []);
@@ -193,6 +256,18 @@ export function useAppShellController(): AppShellController {
   const handleOpenSettings = React.useCallback(() => {
     setSettingsOpen(true);
   }, [setSettingsOpen]);
+
+  React.useEffect(() => {
+    if (!toastMessage) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setToastMessage(null);
+    }, 2200);
+
+    return () => window.clearTimeout(timer);
+  }, [toastMessage]);
 
   React.useEffect(() => {
     syncActiveThreadConversation({
@@ -222,36 +297,6 @@ export function useAppShellController(): AppShellController {
     }, 250);
     return () => window.clearTimeout(timer);
   }, [reload, shell.catalog.repositories.length]);
-
-  React.useEffect(() => {
-    const bootstrapKey = `${activeWorktreeId ?? "no-worktree"}:${activeThreadId ?? "no-thread"}`;
-    if (threadBootstrapAttemptKeyRef.current === bootstrapKey) {
-      return;
-    }
-
-    if (!activeWorktreeId || activeThreadId) {
-      threadBootstrapAttemptKeyRef.current = bootstrapKey;
-      return;
-    }
-
-    const nextThreadId = activeWorktree?.threads.find(
-      (thread) => !thread.isArchived,
-    )?.id;
-    if (!nextThreadId) {
-      threadBootstrapAttemptKeyRef.current = bootstrapKey;
-      void window.pidesk.threads
-        .create(activeWorktreeId, "New thread")
-        .then(() => {
-          void reload();
-        });
-      return;
-    }
-
-    threadBootstrapAttemptKeyRef.current = bootstrapKey;
-    void window.pidesk.threads.select(nextThreadId).then(() => {
-      void reload();
-    });
-  }, [activeThreadId, activeWorktree?.threads, activeWorktreeId, reload]);
 
   const canSend =
     draft.trim().length > 0 &&
@@ -536,6 +581,52 @@ export function useAppShellController(): AppShellController {
     [reload],
   );
 
+  const handleRenameRepository = React.useCallback(
+    async (repositoryId: string, name: string) => {
+      await updateRepositoryPreferences(repositoryId, {
+        customName: name.trim().length > 0 ? name.trim() : null,
+      });
+    },
+    [updateRepositoryPreferences],
+  );
+
+  const handleRemoveRepository = React.useCallback(
+    async (repositoryId: string) => {
+      const repository = repositories.find(
+        (entry) => entry.id === repositoryId,
+      );
+      if (!repository) {
+        return;
+      }
+
+      setConfirmRemoveRepositoryId(repositoryId);
+      setConfirmRemoveRepositoryName(repository.customName ?? repository.name);
+      setRemoveRepositoryError(null);
+      setRemoveRepositoryOpen(true);
+    },
+    [repositories, setRemoveRepositoryOpen],
+  );
+
+  const handleCopyRepositoryPath = React.useCallback(
+    async (repositoryId: string) => {
+      const repository = repositories.find(
+        (entry) => entry.id === repositoryId,
+      );
+      if (!repository) {
+        return;
+      }
+
+      await navigator.clipboard.writeText(repository.rootPath);
+      setToastMessage("Project path copied");
+    },
+    [repositories],
+  );
+
+  const handleOpenInFinder = React.useCallback(async (repositoryId: string) => {
+    await window.pidesk.repositories.openInFinder(repositoryId);
+    setToastMessage("Opened project in Finder");
+  }, []);
+
   const handleCreateWorktree = React.useCallback(() => {
     setWorktreeCreateError(null);
     setNewWorktreeBranchState("");
@@ -583,11 +674,81 @@ export function useAppShellController(): AppShellController {
 
   const handleCreateThread = React.useCallback(
     async (worktreeId: string) => {
-      await window.pidesk.threads.create(worktreeId);
-      await reload();
+      const repositoryName =
+        repositories.find((repository) =>
+          repository.worktrees.some((worktree) => worktree.id === worktreeId),
+        )?.customName ??
+        repositories.find((repository) =>
+          repository.worktrees.some((worktree) => worktree.id === worktreeId),
+        )?.name ??
+        null;
+      setPendingThreadWorktreeId(worktreeId);
+      setPendingThreadRepositoryName(repositoryName);
+      setNewThreadNameState("");
+      setThreadCreateError(null);
+      setCreateThreadDialogOpenState(true);
     },
-    [reload],
+    [repositories, setCreateThreadDialogOpenState],
   );
+
+  const submitCreateThread = React.useCallback(async () => {
+    if (!pendingThreadWorktreeId) {
+      return;
+    }
+
+    const trimmed = newThreadName.trim();
+    const fallbackNames = [
+      "Thread Atlas",
+      "Thread Ember",
+      "Thread Nova",
+      "Thread Quartz",
+      "Thread Harbor",
+    ];
+    const nextName =
+      trimmed.length > 0
+        ? trimmed
+        : (fallbackNames[Math.floor(Math.random() * fallbackNames.length)] ??
+          "New thread");
+
+    try {
+      await window.pidesk.threads.create(pendingThreadWorktreeId, nextName);
+      setCreateThreadDialogOpenState(false);
+      setPendingThreadWorktreeId(null);
+      setPendingThreadRepositoryName(null);
+      setNewThreadNameState("");
+      setThreadCreateError(null);
+      await reload();
+    } catch (error) {
+      setThreadCreateError(
+        error instanceof Error ? error.message : "Failed to create thread",
+      );
+    }
+  }, [
+    newThreadName,
+    pendingThreadWorktreeId,
+    reload,
+    setCreateThreadDialogOpenState,
+  ]);
+
+  const submitRemoveRepository = React.useCallback(async () => {
+    if (!confirmRemoveRepositoryId) {
+      return;
+    }
+
+    try {
+      await window.pidesk.repositories.remove(confirmRemoveRepositoryId);
+      setRemoveRepositoryOpen(false);
+      setConfirmRemoveRepositoryId(null);
+      setConfirmRemoveRepositoryName(null);
+      setRemoveRepositoryError(null);
+      setToastMessage("Project removed from rail");
+      await reload();
+    } catch (error) {
+      setRemoveRepositoryError(
+        error instanceof Error ? error.message : "Failed to remove repository",
+      );
+    }
+  }, [confirmRemoveRepositoryId, reload, setRemoveRepositoryOpen]);
 
   const handleCloseThread = React.useCallback(
     async (threadId: string) => {
@@ -915,6 +1076,10 @@ export function useAppShellController(): AppShellController {
     onModelMenuOpenChange: handleModelMenuOpenChange,
     onAddRepository: handleAddRepository,
     onSelectRepository: handleSelectRepository,
+    onRenameRepository: handleRenameRepository,
+    onRemoveRepository: handleRemoveRepository,
+    onCopyRepositoryPath: handleCopyRepositoryPath,
+    onOpenInFinder: handleOpenInFinder,
     onOpenSettings: handleOpenSettings,
     onSelectWorktree: handleSelectWorktree,
     onSelectThread: handleSelectThread,
@@ -950,6 +1115,19 @@ export function useAppShellController(): AppShellController {
     setSettingsOpen,
     isCreateWorktreeOpen,
     setCreateWorktreeOpen,
+    isCreateThreadOpen,
+    setCreateThreadOpen,
+    pendingThreadRepositoryName,
+    newThreadName,
+    setNewThreadName: setNewThreadNameState,
+    threadCreateError,
+    submitCreateThread,
+    confirmRemoveRepositoryName,
+    isRemoveRepositoryOpen,
+    setRemoveRepositoryOpen,
+    removeRepositoryError,
+    submitRemoveRepository,
+    toastMessage,
     newWorktreeBranch,
     setNewWorktreeBranch: setNewWorktreeBranchState,
     worktreeCreateError,

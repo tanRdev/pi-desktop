@@ -147,7 +147,6 @@ export function getActiveThread(
   return (
     selectedThread ??
     worktree.threads.find((thread) => thread.isArchived === false) ??
-    worktree.threads[0] ??
     null
   );
 }

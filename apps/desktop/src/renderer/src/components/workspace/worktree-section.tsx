@@ -127,46 +127,36 @@ export function WorktreeSection({
               )}
             />
             <div className="space-y-0 pl-3">
-              {visibleThreads.length > 0 ? (
-                visibleThreads.map((thread, index) => (
+              {visibleThreads.map((thread, index) => (
+                <div
+                  key={thread.id}
+                  className="stagger-item relative"
+                  style={{ animationDelay: `${Math.min(index * 20, 160)}ms` }}
+                >
+                  {/* Horizontal connector line - stronger when thread is active */}
                   <div
-                    key={thread.id}
-                    className="stagger-item relative"
-                    style={{ animationDelay: `${Math.min(index * 20, 160)}ms` }}
-                  >
-                    {/* Horizontal connector line - stronger when thread is active */}
-                    <div
-                      className={cn(
-                        "absolute left-[-5px] top-[13px] w-3 h-px",
-                        thread.id === activeThreadId
-                          ? "bg-white/[0.08]"
-                          : "bg-white/[0.04]",
-                      )}
-                    />
-                    <ThreadListItem
-                      thread={thread}
-                      isActive={thread.id === activeThreadId}
-                      onClick={() => onSelectThread(thread.id)}
-                      onClose={
-                        onCloseThread
-                          ? () => onCloseThread(thread.id)
-                          : undefined
-                      }
-                      onRename={
-                        onRenameThread
-                          ? (title: string) => onRenameThread(thread.id, title)
-                          : undefined
-                      }
-                    />
-                  </div>
-                ))
-              ) : (
-                <div className="relative px-2 py-1.5 text-[11px] text-white/20">
-                  {/* Horizontal connector for empty state */}
-                  <div className="absolute left-[-5px] top-[11px] w-3 h-px bg-white/[0.03]" />
-                  No threads
+                    className={cn(
+                      "absolute left-[-5px] top-[13px] w-3 h-px",
+                      thread.id === activeThreadId
+                        ? "bg-white/[0.08]"
+                        : "bg-white/[0.04]",
+                    )}
+                  />
+                  <ThreadListItem
+                    thread={thread}
+                    isActive={thread.id === activeThreadId}
+                    onClick={() => onSelectThread(thread.id)}
+                    onClose={
+                      onCloseThread ? () => onCloseThread(thread.id) : undefined
+                    }
+                    onRename={
+                      onRenameThread
+                        ? (title: string) => onRenameThread(thread.id, title)
+                        : undefined
+                    }
+                  />
                 </div>
-              )}
+              ))}
             </div>
 
             {/* New thread button - connected to tree */}

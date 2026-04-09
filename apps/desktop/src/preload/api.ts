@@ -109,6 +109,14 @@ export function createPiDeskApi({
       select(repositoryId: string) {
         return invoke<void>(IPC_CHANNELS.repositories.select, { repositoryId });
       },
+      remove(repositoryId: string) {
+        return invoke<void>(IPC_CHANNELS.repositories.remove, { repositoryId });
+      },
+      openInFinder(repositoryId: string) {
+        return invoke<void>(IPC_CHANNELS.repositories.openInFinder, {
+          repositoryId,
+        });
+      },
     },
     worktrees: {
       create(repositoryId: string, branchName: string) {

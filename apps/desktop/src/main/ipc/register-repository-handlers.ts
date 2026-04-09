@@ -51,6 +51,26 @@ export function registerRepositoryHandlers({
     await agentHost.reorderRepositories(repositoryIds);
   });
 
+  handle(IPC_CHANNELS.repositories.remove, async (_event, payload) => {
+    const repositoryId = getStringField(payload, "repositoryId");
+    if (!repositoryId) {
+      throw new Error("Repository remove payload must include repositoryId");
+    }
+
+    await agentHost.removeRepository(repositoryId);
+  });
+
+  handle(IPC_CHANNELS.repositories.openInFinder, async (_event, payload) => {
+    const repositoryId = getStringField(payload, "repositoryId");
+    if (!repositoryId) {
+      throw new Error(
+        "Repository openInFinder payload must include repositoryId",
+      );
+    }
+
+    await agentHost.openRepositoryInFinder(repositoryId);
+  });
+
   handle(IPC_CHANNELS.worktrees.create, async (_event, payload) => {
     const repositoryId = getStringField(payload, "repositoryId");
     const branchName = getStringField(payload, "branchName");

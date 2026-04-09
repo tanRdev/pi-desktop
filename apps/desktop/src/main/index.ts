@@ -13,7 +13,7 @@ import type {
   SettingsSnapshot,
 } from "@pidesk/shared";
 import { IPC_CHANNELS } from "@pidesk/shared";
-import { app, BrowserWindow, ipcMain } from "electron";
+import { app, BrowserWindow, ipcMain, shell } from "electron";
 import { createAgentHostClient } from "./agent-host-client";
 import {
   createUnavailableAgentHost,
@@ -343,10 +343,42 @@ async function bootstrapDesktop() {
     const repositoryEntry = repositoryCatalog.upsert({
       rootPath: inspection.rootPath,
     });
-    const thread = threadCatalog.ensureOpenThread({
-      worktreeId: inspection.currentWorktreePath,
-      title: "Current thread",
-    });
+    const thread =
+      threadCatalog
+        .listByWorktree(inspection.currentWorktreePath)
+        .find((entry) => entry.archivedAt === null) ?? null;
+
+    if (!thread) {
+      selectionState.replace({
+        repositoryId: repositoryEntry.id,
+        worktreeId: inspection.currentWorktreePath,
+        threadId: null,
+      });
+      repositoryCatalog.setLastSelectedWorktree(
+        repositoryEntry.id,
+        inspection.currentWorktreePath,
+      );
+
+      return {
+        repositoryId: repositoryEntry.id,
+        worktreePath: inspection.currentWorktreePath,
+        thread: {
+          id: "pending-thread",
+          worktreeId: inspection.currentWorktreePath,
+          title: "Pending thread",
+          archivedAt: null,
+          lastActivityAt: null,
+          runtimeId: null,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        },
+        socketPath: "",
+        runtimeId: null,
+        command: [],
+        agentMode: "mock",
+        agentDirectory: null,
+      };
+    }
 
     return buildThreadContext(repositoryEntry.id, inspection, thread);
   }
@@ -432,6 +464,14 @@ async function bootstrapDesktop() {
     host: AgentDesktopHost;
     transport: AgentHostSocketTransport;
   }> {
+    if (!context.socketPath || context.command.length === 0) {
+      return {
+        context,
+        host: createBootstrapErrorHost("No active thread is selected"),
+        transport: createAgentHostSocketTransport("/tmp/pidesk-pending-thread"),
+      };
+    }
+
     const launchSpec = {
       threadId: context.thread.id,
       worktreePath: context.worktreePath,
@@ -619,6 +659,51 @@ async function bootstrapDesktop() {
         await contextSwitchController.switchContext(() =>
           resolveRepositoryContext(repositoryId),
         );
+      },
+      removeRepository: async (repositoryId) => {
+        const repository = repositoryCatalog.get(repositoryId);
+        if (!repository) {
+          throw new Error(`Unknown repository: ${repositoryId}`);
+        }
+
+        const isActiveRepository =
+          currentContext?.repositoryId === repository.id;
+
+        repositoryCatalog.remove(repositoryId);
+        repositoryPreferencesCatalog.remove(repositoryId);
+
+        const remainingRepositories = repositoryCatalog.list();
+        if (remainingRepositories.length === 0) {
+          selectionState.clear();
+          return;
+        }
+
+        if (!isActiveRepository) {
+          notifySessionChanged();
+          return;
+        }
+
+        const nextRepository =
+          remainingRepositories.find((entry) => entry.id !== repository.id) ??
+          remainingRepositories[0] ??
+          null;
+
+        if (!nextRepository) {
+          selectionState.clear();
+          return;
+        }
+
+        await contextSwitchController.switchContext(() =>
+          resolveRepositoryContext(nextRepository.id),
+        );
+      },
+      openRepositoryInFinder: async (repositoryId) => {
+        const repository = repositoryCatalog.get(repositoryId);
+        if (!repository) {
+          throw new Error(`Unknown repository: ${repositoryId}`);
+        }
+
+        await shell.openPath(repository.rootPath);
       },
       createWorktree: async (repositoryId, branchName) => {
         await contextSwitchController.switchContext(() =>

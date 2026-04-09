@@ -6,7 +6,11 @@ import type {
 } from "@pidesk/shared";
 import { createStore } from "zustand/vanilla";
 
-export type UiDialogId = "settings" | "createWorktree";
+export type UiDialogId =
+  | "settings"
+  | "createWorktree"
+  | "createThread"
+  | "confirmRemoveRepository";
 
 export interface UiHoverTarget {
   kind: "repository" | "worktree" | "project" | "thread" | "window";
@@ -16,6 +20,8 @@ export interface UiHoverTarget {
 export interface UiDialogsState {
   settings: boolean;
   createWorktree: boolean;
+  createThread: boolean;
+  confirmRemoveRepository: boolean;
 }
 
 export interface LauncherOverlayState {
@@ -91,6 +97,8 @@ export function createUiInteractionStore() {
     dialogs: {
       settings: false,
       createWorktree: false,
+      createThread: false,
+      confirmRemoveRepository: false,
     },
     overlays: {
       launcher: createClosedLauncherOverlayState(),

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  type CreatePiDeskApiDependencies,
   createPiDeskApi,
   type PreloadInvoke,
   type PreloadOn,
@@ -120,10 +121,10 @@ describe("createPiDeskApi", () => {
       return undefined as TReturn;
     };
 
-    const api = createPiDeskApi({
+    const api: ReturnType<typeof createPiDeskApi> = createPiDeskApi({
       invoke,
       on: () => () => undefined,
-    });
+    } satisfies CreatePiDeskApiDependencies);
 
     await expect(api.shell.getSnapshot()).resolves.toEqual(shellSnapshot);
     await expect(api.agent.getSnapshot()).resolves.toEqual(agentSnapshot);
@@ -238,6 +239,8 @@ describe("createPiDeskApi", () => {
       "/tmp/work/repo-two",
       "/tmp/work/repo-one",
     ]);
+    await Reflect.get(api.repositories, "openInFinder")("/tmp/work/repo-one");
+    await Reflect.get(api.repositories, "remove")("/tmp/work/repo-one");
     await api.worktrees.create("/tmp/work/repo-one", "feature/runtime");
     await api.worktrees.select("/tmp/work/repo-one-feature");
     await api.threads.create(
@@ -257,6 +260,14 @@ describe("createPiDeskApi", () => {
         {
           repositoryIds: ["/tmp/work/repo-two", "/tmp/work/repo-one"],
         },
+      ],
+      [
+        IPC_CHANNELS.repositories.openInFinder,
+        { repositoryId: "/tmp/work/repo-one" },
+      ],
+      [
+        IPC_CHANNELS.repositories.remove,
+        { repositoryId: "/tmp/work/repo-one" },
       ],
       [
         IPC_CHANNELS.worktrees.create,

@@ -78,4 +78,19 @@ describe("RepositoryPreferencesCatalog", () => {
       accentColor: null,
     });
   });
+
+  it("removes persisted repository preferences by repository id", () => {
+    const userDataPath = createUserDataPath();
+    const catalog = new RepositoryPreferencesCatalog(userDataPath);
+
+    catalog.upsert("/tmp/work/repo-one", {
+      customName: "Repo One",
+      icon: "rocket",
+      accentColor: "sky",
+    });
+    catalog.remove("/tmp/work/repo-one");
+
+    const reloaded = new RepositoryPreferencesCatalog(userDataPath);
+    expect(reloaded.get("/tmp/work/repo-one")).toBeNull();
+  });
 });

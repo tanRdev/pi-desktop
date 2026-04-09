@@ -58,6 +58,8 @@ export interface PiDeskApi {
     add(path: string): Promise<void>;
     reorder(repositoryIds: string[]): Promise<void>;
     select(repositoryId: string): Promise<void>;
+    remove(repositoryId: string): Promise<void>;
+    openInFinder(repositoryId: string): Promise<void>;
   };
   worktrees: {
     create(repositoryId: string, branchName: string): Promise<void>;
