@@ -271,6 +271,13 @@ button,
   }
 }
 
+/* Ensure Radix popper overlays (Select, Combobox, etc.) stack above dialogs.
+   The wrapper div is position:fixed with no z-index by default, which loses
+   to any dialog at z-50. */
+[data-radix-popper-content-wrapper] {
+  z-index: 200;
+}
+
 [data-radix-popper-content-wrapper] > div {
   transform-origin: var(--radix-popover-content-transform-origin, center);
   animation: popover-enter var(--duration-fast) var(--ease-out) forwards;
@@ -437,32 +444,6 @@ code:not(.shiki code):not(pre code) {
 }
 
 /* ============================================
-   FOCUS STYLES
-   ============================================ */
-
-:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-}
-
-/* Remove focus ring from text inputs */
-textarea:focus-visible,
-input:focus-visible {
-  outline: none;
-}
-
-button:focus-visible,
-[role="button"]:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-}
-
-/* Remove focus ring for mouse users */
-:focus:not(:focus-visible) {
-  outline: none;
-}
-
-/* ============================================
    SELECTION
    ============================================ */
 
@@ -472,12 +453,35 @@ button:focus-visible,
 }
 
 @theme inline {
+  /* Fonts */
   --font-heading: var(--font-geist);
   --font-body: var(--font-manrope);
   --font-mono: var(--font-source-code-pro);
   --font-geist: Geist Variable;
   --font-manrope: Manrope Variable;
   --font-source-code-pro: Source Code Pro Variable;
+
+  /* shadcn color variable bridge: maps --foo → --color-foo so Tailwind v4
+     utilities like bg-popover, text-muted-foreground, etc. resolve correctly */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
 }
 
 @layer base {
