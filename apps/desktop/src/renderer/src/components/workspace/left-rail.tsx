@@ -2,6 +2,16 @@ import type { RepositorySnapshot } from "@pidesk/shared";
 import { moveRepositorySnapshots } from "@pidesk/shared";
 import * as React from "react";
 import {
+  CheckCircle,
+  PlayCircle,
+  CircleDashed,
+  XCircle,
+  Archive,
+  FolderPlus,
+  CaretRight,
+  CaretDown,
+  Circle,
+  GitBranch,
   ChatText,
   Copy,
   Folder,
@@ -293,185 +303,74 @@ export function LeftRail({
 
       {/* Repository List */}
       <div className="min-h-0 flex-1 overflow-y-auto py-2">
+        <div className="px-3 py-2 flex items-center justify-between group">
+          <div className="text-[11px] font-medium text-white/40 uppercase tracking-wider">Workspaces</div>
+          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button className="text-white/40 hover:text-white/80 p-0.5"><Folder className="size-3.5" /></button>
+            <button className="text-white/40 hover:text-white/80 p-0.5"><Plus className="size-3.5" /></button>
+          </div>
+        </div>
+
         <div className="space-y-0.5 px-2">
-          {orderedRepositories.map((repository) => {
-            const repositoryName = getRepositoryName(repository);
-            const isActive = repository.id === activeRepositoryId;
+          {/* Mock Categories to match the design */}
+          <div className="flex items-center gap-2 px-2 py-1.5 text-[13px] text-white/50 hover:text-white/80 hover:bg-white/[0.04] rounded cursor-pointer">
+            <CheckCircle className="size-4" />
+            <span>Done</span>
+          </div>
+          
+          <div className="flex items-center gap-2 px-2 py-1.5 text-[13px] text-[#eab308] hover:text-[#fde047] hover:bg-white/[0.04] rounded cursor-pointer">
+            <Circle className="size-4" />
+            <span className="text-white/50">In review</span>
+          </div>
 
-            // Combine all threads from all worktrees (excluding archived)
-            const allThreads = repository.worktrees.flatMap(
-              (wt) => wt.threads?.filter((t) => !t.isArchived) ?? [],
-            );
+          <div className="flex items-center justify-between px-2 py-1.5 text-[13px] text-[#22c55e] hover:text-[#4ade80] hover:bg-white/[0.04] rounded cursor-pointer">
+            <div className="flex items-center gap-2">
+              <PlayCircle className="size-4" />
+              <span className="text-white/80">In progress</span>
+            </div>
+            <span className="text-[10px] bg-white/[0.06] text-white/40 px-1.5 py-0.5 rounded-full">2</span>
+          </div>
 
-            const hasActiveThreadInRepo = allThreads.some(
-              (t) => t.id === activeThreadId,
-            );
+          <div className="flex items-center gap-2 px-2 py-1.5 text-[13px] text-white/30 hover:text-white/80 hover:bg-white/[0.04] rounded cursor-pointer">
+            <CircleDashed className="size-4" />
+            <span className="text-white/50">Backlog</span>
+          </div>
 
-            // Get first worktree for creating new threads
-            const firstWorktree = repository.worktrees[0];
+          <div className="flex items-center gap-2 px-2 py-1.5 text-[13px] text-[#ef4444] hover:text-[#f87171] hover:bg-white/[0.04] rounded cursor-pointer">
+            <XCircle className="size-4" />
+            <span className="text-white/50">Canceled</span>
+          </div>
 
-            return (
-              <div
-                key={repository.id}
-                className="transition-all duration-[var(--duration-fast)]"
-                onDragOver={(event) => {
-                  event.preventDefault();
-                }}
-                onDrop={() => handleDrop(repository.id)}
-              >
-                {/* Project root */}
-                <button
-                  type="button"
-                  data-testid="project-rail-item"
-                  draggable
-                  onDragStart={() => setDraggedRepositoryId(repository.id)}
-                  onDragEnd={() => setDraggedRepositoryId(null)}
-                  onClick={() => onSelectRepository(repository.id)}
-                  onContextMenu={(e) => handleContextMenu(e, repository)}
-                  className={cn(
-                    "relative group flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left transition-all duration-[var(--duration-fast)]",
-                    "outline-none hover:text-white/90",
-                    draggedRepositoryId === repository.id && "opacity-50",
-                  )}
-                  aria-label={`Open repository ${repositoryName}`}
-                >
-                  <ProjectAvatar
-                    repository={repository}
-                    isActive={isActive}
-                    className="size-3.5 shrink-0"
-                  />
-                  <span className="min-w-0 flex-1">
-                    {renameState?.repositoryId === repository.id ? (
-                      <input
-                        ref={renameInputRef}
-                        value={renameState.value}
-                        onChange={(event) =>
-                          setRenameState((current) =>
-                            current
-                              ? { ...current, value: event.target.value }
-                              : current,
-                          )
-                        }
-                        onBlur={commitRename}
-                        onClick={(event) => event.stopPropagation()}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter") {
-                            event.preventDefault();
-                            commitRename();
-                          }
-
-                          if (event.key === "Escape") {
-                            event.preventDefault();
-                            setRenameState(null);
-                          }
-                        }}
-                        className="w-full select-text bg-transparent text-[12px] font-medium leading-tight tracking-[-0.01em] text-[var(--color-text-primary)] outline-none"
-                        aria-label="Rename project"
-                        data-testid="project-rename-input"
-                      />
-                    ) : (
-                      <span
-                        className={cn(
-                          "block truncate text-[13px]",
-                          isActive || hasActiveThreadInRepo
-                            ? "text-[var(--color-text-primary)] font-medium"
-                            : "text-[var(--color-text-secondary)] group-hover:text-[var(--color-text-primary)]",
-                        )}
-                      >
-                        {repositoryName}
-                      </span>
-                    )}
-                  </span>
-                  {firstWorktree && (
-                    <button
-                      type="button"
-                      aria-label="New session"
-                      className={cn(
-                        "flex shrink-0 items-center justify-center rounded p-0.5 opacity-0 transition-all duration-[var(--duration-fast)]",
-                        "group-hover:opacity-100",
-                        "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-secondary)]",
-                      )}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onCreateThread(firstWorktree.id);
-                      }}
-                    >
-                      <Plus className="size-3.5" />
-                    </button>
-                  )}
-                </button>
-
-                {/* Threads directly under repository */}
-                {isActive && allThreads.length > 0 && (
-                  <div className="pb-2">
-                    <div className="relative pl-3">
-                      {/* Vertical line connecting project to threads */}
-                      <div className="absolute left-[15px] top-0 bottom-2 w-px bg-white/[0.06]" />
-                      <div className="space-y-1">
-                        {allThreads.map((thread, index) => (
-                          <div
-                            key={thread.id}
-                            className="stagger-item relative"
-                            style={{ animationDelay: `${index * 30}ms` }}
-                          >
-                            {/* Horizontal connector line */}
-                            <div className="absolute left-0 top-[14px] w-3 h-px bg-white/[0.06]" />
-                            <div className="pl-4">
-                              <button
-                                data-testid="thread-list-item"
-                                type="button"
-                                onClick={() => {
-                                  onSelectThread(thread.id);
-                                }}
-                                className={cn(
-                                  "relative group flex w-full items-center rounded-md px-1.5 py-1.5 text-left transition-all duration-[var(--duration-fast)]",
-                                  thread.id === activeThreadId
-                                    ? "text-[var(--color-text-primary)]"
-                                    : "text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]",
-                                )}
-                              >
-                                <span
-                                  className={cn(
-                                    "block min-w-0 flex-1 truncate text-[11px] leading-tight transition-colors duration-150",
-                                    thread.id === activeThreadId
-                                      ? "font-medium text-[var(--color-text-primary)]"
-                                      : "text-[var(--color-text-secondary)] group-hover:text-[var(--color-text-primary)]",
-                                  )}
-                                >
-                                  {thread.title || "Untitled thread"}
-                                </span>
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* New thread button */}
-                      {firstWorktree && (
-                        <button
-                          type="button"
-                          data-testid="create-thread-button"
-                          aria-label="Create thread"
-                          className={cn(
-                            "relative mt-1 flex h-7 w-full items-center rounded px-1.5 py-1 text-[11px]",
-                            "text-[var(--color-text-muted)] transition-all duration-[var(--duration-fast)]",
-                            "hover:text-[var(--color-text-secondary)]",
-                          )}
-                          onClick={() => onCreateThread(firstWorktree.id)}
-                        >
-                          {/* Horizontal connector */}
-                          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-3 h-px bg-white/[0.06]" />
-                          <div className="pl-4 flex items-center">
-                            <span className="text-[11px]">New thread</span>
-                          </div>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                )}
+          <div className="mt-4 mb-1">
+            <div className="flex items-center justify-between px-2 py-1.5 text-[13px] text-white/40 hover:text-white/80 hover:bg-white/[0.04] rounded cursor-pointer">
+              <div className="flex items-center gap-2">
+                <Archive className="size-4" />
+                <span className="text-white/50">Archived</span>
               </div>
-            );
-          })}
+              <span className="text-[10px] bg-white/[0.06] text-white/40 px-1.5 py-0.5 rounded-full">29</span>
+            </div>
+            
+            {/* Render actual repositories under Archived for demo */}
+            <div className="pl-4 mt-1 space-y-0.5">
+              {orderedRepositories.map((repository) => {
+                const repositoryName = getRepositoryName(repository);
+                const isActive = repository.id === activeRepositoryId;
+                return (
+                  <button
+                    key={repository.id}
+                    onClick={() => onSelectRepository(repository.id)}
+                    className={cn(
+                      "flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-[13px] transition-colors",
+                      isActive ? "bg-[#3b82f6]/10 text-[#3b82f6]" : "text-white/50 hover:bg-white/[0.04] hover:text-white/80"
+                    )}
+                  >
+                    <GitBranch className="size-3.5" />
+                    <span className="truncate">{repositoryName}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
 

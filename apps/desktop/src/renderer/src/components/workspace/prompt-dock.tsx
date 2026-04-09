@@ -316,7 +316,7 @@ export function PromptDock({
             className="absolute left-0 right-0 top-full z-20 mt-2"
           />
 
-          <PromptInputActions className="mt-2 items-center justify-between gap-3 border-t border-white/[0.04] pt-3">
+          <PromptInputActions className="mt-2 flex-wrap items-center justify-between gap-3 border-t border-white/[0.04] pt-3">
             <div className="flex items-center gap-3">
               {/* Plan/Build mode toggle */}
               <div className="inline-flex rounded-md border border-white/[0.06] bg-white/[0.02] p-1 text-xs text-white/50">
