@@ -24,6 +24,66 @@ export function upsertMessage(
   );
 }
 
+function formatToolPayload(value: unknown): string {
+  if (value === undefined || value === null) {
+    return "";
+  }
+
+  if (typeof value === "string") {
+    return value;
+  }
+
+  try {
+    return JSON.stringify(value, null, 2);
+  } catch {
+    return String(value);
+  }
+}
+
+function createToolMessageId(toolName: string, toolCallId: string): string {
+  return `tool:${toolName}:${toolCallId}`;
+}
+
+function createToolMessage(
+  snapshot: AgentSnapshot,
+  event: Extract<
+    PiDeskAgentEvent,
+    | { type: "tool_execution_start" }
+    | { type: "tool_execution_update" }
+    | { type: "tool_execution_end" }
+  >,
+): AgentMessageSnapshot {
+  const timestamp =
+    snapshot.messages[snapshot.messages.length - 1]?.timestamp ?? Date.now();
+
+  switch (event.type) {
+    case "tool_execution_start":
+      return {
+        id: createToolMessageId(event.toolName, event.toolCallId),
+        role: "tool",
+        text: formatToolPayload(event.args),
+        status: "streaming",
+        timestamp,
+      };
+    case "tool_execution_update":
+      return {
+        id: createToolMessageId(event.toolName, event.toolCallId),
+        role: "tool",
+        text: formatToolPayload(event.partialResult),
+        status: "streaming",
+        timestamp,
+      };
+    case "tool_execution_end":
+      return {
+        id: createToolMessageId(event.toolName, event.toolCallId),
+        role: "tool",
+        text: formatToolPayload(event.result),
+        status: event.isError ? "error" : "complete",
+        timestamp,
+      };
+  }
+}
+
 /**
  * Applies an agent event to an agent snapshot, returning a new snapshot.
  * Handles message lifecycle events (start, update, end) and agent state changes.
@@ -69,6 +129,16 @@ export function applyEventToSnapshot(
           status: "complete",
           timestamp: event.timestamp,
         }),
+      };
+    case "tool_execution_start":
+    case "tool_execution_update":
+    case "tool_execution_end":
+      return {
+        ...snapshot,
+        messages: upsertMessage(
+          snapshot.messages,
+          createToolMessage(snapshot, event),
+        ),
       };
     default:
       return snapshot;

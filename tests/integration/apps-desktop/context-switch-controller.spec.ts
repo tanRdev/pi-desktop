@@ -73,7 +73,7 @@ function createState(): ContextSwitchState<
 }
 
 describe("context-switch-controller", () => {
-  it("switches into a loading host before the background attachment completes", async () => {
+  it("switches into a loading host before the awaited attachment completes", async () => {
     const state = createState();
     const previousUnsubscribe = state.unsubscribe;
     const nextContext = createContext("beta", "/tmp/beta");
@@ -93,7 +93,9 @@ describe("context-switch-controller", () => {
       notifySessionChanged,
     });
 
-    await controller.switchContext(async () => nextContext);
+    const switchPromise = controller.switchContext(async () => nextContext);
+
+    await Promise.resolve();
 
     expect(state.context).toEqual(nextContext);
     await expect(state.host.getSnapshot()).resolves.toEqual({
@@ -110,8 +112,7 @@ describe("context-switch-controller", () => {
       host: attachedHost,
       transport: attachedTransport,
     });
-    await pendingAttachment.promise;
-    await Promise.resolve();
+    await switchPromise;
 
     expect(state.host).toBe(attachedHost);
     expect(state.transport).toBe(attachedTransport);
@@ -156,16 +157,21 @@ describe("context-switch-controller", () => {
       notifySessionChanged: vi.fn(),
     });
 
-    await controller.switchContext(async () => firstContext);
-    await controller.switchContext(async () => secondContext);
+    const firstSwitchPromise = controller.switchContext(
+      async () => firstContext,
+    );
+    const secondSwitchPromise = controller.switchContext(
+      async () => secondContext,
+    );
+
+    await Promise.resolve();
 
     firstAttachment.resolve({
       context: firstContext,
       host: createHost("alpha-host"),
       transport: firstAttachedTransport,
     });
-    await firstAttachment.promise;
-    await Promise.resolve();
+    await firstSwitchPromise;
 
     expect(firstAttachedTransport.closeSpy).toHaveBeenCalledTimes(1);
     expect(state.context).toEqual(secondContext);
@@ -176,8 +182,7 @@ describe("context-switch-controller", () => {
       host: secondAttachedHost,
       transport: secondAttachedTransport,
     });
-    await secondAttachment.promise;
-    await Promise.resolve();
+    await secondSwitchPromise;
 
     expect(state.host).toBe(secondAttachedHost);
     expect(state.transport).toBe(secondAttachedTransport);

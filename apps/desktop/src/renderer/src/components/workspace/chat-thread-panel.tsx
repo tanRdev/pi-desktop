@@ -8,10 +8,10 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 import { FeedbackBar, type FeedbackValue } from "../ui/feedback-bar";
 import { ArrowUp, At, Paperclip, Plus, Stop, X } from "../ui/icons";
-import { Loader } from "../ui/loader";
 import { MessageContent } from "../ui/message";
 import { ScrollButton } from "../ui/scroll-button";
 import { SystemMessage } from "../ui/system-message";
+import { ThinkingBar } from "../ui/thinking-bar";
 import { Tool } from "../ui/tool";
 
 // ---------------------------------------------------------------------------
@@ -362,8 +362,10 @@ function getMessageLabel(message: AgentMessageSnapshot) {
 }
 
 function buildToolPart(message: AgentMessageSnapshot) {
+  const toolNameMatch = /^tool:([^:]+):/.exec(message.id);
+
   return {
-    type: "workspace.tool",
+    type: toolNameMatch?.[1] ?? "workspace.tool",
     state:
       message.status === "error"
         ? "output-error"
@@ -407,15 +409,6 @@ export interface ChatThreadPanelProps {
   // Context bar
   contextPath?: string;
   contextLabel?: string;
-  // Input
-  draft?: string;
-  onDraftChange?: (draft: string) => void;
-  onSend?: () => void | Promise<void>;
-  onCancelPrompt?: () => void | Promise<void>;
-  canSend?: boolean;
-  isPromptExecuting?: boolean;
-  skills?: Skill[];
-  onSkillSelect?: (skill: Skill) => void;
 }
 
 export function ChatThreadPanel({
@@ -426,14 +419,6 @@ export function ChatThreadPanel({
   className,
   contextPath = "tan/dev/pidesk",
   contextLabel = "frontend-design",
-  draft = "",
-  onDraftChange,
-  onSend,
-  onCancelPrompt,
-  canSend = false,
-  isPromptExecuting = false,
-  skills,
-  onSkillSelect,
 }: ChatThreadPanelProps) {
   const [feedbackByMessageId, setFeedbackByMessageId] = React.useState<
     Record<string, FeedbackValue>
@@ -625,12 +610,7 @@ export function ChatThreadPanel({
               })}
 
           {/* Streaming indicator */}
-          {isStreaming && (
-            <div className="flex items-center gap-3 rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2">
-              <Loader label="Responding" />
-              <span className="text-xs text-white/30">Responding...</span>
-            </div>
-          )}
+          {isStreaming && <ThinkingBar text="Pi is responding" />}
 
           {/* Error message */}
           {lastError && (
@@ -653,24 +633,6 @@ export function ChatThreadPanel({
           >
             Jump to latest
           </ScrollButton>
-        </div>
-      )}
-
-      {/* CursorChatInput — pinned to bottom */}
-      {onDraftChange && onSend && onCancelPrompt && (
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d] to-transparent">
-          <div className="overflow-hidden border-t border-white/[0.03] bg-[var(--color-bg-secondary)]/95 shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.02)] backdrop-blur-xl">
-            <CursorChatInput
-              draft={draft}
-              onDraftChange={onDraftChange}
-              onSend={onSend}
-              onCancelPrompt={onCancelPrompt}
-              canSend={canSend}
-              isPromptExecuting={isPromptExecuting}
-              skills={skills}
-              onSkillSelect={onSkillSelect}
-            />
-          </div>
         </div>
       )}
     </div>

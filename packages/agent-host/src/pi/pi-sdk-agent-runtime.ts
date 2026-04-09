@@ -74,7 +74,9 @@ type PiSdkAgentRuntimeOptions = {
 type StructuredMessage = {
   role: string;
   timestamp: number;
-  content?: Array<{ type?: string; text?: string }>;
+  content?: string | Array<{ type?: string; text?: string }>;
+  customType?: string;
+  display?: boolean;
 };
 
 function isStructuredMessage(value: unknown): value is StructuredMessage {
@@ -91,6 +93,10 @@ function toSnapshotRole(role: string): AgentMessageSnapshot["role"] | null {
     return role;
   }
 
+  if (role === "custom") {
+    return "system";
+  }
+
   if (role === "toolResult") {
     return "tool";
   }
@@ -99,6 +105,10 @@ function toSnapshotRole(role: string): AgentMessageSnapshot["role"] | null {
 }
 
 function getMessageText(message: StructuredMessage): string {
+  if (typeof message.content === "string") {
+    return message.content;
+  }
+
   if (!Array.isArray(message.content)) {
     return "";
   }
@@ -114,6 +124,10 @@ function getMessageId(
   message: StructuredMessage,
   role: AgentMessageSnapshot["role"],
 ): string {
+  if (message.role === "custom" && typeof message.customType === "string") {
+    return `custom-${message.customType}-${message.timestamp}`;
+  }
+
   return `${role}-${message.timestamp}`;
 }
 
@@ -126,6 +140,10 @@ function toSnapshotMessages(messages: unknown[]): AgentMessageSnapshot[] {
     const role = toSnapshotRole(message.role);
 
     if (!role) {
+      return [];
+    }
+
+    if (message.role === "custom" && message.display === false) {
       return [];
     }
 

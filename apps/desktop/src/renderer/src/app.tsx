@@ -1,4 +1,5 @@
 import { TooltipProvider } from "@pidesk/ui";
+import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import { SettingsModal, SettingsProvider } from "./components/settings";
 import { Button } from "./components/ui/button";
@@ -243,6 +244,8 @@ export default function App() {
               </div>
             </DialogContent>
           </Dialog>
+
+          <Toaster />
         </div>
       </TooltipProvider>
     </SettingsProvider>

@@ -10,6 +10,7 @@ import {
   getActiveWorktree,
 } from "@pidesk/shared";
 import * as React from "react";
+import { toast } from "sonner";
 import { useStore } from "zustand";
 import type { WorkspaceShellProps } from "../components/workspace/workspace-shell";
 import { loadPromptAutocompleteSuggestions } from "../lib/prompt-autocomplete-loader";
@@ -36,6 +37,27 @@ import { useWindowStore, workspaceSessionStore } from "./use-window-store";
 const EMPTY_AUTOCOMPLETE_SUGGESTIONS: (SlashSuggestion | MentionSuggestion)[] =
   [];
 const PENDING_SURFACE_PREFIX = "__pending_surface__";
+
+type PromptMode = "build" | "plan";
+
+const PROMPT_MODE_TO_PREFIX = {
+  build: "/skill:build ",
+  plan: "/skill:plan ",
+} satisfies Record<PromptMode, string>;
+
+function stripPromptModePrefix(value: string): string {
+  return value
+    .replace(/^\/skill:(?:plan|build)\s+/i, "")
+    .replace(/^\/(?:plan|build)\s+/i, "");
+}
+
+function detectPromptMode(value: string): PromptMode {
+  if (/^\/skill:plan\b/i.test(value) || /^\/plan\b/i.test(value)) {
+    return "plan";
+  }
+
+  return "build";
+}
 
 function getThreadWindowTitle(
   thread: ThreadSnapshot | null | undefined,
@@ -194,6 +216,9 @@ export function useAppShellController(): AppShellController {
   const [selectedContextSurface, setSelectedContextSurface] =
     React.useState<WorkspaceShellProps["selectedContextSurface"]>(null);
   const [leftRailWidth, setLeftRailWidth] = React.useState(260);
+  const [promptMode, setPromptMode] = React.useState<PromptMode>(() =>
+    detectPromptMode(draft),
+  );
   const launcherRequestIdRef = React.useRef(0);
 
   const setAutocompleteSuggestions = React.useCallback(
@@ -256,6 +281,10 @@ export function useAppShellController(): AppShellController {
   const handleOpenSettings = React.useCallback(() => {
     setSettingsOpen(true);
   }, [setSettingsOpen]);
+
+  React.useEffect(() => {
+    setPromptMode(detectPromptMode(draft));
+  }, [draft]);
 
   React.useEffect(() => {
     if (!toastMessage) {
@@ -656,6 +685,9 @@ export function useAppShellController(): AppShellController {
       setCreateWorktreeOpen(false);
       setNewWorktreeBranchState("");
       setWorktreeCreateError(null);
+      toast.success(
+        `Worktree "${newWorktreeBranch.trim()}" created successfully`,
+      );
       await reload();
     } catch (error) {
       setWorktreeCreateError(
@@ -717,6 +749,7 @@ export function useAppShellController(): AppShellController {
       setPendingThreadRepositoryName(null);
       setNewThreadNameState("");
       setThreadCreateError(null);
+      toast.success(`Thread "${nextName}" created successfully`);
       await reload();
     } catch (error) {
       setThreadCreateError(
@@ -928,6 +961,18 @@ export function useAppShellController(): AppShellController {
     void sendPrompt();
   }, [activeThreadId, canSend, sendPrompt]);
 
+  const handlePromptModeChange = React.useCallback(
+    (nextMode: PromptMode) => {
+      setPromptMode(nextMode);
+      const normalizedDraft = stripPromptModePrefix(draft).trimStart();
+      const prefix = PROMPT_MODE_TO_PREFIX[nextMode];
+      setDraft(
+        `${prefix}${normalizedDraft}`.trimEnd() + (normalizedDraft ? "" : ""),
+      );
+    },
+    [draft, setDraft],
+  );
+
   const handleCancelPrompt = React.useCallback(async () => {
     await cancelPrompt();
   }, [cancelPrompt]);
@@ -1107,6 +1152,8 @@ export function useAppShellController(): AppShellController {
     onAutocompleteHover: setAutocompleteSelectedIndex,
     onPromptKeyDown: handlePromptKeyDown,
     onModelSelection: handleModelSelection,
+    promptMode,
+    onPromptModeChange: handlePromptModeChange,
   };
 
   return {

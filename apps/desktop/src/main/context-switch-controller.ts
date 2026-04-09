@@ -122,38 +122,36 @@ export function createContextSwitchController<
       state.context = nextContext;
       state.host = createLoadingAgentHost(state.host, nextContext);
 
-      void options
-        .attachContext(nextContext)
-        .then((attached) => {
-          if (switchVersion !== currentVersion) {
-            attached.transport.close();
-            return;
-          }
+      try {
+        const attached = await options.attachContext(nextContext);
+        if (switchVersion !== currentVersion) {
+          attached.transport.close();
+          return;
+        }
 
-          previousTransport?.close();
-          state.context = attached.context;
-          state.host = attached.host;
-          state.transport = attached.transport;
-          state.unsubscribe = options.subscribeToHost(
-            attached.host,
-            attached.context.thread,
-          );
-          options.notifySessionChanged();
-        })
-        .catch((error: unknown) => {
-          if (switchVersion !== currentVersion) {
-            return;
-          }
+        previousTransport?.close();
+        state.context = attached.context;
+        state.host = attached.host;
+        state.transport = attached.transport;
+        state.unsubscribe = options.subscribeToHost(
+          attached.host,
+          attached.context.thread,
+        );
+        options.notifySessionChanged();
+      } catch (error) {
+        if (switchVersion !== currentVersion) {
+          return;
+        }
 
-          previousTransport?.close();
-          state.transport = null;
-          state.host = createFailedAgentHost(
-            state.host,
-            nextContext,
-            error instanceof Error ? error.message : "Failed to switch session",
-          );
-          options.notifySessionChanged();
-        });
+        previousTransport?.close();
+        state.transport = null;
+        state.host = createFailedAgentHost(
+          state.host,
+          nextContext,
+          error instanceof Error ? error.message : "Failed to switch session",
+        );
+        options.notifySessionChanged();
+      }
     },
   };
 }

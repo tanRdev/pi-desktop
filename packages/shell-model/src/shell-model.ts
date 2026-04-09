@@ -266,6 +266,16 @@ export function createShellModel(api: PiDeskApi) {
         return;
       }
 
+      state = {
+        ...state,
+        agent: {
+          ...state.agent,
+          status: "starting",
+          lastError: null,
+        },
+      };
+      notify();
+
       const eventSequenceAtStart = state.live.lastEventSequence;
 
       try {

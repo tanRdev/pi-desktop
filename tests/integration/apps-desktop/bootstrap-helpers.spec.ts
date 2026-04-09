@@ -200,6 +200,46 @@ describe("bootstrap helpers (RED)", () => {
     expect(commitAttachment).toHaveBeenCalledWith({ attached: true });
   });
 
+  test("switchModelForContext updates settings without restarting when no thread runtime is active", async () => {
+    const { switchModelForContext } = await import(
+      "../../../apps/desktop/src/main/bootstrap/model-switch"
+    );
+
+    const request = {
+      providerId: "anthropic",
+      modelId: "claude-3-7-sonnet",
+    };
+    const resolveAgentDirectory = vi.fn(() => "/tmp/project/.pi/agent");
+    const setDefaultProvider = vi.fn().mockResolvedValue(undefined);
+    const setDefaultModel = vi.fn().mockResolvedValue(undefined);
+    const createSettingsManager = vi.fn().mockResolvedValue({
+      setDefaultProvider,
+      setDefaultModel,
+    });
+    const restartThreadRuntime = vi.fn().mockResolvedValue(undefined);
+    const attachContext = vi.fn().mockResolvedValue({ attached: true });
+    const commitAttachment = vi.fn();
+
+    await switchModelForContext(request, {
+      currentContext: {
+        worktreePath: "/tmp/project",
+        thread: { id: "pending-thread" },
+        command: [],
+      },
+      resolveAgentDirectory,
+      createSettingsManager,
+      runtimeManager: { restartThreadRuntime },
+      attachContext,
+      commitAttachment,
+    });
+
+    expect(setDefaultProvider).toHaveBeenCalledWith("anthropic");
+    expect(setDefaultModel).toHaveBeenCalledWith("claude-3-7-sonnet");
+    expect(restartThreadRuntime).not.toHaveBeenCalled();
+    expect(attachContext).not.toHaveBeenCalled();
+    expect(commitAttachment).not.toHaveBeenCalled();
+  });
+
   test("buildThreadContext preserves repository selection, runtime options, and launch details", async () => {
     const { buildThreadContext } = await import(
       "../../../apps/desktop/src/main/bootstrap/thread-context"

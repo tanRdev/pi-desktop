@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { uiInteractionStore } from "../../stores/ui-interaction-store";
 import { ChatThreadPanel } from "./chat-thread-panel";
 import { LeftRail, SIDEBAR_WIDTH } from "./left-rail";
+import { PromptDock } from "./prompt-dock";
 import { WorkspaceActivityPanel } from "./workspace-activity-panel";
 import { FileTreeOverlay, LauncherOverlay } from "./workspace-overlays";
 import type { WorkspaceSearchAction } from "./workspace-search-content";
@@ -22,6 +23,7 @@ type ContextWindow = Extract<
   import("@pidesk/shared").WorkspaceWindow,
   { kind: "file" | "terminal" | "git" }
 >;
+type PromptMode = "build" | "plan";
 
 export interface WorkspaceShellProps {
   platform: string | null;
@@ -97,6 +99,8 @@ export interface WorkspaceShellProps {
   onModelSelection: (
     event: React.ChangeEvent<HTMLSelectElement>,
   ) => void | Promise<void>;
+  promptMode: PromptMode;
+  onPromptModeChange: (mode: PromptMode) => void;
 }
 
 export function WorkspaceShell({
@@ -109,16 +113,16 @@ export function WorkspaceShell({
   activeThreadTitle,
   draft,
   canSend,
-  autocompleteSuggestions: _autocompleteSuggestions,
-  autocompleteSelectedIndex: _autocompleteSelectedIndex,
+  autocompleteSuggestions,
+  autocompleteSelectedIndex,
   displayAgentStatus,
-  runtimeModeLabel: _runtimeModeLabel,
-  providerSnapshots: _providerSnapshots,
-  currentModelValue: _currentModelValue,
-  isSwitchingModel: _isSwitchingModel,
+  runtimeModeLabel,
+  providerSnapshots,
+  currentModelValue,
+  isSwitchingModel,
   isLauncherOpen,
   isFileTreeOpen,
-  isPromptVisible: _isPromptVisible,
+  isPromptVisible,
   isPromptExecuting,
   launcherQuery,
   launcherResults,
@@ -161,10 +165,12 @@ export function WorkspaceShell({
   onDraftChange,
   onSend,
   onCancelPrompt,
-  onAutocompleteSelect: _onAutocompleteSelect,
-  onAutocompleteHover: _onAutocompleteHover,
-  onPromptKeyDown: _onPromptKeyDown,
-  onModelSelection: _onModelSelection,
+  onAutocompleteSelect,
+  onAutocompleteHover,
+  onPromptKeyDown,
+  onModelSelection,
+  promptMode,
+  onPromptModeChange,
 }: WorkspaceShellProps) {
   const isMainWindowFullscreen = useStore(
     uiInteractionStore,
@@ -307,14 +313,57 @@ export function WorkspaceShell({
                   isStreaming={isPromptExecuting}
                   lastError={threadLastError}
                   className="h-full"
-                  draft={draft}
-                  onDraftChange={onDraftChange}
-                  onSend={onSend}
-                  onCancelPrompt={onCancelPrompt}
-                  canSend={canSend}
-                  isPromptExecuting={isPromptExecuting}
                 />
               ) : null}
+
+              <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d] to-transparent px-6 pb-4 pt-16">
+                <div className="mx-auto max-w-3xl">
+                  <div className="mb-3 flex items-center justify-start">
+                    <div className="inline-flex rounded-md border border-white/[0.06] bg-black/20 p-1 text-xs text-white/50">
+                      {(["plan", "build"] as const).map((mode) => {
+                        const isActive = promptMode === mode;
+                        return (
+                          <button
+                            key={mode}
+                            type="button"
+                            onClick={() => onPromptModeChange(mode)}
+                            className={cn(
+                              "rounded px-2.5 py-1 capitalize transition-colors",
+                              isActive
+                                ? "bg-white/[0.12] text-white"
+                                : "hover:bg-white/[0.05] hover:text-white/80",
+                            )}
+                          >
+                            {mode}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <PromptDock
+                    draft={draft}
+                    onDraftChange={onDraftChange}
+                    onSend={onSend}
+                    onCancelPrompt={onCancelPrompt}
+                    activeThreadId={activeThreadId}
+                    canSend={canSend}
+                    isVisible={isPromptVisible}
+                    isPromptExecuting={isPromptExecuting}
+                    autocompleteSuggestions={autocompleteSuggestions}
+                    autocompleteSelectedIndex={autocompleteSelectedIndex}
+                    onAutocompleteSelect={onAutocompleteSelect}
+                    onAutocompleteHover={onAutocompleteHover}
+                    onPromptKeyDown={onPromptKeyDown}
+                    displayAgentStatus={displayAgentStatus}
+                    runtimeModeLabel={runtimeModeLabel}
+                    providerSnapshots={providerSnapshots}
+                    currentModelValue={currentModelValue}
+                    isSwitchingModel={isSwitchingModel}
+                    onModelMenuOpenChange={_onModelMenuOpenChange}
+                    onModelSelection={onModelSelection}
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Item 22: Right panel - only visible when a surface is selected */}

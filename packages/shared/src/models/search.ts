@@ -66,6 +66,13 @@ export interface SlashSuggestion {
   source?: string;
 }
 
+export type PromptModeSuggestion = {
+  kind: "prompt";
+  name: string;
+  slash: string;
+  description?: string;
+};
+
 /**
  * Mention suggestion for @ autocomplete.
  */

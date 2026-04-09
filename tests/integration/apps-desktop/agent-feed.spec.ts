@@ -81,6 +81,58 @@ describe("applyAgentEvent", () => {
     expect(finalState.status).toBe("ready");
   });
 
+  it("creates transcript tool messages from tool execution lifecycle events", () => {
+    const initial: AgentSnapshot = {
+      sessionId: "mock-session",
+      status: "ready",
+      messages: [],
+      lastError: null,
+    };
+
+    const started = applyAgentEvent(initial, {
+      type: "tool_execution_start",
+      toolCallId: "tool-1",
+      toolName: "read",
+      args: { filePath: "/tmp/example.ts" },
+    });
+    const updated = applyAgentEvent(started, {
+      type: "tool_execution_update",
+      toolCallId: "tool-1",
+      toolName: "read",
+      args: { filePath: "/tmp/example.ts" },
+      partialResult: { status: "reading" },
+    });
+    const completed = applyAgentEvent(updated, {
+      type: "tool_execution_end",
+      toolCallId: "tool-1",
+      toolName: "read",
+      result: { content: "hello" },
+      isError: false,
+    });
+
+    expect(started.messages).toEqual([
+      {
+        id: "tool:read:tool-1",
+        role: "tool",
+        text: '{\n  "filePath": "/tmp/example.ts"\n}',
+        status: "streaming",
+        timestamp: expect.any(Number),
+      },
+    ]);
+    expect(updated.messages[0]).toMatchObject({
+      id: "tool:read:tool-1",
+      role: "tool",
+      text: '{\n  "status": "reading"\n}',
+      status: "streaming",
+    });
+    expect(completed.messages[0]).toMatchObject({
+      id: "tool:read:tool-1",
+      role: "tool",
+      text: '{\n  "content": "hello"\n}',
+      status: "complete",
+    });
+  });
+
   it("hydrates a historical turn from an existing snapshot", () => {
     const snapshot: AgentSnapshot = {
       sessionId: "sdk-session",

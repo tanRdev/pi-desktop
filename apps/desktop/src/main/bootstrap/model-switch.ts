@@ -47,6 +47,10 @@ export async function switchModelForContext(
   await settingsManager.setDefaultProvider(request.providerId);
   await settingsManager.setDefaultModel(request.modelId);
 
+  if (currentContext.command.length === 0) {
+    return;
+  }
+
   await deps.runtimeManager.restartThreadRuntime({
     threadId: currentContext.thread.id,
     worktreePath: currentContext.worktreePath,

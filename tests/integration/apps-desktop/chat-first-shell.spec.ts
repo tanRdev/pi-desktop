@@ -32,7 +32,8 @@ describe("chat-first workspace shell", () => {
       "apps/desktop/src/renderer/src/hooks/use-app-shell-controller.ts",
     );
 
-    expect(controllerSource).toContain("threadBootstrapAttemptKeyRef");
+    expect(controllerSource).toContain("await window.pidesk.threads.create");
+    expect(controllerSource).toContain("await window.pidesk.threads.select");
     expect(controllerSource).not.toContain("handleOpenBlankStateChat");
     expect(controllerSource).not.toContain("canvasBounds");
     expect(controllerSource).not.toContain("openOrFocusChatWindow");
@@ -42,10 +43,34 @@ describe("chat-first workspace shell", () => {
     const chatSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx",
     );
+    const shellSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx",
+    );
 
     expect(chatSource).toContain('data-testid="chat-transcript"');
+    expect(shellSource).toContain("PromptDock");
+    expect(shellSource).toContain(
+      "autocompleteSuggestions={autocompleteSuggestions}",
+    );
+    expect(shellSource).toContain(
+      "onAutocompleteSelect={onAutocompleteSelect}",
+    );
     expect(chatSource).not.toContain("Chat-first workspace");
     expect(chatSource).not.toContain("canvas preview");
     expect(chatSource).not.toContain("latest canvas state");
+  });
+
+  it("wires the plan and build prompt modes into local Pi skills", () => {
+    const controllerSource = readSource(
+      "apps/desktop/src/renderer/src/hooks/use-app-shell-controller.ts",
+    );
+    const shellSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx",
+    );
+
+    expect(controllerSource).toContain('build: "/skill:build "');
+    expect(controllerSource).toContain('plan: "/skill:plan "');
+    expect(shellSource).toContain('(["plan", "build"] as const)');
+    expect(shellSource).toContain("onPromptModeChange(mode)");
   });
 });

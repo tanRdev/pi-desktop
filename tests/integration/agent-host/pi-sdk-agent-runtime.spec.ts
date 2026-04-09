@@ -178,6 +178,48 @@ describe("PiSdkAgentRuntime", () => {
     ]);
   });
 
+  it("keeps displayable custom Pi messages in snapshots", async () => {
+    const customTimestamp = 200;
+    const session: FakeSession = {
+      sessionId: "sdk-session",
+      messages: [
+        {
+          role: "custom",
+          customType: "plan-mode-execute",
+          content: "Execute the plan.",
+          display: true,
+          timestamp: customTimestamp,
+        },
+      ],
+      subscribe() {
+        return () => undefined;
+      },
+      async prompt() {
+        return undefined;
+      },
+    };
+    const runtime = new PiSdkAgentRuntime({
+      cwd: "/tmp/pidesk-workspace",
+      createAgentSession: vi.fn().mockResolvedValue({
+        session,
+        extensionsResult: {
+          loadedExtensions: [],
+          errors: [],
+        },
+      }),
+    });
+
+    await runtime.bootstrap();
+
+    expect(runtime.getSnapshot().messages).toContainEqual({
+      id: "custom-plan-mode-execute-200",
+      role: "system",
+      text: "Execute the plan.",
+      status: "complete",
+      timestamp: 200,
+    });
+  });
+
   it("marks the snapshot as errored when sdk bootstrap fails", async () => {
     const runtime = new PiSdkAgentRuntime({
       cwd: "/tmp/pidesk-workspace",
