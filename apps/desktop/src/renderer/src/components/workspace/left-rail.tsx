@@ -271,12 +271,12 @@ export function LeftRail({
           onClick={onOpenMarketplace}
           className={cn(
             "flex w-full items-center gap-2.5 rounded-md px-2.5 py-2",
-            "text-[var(--color-text-secondary)] text-[13px]",
+            "text-[var(--color-text-secondary)] text-[12px]",
             "transition-all duration-[var(--duration-fast)]",
             "hover:bg-[var(--color-surface-secondary)] hover:text-[var(--color-text-primary)]",
           )}
         >
-          <SquaresFour className="size-4" />
+          <SquaresFour className="size-3.5" />
           <span>Packages</span>
         </button>
         <button
@@ -285,12 +285,12 @@ export function LeftRail({
           onClick={onAddRepository}
           className={cn(
             "flex w-full items-center gap-2.5 rounded-md px-2.5 py-2",
-            "text-[var(--color-text-secondary)] text-[13px]",
+            "text-[var(--color-text-secondary)] text-[12px]",
             "transition-all duration-[var(--duration-fast)]",
             "hover:bg-[var(--color-surface-secondary)] hover:text-[var(--color-text-primary)]",
           )}
         >
-          <Plus className="size-4" />
+          <Plus className="size-3.5" />
           <span>Add workspace</span>
         </button>
       </div>
@@ -303,10 +303,10 @@ export function LeftRail({
         <div className="flex flex-1 flex-col items-center justify-center gap-2 px-6 py-8 text-center">
           <Stack className="size-4 text-[var(--color-text-muted)]" />
           <div className="space-y-0.5">
-            <p className="text-[12px] font-medium text-[var(--color-text-secondary)]">
+            <p className="text-[11px] text-[var(--color-text-secondary)]">
               No projects
             </p>
-            <p className="text-[11px] text-[var(--color-text-muted)]">
+            <p className="text-[10px] text-[var(--color-text-muted)]">
               Open a workspace to begin
             </p>
           </div>
@@ -316,7 +316,7 @@ export function LeftRail({
       {/* Repository List */}
       <div className="min-h-0 flex-1 overflow-y-auto py-2">
         <div className="px-3 py-2 flex items-center justify-between group">
-          <div className="text-[11px] font-medium text-white/40 uppercase tracking-wider">Workspaces</div>
+          <div className="text-[10px] text-white/40 uppercase tracking-wider">Workspaces</div>
           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <button className="text-white/40 hover:text-white/80 p-0.5"><Folder className="size-3.5" /></button>
             <button className="text-white/40 hover:text-white/80 p-0.5"><Plus className="size-3.5" /></button>
@@ -325,38 +325,38 @@ export function LeftRail({
 
         <div className="space-y-0.5 px-2">
           {/* Mock Categories to match the design */}
-          <div className="flex items-center gap-2 px-2 py-1.5 text-[13px] text-white/50 hover:text-white/80 hover:bg-white/[0.04] rounded cursor-pointer">
-            <CheckCircle className="size-4" />
+          <div className="flex items-center gap-2 px-2 py-1.5 text-[12px] text-white/50 hover:text-white/80 hover:bg-white/[0.04] rounded cursor-pointer">
+            <CheckCircle className="size-3.5" />
             <span>Done</span>
           </div>
           
-          <div className="flex items-center gap-2 px-2 py-1.5 text-[13px] text-[#eab308] hover:text-[#fde047] hover:bg-white/[0.04] rounded cursor-pointer">
-            <Circle className="size-4" />
+          <div className="flex items-center gap-2 px-2 py-1.5 text-[12px] text-[#eab308] hover:text-[#fde047] hover:bg-white/[0.04] rounded cursor-pointer">
+            <Circle className="size-3.5" />
             <span className="text-white/50">In review</span>
           </div>
 
-          <div className="flex items-center justify-between px-2 py-1.5 text-[13px] text-[#22c55e] hover:text-[#4ade80] hover:bg-white/[0.04] rounded cursor-pointer">
+          <div className="flex items-center justify-between px-2 py-1.5 text-[12px] text-[#22c55e] hover:text-[#4ade80] hover:bg-white/[0.04] rounded cursor-pointer">
             <div className="flex items-center gap-2">
-              <PlayCircle className="size-4" />
+              <PlayCircle className="size-3.5" />
               <span className="text-white/80">In progress</span>
             </div>
             <span className="text-[10px] bg-white/[0.06] text-white/40 px-1.5 py-0.5 rounded-full">2</span>
           </div>
 
-          <div className="flex items-center gap-2 px-2 py-1.5 text-[13px] text-white/30 hover:text-white/80 hover:bg-white/[0.04] rounded cursor-pointer">
-            <CircleDashed className="size-4" />
+          <div className="flex items-center gap-2 px-2 py-1.5 text-[12px] text-white/30 hover:text-white/80 hover:bg-white/[0.04] rounded cursor-pointer">
+            <CircleDashed className="size-3.5" />
             <span className="text-white/50">Backlog</span>
           </div>
 
-          <div className="flex items-center gap-2 px-2 py-1.5 text-[13px] text-[#ef4444] hover:text-[#f87171] hover:bg-white/[0.04] rounded cursor-pointer">
-            <XCircle className="size-4" />
+          <div className="flex items-center gap-2 px-2 py-1.5 text-[12px] text-[#ef4444] hover:text-[#f87171] hover:bg-white/[0.04] rounded cursor-pointer">
+            <XCircle className="size-3.5" />
             <span className="text-white/50">Canceled</span>
           </div>
 
           <div className="mt-4 mb-1">
-            <div className="flex items-center justify-between px-2 py-1.5 text-[13px] text-white/40 hover:text-white/80 hover:bg-white/[0.04] rounded cursor-pointer">
+            <div className="flex items-center justify-between px-2 py-1.5 text-[12px] text-white/40 hover:text-white/80 hover:bg-white/[0.04] rounded cursor-pointer">
               <div className="flex items-center gap-2">
-                <Archive className="size-4" />
+                <Archive className="size-3.5" />
                 <span className="text-white/50">Archived</span>
               </div>
               <span className="text-[10px] bg-white/[0.06] text-white/40 px-1.5 py-0.5 rounded-full">29</span>
@@ -372,11 +372,11 @@ export function LeftRail({
                     key={repository.id}
                     onClick={() => onSelectRepository(repository.id)}
                     className={cn(
-                      "flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-[13px] transition-colors",
+                      "flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-[12px] transition-colors",
                       isActive ? "bg-[#3b82f6]/10 text-[#3b82f6]" : "text-white/50 hover:bg-white/[0.04] hover:text-white/80"
                     )}
                   >
-                    <GitBranch className="size-3.5" />
+                    <GitBranch className="size-3" />
                     <span className="truncate">{repositoryName}</span>
                   </button>
                 );
@@ -443,7 +443,7 @@ export function LeftRail({
           }}
         >
           <div className="px-2 py-1.5">
-            <span className="block truncate text-[11px] font-medium text-[var(--color-text-secondary)]">
+            <span className="block truncate text-[10px] text-[var(--color-text-secondary)]">
               {contextMenu.repositoryName}
             </span>
           </div>
@@ -466,12 +466,12 @@ export function LeftRail({
               })
             }
             className={cn(
-              "flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[12px] text-[var(--color-text-primary)]",
+              "flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[11px] text-[var(--color-text-primary)]",
               "transition-colors duration-100",
               "hover:bg-[var(--color-surface-secondary)]",
             )}
           >
-            <PencilSimple className="size-3.5" />
+            <PencilSimple className="size-3" />
             <span>Rename</span>
           </button>
           <button
@@ -482,12 +482,12 @@ export function LeftRail({
               )
             }
             className={cn(
-              "flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[12px] text-[var(--color-text-primary)]",
+              "flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[11px] text-[var(--color-text-primary)]",
               "transition-colors duration-100",
               "hover:bg-[var(--color-surface-secondary)]",
             )}
           >
-            <Copy className="size-3.5" />
+            <Copy className="size-3" />
             <span>Copy path</span>
           </button>
           <button
@@ -498,12 +498,12 @@ export function LeftRail({
               )
             }
             className={cn(
-              "flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[12px] text-[var(--color-text-primary)]",
+              "flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[11px] text-[var(--color-text-primary)]",
               "transition-colors duration-100",
               "hover:bg-[var(--color-surface-secondary)]",
             )}
           >
-            <Folder className="size-3.5" />
+            <Folder className="size-3" />
             <span>Open in Finder</span>
           </button>
           <div className="my-1 h-px bg-[var(--color-border)]" />
@@ -515,12 +515,12 @@ export function LeftRail({
               )
             }
             className={cn(
-              "flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[12px] text-[var(--accent-pale-red-text)]",
+              "flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[11px] text-[var(--accent-pale-red-text)]",
               "transition-colors duration-100",
               "hover:bg-[var(--accent-pale-red-bg)]",
             )}
           >
-            <Trash className="size-3.5" />
+            <Trash className="size-3" />
             <span>Remove</span>
           </button>
         </div>
