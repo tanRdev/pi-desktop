@@ -1,9 +1,9 @@
 import { TooltipProvider } from "@pidesk/ui";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
+import { PackagesModal } from "./components/packages/packages-modal";
 import { SettingsModal, SettingsProvider } from "./components/settings";
 import { Button } from "./components/ui/button";
-import { PackagesModal } from "./components/packages/packages-modal";
 import {
   Dialog,
   DialogContent,
@@ -41,12 +41,6 @@ export default function App() {
           }}
         >
           <WorkspaceShell {...controller.workspaceShellProps} />
-
-          {controller.toastMessage ? (
-            <div className="pointer-events-none fixed bottom-5 right-5 z-[120] rounded-md border border-white/[0.08] bg-[#111111] px-3 py-2 text-[12px] text-white/80 shadow-[0_8px_24px_rgba(0,0,0,0.35)]">
-              {controller.toastMessage}
-            </div>
-          ) : null}
 
           <Dialog
             open={controller.isCreateWorktreeOpen}

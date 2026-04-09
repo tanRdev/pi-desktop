@@ -272,3 +272,335 @@ Error occurred in handler for 'agent:switchModel': Error [ERR_MODULE_NOT_FOUND]:
 
 
 8:34:51 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/worktree-section.tsx
+
+
+8:38:21 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/left-rail.tsx
+
+
+8:38:21 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/thread-list-item.tsx
+
+
+8:40:38 PM [vite] (client) hmr update /src/components/workspace/workspace-shell.tsx, /src/app.css
+
+
+8:40:38 PM [vite] (client) hmr update /src/components/workspace/workspace-shell.tsx, /src/app.css (x2)
+
+
+8:40:40 PM [vite] (client) hmr update /src/components/workspace/workspace-shell.tsx, /src/app.css (x3)
+
+
+8:40:41 PM [vite] (client) hmr update /src/components/workspace/workspace-shell.tsx, /src/app.css (x4)
+
+
+8:40:45 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/prompt-dock.tsx
+
+
+8:40:50 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/chat-thread-panel.tsx
+
+
+8:40:51 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/chat-thread-panel.tsx (x2)
+
+
+8:40:54 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/workspace-activity-panel.tsx
+
+
+8:40:56 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/workspace-overlays.tsx
+
+
+8:41:02 PM [vite] (client) hmr update /src/app.css, /src/components/ui/tool.tsx
+
+
+8:41:03 PM [vite] (client) hmr update /src/app.css, /src/components/ui/system-message.tsx
+
+
+8:41:06 PM [vite] (client) hmr update /src/app.css, /src/components/settings/settings-modal.tsx
+8:41:06 PM [vite] (client) hmr invalidate /src/components/settings/settings-modal.tsx Could not Fast Refresh ("SETTINGS_MODAL_SECTIONS" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+8:41:06 PM [vite] (client) hmr update /src/app.tsx
+
+
+8:43:27 PM [vite] (client) hmr update /src/components/workspace/workspace-shell.tsx, /src/app.css
+
+
+8:43:34 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/prompt-dock.tsx
+
+
+8:43:58 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/prompt-dock.tsx (x2)
+
+
+8:44:01 PM [vite] (client) hmr update /src/app.tsx, /src/components/workspace/left-rail.tsx, /src/components/workspace/workspace-surface-panel.tsx
+
+
+8:44:01 PM [vite] (client) hmr update /src/app.tsx, /src/components/workspace/left-rail.tsx, /src/components/workspace/workspace-surface-panel.tsx (x2)
+
+
+8:44:01 PM [vite] (client) hmr update /src/app.tsx, /src/components/workspace/left-rail.tsx, /src/components/workspace/workspace-surface-panel.tsx (x3)
+
+
+8:44:01 PM [vite] (client) hmr update /src/app.tsx, /src/components/workspace/left-rail.tsx, /src/components/workspace/workspace-surface-panel.tsx (x4)
+
+
+8:44:01 PM [vite] (client) hmr update /src/app.tsx, /src/components/workspace/left-rail.tsx, /src/components/workspace/workspace-surface-panel.tsx (x5)
+
+
+8:44:01 PM [vite] (client) hmr update /src/app.tsx, /src/components/workspace/left-rail.tsx, /src/components/workspace/workspace-surface-panel.tsx (x6)
+
+
+8:44:01 PM [vite] (client) hmr update /src/app.tsx, /src/components/workspace/left-rail.tsx, /src/components/workspace/workspace-surface-panel.tsx (x7)
+
+
+8:44:01 PM [vite] (client) hmr update /src/app.tsx, /src/components/workspace/left-rail.tsx, /src/components/workspace/workspace-surface-panel.tsx (x8)
+
+
+8:44:01 PM [vite] (client) hmr update /src/app.tsx, /src/components/workspace/left-rail.tsx, /src/components/workspace/workspace-surface-panel.tsx (x9)
+
+
+8:44:01 PM [vite] (client) hmr update /src/app.tsx, /src/components/workspace/left-rail.tsx, /src/components/workspace/workspace-surface-panel.tsx (x10)
+
+
+8:44:01 PM [vite] (client) hmr update /src/app.tsx, /src/components/workspace/left-rail.tsx, /src/components/workspace/workspace-surface-panel.tsx (x11)
+
+
+8:44:01 PM [vite] (client) hmr update /src/app.tsx, /src/components/workspace/left-rail.tsx, /src/components/workspace/workspace-surface-panel.tsx (x12)
+
+
+8:44:01 PM [vite] (client) hmr update /src/app.tsx, /src/components/workspace/left-rail.tsx, /src/components/workspace/workspace-surface-panel.tsx (x13)
+
+
+8:44:01 PM [vite] (client) hmr update /src/app.tsx, /src/components/workspace/left-rail.tsx, /src/components/workspace/workspace-surface-panel.tsx (x14)
+
+
+8:44:01 PM [vite] (client) hmr update /src/app.tsx, /src/components/workspace/left-rail.tsx, /src/components/workspace/workspace-surface-panel.tsx (x15)
+
+
+8:44:03 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/prompt-dock.tsx
+
+
+8:44:10 PM [vite] (client) hmr update /src/components/workspace/workspace-shell.tsx, /src/app.css
+
+
+8:45:36 PM [vite] (client) hmr update /src/components/workspace/workspace-shell.tsx, /src/app.css (x2)
+
+
+8:45:41 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/prompt-dock.tsx
+
+
+8:45:41 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/prompt-dock.tsx (x2)
+
+
+8:45:53 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/prompt-dock.tsx (x3)
+
+
+8:45:53 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/prompt-dock.tsx (x4)
+
+
+8:46:00 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/prompt-dock.tsx (x5)
+
+
+8:46:48 PM [vite] (client) hmr update /src/components/workspace/workspace-shell.tsx, /src/app.css
+
+
+8:46:55 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/prompt-dock.tsx
+
+
+8:47:06 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/workspace-shell.tsx, /src/app.tsx, /src/components/workspace/workspace-surface-panel.tsx
+
+
+8:47:06 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/left-rail.tsx
+
+
+8:47:34 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/prompt-dock.tsx
+
+
+8:48:06 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/prompt-dock.tsx (x2)
+
+
+8:49:04 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/prompt-dock.tsx (x3)
+
+
+8:49:13 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/prompt-dock.tsx (x4)
+
+
+8:49:26 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/prompt-dock.tsx (x5)
+
+
+8:49:26 PM [vite] Internal server error: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/prompt-dock.tsx: Expected corresponding JSX closing tag for <div>. (441:14)
+
+  439 |                   </PopoverContent>
+  440 |                 </Popover>
+> 441 |               </PromptInputAction>
+      |               ^
+  442 |             </div>
+  443 |
+  444 |             <div className="flex items-center gap-[var(--space-3)]">
+  Plugin: vite:react-babel
+  File: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/prompt-dock.tsx:441:14
+  439 |                    </PopoverContent>
+  440 |                  </Popover>
+  441 |                </PromptInputAction>
+      |                ^
+  442 |              </div>
+  443 |  
+      at constructor (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:365:19)
+      at TypeScriptParserMixin.raise (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6599:19)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4727:16)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElement (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4749:17)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4759:19)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11066:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11046:23)
+
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9837:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10899:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10904:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10881:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at /Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9775:39
+      at TypeScriptParserMixin.tryParse (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6907:20)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9775:18)
+      at /Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10800:39
+      at TypeScriptParserMixin.allowInAnd (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12426:12)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10800:17)
+      at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12493:17)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11675:28)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11331:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4764:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11066:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11046:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9837:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10899:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10904:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10881:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9786:20)
+      at TypeScriptParserMixin.parseExpressionBase (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10784:23)
+      at /Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:39
+      at TypeScriptParserMixin.allowInAnd (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12421:16)
+      at TypeScriptParserMixin.parseExpression (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:17)
+      at TypeScriptParserMixin.parseReturnStatement (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:13142:28)
+      at TypeScriptParserMixin.parseStatementContent (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12798:21)
+      at TypeScriptParserMixin.parseStatementContent (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9508:18)
+      at TypeScriptParserMixin.parseStatementLike (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12767:17)
+      at TypeScriptParserMixin.parseStatementListItem (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12747:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:13316:61)
+      at TypeScriptParserMixin.parseBlockBody (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:13309:10)
+      at TypeScriptParserMixin.parseBlock (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:13297:10)
+      at TypeScriptParserMixin.parseFunctionBody (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12100:24)
+      at TypeScriptParserMixin.parseFunctionBodyAndFinish (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12086:10)
+
+
+8:49:26 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/prompt-dock.tsx
+
+
+8:49:26 PM [vite] Internal server error: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/prompt-dock.tsx: Expected corresponding JSX closing tag for <div>. (441:14)
+
+  439 |                   </PopoverContent>
+  440 |                 </Popover>
+> 441 |               </PromptInputAction>
+      |               ^
+  442 |             </div>
+  443 |
+  444 |             <div className="flex items-center gap-[var(--space-3)]">
+  Plugin: vite:react-babel
+  File: /Users/tan/Dev/PiDesk/apps/desktop/src/renderer/src/components/workspace/prompt-dock.tsx:441:14
+  439 |                    </PopoverContent>
+  440 |                  </Popover>
+  441 |                </PromptInputAction>
+      |                ^
+  442 |              </div>
+  443 |  
+      at constructor (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:365:19)
+      at TypeScriptParserMixin.raise (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6599:19)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4727:16)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElement (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4749:17)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4759:19)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11066:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11046:23)
+
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9837:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10899:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10904:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10881:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at /Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9775:39
+      at TypeScriptParserMixin.tryParse (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6907:20)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9775:18)
+      at /Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10800:39
+      at TypeScriptParserMixin.allowInAnd (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12426:12)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10800:17)
+      at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12493:17)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11675:28)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11331:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4764:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11066:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11046:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9837:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10899:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10904:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10881:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9786:20)
+      at TypeScriptParserMixin.parseExpressionBase (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10784:23)
+      at /Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:39
+      at TypeScriptParserMixin.allowInAnd (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12421:16)
+      at TypeScriptParserMixin.parseExpression (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:17)
+      at TypeScriptParserMixin.parseReturnStatement (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:13142:28)
+      at TypeScriptParserMixin.parseStatementContent (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12798:21)
+      at TypeScriptParserMixin.parseStatementContent (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9508:18)
+      at TypeScriptParserMixin.parseStatementLike (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12767:17)
+      at TypeScriptParserMixin.parseStatementListItem (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12747:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:13316:61)
+      at TypeScriptParserMixin.parseBlockBody (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:13309:10)
+      at TypeScriptParserMixin.parseBlock (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:13297:10)
+      at TypeScriptParserMixin.parseFunctionBody (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12100:24)
+      at TypeScriptParserMixin.parseFunctionBodyAndFinish (/Users/tan/Dev/PiDesk/node_modules/.pnpm/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12086:10)
+
+
+8:49:35 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/prompt-dock.tsx
+
+
+8:49:35 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/prompt-dock.tsx (x2)
+
+
+8:50:20 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/prompt-dock.tsx (x3)
+
+
+8:50:34 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/prompt-dock.tsx (x4)
+
+
+8:50:38 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/prompt-dock.tsx (x5)
+
+
+8:50:46 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/prompt-dock.tsx (x6)
+
+
+8:51:14 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/prompt-dock.tsx (x7)
+
+
+8:54:04 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/left-rail.tsx
+
+
+8:54:09 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/worktree-section.tsx
+
+
+8:54:25 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/thread-list-item.tsx
+
+
+8:54:47 PM [vite] (client) hmr update /src/components/workspace/workspace-shell.tsx, /src/app.css
+
+
+8:54:47 PM [vite] (client) hmr update /src/app.tsx, /src/app.css
+
+
+8:54:47 PM [vite] (client) hmr update /src/app.tsx, /src/app.css (x2)
+error: script "dev" exited with code 143

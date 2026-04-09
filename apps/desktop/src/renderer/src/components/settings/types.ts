@@ -29,6 +29,7 @@ export interface SettingsContextValue {
   resetSection: (section: keyof Settings) => void;
   resetAll: () => void;
   hasUnsavedChanges: boolean;
+  isSaving: boolean;
   saveSettings: () => void;
 }
 

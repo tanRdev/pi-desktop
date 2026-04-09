@@ -1,0 +1,10 @@
+
+> @pidesk/desktop@0.1.0 dev
+> electron-vite dev
+
+vite v8.0.0 building ssr environment for development...
+
+transforming (497) ../../node_modules/.pnpm/@sinclair+typebox@0.34.48/node_m
+transforming (498) ../../node_modules/.pnpm/@sinclair+typebox@0.34.48/node_m
+transforming (1165) ../../node_modules/.pnpm/zod@4.3.6/node_modules/zod/v3/i
+transforming (1567) __vite-optional-peer-dep:utf-8-validate:ws

@@ -10,7 +10,6 @@ import {
   getActiveWorktree,
 } from "@pidesk/shared";
 import * as React from "react";
-import { toast } from "sonner";
 import { useStore } from "zustand";
 import type { WorkspaceShellProps } from "../components/workspace/workspace-shell";
 import { loadPromptAutocompleteSuggestions } from "../lib/prompt-autocomplete-loader";
@@ -20,6 +19,7 @@ import {
   getPromptAutocompleteMatch,
   replacePromptToken,
 } from "../lib/prompt-routing";
+import { toast } from "../lib/toast";
 import { uiInteractionStore } from "../stores/ui-interaction-store";
 import {
   openFileWindowForWorktree,
@@ -105,7 +105,6 @@ export interface AppShellController {
   setRemoveRepositoryOpen: (isOpen: boolean) => void;
   removeRepositoryError: string | null;
   submitRemoveRepository: () => Promise<void>;
-  toastMessage: string | null;
   newWorktreeBranch: string;
   setNewWorktreeBranch: (value: string) => void;
   worktreeCreateError: string | null;
@@ -218,7 +217,6 @@ export function useAppShellController(): AppShellController {
   const [removeRepositoryError, setRemoveRepositoryError] = React.useState<
     string | null
   >(null);
-  const [toastMessage, setToastMessage] = React.useState<string | null>(null);
   const [selectedContextSurface, setSelectedContextSurface] =
     React.useState<WorkspaceShellProps["selectedContextSurface"]>(null);
   const [leftRailWidth, setLeftRailWidth] = React.useState(260);
@@ -297,18 +295,6 @@ export function useAppShellController(): AppShellController {
   React.useEffect(() => {
     setPromptMode(detectPromptMode(draft));
   }, [draft]);
-
-  React.useEffect(() => {
-    if (!toastMessage) {
-      return;
-    }
-
-    const timer = window.setTimeout(() => {
-      setToastMessage(null);
-    }, 2200);
-
-    return () => window.clearTimeout(timer);
-  }, [toastMessage]);
 
   React.useEffect(() => {
     syncActiveThreadConversation({
@@ -609,7 +595,17 @@ export function useAppShellController(): AppShellController {
       return;
     }
     for (const repositoryPath of paths) {
-      await window.pidesk.repositories.add(repositoryPath);
+      try {
+        await window.pidesk.repositories.add(repositoryPath);
+      } catch (error) {
+        toast.error("Invalid repository", {
+          description:
+            error instanceof Error
+              ? error.message
+              : "The selected directory is not a valid git repository",
+        });
+        return;
+      }
     }
     await reload();
   }, [reload]);
@@ -658,14 +654,14 @@ export function useAppShellController(): AppShellController {
       }
 
       await navigator.clipboard.writeText(repository.rootPath);
-      setToastMessage("Project path copied");
+      toast.success("Path copied");
     },
     [repositories],
   );
 
   const handleOpenInFinder = React.useCallback(async (repositoryId: string) => {
     await window.pidesk.repositories.openInFinder(repositoryId);
-    setToastMessage("Opened project in Finder");
+    toast.success("Opened in Finder");
   }, []);
 
   const handleCreateWorktree = React.useCallback(() => {
@@ -697,9 +693,7 @@ export function useAppShellController(): AppShellController {
       setCreateWorktreeOpen(false);
       setNewWorktreeBranchState("");
       setWorktreeCreateError(null);
-      toast.success(
-        `Worktree "${newWorktreeBranch.trim()}" created successfully`,
-      );
+      toast.success("Worktree created");
       await reload();
     } catch (error) {
       setWorktreeCreateError(
@@ -761,7 +755,7 @@ export function useAppShellController(): AppShellController {
       setPendingThreadRepositoryName(null);
       setNewThreadNameState("");
       setThreadCreateError(null);
-      toast.success(`Thread "${nextName}" created successfully`);
+      toast.success("Thread created");
       await reload();
     } catch (error) {
       setThreadCreateError(
@@ -786,7 +780,7 @@ export function useAppShellController(): AppShellController {
       setConfirmRemoveRepositoryId(null);
       setConfirmRemoveRepositoryName(null);
       setRemoveRepositoryError(null);
-      setToastMessage("Project removed from rail");
+      toast.success("Project removed");
       await reload();
     } catch (error) {
       setRemoveRepositoryError(
@@ -1189,7 +1183,6 @@ export function useAppShellController(): AppShellController {
     setRemoveRepositoryOpen,
     removeRepositoryError,
     submitRemoveRepository,
-    toastMessage,
     newWorktreeBranch,
     setNewWorktreeBranch: setNewWorktreeBranchState,
     worktreeCreateError,

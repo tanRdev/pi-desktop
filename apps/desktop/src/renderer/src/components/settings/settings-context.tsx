@@ -89,6 +89,7 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
   const persistedSignatureRef = useRef(persistedSignature);
   const acknowledgedPersistedSignaturesRef = useRef<string[]>([]);
   const [draftState, setDraftState] = useState<SettingsDraftState | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   persistedSettingsRef.current = persistedSettings;
   persistedSignatureRef.current = persistedSignature;
@@ -166,6 +167,7 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
   const saveSettings = useCallback(async () => {
     const settingsToSave = settings;
     rememberPersistedSignature(serializeSettings(settingsToSave));
+    setIsSaving(true);
 
     try {
       await updateAppPreferences({
@@ -173,6 +175,8 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
       });
     } catch (error) {
       console.error("Failed to save settings:", error);
+    } finally {
+      setIsSaving(false);
     }
   }, [rememberPersistedSignature, settings, updateAppPreferences]);
 
@@ -181,11 +185,16 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
       return;
     }
 
-    const timeoutId = setTimeout(() => {
+    const timeoutId = setTimeout(async () => {
       rememberPersistedSignature(settingsSignature);
-      void updateAppPreferences({
-        settings: settings as unknown as Record<string, unknown>,
-      });
+      setIsSaving(true);
+      try {
+        await updateAppPreferences({
+          settings: settings as unknown as Record<string, unknown>,
+        });
+      } finally {
+        setIsSaving(false);
+      }
     }, 500);
 
     return () => clearTimeout(timeoutId);
@@ -203,6 +212,7 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
     resetSection,
     resetAll,
     hasUnsavedChanges,
+    isSaving,
     saveSettings,
   };
 
