@@ -69,7 +69,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
         data-testid="settings-modal"
         className="flex h-[76vh] max-h-[76vh] w-[min(880px,calc(100vw-64px))] max-w-[880px] flex-col gap-0 overflow-hidden rounded-xl border border-white/[0.06] bg-[#0e0e0e] p-0 shadow-[0_16px_48px_rgba(0,0,0,0.5)] select-none"
       >
-        <DialogHeader className="flex flex-row items-center justify-between border-b border-white/[0.06] bg-[#0c0c0c] px-6 py-4 select-none">
+        <DialogHeader className="flex flex-row items-center justify-between select-none">
           <div className="space-y-1 select-none">
             <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-white/40">
               Preferences
@@ -91,7 +91,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                   onClick={() => handleSectionChange(item.id)}
                   className={cn(
                     "flex items-center gap-3 rounded-md px-3 py-2.5 text-left",
-                    "transition-all duration-150 ease-out",
+                    "transition-all duration-[var(--duration-fast)] ease-[var(--ease-out)]",
                     "hover:bg-white/[0.04] hover:text-white",
                     activeSection === item.id
                       ? "bg-white/[0.06] text-white/90"
@@ -115,7 +115,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
             <div className="mx-auto max-w-2xl p-7">
               <div
                 className={cn(
-                  "transition-all duration-150",
+                  "transition-all duration-[var(--duration-fast)] ease-[var(--ease-out)]",
                   isAnimating
                     ? "opacity-0 translate-y-1"
                     : "opacity-100 translate-y-0",
@@ -145,8 +145,8 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
             size="sm"
             onClick={() => onOpenChange(false)}
             className={cn(
-              "rounded-md bg-white px-5 text-[11px] font-semibold tracking-[-0.01em] text-black",
-              "hover:bg-[#d4d4d4] transition-all",
+              "rounded-md px-5 tracking-[-0.01em]",
+              "transition-all duration-[var(--duration-fast)] ease-[var(--ease-out)]",
             )}
           >
             Done

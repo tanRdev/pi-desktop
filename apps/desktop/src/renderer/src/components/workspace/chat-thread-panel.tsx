@@ -7,342 +7,11 @@ import {
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { FeedbackBar, type FeedbackValue } from "../ui/feedback-bar";
-import { ArrowUp, At, Paperclip, Plus, Stop, X } from "../ui/icons";
 import { MessageContent } from "../ui/message";
 import { ScrollButton } from "../ui/scroll-button";
 import { SystemMessage } from "../ui/system-message";
 import { ThinkingBar } from "../ui/thinking-bar";
 import { Tool } from "../ui/tool";
-
-// ---------------------------------------------------------------------------
-// Skill types
-// ---------------------------------------------------------------------------
-
-export interface Skill {
-  id: string;
-  label: string;
-  description?: string;
-}
-
-// ---------------------------------------------------------------------------
-// Slash command parser
-// ---------------------------------------------------------------------------
-
-function parseSlashCommand(text: string): string | null {
-  const match = /^\/([a-zA-Z0-9_-]*)/.exec(text);
-  return match !== null ? (match[1] ?? null) : null;
-}
-
-// ---------------------------------------------------------------------------
-// SkillItem
-// ---------------------------------------------------------------------------
-
-interface SkillItemProps {
-  skill: Skill;
-  isSelected: boolean;
-  onSelect: (skill: Skill) => void;
-}
-
-function SkillItem({ skill, isSelected, onSelect }: SkillItemProps) {
-  return (
-    <button
-      type="button"
-      className={cn(
-        "flex w-full items-start gap-2 rounded-md px-3 py-2 text-left transition-colors",
-        isSelected
-          ? "bg-white/[0.07] text-white/90"
-          : "text-white/60 hover:bg-white/[0.04] hover:text-white/80",
-      )}
-      onMouseDown={(e) => {
-        // prevent textarea blur
-        e.preventDefault();
-        onSelect(skill);
-      }}
-    >
-      <span className="mt-px text-[12px] font-mono text-amber-400/80">
-        /{skill.label}
-      </span>
-      {skill.description && (
-        <span className="text-[11px] text-white/40 leading-relaxed">
-          {skill.description}
-        </span>
-      )}
-    </button>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// SkillsDropdown
-// ---------------------------------------------------------------------------
-
-interface SkillsDropdownProps {
-  skills: Skill[];
-  filter: string;
-  selectedIndex: number;
-  onSelect: (skill: Skill) => void;
-}
-
-function SkillsDropdown({
-  skills,
-  filter,
-  selectedIndex,
-  onSelect,
-}: SkillsDropdownProps) {
-  const filtered = React.useMemo(
-    () =>
-      filter
-        ? skills.filter(
-            (s) =>
-              s.label.toLowerCase().startsWith(filter.toLowerCase()) ||
-              s.description?.toLowerCase().includes(filter.toLowerCase()),
-          )
-        : skills,
-    [skills, filter],
-  );
-
-  if (filtered.length === 0) return null;
-
-  return (
-    <div className="absolute bottom-full left-0 right-0 mb-1 overflow-hidden rounded-xl border border-white/[0.06] bg-[var(--color-bg-secondary)]/95 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl">
-      <div className="max-h-48 overflow-y-auto p-1">
-        {filtered.map((skill, index) => (
-          <SkillItem
-            key={skill.id}
-            skill={skill}
-            isSelected={index === selectedIndex}
-            onSelect={onSelect}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// CursorChatInput
-// ---------------------------------------------------------------------------
-
-interface CursorChatInputProps {
-  draft: string;
-  onDraftChange: (draft: string) => void;
-  onSend: () => void | Promise<void>;
-  onCancelPrompt: () => void | Promise<void>;
-  canSend: boolean;
-  isPromptExecuting: boolean;
-  skills?: Skill[];
-  onSkillSelect?: (skill: Skill) => void;
-}
-
-function CursorChatInput({
-  draft,
-  onDraftChange,
-  onSend,
-  onCancelPrompt,
-  canSend,
-  isPromptExecuting,
-  skills = [],
-  onSkillSelect,
-}: CursorChatInputProps) {
-  const [showSkills, setShowSkills] = React.useState(false);
-  const [skillSelectedIndex, setSkillSelectedIndex] = React.useState(0);
-  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
-
-  const slashFilter = parseSlashCommand(draft);
-  const isSlashCommand = slashFilter !== null;
-
-  React.useEffect(() => {
-    setShowSkills(isSlashCommand && skills.length > 0);
-    setSkillSelectedIndex(0);
-  }, [isSlashCommand, skills.length]);
-
-  // Auto-resize textarea — runs after every render where draft changed
-  React.useLayoutEffect(() => {
-    const el = textareaRef.current;
-    if (!el) return;
-    el.style.height = "auto";
-    el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
-  });
-
-  const filteredSkills = React.useMemo(
-    () =>
-      slashFilter !== null
-        ? skills.filter(
-            (s) =>
-              s.label.toLowerCase().startsWith(slashFilter.toLowerCase()) ||
-              s.description?.toLowerCase().includes(slashFilter.toLowerCase()),
-          )
-        : skills,
-    [skills, slashFilter],
-  );
-
-  const handleKeyDown = React.useCallback(
-    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      if (showSkills && filteredSkills.length > 0) {
-        if (e.key === "ArrowDown") {
-          e.preventDefault();
-          setSkillSelectedIndex((i) =>
-            Math.min(i + 1, filteredSkills.length - 1),
-          );
-          return;
-        }
-        if (e.key === "ArrowUp") {
-          e.preventDefault();
-          setSkillSelectedIndex((i) => Math.max(i - 1, 0));
-          return;
-        }
-        if (e.key === "Tab" || (e.key === "Enter" && showSkills)) {
-          e.preventDefault();
-          const skill = filteredSkills[skillSelectedIndex];
-          if (skill) {
-            onSkillSelect?.(skill);
-            onDraftChange(`/${skill.label} `);
-            setShowSkills(false);
-          }
-          return;
-        }
-        if (e.key === "Escape") {
-          e.preventDefault();
-          setShowSkills(false);
-          return;
-        }
-      }
-
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        if (canSend && !isPromptExecuting) {
-          void onSend();
-        }
-      }
-    },
-    [
-      showSkills,
-      filteredSkills,
-      skillSelectedIndex,
-      canSend,
-      isPromptExecuting,
-      onSend,
-      onDraftChange,
-      onSkillSelect,
-    ],
-  );
-
-  const handleSkillSelect = React.useCallback(
-    (skill: Skill) => {
-      onSkillSelect?.(skill);
-      onDraftChange(`/${skill.label} `);
-      setShowSkills(false);
-      textareaRef.current?.focus();
-    },
-    [onSkillSelect, onDraftChange],
-  );
-
-  const planCount = React.useMemo(() => {
-    const matches = draft.match(/\bplan\b/gi);
-    return matches ? matches.length : 0;
-  }, [draft]);
-
-  return (
-    <div className="relative flex flex-col">
-      {/* Skills dropdown */}
-      {showSkills && filteredSkills.length > 0 && (
-        <SkillsDropdown
-          skills={skills}
-          filter={slashFilter ?? ""}
-          selectedIndex={skillSelectedIndex}
-          onSelect={handleSkillSelect}
-        />
-      )}
-
-      {/* Input area */}
-      <div className="flex flex-col gap-2 pt-4 pb-3">
-        <textarea
-          ref={textareaRef}
-          value={draft}
-          onChange={(e) => onDraftChange(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Ask PiDesk anything... (/ for commands)"
-          rows={1}
-          className={cn(
-            "w-full resize-none bg-transparent px-3 text-[14px] leading-relaxed text-white/90",
-            "placeholder:text-white/25 focus:outline-none",
-            "min-h-[22px]",
-          )}
-        />
-
-        {/* Toolbar row */}
-        <div className="flex items-center justify-between px-3">
-          <div className="flex items-center gap-0.5">
-            <button
-              type="button"
-              className="flex size-7 items-center justify-center rounded-md text-white/30 transition-colors hover:bg-white/[0.05] hover:text-white/60"
-              title="Attach file"
-            >
-              <Plus className="size-3.5" />
-            </button>
-            <button
-              type="button"
-              className="flex size-7 items-center justify-center rounded-md text-white/30 transition-colors hover:bg-white/[0.05] hover:text-white/60"
-              title="Attach file"
-            >
-              <Paperclip className="size-3.5" />
-            </button>
-            <button
-              type="button"
-              className="flex size-7 items-center justify-center rounded-md text-white/30 transition-colors hover:bg-white/[0.05] hover:text-white/60"
-              title="Mention"
-            >
-              <At className="size-3.5" />
-            </button>
-
-            {planCount > 0 && (
-              <div className="ml-1 flex items-center gap-1 rounded-md border border-white/[0.06] bg-white/[0.03] px-2 py-0.5">
-                <span className="text-[11px] text-white/40">
-                  Plan: {planCount}
-                </span>
-                <button
-                  type="button"
-                  className="text-white/20 hover:text-white/50"
-                  onClick={() =>
-                    onDraftChange(draft.replace(/\bplan\b/gi, "").trim())
-                  }
-                >
-                  <X className="size-2.5" />
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Send / Stop */}
-          {isPromptExecuting ? (
-            <button
-              type="button"
-              onClick={() => void onCancelPrompt()}
-              className="flex size-7 items-center justify-center rounded-md bg-white/[0.06] text-white/50 transition-colors hover:bg-white/[0.1] hover:text-white/80"
-              title="Stop"
-            >
-              <Stop className="size-3.5" />
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={() => void onSend()}
-              disabled={!canSend}
-              className={cn(
-                "flex size-7 items-center justify-center rounded-md transition-all",
-                canSend
-                  ? "bg-white/[0.08] text-white/80 hover:bg-white/[0.12] hover:text-white"
-                  : "cursor-not-allowed bg-white/[0.03] text-white/20",
-              )}
-              title="Send"
-            >
-              <ArrowUp className="size-3.5" />
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // Message helpers
@@ -351,7 +20,7 @@ function CursorChatInput({
 function getMessageLabel(message: AgentMessageSnapshot) {
   switch (message.role) {
     case "assistant":
-      return "PiDesk";
+      return "Pi";
     case "tool":
       return "Tool";
     case "system":
@@ -406,9 +75,6 @@ export interface ChatThreadPanelProps {
   isStreaming: boolean;
   lastError: string | null;
   className?: string;
-  // Context bar
-  contextPath?: string;
-  contextLabel?: string;
 }
 
 export function ChatThreadPanel({
@@ -417,8 +83,6 @@ export function ChatThreadPanel({
   isStreaming,
   lastError,
   className,
-  contextPath = "tan/dev/pidesk",
-  contextLabel = "frontend-design",
 }: ChatThreadPanelProps) {
   const [feedbackByMessageId, setFeedbackByMessageId] = React.useState<
     Record<string, FeedbackValue>
@@ -504,41 +168,30 @@ export function ChatThreadPanel({
                   <div
                     key={message.id}
                     className={cn(
-                      "group flex gap-3",
-                      isUser && "flex-row-reverse",
+                      "group flex items-start",
+                      isUser && "justify-end",
                       (isSystem || isTool) && "justify-center",
                       "stagger-item",
                     )}
                     style={{ animationDelay: `${(index % 8) * 30}ms` }}
                   >
-                    {/* Avatar - Cursor style */}
-                    {isAssistant && (
-                      <div className="flex size-7 shrink-0 items-center justify-center rounded-lg border border-white/[0.06] bg-white/[0.04]">
-                        <span className="text-[10px] font-semibold text-white/40">
-                          PI
-                        </span>
-                      </div>
-                    )}
-                    {isUser && (
-                      <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500">
-                        <span className="text-[10px] font-medium text-white">
-                          Y
-                        </span>
-                      </div>
-                    )}
-
                     {/* Message content */}
                     <div
                       className={cn(
-                        "min-w-0 flex-1 space-y-1",
-                        isUser && "max-w-[90%]",
-                        isAssistant && "max-w-[90%]",
+                        "min-w-0 space-y-1",
+                        isUser && "ml-auto w-fit max-w-[42rem]",
+                        isAssistant && "w-fit max-w-[42rem]",
                         (isSystem || isTool) && "max-w-xl flex-initial",
                       )}
                     >
                       {/* Sender label */}
                       {!isSystem && !isTool && (
-                        <div className="flex items-center gap-2">
+                        <div
+                          className={cn(
+                            "flex items-center gap-2",
+                            isUser && "justify-end",
+                          )}
+                        >
                           <span className="text-[11px] font-medium text-white/30">
                             {getMessageLabel(message)}
                           </span>
@@ -589,7 +242,7 @@ export function ChatThreadPanel({
                             )}
 
                             {isAssistant && (
-                              <div className="flex items-center gap-2 pt-1 opacity-0 transition-opacity group-hover:opacity-100">
+                              <div className="flex items-center gap-2 pt-1 opacity-0 transition-opacity duration-[var(--duration-fast)] ease-[var(--ease-out)] group-hover:opacity-100">
                                 <FeedbackBar
                                   value={
                                     feedbackByMessageId[message.id] ?? null

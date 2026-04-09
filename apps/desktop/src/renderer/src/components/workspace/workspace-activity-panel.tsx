@@ -80,7 +80,7 @@ export function WorkspaceActivityPanel({
   return (
     <div
       className={cn(
-        "flex h-full min-h-0 flex-col bg-[#0d0d0d] text-white select-none",
+        "flex h-full min-h-0 flex-col bg-transparent text-white select-none",
         className,
       )}
     >
@@ -112,7 +112,7 @@ export function WorkspaceActivityPanel({
             ].map((metric) => (
               <div
                 key={metric.label}
-                className="border border-white/[0.04] bg-white/[0.02] px-3 py-3"
+                className="rounded-lg border border-white/[0.04] bg-white/[0.02] px-3 py-3"
               >
                 <div className="text-xs font-medium uppercase tracking-wider text-white/40">
                   {metric.label}
@@ -141,7 +141,7 @@ export function WorkspaceActivityPanel({
                   .map((turn) => (
                     <div
                       key={turn.id}
-                      className="border border-white/[0.04] bg-white/[0.02] px-4 py-4"
+                      className="rounded-lg border border-white/[0.04] bg-white/[0.02] px-4 py-4"
                     >
                       <div className="flex items-center justify-between gap-3">
                         <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-white/50">
@@ -160,7 +160,7 @@ export function WorkspaceActivityPanel({
                   ))}
               </div>
             ) : (
-              <div className="border border-white/[0.04] bg-white/[0.02] px-3 py-4 font-mono text-[11px] text-white/30">
+              <div className="rounded-lg border border-white/[0.04] bg-white/[0.02] px-3 py-4 font-mono text-[11px] text-white/30">
                 Activity appears here once the agent starts working.
               </div>
             )}
@@ -175,7 +175,7 @@ export function WorkspaceActivityPanel({
                 {tools.slice(0, 8).map((tool) => (
                   <div
                     key={tool.toolCallId}
-                    className="border border-white/[0.04] bg-white/[0.02] px-4 py-4"
+                    className="rounded-lg border border-white/[0.04] bg-white/[0.02] px-4 py-4"
                   >
                     <div className="flex items-center justify-between gap-3">
                       <span className="truncate text-sm text-white/80">
@@ -193,7 +193,7 @@ export function WorkspaceActivityPanel({
                 ))}
               </div>
             ) : (
-              <div className="border border-white/[0.04] bg-white/[0.02] px-3 py-4 font-mono text-[11px] text-white/30">
+              <div className="rounded-lg border border-white/[0.04] bg-white/[0.02] px-3 py-4 font-mono text-[11px] text-white/30">
                 No tool calls yet.
               </div>
             )}
@@ -208,7 +208,7 @@ export function WorkspaceActivityPanel({
                 {recentActivity.map((entry) => (
                   <div
                     key={entry.id}
-                    className="flex items-start justify-between gap-3 border border-white/[0.04] bg-white/[0.02] px-4 py-3"
+                    className="flex items-start justify-between gap-3 rounded-lg border border-white/[0.04] bg-white/[0.02] px-4 py-3"
                   >
                     <div className="min-w-0">
                       <div className="truncate text-sm text-white/80">
@@ -227,7 +227,7 @@ export function WorkspaceActivityPanel({
                 ))}
               </div>
             ) : (
-              <div className="border border-white/[0.04] bg-white/[0.02] px-3 py-4 font-mono text-[11px] text-white/30">
+              <div className="rounded-lg border border-white/[0.04] bg-white/[0.02] px-3 py-4 font-mono text-[11px] text-white/30">
                 No activity yet.
               </div>
             )}

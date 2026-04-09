@@ -7,8 +7,6 @@ import {
   SettingsSelect,
 } from "../form-components";
 
-const EASE_OUT = "cubic-bezier(0.23, 1, 0.32, 1)";
-
 export function AISettingsSection() {
   const { isSwitchingModel, providerSnapshots, settingsSnapshot, switchModel } =
     useShellModel();
@@ -60,11 +58,10 @@ export function AISettingsSection() {
         description="These controls are live. Changing them updates the active runtime immediately."
       >
         <div
-          className={cn("transition-all duration-200", "stagger-item")}
+          className={cn("transition-all duration-200 ease-[var(--ease-out)]", "stagger-item")}
           style={{
             animationDelay: "0ms",
             animationFillMode: "forwards",
-            transitionTimingFunction: EASE_OUT,
           }}
         >
           <SettingsRow
@@ -85,11 +82,10 @@ export function AISettingsSection() {
         </div>
 
         <div
-          className={cn("transition-all duration-200", "stagger-item")}
+          className={cn("transition-all duration-200 ease-[var(--ease-out)]", "stagger-item")}
           style={{
             animationDelay: "40ms",
             animationFillMode: "forwards",
-            transitionTimingFunction: EASE_OUT,
           }}
         >
           <SettingsRow

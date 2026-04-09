@@ -8,6 +8,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "./components/ui/dialog";
@@ -46,30 +47,14 @@ export default function App() {
             open={controller.isCreateWorktreeOpen}
             onOpenChange={controller.setCreateWorktreeOpen}
           >
-            <DialogContent
-              className={cn(
-                "sm:max-w-md",
-                // Cursor Glass: solid dark dialog
-                "bg-[#0e0e0e] border border-white/[0.06]",
-                // Dialog open/close transitions with Emil Design easing
-                "data-[state=open]:animate-in data-[state=closed]:animate-out",
-                "data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0",
-                "data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95",
-                "data-[state=open]:slide-in-from-top-2 data-[state=closed]:slide-out-to-top-2",
-                "motion-reduce:transition-none motion-reduce:animate-none",
-              )}
-              style={{
-                transitionDuration: "var(--duration-normal)",
-                transitionTimingFunction: "var(--ease-out)",
-              }}
-            >
+            <DialogContent className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>Create worktree</DialogTitle>
                 <DialogDescription>
                   Start a new git worktree from the active repository branch.
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-3 pt-4">
+              <div className="space-y-3 px-6 py-4">
                 <input
                   data-testid="worktree-branch-input"
                   value={controller.newWorktreeBranch}
@@ -78,63 +63,34 @@ export default function App() {
                   }
                   placeholder="feature/my-task"
                   className={cn(
-                    "w-full rounded border border-white/[0.06] bg-[#141414] px-3 py-2 text-sm text-white/80 outline-none",
-                    "motion-safe:transition-all",
+                    "w-full rounded border border-white/[0.06] bg-[#141414] px-3 py-2 text-[13px] text-white/80 outline-none",
+                    "transition-all duration-[var(--duration-fast)]",
                     "focus:border-white/[0.12] focus:ring-1 focus:ring-white/[0.06]",
                     "placeholder:text-white/30",
                   )}
-                  style={{
-                    transitionDuration: "var(--duration-fast)",
-                    transitionTimingFunction: "var(--ease-out)",
-                  }}
                 />
                 {controller.worktreeCreateError && (
-                  <p
-                    className={cn(
-                      "text-sm text-destructive",
-                      // Error pulse with reduced motion support
-                      "motion-safe:animate-pulse motion-reduce:animate-none",
-                    )}
-                  >
+                  <p className="text-[12px] text-destructive animate-pulse">
                     {controller.worktreeCreateError}
                   </p>
                 )}
-                <div className="flex justify-end gap-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => controller.setCreateWorktreeOpen(false)}
-                    className={cn(
-                      // Ghost button with Emil Design interactions
-                      "motion-safe:transition-all motion-safe:hover:translate-x-0.5",
-                      "motion-reduce:transition-none",
-                    )}
-                    style={{
-                      transitionDuration: "var(--duration-fast)",
-                      transitionTimingFunction: "var(--ease-out)",
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={() => void controller.submitCreateWorktree()}
-                    disabled={!controller.newWorktreeBranch.trim()}
-                    className={cn(
-                      // Primary button with Emil Design scale interactions
-                      "motion-safe:transition-transform",
-                      "motion-safe:hover:scale-[1.02] motion-safe:active:scale-[0.98]",
-                      "motion-reduce:transition-none motion-reduce:transform-none",
-                    )}
-                    style={{
-                      transitionDuration: "var(--duration-fast)",
-                      transitionTimingFunction: "var(--ease-out)",
-                    }}
-                  >
-                    Create
-                  </Button>
-                </div>
               </div>
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => controller.setCreateWorktreeOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => void controller.submitCreateWorktree()}
+                  disabled={!controller.newWorktreeBranch.trim()}
+                >
+                  Create
+                </Button>
+              </DialogFooter>
             </DialogContent>
           </Dialog>
 
@@ -161,7 +117,7 @@ export default function App() {
                     : "Leave empty for a random name."}
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-3 pt-4 px-6">
+              <div className="space-y-3 px-6 py-4">
                 <input
                   data-testid="thread-name-input"
                   value={controller.newThreadName}
@@ -173,15 +129,20 @@ export default function App() {
                     }
                   }}
                   placeholder="Leave empty for a random name"
-                  className="w-full rounded border border-white/[0.06] bg-[#141414] px-3 py-2 text-sm text-white/80 outline-none placeholder:text-white/30"
+                  className={cn(
+                    "w-full rounded border border-white/[0.06] bg-[#141414] px-3 py-2 text-[13px] text-white/80 outline-none",
+                    "transition-all duration-[var(--duration-fast)]",
+                    "focus:border-white/[0.12] focus:ring-1 focus:ring-white/[0.06]",
+                    "placeholder:text-white/30",
+                  )}
                 />
                 {controller.threadCreateError ? (
-                  <p className="text-sm text-destructive">
+                  <p className="text-[12px] text-destructive">
                     {controller.threadCreateError}
                   </p>
                 ) : null}
               </div>
-              <div className="flex justify-end gap-2 px-6 py-4">
+              <DialogFooter>
                 <Button
                   type="button"
                   variant="ghost"
@@ -202,7 +163,7 @@ export default function App() {
                 >
                   Create Thread
                 </Button>
-              </div>
+              </DialogFooter>
             </DialogContent>
           </Dialog>
 
@@ -215,18 +176,18 @@ export default function App() {
                 <DialogTitle>Remove project from rail?</DialogTitle>
                 <DialogDescription>
                   {controller.confirmRemoveRepositoryName
-                    ? `This removes ${controller.confirmRemoveRepositoryName} from PiDesk only. The folder stays on disk.`
-                    : "This removes the project from PiDesk only. The folder stays on disk."}
+                    ? `This removes ${controller.confirmRemoveRepositoryName} from Pi only. The folder stays on disk.`
+                    : "This removes the project from Pi only. The folder stays on disk."}
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-3 pt-4 px-6">
-                {controller.removeRepositoryError ? (
-                  <p className="text-sm text-destructive">
+              {controller.removeRepositoryError ? (
+                <div className="space-y-3 px-6 py-4">
+                  <p className="text-[12px] text-destructive">
                     {controller.removeRepositoryError}
                   </p>
-                ) : null}
-              </div>
-              <div className="flex justify-end gap-2 px-6 py-4">
+                </div>
+              ) : null}
+              <DialogFooter>
                 <Button
                   type="button"
                   variant="ghost"
@@ -241,7 +202,7 @@ export default function App() {
                 >
                   Remove Project
                 </Button>
-              </div>
+              </DialogFooter>
             </DialogContent>
           </Dialog>
 

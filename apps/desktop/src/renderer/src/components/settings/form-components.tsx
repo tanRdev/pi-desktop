@@ -4,7 +4,6 @@ import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 
-const EASE_OUT = "cubic-bezier(0.23, 1, 0.32, 1)";
 
 interface SelectOption {
   value: string;
@@ -96,13 +95,12 @@ export function SettingsSelect({
           disabled={disabled}
           className={cn(
             "flex h-10 w-[240px] items-center justify-between gap-2 rounded-md border border-white/[0.06] bg-[#141414] px-3.5 py-1 text-sm text-white/80",
-            "transition-all duration-150",
+            "transition-all duration-150 ease-[var(--ease-out)]",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
             "hover:border-white/[0.12] hover:bg-white/[0.03]",
             "active:scale-[0.99]",
             "disabled:cursor-not-allowed disabled:opacity-50",
           )}
-          style={{ transitionTimingFunction: EASE_OUT }}
         >
           <span className="truncate text-left">
             {selectedOption?.label ?? "Select option"}
@@ -129,7 +127,7 @@ export function SettingsSelect({
                   "flex w-full items-center justify-between gap-2 rounded-md px-3 py-2.5 text-left text-[12px] transition-colors",
                   isSelected
                     ? "bg-white text-black"
-                    : "text-[#b8b8b8] hover:bg-white/[0.06] hover:text-white",
+                    : "text-white/70 hover:bg-white/[0.06] hover:text-white",
                 )}
               >
                 <span className="truncate">{option.label}</span>
@@ -163,21 +161,19 @@ export function SettingsSwitch({
       onClick={() => onChange(!checked)}
       className={cn(
         "relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent",
-        "transition-all duration-150",
+        "transition-all duration-150 ease-[var(--ease-out)]",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         "active:scale-[0.97]",
         "disabled:cursor-not-allowed disabled:opacity-50",
         checked ? "bg-primary" : "bg-input",
       )}
-      style={{ transitionTimingFunction: EASE_OUT }}
     >
       <span
         className={cn(
           "pointer-events-none block h-4 w-4 rounded-full bg-background shadow ring-0",
-          "transition-transform duration-150",
+          "transition-transform duration-150 ease-[var(--ease-out)]",
           checked ? "translate-x-4" : "translate-x-0",
         )}
-        style={{ transitionTimingFunction: EASE_OUT }}
       />
     </button>
   );
@@ -220,11 +216,10 @@ export function SettingsSlider({
         disabled={disabled}
         className={cn(
           "h-2 w-[144px] cursor-pointer appearance-none rounded-full bg-white/[0.06] accent-primary",
-          "transition-all duration-150",
+          "transition-all duration-150 ease-[var(--ease-out)]",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
           "disabled:opacity-50",
         )}
-        style={{ transitionTimingFunction: EASE_OUT }}
       />
       {showValue && (
         <span className="w-12 text-right text-[12px] font-medium text-white/40 tabular-nums">
@@ -262,13 +257,12 @@ export function SettingsInput({
       className={cn(
         className,
         "flex h-9 rounded-md border border-white/[0.06] bg-[#141414] px-3 py-1 text-sm text-white/80 shadow-sm",
-        "transition-all duration-150",
+        "transition-all duration-150 ease-[var(--ease-out)]",
         "file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-white/30",
         "focus-visible:outline-none focus-visible:border-white/[0.12] focus-visible:ring-0",
         "hover:border-white/[0.12]",
         "disabled:cursor-not-allowed disabled:opacity-50",
       )}
-      style={{ transitionTimingFunction: EASE_OUT }}
     />
   );
 }
@@ -304,12 +298,11 @@ export function SettingsNumberInput({
       className={cn(
         className,
         "flex h-9 rounded-md border border-white/[0.06] bg-[#141414] px-3 py-1 text-sm text-white/80 shadow-sm",
-        "transition-all duration-150",
+        "transition-all duration-150 ease-[var(--ease-out)]",
         "focus-visible:outline-none focus-visible:border-white/[0.12] focus-visible:ring-0",
         "hover:border-white/[0.12]",
         "disabled:cursor-not-allowed disabled:opacity-50",
       )}
-      style={{ transitionTimingFunction: EASE_OUT }}
     />
   );
 }
@@ -337,11 +330,10 @@ export function ResetButton({
       disabled={disabled}
       className={cn(
         "h-8 rounded-md px-3 text-[11px] text-white/40 hover:text-white/60",
-        "transition-all duration-150",
+        "transition-all duration-150 ease-[var(--ease-out)]",
         "hover:bg-white/[0.04]",
         "active:scale-[0.97]",
       )}
-      style={{ transitionTimingFunction: EASE_OUT }}
     >
       <RotateCcw className="mr-1 h-3.5 w-3.5" />
       {label}
@@ -376,13 +368,12 @@ export function SettingsTextarea({
       className={cn(
         className,
         "rounded-md border border-white/[0.06] bg-[#141414] px-3 py-2 text-sm text-white/80",
-        "transition-all duration-150",
+        "transition-all duration-150 ease-[var(--ease-out)]",
         "placeholder:text-white/30",
         "focus-visible:outline-none focus-visible:border-white/[0.12] focus-visible:ring-0",
         "hover:border-white/[0.12]",
         "disabled:cursor-not-allowed disabled:opacity-50",
       )}
-      style={{ transitionTimingFunction: EASE_OUT }}
     />
   );
 }

@@ -104,7 +104,7 @@ export function WorkspaceFileContent({
   );
 
   const toolbar = onSave ? (
-    <div className="flex h-11 shrink-0 items-center justify-between border-b border-white/[0.04] bg-[#0d0d0d] px-4">
+    <div className="flex h-11 shrink-0 items-center justify-between border-b border-white/[0.06] bg-transparent px-4">
       <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-white/40">
         {fileName}
       </div>

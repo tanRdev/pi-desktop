@@ -30,7 +30,7 @@ import { Loader } from "../ui/loader";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import PromptAutocomplete from "../ui/prompt-autocomplete";
 
-function formatTokenCount(tokens: number): string {
+function _formatTokenCount(tokens: number): string {
   if (tokens >= 1_000_000) {
     return `${(tokens / 1_000_000).toFixed(tokens % 1_000_000 === 0 ? 0 : 1)}M`;
   }
@@ -290,7 +290,7 @@ export function PromptDock({
             data-testid="chat-input"
             placeholder={
               hasActiveThread
-                ? "Ask PiDesk to inspect, plan, fix, or ship…"
+                ? "Ask Pi to inspect, plan, fix, or ship…"
                 : "Select a thread to start typing…"
             }
             disabled={!hasActiveThread}
@@ -319,7 +319,7 @@ export function PromptDock({
           <PromptInputActions className="mt-2 items-center justify-between gap-3 border-t border-white/[0.04] pt-3">
             <div className="flex items-center gap-3">
               {/* Plan/Build mode toggle */}
-              <div className="inline-flex rounded-md border border-white/[0.06] bg-black/20 p-1 text-xs text-white/50">
+              <div className="inline-flex rounded-md border border-white/[0.06] bg-white/[0.02] p-1 text-xs text-white/50">
                 {(["plan", "build"] as const).map((mode) => {
                   const isActive = promptMode === mode;
                   return (
@@ -330,8 +330,8 @@ export function PromptDock({
                       className={cn(
                         "rounded px-2.5 py-1 capitalize transition-colors",
                         isActive
-                          ? "bg-white/[0.12] text-white"
-                          : "hover:bg-white/[0.05] hover:text-white/80",
+                          ? "bg-white/[0.08] text-white"
+                          : "hover:bg-white/[0.04] hover:text-white/80",
                       )}
                     >
                       {mode}
@@ -388,7 +388,7 @@ export function PromptDock({
                   align="start"
                   side="top"
                   sideOffset={8}
-                  className="w-64 rounded-xl border border-white/[0.08] bg-[#1c1c1c] p-2 shadow-xl"
+                  className="w-64 rounded-lg border border-white/[0.06] bg-[#111111] p-2 shadow-[0_8px_32px_rgba(0,0,0,0.5)]"
                 >
                   <div className="max-h-72 overflow-y-auto">
                     {providerSnapshots.map((provider) => (
@@ -407,10 +407,10 @@ export function PromptDock({
                               data-testid={`model-option-${provider.id}-${model.id}`}
                               onClick={() => handleModelSelect(value)}
                               className={cn(
-                                "flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-[13px] transition-colors",
+                                "flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-[13px] transition-colors",
                                 isSelected
                                   ? "bg-white/[0.08] text-white"
-                                  : "text-white/70 hover:bg-white/[0.05] hover:text-white",
+                                  : "text-white/70 hover:bg-white/[0.04] hover:text-white",
                               )}
                             >
                               <span>{model.name}</span>

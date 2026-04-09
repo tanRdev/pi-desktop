@@ -55,6 +55,15 @@
   --color-text-quaternary: #525252;
   --color-text-inverse: #0a0a0a;
 
+  /* Surface aliases (for component-level semantics) */
+  --color-surface: #0a0a0a;
+  --color-surface-secondary: #1a1a1a;
+  --color-surface-tertiary: #141414;
+  --color-text-muted: #525252;
+  --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --accent-pale-red-text: #f87171;
+  --accent-pale-red-bg: rgba(239, 68, 68, 0.08);
+
   --color-accent: #3b82f6;
   --color-accent-hover: #60a5fa;
   --color-error: #ef4444;

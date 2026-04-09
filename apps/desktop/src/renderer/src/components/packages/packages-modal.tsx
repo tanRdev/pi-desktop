@@ -40,13 +40,13 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[80vh] w-[min(860px,calc(100vw-40px))] max-w-[860px] flex-col gap-0 overflow-hidden rounded-lg border border-white/[0.06] bg-[#0d0d0d] p-0 shadow-[0_24px_48px_rgba(0,0,0,0.5)] outline-none ring-0 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0">
-        <DialogHeader className="flex flex-row items-center justify-between border-none bg-transparent px-6 pb-2 pt-6">
+      <DialogContent className="flex h-[80vh] w-[min(860px,calc(100vw-40px))] max-w-[860px] flex-col gap-0 overflow-hidden rounded-xl border border-white/[0.06] bg-[#0e0e0e] p-0 shadow-[0_24px_48px_rgba(0,0,0,0.5)] outline-none ring-0 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0">
+        <DialogHeader className="flex flex-row items-center justify-between border-b border-white/[0.06] bg-[#0c0c0c] px-6 py-4">
           <div className="space-y-0.5">
-            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-white/30">
+            <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-white/40">
               Extensions
             </p>
-            <DialogTitle className="font-heading text-[20px] font-semibold tracking-[-0.03em] text-white/90">
+            <DialogTitle className="font-heading text-[18px] font-semibold tracking-[-0.02em] text-white/90">
               Packages
             </DialogTitle>
           </div>
@@ -172,7 +172,7 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
                               "flex w-full flex-col px-4 py-4 text-left transition-colors outline-none ring-0 focus:outline-none focus-visible:outline-none",
                               isSelected
                                 ? "bg-white/[0.06]"
-                                : "hover:bg-white/[0.02]",
+                                : "hover:bg-white/[0.04]",
                             )}
                           >
                             <div className="flex items-center justify-between gap-2">
@@ -211,7 +211,7 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
                             "flex w-full flex-col px-4 py-4 text-left transition-colors outline-none ring-0 focus:outline-none focus-visible:outline-none",
                             controller.selectedPackageName === pkg.name
                               ? "bg-white/[0.06]"
-                              : "hover:bg-white/[0.02]",
+                              : "hover:bg-white/[0.04]",
                           )}
                         >
                           <span className="text-sm font-medium text-white/85">
@@ -282,7 +282,7 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
                           type="button"
                           disabled={installDisabled}
                           size="sm"
-                          className="h-8 rounded-md bg-white text-black hover:bg-white/90"
+                          className="h-8 rounded-md"
                           onClick={() => {
                             if (controller.selectedPackageDetail) {
                               void controller.installPackage(
@@ -340,7 +340,7 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
                         href={controller.selectedPackageDetail.npmUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex h-7 items-center gap-1.5 rounded-full bg-white/[0.04] px-3 text-[10px] font-bold tracking-wider text-white/40 transition-all hover:bg-white/[0.08] hover:text-white/70"
+                        className="inline-flex h-7 items-center gap-1.5 rounded-md bg-white/[0.04] px-3 text-[10px] font-medium tracking-wider text-white/40 transition-all hover:bg-white/[0.08] hover:text-white/70"
                       >
                         <Package className="size-3" />
                         NPM REGISTRY
@@ -350,7 +350,7 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
                           href={controller.selectedPackageDetail.repositoryUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex h-7 items-center gap-1.5 rounded-full bg-white/[0.04] px-3 text-[10px] font-bold tracking-wider text-white/40 transition-all hover:bg-white/[0.08] hover:text-white/70"
+                          className="inline-flex h-7 items-center gap-1.5 rounded-md bg-white/[0.04] px-3 text-[10px] font-medium tracking-wider text-white/40 transition-all hover:bg-white/[0.08] hover:text-white/70"
                         >
                           <Code className="size-3" />
                           SOURCE CODE
@@ -361,7 +361,7 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
                     <div className="mt-8">
                       <div className="mb-6 flex items-center gap-3">
                         <div className="h-px flex-1 bg-white/[0.04]" />
-                        <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/20">
+                        <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/20">
                           README
                         </span>
                         <div className="h-px flex-1 bg-white/[0.04]" />

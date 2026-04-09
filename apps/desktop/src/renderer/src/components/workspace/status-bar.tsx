@@ -3,7 +3,7 @@ import { GitBranch, ICON_SIZE_XS } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import desktopPackage from "../../../../../package.json";
 
-const appVersion = `PiDesk v${desktopPackage.version}`;
+const appVersion = `Pi v${desktopPackage.version}`;
 
 export interface StatusBarProps {
   activeWorktreeLabel: string | null;

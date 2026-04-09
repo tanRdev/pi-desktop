@@ -167,10 +167,10 @@ export function LeftSidebar({
                           type="button"
                           onClick={() => onSelectWorktree(worktree.id)}
                           className={cn(
-                            "flex w-full flex-col gap-1 rounded-md px-2 py-2 text-left transition-colors",
+                            "flex w-full flex-col gap-1 rounded-md px-2 py-2 text-left transition-colors duration-[var(--duration-fast)]",
                             isActive
-                              ? "bg-white/[0.04] text-white/80"
-                              : "hover:bg-white/[0.03] text-white/50 hover:text-white/70",
+                              ? "bg-white/[0.06] text-white/80"
+                              : "hover:bg-white/[0.04] text-white/50 hover:text-white/70",
                           )}
                         >
                           <div className="flex items-center justify-between gap-2">
@@ -188,7 +188,7 @@ export function LeftSidebar({
                       );
                     })
                   ) : (
-                    <div className="rounded-md bg-white/[0.02] px-3 py-3 text-sm text-white/30">
+                    <div className="rounded-lg bg-white/[0.02] px-3 py-3 text-sm text-white/30">
                       No worktrees
                     </div>
                   )}
@@ -216,7 +216,7 @@ export function LeftSidebar({
                           <button
                             key={thread.id}
                             type="button"
-                            className="flex w-full flex-col gap-0.5 rounded-md px-2 py-2 text-left bg-white/[0.04]"
+                            className="flex w-full flex-col gap-0.5 rounded-md px-2 py-2 text-left bg-white/[0.06]"
                           >
                             <span className="truncate text-sm font-medium text-white/80">
                               {thread.title}
@@ -228,7 +228,7 @@ export function LeftSidebar({
                         )),
                     )
                   ) : (
-                    <div className="rounded-md bg-white/[0.02] px-3 py-3 text-sm text-white/30">
+                    <div className="rounded-lg bg-white/[0.02] px-3 py-3 text-sm text-white/30">
                       Select a thread to begin
                     </div>
                   )}
@@ -242,7 +242,7 @@ export function LeftSidebar({
           <div className="border-t border-white/[0.04] px-3 py-2">
             <button
               type="button"
-              className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-sm font-medium text-white/40 transition-colors hover:bg-white/[0.04] hover:text-white/60"
+              className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-sm font-medium text-white/40 transition-colors duration-[var(--duration-fast)] hover:bg-white/[0.04] hover:text-white/60"
               onClick={onCreateWorktree}
             >
               <FolderPlus className="size-4" />
@@ -256,7 +256,7 @@ export function LeftSidebar({
         <div
           className={cn(
             "absolute right-0 top-0 bottom-0 w-1 cursor-col-resize",
-            "hover:bg-white/[0.06] transition-colors duration-150",
+            "hover:bg-white/[0.06] transition-colors duration-[var(--duration-fast)]",
             isResizing && "bg-white/[0.08]",
           )}
           onMouseDown={() => setIsResizing(true)}

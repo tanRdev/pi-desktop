@@ -218,7 +218,7 @@ export function Terminal({
 
   if (error) {
     return (
-      <div className={cn("w-[400px] border-l border-white/[0.03] bg-[#0c0c0c]", className)}>
+      <div className={cn("w-[400px] border-l border-white/[0.06] bg-[#0c0c0c]", className)}>
         <div
           className={cn(
             "flex h-full flex-col items-center justify-center gap-3 p-4 text-center",
@@ -247,7 +247,7 @@ export function Terminal({
   }
 
   return (
-    <div className={cn("flex h-full w-[400px] flex-col border-l border-white/[0.03] bg-[#0c0c0c]", className)}>
+    <div className={cn("flex h-full w-[400px] flex-col border-l border-white/[0.06] bg-[#0c0c0c]", className)}>
       {/* Terminal Header - Cursor Glass style */}
       <div className="flex h-9 shrink-0 items-center justify-between border-b border-white/[0.04] px-3">
         <div className="flex items-center gap-2">

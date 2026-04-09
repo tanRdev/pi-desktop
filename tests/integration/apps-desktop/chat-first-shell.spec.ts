@@ -64,13 +64,13 @@ describe("chat-first workspace shell", () => {
     const controllerSource = readSource(
       "apps/desktop/src/renderer/src/hooks/use-app-shell-controller.ts",
     );
-    const shellSource = readSource(
-      "apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx",
+    const promptDockSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/prompt-dock.tsx",
     );
 
     expect(controllerSource).toContain('build: "/skill:build "');
     expect(controllerSource).toContain('plan: "/skill:plan "');
-    expect(shellSource).toContain('(["plan", "build"] as const)');
-    expect(shellSource).toContain("onPromptModeChange(mode)");
+    expect(promptDockSource).toContain('(["plan", "build"] as const)');
+    expect(promptDockSource).toContain("onPromptModeChange?.(mode)");
   });
 });

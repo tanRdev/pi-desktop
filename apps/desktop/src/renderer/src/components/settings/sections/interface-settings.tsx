@@ -7,8 +7,6 @@ import {
 } from "../form-components";
 import { useSettings } from "../settings-context";
 
-const EASE_OUT = "cubic-bezier(0.23, 1, 0.32, 1)";
-
 export function InterfaceSettingsSection() {
   const { settings, updateSettings, resetSection } = useSettings();
   const ui = settings.interface;
@@ -20,11 +18,10 @@ export function InterfaceSettingsSection() {
         description="Trim the desktop shell to the density that feels closest to Cursor."
       >
         <div
-          className={cn("transition-all duration-200 stagger-item")}
+          className={cn("transition-all duration-200 ease-[var(--ease-out)] stagger-item")}
           style={{
             animationDelay: "0ms",
             animationFillMode: "forwards",
-            transitionTimingFunction: EASE_OUT,
           }}
         >
           <SettingsRow

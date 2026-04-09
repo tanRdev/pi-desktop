@@ -95,7 +95,7 @@ export function WorkspaceSurfacePanel({
   return (
     <section
       data-testid="workspace-context-panel"
-      className={cn("flex min-h-0 flex-1 flex-col bg-[#0d0d0d]", className)}
+      className={cn("flex min-h-0 flex-1 flex-col bg-transparent", className)}
     >
       <div className="min-h-0 flex-1 overflow-hidden">
         {renderSelectedContent()}

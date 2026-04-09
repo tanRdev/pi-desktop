@@ -1,0 +1,294 @@
+$ electron-vite dev
+vite v8.0.0 building ssr environment for development...
+
+transforming (638) ../../node_modules/.pnpm/highlight.js@10.7.3/node_m
+transforming (636) ../../node_modules/.pnpm/highlight.js@10.7.3/node_m
+transforming (634) ../../node_modules/.pnpm/highlight.js@10.7.3/node_m
+transforming (635) ../../node_modules/.pnpm/highlight.js@10.7.3/node_m
+transforming (637) ../../node_modules/.pnpm/highlight.js@10.7.3/node_m
+transforming (1615) ../../node_modules/.pnpm/@mistralai+mistralai@1.14
+✓ 1678 modules transformed.
+
+rendering chunks (1)...
+rendering chunks (2)...
+rendering chunks (3)...
+rendering chunks (4)...
+rendering chunks (5)...
+rendering chunks (6)...
+rendering chunks (7)...
+rendering chunks (8)...
+rendering chunks (9)...
+rendering chunks (10)...
+rendering chunks (11)...
+rendering chunks (12)...
+
+out/main/chunks/chunk-DzBkbe55.js                         1.77 kB
+out/main/chunks/multipart-parser-C3NQeOEm.js              8.77 kB
+out/main/chunks/dist-DHRv_69X.js                         15.62 kB
+out/main/chunks/src-kYDZRaGG.js                          42.98 kB
+out/main/chunks/photon_rs-DSj_fRU2.js                   134.67 kB
+out/main/chunks/from-D7uLC0y1.js                        173.46 kB
+out/main/agent-host-session-server-entry-DHXzA347.js  9,581.56 kB
+out/main/chunks/dist-C5OdGlJ_.js                          0.11 kB
+out/main/agentHostSessionServer.js                        0.79 kB
+out/main/chunks/chunk-CyLJMB0t.js                         1.77 kB
+out/main/chunks/multipart-parser-D2ms4_WH.js              8.77 kB
+out/main/chunks/dist-C8rZDyJE.js                         15.59 kB
+out/main/chunks/src-DMS5Mf3I.js                          22.43 kB
+out/main/chunks/agent-host-runtime-DBl8Xv2_.js           24.22 kB
+out/main/chunks/src-lMMu9jrM.js                          42.98 kB
+out/main/chunks/photon_rs-zFnungWQ.js                   134.67 kB
+out/main/index.js                                       138.88 kB
+out/main/chunks/from-f7ncyPLF.js                        173.46 kB
+out/main/chunks/dist-QBjceb2w.js                      9,538.34 kB
+
+
+✓ built in 1.12s
+
+electron main process built successfully
+
+-----
+
+vite v8.0.0 building ssr environment for development...
+
+ WARN  inlineDynamicImports option is deprecated, please use codeSplitting: false instead.
+
+
+✓ 23 modules transformed.
+
+rendering chunks (1)...
+
+out/preload/index.cjs  10.59 kB
+
+✓ built in 21ms
+
+electron preload scripts built successfully
+
+-----
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+3:39:11 AM [vite] warning: `esbuild` option was specified by "vite:react-babel" plugin. This option is deprecated, please use `oxc` instead.
+`optimizeDeps.rollupOptions` / `ssr.optimizeDeps.rollupOptions` is deprecated. Use `optimizeDeps.rolldownOptions` instead. Note that this option may be set by a plugin. Set VITE_DEPRECATION_TRACE=1 to see where it is called.
+[vite:react-babel] We recommend switching to `@vitejs/plugin-react-oxc` for improved performance. More information at https://vite.dev/rolldown
+dev server running for the electron renderer process at:
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+
+starting electron app...
+
+
+
+
+
+
+
+3:47:19 AM [vite] (client) hmr update /src/components/workspace/workspace-shell.tsx, /src/app.css
+
+
+
+
+
+
+3:47:19 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/prompt-dock.tsx
+
+
+
+
+
+
+3:47:19 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/chat-thread-panel.tsx
+
+
+
+
+
+
+3:47:19 AM [vite] (client) hmr update /src/app.tsx, /src/app.css
+
+
+
+
+
+
+3:48:12 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/chat-thread-panel.tsx
+
+
+
+
+
+
+3:48:12 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/prompt-dock.tsx
+
+
+
+
+
+
+3:48:12 AM [vite] (client) hmr update /src/components/workspace/workspace-shell.tsx, /src/app.css
+
+
+
+
+
+
+3:48:48 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/chat-thread-panel.tsx
+
+
+
+
+
+
+3:59:05 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/workspace-overlays.tsx
+
+
+
+
+
+
+3:59:07 AM [vite] (client) hmr update /src/app.css, /src/components/settings/settings-modal.tsx
+3:59:07 AM [vite] (client) hmr invalidate /src/components/settings/settings-modal.tsx Could not Fast Refresh ("SETTINGS_MODAL_SECTIONS" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+3:59:07 AM [vite] (client) hmr update /src/app.tsx
+
+
+
+
+
+
+3:59:10 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/chat-thread-panel.tsx
+
+
+
+
+
+
+3:59:11 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/workspace-activity-panel.tsx
+
+
+
+
+
+
+3:59:12 AM [vite] (client) hmr update /src/app.css, /src/components/ui/select.tsx
+
+
+
+
+
+
+3:59:15 AM [vite] (client) hmr update /src/components/packages/packages-modal.tsx, /src/app.css
+
+
+
+
+
+
+3:59:18 AM [vite] (client) hmr update /src/app.css, /src/components/settings/sections/ai-settings.tsx
+
+
+
+
+
+
+3:59:24 AM [vite] (client) hmr update /src/app.css
+
+
+
+
+
+
+3:59:24 AM [vite] (client) hmr update /src/components/packages/packages-modal.tsx, /src/app.css
+
+
+
+
+
+
+3:59:29 AM [vite] (client) hmr update /src/app.css, /src/components/settings/form-components.tsx
+
+
+
+
+
+
+3:59:38 AM [vite] (client) hmr update /src/app.css, /src/components/settings/sections/ai-settings.tsx
+
+
+
+
+
+
+3:59:41 AM [vite] (client) hmr update /src/app.css, /src/components/settings/sections/ai-settings.tsx (x2)
+
+
+
+
+
+
+3:59:49 AM [vite] (client) hmr update /src/app.css, /src/components/settings/sections/ai-settings.tsx (x3)
+
+
+
+
+
+
+3:59:50 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/prompt-dock.tsx
+
+
+
+
+
+
+3:59:54 AM [vite] (client) hmr update /src/app.css, /src/components/settings/sections/interface-settings.tsx
+
+
+
+
+
+
+4:00:01 AM [vite] (client) hmr update /src/app.css, /src/components/settings/sections/interface-settings.tsx (x2)

@@ -232,9 +232,9 @@ export function LeftRail({
       data-mode="workspace"
       className={cn(
         "relative z-20 flex h-full shrink-0 select-none flex-col",
-        // Minimalist: Clean white surface with 1px border
-        "bg-[var(--color-surface)]",
-        "border-r border-[var(--color-border)]",
+        // Minimalist: Clean dark surface with subtle border
+        "bg-[#0a0a0a]",
+        "border-r border-white/[0.06]",
       )}
       style={{ width }}
     >
@@ -274,7 +274,7 @@ export function LeftRail({
       </div>
 
       {/* Section divider */}
-      <div className="mx-3 h-px bg-[var(--color-border)]" />
+      <div className="mx-3 h-px bg-white/[0.06]" />
 
       {/* Empty state */}
       {orderedRepositories.length === 0 && (
@@ -329,8 +329,8 @@ export function LeftRail({
                   onClick={() => onSelectRepository(repository.id)}
                   onContextMenu={(e) => handleContextMenu(e, repository)}
                   className={cn(
-                    "group flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left transition-all duration-[var(--duration-fast)]",
-                    "hover:bg-[var(--color-surface-secondary)] outline-none",
+                    "relative group flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left transition-all duration-[var(--duration-fast)]",
+                    "outline-none hover:text-white/90",
                     draggedRepositoryId === repository.id && "opacity-50",
                   )}
                   aria-label={`Open repository ${repositoryName}`}
@@ -372,7 +372,7 @@ export function LeftRail({
                     ) : (
                       <span
                         className={cn(
-                          "block truncate text-[13px] leading-tight",
+                          "block truncate text-[13px]",
                           isActive || hasActiveThreadInRepo
                             ? "text-[var(--color-text-primary)] font-medium"
                             : "text-[var(--color-text-secondary)] group-hover:text-[var(--color-text-primary)]",
@@ -406,8 +406,8 @@ export function LeftRail({
                   <div className="pb-2">
                     <div className="relative pl-3">
                       {/* Vertical line connecting project to threads */}
-                      <div className="absolute left-[15px] top-0 bottom-2 w-px bg-[var(--color-border)]" />
-                      <div className="space-y-0">
+                      <div className="absolute left-[15px] top-0 bottom-2 w-px bg-white/[0.06]" />
+                      <div className="space-y-1">
                         {allThreads.map((thread, index) => (
                           <div
                             key={thread.id}
@@ -415,7 +415,7 @@ export function LeftRail({
                             style={{ animationDelay: `${index * 30}ms` }}
                           >
                             {/* Horizontal connector line */}
-                            <div className="absolute left-0 top-[14px] w-3 h-px bg-[var(--color-border)]" />
+                            <div className="absolute left-0 top-[14px] w-3 h-px bg-white/[0.06]" />
                             <div className="pl-4">
                               <button
                                 data-testid="thread-list-item"
@@ -424,20 +424,12 @@ export function LeftRail({
                                   onSelectThread(thread.id);
                                 }}
                                 className={cn(
-                                  "group flex w-full items-center gap-1.5 rounded-md px-1.5 py-1.5 text-left transition-all duration-[var(--duration-fast)]",
+                                  "relative group flex w-full items-center rounded-md px-1.5 py-1.5 text-left transition-all duration-[var(--duration-fast)]",
                                   thread.id === activeThreadId
-                                    ? "bg-[var(--color-surface-secondary)] text-[var(--color-text-primary)]"
-                                    : "text-[var(--color-text-muted)] hover:bg-[var(--color-surface-tertiary)] hover:text-[var(--color-text-secondary)]",
+                                    ? "text-[var(--color-text-primary)]"
+                                    : "text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]",
                                 )}
                               >
-                                <ChatText
-                                  className={cn(
-                                    "size-3 shrink-0 transition-colors duration-150",
-                                    thread.id === activeThreadId
-                                      ? "text-[var(--color-text-secondary)]"
-                                      : "text-[var(--color-text-muted)] group-hover:text-[var(--color-text-secondary)]",
-                                  )}
-                                />
                                 <span
                                   className={cn(
                                     "block min-w-0 flex-1 truncate text-[11px] leading-tight transition-colors duration-150",
@@ -461,16 +453,15 @@ export function LeftRail({
                           data-testid="create-thread-button"
                           aria-label="Create thread"
                           className={cn(
-                            "relative mt-1 flex h-7 w-full items-center gap-1.5 rounded px-1.5 py-1 text-[11px]",
+                            "relative mt-1 flex h-7 w-full items-center rounded px-1.5 py-1 text-[11px]",
                             "text-[var(--color-text-muted)] transition-all duration-[var(--duration-fast)]",
-                            "hover:bg-[var(--color-surface-secondary)] hover:text-[var(--color-text-secondary)]",
+                            "hover:text-[var(--color-text-secondary)]",
                           )}
                           onClick={() => onCreateThread(firstWorktree.id)}
                         >
                           {/* Horizontal connector */}
-                          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-3 h-px bg-[var(--color-border)]" />
-                          <div className="pl-4 flex items-center gap-1.5">
-                            <Plus className="size-3" />
+                          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-3 h-px bg-white/[0.06]" />
+                          <div className="pl-4 flex items-center">
                             <span className="text-[11px]">New thread</span>
                           </div>
                         </button>
@@ -485,7 +476,7 @@ export function LeftRail({
       </div>
 
       {/* Divider above Pi branding */}
-      <div className="mx-3 h-px bg-[var(--color-border)]" />
+      <div className="mx-3 h-px bg-white/[0.06]" />
 
       {/* Pi branding - bottom */}
       <div className="px-3 py-2">
@@ -531,7 +522,7 @@ export function LeftRail({
         <div
           ref={contextMenuRef}
           className={cn(
-            "fixed z-[100] min-w-[160px] rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-1",
+            "fixed z-[100] min-w-[160px] rounded-md border border-white/[0.06] bg-[#141414] p-1",
             "shadow-[var(--shadow-hover)]",
             "animate-in fade-in-0 zoom-in-[0.98] duration-150 ease-out",
           )}

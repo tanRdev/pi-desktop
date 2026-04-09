@@ -6,7 +6,6 @@ import type {
 } from "@pidesk/shared";
 import type { AgentLiveFeed } from "@pidesk/shell-model";
 import * as React from "react";
-import { useStore } from "zustand";
 import { Terminal } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { uiInteractionStore } from "../../stores/ui-interaction-store";
@@ -174,11 +173,6 @@ export function WorkspaceShell({
   promptMode,
   onPromptModeChange,
 }: WorkspaceShellProps) {
-  const isMainWindowFullscreen = useStore(
-    uiInteractionStore,
-    (storeState) => storeState.isMainWindowFullscreen,
-  );
-
   React.useEffect(() => {
     let disposed = false;
     const interactions = uiInteractionStore.getState();
@@ -202,7 +196,7 @@ export function WorkspaceShell({
   }, []);
 
   const projectName =
-    activeRepository?.customName ?? activeRepository?.name ?? "PiDesk";
+    activeRepository?.customName ?? activeRepository?.name ?? "Pi";
   const activeWorktree =
     activeRepository?.worktrees.find(
       (worktree) => worktree.id === activeWorktreeId,
@@ -232,6 +226,8 @@ export function WorkspaceShell({
   );
 
   const hasActiveThread = activeThreadId !== null;
+  const hasTranscriptHistory =
+    threadMessages.length > 0 || isPromptExecuting || threadLastError !== null;
   const selectedSurfaceKey =
     selectedContextSurface === null
       ? null
@@ -306,7 +302,7 @@ export function WorkspaceShell({
             <div
               className={cn(
                 "min-h-0 flex-1 overflow-hidden select-none",
-                "border-r border-white/[0.03]",
+                "border-r border-white/[0.06]",
               )}
             >
               {hasActiveThread ? (
@@ -319,8 +315,16 @@ export function WorkspaceShell({
                 />
               ) : null}
 
-              <div className="absolute inset-0 z-10 flex items-center justify-center select-none">
-                <div className="w-full max-w-2xl px-6">
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 px-6 pb-6 select-none">
+                <div
+                  data-composer-state={
+                    hasTranscriptHistory ? "docked" : "floating"
+                  }
+                  className={cn(
+                    "pointer-events-auto mx-auto w-full max-w-3xl transition-transform duration-[var(--duration-slower)] ease-[var(--ease-drawer)]",
+                    "translate-y-0",
+                  )}
+                >
                   <PromptDock
                     draft={draft}
                     onDraftChange={onDraftChange}
@@ -351,7 +355,7 @@ export function WorkspaceShell({
 
             {/* Item 22: Right panel - only visible when a surface is selected */}
             {selectedSurfaceKey !== null ? (
-              <div className="min-h-0 w-[400px] shrink-0 overflow-hidden border-l border-white/[0.04] bg-[var(--shell-overlay-bg)]">
+              <div className="min-h-0 w-[400px] shrink-0 overflow-hidden border-l border-white/[0.06] bg-[var(--shell-overlay-bg)]">
                 {selectedSurfaceKey === "activity" ? (
                   <WorkspaceActivityPanel
                     threadTitle={activeThreadTitle}
