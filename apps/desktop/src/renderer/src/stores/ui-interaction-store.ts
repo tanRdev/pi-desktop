@@ -8,6 +8,7 @@ import { createStore } from "zustand/vanilla";
 
 export type UiDialogId =
   | "settings"
+  | "packages"
   | "createWorktree"
   | "createThread"
   | "confirmRemoveRepository";
@@ -19,6 +20,7 @@ export interface UiHoverTarget {
 
 export interface UiDialogsState {
   settings: boolean;
+  packages: boolean;
   createWorktree: boolean;
   createThread: boolean;
   confirmRemoveRepository: boolean;
@@ -96,6 +98,7 @@ export function createUiInteractionStore() {
     isMainWindowFullscreen: false,
     dialogs: {
       settings: false,
+      packages: false,
       createWorktree: false,
       createThread: false,
       confirmRemoveRepository: false,

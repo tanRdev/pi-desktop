@@ -69,6 +69,7 @@ export interface WorkspaceShellProps {
   onCopyRepositoryPath: (repositoryId: string) => void | Promise<void>;
   onOpenInFinder: (repositoryId: string) => void | Promise<void>;
   onOpenSettings: () => void;
+  onOpenMarketplace: () => void;
   onSelectWorktree: (worktreeId: string) => void | Promise<void>;
   onSelectThread: (threadId: string) => void | Promise<void>;
   onCreateThread: (worktreeId: string) => void | Promise<void>;
@@ -143,6 +144,7 @@ export function WorkspaceShell({
   onCopyRepositoryPath,
   onOpenInFinder,
   onOpenSettings,
+  onOpenMarketplace,
   onSelectWorktree,
   onSelectThread,
   onCreateThread,
@@ -271,6 +273,7 @@ export function WorkspaceShell({
           onCloseThread={onCloseThread}
           onRenameThread={onRenameThread}
           onAddRepository={onAddRepository}
+          onOpenMarketplace={onOpenMarketplace}
           onOpenSettings={onOpenSettings}
         />
 

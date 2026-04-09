@@ -9,6 +9,7 @@ import {
   type AgentSnapshot,
   createEmptyWorkspaceSession,
   IPC_CHANNELS,
+  type PackageManagerStatus,
   type PiDeskAgentEvent,
   type RepositoryPreferences,
   type ShellSnapshot,
@@ -416,6 +417,103 @@ describe("createPiDeskApi", () => {
           },
         },
       ],
+    ]);
+  });
+
+  it("invokes package catalog, install, and subscription channels", async () => {
+    const managerStatus: PackageManagerStatus = {
+      cli: "available",
+      network: "available",
+      authenticated: true,
+      message: null,
+    };
+    const invokeCalls: Array<[string, unknown?]> = [];
+    const off = vi.fn();
+    const listener = vi.fn();
+    const invoke: PreloadInvoke = async <TReturn>(
+      channel: string,
+      payload?: unknown,
+    ) => {
+      invokeCalls.push([channel, payload]);
+
+      if (channel === IPC_CHANNELS.packages.getManagerStatus) {
+        return managerStatus as TReturn;
+      }
+
+      return undefined as TReturn;
+    };
+    const on: PreloadOn = <TPayload>(
+      channel: string,
+      callback: (payload: TPayload) => void,
+    ) => {
+      expect(channel).toBe(IPC_CHANNELS.packages.event);
+      callback({
+        type: "operation_updated",
+        operation: {
+          id: "operation-1",
+          packageName: "@acme/pi-tools",
+          scope: "local",
+          kind: "install",
+          status: "running",
+          message: "Installing package",
+          output: [],
+        },
+      } as TPayload);
+      return off;
+    };
+
+    const api = createPiDeskApi({ invoke, on });
+
+    await expect(api.packages.getManagerStatus()).resolves.toEqual(
+      managerStatus,
+    );
+    await api.packages.searchCatalog({
+      query: "search",
+      sort: "downloads",
+      kinds: ["extension"],
+      hasDemoOnly: true,
+    });
+    await api.packages.getPackageDetail("@acme/pi-tools");
+    await api.packages.listInstalled("local");
+    await api.packages.install({
+      packageName: "@acme/pi-tools",
+      scope: "local",
+    });
+    await api.packages.remove({
+      packageName: "@acme/pi-tools",
+      scope: "global",
+    });
+    await api.packages.update({ scope: "global" });
+    const unsubscribe = api.packages.subscribe(listener);
+    unsubscribe();
+
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(off).toHaveBeenCalledTimes(1);
+    expect(invokeCalls).toEqual([
+      [IPC_CHANNELS.packages.getManagerStatus, undefined],
+      [
+        IPC_CHANNELS.packages.searchCatalog,
+        {
+          query: "search",
+          sort: "downloads",
+          kinds: ["extension"],
+          hasDemoOnly: true,
+        },
+      ],
+      [
+        IPC_CHANNELS.packages.getPackageDetail,
+        { packageName: "@acme/pi-tools" },
+      ],
+      [IPC_CHANNELS.packages.listInstalled, { scope: "local" }],
+      [
+        IPC_CHANNELS.packages.install,
+        { packageName: "@acme/pi-tools", scope: "local" },
+      ],
+      [
+        IPC_CHANNELS.packages.remove,
+        { packageName: "@acme/pi-tools", scope: "global" },
+      ],
+      [IPC_CHANNELS.packages.update, { scope: "global" }],
     ]);
   });
 });

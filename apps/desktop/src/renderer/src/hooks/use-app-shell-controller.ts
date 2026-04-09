@@ -89,6 +89,8 @@ export interface AppShellController {
   workspaceShellProps: WorkspaceShellProps;
   isSettingsOpen: boolean;
   setSettingsOpen: (isOpen: boolean) => void;
+  isPackagesOpen: boolean;
+  setPackagesOpen: (isOpen: boolean) => void;
   isCreateWorktreeOpen: boolean;
   setCreateWorktreeOpen: (isOpen: boolean) => void;
   isCreateThreadOpen: boolean;
@@ -179,6 +181,10 @@ export function useAppShellController(): AppShellController {
     uiInteractionStore,
     (storeState) => storeState.dialogs.settings,
   );
+  const isPackagesOpen = useStore(
+    uiInteractionStore,
+    (storeState) => storeState.dialogs.packages,
+  );
   const isCreateWorktreeOpen = useStore(
     uiInteractionStore,
     (storeState) => storeState.dialogs.createWorktree,
@@ -236,6 +242,9 @@ export function useAppShellController(): AppShellController {
   const setSettingsOpen = React.useCallback((isOpen: boolean) => {
     uiInteractionStore.getState().setDialogOpen("settings", isOpen);
   }, []);
+  const setPackagesOpen = React.useCallback((isOpen: boolean) => {
+    uiInteractionStore.getState().setDialogOpen("packages", isOpen);
+  }, []);
   const setCreateWorktreeOpen = React.useCallback((isOpen: boolean) => {
     uiInteractionStore.getState().setDialogOpen("createWorktree", isOpen);
   }, []);
@@ -281,6 +290,9 @@ export function useAppShellController(): AppShellController {
   const handleOpenSettings = React.useCallback(() => {
     setSettingsOpen(true);
   }, [setSettingsOpen]);
+  const handleOpenPackages = React.useCallback(() => {
+    setPackagesOpen(true);
+  }, [setPackagesOpen]);
 
   React.useEffect(() => {
     setPromptMode(detectPromptMode(draft));
@@ -1126,6 +1138,7 @@ export function useAppShellController(): AppShellController {
     onCopyRepositoryPath: handleCopyRepositoryPath,
     onOpenInFinder: handleOpenInFinder,
     onOpenSettings: handleOpenSettings,
+    onOpenMarketplace: handleOpenPackages,
     onSelectWorktree: handleSelectWorktree,
     onSelectThread: handleSelectThread,
     onCreateThread: handleCreateThread,
@@ -1160,6 +1173,8 @@ export function useAppShellController(): AppShellController {
     workspaceShellProps,
     isSettingsOpen,
     setSettingsOpen,
+    isPackagesOpen,
+    setPackagesOpen,
     isCreateWorktreeOpen,
     setCreateWorktreeOpen,
     isCreateThreadOpen,

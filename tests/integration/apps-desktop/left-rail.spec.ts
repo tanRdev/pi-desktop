@@ -112,7 +112,7 @@ describe("moveRepositorySnapshots", () => {
 
     expect(source).toContain("export const SIDEBAR_WIDTH = 220");
     expect(source).toContain("project-rail-item");
-    expect(source).toContain("handleSelectThreadFromRepository");
+    expect(source).toContain("onSelectThread");
     expect(source).not.toContain("NAVIGATION_ITEMS");
     expect(shellSource).toContain("WorkspaceSurfacePanel");
   });
@@ -121,20 +121,17 @@ describe("moveRepositorySnapshots", () => {
     const source = readSource(
       "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
     );
-    const worktreeSource = readSource(
-      "apps/desktop/src/renderer/src/components/workspace/worktree-section.tsx",
-    );
 
-    expect(source).toContain("WorktreeSection");
-    expect(worktreeSource).toContain("create-thread-button");
+    expect(source).toContain("thread-list-item");
+    expect(source).toContain("create-thread-button");
   });
 
   it("does not render the old empty-state no threads copy in worktree sections", () => {
-    const worktreeSource = readSource(
-      "apps/desktop/src/renderer/src/components/workspace/worktree-section.tsx",
+    const source = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
     );
 
-    expect(worktreeSource).not.toContain("No threads");
+    expect(source).not.toContain("No threads");
   });
 
   it("keeps non-selected projects collapsed while only the active project can stay expanded", () => {
@@ -142,9 +139,10 @@ describe("moveRepositorySnapshots", () => {
       "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
     );
 
-    expect(source).toContain("const expandedWorktreeId = isActive");
-    expect(source).toContain("? resolveExpandedWorktreeId(");
-    expect(source).toContain(": null;");
+    expect(source).toContain(
+      "const isActive = repository.id === activeRepositoryId",
+    );
+    expect(source).toContain("{isActive && allThreads.length > 0");
   });
 
   it("keeps the shell free of an extra helper column next to the sessions rail", () => {

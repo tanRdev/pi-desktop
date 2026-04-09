@@ -15,6 +15,18 @@ import type {
   ImagePreviewOptions,
 } from "./fs.js";
 import type {
+  InstalledPackageSnapshot,
+  PackageCatalogDetail,
+  PackageInstallRequest,
+  PackageManagerStatus,
+  PackageOperationSnapshot,
+  PackageRemoveRequest,
+  PackageSearchRequest,
+  PackageSearchResponse,
+  PackagesEvent,
+  PackageUpdateRequest,
+} from "./packages.js";
+import type {
   AutocompleteContext,
   AutocompleteSuggestions,
   SearchRequest,
@@ -83,6 +95,20 @@ export interface PiDeskApi {
       path: string,
       options?: ImagePreviewOptions,
     ): Promise<ImagePreview>;
+  };
+  packages: {
+    getManagerStatus(): Promise<PackageManagerStatus>;
+    searchCatalog(
+      request: PackageSearchRequest,
+    ): Promise<PackageSearchResponse>;
+    getPackageDetail(packageName: string): Promise<PackageCatalogDetail>;
+    listInstalled(
+      scope?: "global" | "local",
+    ): Promise<InstalledPackageSnapshot[]>;
+    install(request: PackageInstallRequest): Promise<PackageOperationSnapshot>;
+    remove(request: PackageRemoveRequest): Promise<PackageOperationSnapshot>;
+    update(request: PackageUpdateRequest): Promise<PackageOperationSnapshot>;
+    subscribe(listener: (event: PackagesEvent) => void): () => void;
   };
   terminal: {
     create(options: TerminalCreateOptions): Promise<TerminalSession>;

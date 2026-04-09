@@ -1,12 +1,11 @@
-import type { RepositorySnapshot, WorktreeSnapshot } from "@pidesk/shared";
+import type { RepositorySnapshot } from "@pidesk/shared";
 import { moveRepositorySnapshots } from "@pidesk/shared";
 import * as React from "react";
 import {
+  ChatText,
   Copy,
   Folder,
-  FolderOpen,
   Gear,
-  Minus,
   PencilSimple,
   Pi,
   Plus,
@@ -16,34 +15,12 @@ import {
 } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { ProjectAvatar } from "./project-avatar";
-import { WorktreeSection } from "./worktree-section";
 
 // Item 3: reduced from 280
 export const SIDEBAR_WIDTH = 220;
 
 function getRepositoryName(repository: RepositorySnapshot): string {
   return repository.customName?.trim() || repository.name;
-}
-
-function resolveExpandedWorktreeId(
-  worktrees: WorktreeSnapshot[],
-  activeWorktreeId: string | null,
-  expandedRepositoryId: string | null | undefined,
-): string | null {
-  // If explicitly set (including null meaning collapsed), respect it
-  if (expandedRepositoryId !== undefined) {
-    return expandedRepositoryId; // null = collapsed, string = expanded worktree
-  }
-
-  // Default: use active worktree
-  if (
-    activeWorktreeId &&
-    worktrees.some((worktree) => worktree.id === activeWorktreeId)
-  ) {
-    return activeWorktreeId;
-  }
-
-  return worktrees[0]?.id ?? null;
 }
 
 export interface LeftRailProps {
@@ -98,8 +75,6 @@ export function LeftRail({
   const [draggedRepositoryId, setDraggedRepositoryId] = React.useState<
     string | null
   >(null);
-  const [expandedWorktreesByRepositoryId, setExpandedWorktreesByRepositoryId] =
-    React.useState<Record<string, string | null>>({});
   const [isResizing, setIsResizing] = React.useState(false);
 
   // Context menu state
@@ -224,41 +199,6 @@ export function LeftRail({
     [draggedRepositoryId, persistRepositoryOrder],
   );
 
-  const handleToggleWorktree = React.useCallback(
-    (repositoryId: string, worktreeId: string) => {
-      setExpandedWorktreesByRepositoryId((currentState) => {
-        const nextExpandedId =
-          currentState[repositoryId] === worktreeId ? null : worktreeId;
-
-        return {
-          ...currentState,
-          [repositoryId]: nextExpandedId,
-        };
-      });
-
-      if (activeWorktreeId !== worktreeId) {
-        onSelectWorktree(worktreeId);
-      }
-    },
-    [activeWorktreeId, onSelectWorktree],
-  );
-
-  const handleSelectThreadFromRepository = React.useCallback(
-    (repositoryId: string, worktreeId: string, threadId: string) => {
-      setExpandedWorktreesByRepositoryId((currentState) => ({
-        ...currentState,
-        [repositoryId]: worktreeId,
-      }));
-
-      if (activeWorktreeId !== worktreeId) {
-        onSelectWorktree(worktreeId);
-      }
-
-      onSelectThread(threadId);
-    },
-    [activeWorktreeId, onSelectThread, onSelectWorktree],
-  );
-
   const handleContextMenu = React.useCallback(
     (e: React.MouseEvent, repository: RepositorySnapshot) => {
       e.preventDefault();
@@ -360,23 +300,18 @@ export function LeftRail({
           {orderedRepositories.map((repository) => {
             const repositoryName = getRepositoryName(repository);
             const isActive = repository.id === activeRepositoryId;
-            const expandedWorktreeId = isActive
-              ? resolveExpandedWorktreeId(
-                  repository.worktrees,
-                  activeWorktreeId,
-                  expandedWorktreesByRepositoryId[repository.id],
-                )
-              : null;
 
-            // Item 9: derive agent count for subtitle
-            const totalThreads = repository.worktrees.reduce(
-              (sum, wt) => sum + (wt.threads?.length ?? 0),
-              0,
+            // Combine all threads from all worktrees (excluding archived)
+            const allThreads = repository.worktrees.flatMap(
+              (wt) => wt.threads?.filter((t) => !t.isArchived) ?? [],
             );
 
-            const hasActiveThreadInRepo = repository.worktrees.some((wt) =>
-              wt.threads?.some((t) => t.id === activeThreadId),
+            const hasActiveThreadInRepo = allThreads.some(
+              (t) => t.id === activeThreadId,
             );
+
+            // Get first worktree for creating new threads
+            const firstWorktree = repository.worktrees[0];
 
             return (
               <div
@@ -440,7 +375,7 @@ export function LeftRail({
                     ) : (
                       <span
                         className={cn(
-                          "block truncate text-[12px] leading-tight tracking-[-0.01em]",
+                          "block truncate text-[13px] leading-tight",
                           isActive || hasActiveThreadInRepo
                             ? "text-white/90 font-medium"
                             : "text-white/35 group-hover:text-white/60",
@@ -452,49 +387,81 @@ export function LeftRail({
                   </span>
                 </button>
 
-                {/* Worktrees — seamlessly connected with tree-like indentation */}
-                {isActive && repository.worktrees.length > 0 && (
+                {/* Threads directly under repository - flattened from all worktrees */}
+                {isActive && allThreads.length > 0 && (
                   <div className="pb-2">
                     <div className="relative pl-3">
-                      {/* Continuous vertical line connecting project to worktrees */}
+                      {/* Vertical line connecting project to threads */}
                       <div className="absolute left-[15px] top-0 bottom-2 w-px bg-gradient-to-b from-white/[0.08] via-white/[0.05] to-transparent" />
                       <div className="space-y-0">
-                        {repository.worktrees.map((worktree, index) => (
+                        {allThreads.map((thread, index) => (
                           <div
-                            key={worktree.id}
+                            key={thread.id}
                             className="stagger-item relative"
                             style={{ animationDelay: `${index * 30}ms` }}
                           >
                             {/* Horizontal connector line */}
                             <div className="absolute left-0 top-[14px] w-3 h-px bg-white/[0.05]" />
                             <div className="pl-4">
-                              <WorktreeSection
-                                worktree={worktree}
-                                activeThreadId={activeThreadId}
-                                isExpanded={expandedWorktreeId === worktree.id}
-                                onToggleExpand={() =>
-                                  handleToggleWorktree(
-                                    repository.id,
-                                    worktree.id,
-                                  )
-                                }
-                                onSelectThread={(threadId: string) =>
-                                  handleSelectThreadFromRepository(
-                                    repository.id,
-                                    worktree.id,
-                                    threadId,
-                                  )
-                                }
-                                onCreateThread={() =>
-                                  onCreateThread(worktree.id)
-                                }
-                                onCloseThread={onCloseThread}
-                                onRenameThread={onRenameThread}
-                              />
+                              <button
+                                data-testid="thread-list-item"
+                                type="button"
+                                onClick={() => {
+                                  onSelectThread(thread.id);
+                                }}
+                                className={cn(
+                                  "group flex w-full items-center gap-1.5 rounded-md px-1.5 py-1.5 text-left transition-all duration-[var(--duration-fast)]",
+                                  thread.id === activeThreadId
+                                    ? "text-white/90"
+                                    : "text-white/30 hover:text-white/55",
+                                )}
+                              >
+                                <ChatText
+                                  className={cn(
+                                    "size-3 shrink-0 transition-colors duration-150",
+                                    thread.id === activeThreadId
+                                      ? "text-white/60"
+                                      : "text-white/20 group-hover:text-white/35",
+                                  )}
+                                  weight="regular"
+                                />
+                                <span
+                                  className={cn(
+                                    "block min-w-0 flex-1 truncate text-[11px] leading-tight transition-colors duration-150",
+                                    thread.id === activeThreadId
+                                      ? "font-medium text-white/90"
+                                      : "text-white/45 group-hover:text-white/60",
+                                  )}
+                                >
+                                  {thread.title || "Untitled thread"}
+                                </span>
+                              </button>
                             </div>
                           </div>
                         ))}
                       </div>
+
+                      {/* New thread button */}
+                      {firstWorktree && (
+                        <button
+                          type="button"
+                          data-testid="create-thread-button"
+                          aria-label="Create thread"
+                          className={cn(
+                            "relative mt-1 flex h-7 w-full items-center gap-1.5 rounded px-1.5 py-1 text-[11px]",
+                            "text-white/25 transition-all duration-[var(--duration-fast)]",
+                            "hover:bg-white/[0.04] hover:text-white/50",
+                          )}
+                          onClick={() => onCreateThread(firstWorktree.id)}
+                        >
+                          {/* Horizontal connector */}
+                          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-3 h-px bg-white/[0.03]" />
+                          <div className="pl-4 flex items-center gap-1.5">
+                            <Plus className="size-3" weight="bold" />
+                            <span className="text-[10px]">New thread</span>
+                          </div>
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}

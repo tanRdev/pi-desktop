@@ -35,6 +35,7 @@ import { createContextSwitchController } from "./context-switch-controller";
 import { GitWorktreeService } from "./git-worktree-service";
 import { registerIpcHandlers } from "./ipc-router";
 import { LocalThreadRuntimeManager } from "./local-thread-runtime-manager";
+import { PackagesServiceImpl } from "./packages/packages-service-impl";
 import {
   discoverPiResources,
   getPiSlashSuggestions,
@@ -192,6 +193,17 @@ async function bootstrapDesktop() {
   );
   const workspaceSearchService = new WorkspaceSearchService();
   const defaultAgentDirectory = path.join(app.getPath("home"), ".pi", "agent");
+  const packagesService = new PackagesServiceImpl({
+    homePath: app.getPath("home"),
+    getLocalSettingsPath: () =>
+      currentContext?.worktreePath
+        ? path.join(currentContext.worktreePath, ".pi", "settings.json")
+        : null,
+    getLocalWorkingDirectory: () => currentContext?.worktreePath ?? null,
+    emit: (event) => {
+      mainWindow?.webContents.send(IPC_CHANNELS.packages.event, event);
+    },
+  });
 
   const subscribeToHost = (
     host: AgentDesktopHost,
@@ -767,6 +779,7 @@ async function bootstrapDesktop() {
     getDiscovery: handleGetDiscovery,
     getSlashSuggestions: handleGetSlashSuggestions,
     threadCatalog,
+    packagesService,
   });
 
   mainWindow = await createMainWindow();

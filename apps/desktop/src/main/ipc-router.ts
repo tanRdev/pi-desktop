@@ -17,6 +17,7 @@ import {
   getStringField,
   parseSearchRequest,
 } from "./ipc/payload-parsers";
+import type { PackagesService } from "./packages/packages-service";
 import { registerDialogHandlers } from "./ipc/register-dialog-handlers";
 import { registerFilesystemHandlers } from "./ipc/register-filesystem-handlers";
 import { registerRepositoryHandlers } from "./ipc/register-repository-handlers";
@@ -71,6 +72,7 @@ export interface RegisterIpcHandlersDependencies {
     context: AutocompleteContext,
   ): Promise<AutocompleteSuggestions>;
   threadCatalog?: ThreadCatalog;
+  packagesService?: PackagesService;
 }
 
 export function registerIpcHandlers({
@@ -85,6 +87,7 @@ export function registerIpcHandlers({
   getDiscovery,
   getSlashSuggestions,
   threadCatalog,
+  packagesService,
 }: RegisterIpcHandlersDependencies): void {
   const tm = terminalManagerOverride ?? terminalManager;
 
@@ -94,6 +97,118 @@ export function registerIpcHandlers({
   registerDialogHandlers({ handle });
   registerFilesystemHandlers({ handle, getShellSnapshot });
   registerStateHandlers({ handle, stateHost });
+
+  handle(IPC_CHANNELS.packages.getManagerStatus, async () => {
+    if (!packagesService) {
+      throw new Error("Packages service is unavailable");
+    }
+
+    return packagesService.getManagerStatus();
+  });
+
+  handle(IPC_CHANNELS.packages.searchCatalog, async (_event, payload) => {
+    if (!packagesService) {
+      throw new Error("Packages service is unavailable");
+    }
+
+    const query = getStringField(payload, "query") ?? "";
+    const sort = getStringField(payload, "sort") ?? "downloads";
+    const payloadKinds =
+      typeof payload === "object" && payload !== null && "kinds" in payload
+        ? (payload as { kinds?: unknown }).kinds
+        : undefined;
+    const kinds = Array.isArray(payloadKinds)
+      ? payloadKinds.filter(
+          (value): value is "extension" | "skill" | "theme" | "prompt" =>
+            value === "extension" ||
+            value === "skill" ||
+            value === "theme" ||
+            value === "prompt",
+        )
+      : [];
+    const hasDemoOnly =
+      typeof payload === "object" && payload !== null && "hasDemoOnly" in payload
+        ? typeof (payload as { hasDemoOnly?: unknown }).hasDemoOnly === "boolean"
+          ? (payload as { hasDemoOnly: boolean }).hasDemoOnly
+          : undefined
+        : undefined;
+
+    return packagesService.searchCatalog({
+      query,
+      sort:
+        sort === "recent" || sort === "name" || sort === "downloads"
+          ? sort
+          : "downloads",
+      kinds,
+      hasDemoOnly,
+    });
+  });
+
+  handle(IPC_CHANNELS.packages.getPackageDetail, async (_event, payload) => {
+    if (!packagesService) {
+      throw new Error("Packages service is unavailable");
+    }
+
+    const packageName = getStringField(payload, "packageName");
+    if (!packageName) {
+      throw new Error("Package detail payload must include packageName");
+    }
+
+    return packagesService.getPackageDetail(packageName);
+  });
+
+  handle(IPC_CHANNELS.packages.listInstalled, async (_event, payload) => {
+    if (!packagesService) {
+      throw new Error("Packages service is unavailable");
+    }
+
+    const scope = getStringField(payload, "scope");
+    return packagesService.listInstalled(
+      scope === "global" || scope === "local" ? scope : undefined,
+    );
+  });
+
+  handle(IPC_CHANNELS.packages.install, async (_event, payload) => {
+    if (!packagesService) {
+      throw new Error("Packages service is unavailable");
+    }
+
+    const packageName = getStringField(payload, "packageName");
+    const scope = getStringField(payload, "scope");
+    if (!packageName || (scope !== "global" && scope !== "local")) {
+      throw new Error("Install payload must include packageName and scope");
+    }
+
+    return packagesService.install({ packageName, scope });
+  });
+
+  handle(IPC_CHANNELS.packages.remove, async (_event, payload) => {
+    if (!packagesService) {
+      throw new Error("Packages service is unavailable");
+    }
+
+    const packageName = getStringField(payload, "packageName");
+    const scope = getStringField(payload, "scope");
+    if (!packageName || (scope !== "global" && scope !== "local")) {
+      throw new Error("Remove payload must include packageName and scope");
+    }
+
+    return packagesService.remove({ packageName, scope });
+  });
+
+  handle(IPC_CHANNELS.packages.update, async (_event, payload) => {
+    if (!packagesService) {
+      throw new Error("Packages service is unavailable");
+    }
+
+    const packageName = getStringField(payload, "packageName");
+    const scope = getStringField(payload, "scope");
+    if (scope !== "global" && scope !== "local") {
+      throw new Error("Update payload must include scope");
+    }
+
+    return packagesService.update({ packageName, scope });
+  });
 
   handle(IPC_CHANNELS.shell.getSnapshot, async () => getShellSnapshot());
   handle(IPC_CHANNELS.agent.getProviders, async () => agentHost.getProviders());

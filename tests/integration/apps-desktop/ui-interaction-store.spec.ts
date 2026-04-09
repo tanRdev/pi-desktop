@@ -131,4 +131,19 @@ describe("ui-interaction-store", () => {
     store.getState().setMainWindowFullscreen(false);
     expect(store.getState().isMainWindowFullscreen).toBe(false);
   });
+
+  it("tracks the packages dialog independently from other dialogs", () => {
+    const store = createUiInteractionStore();
+
+    store.getState().setDialogOpen("packages", true);
+    store.getState().setDialogOpen("settings", true);
+
+    expect(store.getState().dialogs.packages).toBe(true);
+    expect(store.getState().dialogs.settings).toBe(true);
+
+    store.getState().setDialogOpen("packages", false);
+
+    expect(store.getState().dialogs.packages).toBe(false);
+    expect(store.getState().dialogs.settings).toBe(true);
+  });
 });

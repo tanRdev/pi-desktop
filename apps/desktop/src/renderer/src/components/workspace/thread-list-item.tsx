@@ -107,7 +107,7 @@ export function ThreadListItem({
           <span
             data-testid={isActive ? "current-thread-title" : undefined}
             className={cn(
-              "block truncate text-[12px] leading-tight tracking-[-0.01em] transition-colors duration-150",
+              "block truncate text-[11px] leading-tight transition-colors duration-150",
               isActive
                 ? "font-medium text-white/90"
                 : "text-white/45 group-hover:text-white/60",

@@ -871,6 +871,134 @@ describe("registerIpcHandlers", () => {
     });
   });
 
+  it("binds package handlers when a packages service is provided", async () => {
+    const harness = createHandlerHarness();
+    const packagesService = {
+      getManagerStatus: vi.fn(async () => ({
+        cli: "available" as const,
+        network: "available" as const,
+        authenticated: true,
+        message: null,
+      })),
+      searchCatalog: vi.fn(async () => ({
+        query: "skill",
+        sort: "downloads" as const,
+        total: 1,
+        packages: [],
+      })),
+      getPackageDetail: vi.fn(async (packageName: string) => ({
+        name: packageName,
+        version: "1.0.0",
+        description: "detail",
+        downloads: 0,
+        publishedAt: null,
+        kinds: [],
+        author: null,
+        maintainers: [],
+        repositoryUrl: null,
+        npmUrl: `https://www.npmjs.com/package/${packageName}`,
+        readmeUrl: null,
+        hasDemo: false,
+        demoVideoUrl: null,
+        demoImageUrl: null,
+        keywords: [],
+        readmeMarkdown: null,
+        installCommand: `pi install npm:${packageName}`,
+      })),
+      listInstalled: vi.fn(async () => []),
+      install: vi.fn(async () => ({
+        id: "install-1",
+        packageName: "@acme/pi-tools",
+        scope: "local" as const,
+        kind: "install" as const,
+        status: "queued" as const,
+        message: null,
+        output: [],
+      })),
+      remove: vi.fn(async () => ({
+        id: "remove-1",
+        packageName: "@acme/pi-tools",
+        scope: "global" as const,
+        kind: "remove" as const,
+        status: "queued" as const,
+        message: null,
+        output: [],
+      })),
+      update: vi.fn(async () => ({
+        id: "update-1",
+        packageName: "",
+        scope: "global" as const,
+        kind: "update" as const,
+        status: "queued" as const,
+        message: null,
+        output: [],
+      })),
+      subscribe: vi.fn(() => () => undefined),
+    };
+
+    registerIpcHandlers({
+      handle: harness.handle,
+      getShellSnapshot: vi.fn(createShellSnapshot),
+      agentHost: createAgentHost(createAgentSnapshot()),
+      mainWindow: null,
+      packagesService,
+    });
+
+    await harness.handlers.get(IPC_CHANNELS.packages.getManagerStatus)?.();
+    await harness.handlers.get(IPC_CHANNELS.packages.searchCatalog)?.(
+      undefined,
+      {
+        query: "skill",
+        sort: "downloads",
+        kinds: ["skill", "invalid"],
+        hasDemoOnly: true,
+      },
+    );
+    await harness.handlers.get(IPC_CHANNELS.packages.getPackageDetail)?.(
+      undefined,
+      { packageName: "@acme/pi-tools" },
+    );
+    await harness.handlers.get(IPC_CHANNELS.packages.listInstalled)?.(
+      undefined,
+      { scope: "local" },
+    );
+    await harness.handlers.get(IPC_CHANNELS.packages.install)?.(undefined, {
+      packageName: "@acme/pi-tools",
+      scope: "local",
+    });
+    await harness.handlers.get(IPC_CHANNELS.packages.remove)?.(undefined, {
+      packageName: "@acme/pi-tools",
+      scope: "global",
+    });
+    await harness.handlers.get(IPC_CHANNELS.packages.update)?.(undefined, {
+      scope: "global",
+    });
+
+    expect(packagesService.getManagerStatus).toHaveBeenCalledTimes(1);
+    expect(packagesService.searchCatalog).toHaveBeenCalledWith({
+      query: "skill",
+      sort: "downloads",
+      kinds: ["skill"],
+      hasDemoOnly: true,
+    });
+    expect(packagesService.getPackageDetail).toHaveBeenCalledWith(
+      "@acme/pi-tools",
+    );
+    expect(packagesService.listInstalled).toHaveBeenCalledWith("local");
+    expect(packagesService.install).toHaveBeenCalledWith({
+      packageName: "@acme/pi-tools",
+      scope: "local",
+    });
+    expect(packagesService.remove).toHaveBeenCalledWith({
+      packageName: "@acme/pi-tools",
+      scope: "global",
+    });
+    expect(packagesService.update).toHaveBeenCalledWith({
+      packageName: undefined,
+      scope: "global",
+    });
+  });
+
   it("terminal manager initialization: mainWindow null calls initialize once and does not call setMainWindow", async () => {
     const harness = createHandlerHarness();
     const tmMock = createTerminalManagerMock();

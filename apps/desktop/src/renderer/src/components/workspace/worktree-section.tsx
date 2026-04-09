@@ -82,7 +82,7 @@ export function WorktreeSection({
         />
         <span
           className={cn(
-            "min-w-0 flex-1 truncate text-[12px] leading-tight tracking-[-0.01em]",
+            "min-w-0 flex-1 truncate text-[12px] leading-tight",
             isExpanded || isWorktreeActive
               ? "text-white/70 font-medium"
               : "group-hover:text-white/55",
@@ -183,7 +183,7 @@ export function WorktreeSection({
               ) : (
                 <Plus className="size-3" weight="bold" />
               )}
-              <span className="text-[11px]">
+              <span className="text-[10px]">
                 {isCreatingThread ? "Creating…" : "New thread"}
               </span>
             </button>

@@ -13,6 +13,14 @@ import {
   type PiDeskAgentEvent,
   type PiDeskApi,
   type PiDiscoveryResult,
+  type PackageInstallRequest,
+  type PackageManagerStatus,
+  type PackageOperationSnapshot,
+  type PackageRemoveRequest,
+  type PackageSearchRequest,
+  type PackageSearchResponse,
+  type PackageUpdateRequest,
+  type PackagesEvent,
   type ProviderSnapshot,
   type RepositoryDisplayMetadata,
   type RepositoryPreferences,
@@ -177,6 +185,53 @@ export function createPiDeskApi({
           path,
           options,
         });
+      },
+    },
+    packages: {
+      getManagerStatus() {
+        return invoke<PackageManagerStatus>(
+          IPC_CHANNELS.packages.getManagerStatus,
+          undefined,
+        );
+      },
+      searchCatalog(request: PackageSearchRequest) {
+        return invoke<PackageSearchResponse>(
+          IPC_CHANNELS.packages.searchCatalog,
+          request,
+        );
+      },
+      getPackageDetail(packageName: string) {
+        return invoke<import("@pidesk/shared").PackageCatalogDetail>(
+          IPC_CHANNELS.packages.getPackageDetail,
+          { packageName },
+        );
+      },
+      listInstalled(scope?: "global" | "local") {
+        return invoke<import("@pidesk/shared").InstalledPackageSnapshot[]>(
+          IPC_CHANNELS.packages.listInstalled,
+          { scope },
+        );
+      },
+      install(request: PackageInstallRequest) {
+        return invoke<PackageOperationSnapshot>(
+          IPC_CHANNELS.packages.install,
+          request,
+        );
+      },
+      remove(request: PackageRemoveRequest) {
+        return invoke<PackageOperationSnapshot>(
+          IPC_CHANNELS.packages.remove,
+          request,
+        );
+      },
+      update(request: PackageUpdateRequest) {
+        return invoke<PackageOperationSnapshot>(
+          IPC_CHANNELS.packages.update,
+          request,
+        );
+      },
+      subscribe(listener: (event: PackagesEvent) => void) {
+        return on<PackagesEvent>(IPC_CHANNELS.packages.event, listener);
       },
     },
     terminal: {

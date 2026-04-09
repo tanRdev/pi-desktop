@@ -3,6 +3,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import { SettingsModal, SettingsProvider } from "./components/settings";
 import { Button } from "./components/ui/button";
+import { PackagesModal } from "./components/packages/packages-modal";
 import {
   Dialog,
   DialogContent,
@@ -146,6 +147,11 @@ export default function App() {
           <SettingsModal
             open={controller.isSettingsOpen}
             onOpenChange={controller.setSettingsOpen}
+          />
+
+          <PackagesModal
+            open={controller.isPackagesOpen}
+            onOpenChange={controller.setPackagesOpen}
           />
 
           <Dialog

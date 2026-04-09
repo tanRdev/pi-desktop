@@ -41,6 +41,16 @@ export const IPC_CHANNELS = {
     getImageMetadata: "fs:getImageMetadata",
     getImagePreview: "fs:getImagePreview",
   },
+  packages: {
+    event: "packages:event",
+    getManagerStatus: "packages:getManagerStatus",
+    searchCatalog: "packages:searchCatalog",
+    getPackageDetail: "packages:getPackageDetail",
+    listInstalled: "packages:listInstalled",
+    install: "packages:install",
+    remove: "packages:remove",
+    update: "packages:update",
+  },
   terminal: {
     create: "terminal:create",
     write: "terminal:write",
