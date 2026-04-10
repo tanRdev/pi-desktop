@@ -458,13 +458,18 @@ export function LeftRail({
             Workspaces
           </div>
           <div className="flex gap-1">
-            <button
-              type="button"
-              onClick={onAddRepository}
-              className="text-white/40 hover:text-white/80 p-0.5"
-            >
-              <Folder className="size-3.5" />
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={onAddRepository}
+                  className="text-white/40 hover:text-white/80 p-0.5"
+                >
+                  <Folder className="size-3.5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="top">New workspace</TooltipContent>
+            </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
