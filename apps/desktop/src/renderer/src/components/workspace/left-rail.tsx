@@ -452,7 +452,7 @@ export function LeftRail({
       {/* Repository List */}
       <div className="min-h-0 flex-1 overflow-y-auto py-2">
         <div className="px-3 py-2 flex items-center justify-between group">
-          <div className="text-[10px] text-white/40 uppercase tracking-wider truncate mr-2">
+          <div className="text-[10px] text-white/40 font-semibold uppercase tracking-wider truncate mr-2">
             {activeRepositoryName}
           </div>
           <div className="flex gap-1 shrink-0">
