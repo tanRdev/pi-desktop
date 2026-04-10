@@ -2,28 +2,26 @@ import type { RepositorySnapshot } from "@pidesk/shared";
 import { moveRepositorySnapshots } from "@pidesk/shared";
 import * as React from "react";
 import {
-  CheckCircle,
-  PlayCircle,
-  CircleDashed,
-  XCircle,
   Archive,
-  FolderPlus,
-  CaretRight,
   CaretDown,
-  Circle,
-  GitBranch,
+  CaretRight,
   ChatText,
+  CheckCircle,
+  Circle,
+  CircleDashed,
   Copy,
   Folder,
-  Gear,
+  FolderPlus,
+  GitBranch,
   type IconProps,
   PencilSimple,
-  Pi,
+  PlayCircle,
   Plus,
+  SidebarSimple,
   SquaresFour,
   Stack,
   Trash,
-  SidebarSimple,
+  XCircle,
 } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { ProjectAvatar } from "./project-avatar";
@@ -79,8 +77,8 @@ export function LeftRail({
   onRenameThread,
   onAddRepository,
   onToggleVisible,
-  onOpenMarketplace,
   onOpenSettings,
+  onOpenMarketplace,
 }: LeftRailProps) {
   const [orderedRepositories, setOrderedRepositories] =
     React.useState(repositories);
@@ -252,7 +250,10 @@ export function LeftRail({
       style={{ width }}
     >
       {/* Drag region for macOS traffic lights */}
-      <div data-drag-region="true" className="flex h-11 w-full shrink-0 items-center justify-end px-3">
+      <div
+        data-drag-region="true"
+        className="flex h-11 w-full shrink-0 items-center justify-end px-3"
+      >
         <button
           type="button"
           onClick={onToggleVisible}
@@ -263,63 +264,39 @@ export function LeftRail({
         </button>
       </div>
 
-      {/* Navigation Items */}
-      <div className="px-3 pb-3">
-        <button
-          type="button"
-          data-no-drag="true"
-          onClick={onOpenMarketplace}
-          className={cn(
-            "flex w-full items-center gap-2.5 rounded-md px-2.5 py-2",
-            "text-[var(--color-text-secondary)] text-[12px]",
-            "transition-all duration-[var(--duration-fast)]",
-            "hover:bg-[var(--color-surface-secondary)] hover:text-[var(--color-text-primary)]",
-          )}
-        >
-          <SquaresFour className="size-3.5" />
-          <span>Packages</span>
-        </button>
-        <button
-          type="button"
-          data-no-drag="true"
-          onClick={onAddRepository}
-          className={cn(
-            "flex w-full items-center gap-2.5 rounded-md px-2.5 py-2",
-            "text-[var(--color-text-secondary)] text-[12px]",
-            "transition-all duration-[var(--duration-fast)]",
-            "hover:bg-[var(--color-surface-secondary)] hover:text-[var(--color-text-primary)]",
-          )}
-        >
-          <Plus className="size-3.5" />
-          <span>Add workspace</span>
-        </button>
-      </div>
-
-      {/* Section divider */}
-      <div className="mx-3 h-px bg-white/[0.06]" />
-
-      {/* Empty state */}
-      {orderedRepositories.length === 0 && (
-        <div className="flex flex-1 flex-col items-center justify-center gap-2 px-6 py-8 text-center">
-          <Stack className="size-4 text-[var(--color-text-muted)]" />
-          <div className="space-y-0.5">
-            <p className="text-[11px] text-[var(--color-text-secondary)]">
-              No projects
-            </p>
-            <p className="text-[10px] text-[var(--color-text-muted)]">
-              Open a workspace to begin
-            </p>
-          </div>
-        </div>
-      )}
-
       {/* Repository List */}
       <div className="min-h-0 flex-1 overflow-y-auto py-2">
         <div className="px-3 py-2 flex items-center justify-between group">
-          <div className="text-[10px] text-white/40 uppercase tracking-wider">Workspaces</div>
-          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button className="text-white/40 hover:text-white/80 p-0.5"><Folder className="size-3.5" /></button>
-            <button className="text-white/40 hover:text-white/80 p-0.5"><Plus className="size-3.5" /></button>
+          <div className="text-[10px] text-white/40 uppercase tracking-wider">
+            Workspaces
+          </div>
+          <div className="flex gap-1">
+            <button
+              type="button"
+              onClick={onAddRepository}
+              className="text-white/40 hover:text-white/80 p-0.5"
+            >
+              <Folder className="size-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                activeWorktreeId && onCreateThread(activeWorktreeId)
+              }
+              className={cn(
+                "text-white/40 p-0.5 transition-colors",
+                activeWorktreeId
+                  ? "hover:text-white/80"
+                  : "opacity-20 cursor-not-allowed",
+              )}
+              title={
+                activeWorktreeId
+                  ? "New thread"
+                  : "Select a workspace to create a thread"
+              }
+            >
+              <Plus className="size-3.5" />
+            </button>
           </div>
         </div>
 
@@ -329,7 +306,7 @@ export function LeftRail({
             <CheckCircle className="size-3.5" />
             <span>Done</span>
           </div>
-          
+
           <div className="flex items-center gap-2 px-2 py-1.5 text-[12px] text-[#eab308] hover:text-[#fde047] hover:bg-white/[0.04] rounded cursor-pointer">
             <Circle className="size-3.5" />
             <span className="text-white/50">In review</span>
@@ -361,7 +338,7 @@ export function LeftRail({
               </div>
               <span className="text-[10px] text-white/40">29</span>
             </div>
-            
+
             {/* Render actual repositories under Archived for demo */}
             <div className="pl-4 mt-1 space-y-0.5">
               {orderedRepositories.map((repository) => {
@@ -370,10 +347,13 @@ export function LeftRail({
                 return (
                   <button
                     key={repository.id}
+                    type="button"
                     onClick={() => onSelectRepository(repository.id)}
                     className={cn(
                       "flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-[12px] transition-colors",
-                      isActive ? "bg-[#3b82f6]/10 text-[#3b82f6]" : "text-white/50 hover:bg-white/[0.04] hover:text-white/80"
+                      isActive
+                        ? "bg-[#3b82f6]/10 text-[#3b82f6]"
+                        : "text-white/50 hover:bg-white/[0.04] hover:text-white/80",
                     )}
                   >
                     <GitBranch className="size-3" />
@@ -386,32 +366,22 @@ export function LeftRail({
         </div>
       </div>
 
-      {/* Divider above Pi branding */}
-      <div className="mx-3 h-px bg-white/[0.06]" />
-
-      {/* Pi branding - bottom */}
-      <div className="px-3 py-1">
-        <div className="flex items-center justify-between rounded-md px-2 py-1">
-          <div className="flex items-center gap-2">
-            <Pi className="size-3.5 text-[var(--color-text-secondary)]" />
-            <span className="text-[11px] text-[var(--color-text-muted)]">
-              Pi Desktop v0.1.0
-            </span>
-          </div>
-          <button
-            type="button"
-            data-no-drag="true"
-            onClick={onOpenSettings}
-            className={cn(
-              "flex items-center justify-center rounded p-1",
-              "text-[var(--color-text-secondary)]",
-              "transition-all duration-[var(--duration-fast)]",
-              "hover:bg-[var(--color-surface-secondary)] hover:text-[var(--color-text-primary)]",
-            )}
-          >
-            <Gear className="size-3.5" />
-          </button>
-        </div>
+      {/* Footer Navigation */}
+      <div className="px-3 py-2 border-t border-white/[0.06] bg-[#0a0a0a]">
+        <button
+          type="button"
+          data-no-drag="true"
+          onClick={onOpenMarketplace}
+          className={cn(
+            "flex w-full items-center gap-2.5 rounded-md px-2.5 py-2",
+            "text-[var(--color-text-secondary)] text-[12px]",
+            "transition-all duration-[var(--duration-fast)]",
+            "hover:bg-[var(--color-surface-secondary)] hover:text-[var(--color-text-primary)]",
+          )}
+        >
+          <SquaresFour className="size-3.5" />
+          <span>Packages</span>
+        </button>
       </div>
 
       {/* Resize handle */}
