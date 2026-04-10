@@ -58,6 +58,142 @@ export interface LeftRailProps {
   onOpenInFinder?: (repositoryId: string) => void;
 }
 
+interface MockThread {
+  id: string;
+  title: string;
+  updatedAt: string;
+}
+
+const MOCK_THREADS: Record<
+  "done" | "in-review" | "in-progress" | "backlog" | "canceled",
+  MockThread[]
+> = {
+  done: [
+    { id: "d1", title: "Implement auth flow", updatedAt: "2h ago" },
+    { id: "d2", title: "Fix sidebar flickering", updatedAt: "5h ago" },
+  ],
+  "in-review": [
+    { id: "r1", title: "Add unit tests for workspace", updatedAt: "1h ago" },
+  ],
+  "in-progress": [
+    { id: "p1", title: "Refactor chat transcript", updatedAt: "Just now" },
+    { id: "p2", title: "Support slash commands", updatedAt: "10m ago" },
+  ],
+  backlog: [
+    { id: "b1", title: "Dark mode support", updatedAt: "1d ago" },
+    { id: "b2", title: "Keyboard shortcuts", updatedAt: "2d ago" },
+    { id: "b3", title: "Marketplace integration", updatedAt: "3d ago" },
+  ],
+  canceled: [
+    { id: "c1", title: "Legacy support for IE11", updatedAt: "1w ago" },
+  ],
+};
+
+function TallyBars({
+  count,
+  maxBars = 12,
+  colorClassName = "bg-white/20",
+}: {
+  count: number;
+  maxBars?: number;
+  colorClassName?: string;
+}) {
+  const bars = Math.min(count, maxBars);
+  return (
+    <div className="flex gap-[2.5px] items-center ml-2 overflow-hidden shrink-0 pointer-events-none">
+      {Array.from({ length: bars }).map((_, i) => (
+        <div
+          key={i}
+          className={cn(
+            "h-2 w-[1.5px] rounded-full transition-opacity group-hover/item:opacity-100 opacity-60",
+            colorClassName,
+          )}
+        />
+      ))}
+      {count > maxBars && (
+        <span
+          className={cn(
+            "text-[8px] ml-0.5 font-medium opacity-60 group-hover/item:opacity-100",
+            colorClassName.replace("bg-", "text-"),
+          )}
+        >
+          +
+        </span>
+      )}
+    </div>
+  );
+}
+
+interface CategoryItemProps {
+  label: string;
+  icon: React.ElementType;
+  count: number;
+  colorClassName?: string;
+  isExpanded: boolean;
+  onToggle: () => void;
+  children?: React.ReactNode;
+}
+
+function CategoryItem({
+  label,
+  icon: Icon,
+  count,
+  colorClassName,
+  isExpanded,
+  onToggle,
+  children,
+}: CategoryItemProps) {
+  return (
+    <div className="space-y-0.5">
+      <button
+        type="button"
+        onClick={onToggle}
+        className={cn(
+          "flex w-full items-center justify-between px-2 py-1.5 text-[12px] rounded cursor-pointer group/item transition-colors",
+          isExpanded ? "bg-white/[0.04]" : "hover:bg-white/[0.04]",
+          colorClassName
+            ? colorClassName.replace("bg-", "text-")
+            : "text-white/50 hover:text-white/80",
+        )}
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          <CaretRight
+            className={cn(
+              "size-2.5 shrink-0 transition-transform duration-200 opacity-30",
+              isExpanded && "rotate-90 opacity-60",
+            )}
+          />
+          <Icon
+            className={cn(
+              "size-3.5 shrink-0",
+              !colorClassName && "text-white/40",
+            )}
+          />
+          <span
+            className={cn(
+              "truncate",
+              !colorClassName &&
+                (isExpanded ? "text-white/80" : "text-white/50"),
+            )}
+          >
+            {label}
+          </span>
+        </div>
+        <TallyBars count={count} colorClassName={colorClassName} />
+      </button>
+
+      <div
+        className={cn(
+          "overflow-hidden transition-all duration-300 ease-in-out pl-4",
+          isExpanded ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0",
+        )}
+      >
+        <div className="py-1 space-y-0.5">{children}</div>
+      </div>
+    </div>
+  );
+}
+
 export function LeftRail({
   repositories,
   activeRepositoryId,
@@ -108,6 +244,10 @@ export function LeftRail({
     repositoryId: string;
     value: string;
   } | null>(null);
+
+  const [expandedCategoryId, setExpandedCategoryId] = React.useState<
+    string | null
+  >("in-progress");
 
   React.useEffect(() => {
     if (!isResizing) return;
@@ -301,67 +441,175 @@ export function LeftRail({
         </div>
 
         <div className="space-y-0.5 px-2">
-          {/* Mock Categories to match the design */}
-          <div className="flex items-center gap-2 px-2 py-1.5 text-[12px] text-white/50 hover:text-white/80 hover:bg-white/[0.04] rounded cursor-pointer">
-            <CheckCircle className="size-3.5" />
-            <span>Done</span>
-          </div>
+          <CategoryItem
+            label="Done"
+            icon={CheckCircle}
+            count={MOCK_THREADS.done.length}
+            isExpanded={expandedCategoryId === "done"}
+            onToggle={() =>
+              setExpandedCategoryId(
+                expandedCategoryId === "done" ? null : "done",
+              )
+            }
+          >
+            {MOCK_THREADS.done.map((thread) => (
+              <button
+                key={thread.id}
+                type="button"
+                className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-[11px] text-white/40 hover:bg-white/[0.04] hover:text-white/70"
+              >
+                <ChatText className="size-3 opacity-50" />
+                <span className="truncate flex-1">{thread.title}</span>
+                <span className="text-[9px] opacity-30">
+                  {thread.updatedAt}
+                </span>
+              </button>
+            ))}
+          </CategoryItem>
 
-          <div className="flex items-center gap-2 px-2 py-1.5 text-[12px] text-[#eab308] hover:text-[#fde047] hover:bg-white/[0.04] rounded cursor-pointer">
-            <Circle className="size-3.5" />
-            <span className="text-white/50">In review</span>
-          </div>
+          <CategoryItem
+            label="In review"
+            icon={Circle}
+            count={MOCK_THREADS["in-review"].length}
+            colorClassName="bg-[#eab308]"
+            isExpanded={expandedCategoryId === "in-review"}
+            onToggle={() =>
+              setExpandedCategoryId(
+                expandedCategoryId === "in-review" ? null : "in-review",
+              )
+            }
+          >
+            {MOCK_THREADS["in-review"].map((thread) => (
+              <button
+                key={thread.id}
+                type="button"
+                className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-[11px] text-white/40 hover:bg-white/[0.04] hover:text-white/70"
+              >
+                <ChatText className="size-3 opacity-50" />
+                <span className="truncate flex-1">{thread.title}</span>
+                <span className="text-[9px] opacity-30">
+                  {thread.updatedAt}
+                </span>
+              </button>
+            ))}
+          </CategoryItem>
 
-          <div className="flex items-center justify-between px-2 py-1.5 text-[12px] text-[#22c55e] hover:text-[#4ade80] hover:bg-white/[0.04] rounded cursor-pointer">
-            <div className="flex items-center gap-2">
-              <PlayCircle className="size-3.5" />
-              <span className="text-white/80">In progress</span>
-            </div>
-            <span className="text-[10px] text-white/40">2</span>
-          </div>
+          <CategoryItem
+            label="In progress"
+            icon={PlayCircle}
+            count={MOCK_THREADS["in-progress"].length}
+            colorClassName="bg-[#22c55e]"
+            isExpanded={expandedCategoryId === "in-progress"}
+            onToggle={() =>
+              setExpandedCategoryId(
+                expandedCategoryId === "in-progress" ? null : "in-progress",
+              )
+            }
+          >
+            {MOCK_THREADS["in-progress"].map((thread) => (
+              <button
+                key={thread.id}
+                type="button"
+                className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-[11px] text-white/40 hover:bg-white/[0.04] hover:text-white/70"
+              >
+                <ChatText className="size-3 opacity-50" />
+                <span className="truncate flex-1">{thread.title}</span>
+                <span className="text-[9px] opacity-30">
+                  {thread.updatedAt}
+                </span>
+              </button>
+            ))}
+          </CategoryItem>
 
-          <div className="flex items-center gap-2 px-2 py-1.5 text-[12px] text-white/30 hover:text-white/80 hover:bg-white/[0.04] rounded cursor-pointer">
-            <CircleDashed className="size-3.5" />
-            <span className="text-white/50">Backlog</span>
-          </div>
+          <CategoryItem
+            label="Backlog"
+            icon={CircleDashed}
+            count={MOCK_THREADS.backlog.length}
+            isExpanded={expandedCategoryId === "backlog"}
+            onToggle={() =>
+              setExpandedCategoryId(
+                expandedCategoryId === "backlog" ? null : "backlog",
+              )
+            }
+          >
+            {MOCK_THREADS.backlog.map((thread) => (
+              <button
+                key={thread.id}
+                type="button"
+                className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-[11px] text-white/40 hover:bg-white/[0.04] hover:text-white/70"
+              >
+                <ChatText className="size-3 opacity-50" />
+                <span className="truncate flex-1">{thread.title}</span>
+                <span className="text-[9px] opacity-30">
+                  {thread.updatedAt}
+                </span>
+              </button>
+            ))}
+          </CategoryItem>
 
-          <div className="flex items-center gap-2 px-2 py-1.5 text-[12px] text-[#ef4444] hover:text-[#f87171] hover:bg-white/[0.04] rounded cursor-pointer">
-            <XCircle className="size-3.5" />
-            <span className="text-white/50">Canceled</span>
-          </div>
+          <CategoryItem
+            label="Canceled"
+            icon={XCircle}
+            count={MOCK_THREADS.canceled.length}
+            colorClassName="bg-[#ef4444]"
+            isExpanded={expandedCategoryId === "canceled"}
+            onToggle={() =>
+              setExpandedCategoryId(
+                expandedCategoryId === "canceled" ? null : "canceled",
+              )
+            }
+          >
+            {MOCK_THREADS.canceled.map((thread) => (
+              <button
+                key={thread.id}
+                type="button"
+                className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-[11px] text-white/40 hover:bg-white/[0.04] hover:text-white/70"
+              >
+                <ChatText className="size-3 opacity-50" />
+                <span className="truncate flex-1">{thread.title}</span>
+                <span className="text-[9px] opacity-30">
+                  {thread.updatedAt}
+                </span>
+              </button>
+            ))}
+          </CategoryItem>
 
-          <div className="mt-4 mb-1">
-            <div className="flex items-center justify-between px-2 py-1.5 text-[12px] text-white/40 hover:text-white/80 hover:bg-white/[0.04] rounded cursor-pointer">
-              <div className="flex items-center gap-2">
-                <Archive className="size-3.5" />
-                <span className="text-white/50">Archived</span>
+          <div className="mt-4">
+            <CategoryItem
+              label="Archived"
+              icon={Archive}
+              count={29}
+              colorClassName="bg-white/40"
+              isExpanded={expandedCategoryId === "archived"}
+              onToggle={() =>
+                setExpandedCategoryId(
+                  expandedCategoryId === "archived" ? null : "archived",
+                )
+              }
+            >
+              <div className="space-y-0.5">
+                {orderedRepositories.map((repository) => {
+                  const repositoryName = getRepositoryName(repository);
+                  const isActive = repository.id === activeRepositoryId;
+                  return (
+                    <button
+                      key={repository.id}
+                      type="button"
+                      onClick={() => onSelectRepository(repository.id)}
+                      className={cn(
+                        "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[12px] transition-colors",
+                        isActive
+                          ? "bg-[#3b82f6]/10 text-[#3b82f6]"
+                          : "text-white/50 hover:bg-white/[0.04] hover:text-white/80",
+                      )}
+                    >
+                      <GitBranch className="size-3" />
+                      <span className="truncate">{repositoryName}</span>
+                    </button>
+                  );
+                })}
               </div>
-              <span className="text-[10px] text-white/40">29</span>
-            </div>
-
-            {/* Render actual repositories under Archived for demo */}
-            <div className="pl-4 mt-1 space-y-0.5">
-              {orderedRepositories.map((repository) => {
-                const repositoryName = getRepositoryName(repository);
-                const isActive = repository.id === activeRepositoryId;
-                return (
-                  <button
-                    key={repository.id}
-                    type="button"
-                    onClick={() => onSelectRepository(repository.id)}
-                    className={cn(
-                      "flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-[12px] transition-colors",
-                      isActive
-                        ? "bg-[#3b82f6]/10 text-[#3b82f6]"
-                        : "text-white/50 hover:bg-white/[0.04] hover:text-white/80",
-                    )}
-                  >
-                    <GitBranch className="size-3" />
-                    <span className="truncate">{repositoryName}</span>
-                  </button>
-                );
-              })}
-            </div>
+            </CategoryItem>
           </div>
         </div>
       </div>
