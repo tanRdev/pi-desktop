@@ -111,12 +111,7 @@ function TallyBars({
         />
       ))}
       {count > maxBars && (
-        <span
-          className={cn(
-            "text-[8px] ml-0.5 font-medium opacity-60 group-hover/item:opacity-100",
-            colorClassName.replace("bg-", "text-"),
-          )}
-        >
+        <span className="text-[8px] ml-0.5 font-medium opacity-60 group-hover/item:opacity-100 text-white/60">
           +
         </span>
       )}
@@ -149,37 +144,21 @@ function CategoryItem({
         type="button"
         onClick={onToggle}
         className={cn(
-          "flex w-full items-center justify-between px-2 py-1.5 text-[12px] rounded cursor-pointer group/item transition-colors",
+          "flex w-full items-center justify-between px-2 py-1.5 text-[12px] rounded cursor-pointer group/item transition-colors text-white/50 hover:text-white/80",
           isExpanded ? "bg-white/[0.04]" : "hover:bg-white/[0.04]",
-          colorClassName
-            ? colorClassName.replace("bg-", "text-")
-            : "text-white/50 hover:text-white/80",
         )}
       >
-        <div className="flex items-center gap-2 min-w-0">
-          <CaretRight
-            className={cn(
-              "size-2.5 shrink-0 transition-transform duration-200 opacity-30",
-              isExpanded && "rotate-90 opacity-60",
-            )}
-          />
-          <Icon
-            className={cn(
-              "size-3.5 shrink-0",
-              !colorClassName && "text-white/40",
-            )}
-          />
-          <span
-            className={cn(
-              "truncate",
-              !colorClassName &&
-                (isExpanded ? "text-white/80" : "text-white/50"),
-            )}
-          >
-            {label}
-          </span>
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <Icon className="size-3.5 shrink-0 text-white/40" />
+          <span className="truncate">{label}</span>
+          <TallyBars count={count} colorClassName={colorClassName} />
         </div>
-        <TallyBars count={count} colorClassName={colorClassName} />
+        <CaretRight
+          className={cn(
+            "size-2.5 shrink-0 transition-transform duration-200 opacity-0 text-white/40 group-hover/item:opacity-30",
+            isExpanded && "rotate-90 opacity-60 group-hover/item:opacity-60",
+          )}
+        />
       </button>
 
       <div
