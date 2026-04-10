@@ -337,7 +337,7 @@ async function bootstrapDesktop() {
         return {
           mode: runtimeOptions.mode,
           cwd: runtimeOptions.cwd,
-          agentDir: runtimeOptions.agentDir,
+          agentDir: environment.PIDESK_AGENT_DIR || defaultAgentDirectory,
         };
       },
       createLaunchDetails: (input) =>

@@ -339,7 +339,7 @@ export function WorkspaceShell({
             {/* Chat panel - takes remaining space */}
             <div
               className={cn(
-                "relative flex min-h-0 flex-1 flex-col overflow-hidden select-none",
+                "relative flex min-h-0 flex-1 flex-col select-none",
                 "border-r border-white/[0.06]",
               )}
             >
@@ -415,10 +415,20 @@ export function WorkspaceShell({
                     windows={contextWindows}
                     onFileContentChange={onFileContentChange}
                     onFileSave={onFileSave}
-                    activityContent={<GitPanel projectName={projectName} />}
+                    activityContent={
+                      <GitPanel
+                        projectName={projectName}
+                        worktree={activeWorktree}
+                        onOpenGit={onOpenGit}
+                      />
+                    }
                   />
                 ) : (
-                  <GitPanel projectName={projectName} />
+                  <GitPanel
+                    projectName={projectName}
+                    worktree={activeWorktree}
+                    onOpenGit={onOpenGit}
+                  />
                 )}
               </div>
             </div>
