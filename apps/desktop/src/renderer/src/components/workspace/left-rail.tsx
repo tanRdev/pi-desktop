@@ -340,7 +340,7 @@ export function LeftRail({
               <PlayCircle className="size-3.5" />
               <span className="text-white/80">In progress</span>
             </div>
-            <span className="text-[10px] bg-white/[0.06] text-white/40 px-1.5 py-0.5 rounded-full">2</span>
+            <span className="text-[10px] text-white/40">2</span>
           </div>
 
           <div className="flex items-center gap-2 px-2 py-1.5 text-[12px] text-white/30 hover:text-white/80 hover:bg-white/[0.04] rounded cursor-pointer">
@@ -359,7 +359,7 @@ export function LeftRail({
                 <Archive className="size-3.5" />
                 <span className="text-white/50">Archived</span>
               </div>
-              <span className="text-[10px] bg-white/[0.06] text-white/40 px-1.5 py-0.5 rounded-full">29</span>
+              <span className="text-[10px] text-white/40">29</span>
             </div>
             
             {/* Render actual repositories under Archived for demo */}

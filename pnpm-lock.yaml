@@ -47,10 +47,19 @@ importers:
       '@effect/platform-node':
         specifier: ^0.76.21
         version: 0.76.22(@effect/cluster@0.29.22(@effect/platform@0.80.21(effect@3.21.0))(@effect/rpc@0.55.17(@effect/platform@0.80.21(effect@3.21.0))(effect@3.21.0))(@effect/sql@0.33.21(@effect/experimental@0.44.21(@effect/platform@0.80.21(effect@3.21.0))(effect@3.21.0))(@effect/platform@0.80.21(effect@3.21.0))(effect@3.21.0))(effect@3.21.0))(@effect/platform@0.80.21(effect@3.21.0))(@effect/rpc@0.55.17(@effect/platform@0.80.21(effect@3.21.0))(effect@3.21.0))(@effect/sql@0.33.21(@effect/experimental@0.44.21(@effect/platform@0.80.21(effect@3.21.0))(effect@3.21.0))(@effect/platform@0.80.21(effect@3.21.0))(effect@3.21.0))(effect@3.21.0)
+      '@fontsource-variable/albert-sans':
+        specifier: ^5.2.8
+        version: 5.2.8
       '@fontsource-variable/geist':
         specifier: ^5.2.8
         version: 5.2.8
+      '@fontsource-variable/instrument-sans':
+        specifier: ^5.2.8
+        version: 5.2.8
       '@fontsource-variable/manrope':
+        specifier: ^5.2.8
+        version: 5.2.8
+      '@fontsource-variable/rethink-sans':
         specifier: ^5.2.8
         version: 5.2.8
       '@fontsource-variable/source-code-pro':
@@ -872,11 +881,20 @@ packages:
   '@floating-ui/utils@0.2.11':
     resolution: {integrity: sha512-RiB/yIh78pcIxl6lLMG0CgBXAZ2Y0eVHqMPYugu+9U0AeT6YBeiJpf7lbdJNIugFP5SIjwNRgo4DhR1Qxi26Gg==}
 
+  '@fontsource-variable/albert-sans@5.2.8':
+    resolution: {integrity: sha512-hDtxW/K8gj8y+42BvH50UUIgpY7oriWXi+79Aam0MN+BIwk2CyN3kI/NP37e39PvC1625UFHEyBi48IcMy3DiA==}
+
   '@fontsource-variable/geist@5.2.8':
     resolution: {integrity: sha512-cJ6m9e+8MQ5dCYJsLylfZrgBh6KkG4bOLckB35Tr9J/EqdkEM6QllH5PxqP1dhTvFup+HtMRPuz9xOjxXJggxw==}
 
+  '@fontsource-variable/instrument-sans@5.2.8':
+    resolution: {integrity: sha512-mTCaukbdIjjoipj2E3Q5XoZM3ZxJWdzyHevf/LG/0PHlfF9Q85pxOM7B7A9MerFyxmRzz5kVlumgIvgDSG4CPg==}
+
   '@fontsource-variable/manrope@5.2.8':
     resolution: {integrity: sha512-nc9lOuCRz73UHnovDE2bwXUdghE2SEOc7Aii0qGe3CLyE03W1a7VnY5Z6euRiapiKbCkGS+eXbY3s/kvWeGeSw==}
+
+  '@fontsource-variable/rethink-sans@5.2.8':
+    resolution: {integrity: sha512-al4seUEA9sN3D7//lASAPUWPtehLIkKHQRxskZwTUHd3hOpfyjJWmXLOXYQwYAS5h4OhZ2D9S/3N73MzTJ5ecg==}
 
   '@fontsource-variable/source-code-pro@5.2.7':
     resolution: {integrity: sha512-kZ0VNwnhvSA7vu5MaiO52eicQ4zC+k+8HBLZb+1js0MK/RngLy25NEUFB1y/AKd0ZMwru88T433QBcFf9m/huw==}
@@ -6538,9 +6556,15 @@ snapshots:
 
   '@floating-ui/utils@0.2.11': {}
 
+  '@fontsource-variable/albert-sans@5.2.8': {}
+
   '@fontsource-variable/geist@5.2.8': {}
 
+  '@fontsource-variable/instrument-sans@5.2.8': {}
+
   '@fontsource-variable/manrope@5.2.8': {}
+
+  '@fontsource-variable/rethink-sans@5.2.8': {}
 
   '@fontsource-variable/source-code-pro@5.2.7': {}
 
