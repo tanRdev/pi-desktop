@@ -4,7 +4,6 @@ import * as React from "react";
 import {
   Archive,
   CaretDown,
-  CaretRight,
   ChatText,
   CheckCircle,
   Circle,
@@ -23,6 +22,11 @@ import {
   Trash,
   XCircle,
 } from "@/components/ui/icons";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { ProjectAvatar } from "./project-avatar";
 
@@ -125,7 +129,9 @@ interface CategoryItemProps {
   count: number;
   colorClassName?: string;
   isExpanded: boolean;
-  onToggle: () => void;
+  onActivate: () => void;
+  onHoverActivate?: React.MouseEventHandler<HTMLButtonElement>;
+  onHoverLeave?: React.MouseEventHandler<HTMLButtonElement>;
   children?: React.ReactNode;
 }
 
@@ -135,30 +141,35 @@ function CategoryItem({
   count,
   colorClassName,
   isExpanded,
-  onToggle,
+  onActivate,
+  onHoverActivate,
+  onHoverLeave,
   children,
 }: CategoryItemProps) {
   return (
-    <div className="space-y-0.5">
+    <div className="relative space-y-0.5">
+      <span
+        aria-hidden="true"
+        className={cn(
+          "absolute left-1 top-1.5 bottom-0 w-px rounded-full bg-white/60 transition-opacity pointer-events-none",
+          isExpanded ? "opacity-100" : "opacity-0",
+        )}
+      />
       <button
         type="button"
-        onClick={onToggle}
+        onClick={onActivate}
+        onMouseMove={onHoverActivate}
+        onMouseLeave={onHoverLeave}
+        onFocus={onActivate}
         className={cn(
           "flex w-full items-center justify-between px-2 py-1.5 text-[12px] rounded cursor-pointer group/item transition-colors text-white/50 hover:text-white/80",
-          isExpanded ? "bg-white/[0.04]" : "hover:bg-white/[0.04]",
         )}
       >
-        <div className="flex min-w-0 flex-1 items-center gap-2">
+        <div className="flex min-w-0 flex-1 items-center gap-2 pl-2">
           <Icon className="size-3.5 shrink-0 text-white/40" />
           <span className="truncate">{label}</span>
-          <TallyBars count={count} colorClassName={colorClassName} />
         </div>
-        <CaretRight
-          className={cn(
-            "size-2.5 shrink-0 transition-transform duration-200 opacity-0 text-white/40 group-hover/item:opacity-30",
-            isExpanded && "rotate-90 opacity-60 group-hover/item:opacity-60",
-          )}
-        />
+        <TallyBars count={count} colorClassName={colorClassName} />
       </button>
 
       <div
@@ -227,6 +238,63 @@ export function LeftRail({
   const [expandedCategoryId, setExpandedCategoryId] = React.useState<
     string | null
   >("in-progress");
+  const hoverIntentCategoryRef = React.useRef<string | null>(null);
+  const hoverIntentTimeoutRef = React.useRef<number | null>(null);
+  const hoverSwitchLockUntilRef = React.useRef(0);
+
+  const clearHoverIntent = React.useCallback(() => {
+    if (hoverIntentTimeoutRef.current !== null) {
+      window.clearTimeout(hoverIntentTimeoutRef.current);
+      hoverIntentTimeoutRef.current = null;
+    }
+
+    hoverIntentCategoryRef.current = null;
+  }, []);
+
+  const lockHoverSwitching = React.useCallback(() => {
+    hoverSwitchLockUntilRef.current = Date.now() + 220;
+  }, []);
+
+  const activateCategory = React.useCallback(
+    (categoryId: string) => {
+      clearHoverIntent();
+      lockHoverSwitching();
+      setExpandedCategoryId(categoryId);
+    },
+    [clearHoverIntent, lockHoverSwitching],
+  );
+
+  const queueHoverCategory = React.useCallback(
+    (categoryId: string) => {
+      const now = Date.now();
+
+      if (
+        expandedCategoryId !== categoryId &&
+        now < hoverSwitchLockUntilRef.current
+      ) {
+        return;
+      }
+
+      if (expandedCategoryId === categoryId) {
+        clearHoverIntent();
+        return;
+      }
+
+      if (hoverIntentCategoryRef.current === categoryId) {
+        return;
+      }
+
+      clearHoverIntent();
+      hoverIntentCategoryRef.current = categoryId;
+      hoverIntentTimeoutRef.current = window.setTimeout(() => {
+        hoverIntentCategoryRef.current = null;
+        hoverIntentTimeoutRef.current = null;
+        lockHoverSwitching();
+        setExpandedCategoryId(categoryId);
+      }, 140);
+    },
+    [clearHoverIntent, expandedCategoryId, lockHoverSwitching],
+  );
 
   React.useEffect(() => {
     if (!isResizing) return;
@@ -397,25 +465,29 @@ export function LeftRail({
             >
               <Folder className="size-3.5" />
             </button>
-            <button
-              type="button"
-              onClick={() =>
-                activeWorktreeId && onCreateThread(activeWorktreeId)
-              }
-              className={cn(
-                "text-white/40 p-0.5 transition-colors",
-                activeWorktreeId
-                  ? "hover:text-white/80"
-                  : "opacity-20 cursor-not-allowed",
-              )}
-              title={
-                activeWorktreeId
-                  ? "New thread"
-                  : "Select a workspace to create a thread"
-              }
-            >
-              <Plus className="size-3.5" />
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={() =>
+                    activeWorktreeId && onCreateThread(activeWorktreeId)
+                  }
+                  className={cn(
+                    "text-white/40 p-0.5 transition-colors",
+                    activeWorktreeId
+                      ? "hover:text-white/80"
+                      : "opacity-20 cursor-not-allowed",
+                  )}
+                >
+                  <Plus className="size-3.5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                {activeWorktreeId
+                  ? "New worktree"
+                  : "Select a workspace to create a thread"}
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
 
@@ -425,11 +497,9 @@ export function LeftRail({
             icon={CheckCircle}
             count={MOCK_THREADS.done.length}
             isExpanded={expandedCategoryId === "done"}
-            onToggle={() =>
-              setExpandedCategoryId(
-                expandedCategoryId === "done" ? null : "done",
-              )
-            }
+            onActivate={() => activateCategory("done")}
+            onHoverActivate={() => queueHoverCategory("done")}
+            onHoverLeave={clearHoverIntent}
           >
             {MOCK_THREADS.done.map((thread) => (
               <button
@@ -452,11 +522,9 @@ export function LeftRail({
             count={MOCK_THREADS["in-review"].length}
             colorClassName="bg-[#eab308]"
             isExpanded={expandedCategoryId === "in-review"}
-            onToggle={() =>
-              setExpandedCategoryId(
-                expandedCategoryId === "in-review" ? null : "in-review",
-              )
-            }
+            onActivate={() => activateCategory("in-review")}
+            onHoverActivate={() => queueHoverCategory("in-review")}
+            onHoverLeave={clearHoverIntent}
           >
             {MOCK_THREADS["in-review"].map((thread) => (
               <button
@@ -479,11 +547,9 @@ export function LeftRail({
             count={MOCK_THREADS["in-progress"].length}
             colorClassName="bg-[#22c55e]"
             isExpanded={expandedCategoryId === "in-progress"}
-            onToggle={() =>
-              setExpandedCategoryId(
-                expandedCategoryId === "in-progress" ? null : "in-progress",
-              )
-            }
+            onActivate={() => activateCategory("in-progress")}
+            onHoverActivate={() => queueHoverCategory("in-progress")}
+            onHoverLeave={clearHoverIntent}
           >
             {MOCK_THREADS["in-progress"].map((thread) => (
               <button
@@ -505,11 +571,9 @@ export function LeftRail({
             icon={CircleDashed}
             count={MOCK_THREADS.backlog.length}
             isExpanded={expandedCategoryId === "backlog"}
-            onToggle={() =>
-              setExpandedCategoryId(
-                expandedCategoryId === "backlog" ? null : "backlog",
-              )
-            }
+            onActivate={() => activateCategory("backlog")}
+            onHoverActivate={() => queueHoverCategory("backlog")}
+            onHoverLeave={clearHoverIntent}
           >
             {MOCK_THREADS.backlog.map((thread) => (
               <button
@@ -532,11 +596,9 @@ export function LeftRail({
             count={MOCK_THREADS.canceled.length}
             colorClassName="bg-[#ef4444]"
             isExpanded={expandedCategoryId === "canceled"}
-            onToggle={() =>
-              setExpandedCategoryId(
-                expandedCategoryId === "canceled" ? null : "canceled",
-              )
-            }
+            onActivate={() => activateCategory("canceled")}
+            onHoverActivate={() => queueHoverCategory("canceled")}
+            onHoverLeave={clearHoverIntent}
           >
             {MOCK_THREADS.canceled.map((thread) => (
               <button
@@ -560,11 +622,9 @@ export function LeftRail({
               count={29}
               colorClassName="bg-white/40"
               isExpanded={expandedCategoryId === "archived"}
-              onToggle={() =>
-                setExpandedCategoryId(
-                  expandedCategoryId === "archived" ? null : "archived",
-                )
-              }
+              onActivate={() => activateCategory("archived")}
+              onHoverActivate={() => queueHoverCategory("archived")}
+              onHoverLeave={clearHoverIntent}
             >
               {orderedRepositories.map((repository) => {
                 const repositoryName = getRepositoryName(repository);
