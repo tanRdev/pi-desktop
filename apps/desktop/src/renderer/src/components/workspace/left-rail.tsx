@@ -312,7 +312,7 @@ export function LeftRail({
     renameInputRef.current?.select();
   }, [renameState]);
 
-  const handleDrop = React.useCallback(
+  const _handleDrop = React.useCallback(
     (targetRepositoryId: string) => {
       if (!draggedRepositoryId) {
         return;
@@ -336,7 +336,7 @@ export function LeftRail({
     [draggedRepositoryId, persistRepositoryOrder],
   );
 
-  const handleContextMenu = React.useCallback(
+  const _handleContextMenu = React.useCallback(
     (e: React.MouseEvent, repository: RepositorySnapshot) => {
       e.preventDefault();
       e.stopPropagation();
@@ -359,6 +359,7 @@ export function LeftRail({
   const activeRepository = repositories.find(
     (repo) => repo.id === activeRepositoryId,
   );
+  const contextMenuRepositoryId = contextMenu.repositoryId;
   const activeRepositoryName = activeRepository
     ? getRepositoryName(activeRepository)
     : "Empty workspace";
@@ -378,7 +379,7 @@ export function LeftRail({
       {/* Drag region for macOS traffic lights */}
       <div
         data-drag-region="true"
-        className="flex h-11 w-full shrink-0 items-center justify-start px-3 pl-[72px]"
+        className="flex h-11 w-full shrink-0 items-center justify-end px-3"
       >
         <button
           type="button"
@@ -621,7 +622,7 @@ export function LeftRail({
       />
 
       {/* Context Menu */}
-      {contextMenu.isOpen && contextMenu.repositoryId && (
+      {contextMenu.isOpen && contextMenuRepositoryId !== null ? (
         <div
           ref={contextMenuRef}
           className={cn(
@@ -670,7 +671,7 @@ export function LeftRail({
             type="button"
             onClick={() =>
               handleMenuAction(() =>
-                onCopyRepositoryPath?.(contextMenu.repositoryId!),
+                onCopyRepositoryPath?.(contextMenuRepositoryId),
               )
             }
             className={cn(
@@ -685,9 +686,7 @@ export function LeftRail({
           <button
             type="button"
             onClick={() =>
-              handleMenuAction(() =>
-                onOpenInFinder?.(contextMenu.repositoryId!),
-              )
+              handleMenuAction(() => onOpenInFinder?.(contextMenuRepositoryId))
             }
             className={cn(
               "flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[11px] text-[var(--color-text-primary)]",
@@ -703,7 +702,7 @@ export function LeftRail({
             type="button"
             onClick={() =>
               handleMenuAction(() =>
-                onRemoveRepository?.(contextMenu.repositoryId!),
+                onRemoveRepository?.(contextMenuRepositoryId),
               )
             }
             className={cn(
@@ -716,7 +715,7 @@ export function LeftRail({
             <span>Remove</span>
           </button>
         </div>
-      )}
+      ) : null}
     </aside>
   );
 }
