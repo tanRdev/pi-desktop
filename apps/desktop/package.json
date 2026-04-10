@@ -81,6 +81,7 @@
     "shiki": "^2.3.2",
     "sonner": "^2.0.7",
     "tailwind-merge": "^2.6.0",
+    "unicode-animations": "github:gunnargray-dev/unicode-animations",
     "use-stick-to-bottom": "^1.1.3",
     "zustand": "^5.0.12"
   },

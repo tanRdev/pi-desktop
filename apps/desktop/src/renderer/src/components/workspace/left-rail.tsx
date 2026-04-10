@@ -14,7 +14,6 @@ import {
   PlayCircle,
   Plus,
   SidebarSimple,
-  SquaresFour,
   Stack,
   Trash,
   XCircle,
@@ -51,7 +50,6 @@ export interface LeftRailProps {
   onOpenSettings?: () => void;
   onOpenFilter?: () => void;
   onNewAgent?: () => void;
-  onOpenMarketplace?: () => void;
   onRenameRepository?: (repositoryId: string, name: string) => void;
   onRemoveRepository?: (repositoryId: string) => void;
   onCopyRepositoryPath?: (repositoryId: string) => void;
@@ -205,7 +203,6 @@ export function LeftRail({
   onCreateThread,
   onAddRepository,
   onToggleVisible,
-  onOpenMarketplace,
 }: LeftRailProps) {
   const [orderedRepositories, setOrderedRepositories] =
     React.useState(repositories);
@@ -594,24 +591,6 @@ export function LeftRail({
             </CategoryItem>
           </div>
         </div>
-      </div>
-
-      {/* Footer Navigation */}
-      <div className="px-3 py-2 border-t border-white/[0.06] bg-[#0a0a0a]">
-        <button
-          type="button"
-          data-no-drag="true"
-          onClick={onOpenMarketplace}
-          className={cn(
-            "flex w-full items-center gap-2.5 rounded-md px-2.5 py-2",
-            "text-[var(--color-text-secondary)] text-[12px]",
-            "transition-all duration-[var(--duration-fast)]",
-            "hover:bg-[var(--color-surface-secondary)] hover:text-[var(--color-text-primary)]",
-          )}
-        >
-          <SquaresFour className="size-3.5" />
-          <span>Packages</span>
-        </button>
       </div>
 
       {/* Resize handle */}

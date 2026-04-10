@@ -206,6 +206,9 @@ importers:
       tailwind-merge:
         specifier: ^2.6.0
         version: 2.6.1
+      unicode-animations:
+        specifier: github:gunnargray-dev/unicode-animations
+        version: https://codeload.github.com/gunnargray-dev/unicode-animations/tar.gz/8d2c988f7986c88e7ce8d8086b2444202a868617
       use-stick-to-bottom:
         specifier: ^1.1.3
         version: 1.1.3(react@19.2.4)
@@ -5415,6 +5418,15 @@ packages:
   undici@7.24.0:
     resolution: {integrity: sha512-jxytwMHhsbdpBXxLAcuu0fzlQeXCNnWdDyRHpvWsUl8vd98UwYdl9YTyn8/HcpcJPC3pwUveefsa3zTxyD/ERg==}
     engines: {node: '>=20.18.1'}
+
+  unicode-animations@1.0.3:
+    resolution: {integrity: sha512-+klB2oWwcYZjYWhwP4Pr8UZffWDFVx6jKeIahE6z0QYyM2dwDeDPyn5nevCYbyotxvtT9lh21cVURO1RX0+YMg==}
+    hasBin: true
+
+  unicode-animations@https://codeload.github.com/gunnargray-dev/unicode-animations/tar.gz/8d2c988f7986c88e7ce8d8086b2444202a868617:
+    resolution: {tarball: https://codeload.github.com/gunnargray-dev/unicode-animations/tar.gz/8d2c988f7986c88e7ce8d8086b2444202a868617}
+    version: 1.0.3
+    hasBin: true
 
   unified@11.0.5:
     resolution: {integrity: sha512-xKvGhPWw3k84Qjh8bI3ZeJjqnyadK+GEFtazSfZv/rKeTkTjOJho6mFqh2SM96iIcZokxiOpg78GazTSg8+KHA==}
@@ -11857,6 +11869,12 @@ snapshots:
   undici-types@7.18.2: {}
 
   undici@7.24.0: {}
+
+  unicode-animations@1.0.3: {}
+
+  unicode-animations@https://codeload.github.com/gunnargray-dev/unicode-animations/tar.gz/8d2c988f7986c88e7ce8d8086b2444202a868617:
+    dependencies:
+      unicode-animations: 1.0.3
 
   unified@11.0.5:
     dependencies:

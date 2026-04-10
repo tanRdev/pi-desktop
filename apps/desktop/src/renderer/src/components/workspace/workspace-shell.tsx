@@ -6,13 +6,7 @@ import type {
 } from "@pidesk/shared";
 import type { AgentLiveFeed } from "@pidesk/shell-model";
 import * as React from "react";
-import {
-  ClockCounterClockwise,
-  GitBranch,
-  Plus,
-  SidebarSimple,
-  Terminal,
-} from "@/components/ui/icons";
+import { SidebarSimple, SquaresFour } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { uiInteractionStore } from "../../stores/ui-interaction-store";
 import { ChatThreadPanel } from "./chat-thread-panel";
@@ -236,7 +230,7 @@ export function WorkspaceShell({
   );
 
   const hasActiveThread = activeThreadId !== null;
-  const hasTranscriptHistory =
+  const _hasTranscriptHistory =
     threadMessages.length > 0 || isPromptExecuting || threadLastError !== null;
   const selectedSurfaceKey =
     selectedContextSurface === null
@@ -260,6 +254,15 @@ export function WorkspaceShell({
 
       {/* Item 22: Main Layout — always-visible three-column layout */}
       <div className="relative flex min-h-0 flex-1 select-none">
+        {!isLeftRailVisible ? (
+          <div
+            aria-hidden="true"
+            data-no-drag="true"
+            onMouseEnter={() => setIsLeftRailVisible(true)}
+            className="absolute inset-y-0 left-0 z-30 w-2"
+          />
+        ) : null}
+
         {/* Item 3: Sidebar width 220, resize 160–320 */}
         {isLeftRailVisible && (
           <LeftRail
@@ -280,7 +283,6 @@ export function WorkspaceShell({
             onCloseThread={onCloseThread}
             onRenameThread={onRenameThread}
             onAddRepository={onAddRepository}
-            onOpenMarketplace={onOpenMarketplace}
             onOpenSettings={onOpenSettings}
             onToggleVisible={() => setIsLeftRailVisible(false)}
           />
@@ -297,24 +299,17 @@ export function WorkspaceShell({
           {/* Item 14: Workspace header */}
           <div
             data-drag-region="true"
-            className={cn(
-              "flex h-11 shrink-0 items-center justify-between px-4 select-none border-b border-white/[0.03]",
-              !isLeftRailVisible && "pl-[72px]",
-            )}
+            className="flex h-11 shrink-0 items-center justify-between px-4 select-none border-b border-white/[0.03]"
           >
-            <div className="flex items-center gap-2 text-[12px] text-white/60">
-              {!isLeftRailVisible && (
-                <button
-                  type="button"
-                  onClick={() => setIsLeftRailVisible(true)}
-                  data-no-drag="true"
-                  className="flex size-7 items-center justify-center rounded-md text-white/30 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/60"
-                >
-                  <SidebarSimple className="size-4" />
-                </button>
-              )}
-            </div>
+            <div className="flex items-center gap-2 text-[12px] text-white/60" />
             <div className="flex items-center gap-1" data-no-drag="true">
+              <button
+                type="button"
+                onClick={onOpenMarketplace}
+                className="flex size-7 items-center justify-center rounded-md text-white/30 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/60"
+              >
+                <SquaresFour className="size-4" />
+              </button>
               <button
                 type="button"
                 onClick={() => setIsRightPanelVisible(!isRightPanelVisible)}
@@ -372,33 +367,45 @@ export function WorkspaceShell({
               </div>
             </div>
 
-            {isRightPanelVisible && (
-              <>
-                {/* Right panel - 3 column design */}
-                <div className="min-h-0 w-[300px] xl:w-[400px] shrink-0 overflow-hidden border-l border-white/[0.06] bg-[#0a0a0a]">
-                  {selectedSurfaceKey === "activity" ? (
-                    <WorkspaceActivityPanel
-                      threadTitle={activeThreadTitle}
-                      worktreeLabel={activeWorktreeLabel}
-                      displayAgentStatus={displayAgentStatus}
-                      liveFeed={liveFeed}
-                      className="h-full"
-                    />
-                  ) : selectedSurfaceKey !== null ? (
-                    <WorkspaceSurfacePanel
-                      activeWorktreeId={activeWorktreeId}
-                      selectedSurfaceKey={selectedSurfaceKey ?? ""}
-                      windows={contextWindows}
-                      onFileContentChange={onFileContentChange}
-                      onFileSave={onFileSave}
-                      activityContent={<GitPanel projectName={projectName} />}
-                    />
-                  ) : (
-                    <GitPanel projectName={projectName} />
-                  )}
-                </div>
-              </>
-            )}
+            {/* Right panel - 3 column design with animation */}
+            <div
+              className={cn(
+                "min-h-0 shrink-0 overflow-hidden border-l border-white/[0.06] bg-[#0a0a0a]",
+                "transition-all duration-[var(--duration-normal)] ease-[var(--ease-out)]",
+                isRightPanelVisible
+                  ? "w-[300px] xl:w-[400px] opacity-100"
+                  : "w-0 opacity-0",
+              )}
+            >
+              <div
+                className={cn(
+                  "h-full min-w-[300px] xl:min-w-[400px]",
+                  "transition-opacity duration-[var(--duration-normal)] ease-[var(--ease-out)]",
+                  isRightPanelVisible ? "opacity-100" : "opacity-0",
+                )}
+              >
+                {selectedSurfaceKey === "activity" ? (
+                  <WorkspaceActivityPanel
+                    threadTitle={activeThreadTitle}
+                    worktreeLabel={activeWorktreeLabel}
+                    displayAgentStatus={displayAgentStatus}
+                    liveFeed={liveFeed}
+                    className="h-full"
+                  />
+                ) : selectedSurfaceKey !== null ? (
+                  <WorkspaceSurfacePanel
+                    activeWorktreeId={activeWorktreeId}
+                    selectedSurfaceKey={selectedSurfaceKey ?? ""}
+                    windows={contextWindows}
+                    onFileContentChange={onFileContentChange}
+                    onFileSave={onFileSave}
+                    activityContent={<GitPanel projectName={projectName} />}
+                  />
+                ) : (
+                  <GitPanel projectName={projectName} />
+                )}
+              </div>
+            </div>
           </div>
         </main>
       </div>
