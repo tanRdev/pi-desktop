@@ -254,6 +254,15 @@ export function PromptDock({
             )),
           )}
         </select>
+        <PromptAutocomplete
+          visible={autocompleteSuggestions.length > 0}
+          suggestions={autocompleteSuggestions}
+          selectedIndex={autocompleteSelectedIndex}
+          onSelect={onAutocompleteSelect}
+          onHover={onAutocompleteHover}
+          className="absolute bottom-full left-0 right-0 z-20 mb-2"
+        />
+
         <PromptInput
           value={draft}
           onValueChange={onDraftChange}
@@ -302,15 +311,6 @@ export function PromptDock({
               "disabled:opacity-50",
               isFocused && "placeholder:text-[var(--color-text-quaternary)]",
             )}
-          />
-
-          <PromptAutocomplete
-            visible={autocompleteSuggestions.length > 0}
-            suggestions={autocompleteSuggestions}
-            selectedIndex={autocompleteSelectedIndex}
-            onSelect={onAutocompleteSelect}
-            onHover={onAutocompleteHover}
-            className="absolute bottom-full left-0 right-0 z-20 mb-2"
           />
 
           <PromptInputActions className="mt-3 flex-wrap items-center justify-between gap-3">
@@ -425,7 +425,8 @@ export function PromptDock({
                         {currentModelDisplay}
                       </div>
                       <div className="text-[10px] text-white/50">
-                        Context: {_formatTokenCount(currentContextWindow)} tokens
+                        Context: {_formatTokenCount(currentContextWindow)}{" "}
+                        tokens
                       </div>
                     </div>
                   }
@@ -454,8 +455,11 @@ export function PromptDock({
                           fill="transparent"
                           strokeDasharray={2 * Math.PI * 10}
                           strokeDashoffset={
-                            2 * Math.PI * 10 *
-                            (1 - getContextPercentage(currentContextWindow) / 100)
+                            2 *
+                            Math.PI *
+                            10 *
+                            (1 -
+                              getContextPercentage(currentContextWindow) / 100)
                           }
                           strokeLinecap="round"
                           className="text-[var(--color-text-tertiary)] transition-all duration-500 ease-in-out"
