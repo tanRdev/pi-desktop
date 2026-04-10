@@ -6,17 +6,23 @@ import type {
 } from "@pidesk/shared";
 import type { AgentLiveFeed } from "@pidesk/shell-model";
 import * as React from "react";
-import { Terminal, GitBranch, Plus, ClockCounterClockwise, SidebarSimple } from "@/components/ui/icons";
+import {
+  ClockCounterClockwise,
+  GitBranch,
+  Plus,
+  SidebarSimple,
+  Terminal,
+} from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { uiInteractionStore } from "../../stores/ui-interaction-store";
 import { ChatThreadPanel } from "./chat-thread-panel";
+import { GitPanel } from "./git-panel";
 import { LeftRail, SIDEBAR_WIDTH } from "./left-rail";
 import { PromptDock } from "./prompt-dock";
 import { WorkspaceActivityPanel } from "./workspace-activity-panel";
 import { FileTreeOverlay, LauncherOverlay } from "./workspace-overlays";
 import type { WorkspaceSearchAction } from "./workspace-search-content";
 import { WorkspaceSurfacePanel } from "./workspace-surface-panel";
-import { GitPanel } from "./git-panel";
 
 type ContextSurfaceKey = "activity" | string;
 type ContextWindow = Extract<
@@ -174,7 +180,7 @@ export function WorkspaceShell({
   promptMode,
   onPromptModeChange,
 }: WorkspaceShellProps) {
-    const [isLeftRailVisible, setIsLeftRailVisible] = React.useState(true);
+  const [isLeftRailVisible, setIsLeftRailVisible] = React.useState(true);
   const [isRightPanelVisible, setIsRightPanelVisible] = React.useState(true);
 
   React.useEffect(() => {
@@ -255,28 +261,30 @@ export function WorkspaceShell({
       {/* Item 22: Main Layout — always-visible three-column layout */}
       <div className="relative flex min-h-0 flex-1 select-none">
         {/* Item 3: Sidebar width 220, resize 160–320 */}
-        {isLeftRailVisible && <LeftRail
-          repositories={repositories}
-          activeRepositoryId={activeRepositoryId}
-          activeWorktreeId={activeWorktreeId}
-          activeThreadId={activeThreadId}
-          width={Math.max(leftRailWidth, SIDEBAR_WIDTH)}
-          onResize={onLeftRailResize}
-          onSelectRepository={onSelectRepository}
-          onRenameRepository={onRenameRepository}
-          onRemoveRepository={onRemoveRepository}
-          onCopyRepositoryPath={onCopyRepositoryPath}
-          onOpenInFinder={onOpenInFinder}
-          onSelectWorktree={onSelectWorktree}
-          onSelectThread={onSelectThread}
-          onCreateThread={onCreateThread}
-          onCloseThread={onCloseThread}
-          onRenameThread={onRenameThread}
-          onAddRepository={onAddRepository}
-          onOpenMarketplace={onOpenMarketplace}
-          onOpenSettings={onOpenSettings}
-          onToggleVisible={() => setIsLeftRailVisible(false)}
-        />}
+        {isLeftRailVisible && (
+          <LeftRail
+            repositories={repositories}
+            activeRepositoryId={activeRepositoryId}
+            activeWorktreeId={activeWorktreeId}
+            activeThreadId={activeThreadId}
+            width={Math.max(leftRailWidth, SIDEBAR_WIDTH)}
+            onResize={onLeftRailResize}
+            onSelectRepository={onSelectRepository}
+            onRenameRepository={onRenameRepository}
+            onRemoveRepository={onRemoveRepository}
+            onCopyRepositoryPath={onCopyRepositoryPath}
+            onOpenInFinder={onOpenInFinder}
+            onSelectWorktree={onSelectWorktree}
+            onSelectThread={onSelectThread}
+            onCreateThread={onCreateThread}
+            onCloseThread={onCloseThread}
+            onRenameThread={onRenameThread}
+            onAddRepository={onAddRepository}
+            onOpenMarketplace={onOpenMarketplace}
+            onOpenSettings={onOpenSettings}
+            onToggleVisible={() => setIsLeftRailVisible(false)}
+          />
+        )}
 
         {/* Item 18: Main area bg #0d0d0d */}
         <main
@@ -289,7 +297,10 @@ export function WorkspaceShell({
           {/* Item 14: Workspace header */}
           <div
             data-drag-region="true"
-            className="flex h-11 shrink-0 items-center justify-between px-4 select-none border-b border-white/[0.03]"
+            className={cn(
+              "flex h-11 shrink-0 items-center justify-between px-4 select-none border-b border-white/[0.03]",
+              !isLeftRailVisible && "pl-[72px]",
+            )}
           >
             <div className="flex items-center gap-2 text-[12px] text-white/60">
               {!isLeftRailVisible && (
@@ -302,10 +313,6 @@ export function WorkspaceShell({
                   <SidebarSimple className="size-4" />
                 </button>
               )}
-              <GitBranch className="size-3.5" />
-              <span>{projectName}</span>
-              <span className="text-white/30">→</span>
-              <span>{activeWorktreeLabel ?? "main"}</span>
             </div>
             <div className="flex items-center gap-1" data-no-drag="true">
               <button
@@ -365,30 +372,33 @@ export function WorkspaceShell({
               </div>
             </div>
 
-            {isRightPanelVisible && <>{/* Right panel - 3 column design */}
-            <div className="min-h-0 w-[300px] xl:w-[400px] shrink-0 overflow-hidden border-l border-white/[0.06] bg-[#0a0a0a]">
-              {selectedSurfaceKey === "activity" ? (
-                <WorkspaceActivityPanel
-                  threadTitle={activeThreadTitle}
-                  worktreeLabel={activeWorktreeLabel}
-                  displayAgentStatus={displayAgentStatus}
-                  liveFeed={liveFeed}
-                  className="h-full"
-                />
-              ) : selectedSurfaceKey !== null ? (
-                <WorkspaceSurfacePanel
-                  activeWorktreeId={activeWorktreeId}
-                  selectedSurfaceKey={selectedSurfaceKey ?? ""}
-                  windows={contextWindows}
-                  onFileContentChange={onFileContentChange}
-                  onFileSave={onFileSave}
-                  activityContent={<GitPanel projectName={projectName} />}
-                />
-              ) : (
-                <GitPanel projectName={projectName} />
-              )}
-            </div>
-            </>}
+            {isRightPanelVisible && (
+              <>
+                {/* Right panel - 3 column design */}
+                <div className="min-h-0 w-[300px] xl:w-[400px] shrink-0 overflow-hidden border-l border-white/[0.06] bg-[#0a0a0a]">
+                  {selectedSurfaceKey === "activity" ? (
+                    <WorkspaceActivityPanel
+                      threadTitle={activeThreadTitle}
+                      worktreeLabel={activeWorktreeLabel}
+                      displayAgentStatus={displayAgentStatus}
+                      liveFeed={liveFeed}
+                      className="h-full"
+                    />
+                  ) : selectedSurfaceKey !== null ? (
+                    <WorkspaceSurfacePanel
+                      activeWorktreeId={activeWorktreeId}
+                      selectedSurfaceKey={selectedSurfaceKey ?? ""}
+                      windows={contextWindows}
+                      onFileContentChange={onFileContentChange}
+                      onFileSave={onFileSave}
+                      activityContent={<GitPanel projectName={projectName} />}
+                    />
+                  ) : (
+                    <GitPanel projectName={projectName} />
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </main>
       </div>
