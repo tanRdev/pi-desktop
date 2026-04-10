@@ -260,9 +260,7 @@ export function PromptDock({
           onSubmit={() =>
             void (isPromptExecuting ? onCancelPrompt() : onSend())
           }
-          className={cn(
-            "px-6 pb-4 pt-4",
-          )}
+          className={cn("px-6 pb-4 pt-4")}
         >
           <FileUpload
             files={uploadedFiles}
@@ -343,14 +341,14 @@ export function PromptDock({
                       providerSnapshots.length === 0
                     }
                     className={cn(
-                      "flex items-center gap-1.5 rounded-md px-2 py-1 text-[13px] text-white/60",
+                      "flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] text-white/60",
                       "transition-all duration-[var(--duration-fast)]",
                       "hover:text-white/90 hover:bg-white/[0.04]",
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]",
                       "disabled:opacity-50",
                     )}
                   >
-                    <span className="max-w-[140px] truncate">
+                    <span className="max-w-[140px] truncate text-[11px]">
                       {currentModelDisplay}
                     </span>
                     <CaretDown
@@ -420,12 +418,55 @@ export function PromptDock({
             <div className="flex items-center gap-[var(--space-3)]">
               {isSwitchingModel ? <Loader label="Switching" /> : null}
               {currentContextWindow != null ? (
-                <div className="flex items-center gap-1 text-xs text-[var(--color-text-tertiary)]">
-                  <Cpu className={ICON_SIZE_SM} />
-                  <span className="tabular-nums">
-                    {getContextPercentage(currentContextWindow)}%
-                  </span>
-                </div>
+                <PromptInputAction
+                  tooltip={
+                    <div className="flex flex-col gap-1 px-1 py-0.5">
+                      <div className="text-[11px] font-medium text-white">
+                        {currentModelDisplay}
+                      </div>
+                      <div className="text-[10px] text-white/50">
+                        Context: {_formatTokenCount(currentContextWindow)} tokens
+                      </div>
+                    </div>
+                  }
+                >
+                  <div className="flex items-center gap-1.5 cursor-default">
+                    <div className="relative flex items-center justify-center size-3.5">
+                      <svg
+                        className="size-full -rotate-90 transform"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="3.5"
+                          fill="transparent"
+                          className="text-white/10"
+                        />
+                        <circle
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="3.5"
+                          fill="transparent"
+                          strokeDasharray={2 * Math.PI * 10}
+                          strokeDashoffset={
+                            2 * Math.PI * 10 *
+                            (1 - getContextPercentage(currentContextWindow) / 100)
+                          }
+                          strokeLinecap="round"
+                          className="text-[var(--color-text-tertiary)] transition-all duration-500 ease-in-out"
+                        />
+                      </svg>
+                    </div>
+                    <span className="tabular-nums text-[11px] font-medium text-[var(--color-text-tertiary)]">
+                      {getContextPercentage(currentContextWindow)}%
+                    </span>
+                  </div>
+                </PromptInputAction>
               ) : null}
 
               {/* Item 15: Circular ArrowUp send button */}

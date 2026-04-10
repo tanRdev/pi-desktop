@@ -587,28 +587,31 @@ export function LeftRail({
                 )
               }
             >
-              <div className="space-y-0.5">
-                {orderedRepositories.map((repository) => {
-                  const repositoryName = getRepositoryName(repository);
-                  const isActive = repository.id === activeRepositoryId;
-                  return (
-                    <button
-                      key={repository.id}
-                      type="button"
-                      onClick={() => onSelectRepository(repository.id)}
+              {orderedRepositories.map((repository) => {
+                const repositoryName = getRepositoryName(repository);
+                const isActive = repository.id === activeRepositoryId;
+                return (
+                  <button
+                    key={repository.id}
+                    type="button"
+                    onClick={() => onSelectRepository(repository.id)}
+                    className={cn(
+                      "flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-[11px] transition-colors",
+                      isActive
+                        ? "bg-white/[0.04] text-white/80"
+                        : "text-white/40 hover:bg-white/[0.04] hover:text-white/70",
+                    )}
+                  >
+                    <Stack
                       className={cn(
-                        "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[12px] transition-colors",
-                        isActive
-                          ? "bg-[#3b82f6]/10 text-[#3b82f6]"
-                          : "text-white/50 hover:bg-white/[0.04] hover:text-white/80",
+                        "size-3",
+                        isActive ? "opacity-100" : "opacity-50",
                       )}
-                    >
-                      <GitBranch className="size-3" />
-                      <span className="truncate">{repositoryName}</span>
-                    </button>
-                  );
-                })}
-              </div>
+                    />
+                    <span className="truncate flex-1">{repositoryName}</span>
+                  </button>
+                );
+              })}
             </CategoryItem>
           </div>
         </div>

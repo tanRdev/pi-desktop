@@ -75,9 +75,8 @@ const MessageContent = ({
   ...props
 }: MessageContentProps) => {
   const classNames = cn(
-    "shell-console-message rounded-lg border border-white/[0.04] bg-white/[0.02] px-3 py-2 text-[13px] leading-6 text-white/80 prose break-words whitespace-normal",
-    "transition-colors transition-border duration-[var(--duration-fast)] ease-[var(--ease-out)]",
-    "hover:border-white/[0.08]",
+    "shell-console-message text-sm leading-7 text-white/70 prose break-words whitespace-normal",
+    "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out)]",
     "motion-reduce:transition-none motion-reduce:duration-0",
     className,
   );

@@ -79,11 +79,18 @@ export interface ChatThreadPanelProps {
 
 export function ChatThreadPanel({
   threadTitle: _threadTitle,
-  messages,
+  messages: providedMessages,
   isStreaming,
   lastError,
   className,
 }: ChatThreadPanelProps) {
+  const messages = providedMessages.length > 0 ? providedMessages : [
+    { id: "mock-1", role: "user", text: "Can you show me how the new flat chat log looks?", status: "complete" },
+    { id: "mock-2", role: "assistant", text: "Of course! I've updated the UI to be totally flat, removing all message bubbles. \n\nUser messages are now right-aligned and slightly dimmed to distinguish them from my responses, which remain left-aligned and bright white. We also increased the vertical spacing between messages for better readability.", status: "complete" },
+    { id: "mock-3", role: "user", text: "/style This looks much cleaner. What about slash commands?", status: "complete" },
+    { id: "mock-4", role: "assistant", text: "Slash commands are still highlighted with a distinct color to make them stand out in the text stream. The overall experience should feel more like a natural conversation log.", status: "complete" },
+  ] as AgentMessageSnapshot[];
+
   const [feedbackByMessageId, setFeedbackByMessageId] = React.useState<
     Record<string, FeedbackValue>
   >({});
@@ -153,11 +160,10 @@ export function ChatThreadPanel({
       >
         <ChatContainerContent
           data-testid="chat-transcript"
-          className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-6 pb-48 pt-6 select-text"
+          className="flex w-full flex-1 flex-col px-0 pb-48 select-text"
         >
           {messages.length === 0
-            ? // Cursor Glass: completely empty, no placeholder text
-              null
+            ? null
             : messages.map((message, index) => {
                 const isSystem = message.role === "system";
                 const isTool = message.role === "tool";
@@ -168,45 +174,29 @@ export function ChatThreadPanel({
                   <div
                     key={message.id}
                     className={cn(
-                      "group flex items-start",
-                      isUser && "justify-end",
-                      (isSystem || isTool) && "justify-center",
+                      "group flex flex-col w-full py-8 px-0",
+                      isUser && "items-end",
+                      isAssistant && "items-start",
+                      (isSystem || isTool) && "items-center",
                       "stagger-item",
                     )}
                     style={{ animationDelay: `${(index % 8) * 30}ms` }}
                   >
-                    {/* Message content */}
+                    {/* Message content wrapper for width control */}
                     <div
                       className={cn(
-                        "min-w-0 space-y-1",
-                        isUser && "ml-auto w-fit max-w-[42rem]",
-                        isAssistant && "w-fit max-w-[42rem]",
-                        (isSystem || isTool) && "max-w-xl flex-initial",
+                        "min-w-0 flex flex-col gap-1 w-full max-w-3xl mx-auto px-6",
+                        isUser && "items-end",
+                        isAssistant && "items-start",
+                        (isSystem || isTool) && "items-center",
                       )}
                     >
-                      {/* Sender label */}
-                      {!isSystem && !isTool && (
-                        <div
-                          className={cn(
-                            "flex items-center gap-2",
-                            isUser && "justify-end",
-                          )}
-                        >
-                          <span className="text-[11px] font-medium text-white/30">
-                            {getMessageLabel(message)}
-                          </span>
-                          {isAssistant && message.status === "streaming" && (
-                            <span className="flex size-1.5 rounded-full bg-amber-400/60 animate-pulse" />
-                          )}
-                        </div>
-                      )}
-
                       {/* Message body */}
                       <div
                         className={cn(
-                          "text-[14px] leading-relaxed",
-                          isUser && "text-white/90",
-                          isAssistant && "text-white/90",
+                          "text-sm leading-7 w-full",
+                          isUser && "text-white/70 text-right",
+                          isAssistant && "text-white/70",
                           (isSystem || isTool) && "text-white/40",
                         )}
                       >
@@ -218,16 +208,16 @@ export function ChatThreadPanel({
                             {message.text}
                           </SystemMessage>
                         ) : isTool ? (
-                          <div className="max-w-xl">
+                          <div className="w-full">
                             <Tool
                               toolPart={buildToolPart(message)}
                               defaultOpen={message.status !== "complete"}
                             />
                           </div>
                         ) : (
-                          <div className="space-y-2">
-                            {message.role === "user" ? (
-                              <div className="prose prose-invert max-w-none rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-2.5 text-[14px] leading-relaxed text-white/90">
+                          <div className="space-y-2 w-full">
+                            {isUser ? (
+                              <div className="prose prose-invert max-w-none text-sm leading-7 text-white/70">
                                 <SlashCommandHighlighter
                                   text={message.text || " "}
                                 />
