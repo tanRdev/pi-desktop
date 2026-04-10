@@ -230,6 +230,7 @@ export function WorkspaceShell({
   );
 
   const hasActiveThread = activeThreadId !== null;
+  const leftRailTargetWidth = Math.max(leftRailWidth, SIDEBAR_WIDTH);
   const _hasTranscriptHistory =
     threadMessages.length > 0 || isPromptExecuting || threadLastError !== null;
   const selectedSurfaceKey =
@@ -264,29 +265,44 @@ export function WorkspaceShell({
         ) : null}
 
         {/* Item 3: Sidebar width 220, resize 160–320 */}
-        {isLeftRailVisible && (
-          <LeftRail
-            repositories={repositories}
-            activeRepositoryId={activeRepositoryId}
-            activeWorktreeId={activeWorktreeId}
-            activeThreadId={activeThreadId}
-            width={Math.max(leftRailWidth, SIDEBAR_WIDTH)}
-            onResize={onLeftRailResize}
-            onSelectRepository={onSelectRepository}
-            onRenameRepository={onRenameRepository}
-            onRemoveRepository={onRemoveRepository}
-            onCopyRepositoryPath={onCopyRepositoryPath}
-            onOpenInFinder={onOpenInFinder}
-            onSelectWorktree={onSelectWorktree}
-            onSelectThread={onSelectThread}
-            onCreateThread={onCreateThread}
-            onCloseThread={onCloseThread}
-            onRenameThread={onRenameThread}
-            onAddRepository={onAddRepository}
-            onOpenSettings={onOpenSettings}
-            onToggleVisible={() => setIsLeftRailVisible(false)}
-          />
-        )}
+        <div
+          className={cn(
+            "min-h-0 shrink-0 overflow-hidden",
+            "transition-all duration-[var(--duration-normal)] ease-[var(--ease-out)]",
+            isLeftRailVisible ? "opacity-100" : "pointer-events-none opacity-0",
+          )}
+          style={{ width: isLeftRailVisible ? leftRailTargetWidth : 0 }}
+        >
+          <div
+            className={cn(
+              "h-full transition-opacity duration-[var(--duration-normal)] ease-[var(--ease-out)]",
+              isLeftRailVisible ? "opacity-100" : "opacity-0",
+            )}
+            style={{ width: leftRailTargetWidth }}
+          >
+            <LeftRail
+              repositories={repositories}
+              activeRepositoryId={activeRepositoryId}
+              activeWorktreeId={activeWorktreeId}
+              activeThreadId={activeThreadId}
+              width={leftRailTargetWidth}
+              onResize={onLeftRailResize}
+              onSelectRepository={onSelectRepository}
+              onRenameRepository={onRenameRepository}
+              onRemoveRepository={onRemoveRepository}
+              onCopyRepositoryPath={onCopyRepositoryPath}
+              onOpenInFinder={onOpenInFinder}
+              onSelectWorktree={onSelectWorktree}
+              onSelectThread={onSelectThread}
+              onCreateThread={onCreateThread}
+              onCloseThread={onCloseThread}
+              onRenameThread={onRenameThread}
+              onAddRepository={onAddRepository}
+              onOpenSettings={onOpenSettings}
+              onToggleVisible={() => setIsLeftRailVisible(false)}
+            />
+          </div>
+        </div>
 
         {/* Item 18: Main area bg #0d0d0d */}
         <main

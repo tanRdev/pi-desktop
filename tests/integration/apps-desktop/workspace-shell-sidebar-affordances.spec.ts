@@ -23,6 +23,17 @@ describe("Workspace shell sidebar affordances", () => {
     );
     expect(shellSource).toContain("onClick={onOpenMarketplace}");
     expect(shellSource).toContain("SquaresFour");
+    expect(shellSource).toContain(
+      "transition-all duration-[var(--duration-normal)] ease-[var(--ease-out)]",
+    );
+    expect(shellSource).toContain(
+      "const leftRailTargetWidth = Math.max(leftRailWidth, SIDEBAR_WIDTH);",
+    );
+    expect(shellSource).toContain(
+      "width: isLeftRailVisible ? leftRailTargetWidth : 0",
+    );
+    expect(shellSource).toContain("pointer-events-none opacity-0");
+    expect(shellSource).not.toContain("{isLeftRailVisible && (");
     expect(railSource).not.toContain("<span>Packages</span>");
   });
 });
