@@ -159,14 +159,21 @@ function CategoryItem({
       >
         <div className="flex min-w-0 flex-1 items-center gap-2 pl-2">
           <span className="relative flex size-3.5 shrink-0 items-center justify-center text-white/40">
-            <Icon className="size-3.5 transition-all duration-150 ease-out group-hover/item:scale-90 group-hover/item:opacity-0" />
-            <CaretDown
+            <Icon
               className={cn(
-                "absolute size-3.5 scale-90 opacity-0 text-white/55 transition-all duration-150 ease-out",
-                "group-hover/item:scale-100 group-hover/item:opacity-100 group-hover/item:animate-pulse",
-                isExpanded ? "rotate-0" : "-rotate-90",
+                "size-3.5 transition-all duration-150 ease-out",
+                !isExpanded &&
+                  "group-hover/item:scale-90 group-hover/item:opacity-0",
               )}
             />
+            {!isExpanded ? (
+              <CaretDown
+                className={cn(
+                  "absolute size-3.5 scale-90 opacity-0 text-white/70 transition-all duration-150 ease-out",
+                  "group-hover/item:scale-100 group-hover/item:opacity-100 group-hover/item:animate-pulse",
+                )}
+              />
+            ) : null}
           </span>
           <span className="truncate">{label}</span>
         </div>
