@@ -1970,3 +1970,27 @@ Visit https://react.dev/link/error-boundaries to learn more about error boundari
 
 
 12:54:31 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/git-panel.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:54:40 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/git-panel.tsx (x2)

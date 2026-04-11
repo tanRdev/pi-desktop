@@ -15,7 +15,6 @@ import {
   Trash,
 } from "../ui/icons";
 import { buildGitPanelViewModel } from "./git-panel-model";
-import { GitStatusChip } from "./git-status-chip";
 
 export {
   buildGitPanelViewModel,
