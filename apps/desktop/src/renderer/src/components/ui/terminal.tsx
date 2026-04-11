@@ -14,87 +14,31 @@ interface TerminalProps {
   onExit?: () => void;
 }
 
-// Terminal icon component
-function TerminalIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      width="12"
-      height="12"
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <polyline points="4 17 10 11 4 5" />
-      <line x1="12" y1="19" x2="20" y2="19" />
-    </svg>
-  );
-}
+function syncTerminalSurface(container: HTMLDivElement | null) {
+  if (!container) {
+    return;
+  }
 
-// Plus icon component
-function PlusIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      width="12"
-      height="12"
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <line x1="12" y1="5" x2="12" y2="19" />
-      <line x1="5" y1="12" x2="19" y2="12" />
-    </svg>
-  );
-}
+  container.style.backgroundColor = "var(--color-bg-primary)";
 
-// Close/X icon component
-function XIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      width="12"
-      height="12"
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <line x1="18" y1="6" x2="6" y2="18" />
-      <line x1="6" y1="6" x2="18" y2="18" />
-    </svg>
-  );
-}
+  const xtermRoot = container.querySelector<HTMLElement>(".xterm");
+  const viewport = container.querySelector<HTMLElement>(".xterm-viewport");
+  const screen = container.querySelector<HTMLElement>(".xterm-screen");
 
-// Chevron down icon for dropdown
-function ChevronDownIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      width="10"
-      height="10"
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <polyline points="6 9 12 15 18 9" />
-    </svg>
-  );
+  if (xtermRoot) {
+    xtermRoot.style.height = "100%";
+    xtermRoot.style.backgroundColor = "var(--color-bg-primary)";
+  }
+
+  if (viewport) {
+    viewport.style.height = "100%";
+    viewport.style.backgroundColor = "var(--color-bg-primary)";
+  }
+
+  if (screen) {
+    screen.style.height = "100%";
+    screen.style.backgroundColor = "var(--color-bg-primary)";
+  }
 }
 
 export function Terminal({
@@ -110,19 +54,18 @@ export function Terminal({
   const fitAddonRef = React.useRef<FitAddon | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [_isInitialized, setIsInitialized] = React.useState(false);
-  const terminalLabel = backend === "pi" ? "Pi CLI" : "zsh";
 
   React.useEffect(() => {
     if (!containerRef.current || terminalRef.current) return;
 
     const terminal = new XTerm({
       theme: {
-        background: "var(--color-bg-secondary)",
+        background: "var(--color-bg-primary)",
         foreground: "#d4d4d4",
         cursor: "#d4d4d4",
-        cursorAccent: "var(--color-bg-secondary)",
+        cursorAccent: "var(--color-bg-primary)",
         selectionBackground: "rgba(255,255,255,0.1)",
-        black: "var(--color-bg-secondary)",
+        black: "var(--color-bg-primary)",
         red: "#ef4444",
         green: "#22c55e",
         yellow: "#eab308",
@@ -148,8 +91,10 @@ export function Terminal({
     const fitAddon = new FitAddon();
     terminal.loadAddon(fitAddon);
     terminal.open(containerRef.current);
+    syncTerminalSurface(containerRef.current);
 
     requestAnimationFrame(() => {
+      syncTerminalSurface(containerRef.current);
       fitAddon.fit();
     });
 
@@ -157,7 +102,7 @@ export function Terminal({
     fitAddonRef.current = fitAddon;
 
     const { cols, rows } = terminal;
-    (async () => {
+    void (async () => {
       try {
         const session = await window.pidesk.terminal.create({
           id,
@@ -189,6 +134,7 @@ export function Terminal({
 
     const handleResize = () => {
       if (fitAddonRef.current && terminalRef.current) {
+        syncTerminalSurface(containerRef.current);
         fitAddonRef.current.fit();
         const { cols, rows } = terminalRef.current;
         window.pidesk.terminal.resize(id, cols, rows).catch(console.error);
@@ -224,7 +170,7 @@ export function Terminal({
     return (
       <div
         className={cn(
-          "w-[400px] border-l border-white/[0.06] bg-[var(--color-bg-secondary)]",
+          "flex h-full w-full flex-col bg-[var(--color-bg-primary)]",
           className,
         )}
       >
@@ -258,51 +204,15 @@ export function Terminal({
   return (
     <div
       className={cn(
-        "flex h-full w-[400px] flex-col border-l border-white/[0.06] bg-[var(--color-bg-secondary)]",
+        "flex h-full w-full flex-col bg-[var(--color-bg-primary)]",
         className,
       )}
     >
-      {/* Terminal Header - Cursor Glass style */}
-      <div className="flex h-9 shrink-0 items-center justify-between border-b border-white/[0.04] px-3">
-        <div className="flex items-center gap-2">
-          <TerminalIcon className="text-white/40" />
-          <span className="text-[14px] font-medium text-white/50">
-            {terminalLabel}
-          </span>
-        </div>
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            className="flex h-5 w-5 items-center justify-center rounded text-white/40 transition-colors hover:text-white/60 hover:bg-white/[0.05]"
-          >
-            <PlusIcon />
-          </button>
-          <button
-            type="button"
-            className="flex h-5 w-5 items-center justify-center rounded text-white/40 transition-colors hover:text-white/60 hover:bg-white/[0.05]"
-          >
-            <XIcon />
-          </button>
-        </div>
-      </div>
-
-      {/* Tab Bar - Cursor style */}
-      <div className="flex h-8 shrink-0 items-center border-b border-white/[0.04] px-1">
-        <button
-          type="button"
-          className="flex h-7 items-center gap-1 px-2 text-[14px] font-medium text-white/60 border-b border-white/20 bg-white/[0.02]"
-        >
-          <ChevronDownIcon />
-          <span>{backend === "pi" ? "pi" : "main"}</span>
-        </button>
-      </div>
-
-      {/* Terminal Content */}
-      <div className="min-h-0 flex-1 overflow-hidden">
+      <div className="min-h-0 flex-1 overflow-hidden bg-[var(--color-bg-primary)]">
         <div
           ref={containerRef}
           className={cn(
-            "h-full w-full",
+            "h-full w-full bg-[var(--color-bg-primary)]",
             "animate-in fade-in zoom-in-95 duration-200 [transition-timing-function:var(--ease-out)]",
             "motion-reduce:animate-none",
           )}
