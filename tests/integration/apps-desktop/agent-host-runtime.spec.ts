@@ -20,7 +20,7 @@ describe("resolveAgentRuntimeOptions", () => {
 
   test("defaults to sdk mode outside tests", () => {
     expect(resolveAgentRuntimeOptions({}, "/tmp/pidesk-workspace")).toEqual({
-      mode: "sdk",
+      mode: "cli",
       cwd: "/tmp/pidesk-workspace",
       agentDir: "/tmp/pidesk-workspace/.pi/agent",
     });
@@ -58,14 +58,14 @@ describe("createAgentRuntimeForEntry", () => {
     expect(runtime.constructor.name).toBe("MockAgentRuntime");
   });
 
-  test("creates the Pi SDK runtime outside test mode", () => {
+  test("creates the Pi CLI runtime outside test mode", () => {
     const runtime = createAgentRuntimeForEntry({}, "/tmp/pidesk-workspace");
 
     expect(runtime).toBeTruthy();
     if (!runtime) {
       throw new Error("Expected a runtime instance");
     }
-    expect(runtime.constructor.name).toBe("PiSdkAgentRuntime");
+    expect(runtime.constructor.name).toBe("PiCliRpcAgentRuntime");
   });
 
   test("honors explicit mock mode for packaged smoke tests", () => {
@@ -95,7 +95,7 @@ describe("resolveAgentRuntimeLaunchOptions", () => {
     ).toEqual({
       cwd: "/tmp/pidesk-home",
       env: expect.objectContaining({
-        PIDESK_AGENT_MODE: "sdk",
+        PIDESK_AGENT_MODE: "cli",
         PIDESK_AGENT_CWD: "/tmp/pidesk-home",
         PIDESK_AGENT_DIR: "/tmp/pidesk-home/.pi/agent",
       }),
@@ -136,7 +136,7 @@ describe("resolveAgentRuntimeLaunchOptions", () => {
     expect(launchOptions).toEqual({
       cwd: "/tmp/pidesk-home",
       env: expect.objectContaining({
-        PIDESK_AGENT_MODE: "sdk",
+        PIDESK_AGENT_MODE: "cli",
         PIDESK_AGENT_CWD: "/tmp/pidesk-home",
         PIDESK_AGENT_DIR: "/tmp/pidesk-home/.pi/agent",
       }),

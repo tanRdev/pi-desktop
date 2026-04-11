@@ -407,6 +407,7 @@ export function LeftRail({
                 <button
                   type="button"
                   onClick={onAddRepository}
+                  aria-label="New workspace"
                   className="text-white/40 hover:text-white/80 p-0.5"
                 >
                   <Folder className="size-3.5" />
@@ -421,6 +422,12 @@ export function LeftRail({
                   onClick={() =>
                     activeWorktreeId && onCreateThread(activeWorktreeId)
                   }
+                  aria-label={
+                    activeWorktreeId
+                      ? "Create thread"
+                      : "Select a workspace to create a thread"
+                  }
+                  data-testid="create-thread-button"
                   className={cn(
                     "text-white/40 p-0.5 transition-colors",
                     activeWorktreeId
@@ -433,7 +440,7 @@ export function LeftRail({
               </TooltipTrigger>
               <TooltipContent side="top">
                 {activeWorktreeId
-                  ? "New worktree"
+                  ? "Create thread"
                   : "Select a workspace to create a thread"}
               </TooltipContent>
             </Tooltip>

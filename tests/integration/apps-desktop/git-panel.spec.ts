@@ -4,6 +4,7 @@ import {
   formatGitCountsSummary,
 } from "../../../apps/desktop/src/renderer/src/components/workspace/git-panel-model";
 import type {
+  GitRepositoryStatus,
   WorktreeGitSnapshot,
   WorktreeSnapshot,
 } from "../../../packages/shared/src";
@@ -41,6 +42,22 @@ function createWorktree(
   };
 }
 
+function createRepositoryStatus(
+  overrides: Partial<GitRepositoryStatus> = {},
+): GitRepositoryStatus {
+  return {
+    repositoryPath: "/tmp/pi-desktop",
+    branch: "main",
+    commit: "abc1234",
+    upstreamBranch: "origin/main",
+    summary: createGitSnapshot(),
+    stagedChanges: [],
+    unstagedChanges: [],
+    conflictedChanges: [],
+    ...overrides,
+  };
+}
+
 describe("git-panel view model", () => {
   it("formats a clean summary when the worktree has no changes", () => {
     expect(formatGitCountsSummary(createGitSnapshot())).toBe("Clean");
@@ -71,6 +88,9 @@ describe("git-panel view model", () => {
           behind: 1,
         }),
       }),
+      repositoryStatus: createRepositoryStatus({
+        repositoryPath: "/tmp/pi-desktop/release",
+      }),
     });
 
     expect(viewModel.title).toBe("Git");
@@ -78,7 +98,9 @@ describe("git-panel view model", () => {
     expect(viewModel.commitLabel).toBe("7654321");
     expect(viewModel.summary).toBe("Clean");
     expect(viewModel.syncLabel).toBe("2 ahead, 1 behind");
-    expect(viewModel.primaryActionLabel).toBe("Open lazygit");
+    expect(viewModel.commitActionLabel).toBe("Commit changes");
+    expect(viewModel.pullActionLabel).toBe("Pull");
+    expect(viewModel.pushActionLabel).toBe("Push");
     expect(viewModel.statusTone).toBe("neutral");
     expect(viewModel.statusMessage).toBe("Working tree is clean.");
     expect(viewModel.sections).toEqual([
@@ -89,6 +111,15 @@ describe("git-panel view model", () => {
           { label: "Branch", value: "release" },
           { label: "Commit", value: "7654321" },
           { label: "Sync", value: "2 ahead, 1 behind" },
+          { label: "Upstream", value: "origin/main" },
+        ],
+      },
+      {
+        title: "Native Git",
+        rows: [
+          { label: "Staged files", value: "0" },
+          { label: "Unstaged files", value: "0" },
+          { label: "Conflicts", value: "0" },
         ],
       },
       {
@@ -111,13 +142,16 @@ describe("git-panel view model", () => {
           message: "Git CLI unavailable",
         }),
       }),
+      repositoryStatus: null,
     });
 
     expect(viewModel.branchLabel).toBe("Unavailable");
     expect(viewModel.commitLabel).toBe("No commit");
     expect(viewModel.summary).toBe("Git unavailable");
     expect(viewModel.syncLabel).toBe("No remote tracking");
-    expect(viewModel.primaryActionLabel).toBeNull();
+    expect(viewModel.commitActionLabel).toBeNull();
+    expect(viewModel.pullActionLabel).toBeNull();
+    expect(viewModel.pushActionLabel).toBeNull();
     expect(viewModel.statusTone).toBe("warning");
     expect(viewModel.statusMessage).toBe("Git CLI unavailable");
   });
@@ -125,13 +159,16 @@ describe("git-panel view model", () => {
   it("shows an empty selection state when no worktree is active", () => {
     const viewModel = buildGitPanelViewModel({
       worktree: null,
+      repositoryStatus: null,
     });
 
     expect(viewModel.branchLabel).toBe("No worktree");
     expect(viewModel.commitLabel).toBe("No commit");
     expect(viewModel.summary).toBe("Select a worktree");
     expect(viewModel.syncLabel).toBe("Git data unavailable");
-    expect(viewModel.primaryActionLabel).toBeNull();
+    expect(viewModel.commitActionLabel).toBeNull();
+    expect(viewModel.pullActionLabel).toBeNull();
+    expect(viewModel.pushActionLabel).toBeNull();
     expect(viewModel.statusTone).toBe("muted");
     expect(viewModel.statusMessage).toBe(
       "Select a repository worktree to inspect its git state here.",
@@ -151,11 +188,75 @@ describe("git-panel view model", () => {
           modifiedCount: 1,
         }),
       }),
+      repositoryStatus: createRepositoryStatus({
+        branch: null,
+        upstreamBranch: null,
+        unstagedChanges: [
+          {
+            path: "src/index.ts",
+            status: "modified",
+            indexStatus: null,
+            worktreeStatus: "modified",
+          },
+        ],
+      }),
     });
 
     expect(viewModel.branchLabel).toBe("Detached HEAD");
     expect(viewModel.summary).toBe("1 modified");
     expect(viewModel.statusTone).toBe("warning");
     expect(viewModel.statusMessage).toBe("Working tree has local changes.");
+  });
+
+  it("surfaces staged and unstaged counts from native repository status", () => {
+    const viewModel = buildGitPanelViewModel({
+      worktree: createWorktree({
+        git: createGitSnapshot({
+          hasChanges: true,
+          stagedCount: 2,
+          modifiedCount: 1,
+          untrackedCount: 1,
+        }),
+      }),
+      repositoryStatus: createRepositoryStatus({
+        stagedChanges: [
+          {
+            path: "src/a.ts",
+            status: "modified",
+            indexStatus: "modified",
+            worktreeStatus: null,
+          },
+          {
+            path: "src/b.ts",
+            status: "added",
+            indexStatus: "added",
+            worktreeStatus: null,
+          },
+        ],
+        unstagedChanges: [
+          {
+            path: "src/c.ts",
+            status: "modified",
+            indexStatus: null,
+            worktreeStatus: "modified",
+          },
+          {
+            path: "src/d.ts",
+            status: "untracked",
+            indexStatus: null,
+            worktreeStatus: "untracked",
+          },
+        ],
+      }),
+    });
+
+    expect(viewModel.sections).toContainEqual({
+      title: "Native Git",
+      rows: [
+        { label: "Staged files", value: "2" },
+        { label: "Unstaged files", value: "2" },
+        { label: "Conflicts", value: "0" },
+      ],
+    });
   });
 });

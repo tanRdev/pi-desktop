@@ -17,9 +17,11 @@ import {
   getStringField,
   parseSearchRequest,
 } from "./ipc/payload-parsers";
+import type { GitWorktreeService } from "./git-worktree-service";
 import type { PackagesService } from "./packages/packages-service";
 import { registerDialogHandlers } from "./ipc/register-dialog-handlers";
 import { registerFilesystemHandlers } from "./ipc/register-filesystem-handlers";
+import { registerGitHandlers } from "./ipc/register-git-handlers";
 import { registerRepositoryHandlers } from "./ipc/register-repository-handlers";
 import {
   registerStateHandlers,
@@ -65,6 +67,7 @@ export interface RegisterIpcHandlersDependencies {
   stateHost?: StateIpcHost;
   mainWindow: BrowserWindow | null;
   terminalManager?: typeof terminalManager;
+  gitService?: GitWorktreeService;
   searchFiles?(request: SearchRequest): Promise<SearchResponse>;
   switchModel?(request: ModelSwitchRequest): Promise<void>;
   getDiscovery?(): Promise<PiDiscoveryResult>;
@@ -82,6 +85,7 @@ export function registerIpcHandlers({
   stateHost,
   mainWindow,
   terminalManager: terminalManagerOverride,
+  gitService,
   searchFiles,
   switchModel,
   getDiscovery,
@@ -97,6 +101,9 @@ export function registerIpcHandlers({
   registerDialogHandlers({ handle });
   registerFilesystemHandlers({ handle, getShellSnapshot });
   registerStateHandlers({ handle, stateHost });
+  if (gitService) {
+    registerGitHandlers({ handle, gitService });
+  }
 
   handle(IPC_CHANNELS.packages.getManagerStatus, async () => {
     if (!packagesService) {
@@ -127,8 +134,11 @@ export function registerIpcHandlers({
         )
       : [];
     const hasDemoOnly =
-      typeof payload === "object" && payload !== null && "hasDemoOnly" in payload
-        ? typeof (payload as { hasDemoOnly?: unknown }).hasDemoOnly === "boolean"
+      typeof payload === "object" &&
+      payload !== null &&
+      "hasDemoOnly" in payload
+        ? typeof (payload as { hasDemoOnly?: unknown }).hasDemoOnly ===
+          "boolean"
           ? (payload as { hasDemoOnly: boolean }).hasDemoOnly
           : undefined
         : undefined;

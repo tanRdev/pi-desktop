@@ -1,7 +1,13 @@
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import type { ShellGitSnapshot, WorktreeGitSnapshot } from "@pidesk/shared";
+import type {
+  GitFileChange,
+  GitFileChangeStatus,
+  GitRepositoryStatus,
+  ShellGitSnapshot,
+  WorktreeGitSnapshot,
+} from "@pidesk/shared";
 
 export interface GitWorktreeSummary {
   id: string;
@@ -106,6 +112,70 @@ function createUnavailableGitSummary(message: string): WorktreeGitSnapshot {
     modifiedCount: 0,
     untrackedCount: 0,
     message,
+  };
+}
+
+function mapPorcelainStatus(code: string): GitFileChangeStatus {
+  switch (code) {
+    case "A":
+      return "added";
+    case "M":
+      return "modified";
+    case "D":
+      return "deleted";
+    case "R":
+      return "renamed";
+    case "C":
+      return "copied";
+    case "T":
+      return "type_changed";
+    case "U":
+      return "unmerged";
+    case "?":
+      return "untracked";
+    default:
+      return "unknown";
+  }
+}
+
+function parseGitFileChange(line: string): GitFileChange | null {
+  if (!line) {
+    return null;
+  }
+
+  if (line.startsWith("?? ")) {
+    const filePath = line.slice(3).trim();
+    return filePath
+      ? {
+          path: filePath,
+          status: "untracked",
+          indexStatus: null,
+          worktreeStatus: "untracked",
+        }
+      : null;
+  }
+
+  if (line.length < 4) {
+    return null;
+  }
+
+  const indexCode = line[0] ?? " ";
+  const worktreeCode = line[1] ?? " ";
+  const filePath = line.slice(3).trim().split(" -> ").pop()?.trim() ?? "";
+
+  if (!filePath) {
+    return null;
+  }
+
+  const indexStatus = indexCode === " " ? null : mapPorcelainStatus(indexCode);
+  const worktreeStatus =
+    worktreeCode === " " ? null : mapPorcelainStatus(worktreeCode);
+
+  return {
+    path: filePath,
+    status: indexStatus ?? worktreeStatus ?? "unknown",
+    indexStatus,
+    worktreeStatus,
   };
 }
 
@@ -283,6 +353,123 @@ export class GitWorktreeService {
     }
 
     return normalizePathId(worktreePath);
+  }
+
+  getRepositoryStatus(repositoryPath: string): GitRepositoryStatus {
+    const inspection = this.inspect(repositoryPath);
+
+    if (
+      inspection.status !== "repository" ||
+      !inspection.currentWorktreePath ||
+      !inspection.worktrees
+    ) {
+      throw new Error(inspection.message ?? "Git repository is unavailable");
+    }
+
+    const currentWorktree = inspection.worktrees.find(
+      (worktree) => worktree.path === inspection.currentWorktreePath,
+    );
+
+    if (!currentWorktree) {
+      throw new Error("Active worktree status is unavailable");
+    }
+
+    const porcelainResult = this.runGit(inspection.currentWorktreePath, [
+      "status",
+      "--porcelain",
+    ]);
+    if (porcelainResult.error || porcelainResult.status !== 0) {
+      throw new Error(
+        porcelainResult.error?.message ||
+          porcelainResult.stderr.trim() ||
+          "Failed to inspect repository status",
+      );
+    }
+
+    const allChanges = porcelainResult.stdout.split(/\r?\n/).flatMap((line) => {
+      const parsed = parseGitFileChange(line);
+      return parsed ? [parsed] : [];
+    });
+
+    return {
+      repositoryPath: inspection.currentWorktreePath,
+      branch: currentWorktree.branch,
+      commit: currentWorktree.commit,
+      upstreamBranch: this.resolveUpstreamBranch(
+        inspection.currentWorktreePath,
+      ),
+      summary: currentWorktree.git,
+      stagedChanges: allChanges.filter((change) => change.indexStatus !== null),
+      unstagedChanges: allChanges.filter(
+        (change) =>
+          change.worktreeStatus !== null &&
+          change.worktreeStatus !== "unmerged",
+      ),
+      conflictedChanges: allChanges.filter(
+        (change) =>
+          change.status === "unmerged" ||
+          change.indexStatus === "unmerged" ||
+          change.worktreeStatus === "unmerged",
+      ),
+    };
+  }
+
+  stageFile(repositoryPath: string, filePath: string): GitRepositoryStatus {
+    this.runCheckedGit(repositoryPath, ["add", "--", filePath], "stage file");
+    return this.getRepositoryStatus(repositoryPath);
+  }
+
+  unstageFile(repositoryPath: string, filePath: string): GitRepositoryStatus {
+    this.runCheckedGit(
+      repositoryPath,
+      ["restore", "--staged", "--", filePath],
+      "unstage file",
+    );
+    return this.getRepositoryStatus(repositoryPath);
+  }
+
+  discardFile(repositoryPath: string, filePath: string): GitRepositoryStatus {
+    const status = this.getRepositoryStatus(repositoryPath);
+    const isUntracked = status.unstagedChanges.some(
+      (change) => change.path === filePath && change.status === "untracked",
+    );
+
+    if (isUntracked) {
+      const absolutePath = path.join(repositoryPath, filePath);
+      fs.rmSync(absolutePath, { force: true, recursive: true });
+      return this.getRepositoryStatus(repositoryPath);
+    }
+
+    this.runCheckedGit(
+      repositoryPath,
+      ["restore", "--worktree", "--", filePath],
+      "discard file changes",
+    );
+    return this.getRepositoryStatus(repositoryPath);
+  }
+
+  commit(repositoryPath: string, message: string): GitRepositoryStatus {
+    const trimmed = message.trim();
+    if (!trimmed) {
+      throw new Error("Commit message must not be empty");
+    }
+
+    this.runCheckedGit(
+      repositoryPath,
+      ["commit", "-m", trimmed],
+      "commit changes",
+    );
+    return this.getRepositoryStatus(repositoryPath);
+  }
+
+  pull(repositoryPath: string): GitRepositoryStatus {
+    this.runCheckedGit(repositoryPath, ["pull", "--ff-only"], "pull changes");
+    return this.getRepositoryStatus(repositoryPath);
+  }
+
+  push(repositoryPath: string): GitRepositoryStatus {
+    this.runCheckedGit(repositoryPath, ["push"], "push changes");
+    return this.getRepositoryStatus(repositoryPath);
   }
 
   private inspectWorktree(
@@ -467,6 +654,22 @@ export class GitWorktreeService {
     return fallbackBranch;
   }
 
+  private resolveUpstreamBranch(worktreePath: string): string | null {
+    const result = this.runGit(worktreePath, [
+      "rev-parse",
+      "--abbrev-ref",
+      "--symbolic-full-name",
+      "@{upstream}",
+    ]);
+
+    if (result.error || result.status !== 0) {
+      return null;
+    }
+
+    const upstream = result.stdout.trim();
+    return upstream || null;
+  }
+
   private resolveCurrentWorktreeRoot(targetPath: string): string | null {
     const result = this.runGit(targetPath, ["rev-parse", "--show-toplevel"]);
     if (result.error) {
@@ -525,6 +728,16 @@ export class GitWorktreeService {
         stderr: "",
         error: error instanceof Error ? error : new Error(String(error)),
       };
+    }
+  }
+
+  private runCheckedGit(cwd: string, args: string[], label: string): void {
+    const result = this.runGit(cwd, args);
+
+    if (result.error || result.status !== 0) {
+      throw new Error(
+        result.error?.message || result.stderr.trim() || `Failed to ${label}`,
+      );
     }
   }
 }

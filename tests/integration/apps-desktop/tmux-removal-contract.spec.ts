@@ -7,7 +7,7 @@ function readSource(relativePath: string): string {
 }
 
 describe("tmux removal contract", () => {
-  it("removes tmux and pi-linked backends from shared terminal models", () => {
+  it("removes tmux-only backends from shared terminal models", () => {
     const terminalModelSource = readSource(
       "packages/shared/src/models/terminal.ts",
     );
@@ -16,8 +16,9 @@ describe("tmux removal contract", () => {
     );
 
     expect(terminalModelSource).toContain(
-      'export type TerminalBackend = "shell" | "lazygit"',
+      'export type TerminalBackend = "shell" | "pi"',
     );
+    expect(terminalModelSource).not.toContain("lazygit");
     expect(terminalModelSource).not.toContain("pi-linked");
     expect(terminalModelSource).not.toContain("tmux");
     expect(windowModelSource).not.toContain("tmuxSessionName");

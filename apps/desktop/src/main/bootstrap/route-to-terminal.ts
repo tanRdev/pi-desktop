@@ -46,13 +46,6 @@ export async function routePromptToTerminal(
     };
   }
 
-  if (session.backend === "lazygit") {
-    return {
-      success: false,
-      error: "Cannot route prompts into a lazygit session",
-    };
-  }
-
   if (request.startPiIfNotLinked && !session.linkedThreadId) {
     deps.terminalManager.write(session.id, "pi\n");
     await deps.delay(150);

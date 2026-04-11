@@ -27,7 +27,7 @@ describe("workspace shell simplification", () => {
     expect(surfacePanelSource).not.toContain('label: "Browse files"');
     expect(surfacePanelSource).not.toContain('label: "Open notes"');
     expect(surfacePanelSource).not.toContain('label: "Open terminal"');
-    expect(surfacePanelSource).not.toContain('label: "Open git"');
+    expect(surfacePanelSource).not.toContain('backend="lazygit"');
     expect(surfacePanelSource).not.toContain("WorkspaceNoteContent");
   });
 

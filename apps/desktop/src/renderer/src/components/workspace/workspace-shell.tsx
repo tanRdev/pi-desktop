@@ -1,4 +1,5 @@
 import type {
+  GitRepositoryStatus,
   MentionSuggestion,
   ProviderSnapshot,
   RepositorySnapshot,
@@ -50,6 +51,8 @@ export interface WorkspaceShellProps {
   launcherResults: import("@pidesk/shared").SearchMatch[];
   launcherSelectedIndex: number;
   launcherIsLoading: boolean;
+  activeGitRepositoryStatus: GitRepositoryStatus | null;
+  gitCommitMessage: string;
   threadMessages: import("@pidesk/shared").AgentMessageSnapshot[];
   threadLastError: string | null;
   liveFeed: AgentLiveFeed;
@@ -82,6 +85,14 @@ export interface WorkspaceShellProps {
   onOpenGit: () => void;
   onOpenTerminal: () => void;
   onOpenActivity: () => void;
+  onGitCommitMessageChange: (value: string) => void;
+  onRefreshGit: () => void | Promise<void>;
+  onCommitGit: () => void | Promise<void>;
+  onPullGit: () => void | Promise<void>;
+  onPushGit: () => void | Promise<void>;
+  onStageGitFile: (filePath: string) => void | Promise<void>;
+  onUnstageGitFile: (filePath: string) => void | Promise<void>;
+  onDiscardGitFile: (filePath: string) => void | Promise<void>;
   onFileClick: (filePath: string) => void | Promise<void>;
   onFileContentChange: (windowId: string, content: string) => void;
   onFileSave: (windowId: string, filePath: string) => void | Promise<void>;
@@ -129,6 +140,8 @@ export function WorkspaceShell({
   launcherResults,
   launcherSelectedIndex,
   launcherIsLoading,
+  activeGitRepositoryStatus,
+  gitCommitMessage,
   threadMessages,
   threadLastError,
   liveFeed,
@@ -157,6 +170,14 @@ export function WorkspaceShell({
   onOpenGit,
   onOpenTerminal,
   onOpenActivity: _onOpenActivity,
+  onGitCommitMessageChange,
+  onRefreshGit,
+  onCommitGit,
+  onPullGit,
+  onPushGit,
+  onStageGitFile,
+  onUnstageGitFile,
+  onDiscardGitFile,
   onFileClick,
   onFileContentChange,
   onFileSave,
@@ -418,16 +439,36 @@ export function WorkspaceShell({
                     activityContent={
                       <GitPanel
                         projectName={projectName}
+                        repositoryPath={activeWorktree?.path ?? null}
                         worktree={activeWorktree}
-                        onOpenGit={onOpenGit}
+                        repositoryStatus={activeGitRepositoryStatus}
+                        commitMessage={gitCommitMessage}
+                        onCommitMessageChange={onGitCommitMessageChange}
+                        onRefresh={onRefreshGit}
+                        onCommit={onCommitGit}
+                        onPull={onPullGit}
+                        onPush={onPushGit}
+                        onStageFile={onStageGitFile}
+                        onUnstageFile={onUnstageGitFile}
+                        onDiscardFile={onDiscardGitFile}
                       />
                     }
                   />
                 ) : (
                   <GitPanel
                     projectName={projectName}
+                    repositoryPath={activeWorktree?.path ?? null}
                     worktree={activeWorktree}
-                    onOpenGit={onOpenGit}
+                    repositoryStatus={activeGitRepositoryStatus}
+                    commitMessage={gitCommitMessage}
+                    onCommitMessageChange={onGitCommitMessageChange}
+                    onRefresh={onRefreshGit}
+                    onCommit={onCommitGit}
+                    onPull={onPullGit}
+                    onPush={onPushGit}
+                    onStageFile={onStageGitFile}
+                    onUnstageFile={onUnstageGitFile}
+                    onDiscardFile={onDiscardGitFile}
                   />
                 )}
               </div>

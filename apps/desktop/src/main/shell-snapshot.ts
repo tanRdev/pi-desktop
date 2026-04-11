@@ -37,7 +37,7 @@ const DEFAULT_THREAD_ID = "default-thread";
 const gitService = new GitWorktreeService();
 
 function resolveAgentMode(agentMode?: string): ShellAgentMode {
-  if (agentMode === "mock" || agentMode === "sdk") {
+  if (agentMode === "mock" || agentMode === "sdk" || agentMode === "cli") {
     return agentMode;
   }
 

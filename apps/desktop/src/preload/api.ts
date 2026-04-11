@@ -4,6 +4,7 @@ import {
   type AutocompleteContext,
   type AutocompleteSuggestions,
   type CreateWindowAction,
+  type GitRepositoryStatus,
   type ImageMetadata,
   type ImagePreview,
   type ImagePreviewOptions,
@@ -184,6 +185,50 @@ export function createPiDeskApi({
         return invoke<ImagePreview>(IPC_CHANNELS.fs.getImagePreview, {
           path,
           options,
+        });
+      },
+    },
+    git: {
+      getRepositoryStatus(repositoryPath: string) {
+        return invoke<GitRepositoryStatus>(
+          IPC_CHANNELS.git.getRepositoryStatus,
+          {
+            repositoryPath,
+          },
+        );
+      },
+      stageFile(repositoryPath: string, filePath: string) {
+        return invoke<GitRepositoryStatus>(IPC_CHANNELS.git.stageFile, {
+          repositoryPath,
+          filePath,
+        });
+      },
+      unstageFile(repositoryPath: string, filePath: string) {
+        return invoke<GitRepositoryStatus>(IPC_CHANNELS.git.unstageFile, {
+          repositoryPath,
+          filePath,
+        });
+      },
+      discardFile(repositoryPath: string, filePath: string) {
+        return invoke<GitRepositoryStatus>(IPC_CHANNELS.git.discardFile, {
+          repositoryPath,
+          filePath,
+        });
+      },
+      commit(repositoryPath: string, message: string) {
+        return invoke<GitRepositoryStatus>(IPC_CHANNELS.git.commit, {
+          repositoryPath,
+          message,
+        });
+      },
+      pull(repositoryPath: string) {
+        return invoke<GitRepositoryStatus>(IPC_CHANNELS.git.pull, {
+          repositoryPath,
+        });
+      },
+      push(repositoryPath: string) {
+        return invoke<GitRepositoryStatus>(IPC_CHANNELS.git.push, {
+          repositoryPath,
         });
       },
     },

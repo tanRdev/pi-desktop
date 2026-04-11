@@ -56,6 +56,7 @@ export async function launchDesktopApp(
     homeDir?: string;
     userDataDir?: string;
     env?: Record<string, string>;
+    agentMode?: "mock" | "cli";
   },
 ): Promise<DesktopLaunch> {
   const launchContext = createLaunchContext(prefix, {
@@ -72,7 +73,7 @@ export async function launchDesktopApp(
       ELECTRON_RENDERER_URL: "",
       HOME: launchContext.homeDir,
       NODE_ENV: "test",
-      PIDESK_AGENT_MODE: "mock",
+      PIDESK_AGENT_MODE: options?.agentMode ?? "mock",
       PIDESK_HEADLESS: "1",
       PIDESK_USER_DATA_DIR: launchContext.userDataDir,
     },
@@ -104,19 +105,17 @@ export async function waitForAppReady(page: Page): Promise<void> {
     .toBeGreaterThan(0);
 
   await expect(page.getByTestId("app-ready")).toBeVisible();
-  await expect(page.getByTestId("titlebar-project-name")).toHaveText("PiDesk");
   await expect(page.getByTestId("chat-first-layout")).toBeVisible();
+  await expect(page.getByTestId("left-rail")).toBeVisible();
 }
 
 export async function ensureWorkspaceMode(page: Page): Promise<void> {
-  const firstProject = page.getByTestId("project-rail-item").first();
-  await expect(firstProject).toBeVisible();
+  await expect(page.getByTestId("left-rail")).toBeVisible();
 }
 
 export async function focusChatThread(page: Page): Promise<void> {
   await ensureWorkspaceMode(page);
 
-  await page.getByTestId("current-thread-title").click();
   await expect(page.getByTestId("chat-input")).toBeVisible();
 }
 

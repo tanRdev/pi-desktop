@@ -12,11 +12,8 @@ describe("chat polish", () => {
       "apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx",
     );
 
-    expect(shellSource).toContain("const hasTranscriptHistory =");
-    expect(shellSource).toContain("data-composer-state={");
-    expect(shellSource).toContain(
-      'hasTranscriptHistory ? "docked" : "floating"',
-    );
+    expect(shellSource).toContain("<PromptDock");
+    expect(shellSource).toContain("isVisible={isPromptVisible}");
   });
 
   it("renames the visible assistant branding from PiDesk to Pi", () => {
@@ -44,6 +41,15 @@ describe("chat polish", () => {
     expect(chatSource).not.toContain(
       "rounded-full bg-gradient-to-br from-purple-500 to-pink-500",
     );
-    expect(chatSource).toContain("w-fit max-w-[42rem]");
+    expect(chatSource).toContain("max-w-3xl mx-auto px-6");
+  });
+
+  it("does not ship a fake transcript fallback when a thread is empty", () => {
+    const chatSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx",
+    );
+
+    expect(chatSource).not.toContain('id: "mock-1"');
+    expect(chatSource).toContain("Start a conversation with Pi.");
   });
 });

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { MockAgentRuntime } from "../../../packages/agent-host/src/mock/mock-agent-runtime";
+import { PiCliRpcAgentRuntime } from "../../../packages/agent-host/src/pi/pi-cli-rpc-agent-runtime";
 import { PiSdkAgentRuntime } from "../../../packages/agent-host/src/pi/pi-sdk-agent-runtime";
 import { createAgentRuntime } from "../../../packages/agent-host/src/runtime/create-agent-runtime";
 
@@ -22,5 +23,15 @@ describe("createAgentRuntime", () => {
     });
 
     expect(runtime).toBeInstanceOf(PiSdkAgentRuntime);
+  });
+
+  it("creates the Pi CLI RPC runtime when cli mode is requested", () => {
+    const runtime = createAgentRuntime({
+      mode: "cli",
+      cwd: "/tmp/pidesk-workspace",
+      agentDir: "/tmp/pidesk-workspace/.pi/agent",
+    });
+
+    expect(runtime).toBeInstanceOf(PiCliRpcAgentRuntime);
   });
 });

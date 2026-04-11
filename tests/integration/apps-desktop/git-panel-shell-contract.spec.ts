@@ -7,12 +7,14 @@ function readSource(relativePath: string): string {
 }
 
 describe("git panel shell contract", () => {
-  it("passes the active worktree and open-git action into the default right sidebar", () => {
+  it("passes the active worktree and repository path into the default right sidebar", () => {
     const shellSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx",
     );
 
     expect(shellSource).toContain("worktree={activeWorktree}");
-    expect(shellSource).toContain("onOpenGit={onOpenGit}");
+    expect(shellSource).toContain(
+      "repositoryPath={activeWorktree?.path ?? null}",
+    );
   });
 });

@@ -212,4 +212,39 @@ describe("GitWorktreeService", () => {
       },
     });
   });
+
+  it("builds native repository status with staged and unstaged file lists", () => {
+    const { repoRoot } = initRepository("native-status");
+    fs.writeFileSync(path.join(repoRoot, "staged.txt"), "staged\n");
+    fs.writeFileSync(path.join(repoRoot, "unstaged.txt"), "unstaged\n");
+    runGit(repoRoot, ["add", "staged.txt"]);
+
+    const service = new GitWorktreeService();
+    const status = service.getRepositoryStatus(repoRoot);
+
+    expect(status.repositoryPath).toBe(fs.realpathSync(repoRoot));
+    expect(status.stagedChanges).toContainEqual(
+      expect.objectContaining({ path: "staged.txt", status: "added" }),
+    );
+    expect(status.unstagedChanges).toContainEqual(
+      expect.objectContaining({ path: "unstaged.txt", status: "untracked" }),
+    );
+  });
+
+  it("supports stage and commit mutations for the native git panel", () => {
+    const { repoRoot } = initRepository("native-actions");
+    fs.writeFileSync(path.join(repoRoot, "feature.txt"), "hello\n");
+
+    const service = new GitWorktreeService();
+    const staged = service.stageFile(repoRoot, "feature.txt");
+    expect(staged.stagedChanges).toContainEqual(
+      expect.objectContaining({ path: "feature.txt", status: "added" }),
+    );
+
+    const committed = service.commit(repoRoot, "feat: native git actions");
+    expect(committed.summary.hasChanges).toBe(false);
+    expect(runGit(repoRoot, ["log", "-1", "--pretty=%s"])).toBe(
+      "feat: native git actions",
+    );
+  });
 });

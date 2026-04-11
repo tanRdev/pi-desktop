@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
+import path from "node:path";
 import type {
   TerminalBackend,
   TerminalCreateOptions,
@@ -139,14 +140,18 @@ export class TerminalManager {
       this.terminals.delete(id);
     };
 
-    const attachProcess = (attachCmd: { program: string; args: string[] }) => {
+    const attachProcess = (attachCmd: {
+      program: string;
+      args: string[];
+      env?: NodeJS.ProcessEnv;
+    }) => {
       if (this.ptyModule) {
         const pty = this.ptyModule.spawn(attachCmd.program, attachCmd.args, {
           name: "xterm-256color",
           cols,
           rows,
           cwd,
-          env: this.env as Record<string, string>,
+          env: (attachCmd.env ?? this.env) as Record<string, string>,
         });
         instance.pty = pty;
 
@@ -163,6 +168,7 @@ export class TerminalManager {
 
       const child = this.spawnProcess(attachCmd.program, attachCmd.args, {
         cwd,
+        env: attachCmd.env,
       });
       instance.childProcess = child;
 
@@ -179,16 +185,28 @@ export class TerminalManager {
 
     try {
       const program =
-        backend === "lazygit"
-          ? "lazygit"
+        backend === "pi"
+          ? "pi"
           : resolveLocalShellProgram({
               platform: this.platform,
               shell: this.env.SHELL,
             });
 
+      const args = backend === "pi" ? ["--continue"] : [];
+
+      const env =
+        backend === "pi"
+          ? {
+              ...this.env,
+              PI_CODING_AGENT_DIR:
+                this.env.PI_CODING_AGENT_DIR ?? path.join(cwd, ".pi", "agent"),
+            }
+          : this.env;
+
       attachProcess({
         program,
-        args: [],
+        args,
+        env,
       });
       session.status = "ready";
       session.lastActivityAt = this.now();

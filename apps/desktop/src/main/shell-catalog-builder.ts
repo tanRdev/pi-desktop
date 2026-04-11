@@ -95,9 +95,7 @@ function reconcileWorkspaceSessions(
     const validWindows = candidateWindows.map((window) => {
       if (window.kind === "terminal") {
         const normalizedBackend =
-          window.backend === "lazygit"
-            ? ("lazygit" as const)
-            : ("shell" as const);
+          window.backend === "pi" ? ("pi" as const) : ("shell" as const);
 
         const normalizedWindow: TerminalWindow = {
           id: window.id,

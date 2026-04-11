@@ -147,7 +147,6 @@ describe("buildShellCatalog", () => {
               zIndex: 7,
               isFocused: false,
               state: "normal",
-              terminalId: "term-3",
               repositoryPath: "/tmp/repo-beta",
             },
           ];
@@ -473,7 +472,6 @@ describe("buildShellCatalog", () => {
               zIndex: 7,
               isFocused: false,
               state: "normal",
-              terminalId: "term-3",
               repositoryPath: "/tmp/repo-beta/feature",
             },
           ],

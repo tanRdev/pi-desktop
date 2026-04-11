@@ -14,6 +14,7 @@ import type {
   ImagePreview,
   ImagePreviewOptions,
 } from "./fs.js";
+import type { GitRepositoryStatus } from "./git.js";
 import type {
   InstalledPackageSnapshot,
   PackageCatalogDetail,
@@ -95,6 +96,27 @@ export interface PiDeskApi {
       path: string,
       options?: ImagePreviewOptions,
     ): Promise<ImagePreview>;
+  };
+  git: {
+    getRepositoryStatus(repositoryPath: string): Promise<GitRepositoryStatus>;
+    stageFile(
+      repositoryPath: string,
+      filePath: string,
+    ): Promise<GitRepositoryStatus>;
+    unstageFile(
+      repositoryPath: string,
+      filePath: string,
+    ): Promise<GitRepositoryStatus>;
+    discardFile(
+      repositoryPath: string,
+      filePath: string,
+    ): Promise<GitRepositoryStatus>;
+    commit(
+      repositoryPath: string,
+      message: string,
+    ): Promise<GitRepositoryStatus>;
+    pull(repositoryPath: string): Promise<GitRepositoryStatus>;
+    push(repositoryPath: string): Promise<GitRepositoryStatus>;
   };
   packages: {
     getManagerStatus(): Promise<PackageManagerStatus>;

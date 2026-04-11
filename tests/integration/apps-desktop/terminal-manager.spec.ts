@@ -268,29 +268,64 @@ describe("terminalManager", () => {
     });
   });
 
-  it("creates local lazygit sessions", async () => {
+  it("creates local shell sessions", async () => {
     const harness = createTerminalManagerHarness();
-    const session = harness.manager.create("lazygit-terminal", {
+    const expectedShell =
+      process.platform === "win32"
+        ? "powershell.exe"
+        : process.env.SHELL || "/bin/zsh";
+    const session = harness.manager.create("shell-terminal", {
       cols: 100,
       rows: 30,
-      ownerWindowId: "terminal-lazygit",
-      backend: "lazygit",
+      ownerWindowId: "terminal-shell",
+      backend: "shell",
       cwd: "/tmp/project-beta",
     });
 
     expect(session).toMatchObject({
-      id: "lazygit-terminal",
-      backend: "lazygit",
+      id: "shell-terminal",
+      backend: "shell",
       cwd: "/tmp/project-beta",
       status: "ready",
     });
     expect(harness.ptySpawn).toHaveBeenCalledWith(
-      "lazygit",
+      expectedShell,
       [],
       expect.objectContaining({
         cols: 100,
         rows: 30,
         cwd: "/tmp/project-beta",
+      }),
+    );
+  });
+
+  it("creates local Pi CLI sessions with a worktree agent directory", async () => {
+    const harness = createTerminalManagerHarness();
+    const session = harness.manager.create("pi-terminal", {
+      cols: 120,
+      rows: 40,
+      ownerWindowId: "terminal-pi",
+      backend: "pi",
+      cwd: "/tmp/project-gamma",
+    });
+
+    expect(session).toMatchObject({
+      id: "pi-terminal",
+      backend: "pi",
+      cwd: "/tmp/project-gamma",
+      ownerWindowId: "terminal-pi",
+      status: "ready",
+    });
+    expect(harness.ptySpawn).toHaveBeenCalledWith(
+      "pi",
+      ["--continue"],
+      expect.objectContaining({
+        cols: 120,
+        rows: 40,
+        cwd: "/tmp/project-gamma",
+        env: expect.objectContaining({
+          PI_CODING_AGENT_DIR: "/tmp/project-gamma/.pi/agent",
+        }),
       }),
     );
   });
@@ -350,14 +385,14 @@ describe("terminalManager", () => {
       cols: 80,
       rows: 24,
       ownerWindowId: "terminal-destroy-one",
-      backend: "lazygit",
+      backend: "shell",
       cwd: "/tmp/project-epsilon",
     });
     harness.manager.create("destroy-two", {
       cols: 80,
       rows: 24,
       ownerWindowId: "terminal-destroy-two",
-      backend: "lazygit",
+      backend: "shell",
       cwd: "/tmp/project-zeta",
     });
 

@@ -1,4 +1,8 @@
-import type { WorktreeGitSnapshot, WorktreeSnapshot } from "@pidesk/shared";
+import type {
+  GitRepositoryStatus,
+  WorktreeGitSnapshot,
+  WorktreeSnapshot,
+} from "@pidesk/shared";
 import { Match } from "effect";
 
 export interface GitPanelRow {
@@ -19,7 +23,10 @@ export interface GitPanelViewModel {
   commitLabel: string;
   summary: string;
   syncLabel: string;
-  primaryActionLabel: string | null;
+  upstreamLabel: string;
+  commitActionLabel: string | null;
+  pullActionLabel: string | null;
+  pushActionLabel: string | null;
   statusTone: GitPanelStatusTone;
   statusMessage: string;
   sections: GitPanelSection[];
@@ -75,11 +82,17 @@ function resolveStatusState(
   worktree: WorktreeSnapshot | null,
 ): Pick<
   GitPanelViewModel,
-  "primaryActionLabel" | "statusMessage" | "statusTone"
+  | "commitActionLabel"
+  | "pullActionLabel"
+  | "pushActionLabel"
+  | "statusMessage"
+  | "statusTone"
 > {
   if (!worktree) {
     return {
-      primaryActionLabel: null,
+      commitActionLabel: null,
+      pullActionLabel: null,
+      pushActionLabel: null,
       statusTone: "muted",
       statusMessage:
         "Select a repository worktree to inspect its git state here.",
@@ -88,19 +101,25 @@ function resolveStatusState(
 
   return Match.value(worktree.git.status).pipe(
     Match.when("missing", () => ({
-      primaryActionLabel: null,
+      commitActionLabel: null,
+      pullActionLabel: null,
+      pushActionLabel: null,
       statusTone: "warning" as const,
       statusMessage:
         worktree.git.message ?? "This worktree is missing git metadata.",
     })),
     Match.when("unavailable", () => ({
-      primaryActionLabel: null,
+      commitActionLabel: null,
+      pullActionLabel: null,
+      pushActionLabel: null,
       statusTone: "warning" as const,
       statusMessage:
         worktree.git.message ?? "Git is unavailable for this worktree.",
     })),
     Match.orElse(() => ({
-      primaryActionLabel: "Open lazygit",
+      commitActionLabel: "Commit changes",
+      pullActionLabel: "Pull",
+      pushActionLabel: "Push",
       statusTone: worktree.git.hasChanges
         ? ("warning" as const)
         : ("neutral" as const),
@@ -127,8 +146,9 @@ export function formatGitCountsSummary(git: WorktreeGitSnapshot): string {
 
 export function buildGitPanelViewModel(options: {
   worktree: WorktreeSnapshot | null;
+  repositoryStatus: GitRepositoryStatus | null;
 }): GitPanelViewModel {
-  const { worktree } = options;
+  const { worktree, repositoryStatus } = options;
 
   if (!worktree) {
     return {
@@ -137,6 +157,7 @@ export function buildGitPanelViewModel(options: {
       commitLabel: "No commit",
       summary: "Select a worktree",
       syncLabel: "Git data unavailable",
+      upstreamLabel: "No upstream",
       ...resolveStatusState(null),
       sections: [],
     };
@@ -152,6 +173,7 @@ export function buildGitPanelViewModel(options: {
     worktree.git.status === "ready"
       ? formatGitSyncLabel(worktree.git)
       : "No remote tracking";
+  const upstreamLabel = repositoryStatus?.upstreamBranch ?? "No upstream";
 
   return {
     title: "Git",
@@ -159,6 +181,7 @@ export function buildGitPanelViewModel(options: {
     commitLabel,
     summary,
     syncLabel,
+    upstreamLabel,
     ...resolveStatusState(worktree),
     sections: [
       {
@@ -168,8 +191,30 @@ export function buildGitPanelViewModel(options: {
           { label: "Branch", value: branchLabel },
           { label: "Commit", value: commitLabel },
           { label: "Sync", value: syncLabel },
+          { label: "Upstream", value: upstreamLabel },
         ],
       },
+      ...(repositoryStatus
+        ? [
+            {
+              title: "Native Git",
+              rows: [
+                {
+                  label: "Staged files",
+                  value: String(repositoryStatus.stagedChanges.length),
+                },
+                {
+                  label: "Unstaged files",
+                  value: String(repositoryStatus.unstagedChanges.length),
+                },
+                {
+                  label: "Conflicts",
+                  value: String(repositoryStatus.conflictedChanges.length),
+                },
+              ],
+            },
+          ]
+        : []),
       {
         title: "Workspace",
         rows: [

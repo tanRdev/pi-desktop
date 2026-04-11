@@ -738,6 +738,7 @@ async function bootstrapDesktop() {
         );
       },
     },
+    gitService,
     stateHost: {
       getRepositoryPreferences: async (repositoryId) =>
         repositoryPreferencesCatalog.get(repositoryId),

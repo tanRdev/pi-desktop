@@ -5,28 +5,38 @@ import {
   waitForAppReady,
 } from "./helpers/desktop-app";
 
-test("launches the shell and streams a mock agent reply", async () => {
-  test.setTimeout(45_000);
+test("streams a real Pi CLI reply through the desktop chat", async () => {
+  test.setTimeout(90_000);
 
-  const { app, page, launchContext } =
-    await launchDesktopApp("pidesk-e2e-launch-");
+  const { app, page, launchContext } = await launchDesktopApp(
+    "pidesk-e2e-real-pi-",
+    {
+      agentMode: "cli",
+    },
+  );
 
   try {
     await waitForAppReady(page);
-
-    await expect(page.getByTestId("left-rail")).toBeVisible();
     await page.getByTestId("create-thread-button").click();
     await page.getByRole("button", { name: "Create Thread" }).click();
-
     await focusChatThread(page);
 
     await page
       .getByTestId("chat-input")
-      .fill("Summarize the current workspace");
+      .fill("Reply with exactly: Pidesk real cli ok");
     await page.getByTestId("chat-send").click();
 
     await expect(page.getByTestId("chat-transcript")).toContainText(
-      "PiDesk mock assistant received: Summarize the current workspace",
+      "Reply with exactly: Pidesk real cli ok",
+      {
+        timeout: 20_000,
+      },
+    );
+    await expect(page.getByTestId("chat-transcript")).toContainText(
+      "Pidesk real cli ok",
+      {
+        timeout: 60_000,
+      },
     );
   } finally {
     await app.close();

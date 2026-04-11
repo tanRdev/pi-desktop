@@ -1,4 +1,5 @@
 import type {
+  GitRepositoryStatus,
   MentionSuggestion,
   SearchMatch,
   SlashSuggestion,
@@ -87,6 +88,16 @@ function getInitialContextSurface(
 
 export interface AppShellController {
   workspaceShellProps: WorkspaceShellProps;
+  activeGitRepositoryStatus: GitRepositoryStatus | null;
+  gitCommitMessage: string;
+  setGitCommitMessage: (value: string) => void;
+  refreshGitRepositoryStatus: () => Promise<void>;
+  stageGitFile: (filePath: string) => Promise<void>;
+  unstageGitFile: (filePath: string) => Promise<void>;
+  discardGitFile: (filePath: string) => Promise<void>;
+  commitGitChanges: () => Promise<void>;
+  pullGitChanges: () => Promise<void>;
+  pushGitChanges: () => Promise<void>;
   isSettingsOpen: boolean;
   setSettingsOpen: (isOpen: boolean) => void;
   isPackagesOpen: boolean;
@@ -223,6 +234,9 @@ export function useAppShellController(): AppShellController {
   const [promptMode, setPromptMode] = React.useState<PromptMode>(() =>
     detectPromptMode(draft),
   );
+  const [activeGitRepositoryStatus, setActiveGitRepositoryStatus] =
+    React.useState<GitRepositoryStatus | null>(null);
+  const [gitCommitMessage, setGitCommitMessage] = React.useState("");
   const launcherRequestIdRef = React.useRef(0);
 
   const setAutocompleteSuggestions = React.useCallback(
@@ -385,13 +399,14 @@ export function useAppShellController(): AppShellController {
     const terminalWindow = windowStore.createWindow(
       {
         kind: "terminal",
-        backend: "shell",
+        backend: activeThreadId ? "pi" : "shell",
         cwd: activeWorktreePath ?? undefined,
       },
       activeWorktreePath ?? undefined,
     );
     setSelectedContextSurface(terminalWindow.id);
   }, [
+    activeThreadId,
     activeWorktreePath,
     selectedContextSurface,
     windowState.layout.windows,
@@ -437,6 +452,149 @@ export function useAppShellController(): AppShellController {
     windowState.layout.windows,
     windowStore,
   ]);
+
+  const refreshGitRepositoryStatus = React.useCallback(async () => {
+    if (!activeWorktreePath) {
+      setActiveGitRepositoryStatus(null);
+      return;
+    }
+
+    const status =
+      await window.pidesk.git.getRepositoryStatus(activeWorktreePath);
+    setActiveGitRepositoryStatus(status);
+  }, [activeWorktreePath]);
+
+  React.useEffect(() => {
+    let disposed = false;
+
+    if (!activeWorktreePath) {
+      setActiveGitRepositoryStatus(null);
+      return;
+    }
+
+    void window.pidesk.git
+      .getRepositoryStatus(activeWorktreePath)
+      .then((status) => {
+        if (!disposed) {
+          setActiveGitRepositoryStatus(status);
+        }
+      })
+      .catch(() => {
+        if (!disposed) {
+          setActiveGitRepositoryStatus(null);
+        }
+      });
+
+    return () => {
+      disposed = true;
+    };
+  }, [activeWorktreePath]);
+
+  const runGitMutation = React.useCallback(
+    async (
+      operation: () => Promise<GitRepositoryStatus>,
+      successMessage: string,
+    ) => {
+      try {
+        const status = await operation();
+        setActiveGitRepositoryStatus(status);
+        toast.success(successMessage);
+        await reload();
+      } catch (error) {
+        toast.error("Git action failed", {
+          description:
+            error instanceof Error ? error.message : "Unknown git error",
+        });
+      }
+    },
+    [reload],
+  );
+
+  const stageGitFile = React.useCallback(
+    async (filePath: string) => {
+      if (!activeWorktreePath) {
+        return;
+      }
+
+      await runGitMutation(
+        () => window.pidesk.git.stageFile(activeWorktreePath, filePath),
+        "File staged",
+      );
+    },
+    [activeWorktreePath, runGitMutation],
+  );
+
+  const unstageGitFile = React.useCallback(
+    async (filePath: string) => {
+      if (!activeWorktreePath) {
+        return;
+      }
+
+      await runGitMutation(
+        () => window.pidesk.git.unstageFile(activeWorktreePath, filePath),
+        "File unstaged",
+      );
+    },
+    [activeWorktreePath, runGitMutation],
+  );
+
+  const discardGitFile = React.useCallback(
+    async (filePath: string) => {
+      if (!activeWorktreePath) {
+        return;
+      }
+
+      await runGitMutation(
+        () => window.pidesk.git.discardFile(activeWorktreePath, filePath),
+        "Changes discarded",
+      );
+    },
+    [activeWorktreePath, runGitMutation],
+  );
+
+  const commitGitChanges = React.useCallback(async () => {
+    if (!activeWorktreePath || !gitCommitMessage.trim()) {
+      return;
+    }
+
+    try {
+      const status = await window.pidesk.git.commit(
+        activeWorktreePath,
+        gitCommitMessage,
+      );
+      setActiveGitRepositoryStatus(status);
+      setGitCommitMessage("");
+      toast.success("Commit created");
+      await reload();
+    } catch (error) {
+      toast.error("Commit failed", {
+        description:
+          error instanceof Error ? error.message : "Unknown git error",
+      });
+    }
+  }, [activeWorktreePath, gitCommitMessage, reload]);
+
+  const pullGitChanges = React.useCallback(async () => {
+    if (!activeWorktreePath) {
+      return;
+    }
+
+    await runGitMutation(
+      () => window.pidesk.git.pull(activeWorktreePath),
+      "Repository updated",
+    );
+  }, [activeWorktreePath, runGitMutation]);
+
+  const pushGitChanges = React.useCallback(async () => {
+    if (!activeWorktreePath) {
+      return;
+    }
+
+    await runGitMutation(
+      () => window.pidesk.git.push(activeWorktreePath),
+      "Changes pushed",
+    );
+  }, [activeWorktreePath, runGitMutation]);
 
   const handleOpenActivity = React.useCallback(() => {
     setSelectedContextSurface((current) =>
@@ -1116,6 +1274,8 @@ export function useAppShellController(): AppShellController {
     launcherResults,
     launcherSelectedIndex,
     launcherIsLoading,
+    activeGitRepositoryStatus,
+    gitCommitMessage,
     threadMessages: agent.messages,
     threadLastError: agent.lastError,
     liveFeed: live,
@@ -1145,6 +1305,14 @@ export function useAppShellController(): AppShellController {
     onOpenGit: handleOpenGit,
     onOpenTerminal: handleOpenTerminal,
     onOpenActivity: handleOpenActivity,
+    onGitCommitMessageChange: setGitCommitMessage,
+    onRefreshGit: refreshGitRepositoryStatus,
+    onCommitGit: commitGitChanges,
+    onPullGit: pullGitChanges,
+    onPushGit: pushGitChanges,
+    onStageGitFile: stageGitFile,
+    onUnstageGitFile: unstageGitFile,
+    onDiscardGitFile: discardGitFile,
     onFileClick: handleFileClick,
     onFileContentChange: handleFileContentChange,
     onFileSave: handleFileSave,
@@ -1165,6 +1333,16 @@ export function useAppShellController(): AppShellController {
 
   return {
     workspaceShellProps,
+    activeGitRepositoryStatus,
+    gitCommitMessage,
+    setGitCommitMessage,
+    refreshGitRepositoryStatus,
+    stageGitFile,
+    unstageGitFile,
+    discardGitFile,
+    commitGitChanges,
+    pullGitChanges,
+    pushGitChanges,
     isSettingsOpen,
     setSettingsOpen,
     isPackagesOpen,

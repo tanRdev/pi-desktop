@@ -41,6 +41,15 @@ export const IPC_CHANNELS = {
     getImageMetadata: "fs:getImageMetadata",
     getImagePreview: "fs:getImagePreview",
   },
+  git: {
+    getRepositoryStatus: "git:getRepositoryStatus",
+    stageFile: "git:stageFile",
+    unstageFile: "git:unstageFile",
+    discardFile: "git:discardFile",
+    commit: "git:commit",
+    pull: "git:pull",
+    push: "git:push",
+  },
   packages: {
     event: "packages:event",
     getManagerStatus: "packages:getManagerStatus",

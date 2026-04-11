@@ -80,7 +80,7 @@ export interface TerminalWindow extends WorkspaceWindowBase {
   /** Terminal session ID */
   terminalId: string;
   /** Terminal backend mode */
-  backend: "shell" | "lazygit";
+  backend: "shell" | "pi";
   /** Working directory */
   cwd: string;
 }
@@ -108,12 +108,10 @@ export interface NoteWindow extends WorkspaceWindowBase {
 }
 
 /**
- * Git window - lazygit in a terminal window.
+ * Git window - native repository management surface.
  */
 export interface GitWindow extends WorkspaceWindowBase {
   kind: "git";
-  /** Terminal session ID backing this git window */
-  terminalId: string;
   /** Repository path */
   repositoryPath: string;
 }

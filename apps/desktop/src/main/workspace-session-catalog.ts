@@ -125,11 +125,7 @@ function sanitizeWindow(input: unknown): WorkspaceWindow | null {
       const terminalId = getString(input.terminalId);
       const backend = getString(input.backend);
       const cwd = getString(input.cwd);
-      if (
-        !terminalId ||
-        !cwd ||
-        (backend !== "shell" && backend !== "lazygit")
-      ) {
+      if (!terminalId || !cwd || (backend !== "shell" && backend !== "pi")) {
         return null;
       }
       return {
@@ -167,13 +163,11 @@ function sanitizeWindow(input: unknown): WorkspaceWindow | null {
       };
     }
     case "git": {
-      const terminalId = getString(input.terminalId);
       const repositoryPath = getString(input.repositoryPath);
-      return terminalId && repositoryPath
+      return repositoryPath
         ? {
             ...base,
             kind,
-            terminalId,
             repositoryPath,
           }
         : null;

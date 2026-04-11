@@ -8,7 +8,7 @@ import "@xterm/xterm/css/xterm.css";
 interface TerminalProps {
   id: string;
   cwd?: string;
-  backend?: "shell" | "lazygit";
+  backend?: "shell" | "pi";
   ownerWindowId?: string;
   className?: string;
   onExit?: () => void;
@@ -22,6 +22,7 @@ function TerminalIcon({ className }: { className?: string }) {
       width="12"
       height="12"
       viewBox="0 0 24 24"
+      aria-hidden="true"
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
@@ -42,6 +43,7 @@ function PlusIcon({ className }: { className?: string }) {
       width="12"
       height="12"
       viewBox="0 0 24 24"
+      aria-hidden="true"
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
@@ -62,6 +64,7 @@ function XIcon({ className }: { className?: string }) {
       width="12"
       height="12"
       viewBox="0 0 24 24"
+      aria-hidden="true"
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
@@ -82,6 +85,7 @@ function ChevronDownIcon({ className }: { className?: string }) {
       width="10"
       height="10"
       viewBox="0 0 24 24"
+      aria-hidden="true"
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
@@ -106,6 +110,7 @@ export function Terminal({
   const fitAddonRef = React.useRef<FitAddon | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [_isInitialized, setIsInitialized] = React.useState(false);
+  const terminalLabel = backend === "pi" ? "Pi CLI" : "zsh";
 
   React.useEffect(() => {
     if (!containerRef.current || terminalRef.current) return;
@@ -134,8 +139,7 @@ export function Terminal({
         brightCyan: "#a5f3fc",
         brightWhite: "#fafafa",
       },
-      fontFamily:
-        '"JetBrains Mono", "SF Mono", ui-monospace, monospace',
+      fontFamily: '"JetBrains Mono", "SF Mono", ui-monospace, monospace',
       fontSize: 13,
       lineHeight: 1.4,
       cursorBlink: true,
@@ -218,7 +222,12 @@ export function Terminal({
 
   if (error) {
     return (
-      <div className={cn("w-[400px] border-l border-white/[0.06] bg-[#0c0c0c]", className)}>
+      <div
+        className={cn(
+          "w-[400px] border-l border-white/[0.06] bg-[#0c0c0c]",
+          className,
+        )}
+      >
         <div
           className={cn(
             "flex h-full flex-col items-center justify-center gap-3 p-4 text-center",
@@ -247,12 +256,19 @@ export function Terminal({
   }
 
   return (
-    <div className={cn("flex h-full w-[400px] flex-col border-l border-white/[0.06] bg-[#0c0c0c]", className)}>
+    <div
+      className={cn(
+        "flex h-full w-[400px] flex-col border-l border-white/[0.06] bg-[#0c0c0c]",
+        className,
+      )}
+    >
       {/* Terminal Header - Cursor Glass style */}
       <div className="flex h-9 shrink-0 items-center justify-between border-b border-white/[0.04] px-3">
         <div className="flex items-center gap-2">
           <TerminalIcon className="text-white/40" />
-          <span className="text-[11px] font-medium text-white/50">zsh</span>
+          <span className="text-[11px] font-medium text-white/50">
+            {terminalLabel}
+          </span>
         </div>
         <div className="flex items-center gap-1">
           <button
@@ -277,7 +293,7 @@ export function Terminal({
           className="flex h-7 items-center gap-1 px-2 text-[11px] font-medium text-white/60 border-b border-white/20 bg-white/[0.02]"
         >
           <ChevronDownIcon />
-          <span>main</span>
+          <span>{backend === "pi" ? "pi" : "main"}</span>
         </button>
       </div>
 

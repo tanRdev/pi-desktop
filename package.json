@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "pnpm -r build",
-    "dev": "pnpm --parallel --filter @pidesk/agent-host --filter @pidesk/desktop dev",
+    "dev": "pnpm --parallel --filter @pidesk/shared --filter @pidesk/agent-host --filter @pidesk/desktop dev",
     "format": "biome check --write .",
     "lint": "biome check .",
     "perf:bundle": "node scripts/perf-bundle.mjs",

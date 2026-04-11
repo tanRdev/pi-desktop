@@ -17,6 +17,7 @@
   },
   "scripts": {
     "build": "tsc --project tsconfig.build.json",
+    "dev": "tsc --project tsconfig.build.json --watch --preserveWatchOutput",
     "typecheck": "tsc --project tsconfig.json --noEmit"
   },
   "devDependencies": {

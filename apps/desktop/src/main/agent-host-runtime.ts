@@ -32,12 +32,13 @@ function resolveAgentRuntimeMode(
 ): AgentRuntimeMode {
   if (
     environment.PIDESK_AGENT_MODE === "mock" ||
-    environment.PIDESK_AGENT_MODE === "sdk"
+    environment.PIDESK_AGENT_MODE === "sdk" ||
+    environment.PIDESK_AGENT_MODE === "cli"
   ) {
     return environment.PIDESK_AGENT_MODE;
   }
 
-  return environment.NODE_ENV === "test" ? "mock" : "sdk";
+  return environment.NODE_ENV === "test" ? "mock" : "cli";
 }
 
 export function resolveAgentRuntimeOptions(
@@ -48,8 +49,18 @@ export function resolveAgentRuntimeOptions(
   const resolvedAgentDir =
     environment.PIDESK_AGENT_DIR || path.join(resolvedCwd, ".pi", "agent");
 
+  const mode = resolveAgentRuntimeMode(environment);
+
+  if (mode === "mock") {
+    return {
+      mode,
+      cwd: resolvedCwd,
+      agentDir: resolvedAgentDir,
+    };
+  }
+
   return {
-    mode: resolveAgentRuntimeMode(environment),
+    mode,
     cwd: resolvedCwd,
     agentDir: resolvedAgentDir,
   };

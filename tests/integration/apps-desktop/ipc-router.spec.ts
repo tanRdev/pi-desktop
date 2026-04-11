@@ -83,7 +83,7 @@ describe("payload-parsers", () => {
       cols: 80,
       rows: 24,
       ownerWindowId: "terminal-t-good",
-      backend: "lazygit",
+      backend: "pi",
     });
 
     expect(good).toMatchObject({
@@ -91,7 +91,7 @@ describe("payload-parsers", () => {
       cols: 80,
       rows: 24,
       ownerWindowId: "terminal-t-good",
-      backend: "lazygit",
+      backend: "pi",
     });
 
     // unsupported backend should be stripped rather than rejecting the payload
@@ -624,6 +624,7 @@ describe("registerIpcHandlers", () => {
       cols: 80,
       rows: 24,
       ownerWindowId: "terminal-term-1",
+      backend: "pi",
     };
 
     await expect(

@@ -367,6 +367,13 @@ describe("createPiDeskApi", () => {
         },
       ],
     });
+    await api.git.getRepositoryStatus("/tmp/work/repo-one");
+    await api.git.stageFile("/tmp/work/repo-one", "src/app.ts");
+    await api.git.unstageFile("/tmp/work/repo-one", "src/app.ts");
+    await api.git.discardFile("/tmp/work/repo-one", "src/app.ts");
+    await api.git.commit("/tmp/work/repo-one", "feat: native git panel");
+    await api.git.pull("/tmp/work/repo-one");
+    await api.git.push("/tmp/work/repo-one");
 
     expect(invokeCalls).toEqual([
       [
@@ -417,6 +424,31 @@ describe("createPiDeskApi", () => {
           },
         },
       ],
+      [
+        IPC_CHANNELS.git.getRepositoryStatus,
+        { repositoryPath: "/tmp/work/repo-one" },
+      ],
+      [
+        IPC_CHANNELS.git.stageFile,
+        { repositoryPath: "/tmp/work/repo-one", filePath: "src/app.ts" },
+      ],
+      [
+        IPC_CHANNELS.git.unstageFile,
+        { repositoryPath: "/tmp/work/repo-one", filePath: "src/app.ts" },
+      ],
+      [
+        IPC_CHANNELS.git.discardFile,
+        { repositoryPath: "/tmp/work/repo-one", filePath: "src/app.ts" },
+      ],
+      [
+        IPC_CHANNELS.git.commit,
+        {
+          repositoryPath: "/tmp/work/repo-one",
+          message: "feat: native git panel",
+        },
+      ],
+      [IPC_CHANNELS.git.pull, { repositoryPath: "/tmp/work/repo-one" }],
+      [IPC_CHANNELS.git.push, { repositoryPath: "/tmp/work/repo-one" }],
     ]);
   });
 

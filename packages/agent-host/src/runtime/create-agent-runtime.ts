@@ -1,4 +1,5 @@
 import { MockAgentRuntime } from "../mock/mock-agent-runtime.js";
+import { PiCliRpcAgentRuntime } from "../pi/pi-cli-rpc-agent-runtime.js";
 import {
   PiSdkAgentRuntime,
   type PiSdkAgentRuntimeOptions,
@@ -19,6 +20,11 @@ type CreateAgentRuntimeOptions =
       cwd: string;
       agentDir?: string;
       createAgentSession?: CreateSdkAgentSession;
+    }
+  | {
+      mode: "cli";
+      cwd: string;
+      agentDir: string;
     };
 
 function assertNever(value: never): never {
@@ -34,6 +40,11 @@ export function createAgentRuntime(options: CreateAgentRuntimeOptions) {
         cwd: options.cwd,
         agentDir: options.agentDir,
         createAgentSession: options.createAgentSession,
+      });
+    case "cli":
+      return new PiCliRpcAgentRuntime({
+        cwd: options.cwd,
+        agentDir: options.agentDir,
       });
     default:
       return assertNever(options);

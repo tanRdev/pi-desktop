@@ -125,6 +125,6 @@ export function parseTerminalCreateOptions(
     rows,
     ownerWindowId,
     cwd: getStringField(payload, "cwd"),
-    backend: backend === "shell" || backend === "lazygit" ? backend : undefined,
+    backend: backend === "shell" || backend === "pi" ? backend : undefined,
   };
 }

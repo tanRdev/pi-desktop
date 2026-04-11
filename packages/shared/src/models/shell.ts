@@ -5,7 +5,7 @@ import type { WorktreeSnapshot } from "./worktree.js";
 
 export type AppRuntimeMode = "development" | "production" | "test";
 
-export type ShellAgentMode = "mock" | "sdk" | "unknown";
+export type ShellAgentMode = "mock" | "sdk" | "cli" | "unknown";
 
 export interface ShellRuntimeSnapshot {
   agentMode: ShellAgentMode;

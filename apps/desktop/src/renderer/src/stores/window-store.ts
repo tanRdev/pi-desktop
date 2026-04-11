@@ -233,7 +233,6 @@ export function createWindowFromAction(
         ...base,
         kind: "git",
         title: "Git",
-        terminalId: id,
         repositoryPath: action.repositoryPath,
       };
       return win;

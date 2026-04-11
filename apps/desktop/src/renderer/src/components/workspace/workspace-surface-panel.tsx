@@ -78,15 +78,7 @@ export function WorkspaceSurfacePanel({
     }
 
     if (selectedWindow.kind === "git") {
-      return (
-        <Terminal
-          id={selectedWindow.terminalId}
-          cwd={selectedWindow.repositoryPath}
-          backend="lazygit"
-          ownerWindowId={selectedWindow.id}
-          className="h-full"
-        />
-      );
+      return activityContent;
     }
 
     return activityContent;

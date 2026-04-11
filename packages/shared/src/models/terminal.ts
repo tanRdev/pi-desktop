@@ -7,7 +7,7 @@ import type { LinkColor } from "./window.js";
 /**
  * Terminal backend type.
  */
-export type TerminalBackend = "shell" | "lazygit";
+export type TerminalBackend = "shell" | "pi";
 
 /**
  * Terminal session state.

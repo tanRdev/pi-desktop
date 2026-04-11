@@ -27,8 +27,8 @@ describe("bootstrap helpers (RED)", () => {
         linkedThreadId: "thread-123",
       },
       {
-        id: "lazygit-session",
-        backend: "lazygit" as const,
+        id: "pi-session",
+        backend: "pi" as const,
         cwd: "/tmp/project",
         status: "ready",
         ownerWindowId: "win-3",
@@ -65,23 +65,6 @@ describe("bootstrap helpers (RED)", () => {
     ).toEqual({
       success: false,
       error: "Unknown terminal session: missing-session",
-    });
-
-    expect(
-      await routePromptToTerminal(
-        {
-          terminalId: "lazygit-session",
-          prompt: "hello",
-          startPiIfNotLinked: false,
-        },
-        {
-          terminalManager: { getSessions, write },
-          delay,
-        },
-      ),
-    ).toEqual({
-      success: false,
-      error: "Cannot route prompts into a lazygit session",
     });
 
     expect(
@@ -379,7 +362,7 @@ describe("bootstrap helpers (RED)", () => {
       },
       ensureDirectory,
       resolveRuntimeOptions: () => ({
-        mode: "sdk",
+        mode: "cli",
         cwd: "/tmp/project",
         agentDir: null,
       }),
@@ -390,7 +373,7 @@ describe("bootstrap helpers (RED)", () => {
     expect(createLaunchDetails).toHaveBeenCalledWith({
       threadId: "thread-2",
       worktreePath: "/tmp/project",
-      mode: "sdk",
+      mode: "cli",
       socketDirectory: "/tmp/pidesk/sockets",
       execPath: "/usr/local/bin/node",
       sessionServerEntryPath: "/tmp/session-server.mjs",
@@ -398,6 +381,6 @@ describe("bootstrap helpers (RED)", () => {
       agentDirectory: null,
     });
     expect(result.agentDirectory).toBeNull();
-    expect(result.agentMode).toBe("sdk");
+    expect(result.agentMode).toBe("cli");
   });
 });

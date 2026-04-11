@@ -10,7 +10,7 @@ export type SelectedThreadContext<
   socketPath: string;
   runtimeId: string | null;
   command: string[];
-  agentMode: "mock" | "sdk";
+  agentMode: "mock" | "sdk" | "cli";
   agentDirectory: string | null;
 };
 
@@ -24,7 +24,7 @@ export type ResolvedRepositoryInspection = Pick<
 };
 
 type RuntimeOptions = {
-  mode: "mock" | "sdk";
+  mode: "mock" | "sdk" | "cli";
   cwd: string;
   agentDir: string | null | undefined;
 };
@@ -61,7 +61,7 @@ type BuildThreadContextOptions<TThread extends { id: string }> = {
   createLaunchDetails(input: {
     threadId: string;
     worktreePath: string;
-    mode: "mock" | "sdk";
+    mode: "mock" | "sdk" | "cli";
     socketDirectory: string;
     execPath: string;
     sessionServerEntryPath: string;
