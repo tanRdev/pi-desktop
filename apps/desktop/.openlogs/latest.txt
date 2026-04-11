@@ -815,3 +815,51 @@ This will cause a hydration error.
 
 
 12:45:18 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/git-panel.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:46:39 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/git-panel.tsx (x2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:46:46 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/git-panel.tsx (x3)

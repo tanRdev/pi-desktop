@@ -106,17 +106,17 @@ function ChangeList({
           {changes.length}
         </span>
       </div>
-      <div className="max-h-[200px] overflow-y-auto overflow-x-hidden rounded-lg bg-white/[0.01] transition-colors hover:bg-white/[0.02]">
+      <div className="max-h-[200px] overflow-y-auto overflow-x-hidden transition-colors">
         {changes.length === 0 ? (
-          <div className="px-3 py-2 text-[11px] text-white/15 italic">
+          <div className="px-1 py-2 text-[11px] text-white/15 italic">
             {emptyLabel}
           </div>
         ) : (
-          <div className="divide-y divide-white/[0.02]">
+          <div className="divide-y divide-white/[0.04]">
             {changes.map((change) => (
               <div
                 key={`${title}-${change.path}`}
-                className="group flex items-center gap-2 px-2 py-1.5 transition-colors hover:bg-white/[0.03]"
+                className="group flex items-center gap-2 py-1.5 transition-colors"
               >
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-[11px] text-white/60 group-hover:text-white/80">
@@ -134,7 +134,7 @@ function ChangeList({
                       size="icon-xs"
                       onClick={() => onDiscard(change.path)}
                       aria-label={`Discard ${change.path}`}
-                      className="size-5 hover:text-red-400/70"
+                      className="size-5 hover:bg-white/[0.05] hover:text-red-400/70"
                     >
                       <Trash className="size-2.5" />
                     </Button>
@@ -144,7 +144,7 @@ function ChangeList({
                     variant="ghost"
                     size="icon-xs"
                     onClick={() => onAction(change.path)}
-                    className="size-5 text-white/30 hover:text-white/70"
+                    className="size-5 text-white/30 hover:bg-white/[0.05] hover:text-white/70"
                   >
                     {actionIcon}
                   </Button>
@@ -234,37 +234,37 @@ export function GitPanel({
       <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
         <div className="space-y-6">
           <section className="space-y-2">
-            <div className="relative rounded-lg bg-white/[0.02] p-2 focus-within:bg-white/[0.04] transition-colors">
+            <div className="relative p-1 transition-colors">
               <textarea
                 value={commitMessage}
                 onChange={(event) => onCommitMessageChange(event.target.value)}
                 placeholder="Commit message..."
                 rows={2}
                 disabled={!repositoryPath || isLoading}
-                className="w-full resize-none rounded-md border-none bg-transparent px-2 py-1.5 text-[12px] text-white/80 transition-all duration-150 placeholder:text-white/20 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full resize-none rounded-md border-none bg-transparent px-1 py-1 text-[12px] text-white/80 transition-all duration-150 placeholder:text-white/20 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               />
-              <div className="flex items-center gap-1 px-1 pb-1">
+              <div className="flex items-center gap-1 pb-1">
                 <Button
                   type="button"
-                  variant="default"
+                  variant="outline"
                   size="xs"
                   onClick={() => void onCommit()}
                   disabled={!canCommit || !commitMessage.trim() || isLoading}
-                  className="h-6"
+                  className="h-6 border-white/[0.06] bg-transparent text-white/50 hover:border-white/[0.12] hover:text-white/80"
                 >
                   Commit
                 </Button>
-                <div className="ml-auto flex items-center gap-1">
+                <div className="ml-auto flex items-center gap-0.5">
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon-xs"
                     onClick={() => void onPull()}
                     disabled={!canPull || isLoading}
-                    className="text-white/30 hover:text-white/60"
+                    className="size-6 text-white/20 hover:text-white/60"
                     title={viewModel.pullActionLabel ?? "Pull"}
                   >
-                    <ArrowDown className="size-3.5" />
+                    <ArrowDown className="size-3" />
                   </Button>
                   <Button
                     type="button"
@@ -272,18 +272,20 @@ export function GitPanel({
                     size="icon-xs"
                     onClick={() => void onPush()}
                     disabled={!canPush || isLoading}
-                    className="text-white/30 hover:text-white/60"
+                    className="size-6 text-white/20 hover:text-white/60"
                     title={viewModel.pushActionLabel ?? "Push"}
                   >
-                    <ArrowUp className="size-3.5" />
+                    <ArrowUp className="size-3" />
                   </Button>
                 </div>
               </div>
             </div>
-            <GitPanelStatus
-              tone={viewModel.statusTone}
-              message={viewModel.statusMessage}
-            />
+            <div className="px-1">
+              <GitPanelStatus
+                tone={viewModel.statusTone}
+                message={viewModel.statusMessage}
+              />
+            </div>
           </section>
 
           <div className="space-y-5">
