@@ -384,3 +384,410 @@ This will cause a hydration error.
 
 
 12:39:38 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/workspace-file-content.tsx (x2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:42:10 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/git-panel.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:42:10 AM [vite] Internal server error: /Users/tan/Dev/pi-desktop/apps/desktop/src/renderer/src/components/workspace/git-panel.tsx: Unexpected token (331:2)
+
+  329 |   );
+  330 | }
+> 331 |   );
+      |   ^
+  332 | }
+  333 |
+  Plugin: vite:react-babel
+  File: /Users/tan/Dev/pi-desktop/apps/desktop/src/renderer/src/components/workspace/git-panel.tsx:331:2
+  329 |    );
+  330 |  }
+  331 |    );
+      |    ^
+  332 |  }
+  333 |  
+      at constructor (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:365:19)
+      at TypeScriptParserMixin.raise (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6599:19)
+      at TypeScriptParserMixin.unexpected (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6619:16)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11442:22)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4764:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11066:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11046:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9837:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10899:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10904:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10881:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9786:20)
+      at TypeScriptParserMixin.parseExpressionBase (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10784:23)
+      at /Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:39
+      at TypeScriptParserMixin.allowInAnd (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12421:16)
+      at TypeScriptParserMixin.parseExpression (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:17)
+      at TypeScriptParserMixin.parseStatementContent (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12895:23)
+      at TypeScriptParserMixin.parseStatementContent (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9508:18)
+      at TypeScriptParserMixin.parseStatementLike (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12767:17)
+      at TypeScriptParserMixin.parseModuleItem (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12744:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:13316:36)
+      at TypeScriptParserMixin.parseBlockBody (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:13309:10)
+      at TypeScriptParserMixin.parseProgram (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12622:10)
+      at TypeScriptParserMixin.parseTopLevel (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12612:25)
+      at TypeScriptParserMixin.parse (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:14488:25)
+      at TypeScriptParserMixin.parse (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10126:18)
+      at parse (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:14522:38)
+      at parser (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+core@7.29.0+b097dd6c05d04ee2/node_modules/@babel/core/lib/parser/index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+core@7.29.0+b097dd6c05d04ee2/node_modules/@babel/core/lib/transformation/normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+core@7.29.0+b097dd6c05d04ee2/node_modules/@babel/core/lib/transformation/index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+core@7.29.0+b097dd6c05d04ee2/node_modules/@babel/core/lib/transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (/Users/tan/Dev/pi-desktop/node_modules/.bun/gensync@1.0.0-beta.2/node_modules/gensync/index.js:261:32)
+      at /Users/tan/Dev/pi-desktop/node_modules/.bun/gensync@1.0.0-beta.2/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (/Users/tan/Dev/pi-desktop/node_modules/.bun/gensync@1.0.0-beta.2/node_modules/gensync/index.js:223:11)
+      at /Users/tan/Dev/pi-desktop/node_modules/.bun/gensync@1.0.0-beta.2/node_modules/gensync/index.js:189:28
+      at /Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+core@7.29.0+b097dd6c05d04ee2/node_modules/@babel/core/lib/gensync-utils/async.js:67:7
+      at /Users/tan/Dev/pi-desktop/node_modules/.bun/gensync@1.0.0-beta.2/node_modules/gensync/index.js:113:33
+      at step (/Users/tan/Dev/pi-desktop/node_modules/.bun/gensync@1.0.0-beta.2/node_modules/gensync/index.js:287:14)
+      at /Users/tan/Dev/pi-desktop/node_modules/.bun/gensync@1.0.0-beta.2/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (/Users/tan/Dev/pi-desktop/node_modules/.bun/gensync@1.0.0-beta.2/node_modules/gensync/index.js:223:11)
+12:42:10 AM [vite] (client) [console.error] [vite] Failed to reload /src/components/workspace/git-panel.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:42:14 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/git-panel.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:42:32 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/workspace-activity-panel.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:42:32 AM [vite] Internal server error: /Users/tan/Dev/pi-desktop/apps/desktop/src/renderer/src/components/workspace/workspace-activity-panel.tsx: Unexpected token (175:11)
+
+  173 | }
+  174 |
+> 175 |           </div>
+      |            ^
+  176 |           <RuntimeStatusChip status={safeStatus} />
+  177 |         </div>
+  178 |       </div>
+  Plugin: vite:react-babel
+  File: /Users/tan/Dev/pi-desktop/apps/desktop/src/renderer/src/components/workspace/workspace-activity-panel.tsx:175:11
+  173 |  }
+  174 |  
+  175 |            </div>
+      |             ^
+  176 |            <RuntimeStatusChip status={safeStatus} />
+  177 |          </div>m
+      at constructor (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:365:19)
+      at TypeScriptParserMixin.raise (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6599:19)
+      at TypeScriptParserMixin.unexpected (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6619:16)
+      at TypeScriptParserMixin.jsxParseIdentifier (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4569:12)
+      at TypeScriptParserMixin.jsxParseNamespacedName (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4576:23)
+      at TypeScriptParserMixin.jsxParseElementName (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4585:21)
+      at TypeScriptParserMixin.jsxParseOpeningElementAt (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4661:22)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4686:33)
+      at TypeScriptParserMixin.jsxParseElement (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4749:17)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4762:19)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11066:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11046:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9837:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10899:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10904:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10881:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at /Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9775:39
+      at TypeScriptParserMixin.tryParse (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6907:20)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9775:18)
+      at TypeScriptParserMixin.parseExpressionBase (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10784:23)
+      at /Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:39
+      at TypeScriptParserMixin.allowInAnd (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12421:16)
+      at TypeScriptParserMixin.parseExpression (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:17)
+      at TypeScriptParserMixin.parseStatementContent (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12895:23)
+      at TypeScriptParserMixin.parseStatementContent (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9508:18)
+      at TypeScriptParserMixin.parseStatementLike (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12767:17)
+      at TypeScriptParserMixin.parseModuleItem (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12744:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:13316:36)
+      at TypeScriptParserMixin.parseBlockBody (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:13309:10)
+      at TypeScriptParserMixin.parseProgram (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12622:10)
+      at TypeScriptParserMixin.parseTopLevel (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12612:25)
+      at TypeScriptParserMixin.parse (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:14488:25)
+      at TypeScriptParserMixin.parse (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10126:18)
+      at parse (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:14522:38)
+      at parser (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+core@7.29.0+b097dd6c05d04ee2/node_modules/@babel/core/lib/parser/index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+core@7.29.0+b097dd6c05d04ee2/node_modules/@babel/core/lib/transformation/normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+core@7.29.0+b097dd6c05d04ee2/node_modules/@babel/core/lib/transformation/index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+core@7.29.0+b097dd6c05d04ee2/node_modules/@babel/core/lib/transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (/Users/tan/Dev/pi-desktop/node_modules/.bun/gensync@1.0.0-beta.2/node_modules/gensync/index.js:261:32)
+      at /Users/tan/Dev/pi-desktop/node_modules/.bun/gensync@1.0.0-beta.2/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (/Users/tan/Dev/pi-desktop/node_modules/.bun/gensync@1.0.0-beta.2/node_modules/gensync/index.js:223:11)
+      at /Users/tan/Dev/pi-desktop/node_modules/.bun/gensync@1.0.0-beta.2/node_modules/gensync/index.js:189:28
+      at /Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+core@7.29.0+b097dd6c05d04ee2/node_modules/@babel/core/lib/gensync-utils/async.js:67:7
+      at /Users/tan/Dev/pi-desktop/node_modules/.bun/gensync@1.0.0-beta.2/node_modules/gensync/index.js:113:33
+12:42:32 AM [vite] (client) [console.error] [vite] Failed to reload /src/components/workspace/workspace-activity-panel.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:42:44 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/workspace-activity-panel.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:42:44 AM [vite] Internal server error: /Users/tan/Dev/pi-desktop/apps/desktop/src/renderer/src/components/workspace/workspace-activity-panel.tsx: Unexpected token (174:2)
+
+  172 |   );
+  173 | }
+> 174 |   );
+      |   ^
+  175 | }
+  176 |
+  Plugin: vite:react-babel
+  File: /Users/tan/Dev/pi-desktop/apps/desktop/src/renderer/src/components/workspace/workspace-activity-panel.tsx:174:2
+  172 |    );
+  173 |  }
+  174 |    );
+      |    ^
+  175 |  }
+  176 |  
+      at constructor (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:365:19)
+      at TypeScriptParserMixin.raise (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6599:19)
+      at TypeScriptParserMixin.unexpected (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6619:16)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11442:22)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4764:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11066:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11046:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9837:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10899:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10904:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10881:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9786:20)
+      at TypeScriptParserMixin.parseExpressionBase (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10784:23)
+      at /Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:39
+      at TypeScriptParserMixin.allowInAnd (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12421:16)
+      at TypeScriptParserMixin.parseExpression (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:17)
+      at TypeScriptParserMixin.parseStatementContent (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12895:23)
+      at TypeScriptParserMixin.parseStatementContent (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9508:18)
+      at TypeScriptParserMixin.parseStatementLike (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12767:17)
+      at TypeScriptParserMixin.parseModuleItem (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12744:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:13316:36)
+      at TypeScriptParserMixin.parseBlockBody (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:13309:10)
+      at TypeScriptParserMixin.parseProgram (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12622:10)
+      at TypeScriptParserMixin.parseTopLevel (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12612:25)
+      at TypeScriptParserMixin.parse (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:14488:25)
+      at TypeScriptParserMixin.parse (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10126:18)
+      at parse (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:14522:38)
+      at parser (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+core@7.29.0+b097dd6c05d04ee2/node_modules/@babel/core/lib/parser/index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+core@7.29.0+b097dd6c05d04ee2/node_modules/@babel/core/lib/transformation/normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+core@7.29.0+b097dd6c05d04ee2/node_modules/@babel/core/lib/transformation/index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+core@7.29.0+b097dd6c05d04ee2/node_modules/@babel/core/lib/transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (/Users/tan/Dev/pi-desktop/node_modules/.bun/gensync@1.0.0-beta.2/node_modules/gensync/index.js:261:32)
+      at /Users/tan/Dev/pi-desktop/node_modules/.bun/gensync@1.0.0-beta.2/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (/Users/tan/Dev/pi-desktop/node_modules/.bun/gensync@1.0.0-beta.2/node_modules/gensync/index.js:223:11)
+      at /Users/tan/Dev/pi-desktop/node_modules/.bun/gensync@1.0.0-beta.2/node_modules/gensync/index.js:189:28
+      at /Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+core@7.29.0+b097dd6c05d04ee2/node_modules/@babel/core/lib/gensync-utils/async.js:67:7
+      at /Users/tan/Dev/pi-desktop/node_modules/.bun/gensync@1.0.0-beta.2/node_modules/gensync/index.js:113:33
+      at step (/Users/tan/Dev/pi-desktop/node_modules/.bun/gensync@1.0.0-beta.2/node_modules/gensync/index.js:287:14)
+      at /Users/tan/Dev/pi-desktop/node_modules/.bun/gensync@1.0.0-beta.2/node_modules/gensync/index.js:273:13
+      at async.call.result.err.err (/Users/tan/Dev/pi-desktop/node_modules/.bun/gensync@1.0.0-beta.2/node_modules/gensync/index.js:223:11)
+12:42:44 AM [vite] (client) [console.error] [vite] Failed to reload /src/components/workspace/workspace-activity-panel.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:42:49 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/workspace-activity-panel.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:42:49 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/workspace-activity-panel.tsx (x2)

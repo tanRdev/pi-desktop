@@ -200,106 +200,89 @@ export function GitPanel({
         className,
       )}
     >
-      <div className="border-b border-white/[0.04] px-5 py-3.5 select-none">
-        <div className="flex items-start justify-between gap-4">
+      <div className="border-b border-white/[0.04] px-5 py-3 select-none">
+        <div className="flex items-center justify-between gap-4">
           <div className="min-w-0 space-y-0.5">
-            <h2 className="truncate text-sm font-medium text-white/90">
+            <h2 className="truncate text-[13px] font-semibold text-white/90">
               {viewModel.branchLabel}
             </h2>
-            <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-white/30">
-              <span className="truncate">
-                {projectName ?? worktree?.label ?? "No project"}
-              </span>
+            <div className="flex items-center gap-1.5 text-[10px] tabular-nums tracking-wide text-white/30">
+              <span className="truncate">{viewModel.summary}</span>
               <span>·</span>
-              <span>{viewModel.title}</span>
+              <span>{viewModel.syncLabel}</span>
             </div>
           </div>
-          {worktree ? (
-            <GitStatusChip git={worktree.git} className="mt-0.5" />
-          ) : null}
+          <div className="flex items-center gap-1">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              onClick={() => void onRefresh()}
+              disabled={!canRefresh || isRefreshing}
+              className="text-white/20 hover:text-white/60"
+            >
+              <CircleDashed
+                className={cn("size-3.5", isRefreshing && "animate-spin")}
+              />
+            </Button>
+            {worktree ? <GitStatusChip git={worktree.git} /> : null}
+          </div>
         </div>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
         <div className="space-y-6">
           <section className="space-y-2">
-            <div className="flex items-start justify-between gap-3 px-1">
-              <div className="min-w-0 space-y-0.5">
-                <div className="text-sm text-white/80">{viewModel.summary}</div>
-                <div className="font-mono text-[9px] uppercase tracking-wider text-white/20">
-                  {viewModel.commitLabel} · {viewModel.syncLabel}
-                </div>
-              </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="xs"
-                onClick={() => void onRefresh()}
-                disabled={!canRefresh || isRefreshing}
-                className="h-6 px-1.5 text-[10px]"
-              >
-                {isRefreshing ? (
-                  <CircleDashed className="size-3 animate-spin" />
-                ) : null}
-                Refresh
-              </Button>
-            </div>
-            <GitPanelStatus
-              tone={viewModel.statusTone}
-              message={viewModel.statusMessage}
-            />
-          </section>
-
-          <section className="space-y-2">
-            <div className="px-1">
-              <h3 className="text-[10px] font-semibold uppercase tracking-[0.05em] text-white/30">
-                Commit
-              </h3>
-            </div>
-            <div className="space-y-2 rounded-lg bg-white/[0.02] p-2">
+            <div className="relative rounded-lg bg-white/[0.02] p-2 focus-within:bg-white/[0.04] transition-colors">
               <textarea
                 value={commitMessage}
                 onChange={(event) => onCommitMessageChange(event.target.value)}
-                placeholder="Message"
+                placeholder="Commit message..."
                 rows={2}
                 disabled={!repositoryPath || isLoading}
                 className="w-full resize-none rounded-md border-none bg-transparent px-2 py-1.5 text-[12px] text-white/80 transition-all duration-150 placeholder:text-white/20 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               />
-              <div className="flex items-center gap-1.5 px-1 pb-1">
+              <div className="flex items-center gap-1 px-1 pb-1">
                 <Button
                   type="button"
                   variant="default"
                   size="xs"
                   onClick={() => void onCommit()}
                   disabled={!canCommit || !commitMessage.trim() || isLoading}
+                  className="h-6"
                 >
-                  <FloppyDisk className="size-3" />
-                  {viewModel.commitActionLabel ?? "Commit"}
+                  Commit
                 </Button>
                 <div className="ml-auto flex items-center gap-1">
                   <Button
                     type="button"
-                    variant="secondary"
-                    size="xs"
+                    variant="ghost"
+                    size="icon-xs"
                     onClick={() => void onPull()}
                     disabled={!canPull || isLoading}
+                    className="text-white/30 hover:text-white/60"
+                    title={viewModel.pullActionLabel ?? "Pull"}
                   >
-                    <ArrowDown className="size-3" />
-                    {viewModel.pullActionLabel ?? "Pull"}
+                    <ArrowDown className="size-3.5" />
                   </Button>
                   <Button
                     type="button"
-                    variant="secondary"
-                    size="xs"
+                    variant="ghost"
+                    size="icon-xs"
                     onClick={() => void onPush()}
                     disabled={!canPush || isLoading}
+                    className="text-white/30 hover:text-white/60"
+                    title={viewModel.pushActionLabel ?? "Push"}
                   >
-                    <ArrowUp className="size-3" />
-                    {viewModel.pushActionLabel ?? "Push"}
+                    <ArrowUp className="size-3.5" />
                   </Button>
                 </div>
               </div>
             </div>
+            <GitPanelStatus
+              tone={viewModel.statusTone}
+              message={viewModel.statusMessage}
+            />
           </section>
 
           <div className="space-y-5">
@@ -313,7 +296,7 @@ export function GitPanel({
             />
 
             <ChangeList
-              title="Working Tree"
+              title="Changes"
               emptyLabel="No unstaged changes"
               changes={repositoryStatus?.unstagedChanges ?? []}
               actionLabel="Stage"
@@ -323,28 +306,23 @@ export function GitPanel({
             />
           </div>
 
-          {viewModel.sections.map((section) => (
-            <section key={section.title} className="space-y-2">
-              <div className="px-1">
-                <h3 className="text-[10px] font-semibold uppercase tracking-[0.05em] text-white/30">
-                  {section.title}
-                </h3>
+          <div className="space-y-1 border-t border-white/[0.04] pt-4 px-1">
+            {[
+              { label: "Project", value: projectName ?? worktree?.label },
+              { label: "Commit", value: viewModel.commitLabel },
+              { label: "Upstream", value: viewModel.upstreamLabel },
+            ].map((row) => (
+              <div
+                key={row.label}
+                className="flex items-center justify-between gap-3 text-[11px]"
+              >
+                <span className="shrink-0 text-white/20">{row.label}</span>
+                <span className="min-w-0 truncate text-right text-white/45">
+                  {row.value}
+                </span>
               </div>
-              <div className="space-y-1 px-1">
-                {section.rows.map((row) => (
-                  <div
-                    key={`${section.title}-${row.label}`}
-                    className="flex items-start justify-between gap-3 text-[11px]"
-                  >
-                    <span className="shrink-0 text-white/25">{row.label}</span>
-                    <span className="min-w-0 truncate text-right text-white/60">
-                      {row.value}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </section>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </div>
