@@ -102,7 +102,7 @@ describe("moveRepositorySnapshots", () => {
     );
   });
 
-  it("keeps the first column focused on projects instead of navigation controls", () => {
+  it("keeps the unified rail focused on thread navigation", () => {
     const source = readSource(
       "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
     );
@@ -110,20 +110,21 @@ describe("moveRepositorySnapshots", () => {
       "apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx",
     );
 
-    expect(source).toContain("export const SIDEBAR_WIDTH = 220");
-    expect(source).toContain("project-rail-item");
+    expect(source).toContain("export const SIDEBAR_WIDTH = 240");
+    expect(source).toContain("ThreadCategorySection");
     expect(source).toContain("onSelectThread");
     expect(source).not.toContain("NAVIGATION_ITEMS");
     expect(shellSource).toContain("WorkspaceSurfacePanel");
   });
 
-  it("renders compact thread rows under each project worktree", () => {
+  it("renders compact thread rows with inline creation affordances", () => {
     const source = readSource(
       "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
     );
 
-    expect(source).toContain("thread-list-item");
+    expect(source).toContain("ThreadStatusIcon");
     expect(source).toContain("create-thread-button");
+    expect(source).toContain("thread-inline-input");
   });
 
   it("does not render the old empty-state no threads copy in worktree sections", () => {
@@ -134,15 +135,14 @@ describe("moveRepositorySnapshots", () => {
     expect(source).not.toContain("No threads");
   });
 
-  it("keeps non-selected projects collapsed while only the active project can stay expanded", () => {
+  it("separates active and archived threads inside the unified rail", () => {
     const source = readSource(
       "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
     );
 
-    expect(source).toContain(
-      "const isActive = repository.id === activeRepositoryId",
-    );
-    expect(source).toContain("{isActive && allThreads.length > 0");
+    expect(source).toContain('label="Active"');
+    expect(source).toContain('label="Archived"');
+    expect(source).toContain("archivedThreads.map");
   });
 
   it("keeps the shell free of an extra helper column next to the sessions rail", () => {
@@ -162,26 +162,24 @@ describe("moveRepositorySnapshots", () => {
     expect(source).toContain('data-mode="workspace"');
   });
 
-  it("prevents text selection in the rail while keeping rename inputs selectable", () => {
+  it("prevents text selection in the rail while keeping inline rename selectable", () => {
     const source = readSource(
       "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
-    );
-    const threadSource = readSource(
-      "apps/desktop/src/renderer/src/components/workspace/thread-list-item.tsx",
     );
 
     expect(source).toContain("select-none flex-col");
-    expect(source).toContain("select-text bg-transparent");
-    expect(threadSource).toContain("select-text rounded border");
+    expect(source).toContain("thread-inline-input");
+    expect(source).toContain("inlineThreadInputRef.current?.select()");
   });
 
-  it("renames the marketplace action to packages and keeps the click handler hook", () => {
+  it("removes the thread naming modal in favor of inline rail editing", () => {
     const source = readSource(
       "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
     );
+    const appSource = readSource("apps/desktop/src/renderer/src/app.tsx");
 
-    expect(source).toContain("onOpenMarketplace");
-    expect(source).toContain(">Packages<");
-    expect(source).not.toContain(">Marketplace<");
+    expect(source).toContain("thread-inline-input");
+    expect(appSource).not.toContain("Name your new thread");
+    expect(appSource).not.toContain("Random Name");
   });
 });

@@ -178,6 +178,9 @@ describe("createPiDeskApi", () => {
       payload?: unknown,
     ) => {
       invokeCalls.push([channel, payload]);
+      if (channel === IPC_CHANNELS.threads.create) {
+        return "thread-created" as TReturn;
+      }
       return undefined as TReturn;
     };
 
@@ -226,6 +229,9 @@ describe("createPiDeskApi", () => {
       payload?: unknown,
     ) => {
       invokeCalls.push([channel, payload]);
+      if (channel === IPC_CHANNELS.threads.create) {
+        return "thread-created" as TReturn;
+      }
       return undefined as TReturn;
     };
 
@@ -244,10 +250,9 @@ describe("createPiDeskApi", () => {
     await Reflect.get(api.repositories, "remove")("/tmp/work/repo-one");
     await api.worktrees.create("/tmp/work/repo-one", "feature/runtime");
     await api.worktrees.select("/tmp/work/repo-one-feature");
-    await api.threads.create(
-      "/tmp/work/repo-one-feature",
-      "Investigate runtime",
-    );
+    await expect(
+      api.threads.create("/tmp/work/repo-one-feature", "Investigate runtime"),
+    ).resolves.toBe("thread-created");
     await api.threads.select("thread-123");
 
     expect(invokeCalls).toEqual([

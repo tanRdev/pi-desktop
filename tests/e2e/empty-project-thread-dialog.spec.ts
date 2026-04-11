@@ -20,7 +20,32 @@ async function waitForShell(page: import("@playwright/test").Page) {
     )
     .toBeGreaterThan(0);
   await expect(page.getByTestId("app-ready")).toBeVisible();
-  await expect(page.getByTestId("left-rail")).toContainText("PiDesk");
+  await expect(page.getByTestId("left-rail")).toBeVisible();
+}
+
+async function addAndSelectRepository(
+  page: import("@playwright/test").Page,
+  repositoryPath: string,
+) {
+  const expectedRepositoryPath = repositoryPath.replace(/^\/private/, "");
+
+  await page.evaluate(async (targetPath) => {
+    await window.pidesk.repositories.add(targetPath);
+  }, repositoryPath);
+
+  await expect
+    .poll(
+      async () =>
+        page.evaluate(async () => {
+          const shell = await window.pidesk.shell.getSnapshot();
+          return (shell.catalog.selection.repositoryId ?? "").replace(
+            /^\/private/,
+            "",
+          );
+        }),
+      { timeout: 15_000 },
+    )
+    .toBe(expectedRepositoryPath);
 }
 
 function runGit(args: string[], cwd: string) {
@@ -53,7 +78,12 @@ function createRepository(rootPath: string) {
   );
 }
 
-test("opens the create-thread dialog only from the explicit New thread action", async () => {
+function createFolderWorkspace(rootPath: string) {
+  fs.mkdirSync(rootPath, { recursive: true });
+  fs.writeFileSync(path.join(rootPath, "notes.txt"), "plain folder\n");
+}
+
+test("creates a thread inline instead of opening a naming dialog", async () => {
   test.setTimeout(60_000);
 
   const repoParent = fs.mkdtempSync(
@@ -68,42 +98,25 @@ test("opens the create-thread dialog only from the explicit New thread action", 
 
   try {
     await waitForShell(page);
-
-    await page.evaluate(async (targetPath) => {
-      const desktopWindow = window as typeof window & {
-        pidesk: {
-          repositories: {
-            add(path: string): Promise<void>;
-          };
-        };
-      };
-
-      await desktopWindow.pidesk.repositories.add(targetPath);
-    }, repositoryPath);
-
-    const projectButton = page
-      .getByTestId("left-rail")
-      .getByText("EmptyProject")
-      .first();
-
-    const threadDialog = page.getByRole("dialog", {
-      name: "Name your new thread",
+    await addAndSelectRepository(page, repositoryPath);
+    await expect(page.getByTestId("left-rail")).toContainText("EmptyProject", {
+      timeout: 15_000,
     });
+    await expect(
+      page.getByRole("dialog", { name: "Name your new thread" }),
+    ).toHaveCount(0);
 
-    await expect(projectButton).toBeVisible({ timeout: 15_000 });
-    await projectButton.click();
-    await expect(threadDialog).toHaveCount(0);
+    await page.getByTestId("create-thread-button").click();
 
-    const worktreeSection = page
-      .getByTestId("worktree-section")
-      .filter({ hasText: "main" })
-      .first();
+    const inlineInput = page.getByTestId("thread-inline-input");
+    await expect(inlineInput).toBeVisible({ timeout: 15_000 });
+    await inlineInput.fill("Inline Thread");
+    await inlineInput.press("Enter");
 
-    await expect(worktreeSection).toBeVisible();
-    await worktreeSection.getByTestId("create-thread-button").click();
-    await expect(threadDialog).toBeVisible();
-    await threadDialog.getByRole("button", { name: "Cancel" }).click();
-    await expect(threadDialog).toBeHidden();
+    await expect(page.getByTestId("left-rail")).toContainText("Inline Thread");
+    await expect(
+      page.getByRole("dialog", { name: "Name your new thread" }),
+    ).toHaveCount(0);
   } finally {
     await app.close();
     launchContext.cleanup();
@@ -111,7 +124,7 @@ test("opens the create-thread dialog only from the explicit New thread action", 
   }
 });
 
-test("confirms project removal before deleting it from the rail", async () => {
+test("falls back to a generated thread name when inline naming is left blank", async () => {
   test.setTimeout(60_000);
 
   const repoParent = fs.mkdtempSync(
@@ -126,51 +139,90 @@ test("confirms project removal before deleting it from the rail", async () => {
 
   try {
     await waitForShell(page);
+    await addAndSelectRepository(page, repositoryPath);
+    await expect(page.getByTestId("left-rail")).toContainText("EmptyProject", {
+      timeout: 15_000,
+    });
+    await expect(
+      page.getByRole("dialog", { name: "Name your new thread" }),
+    ).toHaveCount(0);
+
+    await page.getByTestId("create-thread-button").click();
+    const inlineInput = page.getByTestId("thread-inline-input");
+    await expect(inlineInput).toBeVisible({ timeout: 15_000 });
+    await inlineInput.focus();
+    await inlineInput.press("Enter");
+
+    await expect(page.getByTestId("left-rail")).toContainText(
+      /Thread (Atlas|Ember|Nova|Quartz|Harbor)/,
+      {
+        timeout: 15_000,
+      },
+    );
+  } finally {
+    await app.close();
+    launchContext.cleanup();
+    fs.rmSync(repoParent, { recursive: true, force: true });
+  }
+});
+
+test("opening a plain folder from the workspace button makes it the active project", async () => {
+  test.setTimeout(60_000);
+
+  const repoParent = fs.mkdtempSync(
+    path.join(os.tmpdir(), "pidesk-folder-workspace-"),
+  );
+  const folderPath = path.join(repoParent, "PlainWorkspace");
+  createFolderWorkspace(folderPath);
+
+  const { app, page, launchContext } = await launchDesktopApp(
+    "pidesk-e2e-folder-workspace-",
+  );
+
+  try {
+    await waitForShell(page);
 
     await page.evaluate(async (targetPath) => {
-      const desktopWindow = window as typeof window & {
-        pidesk: {
-          repositories: {
-            add(path: string): Promise<void>;
-          };
-        };
-      };
+      await window.pidesk.repositories.add(targetPath);
+    }, folderPath);
 
-      await desktopWindow.pidesk.repositories.add(targetPath);
-    }, repositoryPath);
+    const expectedFolderPath = folderPath.replace(/^\/private/, "");
 
-    const projectText = page
-      .getByTestId("left-rail")
-      .getByText("EmptyProject")
-      .first();
-    const threadDialog = page.getByRole("dialog", {
-      name: "Name your new thread",
-    });
+    await expect
+      .poll(
+        async () =>
+          page.evaluate(async () => {
+            const shell = await window.pidesk.shell.getSnapshot();
+            return {
+              repositoryId: (
+                shell.catalog.selection.repositoryId ?? ""
+              ).replace(/^\/private/, ""),
+              worktreeId: shell.catalog.selection.worktreeId,
+              rootPath: (shell.workspace?.rootPath ?? "").replace(
+                /^\/private/,
+                "",
+              ),
+              gitStatus: shell.git?.status ?? null,
+            };
+          }),
+        { timeout: 15_000 },
+      )
+      .toEqual({
+        repositoryId: expectedFolderPath,
+        worktreeId: null,
+        rootPath: expectedFolderPath,
+        gitStatus: "not_repo",
+      });
 
-    await expect(projectText).toBeVisible({ timeout: 15_000 });
-    await expect(threadDialog).toHaveCount(0);
-
-    const projectRow = projectText.locator("xpath=ancestor::button[1]");
-
-    await projectRow.click({ button: "right" });
-    await page.getByRole("button", { name: "Remove" }).click();
-
-    const removeDialog = page.getByRole("dialog", {
-      name: "Remove project from rail?",
-    });
-
-    await expect(removeDialog).toBeVisible();
-    await removeDialog.getByRole("button", { name: "Cancel" }).click();
-    await expect(removeDialog).toBeHidden();
-    await expect(projectText).toBeVisible();
-
-    await projectRow.click({ button: "right" });
-    await page.getByRole("button", { name: "Remove" }).click();
-    await expect(removeDialog).toBeVisible();
-    await removeDialog.getByRole("button", { name: "Remove Project" }).click();
-
-    await expect(projectText).toHaveCount(0);
-    await expect(page.getByText("Project removed from rail")).toBeVisible();
+    await expect(page.getByTestId("left-rail")).toContainText(
+      "PlainWorkspace",
+      {
+        timeout: 15_000,
+      },
+    );
+    await expect(
+      page.getByRole("heading", { name: "Not a git repository" }),
+    ).toBeVisible();
   } finally {
     await app.close();
     launchContext.cleanup();

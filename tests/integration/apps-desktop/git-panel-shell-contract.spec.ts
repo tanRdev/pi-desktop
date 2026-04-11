@@ -11,10 +11,15 @@ describe("git panel shell contract", () => {
     const shellSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx",
     );
+    const controllerSource = readSource(
+      "apps/desktop/src/renderer/src/hooks/use-app-shell-controller.ts",
+    );
 
     expect(shellSource).toContain("worktree={activeWorktree}");
-    expect(shellSource).toContain(
-      "repositoryPath={activeWorktree?.path ?? null}",
-    );
+    expect(shellSource).toContain("shellGit={shellGit}");
+    expect(shellSource).toContain("repositoryPath={");
+    expect(shellSource).toContain("activeWorktree?.path ??");
+    expect(shellSource).toContain("activeRepository?.rootPath ??");
+    expect(controllerSource).toContain("shellGit: shell.git ?? null");
   });
 });

@@ -651,4 +651,80 @@ describe("buildShellCatalog", () => {
       threadId: "thread-valid",
     });
   });
+
+  it("keeps an explicitly selected folder-backed repository active", async () => {
+    const catalog = await buildShellCatalog({
+      repositories: [
+        {
+          id: "/tmp/folder-workspace",
+          rootPath: "/tmp/folder-workspace",
+          label: null,
+          order: 0,
+          lastSelectedWorktreeId: null,
+          addedAt: 1,
+          updatedAt: 1,
+        },
+        {
+          id: "/tmp/repo-valid",
+          rootPath: "/tmp/repo-valid",
+          label: null,
+          order: 1,
+          lastSelectedWorktreeId: null,
+          addedAt: 2,
+          updatedAt: 2,
+        },
+      ],
+      selection: {
+        repositoryId: "/tmp/folder-workspace",
+        worktreeId: null,
+        threadId: null,
+      },
+      inspectRepository: (rootPath) =>
+        rootPath === "/tmp/folder-workspace"
+          ? {
+              status: "not_repo" as const,
+              message: null,
+            }
+          : {
+              status: "repository" as const,
+              rootPath,
+              currentWorktreePath: "/tmp/repo-valid/main",
+              defaultBranch: "main",
+              message: null,
+              worktrees: [
+                {
+                  id: "/tmp/repo-valid/main",
+                  path: "/tmp/repo-valid/main",
+                  isMain: true,
+                  isCurrent: true,
+                  isDetached: false,
+                  isPrunable: false,
+                  prunableReason: null,
+                  branch: "main",
+                  commit: "bbbbbbb",
+                  git: {
+                    status: "ready",
+                    branch: "main",
+                    commit: "bbbbbbb",
+                    hasChanges: false,
+                    ahead: 0,
+                    behind: 0,
+                    stagedCount: 0,
+                    modifiedCount: 0,
+                    untrackedCount: 0,
+                    message: null,
+                  },
+                },
+              ],
+            },
+      listThreadsByWorktree: () => [],
+      getRuntimeState: async () => ({ status: "ready", lastError: null }),
+    });
+
+    expect(catalog.selection).toEqual({
+      repositoryId: "/tmp/folder-workspace",
+      worktreeId: null,
+      threadId: null,
+    });
+  });
 });

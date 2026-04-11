@@ -5,6 +5,7 @@ import {
 } from "../../../apps/desktop/src/renderer/src/components/workspace/git-panel-model";
 import type {
   GitRepositoryStatus,
+  ShellGitSnapshot,
   WorktreeGitSnapshot,
   WorktreeSnapshot,
 } from "../../../packages/shared/src";
@@ -54,6 +55,25 @@ function createRepositoryStatus(
     stagedChanges: [],
     unstagedChanges: [],
     conflictedChanges: [],
+    ...overrides,
+  };
+}
+
+function createShellGitSnapshot(
+  overrides: Partial<ShellGitSnapshot> = {},
+): ShellGitSnapshot {
+  return {
+    status: "repository",
+    rootPath: "/tmp/pi-desktop",
+    branch: "main",
+    commit: "abc1234",
+    hasChanges: false,
+    ahead: 0,
+    behind: 0,
+    stagedCount: 0,
+    modifiedCount: 0,
+    untrackedCount: 0,
+    message: null,
     ...overrides,
   };
 }
@@ -160,6 +180,8 @@ describe("git-panel view model", () => {
     const viewModel = buildGitPanelViewModel({
       worktree: null,
       repositoryStatus: null,
+      repositoryPath: null,
+      shellGit: null,
     });
 
     expect(viewModel.branchLabel).toBe("No worktree");
@@ -174,6 +196,45 @@ describe("git-panel view model", () => {
       "Select a repository worktree to inspect its git state here.",
     );
     expect(viewModel.sections).toEqual([]);
+  });
+
+  it("shows a folder-backed workspace as not being a git repository", () => {
+    const viewModel = buildGitPanelViewModel({
+      worktree: null,
+      repositoryStatus: null,
+      repositoryPath: "/tmp/folder-workspace",
+      shellGit: createShellGitSnapshot({
+        status: "not_repo",
+        rootPath: undefined,
+        branch: undefined,
+        commit: undefined,
+        hasChanges: undefined,
+        ahead: undefined,
+        behind: undefined,
+        stagedCount: undefined,
+        modifiedCount: undefined,
+        untrackedCount: undefined,
+        message: null,
+      }),
+    });
+
+    expect(viewModel.branchLabel).toBe("Not a git repository");
+    expect(viewModel.commitLabel).toBe("No commit");
+    expect(viewModel.summary).toBe("Open folder only");
+    expect(viewModel.syncLabel).toBe("Git unavailable");
+    expect(viewModel.commitActionLabel).toBeNull();
+    expect(viewModel.pullActionLabel).toBeNull();
+    expect(viewModel.pushActionLabel).toBeNull();
+    expect(viewModel.statusTone).toBe("muted");
+    expect(viewModel.statusMessage).toBe(
+      "This folder is open, but it is not a git repository.",
+    );
+    expect(viewModel.sections).toEqual([
+      {
+        title: "Workspace",
+        rows: [{ label: "Path", value: "/tmp/folder-workspace" }],
+      },
+    ]);
   });
 
   it("keeps detached worktrees explicit in the summary", () => {

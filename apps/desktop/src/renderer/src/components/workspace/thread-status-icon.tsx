@@ -40,6 +40,16 @@ export function ThreadStatusIcon({
     case "working":
       return <WorkingSpinner className={className} />;
     case "archived":
+      return (
+        <span
+          role="img"
+          className={cn(
+            "inline-block size-1.5 rounded-full bg-white/15",
+            className,
+          )}
+          aria-label="Archived"
+        />
+      );
     case "idle":
       return (
         <span
@@ -48,7 +58,7 @@ export function ThreadStatusIcon({
             "inline-block size-1.5 rounded-full bg-white/15",
             className,
           )}
-          aria-label={displayStatus === "archived" ? "Archived" : "Idle"}
+          aria-label="Idle"
         />
       );
   }

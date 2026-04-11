@@ -1,0 +1,365 @@
+$ electron-vite dev
+vite v8.0.0 building ssr environment for development...
+
+transforming (655) ../../node_modules/.bun/highlight.js@10.7.3/node_modules/highlight.js/lib/l
+transforming (661) ../../node_modules/.bun/highlight.js@10.7.3/node_modules/highlight.js/lib/l
+transforming (660) ../../node_modules/.bun/highlight.js@10.7.3/node_modules/highlight.js/lib/l
+transforming (659) ../../node_modules/.bun/highlight.js@10.7.3/node_modules/highlight.js/lib/l
+transforming (657) ../../node_modules/.bun/highlight.js@10.7.3/node_modules/highlight.js/lib/l
+transforming (656) ../../node_modules/.bun/highlight.js@10.7.3/node_modules/highlight.js/lib/l
+transforming (658) ../../node_modules/.bun/highlight.js@10.7.3/node_modules/highlight.js/lib/l
+transforming (1244) ../../node_modules/.bun/@mistralai+mistralai@1.14.1/node_modules/@mistrala
+✓ 1678 modules transformed.
+
+rendering chunks (1)...
+rendering chunks (2)...
+rendering chunks (3)...
+rendering chunks (4)...
+rendering chunks (5)...
+rendering chunks (6)...
+rendering chunks (7)...
+rendering chunks (8)...
+rendering chunks (9)...
+rendering chunks (10)...
+rendering chunks (11)...
+rendering chunks (12)...
+
+out/main/chunks/chunk-DzBkbe55.js                         1.77 kB
+out/main/chunks/multipart-parser-CFizDb9y.js              8.77 kB
+out/main/chunks/dist-DS-Ljiwb.js                         15.62 kB
+out/main/chunks/src-3KIa4wXj.js                          42.97 kB
+out/main/chunks/photon_rs-CddgMvGP.js                   134.67 kB
+out/main/chunks/from-DFMrpB5x.js                        173.46 kB
+out/main/agent-host-session-server-entry-Dbt14KdA.js  9,580.91 kB
+out/main/chunks/dist-D27vOeGA.js                          0.11 kB
+out/main/agentHostSessionServer.js                        0.79 kB
+out/main/chunks/chunk-CyLJMB0t.js                         1.77 kB
+out/main/chunks/multipart-parser-DTsut5Zo.js              8.77 kB
+out/main/chunks/dist-ChahkRX2.js                         15.59 kB
+out/main/chunks/src-yoPeElRg.js                          22.42 kB
+out/main/chunks/agent-host-runtime-Ca1lxTi0.js           33.88 kB
+out/main/chunks/src-DvFZuQ91.js                          42.97 kB
+out/main/chunks/photon_rs-DaxcJ9oO.js                   134.67 kB
+out/main/index.js                                       143.94 kB
+out/main/chunks/from-CI9XQQC3.js                        173.46 kB
+out/main/chunks/dist-DWlqzkBd.js                      9,528.09 kB
+
+
+✓ built in 1.24s
+
+electron main process built successfully
+
+-----
+
+vite v8.0.0 building ssr environment for development...
+
+ WARN  inlineDynamicImports option is deprecated, please use codeSplitting: false instead.      
+
+
+✓ 21 modules transformed.
+
+rendering chunks (1)...
+
+out/preload/index.cjs  10.88 kB
+
+✓ built in 12ms
+
+electron preload scripts built successfully
+
+-----
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+11:00:31 PM [vite] warning: `esbuild` option was specified by "vite:react-babel" plugin. This option is deprecated, please use `oxc` instead.
+`optimizeDeps.rollupOptions` / `ssr.optimizeDeps.rollupOptions` is deprecated. Use `optimizeDeps.rolldownOptions` instead. Note that this option may be set by a plugin. Set VITE_DEPRECATION_TRACE=1 to see where it is called.
+[vite:react-babel] We recommend switching to `@vitejs/plugin-react-oxc` for improved performance. More information at https://vite.dev/rolldown
+11:00:31 PM [vite] (client) Re-optimizing dependencies because vite config has changed
+Warning: Invalid input options (1 issue found)
+- For the "jsx". Invalid key: Expected never but received "jsx". 
+dev server running for the electron renderer process at:
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+
+starting electron app...
+
+Warning: Invalid input options (1 issue found)
+- For the "jsx". Invalid key: Expected never but received "jsx". 
+11:00:33 PM [vite] (client) [console.warn] [React Grab] v0.1.29 is outdated (latest: v0.1.31)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+11:06:40 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/thread-status-icon.tsx
+11:06:40 PM [vite] (client) hmr invalidate /src/components/workspace/thread-status-icon.tsx Could not Fast Refresh ("deriveThreadDisplayStatus" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+11:06:40 PM [vite] (client) hmr update /src/components/workspace/left-rail.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+11:06:55 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/left-rail.tsx
+11:06:56 PM [vite] (client) [Unhandled error] ReferenceError: CaretDown is not defined
+ > CaretDown src/components/workspace/left-rail.tsx:397:18
+    395 |            <ThreadCategorySection
+    396 |              label="Active"
+    397 |              icon={CaretDown}
+        |                    ^
+    398 |              count={activeThreads.length}
+    399 |              isExpanded={expandedSection === "active"}
+ > Object.react_stack_bottom_frame ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:25904:19
+ > renderWithHooks ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:7662:21
+ > updateFunctionComponent ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:10166:18
+ > beginWork ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:11778:17
+ > runWithFiberInDEV ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:871:29
+ > performUnitOfWork ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:17641:21
+ > workLoopSync ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:17469:40
+ > renderRootSync ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:17450:10
+ > performWorkOnRoot ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:16583:34
+
+11:06:56 PM [vite] (client) [console.warn] An error occurred in the <LeftRail> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+11:07:16 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/left-rail.tsx
+11:07:16 PM [vite] (client) [Unhandled error] ReferenceError: CaretDown is not defined
+ > CaretDown src/components/workspace/left-rail.tsx:411:18
+    409 |            <ThreadCategorySection
+    410 |              label="Active"
+    411 |              icon={CaretDown}
+        |                    ^
+    412 |              count={activeThreads.length}
+    413 |              isExpanded={expandedSection === "active"}
+ > Object.react_stack_bottom_frame ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:25904:19
+ > renderWithHooks ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:7662:21
+ > updateFunctionComponent ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:10166:18
+ > beginWork ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:11778:17
+ > runWithFiberInDEV ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:871:29
+ > performUnitOfWork ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:17641:21
+ > workLoopSync ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:17469:40
+ > renderRootSync ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:17450:10
+ > performWorkOnRoot ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:16583:34
+
+11:07:16 PM [vite] (client) [console.warn] An error occurred in the <LeftRail> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+11:07:22 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/left-rail.tsx
+11:07:22 PM [vite] (client) [Unhandled error] ReferenceError: CaretDown is not defined
+ > CaretDown src/components/workspace/left-rail.tsx:407:18
+    405 |            <ThreadCategorySection
+    406 |              label="Active"
+    407 |              icon={CaretDown}
+        |                    ^
+    408 |              count={activeThreads.length}
+    409 |              isExpanded={expandedSection === "active"}
+ > Object.react_stack_bottom_frame ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:25904:19
+ > renderWithHooks ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:7662:21
+ > updateFunctionComponent ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:10166:18
+ > beginWork ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:11778:17
+ > runWithFiberInDEV ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:871:29
+ > performUnitOfWork ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:17641:21
+ > workLoopSync ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:17469:40
+ > renderRootSync ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:17450:10
+ > performWorkOnRoot ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:16583:34
+
+11:07:22 PM [vite] (client) [console.warn] An error occurred in the <LeftRail> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+11:07:40 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/left-rail.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+11:16:05 PM [vite] (client) hmr update /src/app.tsx, /src/app.css
+11:16:05 PM [vite] (client) [console.error] React has detected a change in the order of Hooks called by App. This will lead to bugs and errors if not fixed. For more information, read the Rules of Hooks: https://react.dev/link/rules-of-hooks
+
+   Previous render            Next render
+   ------------------------------------------------------
+1. useSyncExternalStore       useSyncExternalStore
+2. useEffect                  useEffect
+3. useCallback                useCallback
+4. useCallback                useCallback
+5. useCallback                useCallback
+6. useCallback                useCallback
+7. useCallback                useCallback
+8. useSyncExternalStore       useSyncExternalStore
+9. useMemo                    useMemo
+10. useMemo                   useMemo
+11. useMemo                   useMemo
+12. useCallback               useSyncExternalStore
+   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+11:16:05 PM [vite] (client) [Unhandled error] TypeError: Cannot read properties of null (reading 'getSnapshot')
+ > updateSyncExternalStore ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:8197:13
+ > Object.useSyncExternalStore ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:26537:15
+ > exports.useSyncExternalStore ../../../../node_modules/.bun/react@19.2.4/node_modules/react/cjs/react.development.js:1270:33
+ > useAppShellController src/hooks/use-app-shell-controller.ts:156:41
+    154 |    const activeWorktreePath = activeWorktree?.path ?? null;
+    155 |    const activeThreadId = activeThread?.id ?? null;
+    156 |    const activeThreadConversation = React.useSyncExternalStore(
+        |                                           ^
+    157 |      workspaceSessionStore.subscribe,
+    158 |      () =>
+ > useAppShellController src/app.tsx:19:21
+ > Object.react_stack_bottom_frame ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:25904:19
+ > renderWithHooks ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:7662:21
+ > updateFunctionComponent ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:10166:18
+ > beginWork ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:11778:17
+ > runWithFiberInDEV ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:871:29
+
+11:16:05 PM [vite] (client) [console.warn] An error occurred in the <App> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+

@@ -62,6 +62,8 @@ let mainWindow: BrowserWindow | null = null;
 const AGENT_BOOTSTRAP_ERROR_SESSION_ID = "bootstrap-error";
 const SOCKET_CONNECT_TIMEOUT_MS = 5_000;
 const SOCKET_CONNECT_RETRY_MS = 50;
+const NON_REPOSITORY_WORKSPACE_MESSAGE =
+  "This folder is open, but it is not a git repository.";
 
 type AgentDesktopHost = {
   getProviders(): Promise<ProviderSnapshot[]>;
@@ -470,6 +472,46 @@ async function bootstrapDesktop() {
     return attachContext(await resolveDefaultThreadContext(targetPath));
   }
 
+  function selectFolderWorkspace(targetPath: string): void {
+    const repositoryEntry = repositoryCatalog.upsert({ rootPath: targetPath });
+    const previousTransport = currentTransport;
+    const previousUnsubscribe = unsubscribe;
+
+    currentContext = null;
+    currentHost = createBootstrapErrorHost(NON_REPOSITORY_WORKSPACE_MESSAGE);
+    currentTransport = null;
+    unsubscribe = subscribeToHost(currentHost, null);
+    selectionState.replace({
+      repositoryId: repositoryEntry.id,
+      worktreeId: null,
+      threadId: null,
+    });
+
+    previousUnsubscribe();
+    previousTransport?.close();
+  }
+
+  async function activateWorkspacePath(targetPath: string): Promise<void> {
+    const inspection = gitService.inspect(targetPath);
+
+    if (
+      inspection.status === "repository" &&
+      inspection.rootPath &&
+      inspection.currentWorktreePath &&
+      inspection.worktrees
+    ) {
+      commitAttachment(await attachToPath(targetPath));
+      return;
+    }
+
+    if (inspection.status === "not_repo") {
+      selectFolderWorkspace(targetPath);
+      return;
+    }
+
+    throw new Error(inspection.message ?? "Selected directory is unavailable");
+  }
+
   async function attachToRepository(repositoryId: string) {
     return attachContext(await resolveRepositoryContext(repositoryId));
   }
@@ -541,16 +583,19 @@ async function bootstrapDesktop() {
     },
   );
 
-  const preferredWorktreePath =
-    selectionState.get().worktreeId ?? process.cwd();
+  const preferredSelection = selectionState.get();
+  const preferredWorkspacePath =
+    preferredSelection.worktreeId ??
+    preferredSelection.repositoryId ??
+    process.cwd();
 
   try {
-    commitAttachment(await attachToPath(preferredWorktreePath));
+    await activateWorkspacePath(preferredWorkspacePath);
   } catch (error) {
     const fallbackPath = process.cwd();
-    if (preferredWorktreePath !== fallbackPath) {
+    if (preferredWorkspacePath !== fallbackPath) {
       try {
-        commitAttachment(await attachToPath(fallbackPath));
+        await activateWorkspacePath(fallbackPath);
       } catch (fallbackError) {
         currentHost = createBootstrapErrorHost(
           fallbackError instanceof Error
@@ -610,7 +655,10 @@ async function bootstrapDesktop() {
         platform: process.platform,
         env: process.env,
         isPackaged: app.isPackaged,
-        cwd: selection.worktreeId ?? preferredWorktreePath,
+        cwd:
+          selection.worktreeId ??
+          selection.repositoryId ??
+          preferredWorkspacePath,
         agentDir: currentContext?.agentDirectory ?? undefined,
         agentMode: currentContext?.agentMode,
         agentSnapshot,
@@ -625,16 +673,22 @@ async function bootstrapDesktop() {
       cancelPrompt: () => currentHost.cancelPrompt(),
       reset: () => currentHost.reset(),
       addRepository: async (targetPath) => {
-        commitAttachment(await attachToPath(targetPath));
+        await activateWorkspacePath(targetPath);
         notifySessionChanged();
       },
       reorderRepositories: async (repositoryIds) => {
         repositoryCatalog.reorder(repositoryIds);
       },
       selectRepository: async (repositoryId) => {
-        await contextSwitchController.switchContext(() =>
-          resolveRepositoryContext(repositoryId),
+        const repository = repositoryCatalog.get(repositoryId);
+        if (!repository) {
+          throw new Error(`Unknown repository: ${repositoryId}`);
+        }
+
+        await activateWorkspacePath(
+          repository.lastSelectedWorktreeId ?? repository.rootPath,
         );
+        notifySessionChanged();
       },
       removeRepository: async (repositoryId) => {
         const repository = repositoryCatalog.get(repositoryId);
@@ -643,7 +697,8 @@ async function bootstrapDesktop() {
         }
 
         const isActiveRepository =
-          currentContext?.repositoryId === repository.id;
+          (currentContext?.repositoryId ??
+            selectionState.get().repositoryId) === repository.id;
 
         repositoryCatalog.remove(repositoryId);
         repositoryPreferencesCatalog.remove(repositoryId);
@@ -669,9 +724,10 @@ async function bootstrapDesktop() {
           return;
         }
 
-        await contextSwitchController.switchContext(() =>
-          resolveRepositoryContext(nextRepository.id),
+        await activateWorkspacePath(
+          nextRepository.lastSelectedWorktreeId ?? nextRepository.rootPath,
         );
+        notifySessionChanged();
       },
       openRepositoryInFinder: async (repositoryId) => {
         const repository = repositoryCatalog.get(repositoryId);
@@ -692,9 +748,9 @@ async function bootstrapDesktop() {
         );
       },
       createThread: async (worktreeId, title) => {
-        await contextSwitchController.switchContext(() =>
-          createThreadContext(worktreeId, title),
-        );
+        const context = await createThreadContext(worktreeId, title);
+        await contextSwitchController.switchContext(async () => context);
+        return context.thread.id;
       },
       selectThread: async (threadId) => {
         await contextSwitchController.switchContext(() =>

@@ -212,15 +212,28 @@ function reconcileSelection(
   repositories: ShellCatalogSnapshot["repositories"],
   selection: AppSelectionState,
 ): AppSelectionState {
-  const repositoriesWithWorktrees = repositories.filter(
-    (repository) => repository.worktrees.length > 0,
-  );
   const repository =
-    repositoriesWithWorktrees.find(
-      (item) => item.id === selection.repositoryId,
-    ) ??
-    repositoriesWithWorktrees[0] ??
+    repositories.find((item) => item.id === selection.repositoryId) ??
+    repositories.find((item) => item.worktrees.length > 0) ??
+    repositories[0] ??
     null;
+
+  if (!repository) {
+    return {
+      repositoryId: null,
+      worktreeId: null,
+      threadId: null,
+    };
+  }
+
+  if (repository.worktrees.length === 0) {
+    return {
+      repositoryId: repository.id,
+      worktreeId: null,
+      threadId: null,
+    };
+  }
+
   const worktree = repository
     ? (repository.worktrees.find((item) => item.id === selection.worktreeId) ??
       repository.worktrees[0] ??

@@ -140,7 +140,10 @@ export function createPiDeskApi({
     },
     threads: {
       create(worktreeId: string, title?: string) {
-        return invoke<void>(IPC_CHANNELS.threads.create, { worktreeId, title });
+        return invoke<string>(IPC_CHANNELS.threads.create, {
+          worktreeId,
+          title,
+        });
       },
       select(threadId: string) {
         return invoke<void>(IPC_CHANNELS.threads.select, { threadId });

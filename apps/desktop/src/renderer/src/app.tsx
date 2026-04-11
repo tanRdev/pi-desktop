@@ -105,69 +105,6 @@ export default function App() {
           />
 
           <Dialog
-            open={controller.isCreateThreadOpen}
-            onOpenChange={controller.setCreateThreadOpen}
-          >
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Name your new thread</DialogTitle>
-                <DialogDescription>
-                  {controller.pendingThreadRepositoryName
-                    ? `Start a conversation in ${controller.pendingThreadRepositoryName}. Leave empty for a random name.`
-                    : "Leave empty for a random name."}
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-3 px-6 py-4">
-                <input
-                  data-testid="thread-name-input"
-                  value={controller.newThreadName}
-                  onChange={(e) => controller.setNewThreadName(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      void controller.submitCreateThread();
-                    }
-                  }}
-                  placeholder="Leave empty for a random name"
-                  className={cn(
-                    "w-full rounded border border-white/[0.06] bg-[#141414] px-3 py-2 text-[13px] text-white/80 outline-none",
-                    "transition-all duration-[var(--duration-fast)]",
-                    "focus:border-white/[0.12] focus:ring-1 focus:ring-white/[0.06]",
-                    "placeholder:text-white/30",
-                  )}
-                />
-                {controller.threadCreateError ? (
-                  <p className="text-[12px] text-destructive">
-                    {controller.threadCreateError}
-                  </p>
-                ) : null}
-              </div>
-              <DialogFooter>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => controller.setCreateThreadOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => controller.setNewThreadName("")}
-                >
-                  Random Name
-                </Button>
-                <Button
-                  type="button"
-                  onClick={() => void controller.submitCreateThread()}
-                >
-                  Create Thread
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog
             open={controller.isRemoveRepositoryOpen}
             onOpenChange={controller.setRemoveRepositoryOpen}
           >

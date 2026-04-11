@@ -1,0 +1,950 @@
+$ electron-vite dev
+vite v8.0.0 building ssr environment for development...
+
+transforming (784) ../../node_modules/.pnpm/highlight.js@10.7.3/node_modules/highlight.js/lib/
+transforming (791) ../../node_modules/.pnpm/highlight.js@10.7.3/node_modules/highlight.js/lib/
+transforming (786) ../../node_modules/.pnpm/highlight.js@10.7.3/node_modules/highlight.js/lib/
+transforming (787) ../../node_modules/.pnpm/highlight.js@10.7.3/node_modules/highlight.js/lib/
+transforming (783) ../../node_modules/.pnpm/highlight.js@10.7.3/node_modules/highlight.js/lib/
+transforming (788) ../../node_modules/.pnpm/highlight.js@10.7.3/node_modules/highlight.js/lib/
+transforming (790) ../../node_modules/.pnpm/highlight.js@10.7.3/node_modules/highlight.js/lib/
+transforming (789) ../../node_modules/.pnpm/highlight.js@10.7.3/node_modules/highlight.js/lib/
+transforming (785) ../../node_modules/.pnpm/highlight.js@10.7.3/node_modules/highlight.js/lib/
+transforming (1307) ../../node_modules/.pnpm/openai@6.26.0_ws@8.19.0_zod@4.3.6/node_modules/op
+transforming (1309) ../../node_modules/.pnpm/openai@6.26.0_ws@8.19.0_zod@4.3.6/node_modules/op
+transforming (1308) ../../node_modules/.pnpm/openai@6.26.0_ws@8.19.0_zod@4.3.6/node_modules/op
+✓ 1678 modules transformed.
+
+rendering chunks (1)...
+rendering chunks (2)...
+rendering chunks (3)...
+rendering chunks (4)...
+rendering chunks (5)...
+rendering chunks (6)...
+rendering chunks (7)...
+rendering chunks (8)...
+rendering chunks (9)...
+rendering chunks (10)...
+rendering chunks (11)...
+rendering chunks (12)...
+
+out/main/chunks/chunk-DzBkbe55.js                         1.77 kB
+out/main/chunks/multipart-parser-C3NQeOEm.js              8.77 kB
+out/main/chunks/dist-BmAQf8s_.js                         15.62 kB
+out/main/chunks/src-kYDZRaGG.js                          42.98 kB
+out/main/chunks/photon_rs-DSj_fRU2.js                   134.67 kB
+out/main/chunks/from-D7uLC0y1.js                        173.46 kB
+out/main/agent-host-session-server-entry-qcccR59D.js  9,591.20 kB
+out/main/chunks/dist-Cv3E7CQW.js                          0.11 kB
+out/main/agentHostSessionServer.js                        0.79 kB
+out/main/chunks/chunk-CyLJMB0t.js                         1.77 kB
+out/main/chunks/multipart-parser-D2ms4_WH.js              8.77 kB
+out/main/chunks/dist-C8rZDyJE.js                         15.59 kB
+out/main/chunks/src-DMS5Mf3I.js                          22.43 kB
+out/main/chunks/agent-host-runtime-BPRusG7U.js           33.88 kB
+out/main/chunks/src-lMMu9jrM.js                          42.98 kB
+out/main/chunks/photon_rs-zFnungWQ.js                   134.67 kB
+out/main/index.js                                       143.94 kB
+out/main/chunks/from-f7ncyPLF.js                        173.46 kB
+out/main/chunks/dist-CpUtTRIL.js                      9,538.36 kB
+
+
+✓ built in 1.23s
+
+electron main process built successfully
+
+-----
+
+vite v8.0.0 building ssr environment for development...
+
+ WARN  inlineDynamicImports option is deprecated, please use codeSplitting: false instead.      
+
+
+✓ 21 modules transformed.
+
+rendering chunks (1)...
+
+out/preload/index.cjs  10.88 kB
+
+✓ built in 11ms
+
+electron preload scripts built successfully
+
+-----
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10:21:08 PM [vite] warning: `esbuild` option was specified by "vite:react-babel" plugin. This option is deprecated, please use `oxc` instead.
+`optimizeDeps.rollupOptions` / `ssr.optimizeDeps.rollupOptions` is deprecated. Use `optimizeDeps.rolldownOptions` instead. Note that this option may be set by a plugin. Set VITE_DEPRECATION_TRACE=1 to see where it is called.
+[vite:react-babel] We recommend switching to `@vitejs/plugin-react-oxc` for improved performance. More information at https://vite.dev/rolldown
+dev server running for the electron renderer process at:
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+
+starting electron app...
+
+10:21:12 PM [vite] (client) [console.warn] [React Grab] v0.1.28 is outdated (latest: v0.1.31)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10:25:00 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/left-rail.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10:25:00 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/left-rail.tsx (x2)
+10:25:01 PM [vite] (client) [Unhandled error] ReferenceError: activeThreadId is not defined
+ > activeThreadId src/components/workspace/left-rail.tsx:458:36
+    456 |                      key={worktree.id}
+    457 |                      worktree={worktree}
+    458 |                      activeThreadId={activeThreadId}
+        |                                      ^
+    459 |                      isExpanded={expandedWorktreeIds.has(worktree.id)}
+    460 |                      onToggleExpand={() => {
+ > map src/components/workspace/left-rail.tsx:454:44
+ > Object.react_stack_bottom_frame ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:25904:19
+ > renderWithHooks ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:7662:21
+ > updateFunctionComponent ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:10166:18
+ > beginWork ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:11778:17
+ > runWithFiberInDEV ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:871:29
+ > performUnitOfWork ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:17641:21
+ > workLoopSync ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:17469:40
+
+10:25:01 PM [vite] (client) [console.warn] An error occurred in the <LeftRail> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10:25:08 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/left-rail.tsx
+10:25:09 PM [vite] (client) [Unhandled error] ReferenceError: activeThreadId is not defined
+ > activeThreadId src/components/workspace/left-rail.tsx:458:36
+    456 |                      key={worktree.id}
+    457 |                      worktree={worktree}
+    458 |                      activeThreadId={activeThreadId}
+        |                                      ^
+    459 |                      isExpanded={expandedWorktreeIds.has(worktree.id)}
+    460 |                      onToggleExpand={() => {
+ > map src/components/workspace/left-rail.tsx:454:44
+ > Object.react_stack_bottom_frame ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:25904:19
+ > renderWithHooks ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:7662:21
+ > updateFunctionComponent ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:10166:18
+ > beginWork ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:11778:17
+ > runWithFiberInDEV ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:871:29
+ > performUnitOfWork ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:17641:21
+ > workLoopSync ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:17469:40
+
+10:25:09 PM [vite] (client) [console.warn] An error occurred in the <LeftRail> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10:25:28 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/left-rail.tsx
+10:25:28 PM [vite] (client) [Unhandled error] ReferenceError: onSelectThread is not defined
+ > onSelectThread src/components/workspace/left-rail.tsx:465:36
+    463 |                        toggleWorktree(worktree.id);
+    464 |                      }}
+    465 |                      onSelectThread={onSelectThread}
+        |                                      ^
+    466 |                      onCreateThread={() => onCreateThread(worktree.id)}
+    467 |                      onCloseThread={onCloseThread}
+ > map src/components/workspace/left-rail.tsx:455:44
+ > Object.react_stack_bottom_frame ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:25904:19
+ > renderWithHooks ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:7662:21
+ > updateFunctionComponent ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:10166:18
+ > beginWork ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:11778:17
+ > runWithFiberInDEV ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:871:29
+ > performUnitOfWork ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:17641:21
+ > workLoopSync ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:17469:40
+
+10:25:28 PM [vite] (client) [console.warn] An error occurred in the <LeftRail> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10:25:46 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/left-rail.tsx
+10:25:46 PM [vite] (client) [console.error] In HTML, <button> cannot be a descendant of <button>.
+This will cause a hydration error.
+
+  ...
+    <div className="h-full tra..." style={{width:260}}>
+      <LeftRail repositories={[...]} activeRepositoryId="/Users/tan..." activeWorktreeId="/Users/tan..." ...>
+        <aside data-testid="left-rail" data-mode="workspace" className="relative z..." style={{width:260}}>
+          <div>
+          <div className="min-h-0 fl...">
+            <div>
+            <div className="space-y-0....">
+              <div className="mt-2 px-2 ...">
+                <div>
+                <div className="space-y-1">
+                  <WorktreeSection worktree={{id:"/Users...", ...}} activeThreadId="6a8ed6e3-e..." isExpanded={true} ...>
+                    <div data-testid="worktree-s..." data-worktree-id="/Users/tan..." data-worktree-label="main">
+                      <button>
+                      <div className="grid trans...">
+                        <div className="overflow-h...">
+                          <div className="relative py-1">
+                            <div>
+                            <div className="space-y-0 ...">
+                              <div className="stagger-it..." style={{...}}>
+                                <div>
+                                <ThreadListItem thread={{id:"6a8ed6...", ...}} isActive={true} onClick={function onClick} ...>
+>                                 <button
+>                                   data-testid="thread-list-item"
+>                                   type="button"
+>                                   onClick={function onClick}
+>                                   className="group flex w-full items-center gap-1.5 rounded-md px-1.5 py-1.5 text-le..."
+>                                 >
+                                    <ChatTextIcon>
+                                    <div>
+>                                   <button
+>                                     type="button"
+>                                     data-testid="thread-rename-button"
+>                                     onClick={function}
+>                                     className="ml-0.5 flex size-5 shrink-0 cursor-pointer items-center justify-cente..."
+>                                     aria-label="Rename thread"
+>                                     title="Rename thread"
+>                                   >
+                                    ...
+                              ...
+                            ...
+              ...
+          ...
+
+10:25:56 PM [vite] (client) [console.warn] [React Grab] v0.1.28 is outdated (latest: v0.1.31)
+10:25:56 PM [vite] (client) [console.error] In HTML, <button> cannot be a descendant of <button>.
+This will cause a hydration error.
+
+  ...
+    <div className="h-full tra..." style={{width:260}}>
+      <LeftRail repositories={[...]} activeRepositoryId="/Users/tan..." activeWorktreeId="/Users/tan..." ...>
+        <aside data-testid="left-rail" data-mode="workspace" className="relative z..." style={{width:260}}>
+          <div>
+          <div className="min-h-0 fl...">
+            <div>
+            <div className="space-y-0....">
+              <div className="mt-2 px-2 ...">
+                <div>
+                <div className="space-y-1">
+                  <WorktreeSection worktree={{id:"/Users...", ...}} activeThreadId="6a8ed6e3-e..." isExpanded={false} ...>
+                    <div data-testid="worktree-s..." data-worktree-id="/Users/tan..." data-worktree-label="main">
+                      <button>
+                      <div className="grid trans...">
+                        <div className="overflow-h...">
+                          <div className="relative py-1">
+                            <div>
+                            <div className="space-y-0 ...">
+                              <div className="stagger-it..." style={{...}}>
+                                <div>
+                                <ThreadListItem thread={{id:"6a8ed6...", ...}} isActive={true} onClick={function onClick} ...>
+>                                 <button
+>                                   data-testid="thread-list-item"
+>                                   type="button"
+>                                   onClick={function onClick}
+>                                   className="group flex w-full items-center gap-1.5 rounded-md px-1.5 py-1.5 text-le..."
+>                                 >
+                                    <ChatTextIcon>
+                                    <div>
+>                                   <button
+>                                     type="button"
+>                                     data-testid="thread-rename-button"
+>                                     onClick={function}
+>                                     className="ml-0.5 flex size-5 shrink-0 cursor-pointer items-center justify-cente..."
+>                                     aria-label="Rename thread"
+>                                     title="Rename thread"
+>                                   >
+                                    ...
+                              ...
+                            ...
+              ...
+          ...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10:26:08 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/left-rail.tsx
+10:26:09 PM [vite] (client) [console.warn] [React Grab] v0.1.28 is outdated (latest: v0.1.31)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10:43:36 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/git-status-chip.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10:43:42 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/git-status-chip.tsx (x2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10:48:45 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/thread-list-item.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10:48:51 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/left-rail.tsx
+10:48:51 PM [vite] (client) [console.error] [vite] Failed to reload /src/components/workspace/left-rail.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10:49:51 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/left-rail.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10:51:40 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/git-status-chip.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10:51:40 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/thread-list-item.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10:51:40 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/left-rail.tsx
+10:51:40 PM [vite] (client) [console.error] In HTML, <button> cannot be a descendant of <button>.
+This will cause a hydration error.
+
+  ...
+    <RailThreadGroup label="Active" icon={{...}} count={2} isExpanded={true} onToggle={function onToggle}>
+      <section className="space-y-1">
+        <button>
+        <div className="grid trans...">
+          <div className="overflow-h...">
+            <div className="space-y-2 ...">
+              <div className="space-y-1" onDragOver={function onDragOver} onDrop={function onDrop}>
+                <button>
+                <div className="space-y-0....">
+                  <WorktreeSection worktree={{id:"/Users...", ...}} activeThreadId="6a8ed6e3-e..." isExpanded={true} ...>
+                    <div data-testid="worktree-s..." data-worktree-id="/Users/tan..." data-worktree-label="main">
+                      <button>
+                      <div className="grid trans...">
+                        <div className="overflow-h...">
+                          <div className="relative py-1">
+                            <div>
+                            <div className="space-y-0 ...">
+                              <div className="stagger-it..." style={{...}}>
+                                <div>
+                                <ThreadListItem thread={{id:"6a8ed6...", ...}} isActive={true} onClick={function onClick} ...>
+>                                 <button
+>                                   data-testid="thread-list-item"
+>                                   type="button"
+>                                   onClick={function onClick}
+>                                   className="group flex w-full items-center gap-1.5 rounded-md px-1.5 py-1.5 text-le..."
+>                                 >
+                                    <ChatTextIcon>
+                                    <div>
+>                                   <button
+>                                     type="button"
+>                                     data-testid="thread-rename-button"
+>                                     onClick={function}
+>                                     className="ml-0.5 flex size-5 shrink-0 cursor-pointer items-center justify-cente..."
+>                                     aria-label="Rename thread"
+>                                     title="Rename thread"
+>                                   >
+                                    ...
+                              ...
+                            ...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10:54:31 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/left-rail.tsx
+10:54:31 PM [vite] (client) [Unhandled error] ReferenceError: CheckCircle is not defined
+ > CheckCircle src/components/workspace/left-rail.tsx:450:18
+    448 |            <CategoryItem
+    449 |              label="Done"
+    450 |              icon={CheckCircle}
+        |                    ^
+    451 |              count={MOCK_THREADS.done.length}
+    452 |              isExpanded={expandedCategoryId === "done"}
+ > Object.react_stack_bottom_frame ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:25904:19
+ > renderWithHooks ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:7662:21
+ > updateFunctionComponent ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:10166:18
+ > beginWork ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:11778:17
+ > runWithFiberInDEV ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:871:29
+ > performUnitOfWork ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:17641:21
+ > workLoopSync ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:17469:40
+ > renderRootSync ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:17450:10
+ > performWorkOnRoot ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:16583:34
+
+10:54:31 PM [vite] (client) [console.warn] An error occurred in the <LeftRail> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10:54:53 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/left-rail.tsx
+10:54:53 PM [vite] (client) [Unhandled error] ReferenceError: CheckCircle is not defined
+ > CheckCircle src/components/workspace/left-rail.tsx:440:18
+    439 |          </div>
+    440 |  
+    441 |          <div className="space-y-0.5 px-2">
+        |                   ^
+    442 |            <CategoryItem
+    443 |              label="Done"
+ > Object.react_stack_bottom_frame ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:25904:19
+ > renderWithHooks ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:7662:21
+ > updateFunctionComponent ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:10166:18
+ > beginWork ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:11778:17
+ > runWithFiberInDEV ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:871:29
+ > performUnitOfWork ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:17641:21
+ > workLoopSync ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:17469:40
+ > renderRootSync ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:17450:10
+ > performWorkOnRoot ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:16583:34
+
+10:54:53 PM [vite] (client) [console.warn] An error occurred in the <LeftRail> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10:54:53 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/left-rail.tsx
+10:54:53 PM [vite] (client) [Unhandled error] ReferenceError: CheckCircle is not defined
+ > CheckCircle src/components/workspace/left-rail.tsx:444:18
+    442 |            <CategoryItem
+    443 |              label="Done"
+    444 |              icon={CheckCircle}
+        |                    ^
+    445 |              count={MOCK_THREADS.done.length}
+    446 |              isExpanded={expandedCategoryId === "done"}
+ > Object.react_stack_bottom_frame ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:25904:19
+ > renderWithHooks ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:7662:21
+ > updateFunctionComponent ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:10166:18
+ > beginWork ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:11778:17
+ > runWithFiberInDEV ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:871:29
+ > performUnitOfWork ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:17641:21
+ > workLoopSync ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:17469:40
+ > renderRootSync ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:17450:10
+ > performWorkOnRoot ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:16583:34
+
+10:54:53 PM [vite] (client) [console.warn] An error occurred in the <LeftRail> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10:55:13 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/left-rail.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10:55:26 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/left-rail.tsx (x2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10:55:32 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/left-rail.tsx (x3)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10:56:01 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/left-rail.tsx (x4)
+Warning: Invalid input options (1 issue found)
+- For the "jsx". Invalid key: Expected never but received "jsx". 
+11:00:15 PM [vite] (client) [console.warn] [React Grab] v0.1.28 is outdated (latest: v0.1.31)
+11:00:15 PM [vite] (client) ✨ new dependencies optimized: unicode-animations
+11:00:15 PM [vite] (client) ✨ optimized dependencies changed. reloading
+11:00:16 PM [vite] (client) [console.error] Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://react.dev/link/invalid-hook-call for tips about how to debug and fix this problem.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+11:00:16 PM [vite] (client) [console.error] Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://react.dev/link/invalid-hook-call for tips about how to debug and fix this problem. (x2)
+11:00:16 PM [vite] (client) [Unhandled error] TypeError: Cannot read properties of null (reading 'useSyncExternalStore')
+ > exports.useSyncExternalStore ../../../../node_modules/.pnpm/react@19.2.4/node_modules/react/cjs/react.development.js:1270:33
+ > useShellModel src/hooks/use-shell-model.ts:10:19
+    8  |  export function useShellModel() {
+    9  |    const store = getAppShellStore();
+    10 |    const snapshot = useSyncExternalStore<AppShellStoreState>(
+       |                     ^
+    11 |      store.subscribe,
+    12 |      store.getState,
+ > useAppShellController src/hooks/use-app-shell-controller.ts:139:6
+ > useAppShellController src/app.tsx:19:21
+ > Object.react_stack_bottom_frame ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:25904:19
+ > renderWithHooks ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:7662:21
+ > updateFunctionComponent ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:10166:18
+ > beginWork ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:11778:17
+ > runWithFiberInDEV ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:871:29
+ > performUnitOfWork ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:17641:21
+
+11:00:16 PM [vite] (client) [console.warn] An error occurred in the <App> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+11:00:16 PM [vite] (client) [console.warn] [React Grab] v0.1.28 is outdated (latest: v0.1.31)

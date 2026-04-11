@@ -38,7 +38,7 @@ export interface LeftRailProps {
   onSelectRepository: (repositoryId: string) => void;
   onSelectWorktree: (worktreeId: string) => void;
   onSelectThread: (threadId: string) => void;
-  onCreateThread: (worktreeId: string) => void | Promise<void>;
+  onCreateThread: (worktreeId: string) => string | Promise<string>;
   onCloseThread?: (threadId: string) => void;
   onRenameThread?: (threadId: string, title: string) => void;
   onAddRepository: () => void;
@@ -50,6 +50,22 @@ export interface LeftRailProps {
   onRemoveRepository?: (repositoryId: string) => void;
   onCopyRepositoryPath?: (repositoryId: string) => void;
   onOpenInFinder?: (repositoryId: string) => void;
+}
+
+const FALLBACK_THREAD_NAMES = [
+  "Thread Atlas",
+  "Thread Ember",
+  "Thread Nova",
+  "Thread Quartz",
+  "Thread Harbor",
+] as const;
+
+function generateFallbackThreadName(): string {
+  return (
+    FALLBACK_THREAD_NAMES[
+      Math.floor(Math.random() * FALLBACK_THREAD_NAMES.length)
+    ] ?? "New thread"
+  );
 }
 
 /** Collect all threads across worktrees from the active repository. */
@@ -157,6 +173,8 @@ export function LeftRail({
   onCopyRepositoryPath,
   onOpenInFinder,
   onCreateThread,
+  onCloseThread,
+  onRenameThread,
   onAddRepository,
   onToggleVisible,
 }: LeftRailProps) {
@@ -188,6 +206,12 @@ export function LeftRail({
     repositoryId: string;
     value: string;
   } | null>(null);
+  const [inlineEditingThreadId, setInlineEditingThreadId] = React.useState<
+    string | null
+  >(null);
+  const [inlineEditingValue, setInlineEditingValue] = React.useState("");
+  const [isCreatingThread, setIsCreatingThread] = React.useState(false);
+  const inlineThreadInputRef = React.useRef<HTMLInputElement>(null);
 
   const { active: activeThreads, archived: archivedThreads } = React.useMemo(
     () => collectThreads(repositories, activeRepositoryId),
@@ -268,6 +292,53 @@ export function LeftRail({
     renameInputRef.current?.focus();
     renameInputRef.current?.select();
   }, [renameState]);
+
+  React.useEffect(() => {
+    if (!inlineEditingThreadId) {
+      return;
+    }
+
+    inlineThreadInputRef.current?.focus();
+    inlineThreadInputRef.current?.select();
+  }, [inlineEditingThreadId]);
+
+  const startInlineEdit = React.useCallback(
+    (threadId: string, initialValue: string) => {
+      setInlineEditingThreadId(threadId);
+      setInlineEditingValue(initialValue);
+    },
+    [],
+  );
+
+  const finishInlineEdit = React.useCallback(
+    async (threadId: string, currentTitle: string) => {
+      const nextTitle =
+        inlineEditingValue.trim() || generateFallbackThreadName();
+      setInlineEditingThreadId(null);
+      setInlineEditingValue("");
+
+      if (nextTitle === currentTitle.trim()) {
+        return;
+      }
+
+      await onRenameThread?.(threadId, nextTitle);
+    },
+    [inlineEditingValue, onRenameThread],
+  );
+
+  const handleCreateThread = React.useCallback(async () => {
+    if (!activeWorktreeId || isCreatingThread) {
+      return;
+    }
+
+    setIsCreatingThread(true);
+    try {
+      const threadId = await onCreateThread(activeWorktreeId);
+      startInlineEdit(threadId, "");
+    } finally {
+      setIsCreatingThread(false);
+    }
+  }, [activeWorktreeId, isCreatingThread, onCreateThread, startInlineEdit]);
 
   const _handleDrop = React.useCallback(
     (targetRepositoryId: string) => {
@@ -372,9 +443,9 @@ export function LeftRail({
               <TooltipTrigger asChild>
                 <button
                   type="button"
-                  onClick={() =>
-                    activeWorktreeId && onCreateThread(activeWorktreeId)
-                  }
+                  onClick={() => {
+                    void handleCreateThread();
+                  }}
                   aria-label={
                     activeWorktreeId
                       ? "Create thread"
@@ -386,6 +457,7 @@ export function LeftRail({
                     activeWorktreeId
                       ? "hover:text-white/80"
                       : "opacity-20 cursor-not-allowed",
+                    isCreatingThread && "pointer-events-none opacity-40",
                   )}
                 >
                   <Plus className="size-3.5" />
@@ -423,9 +495,14 @@ export function LeftRail({
                   <button
                     key={thread.id}
                     type="button"
-                    onClick={() => onSelectThread(thread.id)}
+                    onClick={() => {
+                      if (inlineEditingThreadId === thread.id) {
+                        return;
+                      }
+                      onSelectThread(thread.id);
+                    }}
                     className={cn(
-                      "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[11px] transition-colors",
+                      "group flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[11px] transition-colors",
                       isActive
                         ? "bg-white/[0.04] text-white/80"
                         : "text-white/40 hover:bg-white/[0.04] hover:text-white/70",
@@ -434,9 +511,59 @@ export function LeftRail({
                     <span className="flex size-3.5 shrink-0 items-center justify-center">
                       <ThreadStatusIcon displayStatus={displayStatus} />
                     </span>
-                    <span className="truncate flex-1">
-                      {thread.title || "Untitled thread"}
-                    </span>
+                    {inlineEditingThreadId === thread.id ? (
+                      <input
+                        ref={inlineThreadInputRef}
+                        data-testid="thread-inline-input"
+                        type="text"
+                        value={inlineEditingValue}
+                        onChange={(event) =>
+                          setInlineEditingValue(event.target.value)
+                        }
+                        onClick={(event) => event.stopPropagation()}
+                        onBlur={() => {
+                          void finishInlineEdit(thread.id, thread.title || "");
+                        }}
+                        onKeyDown={(event) => {
+                          event.stopPropagation();
+                          if (event.key === "Enter") {
+                            event.preventDefault();
+                            void finishInlineEdit(
+                              thread.id,
+                              thread.title || "",
+                            );
+                          }
+                          if (event.key === "Escape") {
+                            event.preventDefault();
+                            setInlineEditingThreadId(null);
+                            setInlineEditingValue("");
+                          }
+                        }}
+                        className="block min-w-0 flex-1 rounded border border-white/[0.12] bg-[#141414] px-2 py-1 text-[11px] text-white/85 outline-none focus:border-white/[0.2]"
+                        placeholder="Name thread"
+                      />
+                    ) : (
+                      <span className="truncate flex-1">
+                        {thread.title || "Untitled thread"}
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      data-testid="thread-archive-button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        void onCloseThread?.(thread.id);
+                      }}
+                      className={cn(
+                        "flex size-5 shrink-0 items-center justify-center rounded opacity-0 transition-all duration-[var(--duration-fast)]",
+                        "hover:bg-white/[0.08] hover:text-white/80",
+                        "group-hover:opacity-100 focus-visible:opacity-100",
+                      )}
+                      aria-label="Archive thread"
+                      title="Archive thread"
+                    >
+                      <Archive className="size-3" />
+                    </button>
                   </button>
                 );
               })

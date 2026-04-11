@@ -19,7 +19,7 @@ export function registerThreadHandlers({
       throw new Error("Thread create payload must include worktreeId");
     }
 
-    await agentHost.createThread(worktreeId, title);
+    return agentHost.createThread(worktreeId, title);
   });
 
   handle(IPC_CHANNELS.threads.select, async (_event, payload) => {

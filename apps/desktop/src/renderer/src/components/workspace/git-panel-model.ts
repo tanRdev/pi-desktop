@@ -1,5 +1,6 @@
 import type {
   GitRepositoryStatus,
+  ShellGitSnapshot,
   WorktreeGitSnapshot,
   WorktreeSnapshot,
 } from "@pidesk/shared";
@@ -80,6 +81,7 @@ function resolveBranchLabel(worktree: WorktreeSnapshot): string {
 
 function resolveStatusState(
   worktree: WorktreeSnapshot | null,
+  shellGit: ShellGitSnapshot | null,
 ): Pick<
   GitPanelViewModel,
   | "commitActionLabel"
@@ -89,6 +91,16 @@ function resolveStatusState(
   | "statusTone"
 > {
   if (!worktree) {
+    if (shellGit?.status === "not_repo") {
+      return {
+        commitActionLabel: null,
+        pullActionLabel: null,
+        pushActionLabel: null,
+        statusTone: "muted",
+        statusMessage: "This folder is open, but it is not a git repository.",
+      };
+    }
+
     return {
       commitActionLabel: null,
       pullActionLabel: null,
@@ -147,10 +159,30 @@ export function formatGitCountsSummary(git: WorktreeGitSnapshot): string {
 export function buildGitPanelViewModel(options: {
   worktree: WorktreeSnapshot | null;
   repositoryStatus: GitRepositoryStatus | null;
+  repositoryPath: string | null;
+  shellGit: ShellGitSnapshot | null;
 }): GitPanelViewModel {
-  const { worktree, repositoryStatus } = options;
+  const { worktree, repositoryStatus, repositoryPath, shellGit } = options;
 
   if (!worktree) {
+    if (repositoryPath && shellGit?.status === "not_repo") {
+      return {
+        title: "Git",
+        branchLabel: "Not a git repository",
+        commitLabel: "No commit",
+        summary: "Open folder only",
+        syncLabel: "Git unavailable",
+        upstreamLabel: "No upstream",
+        ...resolveStatusState(null, shellGit),
+        sections: [
+          {
+            title: "Workspace",
+            rows: [{ label: "Path", value: repositoryPath }],
+          },
+        ],
+      };
+    }
+
     return {
       title: "Git",
       branchLabel: "No worktree",
@@ -158,7 +190,7 @@ export function buildGitPanelViewModel(options: {
       summary: "Select a worktree",
       syncLabel: "Git data unavailable",
       upstreamLabel: "No upstream",
-      ...resolveStatusState(null),
+      ...resolveStatusState(null, shellGit),
       sections: [],
     };
   }
@@ -182,7 +214,7 @@ export function buildGitPanelViewModel(options: {
     summary,
     syncLabel,
     upstreamLabel,
-    ...resolveStatusState(worktree),
+    ...resolveStatusState(worktree, shellGit),
     sections: [
       {
         title: "Changes",

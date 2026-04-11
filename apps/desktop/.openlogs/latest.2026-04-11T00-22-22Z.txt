@@ -1,0 +1,587 @@
+$ electron-vite dev
+vite v8.0.0 building ssr environment for development...
+
+transforming (354) ../../node_modules/.pnpm/@sinclair+typebox@0.34.48/node_m
+transforming (363) ../../node_modules/.pnpm/@sinclair+typebox@0.34.48/node_m
+transforming (362) ../../node_modules/.pnpm/@sinclair+typebox@0.34.48/node_m
+transforming (361) ../../node_modules/.pnpm/@sinclair+typebox@0.34.48/node_m
+transforming (360) ../../node_modules/.pnpm/@sinclair+typebox@0.34.48/node_m
+transforming (358) ../../node_modules/.pnpm/@sinclair+typebox@0.34.48/node_m
+transforming (357) ../../node_modules/.pnpm/@sinclair+typebox@0.34.48/node_m
+transforming (356) ../../node_modules/.pnpm/@sinclair+typebox@0.34.48/node_m
+transforming (355) ../../node_modules/.pnpm/@sinclair+typebox@0.34.48/node_m
+transforming (359) ../../node_modules/.pnpm/@sinclair+typebox@0.34.48/node_m
+transforming (966) ../../node_modules/.pnpm/ws@8.19.0/node_modules/ws/lib/we
+transforming (967) ../../node_modules/.pnpm/ws@8.19.0/node_modules/ws/lib/se
+✓ 1675 modules transformed.
+
+rendering chunks (1)...
+rendering chunks (2)...
+rendering chunks (3)...
+rendering chunks (4)...
+rendering chunks (5)...
+rendering chunks (6)...
+rendering chunks (7)...
+rendering chunks (8)...
+rendering chunks (9)...
+rendering chunks (10)...
+rendering chunks (11)...
+rendering chunks (12)...
+
+out/main/chunks/chunk-DzBkbe55.js                         1.77 kB
+out/main/chunks/multipart-parser-C3NQeOEm.js              8.77 kB
+out/main/chunks/dist-DHRv_69X.js                         15.62 kB
+out/main/chunks/src-kYDZRaGG.js                          42.98 kB
+out/main/chunks/photon_rs-DSj_fRU2.js                   134.67 kB
+out/main/chunks/from-D7uLC0y1.js                        173.46 kB
+out/main/agent-host-session-server-entry-DHXzA347.js  9,581.56 kB
+out/main/chunks/dist-C5OdGlJ_.js                          0.11 kB
+out/main/agentHostSessionServer.js                        0.79 kB
+out/main/chunks/chunk-CyLJMB0t.js                         1.77 kB
+out/main/chunks/multipart-parser-D2ms4_WH.js              8.77 kB
+out/main/chunks/dist-C8rZDyJE.js                         15.59 kB
+out/main/chunks/src-DMS5Mf3I.js                          22.43 kB
+out/main/chunks/agent-host-runtime-DBl8Xv2_.js           24.22 kB
+out/main/chunks/src-lMMu9jrM.js                          42.98 kB
+out/main/chunks/photon_rs-zFnungWQ.js                   134.67 kB
+out/main/index.js                                       138.34 kB
+out/main/chunks/from-f7ncyPLF.js                        173.46 kB
+out/main/chunks/dist-QBjceb2w.js                      9,538.34 kB
+
+
+✓ built in 1.33s
+
+electron main process built successfully
+
+-----
+
+vite v8.0.0 building ssr environment for development...
+
+ WARN  inlineDynamicImports option is deprecated, please use codeSplitting: false instead.
+
+
+✓ 20 modules transformed.
+
+rendering chunks (1)...
+
+out/preload/index.cjs  9.78 kB
+
+✓ built in 11ms
+
+electron preload scripts built successfully
+
+-----
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+8:22:23 PM [vite] warning: `esbuild` option was specified by "vite:react-babel" plugin. This option is deprecated, please use `oxc` instead.
+`optimizeDeps.rollupOptions` / `ssr.optimizeDeps.rollupOptions` is deprecated. Use `optimizeDeps.rolldownOptions` instead. Note that this option may be set by a plugin. Set VITE_DEPRECATION_TRACE=1 to see where it is called.
+[vite:react-babel] We recommend switching to `@vitejs/plugin-react-oxc` for improved performance. More information at https://vite.dev/rolldown
+8:22:23 PM [vite] (client) Re-optimizing dependencies because lockfile has changed
+dev server running for the electron renderer process at:
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+
+starting electron app...
+
+Warning: Invalid input options (1 issue found)
+- For the "jsx". Invalid key: Expected never but received "jsx". 
+Warning: Invalid input options (1 issue found)
+- For the "jsx". Invalid key: Expected never but received "jsx". 
+8:22:27 PM [vite] (client) [console.warn] [React Grab] v0.1.28 is outdated (latest: v0.1.31)
+8:27:22 PM [vite] (client) [console.warn] Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+2026-04-10 20:37:07.580 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.580 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.580 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.580 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.580 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.580 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.580 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.581 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.581 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.582 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.582 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.582 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.582 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.582 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.582 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.582 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.582 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.582 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.582 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.582 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.582 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.582 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.582 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.582 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.582 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.582 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.583 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.602 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.721 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.721 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.721 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.721 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.721 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.721 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.721 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.721 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.721 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.721 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.721 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.721 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.721 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.721 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.721 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.721 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.721 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.721 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.721 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.721 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.721 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.721 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.721 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.721 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.721 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.721 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.721 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-10 20:37:07.721 Electron[63422:12429724] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+9:00:08 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/left-rail.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+9:04:18 PM [vite] (client) hmr update /src/app.css, /src/components/ui/terminal.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+9:05:21 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/git-panel.tsx
+9:05:21 PM [vite] (client) hmr invalidate /src/components/workspace/git-panel.tsx Could not Fast Refresh ("buildGitPanelViewModel" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+9:05:21 PM [vite] (client) hmr update /src/components/workspace/workspace-shell.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+9:05:24 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/git-panel.tsx
+9:05:24 PM [vite] (client) [console.error] [vite] Failed to reload /src/components/workspace/git-panel.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+9:05:56 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/git-panel.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+9:06:00 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/workspace-surface-panel.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+9:06:03 PM [vite] (client) hmr update /src/app.css, /src/app.tsx, /src/components/workspace/workspace-surface-panel.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+9:06:23 PM [vite] (client) hmr update /src/app.tsx, /src/app.css
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+9:06:23 PM [vite] (client) hmr update /src/app.tsx, /src/app.css (x2)
+9:06:23 PM [vite] (client) [console.error] React has detected a change in the order of Hooks called by App. This will lead to bugs and errors if not fixed. For more information, read the Rules of Hooks: https://react.dev/link/rules-of-hooks
+
+   Previous render            Next render
+   ------------------------------------------------------
+1. useSyncExternalStore       useSyncExternalStore
+2. useEffect                  useEffect
+3. useCallback                useCallback
+4. useCallback                useCallback
+5. useCallback                useCallback
+6. useCallback                useCallback
+7. useCallback                useCallback
+8. useSyncExternalStore       useSyncExternalStore
+9. useMemo                    useMemo
+10. useMemo                   useMemo
+11. useMemo                   useMemo
+12. useCallback               useCallback
+13. useCallback               useCallback
+14. useSyncExternalStore      useSyncExternalStore
+15. useDebugValue             useDebugValue
+16. useCallback               useCallback
+17. useCallback               useCallback
+18. useSyncExternalStore      useSyncExternalStore
+19. useDebugValue             useDebugValue
+20. useCallback               useCallback
+21. useCallback               useCallback
+22. useSyncExternalStore      useSyncExternalStore
+23. useDebugValue             useDebugValue
+24. useCallback               useCallback
+25. useCallback               useCallback
+26. useSyncExternalStore      useSyncExternalStore
+27. useDebugValue             useDebugValue
+28. useCallback               useCallback
+29. useCallback               useCallback
+30. useSyncExternalStore      useSyncExternalStore
+31. useDebugValue             useDebugValue
+32. useCallback               useCallback
+33. useCallback               useCallback
+34. useSyncExternalStore      useSyncExternalStore
+35. useDebugValue             useDebugValue
+36. useCallback               useCallback
+37. useCallback               useCallback
+38. useSyncExternalStore      useSyncExternalStore
+39. useDebugValue             useDebugValue
+40. useCallback               useCallback
+41. useCallback               useCallback
+42. useSyncExternalStore      useSyncExternalStore
+43. useDebugValue             useDebugValue
+44. useCallback               useCallback
+45. useCallback               useCallback
+46. useSyncExternalStore      useSyncExternalStore
+47. useDebugValue             useDebugValue
+48. useCallback               useCallback
+49. useCallback               useCallback
+50. useSyncExternalStore      useSyncExternalStore
+51. useDebugValue             useDebugValue
+52. useCallback               useCallback
+53. useCallback               useCallback
+54. useSyncExternalStore      useSyncExternalStore
+55. useDebugValue             useDebugValue
+56. useCallback               useCallback
+57. useCallback               useCallback
+58. useSyncExternalStore      useSyncExternalStore
+59. useDebugValue             useDebugValue
+60. useCallback               useCallback
+61. useCallback               useCallback
+62. useSyncExternalStore      useSyncExternalStore
+63. useDebugValue             useDebugValue
+64. useState                  useState
+65. useState                  useState
+66. useState                  useState
+67. useState                  useState
+68. useState                  useState
+69. useState                  useState
+70. useState                  useState
+71. useState                  useState
+72. useState                  useState
+73. useState                  useState
+74. useState                  useState
+75. useState                  useState
+76. useRef                    useState
+   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+9:06:23 PM [vite] (client) [Unhandled error] Error: Should have a queue. You are likely calling Hooks conditionally, which is not allowed. (https://react.dev/link/invalid-hook-call)
+ > updateReducerImpl ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:7973:14
+ > updateReducer ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:7968:13
+ > Object.useState ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:26511:17
+ > Vr$1.t.useState ../../../../node_modules/.pnpm/react-grab@0.1.28_@types+react@19.2.14_react@19.2.4/node_modules/react-grab/dist/chunk-5RMV2HA7.js:32:3553
+ > exports.useState ../../../../node_modules/.pnpm/react@19.2.4/node_modules/react/cjs/react.development.js:1263:33
+ > useAppShellController src/hooks/use-app-shell-controller.ts:238:10
+    236 |    );
+    237 |    const [activeGitRepositoryStatus, setActiveGitRepositoryStatus] =
+    238 |      React.useState<GitRepositoryStatus | null>(null);
+        |            ^
+    239 |    const [gitCommitMessage, setGitCommitMessage] = React.useState("");
+    240 |    const launcherRequestIdRef = React.useRef(0);
+ > useAppShellController src/app.tsx:19:21
+ > Object.react_stack_bottom_frame ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:25904:19
+ > renderWithHooks ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:7662:21
+ > updateFunctionComponent ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:10166:18
+
+9:06:23 PM [vite] (client) [console.warn] An error occurred in the <App> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+9:06:55 PM [vite] (client) hmr update /src/components/workspace/workspace-shell.tsx, /src/app.css
+9:06:56 PM [vite] (client) [Unhandled error] TypeError: Cannot read properties of undefined (reading 'trim')
+ > trim src/components/workspace/git-panel.tsx:253:54
+    251 |                    onClick={() => void onCommit()}
+    252 |                    disabled={
+    253 |                      !repositoryPath || !commitMessage.trim() || isLoading
+        |                                                        ^
+    254 |                    }
+    255 |                  >
+ > Object.react_stack_bottom_frame ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:25904:19
+ > renderWithHooks ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:7662:21
+ > updateFunctionComponent ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:10166:18
+ > beginWork ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:11778:17
+ > runWithFiberInDEV ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:871:29
+ > performUnitOfWork ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:17641:21
+ > workLoopSync ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:17469:40
+ > renderRootSync ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:17450:10
+ > performWorkOnRoot ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:16583:34
+
+9:06:56 PM [vite] (client) [console.warn] An error occurred in the <GitPanel> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+9:06:59 PM [vite] (client) hmr update /src/app.tsx, /src/app.css
+9:07:00 PM [vite] (client) [Unhandled error] TypeError: Cannot read properties of undefined (reading 'getRepositoryStatus')
+ > src/hooks/use-app-shell-controller.ts:476:7
+    474 |  
+    475 |      void window.pidesk.git
+    476 |        .getRepositoryStatus(activeWorktreePath)
+        |         ^
+    477 |        .then((status) => {
+    478 |          if (!disposed) {
+ > Object.react_stack_bottom_frame ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:25989:19
+ > runWithFiberInDEV ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:871:29
+ > commitHookEffectListMount ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:13249:28
+ > commitHookPassiveMountEffects ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:13336:10
+ > commitPassiveMountOnFiber ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:15484:12
+ > recursivelyTraversePassiveMountEffects ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:15439:10
+ > commitPassiveMountOnFiber ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:15519:10
+ > flushPassiveEffects ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:18432:8
+ > flushPendingEffects ../../../../node_modules/.pnpm/react-dom@19.2.4_react@19.2.4/node_modules/react-dom/cjs/react-dom-client.development.js:18358:13
+
+9:07:00 PM [vite] (client) [console.warn] An error occurred in the <App> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+

@@ -1,4 +1,8 @@
-import type { GitRepositoryStatus, WorktreeSnapshot } from "@pidesk/shared";
+import type {
+  GitRepositoryStatus,
+  ShellGitSnapshot,
+  WorktreeSnapshot,
+} from "@pidesk/shared";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
@@ -28,6 +32,7 @@ export interface GitPanelProps {
   repositoryPath: string | null;
   worktree: WorktreeSnapshot | null;
   repositoryStatus: GitRepositoryStatus | null;
+  shellGit: ShellGitSnapshot | null;
   commitMessage: string;
   isLoading?: boolean;
   isRefreshing?: boolean;
@@ -155,6 +160,7 @@ export function GitPanel({
   repositoryPath,
   worktree,
   repositoryStatus,
+  shellGit,
   commitMessage,
   isLoading = false,
   isRefreshing = false,
@@ -168,9 +174,21 @@ export function GitPanel({
   onDiscardFile,
 }: GitPanelProps) {
   const viewModel = React.useMemo(
-    () => buildGitPanelViewModel({ worktree, repositoryStatus }),
-    [repositoryStatus, worktree],
+    () =>
+      buildGitPanelViewModel({
+        worktree,
+        repositoryStatus,
+        repositoryPath,
+        shellGit,
+      }),
+    [repositoryPath, repositoryStatus, shellGit, worktree],
   );
+  const canRefresh =
+    repositoryPath !== null && shellGit?.status === "repository";
+  const canCommit =
+    repositoryPath !== null && viewModel.commitActionLabel !== null;
+  const canPull = repositoryPath !== null && viewModel.pullActionLabel !== null;
+  const canPush = repositoryPath !== null && viewModel.pushActionLabel !== null;
 
   return (
     <div
@@ -216,7 +234,7 @@ export function GitPanel({
                 variant="secondary"
                 size="sm"
                 onClick={() => void onRefresh()}
-                disabled={!repositoryPath || isRefreshing}
+                disabled={!canRefresh || isRefreshing}
               >
                 {isRefreshing ? (
                   <CircleDashed className="size-3.5 animate-spin" />
@@ -249,9 +267,7 @@ export function GitPanel({
                   variant="default"
                   size="sm"
                   onClick={() => void onCommit()}
-                  disabled={
-                    !repositoryPath || !commitMessage.trim() || isLoading
-                  }
+                  disabled={!canCommit || !commitMessage.trim() || isLoading}
                 >
                   <FloppyDisk className="size-3.5" />
                   {viewModel.commitActionLabel ?? "Commit"}
@@ -261,7 +277,7 @@ export function GitPanel({
                   variant="secondary"
                   size="sm"
                   onClick={() => void onPull()}
-                  disabled={!repositoryPath || isLoading}
+                  disabled={!canPull || isLoading}
                 >
                   <ArrowDown className="size-3.5" />
                   {viewModel.pullActionLabel ?? "Pull"}
@@ -271,7 +287,7 @@ export function GitPanel({
                   variant="secondary"
                   size="sm"
                   onClick={() => void onPush()}
-                  disabled={!repositoryPath || isLoading}
+                  disabled={!canPush || isLoading}
                 >
                   <ArrowUp className="size-3.5" />
                   {viewModel.pushActionLabel ?? "Push"}

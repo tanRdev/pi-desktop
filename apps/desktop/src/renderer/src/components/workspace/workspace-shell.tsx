@@ -3,6 +3,7 @@ import type {
   MentionSuggestion,
   ProviderSnapshot,
   RepositorySnapshot,
+  ShellGitSnapshot,
   SlashSuggestion,
 } from "@pidesk/shared";
 import type { AgentLiveFeed } from "@pidesk/shell-model";
@@ -52,6 +53,7 @@ export interface WorkspaceShellProps {
   launcherSelectedIndex: number;
   launcherIsLoading: boolean;
   activeGitRepositoryStatus: GitRepositoryStatus | null;
+  shellGit: ShellGitSnapshot | null;
   gitCommitMessage: string;
   threadMessages: import("@pidesk/shared").AgentMessageSnapshot[];
   threadLastError: string | null;
@@ -75,7 +77,7 @@ export interface WorkspaceShellProps {
   onOpenMarketplace: () => void;
   onSelectWorktree: (worktreeId: string) => void | Promise<void>;
   onSelectThread: (threadId: string) => void | Promise<void>;
-  onCreateThread: (worktreeId: string) => void | Promise<void>;
+  onCreateThread: (worktreeId: string) => string | Promise<string>;
   onCloseThread: (threadId: string) => void | Promise<void>;
   onRenameThread: (threadId: string, title: string) => void | Promise<void>;
   onOpenLauncher: () => void;
@@ -141,6 +143,7 @@ export function WorkspaceShell({
   launcherSelectedIndex,
   launcherIsLoading,
   activeGitRepositoryStatus,
+  shellGit,
   gitCommitMessage,
   threadMessages,
   threadLastError,
@@ -439,9 +442,14 @@ export function WorkspaceShell({
                     activityContent={
                       <GitPanel
                         projectName={projectName}
-                        repositoryPath={activeWorktree?.path ?? null}
+                        repositoryPath={
+                          activeWorktree?.path ??
+                          activeRepository?.rootPath ??
+                          null
+                        }
                         worktree={activeWorktree}
                         repositoryStatus={activeGitRepositoryStatus}
+                        shellGit={shellGit}
                         commitMessage={gitCommitMessage}
                         onCommitMessageChange={onGitCommitMessageChange}
                         onRefresh={onRefreshGit}
@@ -457,9 +465,12 @@ export function WorkspaceShell({
                 ) : (
                   <GitPanel
                     projectName={projectName}
-                    repositoryPath={activeWorktree?.path ?? null}
+                    repositoryPath={
+                      activeWorktree?.path ?? activeRepository?.rootPath ?? null
+                    }
                     worktree={activeWorktree}
                     repositoryStatus={activeGitRepositoryStatus}
+                    shellGit={shellGit}
                     commitMessage={gitCommitMessage}
                     onCommitMessageChange={onGitCommitMessageChange}
                     onRefresh={onRefreshGit}
