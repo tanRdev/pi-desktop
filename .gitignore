@@ -13,3 +13,4 @@ test-results/
 .agents/
 .factory/
 .opencode/
+.openlogs/
