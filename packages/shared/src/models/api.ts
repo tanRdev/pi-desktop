@@ -82,6 +82,7 @@ export interface PiDeskApi {
     create(worktreeId: string, title?: string): Promise<string>;
     select(threadId: string): Promise<void>;
     archive(threadId: string): Promise<void>;
+    delete(threadId: string): Promise<void>;
     rename(threadId: string, title: string): Promise<void>;
   };
   dialog: {

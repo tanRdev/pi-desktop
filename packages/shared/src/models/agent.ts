@@ -76,6 +76,18 @@ export interface AgentMessageSnapshot {
 }
 
 /**
+ * Context usage snapshot — how much of the model's context window is consumed.
+ */
+export interface ContextUsageSnapshot {
+  /** Estimated tokens used, or null if unknown (e.g. right after compaction). */
+  tokens: number | null;
+  /** Model context window size. */
+  contextWindow: number;
+  /** Usage as a percentage (0–100), or null if tokens is unknown. */
+  percent: number | null;
+}
+
+/**
  * Agent runtime status.
  */
 export type AgentRuntimeStatus = "error" | "ready" | "starting" | "streaming";
@@ -92,6 +104,8 @@ export interface AgentSnapshot {
   currentModelId?: string;
   /** Current provider ID */
   currentProviderId?: string;
+  /** Context window usage — present when the runtime can report it. */
+  contextUsage?: ContextUsageSnapshot;
 }
 
 /**

@@ -1,6 +1,6 @@
 import { IPC_CHANNELS } from "@pidesk/shared";
-import type { IpcRegistrar } from "../ipc-router";
 import type { GitWorktreeService } from "../git-worktree-service";
+import type { IpcRegistrar } from "../ipc-router";
 import { getStringField } from "./payload-parsers";
 
 interface RegisterGitHandlersDependencies {

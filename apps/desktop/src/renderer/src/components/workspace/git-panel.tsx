@@ -243,7 +243,7 @@ export function GitPanel({
       <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
         <div className="space-y-6">
           <section className="space-y-2">
-            <div className="relative p-1 transition-colors">
+            <div className="relative rounded-md border border-white/[0.04] p-1 transition-colors">
               <textarea
                 value={commitMessage}
                 onChange={(event) => onCommitMessageChange(event.target.value)}

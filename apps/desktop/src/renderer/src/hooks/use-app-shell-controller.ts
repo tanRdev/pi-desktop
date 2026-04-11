@@ -914,6 +914,17 @@ export function useAppShellController(): AppShellController {
     [activeThreadId, reload],
   );
 
+  const handleDeleteThread = React.useCallback(
+    async (threadId: string) => {
+      await window.pidesk.threads.delete(threadId);
+      if (activeThreadId === threadId) {
+        setSelectedContextSurface(null);
+      }
+      await reload();
+    },
+    [activeThreadId, reload],
+  );
+
   const handleRenameThread = React.useCallback(
     async (threadId: string, title: string) => {
       await window.pidesk.threads.rename(threadId, title);
@@ -1281,6 +1292,7 @@ export function useAppShellController(): AppShellController {
     onSelectThread: handleSelectThread,
     onCreateThread: handleCreateThread,
     onCloseThread: handleCloseThread,
+    onDeleteThread: handleDeleteThread,
     onRenameThread: handleRenameThread,
     onOpenLauncher: openLauncherOverlay,
     onCloseLauncher: closeLauncherOverlay,

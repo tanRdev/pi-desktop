@@ -127,6 +127,18 @@ describe("moveRepositorySnapshots", () => {
     expect(source).toContain("thread-inline-input");
   });
 
+  it("keeps the archive action out of a nested thread button", () => {
+    const source = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
+    );
+
+    expect(source).toContain('data-testid="thread-row"');
+    expect(source).toContain("const threadRowClassName = cn(");
+    expect(source).not.toMatch(
+      /thread-archive-button[\s\S]*?<\/button>\s*<\/button>/,
+    );
+  });
+
   it("does not render the old empty-state no threads copy in worktree sections", () => {
     const source = readSource(
       "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
@@ -140,7 +152,7 @@ describe("moveRepositorySnapshots", () => {
       "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
     );
 
-    expect(source).toContain('label="Active"');
+    expect(source).toContain('label="Sessions"');
     expect(source).toContain('label="Archived"');
     expect(source).toContain("archivedThreads.map");
   });

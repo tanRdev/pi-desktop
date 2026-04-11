@@ -153,11 +153,14 @@ export function ChatThreadPanel({
       >
         <ChatContainerContent
           data-testid="chat-transcript"
-          className="flex w-full flex-1 flex-col px-0 pb-48 select-text"
+          className={cn(
+            "flex w-full flex-1 flex-col px-0 select-text",
+            messages.length > 0 && "pb-48",
+          )}
         >
           {messages.length === 0 ? (
             !isStreaming && !lastError ? (
-              <div className="flex w-full flex-1 items-center justify-center px-6 py-20">
+              <div className="flex w-full flex-1 items-center justify-center px-6">
                 <div className="max-w-md text-center font-mono text-[11px] uppercase tracking-[0.08em] text-white/25">
                   Start a conversation with Pi.
                 </div>

@@ -158,9 +158,7 @@ export function ProjectAvatar({
     "relative flex items-center justify-center",
     "transition-all duration-100",
     size === "md" ? "size-10" : "size-6",
-    isActive
-      ? "text-white/50"
-      : "text-white/30 hover:text-white/50",
+    isActive ? "text-white/50" : "text-white/30 hover:text-white/50",
     className,
   );
 

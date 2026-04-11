@@ -41,6 +41,7 @@ export interface LeftRailProps {
   onSelectThread: (threadId: string) => void;
   onCreateThread: (worktreeId: string) => string | Promise<string>;
   onCloseThread?: (threadId: string) => void;
+  onDeleteThread?: (threadId: string) => void;
   onRenameThread?: (threadId: string, title: string) => void;
   onAddRepository: () => void;
   onToggleVisible?: () => void;
@@ -131,6 +132,8 @@ interface ThreadCategorySectionProps {
   tallyColor?: string;
   children?: React.ReactNode;
   isWorking?: boolean;
+  onAction?: () => void;
+  actionLabel?: string;
 }
 
 function ThreadCategorySection({
@@ -140,6 +143,8 @@ function ThreadCategorySection({
   tallyColor,
   children,
   isWorking,
+  onAction,
+  actionLabel,
 }: ThreadCategorySectionProps) {
   return (
     <div className="relative space-y-0.5">
@@ -159,7 +164,21 @@ function ThreadCategorySection({
           </span>
           <span className="truncate">{label}</span>
         </div>
-        <TallyBars count={count} colorClassName={tallyColor} />
+        <div className="flex items-center ml-2">
+          {onAction && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onAction();
+              }}
+              className="hidden group-hover/item:flex size-5 items-center justify-center rounded hover:bg-white/10 hover:text-white/80 transition-colors text-white/40"
+              title={actionLabel}
+            >
+              <Plus className="size-3.5" />
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="pl-4">
@@ -457,36 +476,6 @@ export function LeftRail({
               </TooltipTrigger>
               <TooltipContent side="top">New workspace</TooltipContent>
             </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  onClick={() => {
-                    void handleCreateThread();
-                  }}
-                  aria-label={
-                    activeWorktreeId
-                      ? "Create thread"
-                      : "Select a workspace to create a thread"
-                  }
-                  data-testid="create-thread-button"
-                  className={cn(
-                    "text-white/40 p-0.5 transition-colors",
-                    activeWorktreeId
-                      ? "hover:text-white/80"
-                      : "opacity-20 cursor-not-allowed",
-                    isCreatingThread && "pointer-events-none opacity-40",
-                  )}
-                >
-                  <Plus className="size-3.5" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="top">
-                {activeWorktreeId
-                  ? "Create thread"
-                  : "Select a workspace to create a thread"}
-              </TooltipContent>
-            </Tooltip>
           </div>
         </div>
 
@@ -498,6 +487,10 @@ export function LeftRail({
             count={activeThreads.length}
             tallyColor="bg-[#22c55e]"
             isWorking={isAnyActiveThreadWorking}
+            onAction={() => {
+              void handleCreateThread();
+            }}
+            actionLabel="Create thread"
           >
             {activeThreads.length === 0 ? (
               <div className="px-2 py-3 text-[11px] text-white/20">

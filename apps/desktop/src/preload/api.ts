@@ -11,17 +11,17 @@ import {
   IPC_CHANNELS,
   type LegacyPreferencesImport,
   type ModelSwitchRequest,
-  type PiDeskAgentEvent,
-  type PiDeskApi,
-  type PiDiscoveryResult,
   type PackageInstallRequest,
   type PackageManagerStatus,
   type PackageOperationSnapshot,
   type PackageRemoveRequest,
   type PackageSearchRequest,
   type PackageSearchResponse,
-  type PackageUpdateRequest,
   type PackagesEvent,
+  type PackageUpdateRequest,
+  type PiDeskAgentEvent,
+  type PiDeskApi,
+  type PiDiscoveryResult,
   type ProviderSnapshot,
   type RepositoryDisplayMetadata,
   type RepositoryPreferences,
@@ -153,6 +153,9 @@ export function createPiDeskApi({
       },
       archive(threadId: string) {
         return invoke<void>(IPC_CHANNELS.threads.archive, { threadId });
+      },
+      delete(threadId: string) {
+        return invoke<void>(IPC_CHANNELS.threads.delete, { threadId });
       },
       rename(threadId: string, title: string) {
         return invoke<void>(IPC_CHANNELS.threads.rename, { threadId, title });

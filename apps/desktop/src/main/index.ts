@@ -53,6 +53,7 @@ import {
   hardenMainWindow,
   resolvePreloadTarget,
   resolveRendererTarget,
+  shouldDeferWindowShowUntilReady,
   shouldShowMainWindow,
 } from "./window-config";
 import { WorkspaceSearchService } from "./workspace-search-service";
@@ -121,17 +122,22 @@ function getEventTimestamp(event: PiDeskAgentEvent): number | null {
 
 async function createMainWindow() {
   const rendererUrl = process.env.ELECTRON_RENDERER_URL;
-  const window = new BrowserWindow(
-    createMainWindowOptions({
-      preloadPath: resolvePreloadTarget(import.meta.url),
-    }),
-  );
+  const windowOptions = createMainWindowOptions({
+    preloadPath: resolvePreloadTarget(import.meta.url),
+  });
+  const window = new BrowserWindow(windowOptions);
   hardenMainWindow(window);
 
   if (shouldShowMainWindow(process.env)) {
-    window.once("ready-to-show", () => {
+    const showWindow = () => {
       window.show();
-    });
+    };
+
+    if (shouldDeferWindowShowUntilReady(windowOptions)) {
+      window.once("ready-to-show", showWindow);
+    } else {
+      showWindow();
+    }
   }
 
   const rendererTarget = resolveRendererTarget(rendererUrl, import.meta.url);

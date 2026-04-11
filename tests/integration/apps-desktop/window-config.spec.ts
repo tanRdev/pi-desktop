@@ -2,10 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import {
   createMainWindowOptions,
-  shouldAllowNavigation,
-  shouldDenyWindowOpen,
   resolvePreloadTarget,
   resolveRendererTarget,
+  shouldAllowNavigation,
+  shouldDeferWindowShowUntilReady,
+  shouldDenyWindowOpen,
   shouldShowMainWindow,
 } from "../../../apps/desktop/src/main/window-config";
 
@@ -53,6 +54,26 @@ describe("shouldShowMainWindow", () => {
 
   it("preserves the normal app behavior for other values", () => {
     expect(shouldShowMainWindow({ PIDESK_HEADLESS: "0" })).toBe(true);
+  });
+});
+
+describe("shouldDeferWindowShowUntilReady", () => {
+  it("does not wait for ready-to-show when hidden windows do not paint", () => {
+    expect(
+      shouldDeferWindowShowUntilReady({
+        show: false,
+        paintWhenInitiallyHidden: false,
+      }),
+    ).toBe(false);
+  });
+
+  it("allows ready-to-show gating when the hidden window can paint", () => {
+    expect(
+      shouldDeferWindowShowUntilReady({
+        show: false,
+        paintWhenInitiallyHidden: true,
+      }),
+    ).toBe(true);
   });
 });
 

@@ -12,6 +12,7 @@ import {
 import type {
   AgentMessageSnapshot,
   AgentSnapshot,
+  ContextUsageSnapshot,
   ModelSnapshot,
   ModelSwitchRequest,
   PiDeskAgentEvent,
@@ -378,11 +379,21 @@ export class PiSdkAgentRuntime {
   }
 
   getSnapshot(): AgentSnapshot {
+    const sdkUsage = this.session?.getContextUsage();
+    const contextUsage: ContextUsageSnapshot | undefined = sdkUsage
+      ? {
+          tokens: sdkUsage.tokens,
+          contextWindow: sdkUsage.contextWindow,
+          percent: sdkUsage.percent,
+        }
+      : undefined;
+
     return {
       ...this.snapshot,
       messages: this.snapshot.messages.map((message: AgentMessageSnapshot) => ({
         ...message,
       })),
+      contextUsage,
     };
   }
 

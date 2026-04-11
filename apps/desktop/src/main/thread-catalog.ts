@@ -185,6 +185,19 @@ export class ThreadCatalog {
     }));
   }
 
+  delete(threadId: string): boolean {
+    let deleted = false;
+    this.store.update((state) => {
+      const initialLength = state.threads.length;
+      const threads = state.threads.filter((t) => t.id !== threadId);
+      if (threads.length !== initialLength) {
+        deleted = true;
+      }
+      return { ...state, threads };
+    });
+    return deleted;
+  }
+
   private updateThread(
     threadId: string,
     updater: (

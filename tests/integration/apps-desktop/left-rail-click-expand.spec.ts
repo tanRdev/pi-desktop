@@ -7,7 +7,7 @@ function readSource(relativePath: string): string {
 }
 
 describe("LeftRail category interactions", () => {
-  it("renders always-visible Active and Archived sections with tally bars", () => {
+  it("renders always-visible Sessions and Archived sections with tally bars", () => {
     const source = readSource(
       "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
     );
@@ -21,8 +21,8 @@ describe("LeftRail category interactions", () => {
     expect(source).not.toContain("aria-expanded");
     expect(source).not.toContain("expandedSection");
 
-    // Category sections for Active and Archived
-    expect(source).toContain('label="Active"');
+    // Category sections for Sessions and Archived
+    expect(source).toContain('label="Sessions"');
     expect(source).toContain('label="Archived"');
 
     // Tally bars restored

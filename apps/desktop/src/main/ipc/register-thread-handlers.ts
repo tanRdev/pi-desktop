@@ -43,6 +43,18 @@ export function registerThreadHandlers({
     threadCatalog.archive(threadId);
   });
 
+  handle(IPC_CHANNELS.threads.delete, async (_event, payload) => {
+    const threadId = getStringField(payload, "threadId");
+    if (!threadId) {
+      throw new Error("Thread delete payload must include threadId");
+    }
+    if (!threadCatalog) {
+      throw new Error("Thread catalog is not available");
+    }
+
+    threadCatalog.delete(threadId);
+  });
+
   handle(IPC_CHANNELS.threads.rename, async (_event, payload) => {
     const threadId = getStringField(payload, "threadId");
     const title = getStringField(payload, "title");

@@ -12,13 +12,12 @@ import {
   type ShellSnapshot,
 } from "@pidesk/shared";
 import type { BrowserWindow } from "electron";
+import type { GitWorktreeService } from "./git-worktree-service";
 import {
   getNumberField,
   getStringField,
   parseSearchRequest,
 } from "./ipc/payload-parsers";
-import type { GitWorktreeService } from "./git-worktree-service";
-import type { PackagesService } from "./packages/packages-service";
 import { registerDialogHandlers } from "./ipc/register-dialog-handlers";
 import { registerFilesystemHandlers } from "./ipc/register-filesystem-handlers";
 import { registerGitHandlers } from "./ipc/register-git-handlers";
@@ -29,6 +28,7 @@ import {
 } from "./ipc/register-state-handlers";
 import { registerTerminalHandlers } from "./ipc/register-terminal-handlers";
 import { registerThreadHandlers } from "./ipc/register-thread-handlers";
+import type { PackagesService } from "./packages/packages-service";
 import { terminalManager } from "./terminal-manager";
 import type { ThreadCatalog } from "./thread-catalog";
 

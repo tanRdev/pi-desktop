@@ -18,7 +18,9 @@ export function InterfaceSettingsSection() {
         description="Trim the desktop shell to the density that feels closest to Cursor."
       >
         <div
-          className={cn("transition-all duration-200 ease-[var(--ease-out)] stagger-item")}
+          className={cn(
+            "transition-all duration-200 ease-[var(--ease-out)] stagger-item",
+          )}
           style={{
             animationDelay: "0ms",
             animationFillMode: "forwards",

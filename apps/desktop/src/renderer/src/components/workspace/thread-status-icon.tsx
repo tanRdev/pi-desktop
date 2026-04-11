@@ -1,6 +1,6 @@
 import type { ThreadRuntimeStatus } from "@pidesk/shared";
-import { cn } from "@/lib/utils";
 import { useUnicodeSpinner } from "@/hooks/use-unicode-spinner";
+import { cn } from "@/lib/utils";
 
 export type ThreadDisplayStatus = "working" | "idle" | "archived";
 

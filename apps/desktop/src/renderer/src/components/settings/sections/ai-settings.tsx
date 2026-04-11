@@ -58,7 +58,10 @@ export function AISettingsSection() {
         description="These controls are live. Changing them updates the active runtime immediately."
       >
         <div
-          className={cn("transition-all duration-200 ease-[var(--ease-out)]", "stagger-item")}
+          className={cn(
+            "transition-all duration-200 ease-[var(--ease-out)]",
+            "stagger-item",
+          )}
           style={{
             animationDelay: "0ms",
             animationFillMode: "forwards",
@@ -82,7 +85,10 @@ export function AISettingsSection() {
         </div>
 
         <div
-          className={cn("transition-all duration-200 ease-[var(--ease-out)]", "stagger-item")}
+          className={cn(
+            "transition-all duration-200 ease-[var(--ease-out)]",
+            "stagger-item",
+          )}
           style={{
             animationDelay: "40ms",
             animationFillMode: "forwards",

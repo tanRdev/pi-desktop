@@ -21,6 +21,13 @@ export function shouldShowMainWindow(
   return env.PIDESK_HEADLESS !== "1";
 }
 
+export function shouldDeferWindowShowUntilReady(options: {
+  show?: boolean;
+  paintWhenInitiallyHidden?: boolean;
+}): boolean {
+  return options.show === false && options.paintWhenInitiallyHidden !== false;
+}
+
 export function createMainWindowOptions({
   preloadPath,
 }: CreateMainWindowOptionsInput): BrowserWindowConstructorOptions {

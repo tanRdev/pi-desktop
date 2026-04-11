@@ -175,6 +175,7 @@ function mergeAgentSnapshots(
     messages,
     lastError:
       incoming.lastError ?? (status === "error" ? current.lastError : null),
+    contextUsage: incoming.contextUsage ?? current.contextUsage,
   };
 }
 

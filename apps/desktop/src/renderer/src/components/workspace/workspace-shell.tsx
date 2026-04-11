@@ -79,6 +79,7 @@ export interface WorkspaceShellProps {
   onSelectThread: (threadId: string) => void | Promise<void>;
   onCreateThread: (worktreeId: string) => string | Promise<string>;
   onCloseThread: (threadId: string) => void | Promise<void>;
+  onDeleteThread?: (threadId: string) => void | Promise<void>;
   onRenameThread: (threadId: string, title: string) => void | Promise<void>;
   onOpenLauncher: () => void;
   onCloseLauncher: () => void;
@@ -165,6 +166,7 @@ export function WorkspaceShell({
   onSelectThread,
   onCreateThread,
   onCloseThread,
+  onDeleteThread,
   onRenameThread,
   onOpenLauncher: _onOpenLauncher,
   onCloseLauncher,
@@ -320,6 +322,7 @@ export function WorkspaceShell({
               onSelectThread={onSelectThread}
               onCreateThread={onCreateThread}
               onCloseThread={onCloseThread}
+              onDeleteThread={onDeleteThread}
               onRenameThread={onRenameThread}
               onAddRepository={onAddRepository}
               onOpenSettings={onOpenSettings}
