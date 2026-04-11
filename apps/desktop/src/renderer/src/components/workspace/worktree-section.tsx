@@ -65,7 +65,7 @@ export function WorktreeSection({
         type="button"
         onClick={onToggleExpand}
         className={cn(
-          "group flex w-full items-center gap-1.5 rounded-md px-1.5 py-1.5 text-left transition-all duration-[var(--duration-fast)]",
+          "group flex w-full items-center gap-1.5 rounded-sm px-1.5 py-1.5 text-left transition-all duration-[var(--duration-fast)]",
           isExpanded || isWorktreeActive
             ? "text-white/65"
             : "text-white/30 hover:text-white/50",
@@ -82,7 +82,7 @@ export function WorktreeSection({
         />
         <span
           className={cn(
-            "min-w-0 flex-1 truncate text-[16px] leading-tight",
+            "min-w-0 flex-1 truncate text-[16px] leading-none",
             isExpanded || isWorktreeActive
               ? "text-white/70 font-medium"
               : "group-hover:text-white/55",

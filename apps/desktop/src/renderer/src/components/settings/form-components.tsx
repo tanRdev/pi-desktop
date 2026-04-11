@@ -27,7 +27,7 @@ export function SettingsSection({
           {title}
         </h3>
         {description && (
-          <p className="mt-1.5 max-w-xl text-[16px] leading-6 text-white/40">
+          <p className="mt-1.5 max-w-xl text-[16px] leading-relaxed text-white/40">
             {description}
           </p>
         )}
@@ -53,7 +53,7 @@ export function SettingsRow({
       <div className="flex-1">
         <div className="text-sm font-medium text-white/60">{label}</div>
         {description && (
-          <p className="mt-1 text-[14px] leading-5 text-white/40">
+          <p className="mt-1 text-[14px] leading-normal text-white/40">
             {description}
           </p>
         )}
@@ -93,7 +93,7 @@ export function SettingsSelect({
           aria-label={ariaLabel}
           disabled={disabled}
           className={cn(
-            "flex h-10 w-[240px] items-center justify-between gap-2 rounded-md border border-white/[0.06] bg-[#141414] px-3.5 py-1 text-sm text-white/80",
+            "flex h-10 w-[240px] items-center justify-between gap-2 rounded-sm border border-white/[0.06] bg-[#141414] px-3.5 py-1 text-sm text-white/80",
             "transition-all duration-150 ease-[var(--ease-out)]",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
             "hover:border-white/[0.12] hover:bg-white/[0.03]",
@@ -111,7 +111,7 @@ export function SettingsSelect({
       <PopoverContent
         align="end"
         sideOffset={6}
-        className="w-[240px] rounded-md border border-white/[0.06] bg-[#111111] p-1"
+        className="w-[240px] rounded-sm border border-white/[0.06] bg-[#111111] p-1"
       >
         <div className="space-y-1">
           {options.map((option) => {
@@ -123,7 +123,7 @@ export function SettingsSelect({
                 type="button"
                 onClick={() => onChange(option.value)}
                 className={cn(
-                  "flex w-full items-center justify-between gap-2 rounded-md px-3 py-2.5 text-left text-[14px] transition-colors",
+                  "flex w-full items-center justify-between gap-2 rounded-sm px-3 py-2.5 text-left text-[14px] transition-colors",
                   isSelected
                     ? "bg-white text-black"
                     : "text-white/70 hover:bg-white/[0.06] hover:text-white",
@@ -255,7 +255,7 @@ export function SettingsInput({
       disabled={disabled}
       className={cn(
         className,
-        "flex h-9 rounded-md border border-white/[0.06] bg-[#141414] px-3 py-1 text-sm text-white/80 shadow-sm",
+        "flex h-9 rounded-sm border border-white/[0.06] bg-[#141414] px-3 py-1 text-sm text-white/80 shadow-sm",
         "transition-all duration-150 ease-[var(--ease-out)]",
         "file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-white/30",
         "focus-visible:outline-none focus-visible:border-white/[0.12] focus-visible:ring-0",
@@ -296,7 +296,7 @@ export function SettingsNumberInput({
       disabled={disabled}
       className={cn(
         className,
-        "flex h-9 rounded-md border border-white/[0.06] bg-[#141414] px-3 py-1 text-sm text-white/80 shadow-sm",
+        "flex h-9 rounded-sm border border-white/[0.06] bg-[#141414] px-3 py-1 text-sm text-white/80 shadow-sm",
         "transition-all duration-150 ease-[var(--ease-out)]",
         "focus-visible:outline-none focus-visible:border-white/[0.12] focus-visible:ring-0",
         "hover:border-white/[0.12]",
@@ -328,7 +328,7 @@ export function ResetButton({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "h-8 rounded-md px-3 text-[14px] text-white/40 hover:text-white/60",
+        "h-8 rounded-sm px-3 text-[14px] text-white/40 hover:text-white/60",
         "transition-all duration-150 ease-[var(--ease-out)]",
         "hover:bg-white/[0.04]",
         "active:scale-[0.97]",
@@ -366,7 +366,7 @@ export function SettingsTextarea({
       disabled={disabled}
       className={cn(
         className,
-        "rounded-md border border-white/[0.06] bg-[#141414] px-3 py-2 text-sm text-white/80",
+        "rounded-sm border border-white/[0.06] bg-[#141414] px-3 py-2 text-sm text-white/80",
         "transition-all duration-150 ease-[var(--ease-out)]",
         "placeholder:text-white/30",
         "focus-visible:outline-none focus-visible:border-white/[0.12] focus-visible:ring-0",

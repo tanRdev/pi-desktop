@@ -363,7 +363,7 @@ export function CodeLineViewer({
         >
           <div
             className={cn(
-              "flex items-center gap-1 rounded-lg border border-white/[0.06] bg-[#111111] p-1 shadow-[0_8px_32px_rgba(0,0,0,0.5)]",
+              "flex items-center gap-1 rounded-md border border-white/[0.06] bg-[#111111] p-1 shadow-[0_8px_32px_rgba(0,0,0,0.5)]",
               "transition-all duration-200 [transition-timing-function:var(--ease-out)]",
             )}
           >
@@ -371,7 +371,7 @@ export function CodeLineViewer({
               type="button"
               onClick={handleAddToChat}
               className={cn(
-                "flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-white/80",
+                "flex items-center gap-1.5 rounded-sm px-2 py-1.5 text-xs font-medium text-white/80",
                 "transition-all duration-200 [transition-timing-function:var(--ease-out)]",
                 "hover:bg-white/[0.06] hover:scale-105 hover:-translate-y-[1px]",
                 "active:scale-[0.97] motion-reduce:active:scale-100",

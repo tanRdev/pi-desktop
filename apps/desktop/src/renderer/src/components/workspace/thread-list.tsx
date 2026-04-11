@@ -55,7 +55,7 @@ export function ThreadList({
           type="button"
           variant="ghost"
           size="icon"
-          className="size-8 rounded-md text-white/30 transition-all duration-150 hover:bg-white/[0.04] hover:text-white/60 active:scale-95"
+          className="size-8 rounded-sm text-white/30 transition-all duration-150 hover:bg-white/[0.04] hover:text-white/60 active:scale-95"
           onClick={() => onCreate()}
           aria-label="Create thread"
         >
@@ -66,7 +66,7 @@ export function ThreadList({
       {/* Thread list */}
       <div className="space-y-0.5">
         {threads.length === 0 ? (
-          <div className="rounded-md border border-white/[0.06] bg-white/[0.02] px-3 py-4 text-center">
+          <div className="rounded-sm border border-white/[0.06] bg-white/[0.02] px-3 py-4 text-center">
             <p className="text-[16px] text-white/50">No threads yet</p>
             <p className="mt-1 text-[14px] text-white/30">
               Create one to start chatting
@@ -82,7 +82,7 @@ export function ThreadList({
                 type="button"
                 onClick={() => onSelect(thread.id)}
                 className={cn(
-                  "group relative w-full rounded-md px-3 py-2.5 text-left transition-all duration-150",
+                  "group relative w-full rounded-sm px-3 py-2.5 text-left transition-all duration-150",
                   isActive
                     ? "bg-white/[0.06] text-white/80"
                     : "text-white/50 hover:bg-white/[0.04] hover:text-white/70",
@@ -104,7 +104,7 @@ export function ThreadList({
                       />
                       <span
                         className={cn(
-                          "truncate text-[16px] font-medium leading-tight",
+                          "truncate text-[16px] font-medium leading-none",
                           isActive ? "text-white/80" : "text-white/50",
                         )}
                       >

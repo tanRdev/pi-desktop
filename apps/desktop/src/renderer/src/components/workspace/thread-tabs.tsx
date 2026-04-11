@@ -65,7 +65,7 @@ export function ThreadTabs({
                   onCloseThread(thread.id);
                 }}
                 className={cn(
-                  "flex h-4 w-4 shrink-0 items-center justify-center rounded-sm transition-all duration-75",
+                  "flex h-4 w-4 shrink-0 items-center justify-center rounded-xs transition-all duration-75",
                   isActive
                     ? "text-white/30 hover:text-white/60 hover:bg-white/[0.06]"
                     : "text-white/20 hover:text-white/50 hover:bg-white/[0.06]",

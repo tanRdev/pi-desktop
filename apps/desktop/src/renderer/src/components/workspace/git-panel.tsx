@@ -243,14 +243,14 @@ export function GitPanel({
       <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
         <div className="space-y-6">
           <section className="space-y-2">
-            <div className="relative rounded-md border border-white/[0.04] p-1 transition-colors">
+            <div className="relative rounded-sm border border-white/[0.04] p-1 transition-colors">
               <textarea
                 value={commitMessage}
                 onChange={(event) => onCommitMessageChange(event.target.value)}
                 placeholder="Commit message..."
                 rows={2}
                 disabled={!repositoryPath || isLoading}
-                className="w-full resize-none rounded-md border-none bg-transparent px-1 py-1 text-[16px] text-white/80 transition-all duration-150 placeholder:text-white/20 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full resize-none rounded-sm border-none bg-transparent px-1 py-1 text-[16px] text-white/80 transition-all duration-150 placeholder:text-white/20 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               />
               <div className="flex items-center gap-1 pb-1">
                 <Button

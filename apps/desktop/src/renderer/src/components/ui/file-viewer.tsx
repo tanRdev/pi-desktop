@@ -169,7 +169,7 @@ export function FileViewer({
               type="button"
               onClick={onOpenTerminal}
               className={cn(
-                "rounded-md p-1 text-white/30",
+                "rounded-sm p-1 text-white/30",
                 "transition-all duration-150 ease-out",
                 "hover:bg-white/[0.06] hover:text-white/80",
                 "active:scale-95",
@@ -184,7 +184,7 @@ export function FileViewer({
               type="button"
               onClick={onClose}
               className={cn(
-                "rounded-md p-1 text-white/30",
+                "rounded-sm p-1 text-white/30",
                 "transition-all duration-150 ease-out",
                 "hover:bg-white/[0.06] hover:text-white/80",
                 "active:scale-95",
@@ -230,7 +230,7 @@ export function FileViewer({
           >
             <div
               className={cn(
-                "flex h-16 w-16 items-center justify-center rounded-md bg-white/[0.02] border border-white/[0.04]",
+                "flex h-16 w-16 items-center justify-center rounded-sm bg-white/[0.02] border border-white/[0.04]",
                 "transition-all duration-150 ease-out",
                 "hover:scale-105",
               )}
@@ -273,7 +273,7 @@ export function FileViewer({
           >
             <div
               className={cn(
-                "flex h-16 w-16 items-center justify-center rounded-md bg-white/[0.02] border border-white/[0.04]",
+                "flex h-16 w-16 items-center justify-center rounded-sm bg-white/[0.02] border border-white/[0.04]",
                 "transition-all duration-150 ease-out",
                 "hover:scale-105",
               )}
@@ -336,7 +336,7 @@ export function FileViewer({
           >
             <div
               className={cn(
-                "flex h-16 w-16 items-center justify-center rounded-md bg-white/[0.02] border border-white/[0.04]",
+                "flex h-16 w-16 items-center justify-center rounded-sm bg-white/[0.02] border border-white/[0.04]",
                 "transition-all duration-150 ease-out",
                 "hover:scale-105",
               )}

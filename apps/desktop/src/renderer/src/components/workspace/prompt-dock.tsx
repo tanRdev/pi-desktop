@@ -305,7 +305,7 @@ export function PromptDock({
             onBlur={() => setIsFocused(false)}
             className={cn(
               "min-h-[36px] resize-none border-0 bg-transparent px-0 py-0",
-              "text-[16px] leading-5 text-[var(--color-text-primary)]",
+              "text-[16px] leading-normal text-[var(--color-text-primary)]",
               "placeholder:text-[var(--color-text-tertiary)]",
               "focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none",
               "disabled:opacity-50",
@@ -341,7 +341,7 @@ export function PromptDock({
                       providerSnapshots.length === 0
                     }
                     className={cn(
-                      "flex items-center gap-1.5 rounded-md px-2 py-1 text-[14px] text-white/60",
+                      "flex items-center gap-1.5 rounded-sm px-2 py-1 text-[14px] text-white/60",
                       "transition-all duration-[var(--duration-fast)]",
                       "hover:text-white/90 hover:bg-white/[0.04]",
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]",
@@ -363,7 +363,7 @@ export function PromptDock({
                   align="start"
                   side="top"
                   sideOffset={8}
-                  className="w-64 rounded-lg border border-white/[0.06] bg-[#111111] p-2 shadow-[0_8px_32px_rgba(0,0,0,0.5)]"
+                  className="w-64 rounded-md border border-white/[0.06] bg-[#111111] p-2 shadow-[0_8px_32px_rgba(0,0,0,0.5)]"
                 >
                   <div className="max-h-72 overflow-y-auto">
                     {providerSnapshots.map((provider) => (
@@ -382,7 +382,7 @@ export function PromptDock({
                               data-testid={`model-option-${provider.id}-${model.id}`}
                               onClick={() => handleModelSelect(value)}
                               className={cn(
-                                "flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-[16px] transition-colors",
+                                "flex w-full items-center justify-between rounded-sm px-2.5 py-2 text-left text-[16px] transition-colors",
                                 isSelected
                                   ? "bg-white/[0.08] text-white"
                                   : "text-white/70 hover:bg-white/[0.04] hover:text-white",

@@ -151,7 +151,7 @@ export function ProjectIconPicker({
                     : "text-white/30",
                 )}
               >
-                <span className="flex h-10 w-10 items-center justify-center rounded-md border border-white/[0.06] bg-white/[0.02]">
+                <span className="flex h-10 w-10 items-center justify-center rounded-sm border border-white/[0.06] bg-white/[0.02]">
                   <Icon className="h-5 w-5" />
                 </span>
                 <span className="text-[9px] font-mono font-medium uppercase tracking-wider">

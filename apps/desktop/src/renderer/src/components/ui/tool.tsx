@@ -150,7 +150,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
   return (
     <div
       className={cn(
-        "mt-3 overflow-hidden rounded-lg border border-white/[0.04] bg-white/[0.02] select-none",
+        "mt-3 overflow-hidden rounded-md border border-white/[0.04] bg-white/[0.02] select-none",
         "transition-all duration-[var(--duration-normal)] ease-out",
         "hover:border-white/[0.08]",
         state === "output-error" && "border-red-500/20",
@@ -162,7 +162,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
           <Button
             variant="ghost"
             className={cn(
-              "h-auto w-full justify-between rounded-lg px-3 py-2 font-normal select-none",
+              "h-auto w-full justify-between rounded-md px-3 py-2 font-normal select-none",
               "transition-all duration-[var(--duration-fast)] ease-out",
               "hover:bg-white/[0.03]",
               "active:scale-[0.99]",
@@ -195,7 +195,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
                 <h4 className="mb-2 text-xs font-medium text-white/30">
                   Input
                 </h4>
-                <div className="rounded-md border border-white/[0.04] bg-white/[0.02] p-2 font-mono text-sm text-white/60">
+                <div className="rounded-sm border border-white/[0.04] bg-white/[0.02] p-2 font-mono text-sm text-white/60">
                   {Object.entries(input).map(([key, value]) => (
                     <div key={key} className="mb-1">
                       <span className="text-white/30">{key}:</span>{" "}
@@ -211,7 +211,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
                 <h4 className="mb-2 text-xs font-medium text-white/30">
                   Output
                 </h4>
-                <div className="max-h-60 overflow-auto rounded-md border border-white/[0.04] bg-white/[0.02] p-2 font-mono text-sm text-white/60">
+                <div className="max-h-60 overflow-auto rounded-sm border border-white/[0.04] bg-white/[0.02] p-2 font-mono text-sm text-white/60">
                   <pre className="whitespace-pre-wrap">
                     {formatValue(output)}
                   </pre>
@@ -224,7 +224,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
                 <h4 className="mb-2 text-xs font-medium text-red-400/80">
                   Error
                 </h4>
-                <div className="rounded-md border border-red-500/20 bg-red-500/[0.04] p-2 text-sm text-red-400/80">
+                <div className="rounded-sm border border-red-500/20 bg-red-500/[0.04] p-2 text-sm text-red-400/80">
                   {toolPart.errorText}
                 </div>
               </div>

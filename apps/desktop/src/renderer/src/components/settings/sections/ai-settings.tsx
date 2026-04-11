@@ -119,7 +119,7 @@ export function AISettingsSection() {
       {runtimeProviders.length === 0 ? (
         <div
           className={cn(
-            "stagger-item rounded-md border border-white/[0.06] bg-white/[0.02] px-4 py-4 text-sm text-white/40",
+            "stagger-item rounded-sm border border-white/[0.06] bg-white/[0.02] px-4 py-4 text-sm text-white/40",
           )}
           style={{
             animationDelay: "80ms",

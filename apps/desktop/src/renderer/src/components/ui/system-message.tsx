@@ -45,7 +45,7 @@ export function SystemMessage({
   return (
     <div
       className={cn(
-        "flex items-start gap-3 rounded-lg border px-4 py-3 select-none",
+        "flex items-start gap-3 rounded-md border px-4 py-3 select-none",
         toneClassName,
         className,
       )}
@@ -58,7 +58,7 @@ export function SystemMessage({
             {title}
           </div>
         ) : null}
-        <div className="text-sm leading-5 text-white/60">{children}</div>
+        <div className="text-sm leading-normal text-white/60">{children}</div>
       </div>
     </div>
   );

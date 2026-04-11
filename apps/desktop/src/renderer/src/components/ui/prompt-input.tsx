@@ -91,7 +91,7 @@ function PromptInput({
           role="presentation"
           onClick={handleClick}
           className={cn(
-            "border border-border-subtle bg-transparent cursor-text rounded-md p-3",
+            "border border-border-subtle bg-transparent cursor-text rounded-sm p-3",
             "transition-all duration-200 ease-[var(--ease-out)]",
             "focus-within:ring-0 focus-within:border-border-subtle/80 focus-within:shadow-sm focus-within:-translate-y-px",
             "motion-reduce:transition-none motion-reduce:focus-within:translate-y-0 motion-reduce:focus-within:shadow-none",

@@ -67,14 +67,14 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         data-testid="settings-modal"
-        className="flex h-[76vh] max-h-[76vh] w-[min(880px,calc(100vw-64px))] max-w-[880px] flex-col gap-0 overflow-hidden rounded-xl border border-white/[0.06] bg-[var(--color-bg-tertiary)] p-0 shadow-[0_16px_48px_rgba(0,0,0,0.5)] select-none"
+        className="flex h-[76vh] max-h-[76vh] w-[min(880px,calc(100vw-64px))] max-w-[880px] flex-col gap-0 overflow-hidden rounded-lg border border-white/[0.06] bg-[var(--color-bg-tertiary)] p-0 shadow-[0_16px_48px_rgba(0,0,0,0.5)] select-none"
       >
         <DialogHeader className="flex flex-row items-center justify-between select-none">
           <div className="space-y-1 select-none">
             <p className="text-[14px] font-medium uppercase tracking-[0.18em] text-white/40">
               Preferences
             </p>
-            <DialogTitle className="font-heading text-[18px] font-semibold tracking-[-0.02em] text-white/90">
+            <DialogTitle className="font-heading text-[20px] font-semibold tracking-[-0.02em] text-white/90">
               Workspace settings
             </DialogTitle>
           </div>
@@ -90,7 +90,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                   data-testid={`settings-nav-${item.id}`}
                   onClick={() => handleSectionChange(item.id)}
                   className={cn(
-                    "flex items-center gap-3 rounded-md px-3 py-2.5 text-left",
+                    "flex items-center gap-3 rounded-sm px-3 py-2.5 text-left",
                     "transition-all duration-[var(--duration-fast)] ease-[var(--ease-out)]",
                     "hover:bg-white/[0.04] hover:text-white",
                     activeSection === item.id
@@ -98,7 +98,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                       : "text-white/40",
                   )}
                 >
-                  <span className="flex size-8 shrink-0 items-center justify-center rounded-md text-white/40">
+                  <span className="flex size-8 shrink-0 items-center justify-center rounded-sm text-white/40">
                     {item.icon}
                   </span>
                   <span className="min-w-0">
@@ -135,7 +135,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
               resetAll();
             }}
             className={cn(
-              "rounded-md px-3 text-[14px] font-medium text-white/40 hover:bg-white/[0.04] hover:text-white/80",
+              "rounded-sm px-3 text-[14px] font-medium text-white/40 hover:bg-white/[0.04] hover:text-white/80",
             )}
           >
             Reset visible settings
@@ -145,7 +145,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
             size="sm"
             onClick={() => onOpenChange(false)}
             className={cn(
-              "rounded-md px-5 tracking-[-0.01em]",
+              "rounded-sm px-5 tracking-[-0.01em]",
               "transition-all duration-[var(--duration-fast)] ease-[var(--ease-out)]",
             )}
           >

@@ -48,7 +48,7 @@ export function StepItem({
           {title}
         </div>
         {detail ? (
-          <div className="mt-1 text-[14px] leading-5 text-white/40">
+          <div className="mt-1 text-[14px] leading-normal text-white/40">
             {detail}
           </div>
         ) : null}

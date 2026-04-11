@@ -75,7 +75,7 @@ export function WorkspaceSearchContent({
                 type="button"
                 onClick={action.onSelect}
                 className={cn(
-                  "rounded-md bg-white/[0.04] border border-white/[0.06] px-3 py-1.5 text-xs text-white/50",
+                  "rounded-sm bg-white/[0.04] border border-white/[0.06] px-3 py-1.5 text-xs text-white/50",
                   "transition-colors active:scale-[0.97]",
                   "hover:bg-white/[0.06] hover:text-white/70",
                 )}

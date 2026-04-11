@@ -39,9 +39,9 @@ function show(message: string, type: ToastType, options: ToastOptions = {}) {
         style={{ backgroundColor: iconColor }}
       />
       <div className="flex flex-col gap-0.5">
-        <span className="text-[16px] leading-tight">{message}</span>
+        <span className="text-[16px] leading-none">{message}</span>
         {description && (
-          <span className="text-[14px] text-white/50 leading-tight">
+          <span className="text-[14px] text-white/50 leading-none">
             {description}
           </span>
         )}

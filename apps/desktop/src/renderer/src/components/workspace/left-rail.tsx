@@ -412,7 +412,7 @@ export function LeftRail({
           type="button"
           onClick={onToggleVisible}
           data-no-drag="true"
-          className="flex size-8 items-center justify-center rounded-md text-white/30 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/60"
+          className="flex size-8 items-center justify-center rounded-sm text-white/30 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/60"
         >
           <SidebarSimple className="size-5" />
         </button>
@@ -467,7 +467,7 @@ export function LeftRail({
                         thread.isArchived,
                       );
                 const threadRowClassName = cn(
-                  "group flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-[14px] transition-colors",
+                  "group flex w-full items-center gap-2 rounded-sm px-2 py-2 text-left text-[14px] transition-colors",
                   isActive
                     ? "bg-white/[0.04] text-white/80"
                     : "text-white/40 hover:bg-white/[0.04] hover:text-white/70",
@@ -569,7 +569,7 @@ export function LeftRail({
                   <div
                     key={thread.id}
                     className={cn(
-                      "group/archived flex w-full items-center gap-1 rounded-md px-2 py-1 text-[14px] transition-colors",
+                      "group/archived flex w-full items-center gap-1 rounded-sm px-2 py-1 text-[14px] transition-colors",
                       "text-white/30 hover:bg-white/[0.04] hover:text-white/50",
                     )}
                   >
@@ -579,7 +579,7 @@ export function LeftRail({
                         setPendingDeleteThreadId(null);
                         onSelectThread(thread.id);
                       }}
-                      className="flex min-w-0 flex-1 items-center gap-2 rounded-md px-0 py-1 text-left"
+                      className="flex min-w-0 flex-1 items-center gap-2 rounded-sm px-0 py-1 text-left"
                     >
                       <Archive className="size-3 shrink-0 text-white/20" />
                       <span className="truncate flex-1">
@@ -614,7 +614,7 @@ export function LeftRail({
                         <PopoverContent
                           align="end"
                           side="bottom"
-                          className="w-auto min-w-[220px] rounded-md border border-white/[0.06] bg-[var(--color-bg-tertiary)] p-2"
+                          className="w-auto min-w-[220px] rounded-sm border border-white/[0.06] bg-[var(--color-bg-tertiary)] p-2"
                         >
                           <div className="space-y-2">
                             <p className="text-[14px] text-white/70">
@@ -676,7 +676,7 @@ export function LeftRail({
         <div
           ref={contextMenuRef}
           className={cn(
-            "fixed z-[100] min-w-[160px] rounded-md border border-white/[0.06] bg-[var(--color-bg-primary)] p-1",
+            "fixed z-[100] min-w-[160px] rounded-sm border border-white/[0.06] bg-[var(--color-bg-primary)] p-1",
             "shadow-[var(--shadow-hover)]",
             "animate-in fade-in-0 zoom-in-[0.98] duration-150 ease-out",
           )}

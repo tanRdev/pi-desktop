@@ -269,7 +269,7 @@ function EmptyState({ onCloseAll }: { onCloseAll?: () => void }) {
     >
       <div
         className={cn(
-          "flex h-16 w-16 items-center justify-center rounded-xl bg-white/[0.02] border border-white/[0.04]",
+          "flex h-16 w-16 items-center justify-center rounded-lg bg-white/[0.02] border border-white/[0.04]",
           "transition-all duration-200 [transition-timing-function:var(--ease-out)]",
           "hover:scale-[1.02] hover:-translate-y-[1px] hover:shadow-sm",
           "motion-reduce:transform-none motion-reduce:transition-none",
@@ -407,7 +407,7 @@ function FileContentViewer({
       >
         <div
           className={cn(
-            "flex h-16 w-16 items-center justify-center rounded-xl bg-white/[0.02] border border-white/[0.04]",
+            "flex h-16 w-16 items-center justify-center rounded-lg bg-white/[0.02] border border-white/[0.04]",
             "transition-all duration-200 [transition-timing-function:var(--ease-out)]",
             "hover:scale-[1.02] hover:-translate-y-[1px] hover:shadow-sm",
             "motion-reduce:transform-none motion-reduce:transition-none",
@@ -433,7 +433,7 @@ function FileContentViewer({
       >
         <div
           className={cn(
-            "flex h-16 w-16 items-center justify-center rounded-xl bg-white/[0.02] border border-white/[0.04]",
+            "flex h-16 w-16 items-center justify-center rounded-lg bg-white/[0.02] border border-white/[0.04]",
             "transition-all duration-200 [transition-timing-function:var(--ease-out)]",
             "hover:scale-[1.02] hover:-translate-y-[1px] hover:shadow-sm",
             "motion-reduce:transform-none motion-reduce:transition-none",
@@ -461,7 +461,7 @@ function FileContentViewer({
       >
         <div
           className={cn(
-            "flex h-16 w-16 items-center justify-center rounded-xl bg-white/[0.02] border border-white/[0.04]",
+            "flex h-16 w-16 items-center justify-center rounded-lg bg-white/[0.02] border border-white/[0.04]",
             "transition-all duration-200 [transition-timing-function:var(--ease-out)]",
             "hover:scale-[1.02] hover:-translate-y-[1px] hover:shadow-sm",
             "motion-reduce:transform-none motion-reduce:transition-none",
@@ -594,7 +594,7 @@ function FileContentViewer({
           />
         ) : (
           <div className="flex h-full flex-col items-center justify-center gap-3 p-8 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-white/[0.02] border border-white/[0.04]">
+            <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-white/[0.02] border border-white/[0.04]">
               <FileIcon className="size-8 text-white/30" />
             </div>
             <div className="space-y-1">
@@ -616,7 +616,7 @@ function FileContentViewer({
     >
       <div
         className={cn(
-          "flex h-16 w-16 items-center justify-center rounded-xl bg-white/[0.02] border border-white/[0.04]",
+          "flex h-16 w-16 items-center justify-center rounded-lg bg-white/[0.02] border border-white/[0.04]",
           "transition-all duration-200 [transition-timing-function:var(--ease-out)]",
           "hover:scale-[1.02] hover:-translate-y-[1px] hover:shadow-sm",
           "motion-reduce:transform-none motion-reduce:transition-none",

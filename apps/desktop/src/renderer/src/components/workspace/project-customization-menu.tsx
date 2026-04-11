@@ -103,7 +103,7 @@ export function ProjectCustomizationMenu({
       >
         <div
           className={cn(
-            "w-80 rounded-md border border-white/[0.06] bg-[var(--color-bg-secondary)] p-4 shadow-none",
+            "w-80 rounded-sm border border-white/[0.06] bg-[var(--color-bg-secondary)] p-4 shadow-none",
             "transition-all duration-100",
           )}
         >
@@ -148,12 +148,12 @@ export function ProjectCustomizationMenu({
                 variant="outline"
                 size="default"
                 className={cn(
-                  "mt-2 h-10 w-full justify-between rounded-md border-white/[0.06] bg-transparent px-3 text-left text-white/50 hover:bg-white/[0.04] hover:border-white/[0.08] hover:text-white/70",
+                  "mt-2 h-10 w-full justify-between rounded-sm border-white/[0.06] bg-transparent px-3 text-left text-white/50 hover:bg-white/[0.04] hover:border-white/[0.08] hover:text-white/70",
                 )}
                 onClick={() => setIconPickerOpen(true)}
               >
                 <span className="flex items-center gap-2">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-md border border-white/[0.06] bg-white/[0.02]">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-sm border border-white/[0.06] bg-white/[0.02]">
                     <currentIcon.icon className="h-4 w-4" />
                   </span>
                   <span className="text-[14px] font-mono uppercase tracking-wider">
@@ -187,7 +187,7 @@ export function ProjectCustomizationMenu({
                         });
                       }}
                       className={cn(
-                        "flex items-center gap-2 rounded-md border px-2 py-1.5 text-[9px] font-mono uppercase tracking-wider",
+                        "flex items-center gap-2 rounded-sm border px-2 py-1.5 text-[9px] font-mono uppercase tracking-wider",
                         "transition-all duration-150",
                         isActive
                           ? "border-white/[0.12] bg-white/[0.06] text-white/80"

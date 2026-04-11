@@ -40,13 +40,13 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[80vh] w-[min(860px,calc(100vw-40px))] max-w-[860px] flex-col gap-0 overflow-hidden rounded-xl border border-white/[0.06] bg-[var(--color-bg-tertiary)] p-0 shadow-[0_24px_48px_rgba(0,0,0,0.5)] outline-none ring-0 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0">
+      <DialogContent className="flex h-[80vh] w-[min(860px,calc(100vw-40px))] max-w-[860px] flex-col gap-0 overflow-hidden rounded-lg border border-white/[0.06] bg-[var(--color-bg-tertiary)] p-0 shadow-[0_24px_48px_rgba(0,0,0,0.5)] outline-none ring-0 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0">
         <DialogHeader className="flex flex-row items-center justify-between border-b border-white/[0.06] bg-[var(--color-bg-secondary)] px-6 py-4">
           <div className="space-y-0.5">
             <p className="text-[14px] font-medium uppercase tracking-[0.18em] text-white/40">
               Extensions
             </p>
-            <DialogTitle className="font-heading text-[18px] font-semibold tracking-[-0.02em] text-white/90">
+            <DialogTitle className="font-heading text-[20px] font-semibold tracking-[-0.02em] text-white/90">
               Packages
             </DialogTitle>
           </div>
@@ -54,7 +54,7 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
 
         <div className="px-6 py-4">
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex h-9 min-w-[200px] flex-1 items-center gap-2 rounded-md bg-white/[0.03] px-3 text-white/60 focus-within:bg-white/[0.05] transition-colors">
+            <div className="flex h-9 min-w-[200px] flex-1 items-center gap-2 rounded-sm bg-white/[0.03] px-3 text-white/60 focus-within:bg-white/[0.05] transition-colors">
               <MagnifyingGlass className="size-5 text-white/30" />
               <input
                 type="search"
@@ -246,7 +246,7 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
                     <div className="flex flex-col items-start justify-between gap-6 sm:flex-row">
                       <div className="flex-1 space-y-4">
                         <div className="flex items-center gap-3">
-                          <div className="flex size-10 items-center justify-center rounded-lg bg-white/[0.04]">
+                          <div className="flex size-10 items-center justify-center rounded-md bg-white/[0.04]">
                             <Package className="size-5 text-white/40" />
                           </div>
                           <div>
@@ -259,7 +259,7 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
                                   (kind) => (
                                     <span
                                       key={kind}
-                                      className="rounded-md bg-white/[0.04] px-2 py-0.5 text-[14px] font-medium uppercase tracking-wider text-white/30"
+                                      className="rounded-sm bg-white/[0.04] px-2 py-0.5 text-[14px] font-medium uppercase tracking-wider text-white/30"
                                     >
                                       {kind}
                                     </span>
@@ -282,7 +282,7 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
                           type="button"
                           disabled={installDisabled}
                           size="sm"
-                          className="h-8 rounded-md"
+                          className="h-8 rounded-sm"
                           onClick={() => {
                             if (controller.selectedPackageDetail) {
                               void controller.installPackage(
@@ -301,7 +301,7 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
                               type="button"
                               variant="secondary"
                               size="sm"
-                              className="h-8 rounded-md"
+                              className="h-8 rounded-sm"
                               onClick={() => {
                                 if (controller.selectedPackageDetail) {
                                   void controller.updatePackage(
@@ -318,7 +318,7 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
                               type="button"
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 rounded-md text-white/30 hover:bg-red-500/10 hover:text-red-400"
+                              className="h-8 w-8 rounded-sm text-white/30 hover:bg-red-500/10 hover:text-red-400"
                               onClick={() => {
                                 if (controller.selectedPackageDetail) {
                                   void controller.removePackage(
@@ -350,7 +350,7 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
                             packageDetail.npmUrl,
                           );
                         }}
-                        className="inline-flex h-7 items-center gap-1.5 rounded-md bg-white/[0.04] px-3 text-[14px] font-medium tracking-wider text-white/40 transition-all hover:bg-white/[0.08] hover:text-white/70"
+                        className="inline-flex h-7 items-center gap-1.5 rounded-sm bg-white/[0.04] px-3 text-[14px] font-medium tracking-wider text-white/40 transition-all hover:bg-white/[0.08] hover:text-white/70"
                       >
                         <Package className="size-3" />
                         NPM REGISTRY
@@ -370,7 +370,7 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
                               packageDetail.repositoryUrl,
                             );
                           }}
-                          className="inline-flex h-7 items-center gap-1.5 rounded-md bg-white/[0.04] px-3 text-[14px] font-medium tracking-wider text-white/40 transition-all hover:bg-white/[0.08] hover:text-white/70"
+                          className="inline-flex h-7 items-center gap-1.5 rounded-sm bg-white/[0.04] px-3 text-[14px] font-medium tracking-wider text-white/40 transition-all hover:bg-white/[0.08] hover:text-white/70"
                         >
                           <Code className="size-3" />
                           SOURCE CODE

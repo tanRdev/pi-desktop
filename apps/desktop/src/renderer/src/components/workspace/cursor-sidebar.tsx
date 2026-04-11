@@ -33,7 +33,7 @@ export function CursorSidebar({ className }: CursorSidebarProps) {
         <button
           type="button"
           className={cn(
-            "flex w-full items-center gap-3 rounded-lg px-3 py-2.5",
+            "flex w-full items-center gap-3 rounded-md px-3 py-2.5",
             "bg-white/[0.05] hover:bg-white/[0.08]",
             "border border-white/[0.06]",
             "transition-all duration-150",
@@ -84,7 +84,7 @@ export function CursorSidebar({ className }: CursorSidebarProps) {
         <button
           type="button"
           className={cn(
-            "flex w-full items-center gap-3 rounded-lg px-3 py-2",
+            "flex w-full items-center gap-3 rounded-md px-3 py-2",
             "text-white/40 hover:text-white/70 hover:bg-white/[0.03]",
             "transition-all duration-150",
           )}
@@ -94,7 +94,7 @@ export function CursorSidebar({ className }: CursorSidebarProps) {
         </button>
 
         {/* User Profile - Cursor style */}
-        <div className="mt-2 flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-white/[0.03] cursor-pointer transition-colors select-none">
+        <div className="mt-2 flex items-center gap-3 rounded-md px-3 py-2 hover:bg-white/[0.03] cursor-pointer transition-colors select-none">
           <div className="flex size-8 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500">
             <span className="text-[14px] font-medium text-white">T</span>
           </div>
@@ -124,7 +124,7 @@ function SidebarItem({
     <button
       type="button"
       className={cn(
-        "flex w-full items-center gap-3 rounded-lg px-3 py-2",
+        "flex w-full items-center gap-3 rounded-md px-3 py-2",
         "text-white/50 hover:text-white/80 hover:bg-white/[0.03]",
         "transition-all duration-150",
       )}
@@ -155,7 +155,7 @@ function FileTreeItem({
     <button
       type="button"
       className={cn(
-        "flex w-full items-center gap-2 rounded-lg px-3 py-1.5",
+        "flex w-full items-center gap-2 rounded-md px-3 py-1.5",
         "transition-all duration-150",
         indented && "pl-8",
         active

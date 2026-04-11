@@ -349,14 +349,14 @@ export function WorkspaceShell({
               <button
                 type="button"
                 onClick={onOpenMarketplace}
-                className="flex size-8 items-center justify-center rounded-md text-white/30 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/60"
+                className="flex size-8 items-center justify-center rounded-sm text-white/30 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/60"
               >
                 <SquaresFour className="size-5" />
               </button>
               <button
                 type="button"
                 onClick={() => setIsRightPanelVisible(!isRightPanelVisible)}
-                className="flex size-8 items-center justify-center rounded-md text-white/30 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/60"
+                className="flex size-8 items-center justify-center rounded-sm text-white/30 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/60"
               >
                 <SidebarSimple className="size-5 -scale-x-100" />
               </button>

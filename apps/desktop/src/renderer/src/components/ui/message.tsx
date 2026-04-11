@@ -45,7 +45,7 @@ const MessageAvatar = ({
   return (
     <Avatar
       className={cn(
-        "h-7 w-7 shrink-0 rounded-md",
+        "h-7 w-7 shrink-0 rounded-sm",
         "transition-transform duration-[var(--duration-fast)] ease-[var(--ease-out)]",
         "hover:scale-105",
         "active:scale-[0.97]",

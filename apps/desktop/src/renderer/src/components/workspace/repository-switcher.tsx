@@ -76,7 +76,7 @@ export function RepositorySwitcher({
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="w-[var(--radix-popover-trigger-width)] p-0 overflow-hidden border border-white/[0.06] bg-[#111111] rounded-lg"
+        className="w-[var(--radix-popover-trigger-width)] p-0 overflow-hidden border border-white/[0.06] bg-[#111111] rounded-md"
       >
         <div className="flex flex-col">
           {repositories.map((repository) => {

@@ -140,7 +140,7 @@ export function LeftSidebar({
 
         {!repository ? (
           <div className="px-4 pt-4">
-            <div className="rounded-md bg-white/[0.02] px-4 py-4 text-sm text-white/40">
+            <div className="rounded-sm bg-white/[0.02] px-4 py-4 text-sm text-white/40">
               Add a repository to start
             </div>
           </div>
@@ -149,7 +149,7 @@ export function LeftSidebar({
         <ScrollArea className="min-h-0 flex-1">
           <div className="space-y-3 px-3 py-3">
             <div className="space-y-3">
-              <div className="rounded-md border border-white/[0.04] bg-white/[0.02] px-3 py-3">
+              <div className="rounded-sm border border-white/[0.04] bg-white/[0.02] px-3 py-3">
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-[14px] font-semibold uppercase tracking-wider text-white/40">
                     Worktrees
@@ -169,7 +169,7 @@ export function LeftSidebar({
                           type="button"
                           onClick={() => onSelectWorktree(worktree.id)}
                           className={cn(
-                            "flex w-full flex-col gap-1 rounded-md px-2 py-2 text-left transition-colors duration-[var(--duration-fast)]",
+                            "flex w-full flex-col gap-1 rounded-sm px-2 py-2 text-left transition-colors duration-[var(--duration-fast)]",
                             isActive
                               ? "bg-white/[0.06] text-white/80"
                               : "hover:bg-white/[0.04] text-white/50 hover:text-white/70",
@@ -190,14 +190,14 @@ export function LeftSidebar({
                       );
                     })
                   ) : (
-                    <div className="rounded-lg bg-white/[0.02] px-3 py-3 text-[14px] text-white/30">
+                    <div className="rounded-md bg-white/[0.02] px-3 py-3 text-[14px] text-white/30">
                       No worktrees
                     </div>
                   )}
                 </div>
               </div>
 
-              <div className="rounded-md border border-white/[0.04] bg-white/[0.02] px-3 py-3">
+              <div className="rounded-sm border border-white/[0.04] bg-white/[0.02] px-3 py-3">
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-[14px] font-semibold uppercase tracking-wider text-white/40">
                     Active thread
@@ -218,7 +218,7 @@ export function LeftSidebar({
                           <button
                             key={thread.id}
                             type="button"
-                            className="flex w-full flex-col gap-0.5 rounded-md px-2 py-2 text-left bg-white/[0.06]"
+                            className="flex w-full flex-col gap-0.5 rounded-sm px-2 py-2 text-left bg-white/[0.06]"
                           >
                             <span className="truncate text-[16px] font-medium text-white/80">
                               {thread.title}
@@ -230,7 +230,7 @@ export function LeftSidebar({
                         )),
                     )
                   ) : (
-                    <div className="rounded-lg bg-white/[0.02] px-3 py-3 text-[14px] text-white/30">
+                    <div className="rounded-md bg-white/[0.02] px-3 py-3 text-[14px] text-white/30">
                       Select a thread to begin
                     </div>
                   )}
@@ -244,7 +244,7 @@ export function LeftSidebar({
           <div className="border-t border-white/[0.04] px-3 py-2">
             <button
               type="button"
-              className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-[16px] font-medium text-white/40 transition-colors duration-[var(--duration-fast)] hover:bg-white/[0.04] hover:text-white/60"
+              className="flex h-8 w-full items-center gap-2 rounded-sm px-2 text-[16px] font-medium text-white/40 transition-colors duration-[var(--duration-fast)] hover:bg-white/[0.04] hover:text-white/60"
               onClick={onCreateWorktree}
             >
               <FolderPlus className="size-5" />

@@ -76,7 +76,7 @@ export function ThreadListItem({
       type="button"
       onClick={isEditing ? undefined : onClick}
       className={cn(
-        "group flex w-full items-center gap-1.5 rounded-md px-1.5 py-1.5 text-left transition-all duration-[var(--duration-fast)]",
+        "group flex w-full items-center gap-1.5 rounded-sm px-1.5 py-1.5 text-left transition-all duration-[var(--duration-fast)]",
         isActive ? "text-white/90" : "text-white/30 hover:text-white/55",
         !isEditing && "cursor-pointer",
       )}
@@ -107,7 +107,7 @@ export function ThreadListItem({
           <span
             data-testid={isActive ? "current-thread-title" : undefined}
             className={cn(
-              "block truncate text-[14px] leading-tight transition-colors duration-150",
+              "block truncate text-[14px] leading-none transition-colors duration-150",
               isActive
                 ? "font-medium text-white/90"
                 : "text-white/45 group-hover:text-white/60",

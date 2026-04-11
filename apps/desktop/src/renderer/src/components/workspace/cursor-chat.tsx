@@ -44,7 +44,7 @@ export function CursorChat({ className }: CursorChatProps) {
 
         {/* Skills Dropdown - Cursor style */}
         <div className="mb-4 ml-9">
-          <div className="overflow-hidden rounded-xl border border-white/[0.06] bg-[#141414]/95 shadow-xl">
+          <div className="overflow-hidden rounded-lg border border-white/[0.06] bg-[#141414]/95 shadow-xl">
             <div className="border-b border-white/[0.04] px-3 py-2">
               <span className="text-[14px] font-medium text-white/40 uppercase tracking-wider">
                 Skills
@@ -91,7 +91,7 @@ export function CursorChat({ className }: CursorChatProps) {
       <div className="p-4 select-none">
         <div
           className={cn(
-            "relative overflow-hidden rounded-2xl select-none",
+            "relative overflow-hidden rounded-xl select-none",
             "border border-white/[0.06] bg-[#141414]/95",
             "transition-all duration-150",
             "focus-within:border-white/[0.12] focus-within:shadow-[0_0_0_1px_rgba(59,130,246,0.2)]",
@@ -114,20 +114,20 @@ export function CursorChat({ className }: CursorChatProps) {
             <div className="flex items-center gap-1">
               <button
                 type="button"
-                className="flex h-7 w-7 items-center justify-center rounded-lg text-white/30 hover:text-white/60 hover:bg-white/[0.05] transition-colors"
+                className="flex h-7 w-7 items-center justify-center rounded-md text-white/30 hover:text-white/60 hover:bg-white/[0.05] transition-colors"
               >
                 <Plus weight="bold" className="size-5" />
               </button>
               <div className="h-4 w-px bg-white/[0.06] mx-1" />
               <button
                 type="button"
-                className="flex h-7 w-7 items-center justify-center rounded-lg text-white/30 hover:text-white/60 hover:bg-white/[0.05] transition-colors"
+                className="flex h-7 w-7 items-center justify-center rounded-md text-white/30 hover:text-white/60 hover:bg-white/[0.05] transition-colors"
               >
                 <Paperclip className="size-5" />
               </button>
               <button
                 type="button"
-                className="flex h-7 w-7 items-center justify-center rounded-lg text-white/30 hover:text-white/60 hover:bg-white/[0.05] transition-colors"
+                className="flex h-7 w-7 items-center justify-center rounded-md text-white/30 hover:text-white/60 hover:bg-white/[0.05] transition-colors"
               >
                 <At className="size-5" />
               </button>
@@ -137,7 +137,7 @@ export function CursorChat({ className }: CursorChatProps) {
               <span className="text-[14px] text-white/30">Plan: N...</span>
               <button
                 type="button"
-                className="flex h-7 items-center gap-1.5 rounded-lg bg-white text-black px-3 text-[14px] font-medium hover:bg-white/90 transition-colors"
+                className="flex h-7 items-center gap-1.5 rounded-md bg-white text-black px-3 text-[14px] font-medium hover:bg-white/90 transition-colors"
               >
                 <Star className="size-5" weight="fill" />
                 Chat

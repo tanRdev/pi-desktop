@@ -157,7 +157,7 @@ export function PromptAutocomplete({
       tabIndex={0}
       onKeyDown={onKeyDown}
       className={cn(
-        "z-50 w-72 overflow-hidden rounded-lg border border-white/[0.06] bg-[var(--color-bg-secondary)] p-1 text-white/80 shadow-[0_8px_32px_rgba(0,0,0,0.5)]",
+        "z-50 w-72 overflow-hidden rounded-md border border-white/[0.06] bg-[var(--color-bg-secondary)] p-1 text-white/80 shadow-[0_8px_32px_rgba(0,0,0,0.5)]",
         "origin-top",
         "animate-in fade-in-0 zoom-in-95 duration-200 ease-[var(--ease-out)]",
         "motion-reduce:animate-none motion-reduce:opacity-100",
