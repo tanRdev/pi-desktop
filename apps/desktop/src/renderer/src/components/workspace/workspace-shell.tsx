@@ -155,7 +155,7 @@ export function WorkspaceShell({
   onLeftRailResize,
   onModelMenuOpenChange: _onModelMenuOpenChange,
   onAddRepository,
-  onSelectRepository,
+  onSelectRepository: _onSelectRepository,
   onRenameRepository,
   onRemoveRepository,
   onCopyRepositoryPath,
@@ -311,9 +311,9 @@ export function WorkspaceShell({
               activeRepositoryId={activeRepositoryId}
               activeWorktreeId={activeWorktreeId}
               activeThreadId={activeThreadId}
+              isPromptExecuting={isPromptExecuting}
               width={leftRailTargetWidth}
               onResize={onLeftRailResize}
-              onSelectRepository={onSelectRepository}
               onRenameRepository={onRenameRepository}
               onRemoveRepository={onRemoveRepository}
               onCopyRepositoryPath={onCopyRepositoryPath}

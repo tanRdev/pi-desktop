@@ -12,6 +12,11 @@ import {
   Trash,
 } from "@/components/ui/icons";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -34,9 +39,9 @@ export interface LeftRailProps {
   activeRepositoryId: string | null;
   activeWorktreeId: string | null;
   activeThreadId: string | null;
+  isPromptExecuting?: boolean;
   width: number;
   onResize: (width: number) => void;
-  onSelectRepository: (repositoryId: string) => void;
   onSelectWorktree: (worktreeId: string) => void;
   onSelectThread: (threadId: string) => void;
   onCreateThread: (worktreeId: string) => string | Promise<string>;
@@ -131,9 +136,9 @@ interface ThreadCategorySectionProps {
   count: number;
   tallyColor?: string;
   children?: React.ReactNode;
-  isWorking?: boolean;
   onAction?: () => void;
   actionLabel?: string;
+  actionTestId?: string;
 }
 
 function ThreadCategorySection({
@@ -142,9 +147,9 @@ function ThreadCategorySection({
   count,
   tallyColor,
   children,
-  isWorking,
   onAction,
   actionLabel,
+  actionTestId,
 }: ThreadCategorySectionProps) {
   return (
     <div className="relative space-y-0.5">
@@ -156,15 +161,12 @@ function ThreadCategorySection({
       >
         <div className="flex min-w-0 flex-1 items-center gap-2 pl-2">
           <span className="flex size-4 shrink-0 items-center justify-center">
-            {isWorking ? (
-              <ThreadStatusIcon displayStatus="working" />
-            ) : (
-              <Icon className="size-3.5 text-white/40" />
-            )}
+            <Icon className="size-3.5 text-white/40" />
           </span>
           <span className="truncate">{label}</span>
         </div>
         <div className="flex items-center ml-2">
+          <TallyBars count={count} colorClassName={tallyColor} />
           {onAction && (
             <button
               type="button"
@@ -172,6 +174,7 @@ function ThreadCategorySection({
                 e.stopPropagation();
                 onAction();
               }}
+              data-testid={actionTestId}
               className="hidden group-hover/item:flex size-5 items-center justify-center rounded hover:bg-white/10 hover:text-white/80 transition-colors text-white/40"
               title={actionLabel}
             >
@@ -193,10 +196,11 @@ export function LeftRail({
   activeRepositoryId,
   activeWorktreeId,
   activeThreadId,
+  isPromptExecuting,
   width,
   onResize,
-  onSelectRepository,
   onSelectThread,
+  onDeleteThread,
   onRemoveRepository,
   onCopyRepositoryPath,
   onOpenInFinder,
@@ -206,8 +210,7 @@ export function LeftRail({
   onAddRepository,
   onToggleVisible,
 }: LeftRailProps) {
-  const [orderedRepositories, setOrderedRepositories] =
-    React.useState(repositories);
+  const [, setOrderedRepositories] = React.useState(repositories);
   const [draggedRepositoryId, setDraggedRepositoryId] = React.useState<
     string | null
   >(null);
@@ -239,20 +242,14 @@ export function LeftRail({
   >(null);
   const [inlineEditingValue, setInlineEditingValue] = React.useState("");
   const [isCreatingThread, setIsCreatingThread] = React.useState(false);
+  const [pendingDeleteThreadId, setPendingDeleteThreadId] = React.useState<
+    string | null
+  >(null);
   const inlineThreadInputRef = React.useRef<HTMLInputElement>(null);
 
   const { active: activeThreads, archived: archivedThreads } = React.useMemo(
     () => collectThreads(repositories, activeRepositoryId),
     [repositories, activeRepositoryId],
-  );
-
-  const isAnyActiveThreadWorking = React.useMemo(
-    () =>
-      activeThreads.some(
-        (t) =>
-          t.runtime.status === "streaming" || t.runtime.status === "starting",
-      ),
-    [activeThreads],
   );
 
   React.useEffect(() => {
@@ -486,11 +483,11 @@ export function LeftRail({
             icon={Pi}
             count={activeThreads.length}
             tallyColor="bg-[#22c55e]"
-            isWorking={isAnyActiveThreadWorking}
             onAction={() => {
               void handleCreateThread();
             }}
             actionLabel="Create thread"
+            actionTestId="create-thread-button"
           >
             {activeThreads.length === 0 ? (
               <div className="px-2 py-3 text-[11px] text-white/20">
@@ -498,66 +495,82 @@ export function LeftRail({
               </div>
             ) : (
               activeThreads.map((thread) => {
-                const displayStatus = deriveThreadDisplayStatus(
-                  thread.runtime.status,
-                  thread.isArchived,
-                );
                 const isActive = thread.id === activeThreadId;
+                const displayStatus =
+                  isActive && isPromptExecuting
+                    ? ("working" as const)
+                    : deriveThreadDisplayStatus(
+                        thread.runtime.status,
+                        thread.isArchived,
+                      );
+                const threadRowClassName = cn(
+                  "group flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-[11px] transition-colors",
+                  isActive
+                    ? "bg-white/[0.04] text-white/80"
+                    : "text-white/40 hover:bg-white/[0.04] hover:text-white/70",
+                );
+
                 return (
-                  <button
+                  <div
                     key={thread.id}
-                    type="button"
-                    onClick={() => {
-                      if (inlineEditingThreadId === thread.id) {
-                        return;
-                      }
-                      onSelectThread(thread.id);
-                    }}
-                    className={cn(
-                      "group flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-[11px] transition-colors",
-                      isActive
-                        ? "bg-white/[0.04] text-white/80"
-                        : "text-white/40 hover:bg-white/[0.04] hover:text-white/70",
-                    )}
+                    data-testid="thread-row"
+                    className={threadRowClassName}
                   >
-                    <span className="flex size-4 shrink-0 items-center justify-center">
-                      <ThreadStatusIcon displayStatus={displayStatus} />
-                    </span>
                     {inlineEditingThreadId === thread.id ? (
-                      <input
-                        ref={inlineThreadInputRef}
-                        data-testid="thread-inline-input"
-                        type="text"
-                        value={inlineEditingValue}
-                        onChange={(event) =>
-                          setInlineEditingValue(event.target.value)
-                        }
-                        onClick={(event) => event.stopPropagation()}
-                        onBlur={() => {
-                          void finishInlineEdit(thread.id, thread.title || "");
-                        }}
-                        onKeyDown={(event) => {
-                          event.stopPropagation();
-                          if (event.key === "Enter") {
-                            event.preventDefault();
+                      <div className="flex min-w-0 flex-1 items-center gap-2">
+                        <span className="flex size-4 shrink-0 items-center justify-center">
+                          <ThreadStatusIcon displayStatus={displayStatus} />
+                        </span>
+                        <input
+                          ref={inlineThreadInputRef}
+                          data-testid="thread-inline-input"
+                          type="text"
+                          value={inlineEditingValue}
+                          onChange={(event) =>
+                            setInlineEditingValue(event.target.value)
+                          }
+                          onClick={(event) => event.stopPropagation()}
+                          onBlur={() => {
                             void finishInlineEdit(
                               thread.id,
                               thread.title || "",
                             );
-                          }
-                          if (event.key === "Escape") {
-                            event.preventDefault();
-                            setInlineEditingThreadId(null);
-                            setInlineEditingValue("");
-                          }
-                        }}
-                        className="block min-w-0 flex-1 rounded border border-white/[0.12] bg-[#141414] px-2 py-1 text-[11px] text-white/85 outline-none focus:border-white/[0.2]"
-                        placeholder="Name thread"
-                      />
+                          }}
+                          onKeyDown={(event) => {
+                            event.stopPropagation();
+                            if (event.key === "Enter") {
+                              event.preventDefault();
+                              void finishInlineEdit(
+                                thread.id,
+                                thread.title || "",
+                              );
+                            }
+                            if (event.key === "Escape") {
+                              event.preventDefault();
+                              setInlineEditingThreadId(null);
+                              setInlineEditingValue("");
+                            }
+                          }}
+                          className="block min-w-0 flex-1 rounded border border-white/[0.12] bg-[#141414] px-2 py-1 text-[11px] text-white/85 outline-none focus:border-white/[0.2]"
+                          placeholder="Name thread"
+                        />
+                      </div>
                     ) : (
-                      <span className="truncate flex-1">
-                        {thread.title || "Untitled thread"}
-                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPendingDeleteThreadId(null);
+                          onSelectThread(thread.id);
+                        }}
+                        className="flex min-w-0 flex-1 items-center gap-2 text-left"
+                      >
+                        <span className="flex size-4 shrink-0 items-center justify-center">
+                          <ThreadStatusIcon displayStatus={displayStatus} />
+                        </span>
+                        <span className="truncate flex-1">
+                          {thread.title || "Untitled thread"}
+                        </span>
+                      </button>
                     )}
                     <button
                       type="button"
@@ -576,7 +589,7 @@ export function LeftRail({
                     >
                       <Archive className="size-3" />
                     </button>
-                  </button>
+                  </div>
                 );
               })
             )}
@@ -590,22 +603,97 @@ export function LeftRail({
               count={archivedThreads.length}
               tallyColor="bg-white/40"
             >
-              {archivedThreads.map((thread) => (
-                <button
-                  key={thread.id}
-                  type="button"
-                  onClick={() => onSelectThread(thread.id)}
-                  className={cn(
-                    "flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-[11px] transition-colors",
-                    "text-white/30 hover:bg-white/[0.04] hover:text-white/50",
-                  )}
-                >
-                  <Archive className="size-3 shrink-0 text-white/20" />
-                  <span className="truncate flex-1">
-                    {thread.title || "Untitled thread"}
-                  </span>
-                </button>
-              ))}
+              {archivedThreads.map((thread) => {
+                const isDeleteConfirmationOpen =
+                  pendingDeleteThreadId === thread.id;
+
+                return (
+                  <div
+                    key={thread.id}
+                    className={cn(
+                      "group/archived flex w-full items-center gap-1 rounded-md px-2 py-1 text-[11px] transition-colors",
+                      "text-white/30 hover:bg-white/[0.04] hover:text-white/50",
+                    )}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPendingDeleteThreadId(null);
+                        onSelectThread(thread.id);
+                      }}
+                      className="flex min-w-0 flex-1 items-center gap-2 rounded-md px-0 py-1 text-left"
+                    >
+                      <Archive className="size-3 shrink-0 text-white/20" />
+                      <span className="truncate flex-1">
+                        {thread.title || "Untitled thread"}
+                      </span>
+                    </button>
+                    {onDeleteThread ? (
+                      <Popover
+                        open={isDeleteConfirmationOpen}
+                        onOpenChange={(open) =>
+                          setPendingDeleteThreadId(open ? thread.id : null)
+                        }
+                      >
+                        <PopoverTrigger asChild>
+                          <button
+                            type="button"
+                            data-testid="archived-thread-delete-button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                            }}
+                            className={cn(
+                              "ml-auto flex size-5 shrink-0 items-center justify-center rounded text-white/35 opacity-0 transition-all duration-[var(--duration-fast)]",
+                              "hover:bg-white/[0.08] hover:text-white/80",
+                              "group-hover/archived:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100",
+                            )}
+                            aria-label="Delete archived thread"
+                            title="Delete archived thread"
+                          >
+                            <Trash className="size-3" />
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent
+                          align="end"
+                          side="bottom"
+                          className="w-auto min-w-[220px] rounded-md border border-white/[0.06] bg-[#101010] p-2"
+                        >
+                          <div className="space-y-2">
+                            <p className="text-[11px] text-white/70">
+                              Permanently delete this archived thread?
+                            </p>
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                type="button"
+                                data-testid="archived-thread-delete-cancel"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  setPendingDeleteThreadId(null);
+                                }}
+                                className="rounded px-2 py-1 text-[10px] text-white/55 transition-colors hover:bg-white/[0.06] hover:text-white/80"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                type="button"
+                                data-testid="archived-thread-delete-confirm"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  setPendingDeleteThreadId(null);
+                                  void onDeleteThread?.(thread.id);
+                                }}
+                                className="rounded bg-white/[0.08] px-2 py-1 text-[10px] text-white/85 transition-colors hover:bg-white/[0.14]"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    ) : null}
+                  </div>
+                );
+              })}
             </ThreadCategorySection>
           </div>
         </div>

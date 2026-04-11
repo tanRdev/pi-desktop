@@ -23,7 +23,7 @@ export function ThreadStatusIcon({
   displayStatus,
   className,
 }: ThreadStatusIconProps) {
-  const braille = useUnicodeSpinner("braillewave", displayStatus === "working");
+  const braille = useUnicodeSpinner("diagswipe", displayStatus === "working");
 
   switch (displayStatus) {
     case "working":
@@ -31,7 +31,7 @@ export function ThreadStatusIcon({
         <span
           role="img"
           className={cn(
-            "inline-flex items-center justify-center text-[15px] leading-none text-white font-mono",
+            "inline-flex items-center justify-center text-[12px] leading-none text-white font-mono whitespace-nowrap",
             className,
           )}
           aria-label="Agent working"

@@ -194,4 +194,28 @@ describe("moveRepositorySnapshots", () => {
     expect(appSource).not.toContain("Name your new thread");
     expect(appSource).not.toContain("Random Name");
   });
+
+  it("shows permanent delete confirmation only for archived threads", () => {
+    const source = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
+    );
+    const activeSection = source.slice(
+      source.indexOf("activeThreads.map((thread) => {"),
+      source.indexOf("archivedThreads.map((thread) => {"),
+    );
+    const archivedSection = source.slice(
+      source.indexOf("archivedThreads.map((thread) => {"),
+      source.indexOf(
+        "</ThreadCategorySection>",
+        source.indexOf("archivedThreads.map((thread) => {"),
+      ),
+    );
+
+    expect(activeSection).not.toContain("archived-thread-delete-button");
+    expect(archivedSection).toContain("archived-thread-delete-button");
+    expect(archivedSection).toContain(
+      "Permanently delete this archived thread?",
+    );
+    expect(archivedSection).toContain("onDeleteThread?.(thread.id)");
+  });
 });
