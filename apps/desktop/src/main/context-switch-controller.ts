@@ -121,6 +121,7 @@ export function createContextSwitchController<
       state.unsubscribe = () => {};
       state.context = nextContext;
       state.host = createLoadingAgentHost(state.host, nextContext);
+      options.notifySessionChanged();
 
       try {
         const attached = await options.attachContext(nextContext);

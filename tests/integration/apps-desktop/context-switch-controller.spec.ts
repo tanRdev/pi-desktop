@@ -106,6 +106,7 @@ describe("context-switch-controller", () => {
     });
     expect(previousUnsubscribe).toHaveBeenCalledTimes(1);
     expect(state.transport?.closeSpy).not.toHaveBeenCalled();
+    expect(notifySessionChanged).toHaveBeenCalledTimes(1);
 
     pendingAttachment.resolve({
       context: nextContext,
@@ -120,7 +121,7 @@ describe("context-switch-controller", () => {
       attachedHost,
       nextContext.thread,
     );
-    expect(notifySessionChanged).toHaveBeenCalledTimes(1);
+    expect(notifySessionChanged).toHaveBeenCalledTimes(2);
   });
 
   it("drops stale attachment results when a newer switch starts", async () => {
@@ -209,7 +210,7 @@ describe("context-switch-controller", () => {
       messages: [],
       lastError: "socket timeout",
     });
-    expect(notifySessionChanged).toHaveBeenCalledTimes(1);
+    expect(notifySessionChanged).toHaveBeenCalledTimes(2);
     expect(state.transport).toBeNull();
   });
 

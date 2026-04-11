@@ -76,12 +76,7 @@ export interface AppShellStoreState {
 function createRuntimeContextKey(shellState: ShellModelState): string {
   const selection = shellState.shell.catalog.selection;
 
-  return [
-    selection.repositoryId ?? "",
-    selection.worktreeId ?? "",
-    selection.threadId ?? "",
-    shellState.agent.sessionId,
-  ].join("::");
+  return [selection.repositoryId ?? "", selection.worktreeId ?? ""].join("::");
 }
 
 type EffectiveSettings = ReturnType<typeof mergeSettingsWithDefaults>;

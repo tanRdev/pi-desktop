@@ -138,10 +138,8 @@ export function useAppShellController(): AppShellController {
     state,
     providerSnapshots,
     settingsSnapshot,
-    appPreferences,
     isSwitchingModel,
     switchModel,
-    updateAppPreferences,
     updateRepositoryPreferences,
   } = useShellModel();
   const { agent, draft, live, shell } = state;
@@ -742,14 +740,16 @@ export function useAppShellController(): AppShellController {
       return;
     }
     for (const repositoryPath of paths) {
+      const repositoryName =
+        repositoryPath
+          .split(/[\\/]+/)
+          .filter(Boolean)
+          .pop() ?? repositoryPath;
+
+      setWorkspaceSwitchingRepositoryName(repositoryName);
+
       try {
         await window.pidesk.repositories.add(repositoryPath);
-        const repositoryName =
-          repositoryPath
-            .split(/[\\/]+/)
-            .filter(Boolean)
-            .pop() ?? repositoryPath;
-        setWorkspaceSwitchingRepositoryName(repositoryName);
         return;
       } catch (error) {
         toast.error("Invalid repository", {
@@ -826,12 +826,6 @@ export function useAppShellController(): AppShellController {
     toast.success("Opened in Finder");
   }, []);
 
-  const handleCreateWorktree = React.useCallback(() => {
-    setWorktreeCreateError(null);
-    setNewWorktreeBranchState("");
-    setCreateWorktreeOpen(true);
-  }, [setCreateWorktreeOpen]);
-
   const submitCreateWorktree = React.useCallback(async () => {
     if (!newWorktreeBranch.trim()) {
       return;
@@ -856,13 +850,12 @@ export function useAppShellController(): AppShellController {
       setNewWorktreeBranchState("");
       setWorktreeCreateError(null);
       toast.success("Worktree created");
-      await reload();
     } catch (error) {
       setWorktreeCreateError(
         error instanceof Error ? error.message : "Failed to create worktree",
       );
     }
-  }, [activeRepositoryId, newWorktreeBranch, reload, setCreateWorktreeOpen]);
+  }, [activeRepositoryId, newWorktreeBranch, setCreateWorktreeOpen]);
 
   const handleSelectWorktree = React.useCallback(
     async (worktreeId: string) => {
@@ -909,9 +902,8 @@ export function useAppShellController(): AppShellController {
       if (activeThreadId === threadId) {
         setSelectedContextSurface(null);
       }
-      await reload();
     },
-    [activeThreadId, reload],
+    [activeThreadId],
   );
 
   const handleDeleteThread = React.useCallback(
@@ -920,17 +912,15 @@ export function useAppShellController(): AppShellController {
       if (activeThreadId === threadId) {
         setSelectedContextSurface(null);
       }
-      await reload();
     },
-    [activeThreadId, reload],
+    [activeThreadId],
   );
 
   const handleRenameThread = React.useCallback(
     async (threadId: string, title: string) => {
       await window.pidesk.threads.rename(threadId, title);
-      await reload();
     },
-    [reload],
+    [],
   );
 
   const handleSelectThread = React.useCallback(async (threadId: string) => {
@@ -1229,14 +1219,6 @@ export function useAppShellController(): AppShellController {
       }
     },
     [selectedContextSurface, windowStore],
-  );
-
-  const handleCloseContextSurface = React.useCallback(
-    (surfaceKey: string) => {
-      windowStore.closeWindow(surfaceKey);
-      setSelectedContextSurface(null);
-    },
-    [windowStore],
   );
 
   const handleLeftRailResize = React.useCallback((width: number) => {

@@ -48,6 +48,9 @@ export interface AgentIpcHost {
   selectWorktree(worktreeId: string): Promise<void>;
   createThread(worktreeId: string, title?: string): Promise<string>;
   selectThread(threadId: string): Promise<void>;
+  archiveThread(threadId: string): Promise<void>;
+  deleteThread(threadId: string): Promise<void>;
+  renameThread(threadId: string, title: string): Promise<void>;
 }
 
 export interface IpcRegistrar {
@@ -92,14 +95,13 @@ export function registerIpcHandlers({
   switchModel,
   getDiscovery,
   getSlashSuggestions,
-  threadCatalog,
   packagesService,
 }: RegisterIpcHandlersDependencies): void {
   const tm = terminalManagerOverride ?? terminalManager;
 
   registerTerminalHandlers({ handle, mainWindow, terminalManager: tm });
   registerRepositoryHandlers({ handle, agentHost });
-  registerThreadHandlers({ handle, agentHost, threadCatalog });
+  registerThreadHandlers({ handle, agentHost });
   registerDialogHandlers({ handle });
   registerFilesystemHandlers({
     handle,

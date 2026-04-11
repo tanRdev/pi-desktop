@@ -4,13 +4,12 @@ import { getStringField } from "./payload-parsers";
 
 type RegisterThreadHandlersDependencies = Pick<
   RegisterIpcHandlersDependencies,
-  "handle" | "agentHost" | "threadCatalog"
+  "handle" | "agentHost"
 >;
 
 export function registerThreadHandlers({
   handle,
   agentHost,
-  threadCatalog,
 }: RegisterThreadHandlersDependencies): void {
   handle(IPC_CHANNELS.threads.create, async (_event, payload) => {
     const worktreeId = getStringField(payload, "worktreeId");
@@ -36,11 +35,8 @@ export function registerThreadHandlers({
     if (!threadId) {
       throw new Error("Thread archive payload must include threadId");
     }
-    if (!threadCatalog) {
-      throw new Error("Thread catalog is not available");
-    }
 
-    threadCatalog.archive(threadId);
+    await agentHost.archiveThread(threadId);
   });
 
   handle(IPC_CHANNELS.threads.delete, async (_event, payload) => {
@@ -48,11 +44,8 @@ export function registerThreadHandlers({
     if (!threadId) {
       throw new Error("Thread delete payload must include threadId");
     }
-    if (!threadCatalog) {
-      throw new Error("Thread catalog is not available");
-    }
 
-    threadCatalog.delete(threadId);
+    await agentHost.deleteThread(threadId);
   });
 
   handle(IPC_CHANNELS.threads.rename, async (_event, payload) => {
@@ -61,10 +54,7 @@ export function registerThreadHandlers({
     if (!threadId || !title) {
       throw new Error("Thread rename payload must include threadId and title");
     }
-    if (!threadCatalog) {
-      throw new Error("Thread catalog is not available");
-    }
 
-    threadCatalog.rename(threadId, title);
+    await agentHost.renameThread(threadId, title);
   });
 }

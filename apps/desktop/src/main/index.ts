@@ -377,19 +377,6 @@ async function bootstrapDesktop() {
     return buildThreadContext(repositoryEntry.id, inspection, thread);
   }
 
-  async function resolveRepositoryContext(
-    repositoryId: string,
-  ): Promise<SelectedThreadContext> {
-    const repository = repositoryCatalog.get(repositoryId);
-    if (!repository) {
-      throw new Error(`Unknown repository: ${repositoryId}`);
-    }
-
-    return resolveDefaultThreadContext(
-      repository.lastSelectedWorktreeId ?? repository.rootPath,
-    );
-  }
-
   async function createWorktreeContext(
     repositoryId: string,
     branchName: string,
@@ -520,25 +507,6 @@ async function bootstrapDesktop() {
     throw new Error(inspection.message ?? "Selected directory is unavailable");
   }
 
-  async function attachToRepository(repositoryId: string) {
-    return attachContext(await resolveRepositoryContext(repositoryId));
-  }
-
-  async function attachToThreadId(threadId: string) {
-    return attachContext(await resolveThreadContext(threadId));
-  }
-
-  async function createAndAttachThread(worktreeId: string, title?: string) {
-    return attachContext(await createThreadContext(worktreeId, title));
-  }
-
-  async function createAndAttachWorktree(
-    repositoryId: string,
-    branchName: string,
-  ) {
-    return attachContext(await createWorktreeContext(repositoryId, branchName));
-  }
-
   function commitAttachment(attached: {
     context: SelectedThreadContext;
     host: AgentDesktopHost;
@@ -622,6 +590,81 @@ async function bootstrapDesktop() {
     }
   }
 
+  function switchContextInBackground(context: SelectedThreadContext): void {
+    void contextSwitchController.switchContext(async () => context);
+  }
+
+  async function switchRepositoryPath(targetPath: string): Promise<void> {
+    const inspection = gitService.inspect(targetPath);
+
+    if (
+      inspection.status === "repository" &&
+      inspection.rootPath &&
+      inspection.currentWorktreePath &&
+      inspection.worktrees
+    ) {
+      switchContextInBackground(await resolveDefaultThreadContext(targetPath));
+      return;
+    }
+
+    await activateWorkspacePath(targetPath);
+    notifySessionChanged();
+  }
+
+  async function archiveThreadAndRefresh(threadId: string): Promise<void> {
+    const thread = threadCatalog.get(threadId);
+    if (!thread) {
+      throw new Error(`Unknown thread: ${threadId}`);
+    }
+
+    const isActiveThread =
+      (currentContext?.thread.id ?? selectionState.get().threadId) === threadId;
+
+    threadCatalog.archive(threadId);
+
+    if (!isActiveThread) {
+      notifySessionChanged();
+      return;
+    }
+
+    switchContextInBackground(
+      await resolveDefaultThreadContext(thread.worktreeId),
+    );
+  }
+
+  async function deleteThreadAndRefresh(threadId: string): Promise<void> {
+    const thread = threadCatalog.get(threadId);
+    if (!thread) {
+      throw new Error(`Unknown thread: ${threadId}`);
+    }
+
+    const isActiveThread =
+      (currentContext?.thread.id ?? selectionState.get().threadId) === threadId;
+
+    threadCatalog.delete(threadId);
+
+    if (!isActiveThread) {
+      notifySessionChanged();
+      return;
+    }
+
+    switchContextInBackground(
+      await resolveDefaultThreadContext(thread.worktreeId),
+    );
+  }
+
+  async function renameThreadAndRefresh(
+    threadId: string,
+    title: string,
+  ): Promise<void> {
+    const renamedThread = threadCatalog.rename(threadId, title);
+    if (!renamedThread) {
+      throw new Error(`Unknown thread: ${threadId}`);
+    }
+
+    notifySessionChanged();
+  }
+
   registerIpcHandlers({
     handle: ipcMain.handle.bind(ipcMain),
     getShellSnapshot: async () => {
@@ -682,8 +725,7 @@ async function bootstrapDesktop() {
       cancelPrompt: () => currentHost.cancelPrompt(),
       reset: () => currentHost.reset(),
       addRepository: async (targetPath) => {
-        await activateWorkspacePath(targetPath);
-        notifySessionChanged();
+        await switchRepositoryPath(targetPath);
       },
       reorderRepositories: async (repositoryIds) => {
         repositoryCatalog.reorder(repositoryIds);
@@ -694,10 +736,9 @@ async function bootstrapDesktop() {
           throw new Error(`Unknown repository: ${repositoryId}`);
         }
 
-        await activateWorkspacePath(
+        await switchRepositoryPath(
           repository.lastSelectedWorktreeId ?? repository.rootPath,
         );
-        notifySessionChanged();
       },
       removeRepository: async (repositoryId) => {
         const repository = repositoryCatalog.get(repositoryId);
@@ -747,24 +788,31 @@ async function bootstrapDesktop() {
         await shell.openPath(repository.rootPath);
       },
       createWorktree: async (repositoryId, branchName) => {
-        await contextSwitchController.switchContext(() =>
-          createWorktreeContext(repositoryId, branchName),
+        switchContextInBackground(
+          await createWorktreeContext(repositoryId, branchName),
         );
       },
       selectWorktree: async (worktreeId) => {
-        await contextSwitchController.switchContext(() =>
-          resolveDefaultThreadContext(worktreeId),
+        switchContextInBackground(
+          await resolveDefaultThreadContext(worktreeId),
         );
       },
       createThread: async (worktreeId, title) => {
         const context = await createThreadContext(worktreeId, title);
-        await contextSwitchController.switchContext(async () => context);
+        switchContextInBackground(context);
         return context.thread.id;
       },
       selectThread: async (threadId) => {
-        await contextSwitchController.switchContext(() =>
-          resolveThreadContext(threadId),
-        );
+        switchContextInBackground(await resolveThreadContext(threadId));
+      },
+      archiveThread: async (threadId) => {
+        await archiveThreadAndRefresh(threadId);
+      },
+      deleteThread: async (threadId) => {
+        await deleteThreadAndRefresh(threadId);
+      },
+      renameThread: async (threadId, title) => {
+        await renameThreadAndRefresh(threadId, title);
       },
     },
     gitService,

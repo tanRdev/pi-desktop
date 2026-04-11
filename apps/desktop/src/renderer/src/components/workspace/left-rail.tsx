@@ -100,41 +100,9 @@ function collectThreads(
   return { active, archived };
 }
 
-function TallyBars({
-  count,
-  maxBars = 12,
-  colorClassName = "bg-white/20",
-}: {
-  count: number;
-  maxBars?: number;
-  colorClassName?: string;
-}) {
-  const bars = Math.min(count, maxBars);
-  return (
-    <div className="flex gap-[2.5px] items-center ml-2 overflow-hidden shrink-0 pointer-events-none">
-      {Array.from({ length: bars }).map((_, i) => (
-        <div
-          key={i}
-          className={cn(
-            "h-2 w-[1.5px] rounded-full transition-opacity group-hover/item:opacity-100 opacity-60",
-            colorClassName,
-          )}
-        />
-      ))}
-      {count > maxBars && (
-        <span className="text-[8px] ml-0.5 font-medium opacity-60 group-hover/item:opacity-100 text-white/60">
-          +
-        </span>
-      )}
-    </div>
-  );
-}
-
 interface ThreadCategorySectionProps {
   label: string;
   icon: React.ElementType;
-  count: number;
-  tallyColor?: string;
   children?: React.ReactNode;
   onAction?: () => void;
   actionLabel?: string;
@@ -144,8 +112,6 @@ interface ThreadCategorySectionProps {
 function ThreadCategorySection({
   label,
   icon: Icon,
-  count,
-  tallyColor,
   children,
   onAction,
   actionLabel,
@@ -166,7 +132,6 @@ function ThreadCategorySection({
           <span className="truncate">{label}</span>
         </div>
         <div className="flex items-center ml-2">
-          <TallyBars count={count} colorClassName={tallyColor} />
           {onAction && (
             <button
               type="button"
@@ -481,8 +446,6 @@ export function LeftRail({
           <ThreadCategorySection
             label="Sessions"
             icon={Pi}
-            count={activeThreads.length}
-            tallyColor="bg-[#22c55e]"
             onAction={() => {
               void handleCreateThread();
             }}
@@ -597,12 +560,7 @@ export function LeftRail({
 
           <div className="mt-4">
             {/* Archived threads */}
-            <ThreadCategorySection
-              label="Archived"
-              icon={Archive}
-              count={archivedThreads.length}
-              tallyColor="bg-white/40"
-            >
+            <ThreadCategorySection label="Archived" icon={Archive}>
               {archivedThreads.map((thread) => {
                 const isDeleteConfirmationOpen =
                   pendingDeleteThreadId === thread.id;

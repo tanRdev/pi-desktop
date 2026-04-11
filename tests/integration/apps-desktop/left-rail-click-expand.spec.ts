@@ -7,7 +7,7 @@ function readSource(relativePath: string): string {
 }
 
 describe("LeftRail category interactions", () => {
-  it("renders always-visible Sessions and Archived sections with tally bars", () => {
+  it("renders always-visible Sessions and Archived sections without tally bars", () => {
     const source = readSource(
       "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
     );
@@ -25,8 +25,8 @@ describe("LeftRail category interactions", () => {
     expect(source).toContain('label="Sessions"');
     expect(source).toContain('label="Archived"');
 
-    // Tally bars restored
-    expect(source).toContain("TallyBars");
+    // No tally bar chrome in the section headers
+    expect(source).not.toContain("TallyBars");
 
     // No mock data
     expect(source).not.toContain("MOCK_THREADS");

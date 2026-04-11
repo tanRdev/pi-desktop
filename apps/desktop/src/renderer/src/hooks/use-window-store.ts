@@ -111,7 +111,7 @@ function getLayoutState(
 
 function subscribe(listener: () => void): () => void {
   const unsubscribers = [
-    getAppShellStore().subscribe(async (shellState, prevShellState) => {
+    getAppShellStore().subscribe((shellState, prevShellState) => {
       const nextWorktreeId =
         getActiveWorktree(shellState.shellState.shell)?.id ?? null;
       const prevWorktreeId = prevShellState
@@ -119,11 +119,13 @@ function subscribe(listener: () => void): () => void {
         : null;
 
       if (nextWorktreeId !== prevWorktreeId) {
-        await syncActiveWorktreeSession({
+        void syncActiveWorktreeSession({
           nextWorktreeId,
           previousWorktreeId: prevWorktreeId,
           sessionStore: workspaceSessionStore,
           uiStore: uiInteractionStore,
+        }).catch((error) => {
+          console.error("Failed to sync active worktree session:", error);
         });
       }
 
