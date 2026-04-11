@@ -55,22 +55,22 @@ function GitPanelStatus({
 }) {
   const icon =
     tone === "warning" ? (
-      <WarningCircle className="size-4 text-yellow-400/70" />
+      <WarningCircle className="size-4 text-yellow-400/50" />
     ) : tone === "neutral" ? (
-      <CheckCircle className="size-4 text-emerald-400/70" />
+      <CheckCircle className="size-4 text-emerald-400/50" />
     ) : (
-      <CircleDashed className="size-4 text-white/30" />
+      <CircleDashed className="size-4 text-white/20" />
     );
 
   return (
     <div
       className={cn(
-        "flex items-start gap-2 rounded-md border px-3 py-3 text-[12px] leading-5",
+        "flex items-start gap-2.5 px-1 py-1 text-[12px] leading-5",
         tone === "warning"
-          ? "border-yellow-400/10 bg-yellow-400/[0.05] text-yellow-100/80"
+          ? "text-yellow-400/70"
           : tone === "neutral"
-            ? "border-white/[0.05] bg-white/[0.03] text-white/70"
-            : "border-white/[0.04] bg-white/[0.02] text-white/45",
+            ? "text-emerald-400/70"
+            : "text-white/40",
       )}
     >
       <span className="mt-0.5 shrink-0">{icon}</span>
@@ -97,55 +97,58 @@ function ChangeList({
   onDiscard?: (filePath: string) => void | Promise<void>;
 }) {
   return (
-    <section className="space-y-3">
-      <div className="flex items-center justify-between gap-3">
-        <h3 className="text-xs font-medium uppercase tracking-wider text-white/40">
+    <section className="space-y-2">
+      <div className="flex items-center justify-between px-1">
+        <h3 className="text-[10px] font-semibold uppercase tracking-[0.05em] text-white/30">
           {title}
         </h3>
-        <span className="text-[11px] text-white/25">{changes.length}</span>
+        <span className="text-[10px] tabular-nums text-white/20">
+          {changes.length}
+        </span>
       </div>
-      <div className="overflow-hidden rounded-md border border-white/[0.04] bg-white/[0.02]">
+      <div className="space-y-0.5">
         {changes.length === 0 ? (
-          <div className="px-3 py-3 text-[12px] text-white/35">
+          <div className="px-1 py-2 text-[12px] text-white/25 italic">
             {emptyLabel}
           </div>
         ) : (
-          changes.map((change, index) => (
+          changes.map((change) => (
             <div
               key={`${title}-${change.path}`}
-              className={cn(
-                "flex items-center gap-2 px-3 py-2.5",
-                index > 0 && "border-t border-white/[0.04]",
-              )}
+              className="group flex items-center gap-3 rounded-md px-1.5 py-1.5 transition-colors hover:bg-white/[0.03]"
             >
               <div className="min-w-0 flex-1">
-                <div className="truncate text-[12px] text-white/80">
+                <div className="truncate text-[12px] text-white/70 group-hover:text-white/90">
                   {change.path}
                 </div>
-                <div className="text-[10px] uppercase tracking-[0.08em] text-white/30">
+                <div className="text-[9px] uppercase tracking-wider text-white/25">
                   {change.status.replaceAll("_", " ")}
                 </div>
               </div>
-              {onDiscard ? (
+              <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                {onDiscard ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-xs"
+                    onClick={() => onDiscard(change.path)}
+                    aria-label={`Discard ${change.path}`}
+                    className="hover:text-red-400"
+                  >
+                    <Trash className="size-3" />
+                  </Button>
+                ) : null}
                 <Button
                   type="button"
-                  variant="ghost"
-                  size="icon-xs"
-                  onClick={() => onDiscard(change.path)}
-                  aria-label={`Discard ${change.path}`}
+                  variant="secondary"
+                  size="xs"
+                  onClick={() => onAction(change.path)}
+                  className="h-5 px-1.5 text-[10px]"
                 >
-                  <Trash className="size-3" />
+                  {actionIcon}
+                  {actionLabel}
                 </Button>
-              ) : null}
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={() => onAction(change.path)}
-              >
-                {actionIcon}
-                {actionLabel}
-              </Button>
+              </div>
             </div>
           ))
         )}
@@ -197,47 +200,46 @@ export function GitPanel({
         className,
       )}
     >
-      <div className="border-b border-white/[0.04] px-5 py-4 select-none">
+      <div className="border-b border-white/[0.04] px-5 py-3.5 select-none">
         <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0 space-y-1.5">
-            <p className="text-xs font-medium uppercase tracking-wider text-white/40">
-              {viewModel.title}
-            </p>
-            <h2 className="truncate text-base font-medium text-white/80">
+          <div className="min-w-0 space-y-0.5">
+            <h2 className="truncate text-sm font-medium text-white/90">
               {viewModel.branchLabel}
             </h2>
-            <p className="truncate font-mono text-[10px] uppercase tracking-[0.08em] text-white/30">
-              {projectName ?? worktree?.label ?? "No project"}
-            </p>
+            <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-white/30">
+              <span className="truncate">
+                {projectName ?? worktree?.label ?? "No project"}
+              </span>
+              <span>·</span>
+              <span>{viewModel.title}</span>
+            </div>
           </div>
           {worktree ? (
-            <GitStatusChip git={worktree.git} className="mt-1" />
+            <GitStatusChip git={worktree.git} className="mt-0.5" />
           ) : null}
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
-        <div className="space-y-5">
-          <section className="space-y-3">
-            <div className="flex items-start justify-between gap-3 rounded-md border border-white/[0.04] bg-white/[0.02] px-3 py-3">
-              <div className="min-w-0 space-y-1">
-                <div className="text-[11px] font-medium uppercase tracking-[0.08em] text-white/30">
-                  Active summary
-                </div>
+      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+        <div className="space-y-6">
+          <section className="space-y-2">
+            <div className="flex items-start justify-between gap-3 px-1">
+              <div className="min-w-0 space-y-0.5">
                 <div className="text-sm text-white/80">{viewModel.summary}</div>
-                <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-white/30">
+                <div className="font-mono text-[9px] uppercase tracking-wider text-white/20">
                   {viewModel.commitLabel} · {viewModel.syncLabel}
                 </div>
               </div>
               <Button
                 type="button"
-                variant="secondary"
-                size="sm"
+                variant="ghost"
+                size="xs"
                 onClick={() => void onRefresh()}
                 disabled={!canRefresh || isRefreshing}
+                className="h-6 px-1.5 text-[10px]"
               >
                 {isRefreshing ? (
-                  <CircleDashed className="size-3.5 animate-spin" />
+                  <CircleDashed className="size-3 animate-spin" />
                 ) : null}
                 Refresh
               </Button>
@@ -248,89 +250,94 @@ export function GitPanel({
             />
           </section>
 
-          <section className="space-y-3">
-            <h3 className="text-xs font-medium uppercase tracking-wider text-white/40">
-              Commit
-            </h3>
-            <div className="space-y-3 rounded-md border border-white/[0.04] bg-white/[0.02] p-3">
+          <section className="space-y-2">
+            <div className="px-1">
+              <h3 className="text-[10px] font-semibold uppercase tracking-[0.05em] text-white/30">
+                Commit
+              </h3>
+            </div>
+            <div className="space-y-2 rounded-lg bg-white/[0.02] p-2">
               <textarea
                 value={commitMessage}
                 onChange={(event) => onCommitMessageChange(event.target.value)}
-                placeholder="Write a concise commit message"
-                rows={3}
+                placeholder="Message"
+                rows={2}
                 disabled={!repositoryPath || isLoading}
-                className="w-full rounded-md border border-white/[0.06] bg-[#141414] px-3 py-2 text-sm text-white/80 transition-all duration-150 placeholder:text-white/30 focus-visible:border-white/[0.12] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full resize-none rounded-md border-none bg-transparent px-2 py-1.5 text-[12px] text-white/80 transition-all duration-150 placeholder:text-white/20 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               />
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 px-1 pb-1">
                 <Button
                   type="button"
                   variant="default"
-                  size="sm"
+                  size="xs"
                   onClick={() => void onCommit()}
                   disabled={!canCommit || !commitMessage.trim() || isLoading}
                 >
-                  <FloppyDisk className="size-3.5" />
+                  <FloppyDisk className="size-3" />
                   {viewModel.commitActionLabel ?? "Commit"}
                 </Button>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => void onPull()}
-                  disabled={!canPull || isLoading}
-                >
-                  <ArrowDown className="size-3.5" />
-                  {viewModel.pullActionLabel ?? "Pull"}
-                </Button>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => void onPush()}
-                  disabled={!canPush || isLoading}
-                >
-                  <ArrowUp className="size-3.5" />
-                  {viewModel.pushActionLabel ?? "Push"}
-                </Button>
+                <div className="ml-auto flex items-center gap-1">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="xs"
+                    onClick={() => void onPull()}
+                    disabled={!canPull || isLoading}
+                  >
+                    <ArrowDown className="size-3" />
+                    {viewModel.pullActionLabel ?? "Pull"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="xs"
+                    onClick={() => void onPush()}
+                    disabled={!canPush || isLoading}
+                  >
+                    <ArrowUp className="size-3" />
+                    {viewModel.pushActionLabel ?? "Push"}
+                  </Button>
+                </div>
               </div>
             </div>
           </section>
 
-          <ChangeList
-            title="Staged"
-            emptyLabel="No staged files"
-            changes={repositoryStatus?.stagedChanges ?? []}
-            actionLabel="Unstage"
-            actionIcon={<ArrowDown className="size-3.5" />}
-            onAction={(filePath) => void onUnstageFile(filePath)}
-          />
+          <div className="space-y-5">
+            <ChangeList
+              title="Staged"
+              emptyLabel="No staged changes"
+              changes={repositoryStatus?.stagedChanges ?? []}
+              actionLabel="Unstage"
+              actionIcon={<ArrowDown className="size-3" />}
+              onAction={(filePath) => void onUnstageFile(filePath)}
+            />
 
-          <ChangeList
-            title="Working Tree"
-            emptyLabel="No unstaged files"
-            changes={repositoryStatus?.unstagedChanges ?? []}
-            actionLabel="Stage"
-            actionIcon={<ArrowUp className="size-3.5" />}
-            onAction={(filePath) => void onStageFile(filePath)}
-            onDiscard={(filePath) => void onDiscardFile(filePath)}
-          />
+            <ChangeList
+              title="Working Tree"
+              emptyLabel="No unstaged changes"
+              changes={repositoryStatus?.unstagedChanges ?? []}
+              actionLabel="Stage"
+              actionIcon={<ArrowUp className="size-3" />}
+              onAction={(filePath) => void onStageFile(filePath)}
+              onDiscard={(filePath) => void onDiscardFile(filePath)}
+            />
+          </div>
 
           {viewModel.sections.map((section) => (
-            <section key={section.title} className="space-y-3">
-              <h3 className="text-xs font-medium uppercase tracking-wider text-white/40">
-                {section.title}
-              </h3>
-              <div className="overflow-hidden rounded-md border border-white/[0.04] bg-white/[0.02]">
-                {section.rows.map((row, index) => (
+            <section key={section.title} className="space-y-2">
+              <div className="px-1">
+                <h3 className="text-[10px] font-semibold uppercase tracking-[0.05em] text-white/30">
+                  {section.title}
+                </h3>
+              </div>
+              <div className="space-y-1 px-1">
+                {section.rows.map((row) => (
                   <div
                     key={`${section.title}-${row.label}`}
-                    className={cn(
-                      "flex items-start justify-between gap-3 px-3 py-2.5 text-[12px]",
-                      index > 0 && "border-t border-white/[0.04]",
-                    )}
+                    className="flex items-start justify-between gap-3 text-[11px]"
                   >
-                    <span className="shrink-0 text-white/35">{row.label}</span>
-                    <span className="min-w-0 text-right text-white/75">
+                    <span className="shrink-0 text-white/25">{row.label}</span>
+                    <span className="min-w-0 truncate text-right text-white/60">
                       {row.value}
                     </span>
                   </div>

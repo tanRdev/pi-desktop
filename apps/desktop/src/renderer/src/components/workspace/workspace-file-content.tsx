@@ -2,6 +2,7 @@ import type { FileContent } from "@pidesk/shared";
 import * as React from "react";
 import { File, Image as ImageIcon, Loader2, Save } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
+import { Button } from "../ui/button";
 import { CodeEditor } from "../ui/code-editor";
 import { Markdown } from "../ui/markdown";
 import { ScrollArea } from "../ui/scroll-area";
@@ -104,19 +105,21 @@ export function WorkspaceFileContent({
   );
 
   const toolbar = onSave ? (
-    <div className="flex h-11 shrink-0 items-center justify-between border-b border-white/[0.06] bg-transparent px-4">
-      <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-white/40">
+    <div className="flex h-11 shrink-0 items-center justify-between border-b border-white/[0.04] bg-transparent px-5">
+      <div className="text-[10px] font-semibold uppercase tracking-[0.05em] text-white/30">
         {fileName}
       </div>
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="xs"
         onClick={onSave}
         disabled={isReadOnly || !isDirty}
-        className="flex h-7 items-center gap-1.5 border border-white/[0.06] bg-white/[0.02] px-2.5 text-[10px] font-mono uppercase tracking-[0.12em] text-white/50 transition-colors hover:border-white/[0.12] hover:text-white/80 disabled:cursor-not-allowed disabled:opacity-40"
+        className="h-6 gap-1.5 px-2 text-[10px] uppercase tracking-wider text-white/40"
       >
-        <Save className="h-3 w-3" />
+        <Save className="size-3" />
         Save
-      </button>
+      </Button>
     </div>
   ) : null;
 

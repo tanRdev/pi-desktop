@@ -84,40 +84,36 @@ export function WorkspaceActivityPanel({
         className,
       )}
     >
-      <div className="border-b border-white/[0.04] px-5 py-4 select-none">
+      <div className="border-b border-white/[0.04] px-5 py-3.5 select-none">
         <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0 space-y-1.5">
-            <p className="text-xs font-medium uppercase tracking-wider text-white/40">
-              Agent activity
-            </p>
-            <h2 className="truncate text-base font-medium text-white/80">
+          <div className="min-w-0 space-y-0.5">
+            <h2 className="truncate text-sm font-medium text-white/90">
               {threadTitle?.trim() || "Thread"}
             </h2>
-            <p className="truncate font-mono text-[10px] uppercase tracking-[0.08em] text-white/30">
-              {worktreeLabel ?? "No worktree"}
-            </p>
+            <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-white/30">
+              <span className="truncate">{worktreeLabel ?? "No worktree"}</span>
+              <span>·</span>
+              <span>Agent activity</span>
+            </div>
           </div>
           <RuntimeStatusChip status={safeStatus} />
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
-        <div className="space-y-5">
-          <div className="grid grid-cols-2 gap-3">
+      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+        <div className="space-y-7">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-4 px-1">
             {[
               { label: "Turns", value: liveFeed.turns.length },
               { label: "Running", value: runningTurns },
               { label: "Tools", value: tools.length },
               { label: "Active tools", value: runningTools },
             ].map((metric) => (
-              <div
-                key={metric.label}
-                className="rounded-lg border border-white/[0.04] bg-white/[0.02] px-3 py-3"
-              >
-                <div className="text-xs font-medium uppercase tracking-wider text-white/40">
+              <div key={metric.label} className="space-y-1">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.05em] text-white/20">
                   {metric.label}
                 </div>
-                <div className="mt-2 text-2xl text-white/80">
+                <div className="text-xl font-medium text-white/70">
                   {metric.value}
                 </div>
               </div>
@@ -125,109 +121,116 @@ export function WorkspaceActivityPanel({
           </div>
 
           <section className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-medium uppercase tracking-wider text-white/40">
+            <div className="flex items-center justify-between px-1">
+              <h3 className="text-[10px] font-semibold uppercase tracking-[0.05em] text-white/30">
                 Recent turns
               </h3>
-              <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-white/20">
+              <span className="font-mono text-[9px] uppercase tracking-wider text-white/20">
                 {formatTimestamp(liveFeed.lastEventTimestamp)}
               </span>
             </div>
             {liveFeed.turns.length > 0 ? (
-              <div className="space-y-3">
+              <div className="space-y-0.5">
                 {[...liveFeed.turns]
-                  .slice(-6)
+                  .slice(-5)
                   .reverse()
                   .map((turn) => (
                     <div
                       key={turn.id}
-                      className="rounded-lg border border-white/[0.04] bg-white/[0.02] px-4 py-4"
+                      className="group flex items-center justify-between gap-3 rounded-md px-1.5 py-2 transition-colors hover:bg-white/[0.02]"
                     >
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-white/50">
-                          {turn.id}
-                        </span>
-                        <RuntimeStatusChip
-                          status={turn.status as ThreadRuntimeStatus}
-                          className="px-1.5 py-0 text-[9px]"
-                        />
-                      </div>
-                      <div className="mt-3 flex flex-wrap gap-3 font-mono text-[10px] uppercase tracking-[0.08em] text-white/30">
-                        <span>{turn.messageIds.length} messages</span>
-                        <span>{turn.toolCallIds.length} tools</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-[10px] uppercase tracking-wider text-white/50 group-hover:text-white/70">
+                            {turn.id}
+                          </span>
+                          <RuntimeStatusChip
+                            status={turn.status as ThreadRuntimeStatus}
+                            className="px-1 py-0 text-[8px]"
+                          />
+                        </div>
+                        <div className="mt-1 flex gap-2 font-mono text-[9px] uppercase tracking-wider text-white/20">
+                          <span>{turn.messageIds.length} msgs</span>
+                          <span>{turn.toolCallIds.length} tools</span>
+                        </div>
                       </div>
                     </div>
                   ))}
               </div>
             ) : (
-              <div className="rounded-lg border border-white/[0.04] bg-white/[0.02] px-3 py-4 font-mono text-[11px] text-white/30">
+              <div className="px-1 py-2 text-[12px] text-white/25 italic">
                 Activity appears here once the agent starts working.
               </div>
             )}
           </section>
 
           <section className="space-y-3">
-            <h3 className="text-xs font-medium uppercase tracking-wider text-white/40">
-              Tool runs
-            </h3>
+            <div className="px-1">
+              <h3 className="text-[10px] font-semibold uppercase tracking-[0.05em] text-white/30">
+                Tool runs
+              </h3>
+            </div>
             {tools.length > 0 ? (
-              <div className="space-y-3">
-                {tools.slice(0, 8).map((tool) => (
+              <div className="space-y-0.5">
+                {tools.slice(0, 6).map((tool) => (
                   <div
                     key={tool.toolCallId}
-                    className="rounded-lg border border-white/[0.04] bg-white/[0.02] px-4 py-4"
+                    className="group flex items-center justify-between gap-3 rounded-md px-1.5 py-2 transition-colors hover:bg-white/[0.02]"
                   >
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="truncate text-sm text-white/80">
-                        {tool.toolName}
-                      </span>
-                      <RuntimeStatusChip
-                        status={tool.status as ThreadRuntimeStatus}
-                        className="px-1.5 py-0 text-[9px]"
-                      />
-                    </div>
-                    <div className="mt-3 font-mono text-[10px] uppercase tracking-[0.08em] text-white/30">
-                      {tool.turnId ?? "No turn"}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="truncate text-[12px] text-white/70 group-hover:text-white/90">
+                          {tool.toolName}
+                        </span>
+                        <RuntimeStatusChip
+                          status={tool.status as ThreadRuntimeStatus}
+                          className="px-1 py-0 text-[8px]"
+                        />
+                      </div>
+                      <div className="mt-0.5 font-mono text-[9px] uppercase tracking-wider text-white/20">
+                        {tool.turnId ?? "No turn"}
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="rounded-lg border border-white/[0.04] bg-white/[0.02] px-3 py-4 font-mono text-[11px] text-white/30">
+              <div className="px-1 py-2 text-[12px] text-white/25 italic">
                 No tool calls yet.
               </div>
             )}
           </section>
 
           <section className="space-y-3">
-            <h3 className="text-xs font-medium uppercase tracking-wider text-white/40">
-              Timeline
-            </h3>
+            <div className="px-1">
+              <h3 className="text-[10px] font-semibold uppercase tracking-[0.05em] text-white/30">
+                Timeline
+              </h3>
+            </div>
             {recentActivity.length > 0 ? (
-              <div className="space-y-3">
-                {recentActivity.map((entry) => (
+              <div className="space-y-1">
+                {recentActivity.slice(0, 8).map((entry) => (
                   <div
                     key={entry.id}
-                    className="flex items-start justify-between gap-3 rounded-lg border border-white/[0.04] bg-white/[0.02] px-4 py-3"
+                    className="group flex items-start justify-between gap-3 rounded-md px-1.5 py-1.5 transition-colors hover:bg-white/[0.02]"
                   >
                     <div className="min-w-0">
-                      <div className="truncate text-sm text-white/80">
+                      <div className="truncate text-[12px] text-white/60 group-hover:text-white/80">
                         {formatActivityLabel(entry.type)}
                       </div>
-                      <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.08em] text-white/30">
+                      <div className="mt-0.5 font-mono text-[9px] uppercase tracking-wider text-white/20">
                         {entry.turnId ?? "global"}
                         {entry.toolCallId ? ` / ${entry.toolCallId}` : ""}
-                        {entry.messageId ? ` / ${entry.messageId}` : ""}
                       </div>
                     </div>
-                    <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.08em] text-white/20">
+                    <span className="shrink-0 font-mono text-[9px] uppercase tracking-wider text-white/15">
                       {formatTimestamp(entry.timestamp)}
                     </span>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="rounded-lg border border-white/[0.04] bg-white/[0.02] px-3 py-4 font-mono text-[11px] text-white/30">
+              <div className="px-1 py-2 text-[12px] text-white/25 italic">
                 No activity yet.
               </div>
             )}
