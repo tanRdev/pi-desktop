@@ -104,6 +104,30 @@
   --titlebar-height: 44px;
 }
 
+@keyframes word-pulse {
+  0%, 100% { opacity: 0.3; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-0.5px); }
+}
+
+@keyframes unicode-thinking {
+  0% { content: "⠋"; }
+  10% { content: "⠙"; }
+  20% { content: "⠹"; }
+  30% { content: "⠸"; }
+  40% { content: "⠼"; }
+  50% { content: "⠴"; }
+  60% { content: "⠦"; }
+  70% { content: "⠧"; }
+  80% { content: "⠇"; }
+  90% { content: "⠏"; }
+  100% { content: "⠋"; }
+}
+
+.unicode-thinking::after {
+  content: "⠋";
+  animation: unicode-thinking 1s step-end infinite;
+}
+
 /* ============================================
    GLASS MORPHISM UTILITIES - Tailwind v4
    ============================================ */

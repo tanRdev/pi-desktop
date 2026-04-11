@@ -14,15 +14,17 @@ type ThinkingBarProps = {
 
 export function ThinkingBar({
   className,
-  text = "Thinking",
+  text = "Pi is responding",
   onStop,
   stopLabel = "Answer now",
   onClick,
 }: ThinkingBarProps) {
+  const words = text.split(" ");
+
   return (
     <div
       className={cn(
-        "flex w-full items-center justify-between gap-3 rounded-lg border border-white/[0.04] bg-white/[0.02] px-3 py-2",
+        "flex w-full items-center justify-between gap-3 px-1 py-1",
         "transition-opacity duration-150 ease-out",
         className,
       )}
@@ -37,11 +39,33 @@ export function ThinkingBar({
             "hover:opacity-80 active:scale-95",
           )}
         >
-          <TextShimmer className="font-medium">{text}</TextShimmer>
+          <div className="flex gap-1.5">
+            {words.map((word, i) => (
+              <span
+                key={i}
+                className="animate-[word-pulse_2s_infinite_ease-in-out] will-change-transform"
+                style={{ animationDelay: `${i * 0.15}s` }}
+              >
+                <TextShimmer className="font-medium">{word}</TextShimmer>
+              </span>
+            ))}
+          </div>
           <ChevronRight className="size-4 text-white/20 transition-transform duration-150 group-hover:translate-x-0.5" />
         </button>
       ) : (
-        <TextShimmer className="cursor-default font-medium">{text}</TextShimmer>
+        <div className="flex gap-1.5">
+          {words.map((word, i) => (
+            <span
+              key={i}
+              className="animate-[word-pulse_2s_infinite_ease-in-out] will-change-transform"
+              style={{ animationDelay: `${i * 0.15}s` }}
+            >
+              <TextShimmer className="cursor-default font-medium">
+                {word}
+              </TextShimmer>
+            </span>
+          ))}
+        </div>
       )}
       {onStop ? (
         <button
