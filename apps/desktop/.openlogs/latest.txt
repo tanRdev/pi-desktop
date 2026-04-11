@@ -3214,3 +3214,420 @@ Visit https://react.dev/link/error-boundaries to learn more about error boundari
 
 
 1:12:46 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/left-rail.tsx (x2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:21:48 AM [vite] (client) hmr update /src/app.css, /src/components/settings/settings-context.tsx, /src/app.tsx, /src/components/settings/sections/ai-settings.tsx, /src/components/workspace/workspace-surface-panel.tsx
+1:21:48 AM [vite] (client) hmr invalidate /src/components/settings/settings-context.tsx Could not Fast Refresh ("reconcileSettingsDraftState" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+1:21:48 AM [vite] (client) hmr update /src/app.tsx, /src/components/settings/settings-modal.tsx, /src/components/settings/sections/interface-settings.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:22:00 AM [vite] (client) hmr update /src/app.tsx, /src/app.css
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:22:00 AM [vite] (client) hmr update /src/app.tsx, /src/app.css (x2)
+1:22:01 AM [vite] (client) [console.error] React has detected a change in the order of Hooks called by App. This will lead to bugs and errors if not fixed. For more information, read the Rules of Hooks: https://react.dev/link/rules-of-hooks
+
+   Previous render            Next render
+   ------------------------------------------------------
+1. useSyncExternalStore       useSyncExternalStore
+2. useEffect                  useEffect
+3. useCallback                useCallback
+4. useCallback                useCallback
+5. useCallback                useCallback
+6. useCallback                useCallback
+7. useCallback                useCallback
+8. useSyncExternalStore       useSyncExternalStore
+9. useMemo                    useMemo
+10. useMemo                   useMemo
+11. useMemo                   useMemo
+12. useSyncExternalStore      useSyncExternalStore
+13. useCallback               useCallback
+14. useCallback               useCallback
+15. useSyncExternalStore      useSyncExternalStore
+16. useDebugValue             useDebugValue
+17. useCallback               useCallback
+18. useCallback               useCallback
+19. useSyncExternalStore      useSyncExternalStore
+20. useDebugValue             useDebugValue
+21. useCallback               useCallback
+22. useCallback               useCallback
+23. useSyncExternalStore      useSyncExternalStore
+24. useDebugValue             useDebugValue
+25. useCallback               useCallback
+26. useCallback               useCallback
+27. useSyncExternalStore      useSyncExternalStore
+28. useDebugValue             useDebugValue
+29. useCallback               useCallback
+30. useCallback               useCallback
+31. useSyncExternalStore      useSyncExternalStore
+32. useDebugValue             useDebugValue
+33. useCallback               useCallback
+34. useCallback               useCallback
+35. useSyncExternalStore      useSyncExternalStore
+36. useDebugValue             useDebugValue
+37. useCallback               useCallback
+38. useCallback               useCallback
+39. useSyncExternalStore      useSyncExternalStore
+40. useDebugValue             useDebugValue
+41. useCallback               useCallback
+42. useCallback               useCallback
+43. useSyncExternalStore      useSyncExternalStore
+44. useDebugValue             useDebugValue
+45. useCallback               useCallback
+46. useCallback               useCallback
+47. useSyncExternalStore      useSyncExternalStore
+48. useDebugValue             useDebugValue
+49. useCallback               useCallback
+50. useCallback               useCallback
+51. useSyncExternalStore      useSyncExternalStore
+52. useDebugValue             useDebugValue
+53. useCallback               useCallback
+54. useCallback               useCallback
+55. useSyncExternalStore      useSyncExternalStore
+56. useDebugValue             useDebugValue
+57. useCallback               useCallback
+58. useCallback               useCallback
+59. useSyncExternalStore      useSyncExternalStore
+60. useDebugValue             useDebugValue
+61. useState                  useState
+62. useState                  useState
+63. useState                  useState
+64. useState                  useState
+65. useState                  useState
+66. useState                  useState
+67. useState                  useState
+68. useState                  useState
+69. useState                  useState
+70. useState                  useState
+71. useState                  useState
+72. useRef                    useRef
+73. useCallback               useCallback
+74. useCallback               useCallback
+75. useCallback               useCallback
+76. useCallback               useCallback
+77. useCallback               useCallback
+78. useCallback               useCallback
+79. useCallback               useCallback
+80. useCallback               useCallback
+81. useCallback               useCallback
+82. useCallback               useCallback
+83. useCallback               useCallback
+84. useCallback               useCallback
+85. useCallback               useCallback
+86. useEffect                 useEffect
+87. useEffect                 useEffect
+88. useEffect                 useEffect
+89. useCallback               useCallback
+90. useCallback               useCallback
+91. useCallback               useCallback
+92. useCallback               useCallback
+93. useEffect                 useEffect
+94. useCallback               useCallback
+95. useCallback               useCallback
+96. useCallback               useCallback
+97. useCallback               useCallback
+98. useCallback               useCallback
+99. useCallback               useCallback
+100. useCallback              useCallback
+101. useCallback              useCallback
+102. useCallback              useCallback
+103. useCallback              useCallback
+104. useCallback              useCallback
+105. useCallback              useCallback
+106. useCallback              useCallback
+107. useCallback              useCallback
+108. useCallback              useCallback
+109. useCallback              useCallback
+110. useCallback              useCallback
+111. useCallback              useCallback
+112. useCallback              useCallback
+113. useCallback              useCallback
+114. useCallback              useCallback
+115. useCallback              useCallback
+116. useCallback              useCallback
+117. useCallback              useCallback
+118. useCallback              useCallback
+119. useCallback              useCallback
+120. useCallback              useCallback
+121. useCallback              useCallback
+122. useMemo                  useEffect
+   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+1:22:01 AM [vite] (client) [Unhandled error] TypeError: Cannot read properties of null (reading '1')
+ > updateCallback ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:8769:62
+ > Object.useCallback ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:26451:15
+ > exports.useCallback ../../../../node_modules/.bun/react@19.2.4/node_modules/react/cjs/react.development.js:1204:33
+ > useAppShellController src/hooks/use-app-shell-controller.ts:1223:42
+    1221 |    );
+    1222 |  
+    1223 |    const handleCloseContextSurface = React.useCallback(
+         |                                            ^
+    1224 |      (surfaceKey: string) => {
+    1225 |        windowStore.closeWindow(surfaceKey);
+ > useAppShellController src/app.tsx:45:21
+ > Object.react_stack_bottom_frame ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:25904:19
+ > renderWithHooks ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:7662:21
+ > updateFunctionComponent ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:10166:18
+ > beginWork ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:11778:17
+ > runWithFiberInDEV ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:871:29
+
+1:22:01 AM [vite] (client) [console.warn] An error occurred in the <App> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:22:49 AM [vite] (client) hmr update /src/app.css, /src/app.tsx, /src/components/workspace/workspace-surface-panel.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:22:49 AM [vite] (client) hmr update /src/app.css, /src/app.tsx, /src/components/workspace/workspace-surface-panel.tsx (x2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:23:56 AM [vite] (client) hmr update /src/app.tsx, /src/app.css
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:24:01 AM [vite] (client) hmr update /src/app.tsx, /src/app.css (x2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:28:38 AM [vite] (client) hmr update /src/app.css, /src/components/ui/markdown.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:28:44 AM [vite] (client) hmr update /src/components/packages/packages-modal.tsx, /src/app.css
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:33:31 AM [vite] (client) hmr update /src/components/packages/packages-modal.tsx, /src/app.css (x2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1:34:48 AM [vite] (client) hmr update /src/app.css, /src/components/ui/code-block.tsx

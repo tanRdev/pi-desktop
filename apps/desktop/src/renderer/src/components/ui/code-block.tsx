@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { codeToHtml } from "shiki";
 import { cn } from "@/lib/utils";
 
@@ -114,6 +114,144 @@ function sanitizeHighlightedHtml(html: string): string | null {
   }
 }
 
+type SafeInlineStyle = {
+  color?: string;
+  fontStyle?: "normal" | "italic" | "oblique";
+  fontWeight?: string | number;
+  textDecoration?: string;
+};
+
+function parseSafeInlineStyle(value: string): SafeInlineStyle | undefined {
+  const style: SafeInlineStyle = {};
+
+  for (const declaration of value.split(";")) {
+    const [rawProperty, ...rawValueParts] = declaration.split(":");
+    if (!rawProperty || rawValueParts.length === 0) {
+      continue;
+    }
+
+    const property = rawProperty.trim().toLowerCase();
+    const styleValue = rawValueParts.join(":").trim();
+    if (!styleValue) {
+      continue;
+    }
+
+    if (property === "color") {
+      style.color = styleValue;
+      continue;
+    }
+
+    if (
+      property === "font-style" &&
+      (styleValue === "normal" ||
+        styleValue === "italic" ||
+        styleValue === "oblique")
+    ) {
+      style.fontStyle = styleValue;
+      continue;
+    }
+
+    if (property === "font-weight") {
+      style.fontWeight = /^\d+$/.test(styleValue)
+        ? Number(styleValue)
+        : styleValue;
+      continue;
+    }
+
+    if (property === "text-decoration") {
+      style.textDecoration = styleValue;
+    }
+  }
+
+  return Object.keys(style).length > 0 ? style : undefined;
+}
+
+function renderHighlightedNode(
+  node: ChildNode,
+  key: string,
+): React.ReactNode | null {
+  if (node.nodeType === Node.TEXT_NODE) {
+    return node.textContent;
+  }
+
+  if (!(node instanceof HTMLElement)) {
+    return null;
+  }
+
+  const className = node.getAttribute("class") ?? undefined;
+  const tabIndexValue = node.getAttribute("tabindex");
+  const tabIndex = tabIndexValue
+    ? Number.parseInt(tabIndexValue, 10)
+    : undefined;
+  const ariaHiddenValue = node.getAttribute("aria-hidden");
+  const ariaHidden = ariaHiddenValue === "true" ? true : undefined;
+  const style = parseSafeInlineStyle(node.getAttribute("style") ?? "");
+  const children = Array.from(node.childNodes)
+    .map((child, index) => renderHighlightedNode(child, `${key}-${index}`))
+    .filter((child) => child !== null);
+
+  if (node.tagName.toLowerCase() === "pre") {
+    return (
+      <pre
+        key={key}
+        className={className}
+        tabIndex={tabIndex}
+        aria-hidden={ariaHidden}
+        style={style}
+      >
+        {children}
+      </pre>
+    );
+  }
+
+  if (node.tagName.toLowerCase() === "code") {
+    return (
+      <code
+        key={key}
+        className={className}
+        tabIndex={tabIndex}
+        aria-hidden={ariaHidden}
+        style={style}
+      >
+        {children}
+      </code>
+    );
+  }
+
+  if (node.tagName.toLowerCase() === "span") {
+    return (
+      <span
+        key={key}
+        className={className}
+        tabIndex={tabIndex}
+        aria-hidden={ariaHidden}
+        style={style}
+      >
+        {children}
+      </span>
+    );
+  }
+
+  if (node.tagName.toLowerCase() === "br") {
+    return <br key={key} />;
+  }
+
+  return null;
+}
+
+function renderHighlightedHtml(html: string): React.ReactNode[] | null {
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, "text/html");
+
+    return Array.from(doc.body.childNodes)
+      .map((node, index) => renderHighlightedNode(node, `highlight-${index}`))
+      .filter((node) => node !== null);
+  } catch {
+    return null;
+  }
+}
+
 export type CodeBlockProps = {
   children?: React.ReactNode;
   className?: string;
@@ -151,11 +289,17 @@ function CodeBlockCode({
   const [highlightedHtml, setHighlightedHtml] = useState<string | null>(null);
   const [isHighlighting, setIsHighlighting] = useState(false);
   const [isTooLarge, setIsTooLarge] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
   const highlightTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
   const isMountedRef = useRef(true);
+  const highlightedContent = useMemo(
+    () =>
+      highlightedHtml
+        ? renderHighlightedHtml(highlightedHtml)
+        : highlightedHtml,
+    [highlightedHtml],
+  );
 
   // Cleanup on unmount
   useEffect(() => {
@@ -221,12 +365,6 @@ function CodeBlockCode({
     }, HIGHLIGHT_DEBOUNCE_MS);
   }, [code, runHighlight]);
 
-  useEffect(() => {
-    if (containerRef.current && highlightedHtml) {
-      containerRef.current.innerHTML = highlightedHtml;
-    }
-  }, [highlightedHtml]);
-
   const classNames = cn(
     "relative w-full overflow-x-auto rounded-lg border border-white/[0.04] bg-[#111111] font-mono text-[13px] leading-relaxed",
     className,
@@ -266,11 +404,10 @@ function CodeBlockCode({
           Loading syntax highlighting...
         </div>
       )}
-      {highlightedHtml ? (
-        <div
-          ref={containerRef}
-          className="p-4 transition-opacity duration-[var(--duration-fast)] ease-out"
-        />
+      {highlightedContent ? (
+        <div className="p-4 transition-opacity duration-[var(--duration-fast)] ease-out">
+          {highlightedContent}
+        </div>
       ) : (
         <div className="p-4 transition-opacity duration-[var(--duration-fast)] ease-out">
           <pre className="whitespace-pre-wrap break-words">

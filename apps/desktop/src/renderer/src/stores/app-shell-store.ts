@@ -73,6 +73,17 @@ export interface AppShellStoreState {
   ): Promise<void>;
 }
 
+function createRuntimeContextKey(shellState: ShellModelState): string {
+  const selection = shellState.shell.catalog.selection;
+
+  return [
+    selection.repositoryId ?? "",
+    selection.worktreeId ?? "",
+    selection.threadId ?? "",
+    shellState.agent.sessionId,
+  ].join("::");
+}
+
 type EffectiveSettings = ReturnType<typeof mergeSettingsWithDefaults>;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -213,6 +224,27 @@ let appShellStoreInstance: AppShellStore | null = null;
 export function createAppShellStore(api: PiDeskApi) {
   const shellModel = createShellModel(api);
   let initializePromise: Promise<void> | null = null;
+  let runtimeRefreshVersion = 0;
+  let lastRuntimeContextKey = createRuntimeContextKey(shellModel.getState());
+
+  async function refreshRuntimeMetadata(): Promise<void> {
+    const nextVersion = runtimeRefreshVersion + 1;
+    runtimeRefreshVersion = nextVersion;
+
+    const [providerSnapshots, settingsSnapshot] = await Promise.all([
+      api.agent.getProviders(),
+      api.agent.getSettings(),
+    ]);
+
+    if (runtimeRefreshVersion !== nextVersion) {
+      return;
+    }
+
+    store.setState({
+      providerSnapshots,
+      settingsSnapshot,
+    });
+  }
 
   const store = createStore<AppShellStoreState>()((set, get) => ({
     shellModel,
@@ -281,14 +313,9 @@ export function createAppShellStore(api: PiDeskApi) {
     },
     async reload() {
       await shellModel.load();
-      const [providerSnapshots, settingsSnapshot] = await Promise.all([
-        api.agent.getProviders(),
-        api.agent.getSettings(),
-      ]);
+      await refreshRuntimeMetadata();
       set({
         shellState: shellModel.getState(),
-        providerSnapshots,
-        settingsSnapshot,
       });
     },
     async sendPrompt() {
@@ -376,7 +403,17 @@ export function createAppShellStore(api: PiDeskApi) {
   }));
 
   shellModel.subscribe((shellState) => {
+    const nextRuntimeContextKey = createRuntimeContextKey(shellState);
+    const shouldRefreshRuntimeMetadata =
+      store.getState().isShellReady &&
+      nextRuntimeContextKey !== lastRuntimeContextKey;
+
+    lastRuntimeContextKey = nextRuntimeContextKey;
     store.setState({ shellState });
+
+    if (shouldRefreshRuntimeMetadata) {
+      void refreshRuntimeMetadata();
+    }
   });
 
   return store;

@@ -86,6 +86,7 @@ export interface PiDeskApi {
   };
   dialog: {
     showOpenDialog(options: OpenDialogOptions): Promise<string[] | null>;
+    openExternal(url: string): Promise<void>;
   };
   fs: {
     readDirectory(path: string): Promise<DirectoryListing>;

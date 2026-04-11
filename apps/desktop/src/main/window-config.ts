@@ -1,6 +1,10 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import type { BrowserWindowConstructorOptions } from "electron";
+import type {
+  BrowserWindow,
+  BrowserWindowConstructorOptions,
+  HandlerDetails,
+} from "electron";
 
 export interface CreateMainWindowOptionsInput {
   preloadPath: string;
@@ -27,13 +31,11 @@ export function createMainWindowOptions({
     minWidth: 1180,
     minHeight: 720,
     show: false,
-    transparent: true,
-    vibrancy: "under-window",
-    visualEffectState: "active",
-    backgroundColor: "#00000000",
+    backgroundColor: "#0a0a0a",
     titleBarStyle: "hiddenInset",
     trafficLightPosition: { x: 20, y: 12 },
     roundedCorners: true,
+    paintWhenInitiallyHidden: false,
     webPreferences: {
       preload: preloadPath,
       contextIsolation: true,
@@ -41,8 +43,47 @@ export function createMainWindowOptions({
       nodeIntegration: false,
       spellcheck: false,
       webSecurity: true,
+      allowRunningInsecureContent: false,
     },
   };
+}
+
+export function shouldAllowNavigation(targetUrl: string): boolean {
+  try {
+    const parsedUrl = new URL(targetUrl);
+    return parsedUrl.protocol === "file:";
+  } catch {
+    return false;
+  }
+}
+
+export function shouldDenyWindowOpen(details: HandlerDetails): boolean {
+  return !shouldAllowNavigation(details.url);
+}
+
+export function hardenMainWindow(window: BrowserWindow): void {
+  const session = window.webContents.session;
+
+  session.setPermissionCheckHandler(() => false);
+  session.setPermissionRequestHandler((_webContents, _permission, callback) => {
+    callback(false);
+  });
+
+  window.webContents.setWindowOpenHandler((details) => {
+    if (shouldDenyWindowOpen(details)) {
+      return { action: "deny" };
+    }
+
+    return { action: "allow" };
+  });
+
+  window.webContents.on("will-navigate", (event, targetUrl) => {
+    if (shouldAllowNavigation(targetUrl)) {
+      return;
+    }
+
+    event.preventDefault();
+  });
 }
 
 export function resolveRendererTarget(
@@ -50,9 +91,19 @@ export function resolveRendererTarget(
   mainEntryUrl: string,
 ): RendererTarget {
   if (rendererUrl) {
+    const parsedUrl = new URL(rendererUrl);
+    if (
+      parsedUrl.protocol !== "http:" ||
+      (parsedUrl.hostname !== "127.0.0.1" && parsedUrl.hostname !== "localhost")
+    ) {
+      throw new Error(
+        "ELECTRON_RENDERER_URL must target a local http dev server",
+      );
+    }
+
     return {
       kind: "url",
-      value: rendererUrl,
+      value: parsedUrl.toString(),
     };
   }
 

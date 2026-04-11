@@ -1,20 +1,21 @@
 import { IPC_CHANNELS } from "@pidesk/shared";
-import type { RegisterIpcHandlersDependencies } from "../ipc-router";
 import { getStringField } from "./payload-parsers";
 
-type RegisterFilesystemHandlersDependencies = Pick<
-  RegisterIpcHandlersDependencies,
-  "handle" | "getShellSnapshot"
->;
+interface RegisterFilesystemHandlersDependencies {
+  handle: (
+    channel: string,
+    listener: (event?: unknown, payload?: unknown) => unknown,
+  ) => void;
+  getWorkspaceRootPath(): string | null;
+}
 
 export function registerFilesystemHandlers({
   handle,
-  getShellSnapshot,
+  getWorkspaceRootPath,
 }: RegisterFilesystemHandlersDependencies): void {
   async function authorizeAndResolveReadPath(userPath: string) {
-    const shell = await getShellSnapshot();
-    const workspaceRoot = shell?.workspace?.rootPath;
-    if (!workspaceRoot || typeof workspaceRoot !== "string") {
+    const workspaceRoot = getWorkspaceRootPath();
+    if (!workspaceRoot) {
       throw new Error("readFile path is outside the workspace root");
     }
 
@@ -58,9 +59,8 @@ export function registerFilesystemHandlers({
   }
 
   async function authorizeAndResolveWritePath(userPath: string) {
-    const shell = await getShellSnapshot();
-    const workspaceRoot = shell?.workspace?.rootPath;
-    if (!workspaceRoot || typeof workspaceRoot !== "string") {
+    const workspaceRoot = getWorkspaceRootPath();
+    if (!workspaceRoot) {
       throw new Error("writeFile path is outside the workspace root");
     }
 
@@ -146,9 +146,8 @@ export function registerFilesystemHandlers({
       };
     }
 
-    const shell = await getShellSnapshot();
-    const workspaceRoot = shell?.workspace?.rootPath;
-    if (!workspaceRoot || typeof workspaceRoot !== "string") {
+    const workspaceRoot = getWorkspaceRootPath();
+    if (!workspaceRoot) {
       return { success: false, error: "Workspace root is not configured" };
     }
 

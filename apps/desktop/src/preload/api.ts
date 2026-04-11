@@ -37,6 +37,9 @@ import {
   type WorkspaceWindow,
 } from "@pidesk/shared";
 
+const OPEN_EXTERNAL_CHANNEL =
+  IPC_CHANNELS.dialog.openExternal ?? "dialog:openExternal";
+
 export type PreloadInvoke = <TReturn>(
   channel: string,
   payload?: unknown,
@@ -161,6 +164,9 @@ export function createPiDeskApi({
           IPC_CHANNELS.dialog.showOpenDialog,
           options,
         );
+      },
+      openExternal(url: string) {
+        return invoke<void>(OPEN_EXTERNAL_CHANNEL, { url });
       },
     },
     fs: {

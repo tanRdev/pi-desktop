@@ -39,9 +39,7 @@ import { useWindowStore, workspaceSessionStore } from "./use-window-store";
 const EMPTY_AUTOCOMPLETE_SUGGESTIONS: (SlashSuggestion | MentionSuggestion)[] =
   [];
 const PENDING_SURFACE_PREFIX = "__pending_surface__";
-const WORKSPACE_SWITCH_NOTICE_KEY = "pidesk.workspace-switch-notice";
 const WORKSPACE_SWITCH_STATE_KEY = "pidesk.workspace-switch-state";
-const WORKSPACE_SWITCH_RELOAD_DELAY_MS = 80;
 
 type PromptMode = "build" | "plan";
 
@@ -90,13 +88,6 @@ function getInitialContextSurface(
   return current;
 }
 
-function persistWorkspaceSwitchNotice(repositoryName: string): void {
-  sessionStorage.setItem(
-    WORKSPACE_SWITCH_NOTICE_KEY,
-    JSON.stringify({ repositoryName }),
-  );
-}
-
 function persistWorkspaceSwitchState(repositoryName: string): void {
   sessionStorage.setItem(
     WORKSPACE_SWITCH_STATE_KEY,
@@ -104,12 +95,8 @@ function persistWorkspaceSwitchState(repositoryName: string): void {
   );
 }
 
-function reloadForWorkspaceSwitch(repositoryName: string): void {
-  persistWorkspaceSwitchNotice(repositoryName);
+function showWorkspaceSwitchLoader(repositoryName: string): void {
   persistWorkspaceSwitchState(repositoryName);
-  window.setTimeout(() => {
-    window.location.reload();
-  }, WORKSPACE_SWITCH_RELOAD_DELAY_MS);
 }
 
 export interface AppShellController {
@@ -762,7 +749,7 @@ export function useAppShellController(): AppShellController {
             .split(/[\\/]+/)
             .filter(Boolean)
             .pop() ?? repositoryPath;
-        reloadForWorkspaceSwitch(repositoryName);
+        setWorkspaceSwitchingRepositoryName(repositoryName);
         return;
       } catch (error) {
         toast.error("Invalid repository", {
@@ -785,10 +772,10 @@ export function useAppShellController(): AppShellController {
         return;
       }
 
-      await window.pidesk.repositories.select(repositoryId);
-      reloadForWorkspaceSwitch(
+      setWorkspaceSwitchingRepositoryName(
         repository.customName?.trim() || repository.name,
       );
+      await window.pidesk.repositories.select(repositoryId);
     },
     [repositories],
   );
@@ -879,14 +866,21 @@ export function useAppShellController(): AppShellController {
 
   const handleSelectWorktree = React.useCallback(
     async (worktreeId: string) => {
+      const repositoryName =
+        activeRepository?.customName?.trim() ||
+        activeRepository?.name ||
+        "Workspace";
+
+      setWorkspaceSwitchingRepositoryName(repositoryName);
       await window.pidesk.worktrees.select(worktreeId);
-      await reload();
     },
-    [reload],
+    [activeRepository?.customName, activeRepository?.name],
   );
 
   const handleCreateThread = React.useCallback(async (worktreeId: string) => {
-    return window.pidesk.threads.create(worktreeId, "");
+    const threadId = await window.pidesk.threads.create(worktreeId, "");
+    setSelectedContextSurface(null);
+    return threadId;
   }, []);
 
   const submitRemoveRepository = React.useCallback(async () => {
@@ -928,14 +922,41 @@ export function useAppShellController(): AppShellController {
     [reload],
   );
 
-  const handleSelectThread = React.useCallback(
-    async (threadId: string) => {
-      setSelectedContextSurface(null);
-      await window.pidesk.threads.select(threadId);
-      await reload();
-    },
-    [reload],
-  );
+  const handleSelectThread = React.useCallback(async (threadId: string) => {
+    setSelectedContextSurface(null);
+    await window.pidesk.threads.select(threadId);
+  }, []);
+
+  React.useEffect(() => {
+    if (!workspaceSwitchingRepositoryName) {
+      return;
+    }
+
+    showWorkspaceSwitchLoader(workspaceSwitchingRepositoryName);
+  }, [workspaceSwitchingRepositoryName]);
+
+  React.useEffect(() => {
+    if (!workspaceSwitchingRepositoryName) {
+      return;
+    }
+
+    const nextRepositoryName =
+      activeRepository?.customName?.trim() || activeRepository?.name || null;
+
+    if (!nextRepositoryName) {
+      return;
+    }
+
+    if (nextRepositoryName !== workspaceSwitchingRepositoryName) {
+      return;
+    }
+
+    setWorkspaceSwitchingRepositoryName(null);
+  }, [
+    activeRepository?.customName,
+    activeRepository?.name,
+    workspaceSwitchingRepositoryName,
+  ]);
 
   const autocompleteMatch = React.useMemo(
     () => getPromptAutocompleteMatch(draft),

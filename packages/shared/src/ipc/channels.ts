@@ -33,6 +33,7 @@ export const IPC_CHANNELS = {
   },
   dialog: {
     showOpenDialog: "dialog:showOpenDialog",
+    openExternal: "dialog:openExternal",
   },
   fs: {
     readDirectory: "fs:readDirectory",

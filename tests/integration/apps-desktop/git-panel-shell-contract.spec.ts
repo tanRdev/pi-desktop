@@ -23,26 +23,24 @@ describe("git panel shell contract", () => {
     expect(controllerSource).toContain("shellGit: shell.git ?? null");
   });
 
-  it("persists a one-shot workspace switch notice before forcing a reload", () => {
+  it("persists lightweight workspace switch state without forcing a renderer reload", () => {
     const controllerSource = readSource(
       "apps/desktop/src/renderer/src/hooks/use-app-shell-controller.ts",
     );
 
-    expect(controllerSource).toContain("persistWorkspaceSwitchNotice(");
-    expect(controllerSource).toContain("WORKSPACE_SWITCH_NOTICE_KEY");
-    expect(controllerSource).toContain("reloadForWorkspaceSwitch(");
-    expect(controllerSource).toContain("window.location.reload()");
+    expect(controllerSource).toContain("WORKSPACE_SWITCH_STATE_KEY");
+    expect(controllerSource).toContain("showWorkspaceSwitchLoader(");
+    expect(controllerSource).not.toContain("window.location.reload()");
   });
 
-  it("shows the persisted workspace switch toast after reload", () => {
+  it("removes the old post-reload workspace switch toast path", () => {
     const appSource = readSource("apps/desktop/src/renderer/src/app.tsx");
 
-    expect(appSource).toContain("pidesk.workspace-switch-notice");
-    expect(appSource).toContain("toast.success(");
-    expect(appSource).toContain("Project switched");
+    expect(appSource).not.toContain("pidesk.workspace-switch-notice");
+    expect(appSource).not.toContain("Project switched");
   });
 
-  it("shows a fullscreen workspace switch loader before and after reload", () => {
+  it("shows a fullscreen workspace switch loader during in-app navigation", () => {
     const controllerSource = readSource(
       "apps/desktop/src/renderer/src/hooks/use-app-shell-controller.ts",
     );
@@ -50,7 +48,6 @@ describe("git panel shell contract", () => {
 
     expect(controllerSource).toContain("pidesk.workspace-switch-state");
     expect(controllerSource).toContain("workspaceSwitchingRepositoryName");
-    expect(controllerSource).toContain("window.setTimeout");
     expect(appSource).toContain("workspace-switch-loader");
     expect(appSource).toContain("controller.workspaceSwitchingRepositoryName");
     expect(appSource).toContain("WORKSPACE_SWITCH_STATE_KEY");

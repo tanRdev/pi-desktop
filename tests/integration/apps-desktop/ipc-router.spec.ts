@@ -137,6 +137,7 @@ it("fs.readFile rejects out-of-workspace absolute paths before touching node:fs.
   registerIpcHandlers({
     handle: harness.handle,
     getShellSnapshot,
+    getWorkspaceRootPath: () => "/tmp/pidesk",
     agentHost: createAgentHost(createAgentSnapshot()),
     mainWindow: null,
   });
@@ -165,6 +166,7 @@ it("fs.writeFile rejects out-of-workspace absolute paths before touching node:fs
   registerIpcHandlers({
     handle: harness.handle,
     getShellSnapshot,
+    getWorkspaceRootPath: () => "/tmp/pidesk",
     agentHost: createAgentHost(createAgentSnapshot()),
     mainWindow: null,
   });
@@ -196,6 +198,7 @@ it("fs.writeFile resolves relative paths against the workspace root before writi
   registerIpcHandlers({
     handle: harness.handle,
     getShellSnapshot,
+    getWorkspaceRootPath: () => "/tmp/pidesk",
     agentHost: createAgentHost(createAgentSnapshot()),
     mainWindow: null,
   });
@@ -781,6 +784,19 @@ describe("registerIpcHandlers", () => {
     });
   });
 
+  it("registers a dialog handler for safe external links", async () => {
+    const harness = createHandlerHarness();
+
+    registerIpcHandlers({
+      handle: harness.handle,
+      getShellSnapshot: vi.fn(createShellSnapshot),
+      agentHost: createAgentHost(createAgentSnapshot()),
+      mainWindow: null,
+    });
+
+    expect(harness.handlers.has(IPC_CHANNELS.dialog.openExternal)).toBe(true);
+  });
+
   it("delegates discovery, slash suggestions, search, and model switch", async () => {
     const harness = createHandlerHarness();
     const discovery: PiDiscoveryResult = {
@@ -1086,6 +1102,7 @@ describe("registerIpcHandlers", () => {
     registerIpcHandlers({
       handle: harness.handle,
       getShellSnapshot,
+      getWorkspaceRootPath: () => "/tmp/pidesk",
       agentHost: createAgentHost(createAgentSnapshot()),
       mainWindow: null,
     });
@@ -1116,6 +1133,7 @@ describe("registerIpcHandlers", () => {
     registerIpcHandlers({
       handle: harness.handle,
       getShellSnapshot,
+      getWorkspaceRootPath: () => "/tmp/pidesk",
       agentHost: createAgentHost(createAgentSnapshot()),
       mainWindow: null,
     });
@@ -1158,6 +1176,7 @@ describe("registerIpcHandlers", () => {
     registerIpcHandlers({
       handle: harness.handle,
       getShellSnapshot,
+      getWorkspaceRootPath: () => "/tmp/pidesk",
       agentHost: createAgentHost(createAgentSnapshot()),
       mainWindow: null,
     });
@@ -1211,6 +1230,7 @@ describe("registerIpcHandlers", () => {
     registerIpcHandlers({
       handle: harness.handle,
       getShellSnapshot,
+      getWorkspaceRootPath: () => "/tmp/pidesk",
       agentHost: createAgentHost(createAgentSnapshot()),
       mainWindow: null,
     });

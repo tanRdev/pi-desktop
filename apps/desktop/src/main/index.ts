@@ -50,6 +50,7 @@ import { ThreadCatalog, type ThreadCatalogEntry } from "./thread-catalog";
 import { createThreadRuntimeLaunchDetails } from "./thread-runtime-launch";
 import {
   createMainWindowOptions,
+  hardenMainWindow,
   resolvePreloadTarget,
   resolveRendererTarget,
   shouldShowMainWindow,
@@ -125,6 +126,7 @@ async function createMainWindow() {
       preloadPath: resolvePreloadTarget(import.meta.url),
     }),
   );
+  hardenMainWindow(window);
 
   if (shouldShowMainWindow(process.env)) {
     window.once("ready-to-show", () => {
@@ -665,6 +667,7 @@ async function bootstrapDesktop() {
         catalog,
       });
     },
+    getWorkspaceRootPath: () => currentContext?.worktreePath ?? null,
     agentHost: {
       getProviders: () => currentHost.getProviders(),
       getSettings: () => currentHost.getSettings(),

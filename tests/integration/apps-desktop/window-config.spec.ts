@@ -2,11 +2,12 @@ import { describe, expect, it } from "vitest";
 
 import {
   createMainWindowOptions,
+  shouldAllowNavigation,
+  shouldDenyWindowOpen,
   resolvePreloadTarget,
   resolveRendererTarget,
   shouldShowMainWindow,
 } from "../../../apps/desktop/src/main/window-config";
-import { getTitleBarLeftPadding } from "../../../apps/desktop/src/renderer/src/lib/title-bar-layout";
 
 describe("createMainWindowOptions", () => {
   it("locks down the BrowserWindow web preferences", () => {
@@ -19,6 +20,7 @@ describe("createMainWindowOptions", () => {
     expect(options.minWidth).toBe(1180);
     expect(options.minHeight).toBe(720);
     expect(options.backgroundColor).toBe("#0a0a0a");
+    expect(options.paintWhenInitiallyHidden).toBe(false);
     expect(options.titleBarStyle).toBe("hiddenInset");
     expect(options.webPreferences).toMatchObject({
       preload: "/tmp/pidesk/preload.js",
@@ -27,6 +29,7 @@ describe("createMainWindowOptions", () => {
       nodeIntegration: false,
       spellcheck: false,
       webSecurity: true,
+      allowRunningInsecureContent: false,
     });
   });
 
@@ -62,8 +65,17 @@ describe("resolveRendererTarget", () => {
       ),
     ).toEqual({
       kind: "url",
-      value: "http://127.0.0.1:5173",
+      value: "http://127.0.0.1:5173/",
     });
+  });
+
+  it("rejects non-local renderer dev server URLs", () => {
+    expect(() =>
+      resolveRendererTarget(
+        "https://example.com",
+        "file:///app/out/main/index.js",
+      ),
+    ).toThrow(/local http dev server/);
   });
 
   it("falls back to the packaged renderer html file", () => {
@@ -92,22 +104,18 @@ describe("resolvePreloadTarget", () => {
   });
 });
 
-describe("getTitleBarLeftPadding", () => {
-  it("uses traffic-light spacing on macOS when not fullscreen", () => {
-    expect(
-      getTitleBarLeftPadding({ isFullscreen: false, platform: "darwin" }),
-    ).toBe(88);
+describe("window navigation hardening", () => {
+  it("allows file navigation targets", () => {
+    expect(shouldAllowNavigation("file:///tmp/pidesk/index.html")).toBe(true);
   });
 
-  it("shifts left when fullscreen hides traffic lights", () => {
-    expect(
-      getTitleBarLeftPadding({ isFullscreen: true, platform: "darwin" }),
-    ).toBe(24);
+  it("blocks remote navigation targets", () => {
+    expect(shouldAllowNavigation("https://example.com")).toBe(false);
   });
 
-  it("keeps a smaller inset on non-macOS platforms", () => {
-    expect(
-      getTitleBarLeftPadding({ isFullscreen: false, platform: "linux" }),
-    ).toBe(16);
+  it("denies remote popup requests", () => {
+    expect(shouldDenyWindowOpen({ url: "https://example.com" } as never)).toBe(
+      true,
+    );
   });
 });

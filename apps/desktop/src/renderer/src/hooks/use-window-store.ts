@@ -127,12 +127,18 @@ function subscribe(listener: () => void): () => void {
         });
       }
 
-      if (shellState.shellState.shell.catalog.reconciledWorkspaceSessions) {
+      const nextCatalogSessions =
+        shellState.shellState.shell.catalog.reconciledWorkspaceSessions;
+      const previousCatalogSessions =
+        prevShellState?.shellState.shell.catalog.reconciledWorkspaceSessions;
+
+      if (
+        nextCatalogSessions &&
+        nextCatalogSessions !== previousCatalogSessions
+      ) {
         workspaceSessionStore
           .getState()
-          .hydrateCatalogSessions(
-            shellState.shellState.shell.catalog.reconciledWorkspaceSessions,
-          );
+          .hydrateCatalogSessions(nextCatalogSessions);
       }
       listener();
     }),

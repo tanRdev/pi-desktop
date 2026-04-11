@@ -63,6 +63,7 @@ export interface IpcRegistrar {
 export interface RegisterIpcHandlersDependencies {
   handle: IpcRegistrar["handle"];
   getShellSnapshot(): Promise<ShellSnapshot> | ShellSnapshot;
+  getWorkspaceRootPath?(): string | null;
   agentHost: AgentIpcHost;
   stateHost?: StateIpcHost;
   mainWindow: BrowserWindow | null;
@@ -81,6 +82,7 @@ export interface RegisterIpcHandlersDependencies {
 export function registerIpcHandlers({
   handle,
   getShellSnapshot,
+  getWorkspaceRootPath,
   agentHost,
   stateHost,
   mainWindow,
@@ -99,7 +101,10 @@ export function registerIpcHandlers({
   registerRepositoryHandlers({ handle, agentHost });
   registerThreadHandlers({ handle, agentHost, threadCatalog });
   registerDialogHandlers({ handle });
-  registerFilesystemHandlers({ handle, getShellSnapshot });
+  registerFilesystemHandlers({
+    handle,
+    getWorkspaceRootPath: () => getWorkspaceRootPath?.() ?? null,
+  });
   registerStateHandlers({ handle, stateHost });
   if (gitService) {
     registerGitHandlers({ handle, gitService });

@@ -246,6 +246,7 @@ describe("createPiDeskApi", () => {
       "/tmp/work/repo-two",
       "/tmp/work/repo-one",
     ]);
+    await api.dialog.openExternal("https://example.com/docs");
     await Reflect.get(api.repositories, "openInFinder")("/tmp/work/repo-one");
     await Reflect.get(api.repositories, "remove")("/tmp/work/repo-one");
     await api.worktrees.create("/tmp/work/repo-one", "feature/runtime");
@@ -267,6 +268,7 @@ describe("createPiDeskApi", () => {
           repositoryIds: ["/tmp/work/repo-two", "/tmp/work/repo-one"],
         },
       ],
+      [IPC_CHANNELS.dialog.openExternal, { url: "https://example.com/docs" }],
       [
         IPC_CHANNELS.repositories.openInFinder,
         { repositoryId: "/tmp/work/repo-one" },

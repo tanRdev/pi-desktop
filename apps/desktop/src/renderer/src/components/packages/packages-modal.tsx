@@ -338,8 +338,18 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
                     <div className="mt-8 flex items-center gap-3">
                       <a
                         href={controller.selectedPackageDetail.npmUrl}
-                        target="_blank"
-                        rel="noreferrer"
+                        onClick={(event) => {
+                          event.preventDefault();
+                          const packageDetail =
+                            controller.selectedPackageDetail;
+                          if (!packageDetail) {
+                            return;
+                          }
+
+                          void window.pidesk.dialog.openExternal(
+                            packageDetail.npmUrl,
+                          );
+                        }}
                         className="inline-flex h-7 items-center gap-1.5 rounded-md bg-white/[0.04] px-3 text-[10px] font-medium tracking-wider text-white/40 transition-all hover:bg-white/[0.08] hover:text-white/70"
                       >
                         <Package className="size-3" />
@@ -348,8 +358,18 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
                       {controller.selectedPackageDetail.repositoryUrl ? (
                         <a
                           href={controller.selectedPackageDetail.repositoryUrl}
-                          target="_blank"
-                          rel="noreferrer"
+                          onClick={(event) => {
+                            event.preventDefault();
+                            const packageDetail =
+                              controller.selectedPackageDetail;
+                            if (!packageDetail?.repositoryUrl) {
+                              return;
+                            }
+
+                            void window.pidesk.dialog.openExternal(
+                              packageDetail.repositoryUrl,
+                            );
+                          }}
                           className="inline-flex h-7 items-center gap-1.5 rounded-md bg-white/[0.04] px-3 text-[10px] font-medium tracking-wider text-white/40 transition-all hover:bg-white/[0.08] hover:text-white/70"
                         >
                           <Code className="size-3" />

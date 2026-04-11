@@ -114,6 +114,14 @@ const INITIAL_COMPONENTS: Partial<Components> = {
     return (
       <a
         href={href}
+        onClick={(event) => {
+          if (!href) {
+            return;
+          }
+
+          event.preventDefault();
+          void window.pidesk.dialog.openExternal(href);
+        }}
         className={cn(
           "text-sm text-blue-400/80 underline underline-offset-4 decoration-blue-400/30",
           "transition-all duration-150 ease-out",

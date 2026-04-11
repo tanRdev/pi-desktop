@@ -1,7 +1,6 @@
 import { TooltipProvider } from "@pidesk/ui";
 import * as React from "react";
 import { Toaster } from "@/components/ui/sonner";
-import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { PackagesModal } from "./components/packages/packages-modal";
 import { SettingsModal, SettingsProvider } from "./components/settings";
@@ -18,7 +17,6 @@ import { WorkspaceSwitchLoader } from "./components/ui/workspace-switch-loader";
 import { WorkspaceShell } from "./components/workspace/workspace-shell";
 import { useAppShellController } from "./hooks/use-app-shell-controller";
 
-const WORKSPACE_SWITCH_NOTICE_KEY = "pidesk.workspace-switch-notice";
 const WORKSPACE_SWITCH_STATE_KEY = "pidesk.workspace-switch-state";
 const WORKSPACE_SWITCH_MIN_VISIBLE_MS = 600;
 
@@ -76,31 +74,6 @@ export default function App() {
 
     return () => window.clearTimeout(timer);
   }, [controller.workspaceShellProps.activeRepository, workspaceSwitchState]);
-
-  React.useEffect(() => {
-    const serializedNotice = sessionStorage.getItem(
-      WORKSPACE_SWITCH_NOTICE_KEY,
-    );
-    if (!serializedNotice) {
-      return;
-    }
-
-    sessionStorage.removeItem(WORKSPACE_SWITCH_NOTICE_KEY);
-
-    try {
-      const notice = JSON.parse(serializedNotice) as {
-        repositoryName?: string;
-      };
-      toast.success("Project switched", {
-        description:
-          notice.repositoryName && notice.repositoryName.trim().length > 0
-            ? `Opened ${notice.repositoryName}`
-            : "Opened the selected workspace",
-      });
-    } catch {
-      toast.success("Project switched");
-    }
-  }, []);
 
   return (
     <SettingsProvider>
