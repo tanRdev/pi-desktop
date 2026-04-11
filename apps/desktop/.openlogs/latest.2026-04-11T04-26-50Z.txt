@@ -246,3 +246,45 @@ This will cause a hydration error.
             ...
       ...
 
+12:34:53 AM [vite] (client) [console.warn] [React Grab] v0.1.29 is outdated (latest: v0.1.31)
+12:34:55 AM [vite] (client) [console.error] In HTML, <button> cannot be a descendant of <button>.
+This will cause a hydration error.
+
+  ...
+    <div data-testid="app-ready" className={"relative..."} style={{...}}>
+      <WorkspaceShell platform="darwin" repositories={[...]} activeRepository={{id:"/Users...", ...}} ...>
+        <div className="flex h-scr...">
+          <div className="relative f...">
+            <div className="min-h-0 sh..." style={{width:260}}>
+              <div className="h-full tra..." style={{width:260}}>
+                <LeftRail repositories={[...]} activeRepositoryId="/Users/tan..." activeWorktreeId="/Users/tan..." ...>
+                  <aside data-testid="left-rail" data-mode="workspace" className="relative z..." style={{width:260}}>
+                    <div>
+                    <div className="min-h-0 fl...">
+                      <div>
+                      <div className="space-y-0....">
+                        <ThreadCategorySection label="Active" icon={{...}} count={1} tallyColor="bg-[#22c55e]">
+                          <div className="relative s...">
+                            <div>
+                            <div className="pl-4">
+                              <div className="py-1 space...">
+>                               <button
+>                                 type="button"
+>                                 onClick={function onClick}
+>                                 className="group flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left tex..."
+>                               >
+                                  <span>
+                                  <span>
+>                                 <button
+>                                   type="button"
+>                                   data-testid="thread-archive-button"
+>                                   onClick={function onClick}
+>                                   className="flex size-5 shrink-0 items-center justify-center rounded opacity-0 tran..."
+>                                   aria-label="Archive thread"
+>                                   title="Archive thread"
+>                                 >
+                        ...
+                    ...
+            ...
+      ...
+
