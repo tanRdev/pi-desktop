@@ -101,13 +101,13 @@ export function ThreadListItem({
             onKeyDown={handleInputKeyDown}
             onBlur={handleConfirmRename}
             onClick={(e) => e.stopPropagation()}
-            className="block w-full select-text rounded border border-[var(--color-border-strong)] bg-[var(--color-bg-primary)] px-1.5 py-0.5 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)]"
+            className="block w-full select-text rounded border border-[var(--color-border-strong)] bg-[var(--color-bg-primary)] px-1.5 py-0.5 text-[12px] text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)]"
           />
         ) : (
           <span
             data-testid={isActive ? "current-thread-title" : undefined}
             className={cn(
-              "block truncate text-[11px] leading-tight transition-colors duration-150",
+              "block truncate text-[12px] leading-tight transition-colors duration-150",
               isActive
                 ? "font-medium text-white/90"
                 : "text-white/45 group-hover:text-white/60",

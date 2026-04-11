@@ -106,7 +106,7 @@ export function WorkspaceFileContent({
 
   const toolbar = onSave ? (
     <div className="flex h-11 shrink-0 items-center justify-between border-b border-white/[0.04] bg-transparent px-5">
-      <div className="text-[10px] font-semibold uppercase tracking-[0.05em] text-white/30">
+      <div className="text-[11px] font-semibold uppercase tracking-wider text-white/30">
         {fileName}
       </div>
       <Button
@@ -115,7 +115,7 @@ export function WorkspaceFileContent({
         size="xs"
         onClick={onSave}
         disabled={isReadOnly || !isDirty}
-        className="h-6 gap-1.5 px-2 text-[10px] uppercase tracking-wider text-white/40"
+        className="h-6 gap-1.5 px-2 text-[11px] uppercase tracking-wider text-white/40"
       >
         <Save className="size-3" />
         Save

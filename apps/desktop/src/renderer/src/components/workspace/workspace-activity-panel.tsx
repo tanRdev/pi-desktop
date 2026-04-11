@@ -90,7 +90,7 @@ export function WorkspaceActivityPanel({
             <h2 className="truncate text-[13px] font-semibold text-white/90">
               {threadTitle?.trim() || "Thread"}
             </h2>
-            <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-white/30">
+            <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-white/30">
               <span className="truncate">{worktreeLabel ?? "No worktree"}</span>
               <span>·</span>
               <span>Activity</span>
@@ -110,10 +110,10 @@ export function WorkspaceActivityPanel({
               { label: "Active", value: runningTools },
             ].map((metric) => (
               <div key={metric.label} className="space-y-0.5">
-                <div className="text-[9px] font-semibold uppercase tracking-wider text-white/15">
+                <div className="text-[10px] font-semibold uppercase tracking-wider text-white/15">
                   {metric.label}
                 </div>
-                <div className="text-sm font-medium text-white/60 tabular-nums">
+                <div className="text-[13px] font-medium text-white/60 tabular-nums">
                   {metric.value}
                 </div>
               </div>
@@ -122,10 +122,10 @@ export function WorkspaceActivityPanel({
 
           <section className="space-y-4">
             <div className="flex items-center justify-between px-1">
-              <h3 className="text-[10px] font-semibold uppercase tracking-[0.05em] text-white/30">
+              <h3 className="text-[11px] font-semibold uppercase tracking-wider text-white/30">
                 Timeline
               </h3>
-              <span className="font-mono text-[9px] uppercase tracking-wider text-white/15">
+              <span className="font-mono text-[11px] uppercase tracking-wider text-white/15">
                 {formatTimestamp(liveFeed.lastEventTimestamp)}
               </span>
             </div>
@@ -148,16 +148,16 @@ export function WorkspaceActivityPanel({
                               isRunning ? "bg-emerald-500/50" : "bg-white/10",
                             )}
                           />
-                          <div className="truncate text-[12px] text-white/50 group-hover:text-white/80">
+                          <div className="truncate text-[13px] text-white/50 group-hover:text-white/80">
                             {formatActivityLabel(entry.type)}
                           </div>
                         </div>
-                        <div className="ml-3.5 mt-0.5 font-mono text-[9px] uppercase tracking-wider text-white/15">
+                        <div className="ml-3.5 mt-0.5 font-mono text-[11px] uppercase tracking-wider text-white/15">
                           {entry.turnId ?? "global"}
                           {entry.toolCallId ? ` / ${entry.toolCallId}` : ""}
                         </div>
                       </div>
-                      <span className="shrink-0 font-mono text-[9px] uppercase tracking-wider text-white/10">
+                      <span className="shrink-0 font-mono text-[11px] uppercase tracking-wider text-white/10">
                         {formatTimestamp(entry.timestamp)}
                       </span>
                     </div>

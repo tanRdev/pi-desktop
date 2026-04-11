@@ -863,3 +863,1110 @@ This will cause a hydration error.
 
 
 12:46:46 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/git-panel.tsx (x3)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:48:27 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/git-panel.tsx (x4)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:48:31 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/git-panel.tsx (x5)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:48:41 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/workspace-activity-panel.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:48:44 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/runtime-status-chip.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:49:00 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/workspace-file-content.tsx
+12:49:20 AM [vite] (client) [console.warn] [React Grab] v0.1.29 is outdated (latest: v0.1.31)
+12:49:21 AM [vite] (client) [console.error] In HTML, <button> cannot be a descendant of <button>.
+This will cause a hydration error.
+
+  ...
+    <div data-testid="app-ready" className={"relative..."} style={{...}}>
+      <WorkspaceShell platform="darwin" repositories={[...]} activeRepository={{id:"/Users...", ...}} ...>
+        <div className="flex h-scr...">
+          <div className="relative f...">
+            <div className="min-h-0 sh..." style={{width:260}}>
+              <div className="h-full tra..." style={{width:260}}>
+                <LeftRail repositories={[...]} activeRepositoryId="/Users/tan..." activeWorktreeId="/Users/tan..." ...>
+                  <aside data-testid="left-rail" data-mode="workspace" className="relative z..." style={{width:260}}>
+                    <div>
+                    <div className="min-h-0 fl...">
+                      <div>
+                      <div className="space-y-0....">
+                        <ThreadCategorySection label="Active" icon={{...}} count={1} tallyColor="bg-[#22c55e]">
+                          <div className="relative s...">
+                            <div>
+                            <div className="pl-4">
+                              <div className="py-1 space...">
+>                               <button
+>                                 type="button"
+>                                 onClick={function onClick}
+>                                 className="group flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left tex..."
+>                               >
+                                  <span>
+                                  <span>
+>                                 <button
+>                                   type="button"
+>                                   data-testid="thread-archive-button"
+>                                   onClick={function onClick}
+>                                   className="flex size-5 shrink-0 items-center justify-center rounded opacity-0 tran..."
+>                                   aria-label="Archive thread"
+>                                   title="Archive thread"
+>                                 >
+                        ...
+                    ...
+            ...
+      ...
+
+12:49:25 AM [vite] (client) [console.warn] [React Grab] v0.1.29 is outdated (latest: v0.1.31)
+12:49:26 AM [vite] (client) [console.error] In HTML, <button> cannot be a descendant of <button>.
+This will cause a hydration error.
+
+  ...
+    <div data-testid="app-ready" className={"relative..."} style={{...}}>
+      <WorkspaceShell platform="darwin" repositories={[...]} activeRepository={{id:"/Users...", ...}} ...>
+        <div className="flex h-scr...">
+          <div className="relative f...">
+            <div className="min-h-0 sh..." style={{width:260}}>
+              <div className="h-full tra..." style={{width:260}}>
+                <LeftRail repositories={[...]} activeRepositoryId="/Users/tan..." activeWorktreeId="/Users/tan..." ...>
+                  <aside data-testid="left-rail" data-mode="workspace" className="relative z..." style={{width:260}}>
+                    <div>
+                    <div className="min-h-0 fl...">
+                      <div>
+                      <div className="space-y-0....">
+                        <ThreadCategorySection label="Active" icon={{...}} count={1} tallyColor="bg-[#22c55e]">
+                          <div className="relative s...">
+                            <div>
+                            <div className="pl-4">
+                              <div className="py-1 space...">
+>                               <button
+>                                 type="button"
+>                                 onClick={function onClick}
+>                                 className="group flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left tex..."
+>                               >
+                                  <span>
+                                  <span>
+>                                 <button
+>                                   type="button"
+>                                   data-testid="thread-archive-button"
+>                                   onClick={function onClick}
+>                                   className="flex size-5 shrink-0 items-center justify-center rounded opacity-0 tran..."
+>                                   aria-label="Archive thread"
+>                                   title="Archive thread"
+>                                 >
+                        ...
+                    ...
+            ...
+      ...
+
+12:49:31 AM [vite] (client) [console.warn] [React Grab] v0.1.29 is outdated (latest: v0.1.31)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:49:31 AM [vite] (client) [console.warn] [React Grab] v0.1.29 is outdated (latest: v0.1.31) (x2)
+12:49:32 AM [vite] (client) [console.error] In HTML, <button> cannot be a descendant of <button>.
+This will cause a hydration error.
+
+  ...
+    <div data-testid="app-ready" className={"relative..."} style={{...}}>
+      <WorkspaceShell platform="darwin" repositories={[...]} activeRepository={{id:"/Users...", ...}} ...>
+        <div className="flex h-scr...">
+          <div className="relative f...">
+            <div className="min-h-0 sh..." style={{width:260}}>
+              <div className="h-full tra..." style={{width:260}}>
+                <LeftRail repositories={[...]} activeRepositoryId="/Users/tan..." activeWorktreeId="/Users/tan..." ...>
+                  <aside data-testid="left-rail" data-mode="workspace" className="relative z..." style={{width:260}}>
+                    <div>
+                    <div className="min-h-0 fl...">
+                      <div>
+                      <div className="space-y-0....">
+                        <ThreadCategorySection label="Active" icon={{...}} count={1} tallyColor="bg-[#22c55e]">
+                          <div className="relative s...">
+                            <div>
+                            <div className="pl-4">
+                              <div className="py-1 space...">
+>                               <button
+>                                 type="button"
+>                                 onClick={function onClick}
+>                                 className="group flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left tex..."
+>                               >
+                                  <span>
+                                  <span>
+>                                 <button
+>                                   type="button"
+>                                   data-testid="thread-archive-button"
+>                                   onClick={function onClick}
+>                                   className="flex size-5 shrink-0 items-center justify-center rounded opacity-0 tran..."
+>                                   aria-label="Archive thread"
+>                                   title="Archive thread"
+>                                 >
+                        ...
+                    ...
+            ...
+      ...
+
+12:49:45 AM [vite] (client) [console.warn] [React Grab] v0.1.29 is outdated (latest: v0.1.31)
+12:49:47 AM [vite] (client) [console.error] In HTML, <button> cannot be a descendant of <button>.
+This will cause a hydration error.
+
+  ...
+    <div data-testid="app-ready" className={"relative..."} style={{...}}>
+      <WorkspaceShell platform="darwin" repositories={[...]} activeRepository={{id:"/Users...", ...}} ...>
+        <div className="flex h-scr...">
+          <div className="relative f...">
+            <div className="min-h-0 sh..." style={{width:260}}>
+              <div className="h-full tra..." style={{width:260}}>
+                <LeftRail repositories={[...]} activeRepositoryId="/Users/tan..." activeWorktreeId="/Users/tan..." ...>
+                  <aside data-testid="left-rail" data-mode="workspace" className="relative z..." style={{width:260}}>
+                    <div>
+                    <div className="min-h-0 fl...">
+                      <div>
+                      <div className="space-y-0....">
+                        <ThreadCategorySection label="Active" icon={{...}} count={1} tallyColor="bg-[#22c55e]">
+                          <div className="relative s...">
+                            <div>
+                            <div className="pl-4">
+                              <div className="py-1 space...">
+>                               <button
+>                                 type="button"
+>                                 onClick={function onClick}
+>                                 className="group flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left tex..."
+>                               >
+                                  <span>
+                                  <span>
+>                                 <button
+>                                   type="button"
+>                                   data-testid="thread-archive-button"
+>                                   onClick={function onClick}
+>                                   className="flex size-5 shrink-0 items-center justify-center rounded opacity-0 tran..."
+>                                   aria-label="Archive thread"
+>                                   title="Archive thread"
+>                                 >
+                        ...
+                    ...
+            ...
+      ...
+
+12:49:49 AM [vite] (client) [console.warn] [React Grab] v0.1.29 is outdated (latest: v0.1.31)
+12:49:51 AM [vite] (client) [console.error] In HTML, <button> cannot be a descendant of <button>.
+This will cause a hydration error.
+
+  ...
+    <div data-testid="app-ready" className={"relative..."} style={{...}}>
+      <WorkspaceShell platform="darwin" repositories={[...]} activeRepository={{id:"/Users...", ...}} ...>
+        <div className="flex h-scr...">
+          <div className="relative f...">
+            <div className="min-h-0 sh..." style={{width:260}}>
+              <div className="h-full tra..." style={{width:260}}>
+                <LeftRail repositories={[...]} activeRepositoryId="/Users/tan..." activeWorktreeId="/Users/tan..." ...>
+                  <aside data-testid="left-rail" data-mode="workspace" className="relative z..." style={{width:260}}>
+                    <div>
+                    <div className="min-h-0 fl...">
+                      <div>
+                      <div className="space-y-0....">
+                        <ThreadCategorySection label="Active" icon={{...}} count={1} tallyColor="bg-[#22c55e]">
+                          <div className="relative s...">
+                            <div>
+                            <div className="pl-4">
+                              <div className="py-1 space...">
+>                               <button
+>                                 type="button"
+>                                 onClick={function onClick}
+>                                 className="group flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left tex..."
+>                               >
+                                  <span>
+                                  <span>
+>                                 <button
+>                                   type="button"
+>                                   data-testid="thread-archive-button"
+>                                   onClick={function onClick}
+>                                   className="flex size-5 shrink-0 items-center justify-center rounded opacity-0 tran..."
+>                                   aria-label="Archive thread"
+>                                   title="Archive thread"
+>                                 >
+                        ...
+                    ...
+            ...
+      ...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:49:59 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/git-panel.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:50:08 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/workspace-activity-panel.tsx
+2026-04-11 00:50:25.980 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:25.980 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:25.980 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:25.980 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:25.980 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:25.980 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:25.980 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:25.980 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:25.980 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:25.980 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:25.980 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:25.980 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:25.980 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:25.980 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:25.980 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:25.980 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:25.980 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:25.980 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:25.980 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:25.981 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:25.981 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:25.981 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:25.981 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:25.981 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:25.981 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:25.981 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:25.981 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:25.981 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:26.424 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:26.424 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:26.424 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:26.424 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:26.424 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:26.424 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:26.424 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:26.424 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:26.424 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:26.424 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:26.424 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:26.424 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:26.424 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:26.424 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:26.424 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:26.424 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:26.424 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:26.424 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:26.424 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:26.424 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:26.424 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:26.424 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:26.424 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:26.425 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:26.425 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:26.425 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:26.425 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:26.425 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:49.835 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:49.835 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:49.835 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:49.835 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:49.835 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:49.835 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:49.835 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:49.835 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:49.835 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:49.835 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:49.835 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:49.835 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:49.835 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:49.835 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:49.835 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:49.835 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:49.835 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:49.835 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:49.835 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:49.835 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:49.835 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:49.835 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:49.835 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:49.835 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:49.835 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:49.835 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:49.835 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:50:49.835 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:51:07 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/git-panel.tsx
+12:51:07 AM [vite] (client) [Unhandled error] ReferenceError: GitPanelStatus is not defined
+ > GitPanel src/components/workspace/git-panel.tsx:251:15
+    249 |              </div>
+    250 |              <div className="px-1">
+    251 |                <GitPanelStatus
+        |                 ^
+    252 |                  tone={viewModel.statusTone}
+    253 |                  message={viewModel.statusMessage}
+ > Object.react_stack_bottom_frame ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:25904:19
+ > renderWithHooks ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:7662:21
+ > updateFunctionComponent ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:10166:18
+ > beginWork ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:11778:17
+ > runWithFiberInDEV ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:871:29
+ > performUnitOfWork ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:17641:21
+ > workLoopSync ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:17469:40
+ > renderRootSync ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:17450:10
+ > performWorkOnRoot ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:16583:34
+
+12:51:07 AM [vite] (client) [console.warn] An error occurred in the <GitPanel> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:51:10 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/git-panel.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:51:16 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/git-panel.tsx (x2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:51:16 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/git-panel.tsx (x3)
+2026-04-11 00:51:22.983 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:51:22.983 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:51:22.983 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:51:22.983 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:51:22.983 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:51:22.983 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:51:22.983 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:51:22.983 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:51:22.983 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:51:22.983 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:51:22.983 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:51:22.983 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:51:22.983 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:51:22.983 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:51:22.983 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:51:22.983 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:51:22.983 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:51:22.983 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:51:22.983 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:51:22.983 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:51:22.983 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:51:22.983 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:51:22.983 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:51:22.983 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:51:22.983 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:51:22.984 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:51:22.984 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:51:22.984 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:52:02 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/git-panel.tsx (x4)
+2026-04-11 00:52:03.298 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:52:03.298 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:52:03.298 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:52:03.298 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:52:03.298 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:52:03.298 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:52:03.298 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:52:03.298 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:52:03.298 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:52:03.298 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:52:03.298 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:52:03.298 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:52:03.298 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:52:03.298 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:52:03.298 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:52:03.298 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:52:03.298 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:52:03.298 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:52:03.298 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:52:03.298 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:52:03.298 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:52:03.298 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:52:03.298 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:52:03.298 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:52:03.298 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:52:03.298 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:52:03.298 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:52:03.298 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:52:13 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/git-panel.tsx (x5)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:52:13 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/git-panel.tsx (x6)
+12:52:13 AM [vite] (client) [Unhandled error] ReferenceError: ChangeList is not defined
+ > GitPanel src/components/workspace/git-panel.tsx?t=1775883133245:360:42
+ > Object.react_stack_bottom_frame ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:25904:19
+ > renderWithHooks ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:7662:21
+ > updateFunctionComponent ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:10166:18
+ > beginWork ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:11778:17
+ > runWithFiberInDEV ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:871:29
+ > performUnitOfWork ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:17641:21
+ > workLoopSync ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:17469:40
+ > renderRootSync ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:17450:10
+ > performWorkOnRoot ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:16583:34
+
+12:52:13 AM [vite] (client) [console.warn] An error occurred in the <GitPanel> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+12:52:13 AM [vite] (client) [Unhandled error] ReferenceError: ChangeList is not defined
+ > GitPanel src/components/workspace/git-panel.tsx:280:13
+    278 |  
+    279 |            <div className="space-y-5">
+    280 |              <ChangeList
+        |               ^
+    281 |                title="Staged"
+    282 |                emptyLabel="No staged changes"
+ > Object.react_stack_bottom_frame ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:25904:19
+ > renderWithHooks ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:7662:21
+ > updateFunctionComponent ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:10166:18
+ > beginWork ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:11778:17
+ > runWithFiberInDEV ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:871:29
+ > performUnitOfWork ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:17641:21
+ > workLoopSync ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:17469:40
+ > renderRootSync ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:17450:10
+ > performWorkOnRoot ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:16583:34
+
+12:52:13 AM [vite] (client) [console.warn] An error occurred in the <GitPanel> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:52:16 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/git-panel.tsx
+12:52:16 AM [vite] (client) [Unhandled error] ReferenceError: ChangeList is not defined
+ > GitPanel src/components/workspace/git-panel.tsx:284:13
+    282 |  
+    283 |            <div className="space-y-5">
+    284 |              <ChangeList
+        |               ^
+    285 |                title="Staged"
+    286 |                emptyLabel="No staged changes"
+ > Object.react_stack_bottom_frame ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:25904:19
+ > renderWithHooks ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:7662:21
+ > updateFunctionComponent ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:10166:18
+ > beginWork ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:11778:17
+ > runWithFiberInDEV ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:871:29
+ > performUnitOfWork ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:17641:21
+ > workLoopSync ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:17469:40
+ > renderRootSync ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:17450:10
+ > performWorkOnRoot ../../../../node_modules/.bun/react-dom@19.2.4+b1ab299f0a400331/node_modules/react-dom/cjs/react-dom-client.development.js:16583:34
+
+12:52:16 AM [vite] (client) [console.warn] An error occurred in the <GitPanel> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:52:19 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/git-panel.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:52:51 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/git-panel.tsx (x2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:52:54 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/git-panel.tsx (x3)
+2026-04-11 00:53:55.533 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:53:55.533 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:53:55.533 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:53:55.533 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:53:55.533 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:53:55.533 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:53:55.533 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:53:55.533 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:53:55.533 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:53:55.533 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:53:55.533 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:53:55.533 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:53:55.533 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:53:55.533 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:53:55.533 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:53:55.533 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:53:55.533 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:53:55.533 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:53:55.535 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:53:55.535 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:53:55.535 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:53:55.535 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:53:55.535 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:53:55.535 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:53:55.535 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:53:55.535 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:53:55.535 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+2026-04-11 00:53:55.535 Electron[28261:12951163] representedObject is not a WeakPtrToElectronMenuModelAsNSObject
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:54:22 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/git-panel.tsx (x4)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:54:22 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/git-panel.tsx (x5)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:54:28 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/git-panel.tsx (x6)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:54:28 AM [vite] Internal server error: /Users/tan/Dev/pi-desktop/apps/desktop/src/renderer/src/components/workspace/git-panel.tsx: Expected corresponding JSX closing tag for <span>. (219:14)
+
+  217 |               <span className="truncate text-[13px] font-medium text-white/40">
+  218 |                 {viewModel.branchLabel}
+> 219 |               </h2>
+      |               ^
+  220 |             </div>
+  221 |             <div className="flex items-center gap-1 shrink-0">
+  222 |               <Button
+  Plugin: vite:react-babel
+  File: /Users/tan/Dev/pi-desktop/apps/desktop/src/renderer/src/components/workspace/git-panel.tsx:219:14
+  217 |                <span className="truncate text-[13px] font-medium text-white/40">
+  218 |                  {viewModel.branchLabel}
+  219 |                </h2>
+      |                ^
+  220 |              </div>
+  221 |              <div className="flex items-center gap-1 shrink-0">
+      at constructor (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:365:19)
+      at TypeScriptParserMixin.raise (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6599:19)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4727:16)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4698:32)
+      at TypeScriptParserMixin.jsxParseElement (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4749:17)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4759:19)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11066:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11046:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9837:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10899:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10904:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10881:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at /Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9775:39
+      at TypeScriptParserMixin.tryParse (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:6907:20)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9775:18)
+      at /Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10800:39
+      at TypeScriptParserMixin.allowInAnd (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12426:12)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10800:17)
+      at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12493:17)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11675:28)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11331:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:4764:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11081:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11066:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:11046:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9837:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10899:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10904:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10881:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10831:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9786:20)
+      at TypeScriptParserMixin.parseExpressionBase (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10784:23)
+      at /Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:39
+      at TypeScriptParserMixin.allowInAnd (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12421:16)
+      at TypeScriptParserMixin.parseExpression (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:10780:17)
+      at TypeScriptParserMixin.parseReturnStatement (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:13142:28)
+      at TypeScriptParserMixin.parseStatementContent (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12798:21)
+      at TypeScriptParserMixin.parseStatementContent (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:9508:18)
+      at TypeScriptParserMixin.parseStatementLike (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12767:17)
+      at TypeScriptParserMixin.parseStatementListItem (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12747:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:13316:61)
+      at TypeScriptParserMixin.parseBlockBody (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:13309:10)
+      at TypeScriptParserMixin.parseBlock (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:13297:10)
+      at TypeScriptParserMixin.parseFunctionBody (/Users/tan/Dev/pi-desktop/node_modules/.bun/@babel+parser@7.29.0/node_modules/@babel/parser/lib/index.js:12100:24)
+12:54:28 AM [vite] (client) [console.error] [vite] Failed to reload /src/components/workspace/git-panel.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:54:31 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/git-panel.tsx
