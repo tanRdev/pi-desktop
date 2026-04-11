@@ -183,8 +183,29 @@ test("opening a plain folder from the workspace button makes it the active proje
     await waitForShell(page);
 
     await page.evaluate(async (targetPath) => {
+      sessionStorage.setItem(
+        "pidesk.workspace-switch-state",
+        JSON.stringify({
+          repositoryName: "PlainWorkspace",
+          startedAt: Date.now(),
+        }),
+      );
+      sessionStorage.setItem(
+        "pidesk.workspace-switch-notice",
+        JSON.stringify({ repositoryName: "PlainWorkspace" }),
+      );
       await window.pidesk.repositories.add(targetPath);
+      window.location.reload();
     }, folderPath);
+
+    await expect(page.getByTestId("workspace-switch-loader")).toBeVisible();
+    await expect(page.getByTestId("workspace-switch-loader")).toContainText(
+      "Opening PlainWorkspace",
+    );
+
+    await waitForShell(page);
+
+    await expect(page.getByTestId("workspace-switch-loader")).toBeVisible();
 
     const expectedFolderPath = folderPath.replace(/^\/private/, "");
 
@@ -223,6 +244,8 @@ test("opening a plain folder from the workspace button makes it the active proje
     await expect(
       page.getByRole("heading", { name: "Not a git repository" }),
     ).toBeVisible();
+    await expect(page.getByText("Project switched")).toBeVisible();
+    await expect(page.getByTestId("workspace-switch-loader")).toHaveCount(0);
   } finally {
     await app.close();
     launchContext.cleanup();

@@ -39,6 +39,9 @@ import { useWindowStore, workspaceSessionStore } from "./use-window-store";
 const EMPTY_AUTOCOMPLETE_SUGGESTIONS: (SlashSuggestion | MentionSuggestion)[] =
   [];
 const PENDING_SURFACE_PREFIX = "__pending_surface__";
+const WORKSPACE_SWITCH_NOTICE_KEY = "pidesk.workspace-switch-notice";
+const WORKSPACE_SWITCH_STATE_KEY = "pidesk.workspace-switch-state";
+const WORKSPACE_SWITCH_RELOAD_DELAY_MS = 80;
 
 type PromptMode = "build" | "plan";
 
@@ -87,8 +90,31 @@ function getInitialContextSurface(
   return current;
 }
 
+function persistWorkspaceSwitchNotice(repositoryName: string): void {
+  sessionStorage.setItem(
+    WORKSPACE_SWITCH_NOTICE_KEY,
+    JSON.stringify({ repositoryName }),
+  );
+}
+
+function persistWorkspaceSwitchState(repositoryName: string): void {
+  sessionStorage.setItem(
+    WORKSPACE_SWITCH_STATE_KEY,
+    JSON.stringify({ repositoryName, startedAt: Date.now() }),
+  );
+}
+
+function reloadForWorkspaceSwitch(repositoryName: string): void {
+  persistWorkspaceSwitchNotice(repositoryName);
+  persistWorkspaceSwitchState(repositoryName);
+  window.setTimeout(() => {
+    window.location.reload();
+  }, WORKSPACE_SWITCH_RELOAD_DELAY_MS);
+}
+
 export interface AppShellController {
   workspaceShellProps: WorkspaceShellProps;
+  workspaceSwitchingRepositoryName: string | null;
   activeGitRepositoryStatus: GitRepositoryStatus | null;
   gitCommitMessage: string;
   setGitCommitMessage: (value: string) => void;
@@ -230,6 +256,10 @@ export function useAppShellController(): AppShellController {
   const [activeGitRepositoryStatus, setActiveGitRepositoryStatus] =
     React.useState<GitRepositoryStatus | null>(null);
   const [gitCommitMessage, setGitCommitMessage] = React.useState("");
+  const [
+    workspaceSwitchingRepositoryName,
+    setWorkspaceSwitchingRepositoryName,
+  ] = React.useState<string | null>(null);
   const launcherRequestIdRef = React.useRef(0);
 
   const setAutocompleteSuggestions = React.useCallback(
@@ -727,6 +757,13 @@ export function useAppShellController(): AppShellController {
     for (const repositoryPath of paths) {
       try {
         await window.pidesk.repositories.add(repositoryPath);
+        const repositoryName =
+          repositoryPath
+            .split(/[\\/]+/)
+            .filter(Boolean)
+            .pop() ?? repositoryPath;
+        reloadForWorkspaceSwitch(repositoryName);
+        return;
       } catch (error) {
         toast.error("Invalid repository", {
           description:
@@ -737,15 +774,23 @@ export function useAppShellController(): AppShellController {
         return;
       }
     }
-    await reload();
-  }, [reload]);
+  }, []);
 
   const handleSelectRepository = React.useCallback(
     async (repositoryId: string) => {
+      const repository = repositories.find(
+        (entry) => entry.id === repositoryId,
+      );
+      if (!repository) {
+        return;
+      }
+
       await window.pidesk.repositories.select(repositoryId);
-      await reload();
+      reloadForWorkspaceSwitch(
+        repository.customName?.trim() || repository.name,
+      );
     },
-    [reload],
+    [repositories],
   );
 
   const handleRenameRepository = React.useCallback(
@@ -1251,6 +1296,7 @@ export function useAppShellController(): AppShellController {
 
   return {
     workspaceShellProps,
+    workspaceSwitchingRepositoryName,
     activeGitRepositoryStatus,
     gitCommitMessage,
     setGitCommitMessage,
