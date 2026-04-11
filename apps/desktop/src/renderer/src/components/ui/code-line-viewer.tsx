@@ -234,10 +234,10 @@ export function CodeLineViewer({
       <div className="flex">
         {/* Line numbers column */}
         <div
-          className="sticky left-0 z-10 shrink-0 bg-[#0a0a0a]"
+          className="sticky left-0 z-10 shrink-0 bg-[var(--color-bg-primary)]"
           style={{ width: `${lineNumberWidth}rem` }}
         >
-          <div className="flex flex-col font-mono text-[13px] leading-relaxed">
+          <div className="flex flex-col font-mono text-[16px] leading-relaxed">
             {lines.map((_, index) => {
               const lineNumber = index + 1;
               const isSelected = isLineSelected(lineNumber);
@@ -316,7 +316,7 @@ export function CodeLineViewer({
                     )}
                     aria-label={`Select line ${lineNumber}`}
                   >
-                    <Plus className="size-3.5" />
+                    <Plus className="size-5" />
                   </button>
 
                   {/* Line number */}

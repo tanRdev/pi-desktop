@@ -103,7 +103,7 @@ export function ProjectCustomizationMenu({
       >
         <div
           className={cn(
-            "w-80 rounded-md border border-white/[0.06] bg-[#0d0d0d] p-4 shadow-none",
+            "w-80 rounded-md border border-white/[0.06] bg-[var(--color-bg-secondary)] p-4 shadow-none",
             "transition-all duration-100",
           )}
         >
@@ -111,7 +111,7 @@ export function ProjectCustomizationMenu({
             <div>
               <label
                 htmlFor="project-custom-name"
-                className="text-[10px] font-medium uppercase tracking-wider text-white/30"
+                className="text-[14px] font-medium uppercase tracking-wider text-white/30"
               >
                 Display Name
               </label>
@@ -130,7 +130,7 @@ export function ProjectCustomizationMenu({
                     }
                   }}
                   placeholder={fallbackName}
-                  className="w-full bg-transparent border-b border-white/[0.06] p-2 text-[12px] font-mono text-white/80 placeholder:text-white/20 focus:outline-none focus:border-white/[0.12] transition-colors"
+                  className="w-full bg-transparent border-b border-white/[0.06] p-2 text-[14px] font-mono text-white/80 placeholder:text-white/20 focus:outline-none focus:border-white/[0.12] transition-colors"
                   aria-label="Project display name"
                 />
                 <p className="mt-1.5 text-[9px] text-white/20">
@@ -140,7 +140,7 @@ export function ProjectCustomizationMenu({
             </div>
 
             <div>
-              <div className="text-[10px] font-medium uppercase tracking-wider text-white/30">
+              <div className="text-[14px] font-medium uppercase tracking-wider text-white/30">
                 Icon
               </div>
               <Button
@@ -156,7 +156,7 @@ export function ProjectCustomizationMenu({
                   <span className="flex h-7 w-7 items-center justify-center rounded-md border border-white/[0.06] bg-white/[0.02]">
                     <currentIcon.icon className="h-4 w-4" />
                   </span>
-                  <span className="text-[10px] font-mono uppercase tracking-wider">
+                  <span className="text-[14px] font-mono uppercase tracking-wider">
                     {currentIcon.label}
                   </span>
                 </span>
@@ -169,7 +169,7 @@ export function ProjectCustomizationMenu({
             <div>
               <div className="flex items-center gap-2">
                 <Palette className="h-3 w-3 text-white/30" />
-                <span className="text-[10px] font-medium uppercase tracking-wider text-white/30">
+                <span className="text-[14px] font-medium uppercase tracking-wider text-white/30">
                   Accent Color
                 </span>
               </div>

@@ -161,7 +161,7 @@ export function ChatThreadPanel({
           {messages.length === 0 ? (
             !isStreaming && !lastError ? (
               <div className="flex w-full flex-1 items-center justify-center px-6">
-                <div className="max-w-md text-center font-mono text-[11px] uppercase tracking-[0.08em] text-white/25">
+                <div className="max-w-md text-center font-mono text-[14px] uppercase tracking-[0.08em] text-white/25">
                   Start a conversation with Pi.
                 </div>
               </div>

@@ -146,15 +146,15 @@ export function FileViewer({
       {/* Header */}
       <div
         className={cn(
-          "flex h-12 shrink-0 items-center justify-between border-b border-white/[0.04] bg-[#0d0d0d] px-4",
+          "flex h-12 shrink-0 items-center justify-between border-b border-white/[0.04] bg-[var(--color-bg-secondary)] px-4",
           "transition-colors duration-150 ease-out",
         )}
       >
         <div className="flex min-w-0 items-center gap-2">
           {fileContent?.type === "image" ? (
-            <Image className="size-4 shrink-0 text-white/30" />
+            <Image className="size-5 shrink-0 text-white/30" />
           ) : (
-            <FileText className="size-4 shrink-0 text-white/30" />
+            <FileText className="size-5 shrink-0 text-white/30" />
           )}
           <span className="truncate text-sm font-medium text-white/80">
             {fileName}
@@ -176,7 +176,7 @@ export function FileViewer({
               )}
               aria-label="Open terminal"
             >
-              <Terminal className="size-4" />
+              <Terminal className="size-5" />
             </button>
           )}
           {onClose && (
@@ -191,14 +191,14 @@ export function FileViewer({
               )}
               aria-label="Close file"
             >
-              <X className="size-4" />
+              <X className="size-5" />
             </button>
           )}
         </div>
       </div>
 
       {/* Content */}
-      <div className="min-h-0 flex-1 overflow-auto bg-[#0a0a0a]">
+      <div className="min-h-0 flex-1 overflow-auto bg-[var(--color-bg-primary)]">
         {isLoading && (
           <div
             className={cn(
@@ -301,7 +301,7 @@ export function FileViewer({
                   "hover:bg-warning/15",
                 )}
               >
-                <FileWarning className="mt-0.5 size-4 shrink-0 text-warning" />
+                <FileWarning className="mt-0.5 size-5 shrink-0 text-warning" />
                 <div>
                   <p className="font-medium text-warning-foreground">
                     Large file

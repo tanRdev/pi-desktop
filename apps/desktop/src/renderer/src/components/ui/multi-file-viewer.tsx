@@ -151,9 +151,9 @@ function FileTab({
   const isImage = file.content?.type === "image";
 
   function getIcon(): React.ReactNode {
-    if (isMarkdown) return <FileText className="size-3.5 shrink-0" />;
-    if (isImage) return <Image className="size-3.5 shrink-0" />;
-    return <FileIcon className="size-3.5 shrink-0" />;
+    if (isMarkdown) return <FileText className="size-5 shrink-0" />;
+    if (isImage) return <Image className="size-5 shrink-0" />;
+    return <FileIcon className="size-5 shrink-0" />;
   }
 
   return (
@@ -167,7 +167,7 @@ function FileTab({
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary/50",
         isActive
           ? "bg-white/[0.06] text-white/80"
-          : "bg-[#0a0a0a] text-white/50 hover:bg-white/[0.04] hover:text-white/70",
+          : "bg-[var(--color-bg-primary)] text-white/50 hover:bg-white/[0.04] hover:text-white/70",
       )}
     >
       {isActive && (
@@ -186,7 +186,7 @@ function FileTab({
         type="button"
         onClick={onClose}
         className={cn(
-          "flex size-4 shrink-0 items-center justify-center rounded",
+          "flex size-5 shrink-0 items-center justify-center rounded",
           "opacity-0 transition-all duration-150 [transition-timing-function:var(--ease-out)]",
           "hover:scale-110",
           "active:scale-[0.97] motion-reduce:active:scale-100",
@@ -223,7 +223,7 @@ function TerminalTab({
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary/50",
         isActive
           ? "bg-white/[0.06] text-white/80"
-          : "bg-[#0a0a0a] text-white/50 hover:bg-white/[0.04] hover:text-white/70",
+          : "bg-[var(--color-bg-primary)] text-white/50 hover:bg-white/[0.04] hover:text-white/70",
       )}
     >
       {isActive && (
@@ -234,7 +234,7 @@ function TerminalTab({
           )}
         />
       )}
-      <Terminal className="size-3.5 shrink-0" />
+      <Terminal className="size-5 shrink-0" />
       <span className="min-w-0 flex-1 truncate text-xs font-medium">
         Terminal
       </span>
@@ -242,7 +242,7 @@ function TerminalTab({
         type="button"
         onClick={onClose}
         className={cn(
-          "flex size-4 shrink-0 items-center justify-center rounded",
+          "flex size-5 shrink-0 items-center justify-center rounded",
           "opacity-0 transition-all duration-150 [transition-timing-function:var(--ease-out)]",
           "hover:scale-110",
           "active:scale-[0.97] motion-reduce:active:scale-100",
@@ -374,7 +374,7 @@ function FileContentViewer({
         <div className="flex items-center gap-2">
           <div
             className={cn(
-              "size-4 animate-spin rounded-full border-2 border-white/[0.08] border-t-primary",
+              "size-5 animate-spin rounded-full border-2 border-white/[0.08] border-t-primary",
               "transition-all duration-150 [transition-timing-function:var(--ease-out)]",
             )}
           />
@@ -516,7 +516,7 @@ function FileContentViewer({
               "hover:bg-warning/15",
             )}
           >
-            <FileWarning className="mt-0.5 size-4 shrink-0 text-warning" />
+            <FileWarning className="mt-0.5 size-5 shrink-0 text-warning" />
             <div>
               <p className="font-medium text-warning-foreground">Large file</p>
               <p className="text-muted-foreground">
@@ -530,7 +530,7 @@ function FileContentViewer({
 
         {isEditing && !isTruncated ? (
           <div className="flex flex-1 flex-col">
-            <div className="flex items-center justify-between border-b border-white/[0.04] bg-[#0d0d0d] px-4 py-2">
+            <div className="flex items-center justify-between border-b border-white/[0.04] bg-[var(--color-bg-secondary)] px-4 py-2">
               <span className="text-xs text-white/40">
                 Editing mode (Cmd/Ctrl+S to save)
               </span>
@@ -570,9 +570,9 @@ function FileContentViewer({
               onChange={(e) => setEditContent(e.target.value)}
               onKeyDown={handleKeyDown}
               className={cn(
-                "flex-1 resize-none bg-[#0a0a0a] p-4 font-mono text-sm text-white/80 outline-none",
+                "flex-1 resize-none bg-[var(--color-bg-primary)] p-4 font-mono text-sm text-white/80 outline-none",
                 "transition-all duration-150 [transition-timing-function:var(--ease-out)]",
-                "focus:bg-[#0d0d0d] focus:ring-1 focus:ring-white/[0.08]",
+                "focus:bg-[var(--color-bg-secondary)] focus:ring-1 focus:ring-white/[0.08]",
               )}
               spellCheck={false}
             />
@@ -703,13 +703,13 @@ export function MultiFileViewer({
   return (
     <div className={cn("flex h-full flex-col", className)}>
       {(hasFiles || isTerminalOpen) && (
-        <div className="flex h-10 shrink-0 items-center border-b border-white/[0.04] bg-[#0a0a0a]">
+        <div className="flex h-10 shrink-0 items-center border-b border-white/[0.04] bg-[var(--color-bg-primary)]">
           {canScrollLeft && (
             <button
               type="button"
               onClick={() => scrollTabs("left")}
               className={cn(
-                "flex h-full w-6 shrink-0 items-center justify-center border-r border-white/[0.04] bg-[#0a0a0a] text-white/30",
+                "flex h-full w-6 shrink-0 items-center justify-center border-r border-white/[0.04] bg-[var(--color-bg-primary)] text-white/30",
                 "transition-all duration-150 [transition-timing-function:var(--ease-out)]",
                 "hover:bg-white/[0.04] hover:text-white/80",
                 "hover:scale-105 hover:-translate-y-[1px]",
@@ -770,7 +770,7 @@ export function MultiFileViewer({
               type="button"
               onClick={() => scrollTabs("right")}
               className={cn(
-                "flex h-full w-6 shrink-0 items-center justify-center border-l border-white/[0.04] bg-[#0a0a0a] text-white/30",
+                "flex h-full w-6 shrink-0 items-center justify-center border-l border-white/[0.04] bg-[var(--color-bg-primary)] text-white/30",
                 "transition-all duration-150 [transition-timing-function:var(--ease-out)]",
                 "hover:bg-white/[0.04] hover:text-white/80",
                 "hover:scale-105 hover:-translate-y-[1px]",
@@ -797,7 +797,7 @@ export function MultiFileViewer({
             </button>
           )}
 
-          <div className="flex shrink-0 items-center border-l border-white/[0.04] bg-[#0a0a0a] px-2">
+          <div className="flex shrink-0 items-center border-l border-white/[0.04] bg-[var(--color-bg-primary)] px-2">
             {canEdit && (
               <button
                 type="button"
@@ -814,7 +814,7 @@ export function MultiFileViewer({
                 )}
                 aria-label={isEditing ? "Exit edit mode" : "Edit file"}
               >
-                <Pencil className="size-3.5" />
+                <Pencil className="size-5" />
               </button>
             )}
             {onOpenTerminal && (
@@ -832,7 +832,7 @@ export function MultiFileViewer({
                 )}
                 aria-label="Open terminal"
               >
-                <Terminal className="size-3.5" />
+                <Terminal className="size-5" />
               </button>
             )}
             <button
@@ -849,13 +849,13 @@ export function MultiFileViewer({
               )}
               aria-label="Close all files"
             >
-              <X className="size-3.5" />
+              <X className="size-5" />
             </button>
           </div>
         </div>
       )}
 
-      <div className="min-h-0 flex-1 overflow-hidden bg-[#0a0a0a]">
+      <div className="min-h-0 flex-1 overflow-hidden bg-[var(--color-bg-primary)]">
         {isTerminalActive ? (
           <TerminalComponent
             id={terminalId ?? "terminal"}

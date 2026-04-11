@@ -22,7 +22,7 @@ export function ThreadTabs({
   }
 
   return (
-    <div className="flex h-8 items-center border-b border-white/[0.04] bg-[#0d0d0d] px-0 select-none">
+    <div className="flex h-8 items-center border-b border-white/[0.04] bg-[var(--color-bg-secondary)] px-0 select-none">
       <div className="flex min-w-0 flex-1 h-full gap-0 overflow-x-auto no-scrollbar select-none">
         {openThreads.map((thread) => {
           const isActive = thread.id === activeThreadId;
@@ -53,7 +53,7 @@ export function ThreadTabs({
               />
 
               {/* Thread name */}
-              <span className="flex-1 truncate text-[10px] font-mono font-medium uppercase tracking-widest">
+              <span className="flex-1 truncate text-[14px] font-mono font-medium uppercase tracking-widest">
                 {thread.title || "UNTITLED_THREAD"}
               </span>
 

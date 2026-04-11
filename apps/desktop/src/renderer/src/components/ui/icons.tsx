@@ -21,7 +21,12 @@ export function Pi({ className }: { className?: string }) {
       className={className}
     >
       <title>Pi</title>
-      <rect width="1024" height="1024" rx="224" fill="#0a0a0a" />
+      <rect
+        width="1024"
+        height="1024"
+        rx="224"
+        fill="var(--color-bg-primary)"
+      />
       <rect
         x="1"
         y="1"
@@ -258,16 +263,16 @@ export {
 export const ICON_SIZE_XS = "size-3";
 
 /** 14px - Small: buttons, navigation items, chips */
-export const ICON_SIZE_SM = "size-3.5";
+export const ICON_SIZE_SM = "size-5";
 
-/** 16px - Medium: standard UI elements, toolbars (default) */
-export const ICON_SIZE_MD = "size-4";
+/** 20px - Medium: standard UI elements, toolbars (default per cheatsheet) */
+export const ICON_SIZE_MD = "size-5";
 
-/** 20px - Large: featured icons, empty states, prominent actions */
-export const ICON_SIZE_LG = "size-5";
+/** 24px - Large: featured icons, empty states, prominent actions */
+export const ICON_SIZE_LG = "size-6";
 
-/** 24px - Extra large: hero sections, onboarding, major actions */
-export const ICON_SIZE_XL = "size-6";
+/** 32px - Extra large: hero sections, onboarding, major actions */
+export const ICON_SIZE_XL = "size-8";
 
 // Common aliases to match previous icon names
 export { ChatText as MessageSquare };

@@ -82,7 +82,7 @@ export function WorktreeSection({
         />
         <span
           className={cn(
-            "min-w-0 flex-1 truncate text-[13px] leading-tight",
+            "min-w-0 flex-1 truncate text-[16px] leading-tight",
             isExpanded || isWorktreeActive
               ? "text-white/70 font-medium"
               : "group-hover:text-white/55",
@@ -166,7 +166,7 @@ export function WorktreeSection({
               aria-label="Create thread"
               disabled={isCreatingThread}
               className={cn(
-                "relative mt-1 flex h-7 w-full items-center gap-1.5 rounded px-1.5 py-1 text-[11px]",
+                "relative mt-1 flex h-7 w-full items-center gap-1.5 rounded px-1.5 py-1 text-[14px]",
                 "text-white/25 transition-all duration-[var(--duration-fast)]",
                 "hover:bg-white/[0.04] hover:text-white/50",
                 isCreatingThread && "pointer-events-none opacity-50",

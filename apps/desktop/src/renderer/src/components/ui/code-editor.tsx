@@ -155,7 +155,7 @@ export function CodeEditor({
   return (
     <div
       className={cn(
-        "h-full w-full overflow-hidden bg-[#0a0a0a]",
+        "h-full w-full overflow-hidden bg-[var(--color-bg-primary)]",
         "animate-in fade-in zoom-in-95 duration-200 [transition-timing-function:var(--ease-out)]",
         "motion-reduce:animate-none",
         className,
@@ -178,7 +178,7 @@ export function CodeEditor({
             <div className="flex items-center gap-2">
               <div
                 className={cn(
-                  "size-4 animate-spin rounded-md border-2 border-white/[0.08] border-t-primary",
+                  "size-5 animate-spin rounded-md border-2 border-white/[0.08] border-t-primary",
                   "transition-all duration-150 [transition-timing-function:var(--ease-out)]",
                 )}
               />

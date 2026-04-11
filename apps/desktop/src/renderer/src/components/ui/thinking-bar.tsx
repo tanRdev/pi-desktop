@@ -50,7 +50,7 @@ export function ThinkingBar({
               </span>
             ))}
           </div>
-          <ChevronRight className="size-4 text-white/20 transition-transform duration-150 group-hover:translate-x-0.5" />
+          <ChevronRight className="size-5 text-white/20 transition-transform duration-150 group-hover:translate-x-0.5" />
         </button>
       ) : (
         <div className="flex gap-1.5">

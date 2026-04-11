@@ -162,7 +162,7 @@ export function ProjectAvatar({
     className,
   );
 
-  const iconClassName = size === "md" ? "size-5" : "size-3.5";
+  const iconClassName = size === "md" ? "size-5" : "size-5";
 
   const content = <Icon className={iconClassName} />;
 

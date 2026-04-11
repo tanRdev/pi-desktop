@@ -366,7 +366,7 @@ function CodeBlockCode({
   }, [code, runHighlight]);
 
   const classNames = cn(
-    "relative w-full overflow-x-auto rounded-lg border border-white/[0.04] bg-[#111111] font-mono text-[13px] leading-relaxed",
+    "relative w-full overflow-x-auto rounded-lg border border-white/[0.04] bg-[#111111] font-mono text-[16px] leading-relaxed",
     className,
   );
 

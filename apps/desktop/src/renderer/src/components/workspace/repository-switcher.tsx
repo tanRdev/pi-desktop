@@ -60,14 +60,14 @@ export function RepositorySwitcher({
         >
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <Stack
-              className="size-4 shrink-0 text-white/30 group-hover:text-white/50 transition-colors"
+              className="size-5 shrink-0 text-white/30 group-hover:text-white/50 transition-colors"
               weight="regular"
             />
             <div className="min-w-0 flex-1">
-              <div className="truncate text-[13px] font-medium text-white/80">
+              <div className="truncate text-[16px] font-medium text-white/80">
                 {triggerLabel ?? activeRepository?.name ?? "Select project"}
               </div>
-              <div className="truncate text-[11px] text-white/30">
+              <div className="truncate text-[14px] text-white/30">
                 {triggerSubtitle ?? activeWorktree?.path ?? ""}
               </div>
             </div>
@@ -102,7 +102,7 @@ export function RepositorySwitcher({
               >
                 <Folder
                   className={cn(
-                    "size-4 shrink-0 transition-colors",
+                    "size-5 shrink-0 transition-colors",
                     isSelected
                       ? "text-white/70"
                       : "text-white/20 group-hover:text-white/40",
@@ -110,10 +110,10 @@ export function RepositorySwitcher({
                   weight="regular"
                 />
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-[13px] font-medium text-white/80">
+                  <div className="truncate text-[16px] font-medium text-white/80">
                     {repository.name}
                   </div>
-                  <div className="mt-0.5 truncate text-[11px] text-white/30">
+                  <div className="mt-0.5 truncate text-[14px] text-white/30">
                     {repository.rootPath}
                   </div>
                 </div>
@@ -124,12 +124,12 @@ export function RepositorySwitcher({
             type="button"
             onClick={() => onAdd()}
             className={cn(
-              "flex w-full items-center gap-2 px-3 py-3 text-[13px] font-medium",
+              "flex w-full items-center gap-2 px-3 py-3 text-[16px] font-medium",
               "text-white/30 transition-all duration-[var(--duration-fast)]",
               "hover:bg-white/[0.04] hover:text-white/80",
             )}
           >
-            <Plus className="size-4 shrink-0" weight="bold" />
+            <Plus className="size-5 shrink-0" weight="bold" />
             Add repository
           </button>
         </div>

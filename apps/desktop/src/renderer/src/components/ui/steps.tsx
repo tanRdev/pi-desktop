@@ -13,13 +13,13 @@ export interface StepItemProps extends React.HTMLAttributes<HTMLDivElement> {
 function StepIcon({ state }: { state: StepState }) {
   switch (state) {
     case "complete":
-      return <Check className="size-3.5" />;
+      return <Check className="size-5" />;
     case "current":
-      return <Spinner className="size-3.5 animate-spin" />;
+      return <Spinner className="size-5 animate-spin" />;
     case "error":
-      return <X className="size-3.5" />;
+      return <X className="size-5" />;
     default:
-      return <Circle className="size-3.5" />;
+      return <Circle className="size-5" />;
   }
 }
 
@@ -44,11 +44,11 @@ export function StepItem({
         <StepIcon state={state} />
       </div>
       <div className="min-w-0">
-        <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/80">
+        <div className="font-mono text-[14px] uppercase tracking-[0.18em] text-white/80">
           {title}
         </div>
         {detail ? (
-          <div className="mt-1 text-[12px] leading-5 text-white/40">
+          <div className="mt-1 text-[14px] leading-5 text-white/40">
             {detail}
           </div>
         ) : null}

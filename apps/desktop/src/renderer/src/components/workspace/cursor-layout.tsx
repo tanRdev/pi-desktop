@@ -16,7 +16,7 @@ export function CursorLayout({ className }: CursorLayoutProps) {
   return (
     <div
       className={cn(
-        "flex h-screen w-full overflow-hidden bg-[#0a0a0a]",
+        "flex h-screen w-full overflow-hidden bg-[var(--color-bg-primary)]",
         className,
       )}
     >
@@ -30,14 +30,14 @@ export function CursorLayout({ className }: CursorLayoutProps) {
           {/* Top Bar - Cursor style */}
           <div className="flex h-9 items-center justify-between border-b border-white/[0.03] px-4">
             <div className="flex items-center gap-2">
-              <span className="text-[11px] text-white/30 font-mono">zsh</span>
+              <span className="text-[14px] text-white/30 font-mono">zsh</span>
             </div>
             <div className="flex items-center gap-1">
               <button
                 type="button"
                 className="flex h-6 w-6 items-center justify-center rounded text-white/30 hover:text-white/50 hover:bg-white/[0.05] transition-colors"
               >
-                <MagnifyingGlass className="size-3.5" />
+                <MagnifyingGlass className="size-5" />
               </button>
               <button
                 type="button"
@@ -45,16 +45,16 @@ export function CursorLayout({ className }: CursorLayoutProps) {
                 className="flex h-6 w-6 items-center justify-center rounded text-white/30 hover:text-white/50 hover:bg-white/[0.05] transition-colors"
               >
                 {showTerminal ? (
-                  <Minus className="size-3.5" />
+                  <Minus className="size-5" />
                 ) : (
-                  <CornersOut className="size-3.5" />
+                  <CornersOut className="size-5" />
                 )}
               </button>
               <button
                 type="button"
                 className="flex h-6 w-6 items-center justify-center rounded text-white/30 hover:text-white/50 hover:bg-white/[0.05] transition-colors"
               >
-                <X className="size-3.5" />
+                <X className="size-5" />
               </button>
             </div>
           </div>

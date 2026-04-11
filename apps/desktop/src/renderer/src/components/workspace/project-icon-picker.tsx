@@ -120,17 +120,17 @@ export function ProjectIconPicker({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md p-0 gap-0 border-white/[0.06] bg-[#0d0d0d]">
+      <DialogContent className="sm:max-w-md p-0 gap-0 border-white/[0.06] bg-[var(--color-bg-secondary)]">
         <DialogHeader className="p-6">
           <DialogTitle className="text-sm font-medium uppercase tracking-wider text-white/80">
             Project Icon
           </DialogTitle>
-          <DialogDescription className="text-[11px] text-white/30 mt-2">
+          <DialogDescription className="text-[14px] text-white/30 mt-2">
             Select an icon for {repositoryName}.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-3 gap-0 border-t border-white/[0.04] bg-[#0a0a0a]">
+        <div className="grid grid-cols-3 gap-0 border-t border-white/[0.04] bg-[var(--color-bg-primary)]">
           {PROJECT_ICON_OPTIONS.map((option) => {
             const Icon = option.icon;
             const isSelected = option.id === selectedIconId;

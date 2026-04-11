@@ -15,7 +15,7 @@ export function StatusBar({ activeWorktreeLabel, className }: StatusBarProps) {
     <footer
       aria-hidden="true"
       className={cn(
-        "z-20 flex h-5 shrink-0 select-none items-center justify-between border-t border-white/[0.03] bg-[#0c0c0c] px-3",
+        "z-20 flex h-5 shrink-0 select-none items-center justify-between border-t border-white/[0.03] bg-[var(--color-bg-secondary)] px-3",
         className,
       )}
     >
@@ -24,14 +24,14 @@ export function StatusBar({ activeWorktreeLabel, className }: StatusBarProps) {
           <GitBranch
             className={`${ICON_SIZE_XS} text-white/25 group-hover:text-white/50 transition-colors`}
           />
-          <span className="font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-white/25 group-hover:text-white/50 transition-colors">
+          <span className="font-mono text-[14px] font-medium uppercase tracking-[0.08em] text-white/25 group-hover:text-white/50 transition-colors">
             {activeWorktreeLabel ?? "no-branch"}
           </span>
         </div>
       </div>
       <div className="flex items-center gap-1.5">
         <div className="h-1.5 w-1.5 rounded-full bg-white/20"></div>
-        <span className="font-mono text-[10px] font-normal text-white/20 tracking-tight">
+        <span className="font-mono text-[14px] font-normal text-white/20 tracking-tight">
           {appVersion}
         </span>
       </div>

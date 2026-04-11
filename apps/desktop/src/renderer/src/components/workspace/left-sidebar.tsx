@@ -113,7 +113,7 @@ export function LeftSidebar({
       data-testid="left-sidebar"
       data-state={isCollapsed ? "collapsed" : "expanded"}
       className={cn(
-        "relative z-10 flex h-full shrink-0 overflow-hidden bg-[#0a0a0a]",
+        "relative z-10 flex h-full shrink-0 overflow-hidden bg-[var(--color-bg-primary)]",
         "border-r border-white/[0.04]",
         "transition-[width] duration-200 ease-out",
         isCollapsed && "overflow-hidden",
@@ -126,13 +126,13 @@ export function LeftSidebar({
       <div className="flex min-w-0 flex-1 flex-col">
         {!isCollapsed && (
           <div className="border-b border-white/[0.04] px-4 py-3">
-            <p className="text-[11px] font-medium text-white/30 uppercase tracking-wider">
+            <p className="text-[14px] font-medium text-white/30 uppercase tracking-wider">
               Sidecar
             </p>
-            <h2 className="mt-1 text-[13px] font-medium text-white/80">
+            <h2 className="mt-1 text-[16px] font-medium text-white/80">
               {repositoryLabel}
             </h2>
-            <p className="mt-1 text-[11px] text-white/30">
+            <p className="mt-1 text-[14px] text-white/30">
               Supporting context: files, terminal, or git
             </p>
           </div>
@@ -151,10 +151,10 @@ export function LeftSidebar({
             <div className="space-y-3">
               <div className="rounded-md border border-white/[0.04] bg-white/[0.02] px-3 py-3">
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-white/40">
+                  <span className="text-[14px] font-semibold uppercase tracking-wider text-white/40">
                     Worktrees
                   </span>
-                  <span className="text-[11px] text-white/20">
+                  <span className="text-[14px] text-white/20">
                     {worktrees.length}
                   </span>
                 </div>
@@ -176,21 +176,21 @@ export function LeftSidebar({
                           )}
                         >
                           <div className="flex items-center justify-between gap-2">
-                            <span className="truncate text-[13px] font-medium">
+                            <span className="truncate text-[16px] font-medium">
                               {worktree.label}
                             </span>
-                            <span className="text-[11px] text-white/30 font-mono">
+                            <span className="text-[14px] text-white/30 font-mono">
                               {worktree.git.branch ?? "Detached"}
                             </span>
                           </div>
-                          <span className="truncate text-[11px] text-white/30">
+                          <span className="truncate text-[14px] text-white/30">
                             {formatGitSummary(worktree)}
                           </span>
                         </button>
                       );
                     })
                   ) : (
-                    <div className="rounded-lg bg-white/[0.02] px-3 py-3 text-[12px] text-white/30">
+                    <div className="rounded-lg bg-white/[0.02] px-3 py-3 text-[14px] text-white/30">
                       No worktrees
                     </div>
                   )}
@@ -199,10 +199,10 @@ export function LeftSidebar({
 
               <div className="rounded-md border border-white/[0.04] bg-white/[0.02] px-3 py-3">
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-white/40">
+                  <span className="text-[14px] font-semibold uppercase tracking-wider text-white/40">
                     Active thread
                   </span>
-                  <span className="text-[11px] text-white/20">
+                  <span className="text-[14px] text-white/20">
                     {activeThreadId ? "Live" : "Idle"}
                   </span>
                 </div>
@@ -220,17 +220,17 @@ export function LeftSidebar({
                             type="button"
                             className="flex w-full flex-col gap-0.5 rounded-md px-2 py-2 text-left bg-white/[0.06]"
                           >
-                            <span className="truncate text-[13px] font-medium text-white/80">
+                            <span className="truncate text-[16px] font-medium text-white/80">
                               {thread.title}
                             </span>
-                            <span className="truncate text-[11px] text-white/30">
+                            <span className="truncate text-[14px] text-white/30">
                               {worktree.label}
                             </span>
                           </button>
                         )),
                     )
                   ) : (
-                    <div className="rounded-lg bg-white/[0.02] px-3 py-3 text-[12px] text-white/30">
+                    <div className="rounded-lg bg-white/[0.02] px-3 py-3 text-[14px] text-white/30">
                       Select a thread to begin
                     </div>
                   )}
@@ -244,10 +244,10 @@ export function LeftSidebar({
           <div className="border-t border-white/[0.04] px-3 py-2">
             <button
               type="button"
-              className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-[13px] font-medium text-white/40 transition-colors duration-[var(--duration-fast)] hover:bg-white/[0.04] hover:text-white/60"
+              className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-[16px] font-medium text-white/40 transition-colors duration-[var(--duration-fast)] hover:bg-white/[0.04] hover:text-white/60"
               onClick={onCreateWorktree}
             >
-              <FolderPlus className="size-4" />
+              <FolderPlus className="size-5" />
               New worktree
             </button>
           </div>

@@ -67,11 +67,11 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         data-testid="settings-modal"
-        className="flex h-[76vh] max-h-[76vh] w-[min(880px,calc(100vw-64px))] max-w-[880px] flex-col gap-0 overflow-hidden rounded-xl border border-white/[0.06] bg-[#0e0e0e] p-0 shadow-[0_16px_48px_rgba(0,0,0,0.5)] select-none"
+        className="flex h-[76vh] max-h-[76vh] w-[min(880px,calc(100vw-64px))] max-w-[880px] flex-col gap-0 overflow-hidden rounded-xl border border-white/[0.06] bg-[var(--color-bg-tertiary)] p-0 shadow-[0_16px_48px_rgba(0,0,0,0.5)] select-none"
       >
         <DialogHeader className="flex flex-row items-center justify-between select-none">
           <div className="space-y-1 select-none">
-            <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-white/40">
+            <p className="text-[14px] font-medium uppercase tracking-[0.18em] text-white/40">
               Preferences
             </p>
             <DialogTitle className="font-heading text-[18px] font-semibold tracking-[-0.02em] text-white/90">
@@ -81,7 +81,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
         </DialogHeader>
 
         <div className="flex flex-1 min-h-0">
-          <nav className="w-52 shrink-0 border-r border-white/[0.06] bg-[#0a0a0a] px-2 py-4 select-none">
+          <nav className="w-52 shrink-0 border-r border-white/[0.06] bg-[var(--color-bg-primary)] px-2 py-4 select-none">
             <div className="flex flex-col gap-1">
               {SETTINGS_MODAL_SECTIONS.map((item) => (
                 <button
@@ -98,7 +98,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                       : "text-white/40",
                   )}
                 >
-                  <span className="flex size-7 shrink-0 items-center justify-center rounded-md text-white/40">
+                  <span className="flex size-8 shrink-0 items-center justify-center rounded-md text-white/40">
                     {item.icon}
                   </span>
                   <span className="min-w-0">
@@ -111,7 +111,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
             </div>
           </nav>
 
-          <ScrollArea className="flex-1 bg-[#0e0e0e]">
+          <ScrollArea className="flex-1 bg-[var(--color-bg-tertiary)]">
             <div className="mx-auto max-w-2xl p-7">
               <div
                 className={cn(
@@ -127,7 +127,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
           </ScrollArea>
         </div>
 
-        <div className="flex items-center justify-between border-t border-white/[0.06] bg-[#0c0c0c] px-6 py-4">
+        <div className="flex items-center justify-between border-t border-white/[0.06] bg-[var(--color-bg-secondary)] px-6 py-4">
           <Button
             variant="ghost"
             size="sm"
@@ -135,7 +135,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
               resetAll();
             }}
             className={cn(
-              "rounded-md px-3 text-[11px] font-medium text-white/40 hover:bg-white/[0.04] hover:text-white/80",
+              "rounded-md px-3 text-[14px] font-medium text-white/40 hover:bg-white/[0.04] hover:text-white/80",
             )}
           >
             Reset visible settings

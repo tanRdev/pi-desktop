@@ -117,12 +117,12 @@ export function Terminal({
 
     const terminal = new XTerm({
       theme: {
-        background: "#0c0c0c",
+        background: "var(--color-bg-secondary)",
         foreground: "#d4d4d4",
         cursor: "#d4d4d4",
-        cursorAccent: "#0c0c0c",
+        cursorAccent: "var(--color-bg-secondary)",
         selectionBackground: "rgba(255,255,255,0.1)",
-        black: "#0c0c0c",
+        black: "var(--color-bg-secondary)",
         red: "#ef4444",
         green: "#22c55e",
         yellow: "#eab308",
@@ -224,7 +224,7 @@ export function Terminal({
     return (
       <div
         className={cn(
-          "w-[400px] border-l border-white/[0.06] bg-[#0c0c0c]",
+          "w-[400px] border-l border-white/[0.06] bg-[var(--color-bg-secondary)]",
           className,
         )}
       >
@@ -258,7 +258,7 @@ export function Terminal({
   return (
     <div
       className={cn(
-        "flex h-full w-[400px] flex-col border-l border-white/[0.06] bg-[#0c0c0c]",
+        "flex h-full w-[400px] flex-col border-l border-white/[0.06] bg-[var(--color-bg-secondary)]",
         className,
       )}
     >
@@ -266,7 +266,7 @@ export function Terminal({
       <div className="flex h-9 shrink-0 items-center justify-between border-b border-white/[0.04] px-3">
         <div className="flex items-center gap-2">
           <TerminalIcon className="text-white/40" />
-          <span className="text-[11px] font-medium text-white/50">
+          <span className="text-[14px] font-medium text-white/50">
             {terminalLabel}
           </span>
         </div>
@@ -290,7 +290,7 @@ export function Terminal({
       <div className="flex h-8 shrink-0 items-center border-b border-white/[0.04] px-1">
         <button
           type="button"
-          className="flex h-7 items-center gap-1 px-2 text-[11px] font-medium text-white/60 border-b border-white/20 bg-white/[0.02]"
+          className="flex h-7 items-center gap-1 px-2 text-[14px] font-medium text-white/60 border-b border-white/20 bg-white/[0.02]"
         >
           <ChevronDownIcon />
           <span>{backend === "pi" ? "pi" : "main"}</span>

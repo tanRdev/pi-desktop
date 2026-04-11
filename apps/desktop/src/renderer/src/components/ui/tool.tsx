@@ -92,7 +92,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
 
   const getStateBadge = () => {
     const baseClasses = cn(
-      "px-1.5 py-0.5 rounded text-[11px] font-medium",
+      "px-1.5 py-0.5 rounded text-[14px] font-medium",
       "transition-all duration-[var(--duration-fast)] ease-out",
     );
     switch (state) {

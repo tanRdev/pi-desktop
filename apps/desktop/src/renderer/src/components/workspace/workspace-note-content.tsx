@@ -71,7 +71,7 @@ export function WorkspaceNoteContent({
   }, []);
 
   return (
-    <div className={cn("flex h-full flex-col bg-[#0a0a0a]", className)}>
+    <div className={cn("flex h-full flex-col bg-[var(--color-bg-primary)]", className)}>
       <div className="min-h-0 flex-1 overflow-hidden" onKeyDown={handleKeyDown}>
         {isEditorFocused ? (
           <CodeEditor
@@ -94,7 +94,7 @@ export function WorkspaceNoteContent({
                 {draft.trim() ? (
                   <Markdown>{draft}</Markdown>
                 ) : (
-                  <p className="text-[13px] leading-7 text-white/30">
+                  <p className="text-[16px] leading-7 text-white/30">
                     Capture decisions, snippets, and reminders...
                   </p>
                 )}

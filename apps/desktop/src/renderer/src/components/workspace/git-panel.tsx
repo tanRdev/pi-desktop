@@ -65,7 +65,7 @@ function CombinedChangeList({
 
   if (allPaths.length === 0) {
     return (
-      <div className="px-1 py-8 text-[12px] text-white/10 italic text-center">
+      <div className="px-1 py-8 text-[14px] text-white/10 italic text-center">
         No changes detected
       </div>
     );
@@ -74,10 +74,10 @@ function CombinedChangeList({
   return (
     <section className="space-y-3">
       <div className="flex items-center justify-between px-1">
-        <h3 className="text-[11px] font-semibold uppercase tracking-wider text-white/20">
+        <h3 className="text-[14px] font-semibold uppercase tracking-wider text-white/20">
           Changes
         </h3>
-        <span className="text-[11px] tabular-nums text-white/15">
+        <span className="text-[14px] tabular-nums text-white/15">
           {allPaths.length}
         </span>
       </div>
@@ -103,7 +103,7 @@ function CombinedChangeList({
                     staged ? void onUnstage(path) : void onStage(path)
                   }
                   className={cn(
-                    "flex size-4 shrink-0 items-center justify-center rounded border transition-all duration-150",
+                    "flex size-5 shrink-0 items-center justify-center rounded border transition-all duration-150",
                     staged
                       ? "bg-emerald-500/20 border-emerald-500/40 text-emerald-400"
                       : "border-white/10 text-transparent hover:border-white/30",
@@ -112,7 +112,7 @@ function CombinedChangeList({
                   <Check className="size-2.5" />
                 </button>
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-[12px] text-white/60 group-hover:text-white/80">
+                  <div className="truncate text-[14px] text-white/60 group-hover:text-white/80">
                     {path}
                   </div>
                 </div>
@@ -130,7 +130,7 @@ function CombinedChangeList({
                   </div>
                   <div
                     className={cn(
-                      "w-4 text-center text-[10px] font-bold select-none",
+                      "w-4 text-center text-[14px] font-bold select-none",
                       status === "added" || status === "untracked"
                         ? "text-emerald-400"
                         : status === "deleted"
@@ -201,7 +201,7 @@ export function GitPanel({
   return (
     <div
       className={cn(
-        "flex h-full min-h-0 flex-col bg-[#0a0a0a] text-white",
+        "flex h-full min-h-0 flex-col bg-[var(--color-bg-primary)] text-white",
         className,
       )}
     >
@@ -209,11 +209,11 @@ export function GitPanel({
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-2 min-w-0">
-              <h2 className="truncate text-[13px] font-semibold text-white/50">
+              <h2 className="truncate text-[16px] font-semibold text-white/50">
                 {projectName ?? worktree?.label}
               </h2>
               <span className="text-white/20 select-none">/</span>
-              <span className="truncate text-[13px] font-medium text-white/40">
+              <span className="truncate text-[16px] font-medium text-white/40">
                 {viewModel.branchLabel}
               </span>
             </div>
@@ -232,7 +232,7 @@ export function GitPanel({
               </Button>
             </div>
           </div>
-          <div className="flex items-center gap-2 text-[11px] tabular-nums tracking-wide text-white/30">
+          <div className="flex items-center gap-2 text-[14px] tabular-nums tracking-wide text-white/30">
             <span className="truncate font-medium">{viewModel.summary}</span>
             <span className="text-white/10 select-none">·</span>
             <span className="truncate">{viewModel.syncLabel}</span>
@@ -250,7 +250,7 @@ export function GitPanel({
                 placeholder="Commit message..."
                 rows={2}
                 disabled={!repositoryPath || isLoading}
-                className="w-full resize-none rounded-md border-none bg-transparent px-1 py-1 text-[13px] text-white/80 transition-all duration-150 placeholder:text-white/20 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full resize-none rounded-md border-none bg-transparent px-1 py-1 text-[16px] text-white/80 transition-all duration-150 placeholder:text-white/20 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               />
               <div className="flex items-center gap-1 pb-1">
                 <Button

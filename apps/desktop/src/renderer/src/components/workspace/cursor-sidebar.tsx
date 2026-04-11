@@ -22,7 +22,7 @@ export function CursorSidebar({ className }: CursorSidebarProps) {
     <aside
       className={cn(
         "flex h-full flex-col select-none",
-        "bg-[#0c0c0c]",
+        "bg-[var(--color-bg-secondary)]",
         "border-r border-white/[0.03]",
         className,
       )}
@@ -39,11 +39,11 @@ export function CursorSidebar({ className }: CursorSidebarProps) {
             "transition-all duration-150",
           )}
         >
-          <Plus className="size-4 text-white/70" />
-          <span className="text-[13px] font-medium text-white/90">
+          <Plus className="size-5 text-white/70" />
+          <span className="text-[16px] font-medium text-white/90">
             New Agent
           </span>
-          <span className="ml-auto text-[11px] text-white/30 font-mono">
+          <span className="ml-auto text-[14px] text-white/30 font-mono">
             ⌘N
           </span>
         </button>
@@ -53,7 +53,7 @@ export function CursorSidebar({ className }: CursorSidebarProps) {
       <div className="px-2 select-none">
         <nav className="space-y-0.5">
           <SidebarItem
-            icon={<SquaresFour className="size-4" />}
+            icon={<SquaresFour className="size-5" />}
             label="Marketplace"
           />
         </nav>
@@ -66,12 +66,12 @@ export function CursorSidebar({ className }: CursorSidebarProps) {
       <div className="flex-1 overflow-y-auto px-2 select-none">
         <div className="space-y-0.5">
           <FileTreeItem
-            icon={<FolderOpen className="size-4" />}
+            icon={<FolderOpen className="size-5" />}
             label="tan/dev/pidesk"
             active
           />
           <FileTreeItem
-            icon={<Chat className="size-4" />}
+            icon={<Chat className="size-5" />}
             label="No agents yet"
             indented
           />
@@ -89,22 +89,22 @@ export function CursorSidebar({ className }: CursorSidebarProps) {
             "transition-all duration-150",
           )}
         >
-          <Command className="size-4" />
-          <span className="text-[13px]">Open Workspace</span>
+          <Command className="size-5" />
+          <span className="text-[16px]">Open Workspace</span>
         </button>
 
         {/* User Profile - Cursor style */}
         <div className="mt-2 flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-white/[0.03] cursor-pointer transition-colors select-none">
-          <div className="flex size-7 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500">
-            <span className="text-[11px] font-medium text-white">T</span>
+          <div className="flex size-8 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500">
+            <span className="text-[14px] font-medium text-white">T</span>
           </div>
           <div className="flex-1 min-w-0 select-none">
-            <div className="text-[13px] font-medium text-white/90 truncate">
+            <div className="text-[16px] font-medium text-white/90 truncate">
               Tanvi
             </div>
-            <div className="text-[11px] text-white/40">Free Plan</div>
+            <div className="text-[14px] text-white/40">Free Plan</div>
           </div>
-          <Settings className="size-4 text-white/30" />
+          <Settings className="size-5 text-white/30" />
         </div>
       </div>
     </aside>
@@ -130,9 +130,9 @@ function SidebarItem({
       )}
     >
       <span className="text-white/40">{icon}</span>
-      <span className="text-[13px]">{label}</span>
+      <span className="text-[16px]">{label}</span>
       {shortcut && (
-        <span className="ml-auto text-[11px] text-white/30 font-mono">
+        <span className="ml-auto text-[14px] text-white/30 font-mono">
           {shortcut}
         </span>
       )}
@@ -166,7 +166,7 @@ function FileTreeItem({
       <span className={cn("text-white/50", active && "text-white/70")}>
         {icon}
       </span>
-      <span className="text-[13px] truncate">{label}</span>
+      <span className="text-[16px] truncate">{label}</span>
     </button>
   );
 }

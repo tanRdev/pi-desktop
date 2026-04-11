@@ -20,7 +20,7 @@ export function WorktreeList({
   return (
     <section className="space-y-2 px-3">
       <div className="flex items-center justify-between">
-        <p className="text-[11px] font-medium uppercase tracking-wider text-white/30">
+        <p className="text-[14px] font-medium uppercase tracking-wider text-white/30">
           Worktrees
         </p>
         <Button
@@ -28,7 +28,7 @@ export function WorktreeList({
           variant="ghost"
           size="icon"
           className={cn(
-            "size-7 rounded-md border border-white/[0.06] bg-white/[0.02] text-white/50",
+            "size-8 rounded-md border border-white/[0.06] bg-white/[0.02] text-white/50",
             "transition-all duration-150 ease-out",
             "hover:bg-white/[0.06] hover:text-white/70",
             "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/10",
@@ -37,7 +37,7 @@ export function WorktreeList({
           onClick={() => onCreate()}
           aria-label="Create worktree"
         >
-          <Plus className="size-3.5" />
+          <Plus className="size-5" />
         </Button>
       </div>
       <div className="space-y-1">
@@ -66,12 +66,12 @@ export function WorktreeList({
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <GitBranch className="size-3.5 shrink-0 text-white/30" />
+                    <GitBranch className="size-5 shrink-0 text-white/30" />
                     <span className="truncate text-sm font-medium text-white/80">
                       {worktree.label}
                     </span>
                     {worktree.isMain && (
-                      <span className="rounded-full border border-white/[0.08] px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-white/30">
+                      <span className="rounded-full border border-white/[0.08] px-1.5 py-0.5 text-[14px] uppercase tracking-wide text-white/30">
                         main
                       </span>
                     )}
@@ -82,7 +82,7 @@ export function WorktreeList({
                 </div>
                 <GitStatusChip git={worktree.git} />
               </div>
-              <div className="mt-2 flex items-center justify-between text-[11px] text-white/30">
+              <div className="mt-2 flex items-center justify-between text-[14px] text-white/30">
                 <span>
                   {liveThreadCount} live thread
                   {liveThreadCount === 1 ? "" : "s"}

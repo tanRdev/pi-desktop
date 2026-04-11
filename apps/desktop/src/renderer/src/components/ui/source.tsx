@@ -18,20 +18,20 @@ export function SourceItem({
     <button
       type="button"
       className={cn(
-        "flex items-center gap-2 border border-[#474747]/20 bg-[#101010] px-2.5 py-1.5 text-left",
+        "flex items-center gap-2 border border-[#474747]/20 bg-[var(--color-bg-tertiary)] px-2.5 py-1.5 text-left",
         "transition-[transform,border-color,background-color,color] duration-150 ease-out",
         "hover:border-white/35 hover:bg-[#171717] hover:text-white active:scale-[0.99]",
         className,
       )}
       {...props}
     >
-      <ArrowSquareOut className="size-3.5 shrink-0 text-[#7a7a7a]" />
+      <ArrowSquareOut className="size-5 shrink-0 text-[#7a7a7a]" />
       <span className="min-w-0">
-        <span className="block truncate font-mono text-[10px] uppercase tracking-[0.16em] text-white/82">
+        <span className="block truncate font-mono text-[14px] uppercase tracking-[0.16em] text-white/82">
           {label}
         </span>
         {detail ? (
-          <span className="block truncate text-[11px] text-[#7c7c7c]">
+          <span className="block truncate text-[14px] text-[#7c7c7c]">
             {detail}
           </span>
         ) : null}

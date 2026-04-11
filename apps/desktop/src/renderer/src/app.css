@@ -1,7 +1,7 @@
 @import "tailwindcss";
 @import "@pidesk/ui/styles/pidesk-shell.css";
 @import "@fontsource-variable/source-code-pro";
-@import "@fontsource-variable/instrument-sans";
+@import "@fontsource-variable/geist";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -10,22 +10,22 @@
    ============================================ */
 
 :root {
-  /* Color System - Semantic Names */
-  --color-bg-primary: #0a0a0a;
-  --color-bg-secondary: #0f0f0f;
-  --color-bg-tertiary: #141414;
-  --color-bg-quaternary: #1a1a1a;
-  --color-bg-hover: #1a1a1a;
-  --color-bg-active: #242424;
+  /* Color System - Semantic Names - Darkest floor #141414 */
+  --color-bg-primary: #141414;
+  --color-bg-secondary: #181818;
+  --color-bg-tertiary: #1c1c1c;
+  --color-bg-quaternary: #222222;
+  --color-bg-hover: #222222;
+  --color-bg-active: #2a2a2a;
 
   /* Glass Morphism System - Cursor IDE Style */
-  --glass-bg-primary: rgba(13, 13, 13, 0.95);
-  --glass-bg-secondary: rgba(15, 15, 15, 0.90);
-  --glass-bg-tertiary: rgba(20, 20, 20, 0.85);
-  --glass-bg-solid: rgba(13, 13, 13, 1);
-  --shell-sidebar-bg: #0d0d0d;
-  --shell-main-bg: #0d0d0d;
-  --shell-overlay-bg: #0c0c0c;
+  --glass-bg-primary: rgba(20, 20, 20, 0.95);
+  --glass-bg-secondary: rgba(24, 24, 24, 0.90);
+  --glass-bg-tertiary: rgba(28, 28, 28, 0.85);
+  --glass-bg-solid: rgba(20, 20, 20, 1);
+  --shell-sidebar-bg: #141414;
+  --shell-main-bg: #141414;
+  --shell-overlay-bg: #161616;
 
   --glass-border-subtle: rgba(255, 255, 255, 0.04);
   --glass-border-default: rgba(255, 255, 255, 0.06);
@@ -43,22 +43,22 @@
   --glass-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03);
   --glass-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.02);
 
-  --color-border-subtle: #1f1f1f;
-  --color-border-default: #1f1f23;
-  --color-border-strong: #222224;
+  --color-border-subtle: #222222;
+  --color-border-default: #262626;
+  --color-border-strong: #2a2a2a;
   --color-border-hover: #3a3a3a;
 
   --color-text-primary: #e7e7e7;
   --color-text-secondary: #a0a0a0;
   --color-text-tertiary: #6a6a6a;
   --color-text-quaternary: #525252;
-  --color-text-inverse: #0a0a0a;
+  --color-text-inverse: #141414;
 
   /* Surface aliases (for component-level semantics) */
-  --color-surface: #0a0a0a;
-  --color-surface-secondary: #1a1a1a;
-  --color-surface-tertiary: #141414;
-  --color-text-muted: #525252;
+  --color-surface: #141414;
+  --color-surface-secondary: #1c1c1c;
+  --color-surface-tertiary: #181818;
+  --color-text-muted: #6a6a6a;
   --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.4);
   --accent-pale-red-text: #f87171;
   --accent-pale-red-bg: rgba(239, 68, 68, 0.08);
@@ -69,7 +69,7 @@
   --color-success: #22c55e;
   --color-warning: #f59e0b;
 
-  /* Spacing Scale */
+  /* Spacing Scale - 4px Rule */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -92,12 +92,13 @@
   --duration-slow: 250ms;
   --duration-slower: 350ms;
 
-  /* Border Radius */
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 10px;
-  --radius-xl: 14px;
-  --radius-2xl: 16px;
+  /* Border Radius - 8px to 40px Range */
+  --radius-xs: 4px; /* For very small elements if needed */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-2xl: 40px;
 
   /* Window Chrome */
   --window-radius: 12px;
@@ -466,12 +467,15 @@ code:not(.shiki code):not(pre code) {
 }
 
 @theme inline {
+  /* Spacing - 4px Rule */
+  --spacing: 4px;
+
   /* Fonts */
-  --font-heading: var(--font-instrument-sans);
-  --font-body: var(--font-instrument-sans);
-  --font-mono: var(--font-source-code-pro);
+  --font-heading: Geist Variable;
+  --font-body: Geist Variable;
+  --font-mono: Source Code Pro Variable;
   --font-source-code-pro: Source Code Pro Variable;
-  --font-instrument-sans: Instrument Sans Variable;
+  --font-geist: Geist Variable;
 
   /* shadcn color variable bridge */
   --color-background: var(--background);
@@ -501,7 +505,7 @@ code:not(.shiki code):not(pre code) {
     font-size: 2.25rem;
     line-height: 1.15;
     letter-spacing: -0.03em;
-    font-weight: 700;
+    font-weight: 600; /* Medium */
   }
   h2 {
     font-family: var(--font-heading);
@@ -520,12 +524,41 @@ code:not(.shiki code):not(pre code) {
   h4, h5, h6 {
     font-family: var(--font-heading);
     letter-spacing: -0.01em;
+    font-weight: 600;
   }
   body, p {
     font-family: var(--font-body);
-    line-height: 1.6;
+    font-size: 16px; /* Geist 16px for body */
+    line-height: 1.5;
+    font-weight: 400; /* Regular */
   }
+  
+  .text-secondary-body {
+    font-size: 14px; /* Geist 14px for body */
+    font-weight: 500; /* Medium */
+  }
+
   code, pre {
     font-family: var(--font-mono);
+  }
+
+  /* Global Icon Styling: 20px, stroke 1.5px */
+  svg[class*="ph-"], 
+  .phosphor-icon {
+    width: 20px !important;
+    height: 20px !important;
+    stroke-width: 1.5px !important;
+  }
+}
+
+@layer utilities {
+  /* Icon Bounding Box: 32px */
+  .icon-bound {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
   }
 }

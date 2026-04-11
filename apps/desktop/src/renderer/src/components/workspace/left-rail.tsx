@@ -121,13 +121,13 @@ function ThreadCategorySection({
     <div className="relative space-y-0.5">
       <div
         className={cn(
-          "flex w-full items-center justify-between rounded px-2 py-2 text-[12px] text-white/50",
+          "flex w-full items-center justify-between rounded px-2 py-2 text-[14px] text-white/50",
           "group/item",
         )}
       >
         <div className="flex min-w-0 flex-1 items-center gap-2 pl-2">
-          <span className="flex size-4 shrink-0 items-center justify-center">
-            <Icon className="size-3.5 text-white/40" />
+          <span className="flex size-5 shrink-0 items-center justify-center">
+            <Icon className="size-5 text-white/40" />
           </span>
           <span className="truncate">{label}</span>
         </div>
@@ -143,7 +143,7 @@ function ThreadCategorySection({
               className="hidden group-hover/item:flex size-5 items-center justify-center rounded hover:bg-white/10 hover:text-white/80 transition-colors text-white/40"
               title={actionLabel}
             >
-              <Plus className="size-3.5" />
+              <Plus className="size-5" />
             </button>
           )}
         </div>
@@ -398,7 +398,7 @@ export function LeftRail({
       className={cn(
         "relative z-20 flex h-full shrink-0 select-none flex-col",
         // Minimalist: Clean dark surface with subtle border
-        "bg-[#0a0a0a]",
+        "bg-[var(--color-bg-primary)]",
         "border-r border-white/[0.06]",
       )}
       style={{ width }}
@@ -412,16 +412,16 @@ export function LeftRail({
           type="button"
           onClick={onToggleVisible}
           data-no-drag="true"
-          className="flex size-7 items-center justify-center rounded-md text-white/30 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/60"
+          className="flex size-8 items-center justify-center rounded-md text-white/30 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/60"
         >
-          <SidebarSimple className="size-4" />
+          <SidebarSimple className="size-5" />
         </button>
       </div>
 
       {/* Repository List */}
       <div className="min-h-0 flex-1 overflow-y-auto py-2">
         <div className="px-3 py-2 flex items-center justify-between group">
-          <div className="text-[10px] text-white/40 font-semibold uppercase tracking-wider truncate mr-2">
+          <div className="text-[14px] text-white/40 font-semibold uppercase tracking-wider truncate mr-2">
             {activeRepositoryName}
           </div>
           <div className="flex gap-1 shrink-0">
@@ -433,7 +433,7 @@ export function LeftRail({
                   aria-label="New workspace"
                   className="text-white/40 hover:text-white/80 p-0.5"
                 >
-                  <Folder className="size-3.5" />
+                  <Folder className="size-5" />
                 </button>
               </TooltipTrigger>
               <TooltipContent side="top">New workspace</TooltipContent>
@@ -453,7 +453,7 @@ export function LeftRail({
             actionTestId="create-thread-button"
           >
             {activeThreads.length === 0 ? (
-              <div className="px-2 py-3 text-[11px] text-white/20">
+              <div className="px-2 py-3 text-[14px] text-white/20">
                 No sessions
               </div>
             ) : (
@@ -467,7 +467,7 @@ export function LeftRail({
                         thread.isArchived,
                       );
                 const threadRowClassName = cn(
-                  "group flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-[11px] transition-colors",
+                  "group flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-[14px] transition-colors",
                   isActive
                     ? "bg-white/[0.04] text-white/80"
                     : "text-white/40 hover:bg-white/[0.04] hover:text-white/70",
@@ -481,7 +481,7 @@ export function LeftRail({
                   >
                     {inlineEditingThreadId === thread.id ? (
                       <div className="flex min-w-0 flex-1 items-center gap-2">
-                        <span className="flex size-4 shrink-0 items-center justify-center">
+                        <span className="flex size-5 shrink-0 items-center justify-center">
                           <ThreadStatusIcon displayStatus={displayStatus} />
                         </span>
                         <input
@@ -514,7 +514,7 @@ export function LeftRail({
                               setInlineEditingValue("");
                             }
                           }}
-                          className="block min-w-0 flex-1 rounded border border-white/[0.12] bg-[#141414] px-2 py-1 text-[11px] text-white/85 outline-none focus:border-white/[0.2]"
+                          className="block min-w-0 flex-1 rounded border border-white/[0.12] bg-[var(--color-bg-primary)] px-2 py-1 text-[14px] text-white/85 outline-none focus:border-white/[0.2]"
                           placeholder="Name thread"
                         />
                       </div>
@@ -527,7 +527,7 @@ export function LeftRail({
                         }}
                         className="flex min-w-0 flex-1 items-center gap-2 text-left"
                       >
-                        <span className="flex size-4 shrink-0 items-center justify-center">
+                        <span className="flex size-5 shrink-0 items-center justify-center">
                           <ThreadStatusIcon displayStatus={displayStatus} />
                         </span>
                         <span className="truncate flex-1">
@@ -569,7 +569,7 @@ export function LeftRail({
                   <div
                     key={thread.id}
                     className={cn(
-                      "group/archived flex w-full items-center gap-1 rounded-md px-2 py-1 text-[11px] transition-colors",
+                      "group/archived flex w-full items-center gap-1 rounded-md px-2 py-1 text-[14px] transition-colors",
                       "text-white/30 hover:bg-white/[0.04] hover:text-white/50",
                     )}
                   >
@@ -614,10 +614,10 @@ export function LeftRail({
                         <PopoverContent
                           align="end"
                           side="bottom"
-                          className="w-auto min-w-[220px] rounded-md border border-white/[0.06] bg-[#101010] p-2"
+                          className="w-auto min-w-[220px] rounded-md border border-white/[0.06] bg-[var(--color-bg-tertiary)] p-2"
                         >
                           <div className="space-y-2">
-                            <p className="text-[11px] text-white/70">
+                            <p className="text-[14px] text-white/70">
                               Permanently delete this archived thread?
                             </p>
                             <div className="flex items-center justify-end gap-1.5">
@@ -628,7 +628,7 @@ export function LeftRail({
                                   event.stopPropagation();
                                   setPendingDeleteThreadId(null);
                                 }}
-                                className="rounded px-2 py-1 text-[10px] text-white/55 transition-colors hover:bg-white/[0.06] hover:text-white/80"
+                                className="rounded px-2 py-1 text-[14px] text-white/55 transition-colors hover:bg-white/[0.06] hover:text-white/80"
                               >
                                 Cancel
                               </button>
@@ -640,7 +640,7 @@ export function LeftRail({
                                   setPendingDeleteThreadId(null);
                                   void onDeleteThread?.(thread.id);
                                 }}
-                                className="rounded bg-white/[0.08] px-2 py-1 text-[10px] text-white/85 transition-colors hover:bg-white/[0.14]"
+                                className="rounded bg-white/[0.08] px-2 py-1 text-[14px] text-white/85 transition-colors hover:bg-white/[0.14]"
                               >
                                 Delete
                               </button>
@@ -676,7 +676,7 @@ export function LeftRail({
         <div
           ref={contextMenuRef}
           className={cn(
-            "fixed z-[100] min-w-[160px] rounded-md border border-white/[0.06] bg-[#141414] p-1",
+            "fixed z-[100] min-w-[160px] rounded-md border border-white/[0.06] bg-[var(--color-bg-primary)] p-1",
             "shadow-[var(--shadow-hover)]",
             "animate-in fade-in-0 zoom-in-[0.98] duration-150 ease-out",
           )}
@@ -686,7 +686,7 @@ export function LeftRail({
           }}
         >
           <div className="px-2 py-1.5">
-            <span className="block truncate text-[10px] text-[var(--color-text-secondary)]">
+            <span className="block truncate text-[14px] text-[var(--color-text-secondary)]">
               {contextMenu.repositoryName}
             </span>
           </div>
@@ -709,7 +709,7 @@ export function LeftRail({
               })
             }
             className={cn(
-              "flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[11px] text-[var(--color-text-primary)]",
+              "flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[14px] text-[var(--color-text-primary)]",
               "transition-colors duration-100",
               "hover:bg-[var(--color-surface-secondary)]",
             )}
@@ -725,7 +725,7 @@ export function LeftRail({
               )
             }
             className={cn(
-              "flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[11px] text-[var(--color-text-primary)]",
+              "flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[14px] text-[var(--color-text-primary)]",
               "transition-colors duration-100",
               "hover:bg-[var(--color-surface-secondary)]",
             )}
@@ -739,7 +739,7 @@ export function LeftRail({
               handleMenuAction(() => onOpenInFinder?.(contextMenuRepositoryId))
             }
             className={cn(
-              "flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[11px] text-[var(--color-text-primary)]",
+              "flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[14px] text-[var(--color-text-primary)]",
               "transition-colors duration-100",
               "hover:bg-[var(--color-surface-secondary)]",
             )}
@@ -756,7 +756,7 @@ export function LeftRail({
               )
             }
             className={cn(
-              "flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[11px] text-[var(--accent-pale-red-text)]",
+              "flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[14px] text-[var(--accent-pale-red-text)]",
               "transition-colors duration-100",
               "hover:bg-[var(--accent-pale-red-bg)]",
             )}

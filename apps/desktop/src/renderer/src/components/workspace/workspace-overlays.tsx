@@ -49,7 +49,7 @@ function WorkspaceOverlayFrame({
         onKeyDown={(event) => event.stopPropagation()}
         className={cn(
           "relative z-10 w-full max-w-xl overflow-hidden rounded-xl select-none",
-          "bg-[#0e0e0e] border border-white/[0.06] shadow-[0_16px_48px_rgba(0,0,0,0.5)]",
+          "bg-[var(--color-bg-tertiary)] border border-white/[0.06] shadow-[0_16px_48px_rgba(0,0,0,0.5)]",
           "animate-[modal-content-enter_0.25s_ease-out_forwards]",
           className,
         )}

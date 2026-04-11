@@ -40,10 +40,10 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[80vh] w-[min(860px,calc(100vw-40px))] max-w-[860px] flex-col gap-0 overflow-hidden rounded-xl border border-white/[0.06] bg-[#0e0e0e] p-0 shadow-[0_24px_48px_rgba(0,0,0,0.5)] outline-none ring-0 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0">
-        <DialogHeader className="flex flex-row items-center justify-between border-b border-white/[0.06] bg-[#0c0c0c] px-6 py-4">
+      <DialogContent className="flex h-[80vh] w-[min(860px,calc(100vw-40px))] max-w-[860px] flex-col gap-0 overflow-hidden rounded-xl border border-white/[0.06] bg-[var(--color-bg-tertiary)] p-0 shadow-[0_24px_48px_rgba(0,0,0,0.5)] outline-none ring-0 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0">
+        <DialogHeader className="flex flex-row items-center justify-between border-b border-white/[0.06] bg-[var(--color-bg-secondary)] px-6 py-4">
           <div className="space-y-0.5">
-            <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-white/40">
+            <p className="text-[14px] font-medium uppercase tracking-[0.18em] text-white/40">
               Extensions
             </p>
             <DialogTitle className="font-heading text-[18px] font-semibold tracking-[-0.02em] text-white/90">
@@ -55,7 +55,7 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
         <div className="px-6 py-4">
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex h-9 min-w-[200px] flex-1 items-center gap-2 rounded-md bg-white/[0.03] px-3 text-white/60 focus-within:bg-white/[0.05] transition-colors">
-              <MagnifyingGlass className="size-3.5 text-white/30" />
+              <MagnifyingGlass className="size-5 text-white/30" />
               <input
                 type="search"
                 value={controller.query}
@@ -118,7 +118,7 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
           </div>
 
           {installDisabled ? (
-            <p className="mt-2 text-[10px] text-white/25">
+            <p className="mt-2 text-[14px] text-white/25">
               Local install is unavailable until a project target is selected.
             </p>
           ) : null}
@@ -128,7 +128,7 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
             </p>
           ) : null}
           {controller.activeOperation ? (
-            <div className="mt-3 flex items-center gap-2 text-[11px] text-white/40">
+            <div className="mt-3 flex items-center gap-2 text-[14px] text-white/40">
               <div className="size-1 animate-pulse rounded-full bg-blue-400" />
               <span>
                 {controller.activeOperation.kind}{" "}
@@ -179,11 +179,11 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
                               <span className="truncate text-sm font-medium text-white/85">
                                 {pkg.name}
                               </span>
-                              <span className="text-[10px] tabular-nums text-white/30">
+                              <span className="text-[14px] tabular-nums text-white/30">
                                 {pkg.downloads.toLocaleString()}
                               </span>
                             </div>
-                            <p className="mt-1.5 line-clamp-2 text-[11px] leading-relaxed text-white/40">
+                            <p className="mt-1.5 line-clamp-2 text-[14px] leading-relaxed text-white/40">
                               {pkg.description || "No description provided."}
                             </p>
                           </button>
@@ -218,10 +218,10 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
                             {pkg.name}
                           </span>
                           <div className="mt-1 flex items-center gap-2">
-                            <span className="text-[10px] font-medium uppercase tracking-wider text-white/30">
+                            <span className="text-[14px] font-medium uppercase tracking-wider text-white/30">
                               {pkg.scope}
                             </span>
-                            <span className="truncate text-[10px] text-white/20">
+                            <span className="truncate text-[14px] text-white/20">
                               {pkg.installPath ?? pkg.source}
                             </span>
                           </div>
@@ -259,7 +259,7 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
                                   (kind) => (
                                     <span
                                       key={kind}
-                                      className="rounded-md bg-white/[0.04] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-white/30"
+                                      className="rounded-md bg-white/[0.04] px-2 py-0.5 text-[14px] font-medium uppercase tracking-wider text-white/30"
                                     >
                                       {kind}
                                     </span>
@@ -272,7 +272,7 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
                             </p>
                           </div>
                         </div>
-                        <p className="max-w-2xl text-[13px] leading-relaxed text-white/50">
+                        <p className="max-w-2xl text-[16px] leading-relaxed text-white/50">
                           {controller.selectedPackageDetail.description ||
                             "No description provided."}
                         </p>
@@ -292,7 +292,7 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
                             }
                           }}
                         >
-                          <DownloadSimple className="size-3.5" />
+                          <DownloadSimple className="size-5" />
                           Install
                         </Button>
                         {selectedInstalledPackage ? (
@@ -311,7 +311,7 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
                                 }
                               }}
                             >
-                              <ArrowClockwise className="size-3.5" />
+                              <ArrowClockwise className="size-5" />
                               Update
                             </Button>
                             <Button
@@ -328,7 +328,7 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
                                 }
                               }}
                             >
-                              <Trash className="size-3.5" />
+                              <Trash className="size-5" />
                             </Button>
                           </>
                         ) : null}
@@ -350,7 +350,7 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
                             packageDetail.npmUrl,
                           );
                         }}
-                        className="inline-flex h-7 items-center gap-1.5 rounded-md bg-white/[0.04] px-3 text-[10px] font-medium tracking-wider text-white/40 transition-all hover:bg-white/[0.08] hover:text-white/70"
+                        className="inline-flex h-7 items-center gap-1.5 rounded-md bg-white/[0.04] px-3 text-[14px] font-medium tracking-wider text-white/40 transition-all hover:bg-white/[0.08] hover:text-white/70"
                       >
                         <Package className="size-3" />
                         NPM REGISTRY
@@ -370,7 +370,7 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
                               packageDetail.repositoryUrl,
                             );
                           }}
-                          className="inline-flex h-7 items-center gap-1.5 rounded-md bg-white/[0.04] px-3 text-[10px] font-medium tracking-wider text-white/40 transition-all hover:bg-white/[0.08] hover:text-white/70"
+                          className="inline-flex h-7 items-center gap-1.5 rounded-md bg-white/[0.04] px-3 text-[14px] font-medium tracking-wider text-white/40 transition-all hover:bg-white/[0.08] hover:text-white/70"
                         >
                           <Code className="size-3" />
                           SOURCE CODE
@@ -381,7 +381,7 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
                     <div className="mt-8">
                       <div className="mb-6 flex items-center gap-3">
                         <div className="h-px flex-1 bg-white/[0.04]" />
-                        <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/20">
+                        <span className="text-[14px] font-semibold uppercase tracking-[0.18em] text-white/20">
                           README
                         </span>
                         <div className="h-px flex-1 bg-white/[0.04]" />

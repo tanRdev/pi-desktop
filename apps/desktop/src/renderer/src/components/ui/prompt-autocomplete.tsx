@@ -43,25 +43,25 @@ function renderIcon(suggestion: SlashSuggestion | MentionSuggestion) {
   if (isMentionSuggestion(suggestion)) {
     switch (suggestion.kind) {
       case "file":
-        return <File className="size-3.5 shrink-0 text-white/30" />;
+        return <File className="size-5 shrink-0 text-white/30" />;
       case "terminal":
-        return <Terminal className="size-3.5 shrink-0 text-amber-400" />;
+        return <Terminal className="size-5 shrink-0 text-amber-400" />;
       case "thread":
-        return <MessageSquare className="size-3.5 shrink-0 text-white/30" />;
+        return <MessageSquare className="size-5 shrink-0 text-white/30" />;
       default:
-        return <AtSign className="size-3.5 shrink-0 text-white/30" />;
+        return <AtSign className="size-5 shrink-0 text-white/30" />;
     }
   }
 
   switch (suggestion.kind) {
     case "skill":
-      return <Faders className="size-3.5 shrink-0 text-indigo-400/70" />;
+      return <Faders className="size-5 shrink-0 text-indigo-400/70" />;
     case "prompt":
-      return <MessageSquare className="size-3.5 shrink-0 text-sky-400/70" />;
+      return <MessageSquare className="size-5 shrink-0 text-sky-400/70" />;
     case "model":
-      return <Command className="size-3.5 shrink-0 text-white/30" />;
+      return <Command className="size-5 shrink-0 text-white/30" />;
     default:
-      return <Command className="size-3.5 shrink-0 text-white/30" />;
+      return <Command className="size-5 shrink-0 text-white/30" />;
   }
 }
 
@@ -179,7 +179,7 @@ export function PromptAutocomplete({
             return (
               <div key={group.kind}>
                 {/* Section header */}
-                <div className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/25 select-none">
+                <div className="px-3 pb-1 pt-2 text-[14px] font-semibold uppercase tracking-[0.12em] text-white/25 select-none">
                   {label}
                 </div>
 
@@ -245,7 +245,7 @@ export function PromptAutocomplete({
                   <button
                     type="button"
                     onClick={() => toggleExpand(group.kind)}
-                    className="w-full px-3 py-1.5 text-left text-[11px] text-white/30 transition-colors duration-150 hover:text-white/50"
+                    className="w-full px-3 py-1.5 text-left text-[14px] text-white/30 transition-colors duration-150 hover:text-white/50"
                   >
                     {isExpanded ? "Show less" : `Show ${hiddenCount} more`}
                   </button>

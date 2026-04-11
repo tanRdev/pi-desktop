@@ -305,7 +305,7 @@ export function PromptDock({
             onBlur={() => setIsFocused(false)}
             className={cn(
               "min-h-[36px] resize-none border-0 bg-transparent px-0 py-0",
-              "text-[13px] leading-5 text-[var(--color-text-primary)]",
+              "text-[16px] leading-5 text-[var(--color-text-primary)]",
               "placeholder:text-[var(--color-text-tertiary)]",
               "focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none",
               "disabled:opacity-50",
@@ -341,14 +341,14 @@ export function PromptDock({
                       providerSnapshots.length === 0
                     }
                     className={cn(
-                      "flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] text-white/60",
+                      "flex items-center gap-1.5 rounded-md px-2 py-1 text-[14px] text-white/60",
                       "transition-all duration-[var(--duration-fast)]",
                       "hover:text-white/90 hover:bg-white/[0.04]",
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]",
                       "disabled:opacity-50",
                     )}
                   >
-                    <span className="max-w-[140px] truncate text-[11px]">
+                    <span className="max-w-[140px] truncate text-[14px]">
                       {currentModelDisplay}
                     </span>
                     <CaretDown
@@ -368,7 +368,7 @@ export function PromptDock({
                   <div className="max-h-72 overflow-y-auto">
                     {providerSnapshots.map((provider) => (
                       <div key={provider.id}>
-                        <div className="px-2 py-1.5 text-[11px] text-white/40">
+                        <div className="px-2 py-1.5 text-[14px] text-white/40">
                           {provider.name}
                         </div>
                         {provider.models.map((model) => {
@@ -382,7 +382,7 @@ export function PromptDock({
                               data-testid={`model-option-${provider.id}-${model.id}`}
                               onClick={() => handleModelSelect(value)}
                               className={cn(
-                                "flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-[13px] transition-colors",
+                                "flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-[16px] transition-colors",
                                 isSelected
                                   ? "bg-white/[0.08] text-white"
                                   : "text-white/70 hover:bg-white/[0.04] hover:text-white",
@@ -391,7 +391,7 @@ export function PromptDock({
                               <span>{model.name}</span>
                               {isSelected && (
                                 <svg
-                                  className="size-4 text-white/60"
+                                  className="size-5 text-white/60"
                                   fill="none"
                                   viewBox="0 0 24 24"
                                   stroke="currentColor"
@@ -421,10 +421,10 @@ export function PromptDock({
                 <PromptInputAction
                   tooltip={
                     <div className="flex flex-col gap-1 px-1 py-0.5">
-                      <div className="text-[11px] font-medium text-white">
+                      <div className="text-[14px] font-medium text-white">
                         {currentModelDisplay}
                       </div>
-                      <div className="text-[10px] text-white/50">
+                      <div className="text-[14px] text-white/50">
                         Context: {_formatTokenCount(currentContextWindow)}{" "}
                         tokens
                       </div>
@@ -432,7 +432,7 @@ export function PromptDock({
                   }
                 >
                   <div className="flex items-center gap-1.5 cursor-default">
-                    <div className="relative flex items-center justify-center size-3.5">
+                    <div className="relative flex items-center justify-center size-5">
                       <svg
                         className="size-full -rotate-90 transform"
                         viewBox="0 0 24 24"
@@ -466,7 +466,7 @@ export function PromptDock({
                         />
                       </svg>
                     </div>
-                    <span className="tabular-nums text-[11px] font-medium text-[var(--color-text-tertiary)]">
+                    <span className="tabular-nums text-[14px] font-medium text-[var(--color-text-tertiary)]">
                       {getContextPercentage(currentContextWindow)}%
                     </span>
                   </div>
@@ -485,7 +485,7 @@ export function PromptDock({
                     void (isPromptExecuting ? onCancelPrompt() : onSend())
                   }
                   className={cn(
-                    "size-7 rounded-full p-0",
+                    "size-8 rounded-full p-0",
                     !isPromptExecuting &&
                       "bg-white/80 text-black hover:bg-white",
                     !isPromptExecuting && !canSend && "opacity-20",
@@ -496,7 +496,7 @@ export function PromptDock({
                   {isPromptExecuting ? (
                     <Square className={`${ICON_SIZE_XS} fill-current`} />
                   ) : (
-                    <ArrowUp className="size-4" weight="bold" />
+                    <ArrowUp className="size-5" weight="bold" />
                   )}
                 </Button>
               </PromptInputAction>

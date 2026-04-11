@@ -118,7 +118,7 @@ export function WorkspaceSearchContent({
                 >
                   <Icon
                     className={cn(
-                      "size-4 shrink-0",
+                      "size-5 shrink-0",
                       result.type === "directory"
                         ? "text-amber-400/60"
                         : "text-white/30",

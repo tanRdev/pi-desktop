@@ -27,7 +27,7 @@ export function SettingsSection({
           {title}
         </h3>
         {description && (
-          <p className="mt-1.5 max-w-xl text-[13px] leading-6 text-white/40">
+          <p className="mt-1.5 max-w-xl text-[16px] leading-6 text-white/40">
             {description}
           </p>
         )}
@@ -53,7 +53,7 @@ export function SettingsRow({
       <div className="flex-1">
         <div className="text-sm font-medium text-white/60">{label}</div>
         {description && (
-          <p className="mt-1 text-[12px] leading-5 text-white/40">
+          <p className="mt-1 text-[14px] leading-5 text-white/40">
             {description}
           </p>
         )}
@@ -123,7 +123,7 @@ export function SettingsSelect({
                 type="button"
                 onClick={() => onChange(option.value)}
                 className={cn(
-                  "flex w-full items-center justify-between gap-2 rounded-md px-3 py-2.5 text-left text-[12px] transition-colors",
+                  "flex w-full items-center justify-between gap-2 rounded-md px-3 py-2.5 text-left text-[14px] transition-colors",
                   isSelected
                     ? "bg-white text-black"
                     : "text-white/70 hover:bg-white/[0.06] hover:text-white",
@@ -221,7 +221,7 @@ export function SettingsSlider({
         )}
       />
       {showValue && (
-        <span className="w-12 text-right text-[12px] font-medium text-white/40 tabular-nums">
+        <span className="w-12 text-right text-[14px] font-medium text-white/40 tabular-nums">
           {value}
         </span>
       )}
@@ -328,7 +328,7 @@ export function ResetButton({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "h-8 rounded-md px-3 text-[11px] text-white/40 hover:text-white/60",
+        "h-8 rounded-md px-3 text-[14px] text-white/40 hover:text-white/60",
         "transition-all duration-150 ease-[var(--ease-out)]",
         "hover:bg-white/[0.04]",
         "active:scale-[0.97]",

@@ -106,7 +106,7 @@ export function WorkspaceFileContent({
 
   const toolbar = onSave ? (
     <div className="flex h-11 shrink-0 items-center justify-between border-b border-white/[0.04] bg-transparent px-5">
-      <div className="text-[11px] font-semibold uppercase tracking-wider text-white/30">
+      <div className="text-[14px] font-semibold uppercase tracking-wider text-white/30">
         {fileName}
       </div>
       <Button
@@ -115,7 +115,7 @@ export function WorkspaceFileContent({
         size="xs"
         onClick={onSave}
         disabled={isReadOnly || !isDirty}
-        className="h-6 gap-1.5 px-2 text-[11px] uppercase tracking-wider text-white/40"
+        className="h-6 gap-1.5 px-2 text-[14px] uppercase tracking-wider text-white/40"
       >
         <Save className="size-3" />
         Save
@@ -187,7 +187,7 @@ export function WorkspaceFileContent({
       : `data:${content.mimeType ?? "image/png"};base64,${content.content}`;
 
     return (
-      <div className={cn("flex h-full flex-col bg-[#0a0a0a]", className)}>
+      <div className={cn("flex h-full flex-col bg-[var(--color-bg-primary)]", className)}>
         {toolbar}
         <div className="flex min-h-0 flex-1 items-center justify-center p-4">
           <img

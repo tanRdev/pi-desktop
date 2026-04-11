@@ -38,7 +38,7 @@ interface FileTreeItemProps {
 const getFileIcon = (filename: string, isSelected: boolean) => {
   const ext = filename.split(".").pop()?.toLowerCase();
   const className = cn(
-    "size-3.5 shrink-0 transition-all duration-200",
+    "size-5 shrink-0 transition-all duration-200",
     isSelected ? "text-primary" : "text-white/30",
   );
 
@@ -110,7 +110,7 @@ const getFileIcon = (filename: string, isSelected: boolean) => {
 
 const getFolderIcon = (isExpanded: boolean, isSelected: boolean) => {
   const className = cn(
-    "size-3.5 shrink-0 transition-all duration-200",
+    "size-5 shrink-0 transition-all duration-200",
     isSelected
       ? "text-primary"
       : isExpanded
@@ -186,7 +186,7 @@ function FileTreeItem({
         className={cn(
           "flex w-full items-center gap-2 text-left",
           "h-6 px-2",
-          "text-[11px] leading-none uppercase tracking-tight font-mono",
+          "text-[14px] leading-none uppercase tracking-tight font-mono",
           "transition-all duration-150 ease-out",
           "hover:bg-white/[0.04]",
           isSelected && ["bg-white/[0.06]", "text-[#ffffff]"],
@@ -262,7 +262,7 @@ function FileTreeItem({
 
           {isLoading && (
             <div
-              className="flex items-center gap-2 h-6 px-2 text-[10px] text-white/40 font-mono"
+              className="flex items-center gap-2 h-6 px-2 text-[14px] text-white/40 font-mono"
               style={{ paddingLeft: `${(depth + 1) * 12 + 20}px` }}
             >
               <RefreshCw className="size-3 animate-spin" />
@@ -346,7 +346,7 @@ export function FileTree({ rootPath, onFileClick, className }: FileTreeProps) {
           <Folder className="size-6 text-white/30" />
         </div>
         <div className="space-y-1">
-          <p className="font-headline text-[11px] font-bold uppercase tracking-widest text-primary">
+          <p className="font-headline text-[14px] font-bold uppercase tracking-widest text-primary">
             No workspace
           </p>
           <p className="font-mono text-[9px] uppercase tracking-wider text-white/40">
@@ -388,7 +388,7 @@ export function FileTree({ rootPath, onFileClick, className }: FileTreeProps) {
           <Layers className="size-6 text-white/30" />
         </div>
         <div className="space-y-1">
-          <p className="font-headline text-[11px] font-bold uppercase tracking-widest text-primary">
+          <p className="font-headline text-[14px] font-bold uppercase tracking-widest text-primary">
             Empty directory
           </p>
           <p className="font-mono text-[9px] uppercase tracking-wider text-white/40">

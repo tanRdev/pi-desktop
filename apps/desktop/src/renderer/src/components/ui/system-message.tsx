@@ -51,7 +51,7 @@ export function SystemMessage({
       )}
       {...props}
     >
-      <Icon className="mt-0.5 size-4 shrink-0" />
+      <Icon className="mt-0.5 size-5 shrink-0" />
       <div className="min-w-0 space-y-1 select-none">
         {title ? (
           <div className="text-xs font-medium uppercase text-white/50">

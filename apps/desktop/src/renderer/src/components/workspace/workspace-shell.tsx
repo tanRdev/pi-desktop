@@ -331,7 +331,7 @@ export function WorkspaceShell({
           </div>
         </div>
 
-        {/* Item 18: Main area bg #0d0d0d */}
+        {/* Item 18: Main area bg var(--color-bg-secondary) */}
         <main
           data-testid="chat-first-layout"
           className={cn(
@@ -344,21 +344,21 @@ export function WorkspaceShell({
             data-drag-region="true"
             className="flex h-11 shrink-0 items-center justify-between px-4 select-none border-b border-white/[0.03]"
           >
-            <div className="flex items-center gap-2 text-[12px] text-white/60" />
+            <div className="flex items-center gap-2 text-[14px] text-white/60" />
             <div className="flex items-center gap-1" data-no-drag="true">
               <button
                 type="button"
                 onClick={onOpenMarketplace}
-                className="flex size-7 items-center justify-center rounded-md text-white/30 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/60"
+                className="flex size-8 items-center justify-center rounded-md text-white/30 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/60"
               >
-                <SquaresFour className="size-4" />
+                <SquaresFour className="size-5" />
               </button>
               <button
                 type="button"
                 onClick={() => setIsRightPanelVisible(!isRightPanelVisible)}
-                className="flex size-7 items-center justify-center rounded-md text-white/30 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/60"
+                className="flex size-8 items-center justify-center rounded-md text-white/30 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/60"
               >
-                <SidebarSimple className="size-4 -scale-x-100" />
+                <SidebarSimple className="size-5 -scale-x-100" />
               </button>
             </div>
           </div>
@@ -413,7 +413,7 @@ export function WorkspaceShell({
             {/* Right panel - 3 column design with animation */}
             <div
               className={cn(
-                "min-h-0 shrink-0 overflow-hidden border-l border-white/[0.06] bg-[#0a0a0a]",
+                "min-h-0 shrink-0 overflow-hidden border-l border-white/[0.06] bg-[var(--color-bg-primary)]",
                 "transition-all duration-[var(--duration-normal)] ease-[var(--ease-out)]",
                 isRightPanelVisible
                   ? "w-[300px] xl:w-[400px] opacity-100"

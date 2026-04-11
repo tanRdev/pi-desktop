@@ -52,7 +52,7 @@ export const ChainOfThoughtTrigger = ({
   >
     <div className="flex items-center gap-2">
       {leftIcon ? (
-        <span className="relative inline-flex size-4 items-center justify-center">
+        <span className="relative inline-flex size-5 items-center justify-center">
           <span
             className={cn(
               "transition-all duration-150 ease-out",
@@ -64,7 +64,7 @@ export const ChainOfThoughtTrigger = ({
           {swapIconOnHover && (
             <CaretDown
               className={cn(
-                "absolute size-4 opacity-0 transition-all duration-150 ease-out",
+                "absolute size-5 opacity-0 transition-all duration-150 ease-out",
                 "group-hover:opacity-100 group-hover:scale-100",
                 "group-data-[state=open]:rotate-180",
               )}
@@ -72,7 +72,7 @@ export const ChainOfThoughtTrigger = ({
           )}
         </span>
       ) : (
-        <span className="relative inline-flex size-4 items-center justify-center">
+        <span className="relative inline-flex size-5 items-center justify-center">
           <XCircle className="size-2 fill-current transition-transform duration-150 ease-out group-hover:scale-110" />
         </span>
       )}
@@ -83,7 +83,7 @@ export const ChainOfThoughtTrigger = ({
     {!leftIcon && (
       <CaretDown
         className={cn(
-          "size-4 transition-all duration-200 ease-out",
+          "size-5 transition-all duration-200 ease-out",
           "group-data-[state=open]:rotate-180",
           "group-hover:scale-110",
         )}
