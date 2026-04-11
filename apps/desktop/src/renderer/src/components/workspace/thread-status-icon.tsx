@@ -1,5 +1,6 @@
 import type { ThreadRuntimeStatus } from "@pidesk/shared";
 import { cn } from "@/lib/utils";
+import { useUnicodeSpinner } from "@/hooks/use-unicode-spinner";
 
 export type ThreadDisplayStatus = "working" | "idle" | "archived";
 
@@ -22,17 +23,21 @@ export function ThreadStatusIcon({
   displayStatus,
   className,
 }: ThreadStatusIconProps) {
+  const braille = useUnicodeSpinner("braillewave", displayStatus === "working");
+
   switch (displayStatus) {
     case "working":
       return (
         <span
           role="img"
           className={cn(
-            "unicode-thinking inline-flex items-center justify-center text-[13px] leading-none text-violet-400 font-mono",
+            "inline-flex items-center justify-center text-[15px] leading-none text-white font-mono",
             className,
           )}
           aria-label="Agent working"
-        />
+        >
+          {braille}
+        </span>
       );
     case "archived":
       return (

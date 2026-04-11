@@ -150,7 +150,7 @@ function ThreadCategorySection({
         )}
       >
         <div className="flex min-w-0 flex-1 items-center gap-2 pl-2">
-          <span className="flex size-3.5 shrink-0 items-center justify-center">
+          <span className="flex size-4 shrink-0 items-center justify-center">
             {isWorking ? (
               <ThreadStatusIcon displayStatus="working" />
             ) : (
@@ -527,7 +527,7 @@ export function LeftRail({
                         : "text-white/40 hover:bg-white/[0.04] hover:text-white/70",
                     )}
                   >
-                    <span className="flex size-3.5 shrink-0 items-center justify-center">
+                    <span className="flex size-4 shrink-0 items-center justify-center">
                       <ThreadStatusIcon displayStatus={displayStatus} />
                     </span>
                     {inlineEditingThreadId === thread.id ? (

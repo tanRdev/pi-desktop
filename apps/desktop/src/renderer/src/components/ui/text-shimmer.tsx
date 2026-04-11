@@ -29,7 +29,7 @@ export function TextShimmer({
         className,
       )}
       style={{
-        backgroundImage: `linear-gradient(to right, rgba(255,255,255,0.3) ${50 - dynamicSpread}%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0.3) ${50 + dynamicSpread}%)`,
+        backgroundImage: `linear-gradient(to right, rgba(255,255,255,0.4) ${50 - dynamicSpread}%, rgba(255,255,255,0.9) 50%, rgba(255,255,255,0.4) ${50 + dynamicSpread}%)`,
         animationDuration: `${duration}s`,
       }}
       {...props}
