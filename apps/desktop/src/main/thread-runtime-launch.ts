@@ -19,7 +19,15 @@ export interface ThreadRuntimeLaunchDetails {
   worktreePath: string;
   runtimeId: string;
   socketPath: string;
+  agentDirectory: string;
   command: string[];
+}
+
+function createThreadAgentDirectory(
+  baseAgentDirectory: string,
+  threadId: string,
+): string {
+  return path.join(baseAgentDirectory, "threads", threadId);
 }
 
 export function createThreadRuntimeLaunchDetails({
@@ -36,19 +44,24 @@ export function createThreadRuntimeLaunchDetails({
   const socketPath = path.join(socketDirectory, socketFileName);
   const resolvedAgentDirectory =
     agentDirectory ?? path.join(worktreePath, ".pi", "agent");
+  const runtimeAgentDirectory = createThreadAgentDirectory(
+    resolvedAgentDirectory,
+    threadId,
+  );
 
   return {
     threadId,
     worktreePath,
     runtimeId: `local-${threadId}`,
     socketPath,
+    agentDirectory: runtimeAgentDirectory,
     command: [
       "env",
       "ELECTRON_RUN_AS_NODE=1",
       `PIDESK_AGENT_SOCKET_PATH=${socketPath}`,
       `PIDESK_AGENT_MODE=${mode}`,
       `PIDESK_AGENT_CWD=${worktreePath}`,
-      `PIDESK_AGENT_DIR=${resolvedAgentDirectory}`,
+      `PIDESK_AGENT_DIR=${runtimeAgentDirectory}`,
       ...(nodeEnv ? [`NODE_ENV=${nodeEnv}`] : []),
       execPath,
       sessionServerEntryPath,

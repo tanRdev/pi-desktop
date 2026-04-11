@@ -75,7 +75,7 @@ function toShellGitSnapshot(
 
 function createThreadSnapshot(options: {
   agentSnapshot?: AgentSnapshot | null;
-  selectedThread?: {
+  selectedThread: {
     id: string;
     title: string;
     lastActivityAt: number | null;
@@ -164,7 +164,7 @@ function createCatalog(options: {
       ? {
           repositoryId: repositoryRoot,
           worktreeId: currentWorktreePath,
-          threadId: thread.id,
+          threadId: selectedThread.id,
         }
       : {
           repositoryId: repositoryRoot,

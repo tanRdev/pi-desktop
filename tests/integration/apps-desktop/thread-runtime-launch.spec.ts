@@ -20,13 +20,15 @@ describe("createThreadRuntimeLaunchDetails", () => {
       worktreePath: "/tmp/worktrees/feature-alpha",
       runtimeId: "local-thread-alpha",
       socketPath: path.join("/tmp/pidesk-runtime-sockets", "pd-thread-a.sock"),
+      agentDirectory:
+        "/tmp/worktrees/feature-alpha/.pi/agent/threads/thread-alpha",
       command: [
         "env",
         "ELECTRON_RUN_AS_NODE=1",
         `PIDESK_AGENT_SOCKET_PATH=${path.join("/tmp/pidesk-runtime-sockets", "pd-thread-a.sock")}`,
         "PIDESK_AGENT_MODE=mock",
         "PIDESK_AGENT_CWD=/tmp/worktrees/feature-alpha",
-        "PIDESK_AGENT_DIR=/tmp/worktrees/feature-alpha/.pi/agent",
+        "PIDESK_AGENT_DIR=/tmp/worktrees/feature-alpha/.pi/agent/threads/thread-alpha",
         "NODE_ENV=test",
         "/Applications/PiDesk.app/Contents/MacOS/PiDesk",
         "/app/out/main/agent-host-session-server-entry.js",

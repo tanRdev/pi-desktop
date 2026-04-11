@@ -245,6 +245,7 @@ describe("bootstrap helpers (RED)", () => {
       worktreePath: "/tmp/project",
       runtimeId: "pidesk-thread-runtime",
       socketPath: "/tmp/pidesk/thread.sock",
+      agentDirectory: "/tmp/project/.pi/agent/threads/thread-1",
       command: ["env", "NODE_ENV=test", "node", "/tmp/session-server.mjs"],
     }));
 
@@ -316,6 +317,7 @@ describe("bootstrap helpers (RED)", () => {
       command: ["env", "NODE_ENV=test", "node", "/tmp/session-server.mjs"],
       agentMode: "mock",
       agentDirectory: "/tmp/project/.pi/agent",
+      runtimeAgentDirectory: "/tmp/project/.pi/agent/threads/thread-1",
     });
   });
 
@@ -330,6 +332,7 @@ describe("bootstrap helpers (RED)", () => {
       worktreePath: "/tmp/project",
       runtimeId: "thread-2-runtime",
       socketPath: "/tmp/pidesk/thread-2.sock",
+      agentDirectory: "/tmp/project/.pi/agent/threads/thread-2",
       command: ["node", "/tmp/session-server.mjs"],
     }));
 
@@ -381,6 +384,9 @@ describe("bootstrap helpers (RED)", () => {
       agentDirectory: null,
     });
     expect(result.agentDirectory).toBeNull();
+    expect(result.runtimeAgentDirectory).toBe(
+      "/tmp/project/.pi/agent/threads/thread-2",
+    );
     expect(result.agentMode).toBe("cli");
   });
 });

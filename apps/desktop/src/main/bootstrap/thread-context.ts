@@ -12,6 +12,7 @@ export type SelectedThreadContext<
   command: string[];
   agentMode: "mock" | "sdk" | "cli";
   agentDirectory: string | null;
+  runtimeAgentDirectory: string | null;
 };
 
 export type ResolvedRepositoryInspection = Pick<
@@ -32,6 +33,7 @@ type RuntimeOptions = {
 type LaunchDetails = {
   socketPath: string;
   runtimeId?: string;
+  agentDirectory?: string;
   command: string[];
 };
 
@@ -127,5 +129,6 @@ export function buildThreadContext<TThread extends { id: string }>(
     command: launch.command,
     agentMode: runtimeOptions.mode,
     agentDirectory: runtimeOptions.agentDir ?? null,
+    runtimeAgentDirectory: launch.agentDirectory ?? null,
   };
 }

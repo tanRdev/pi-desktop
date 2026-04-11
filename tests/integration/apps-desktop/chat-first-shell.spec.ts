@@ -39,6 +39,20 @@ describe("chat-first workspace shell", () => {
     expect(controllerSource).not.toContain("openOrFocusChatWindow");
   });
 
+  it("renders the selected thread from the per-thread conversation cache", () => {
+    const controllerSource = readSource(
+      "apps/desktop/src/renderer/src/hooks/use-app-shell-controller.ts",
+    );
+
+    expect(controllerSource).toContain("selectThreadConversationByWorktree");
+    expect(controllerSource).toContain(
+      "threadMessages: activeThreadConversation?.messages ?? agent.messages",
+    );
+    expect(controllerSource).toContain(
+      "threadLastError: activeThreadConversation?.lastError ?? agent.lastError",
+    );
+  });
+
   it("renders the transcript from the workspace component tree", () => {
     const chatSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx",
@@ -70,7 +84,11 @@ describe("chat-first workspace shell", () => {
 
     expect(controllerSource).toContain('build: "/skill:build "');
     expect(controllerSource).toContain('plan: "/skill:plan "');
-    expect(promptDockSource).toContain('(["plan", "build"] as const)');
-    expect(promptDockSource).toContain("onPromptModeChange?.(mode)");
+    expect(promptDockSource).toContain(
+      'export type PromptMode = "build" | "plan";',
+    );
+    expect(promptDockSource).toContain(
+      "onPromptModeChange?: (mode: PromptMode) => void;",
+    );
   });
 });

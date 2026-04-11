@@ -7,25 +7,28 @@ function readSource(relativePath: string): string {
 }
 
 describe("LeftRail category interactions", () => {
-  it("keeps expansion on click while using hover only for icon affordance", () => {
+  it("renders always-visible Active and Archived sections with tally bars", () => {
     const source = readSource(
       "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
     );
 
+    // Must not have hover-based category switching
     expect(source).not.toContain("onMouseMove={onHoverActivate}");
     expect(source).not.toContain("onFocus={onActivate}");
     expect(source).not.toContain("queueHoverCategory");
-    expect(source).toContain("aria-expanded={isExpanded}");
-    expect(source).toContain("group-hover/item:opacity-0");
-    expect(source).toContain("group-hover/item:scale-90");
-    expect(source).toContain("group-hover/item:opacity-100");
-    expect(source).toContain("group-hover/item:scale-100");
-    expect(source).toContain("group-hover/item:animate-pulse");
-    expect(source).toContain("!isExpanded &&");
-    expect(source).toContain(
-      "group-hover/item:scale-90 group-hover/item:opacity-0",
-    );
-    expect(source).toContain("text-white/70");
-    expect(source).toContain("{!isExpanded ? (");
+
+    // No expand/collapse mechanism
+    expect(source).not.toContain("aria-expanded");
+    expect(source).not.toContain("expandedSection");
+
+    // Category sections for Active and Archived
+    expect(source).toContain('label="Active"');
+    expect(source).toContain('label="Archived"');
+
+    // Tally bars restored
+    expect(source).toContain("TallyBars");
+
+    // No mock data
+    expect(source).not.toContain("MOCK_THREADS");
   });
 });

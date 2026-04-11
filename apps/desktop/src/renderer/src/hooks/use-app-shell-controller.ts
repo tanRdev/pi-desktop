@@ -28,6 +28,7 @@ import {
   syncActiveThreadConversation,
   updateFileDraftForWorktree,
 } from "../stores/workspace-session-runtime";
+import { selectThreadConversationByWorktree } from "../stores/workspace-session-selectors";
 import {
   parseModelSelectionValue,
   resolveCurrentModelValue,
@@ -152,6 +153,18 @@ export function useAppShellController(): AppShellController {
   const activeWorktreeId = activeWorktree?.id ?? null;
   const activeWorktreePath = activeWorktree?.path ?? null;
   const activeThreadId = activeThread?.id ?? null;
+  const activeThreadConversation = React.useSyncExternalStore(
+    workspaceSessionStore.subscribe,
+    () =>
+      activeThreadId
+        ? selectThreadConversationByWorktree(
+            workspaceSessionStore.getState(),
+            activeWorktreeId,
+            activeThreadId,
+          )
+        : undefined,
+    () => undefined,
+  );
 
   const autocompleteSuggestions = useStore(
     uiInteractionStore,
@@ -1276,8 +1289,8 @@ export function useAppShellController(): AppShellController {
     launcherIsLoading,
     activeGitRepositoryStatus,
     gitCommitMessage,
-    threadMessages: agent.messages,
-    threadLastError: agent.lastError,
+    threadMessages: activeThreadConversation?.messages ?? agent.messages,
+    threadLastError: activeThreadConversation?.lastError ?? agent.lastError,
     liveFeed: live,
     contextWindows,
     selectedContextSurface,

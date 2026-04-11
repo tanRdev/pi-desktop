@@ -1,22 +1,14 @@
-import type { RepositorySnapshot } from "@pidesk/shared";
+import type { RepositorySnapshot, ThreadSnapshot } from "@pidesk/shared";
 import { moveRepositorySnapshots } from "@pidesk/shared";
 import * as React from "react";
 import {
   Archive,
-  CaretDown,
-  ChatText,
-  CheckCircle,
-  Circle,
-  CircleDashed,
   Copy,
   Folder,
   PencilSimple,
-  PlayCircle,
   Plus,
   SidebarSimple,
-  Stack,
   Trash,
-  XCircle,
 } from "@/components/ui/icons";
 import {
   Tooltip,
@@ -24,6 +16,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import {
+  deriveThreadDisplayStatus,
+  ThreadStatusIcon,
+} from "./thread-status-icon";
 
 // Sidebar width for minimalist layout
 export const SIDEBAR_WIDTH = 240;
@@ -56,36 +52,30 @@ export interface LeftRailProps {
   onOpenInFinder?: (repositoryId: string) => void;
 }
 
-interface MockThread {
-  id: string;
-  title: string;
-  updatedAt: string;
-}
+/** Collect all threads across worktrees from the active repository. */
+function collectThreads(
+  repositories: RepositorySnapshot[],
+  activeRepositoryId: string | null,
+) {
+  const repo = repositories.find((r) => r.id === activeRepositoryId);
+  if (!repo)
+    return { active: [] as ThreadSnapshot[], archived: [] as ThreadSnapshot[] };
 
-const MOCK_THREADS: Record<
-  "done" | "in-review" | "in-progress" | "backlog" | "canceled",
-  MockThread[]
-> = {
-  done: [
-    { id: "d1", title: "Implement auth flow", updatedAt: "2h ago" },
-    { id: "d2", title: "Fix sidebar flickering", updatedAt: "5h ago" },
-  ],
-  "in-review": [
-    { id: "r1", title: "Add unit tests for workspace", updatedAt: "1h ago" },
-  ],
-  "in-progress": [
-    { id: "p1", title: "Refactor chat transcript", updatedAt: "Just now" },
-    { id: "p2", title: "Support slash commands", updatedAt: "10m ago" },
-  ],
-  backlog: [
-    { id: "b1", title: "Dark mode support", updatedAt: "1d ago" },
-    { id: "b2", title: "Keyboard shortcuts", updatedAt: "2d ago" },
-    { id: "b3", title: "Marketplace integration", updatedAt: "3d ago" },
-  ],
-  canceled: [
-    { id: "c1", title: "Legacy support for IE11", updatedAt: "1w ago" },
-  ],
-};
+  const active: ThreadSnapshot[] = [];
+  const archived: ThreadSnapshot[] = [];
+
+  for (const worktree of repo.worktrees) {
+    for (const thread of worktree.threads) {
+      if (thread.isArchived) {
+        archived.push(thread);
+      } else {
+        active.push(thread);
+      }
+    }
+  }
+
+  return { active, archived };
+}
 
 function TallyBars({
   count,
@@ -117,73 +107,37 @@ function TallyBars({
   );
 }
 
-interface CategoryItemProps {
+interface ThreadCategorySectionProps {
   label: string;
   icon: React.ElementType;
   count: number;
-  colorClassName?: string;
-  isExpanded: boolean;
-  onActivate: () => void;
+  tallyColor?: string;
   children?: React.ReactNode;
 }
 
-function CategoryItem({
+function ThreadCategorySection({
   label,
   icon: Icon,
   count,
-  colorClassName,
-  isExpanded,
-  onActivate,
+  tallyColor,
   children,
-}: CategoryItemProps) {
+}: ThreadCategorySectionProps) {
   return (
     <div className="relative space-y-0.5">
-      <span
-        aria-hidden="true"
+      <div
         className={cn(
-          "absolute left-1 top-1.5 bottom-0 w-px rounded-full bg-white/60 transition-opacity pointer-events-none",
-          isExpanded ? "opacity-100" : "opacity-0",
-        )}
-      />
-      <button
-        type="button"
-        onClick={onActivate}
-        aria-expanded={isExpanded}
-        data-state={isExpanded ? "open" : "closed"}
-        className={cn(
-          "flex w-full items-center justify-between rounded px-2 py-1.5 text-[12px] text-white/50 transition-colors",
-          "group/item cursor-pointer hover:text-white/80",
+          "flex w-full items-center justify-between rounded px-2 py-1.5 text-[12px] text-white/50",
+          "group/item",
         )}
       >
         <div className="flex min-w-0 flex-1 items-center gap-2 pl-2">
-          <span className="relative flex size-3.5 shrink-0 items-center justify-center text-white/40">
-            <Icon
-              className={cn(
-                "size-3.5 transition-all duration-150 ease-out",
-                !isExpanded &&
-                  "group-hover/item:scale-90 group-hover/item:opacity-0",
-              )}
-            />
-            {!isExpanded ? (
-              <CaretDown
-                className={cn(
-                  "absolute size-3.5 scale-90 opacity-0 text-white/70 transition-all duration-150 ease-out",
-                  "group-hover/item:scale-100 group-hover/item:opacity-100 group-hover/item:animate-pulse",
-                )}
-              />
-            ) : null}
-          </span>
+          <Icon className="size-3.5 shrink-0 text-white/40" />
           <span className="truncate">{label}</span>
         </div>
-        <TallyBars count={count} colorClassName={colorClassName} />
-      </button>
+        <TallyBars count={count} colorClassName={tallyColor} />
+      </div>
 
-      <div
-        className={cn(
-          "overflow-hidden transition-all duration-300 ease-in-out pl-4",
-          isExpanded ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0",
-        )}
-      >
+      <div className="pl-4">
         <div className="py-1 space-y-0.5">{children}</div>
       </div>
     </div>
@@ -194,9 +148,11 @@ export function LeftRail({
   repositories,
   activeRepositoryId,
   activeWorktreeId,
+  activeThreadId,
   width,
   onResize,
   onSelectRepository,
+  onSelectThread,
   onRemoveRepository,
   onCopyRepositoryPath,
   onOpenInFinder,
@@ -233,13 +189,10 @@ export function LeftRail({
     value: string;
   } | null>(null);
 
-  const [expandedCategoryId, setExpandedCategoryId] = React.useState<
-    string | null
-  >("in-progress");
-
-  const activateCategory = React.useCallback((categoryId: string) => {
-    setExpandedCategoryId(categoryId);
-  }, []);
+  const { active: activeThreads, archived: archivedThreads } = React.useMemo(
+    () => collectThreads(repositories, activeRepositoryId),
+    [repositories, activeRepositoryId],
+  );
 
   React.useEffect(() => {
     if (!isResizing) return;
@@ -448,154 +401,79 @@ export function LeftRail({
         </div>
 
         <div className="space-y-0.5 px-2">
-          <CategoryItem
-            label="Done"
-            icon={CheckCircle}
-            count={MOCK_THREADS.done.length}
-            isExpanded={expandedCategoryId === "done"}
-            onActivate={() => activateCategory("done")}
+          {/* Active threads */}
+          <ThreadCategorySection
+            label="Active"
+            icon={Plus}
+            count={activeThreads.length}
+            tallyColor="bg-[#22c55e]"
           >
-            {MOCK_THREADS.done.map((thread) => (
-              <button
-                key={thread.id}
-                type="button"
-                className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-[11px] text-white/40 hover:bg-white/[0.04] hover:text-white/70"
-              >
-                <ChatText className="size-3 opacity-50" />
-                <span className="truncate flex-1">{thread.title}</span>
-                <span className="text-[9px] opacity-30">
-                  {thread.updatedAt}
-                </span>
-              </button>
-            ))}
-          </CategoryItem>
-
-          <CategoryItem
-            label="In review"
-            icon={Circle}
-            count={MOCK_THREADS["in-review"].length}
-            colorClassName="bg-[#eab308]"
-            isExpanded={expandedCategoryId === "in-review"}
-            onActivate={() => activateCategory("in-review")}
-          >
-            {MOCK_THREADS["in-review"].map((thread) => (
-              <button
-                key={thread.id}
-                type="button"
-                className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-[11px] text-white/40 hover:bg-white/[0.04] hover:text-white/70"
-              >
-                <ChatText className="size-3 opacity-50" />
-                <span className="truncate flex-1">{thread.title}</span>
-                <span className="text-[9px] opacity-30">
-                  {thread.updatedAt}
-                </span>
-              </button>
-            ))}
-          </CategoryItem>
-
-          <CategoryItem
-            label="In progress"
-            icon={PlayCircle}
-            count={MOCK_THREADS["in-progress"].length}
-            colorClassName="bg-[#22c55e]"
-            isExpanded={expandedCategoryId === "in-progress"}
-            onActivate={() => activateCategory("in-progress")}
-          >
-            {MOCK_THREADS["in-progress"].map((thread) => (
-              <button
-                key={thread.id}
-                type="button"
-                className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-[11px] text-white/40 hover:bg-white/[0.04] hover:text-white/70"
-              >
-                <ChatText className="size-3 opacity-50" />
-                <span className="truncate flex-1">{thread.title}</span>
-                <span className="text-[9px] opacity-30">
-                  {thread.updatedAt}
-                </span>
-              </button>
-            ))}
-          </CategoryItem>
-
-          <CategoryItem
-            label="Backlog"
-            icon={CircleDashed}
-            count={MOCK_THREADS.backlog.length}
-            isExpanded={expandedCategoryId === "backlog"}
-            onActivate={() => activateCategory("backlog")}
-          >
-            {MOCK_THREADS.backlog.map((thread) => (
-              <button
-                key={thread.id}
-                type="button"
-                className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-[11px] text-white/40 hover:bg-white/[0.04] hover:text-white/70"
-              >
-                <ChatText className="size-3 opacity-50" />
-                <span className="truncate flex-1">{thread.title}</span>
-                <span className="text-[9px] opacity-30">
-                  {thread.updatedAt}
-                </span>
-              </button>
-            ))}
-          </CategoryItem>
-
-          <CategoryItem
-            label="Canceled"
-            icon={XCircle}
-            count={MOCK_THREADS.canceled.length}
-            colorClassName="bg-[#ef4444]"
-            isExpanded={expandedCategoryId === "canceled"}
-            onActivate={() => activateCategory("canceled")}
-          >
-            {MOCK_THREADS.canceled.map((thread) => (
-              <button
-                key={thread.id}
-                type="button"
-                className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-[11px] text-white/40 hover:bg-white/[0.04] hover:text-white/70"
-              >
-                <ChatText className="size-3 opacity-50" />
-                <span className="truncate flex-1">{thread.title}</span>
-                <span className="text-[9px] opacity-30">
-                  {thread.updatedAt}
-                </span>
-              </button>
-            ))}
-          </CategoryItem>
-
-          <div className="mt-4">
-            <CategoryItem
-              label="Archived"
-              icon={Archive}
-              count={29}
-              colorClassName="bg-white/40"
-              isExpanded={expandedCategoryId === "archived"}
-              onActivate={() => activateCategory("archived")}
-            >
-              {orderedRepositories.map((repository) => {
-                const repositoryName = getRepositoryName(repository);
-                const isActive = repository.id === activeRepositoryId;
+            {activeThreads.length === 0 ? (
+              <div className="px-2 py-3 text-[11px] text-white/20">
+                No active threads
+              </div>
+            ) : (
+              activeThreads.map((thread) => {
+                const displayStatus = deriveThreadDisplayStatus(
+                  thread.runtime.status,
+                  thread.isArchived,
+                );
+                const isActive = thread.id === activeThreadId;
                 return (
                   <button
-                    key={repository.id}
+                    key={thread.id}
                     type="button"
-                    onClick={() => onSelectRepository(repository.id)}
+                    onClick={() => onSelectThread(thread.id)}
                     className={cn(
-                      "flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-[11px] transition-colors",
+                      "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[11px] transition-colors",
                       isActive
                         ? "bg-white/[0.04] text-white/80"
                         : "text-white/40 hover:bg-white/[0.04] hover:text-white/70",
                     )}
                   >
-                    <Stack
-                      className={cn(
-                        "size-3",
-                        isActive ? "opacity-100" : "opacity-50",
-                      )}
-                    />
-                    <span className="truncate flex-1">{repositoryName}</span>
+                    <span className="flex size-3.5 shrink-0 items-center justify-center">
+                      <ThreadStatusIcon displayStatus={displayStatus} />
+                    </span>
+                    <span className="truncate flex-1">
+                      {thread.title || "Untitled thread"}
+                    </span>
                   </button>
                 );
-              })}
-            </CategoryItem>
+              })
+            )}
+          </ThreadCategorySection>
+
+          <div className="mt-4">
+            {/* Archived threads */}
+            <ThreadCategorySection
+              label="Archived"
+              icon={Archive}
+              count={archivedThreads.length}
+              tallyColor="bg-white/40"
+            >
+              {archivedThreads.length === 0 ? (
+                <div className="px-2 py-3 text-[11px] text-white/20">
+                  No archived threads
+                </div>
+              ) : (
+                archivedThreads.map((thread) => (
+                  <button
+                    key={thread.id}
+                    type="button"
+                    onClick={() => onSelectThread(thread.id)}
+                    className={cn(
+                      "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[11px] transition-colors",
+                      "text-white/30 hover:bg-white/[0.04] hover:text-white/50",
+                    )}
+                  >
+                    <Archive className="size-3 shrink-0 text-white/20" />
+                    <span className="truncate flex-1">
+                      {thread.title || "Untitled thread"}
+                    </span>
+                  </button>
+                ))
+              )}
+            </ThreadCategorySection>
           </div>
         </div>
       </div>

@@ -225,7 +225,7 @@ async function bootstrapDesktop() {
   };
 
   function resolveAgentDirectory(): string {
-    return currentContext?.agentDirectory ?? defaultAgentDirectory;
+    return currentContext?.runtimeAgentDirectory ?? defaultAgentDirectory;
   }
 
   function resolveContextCwd(): string {
