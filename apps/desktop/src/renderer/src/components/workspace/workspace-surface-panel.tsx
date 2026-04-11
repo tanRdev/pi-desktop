@@ -22,6 +22,55 @@ export interface WorkspaceSurfacePanelProps {
   className?: string;
 }
 
+interface WorkspaceSurfaceContentProps {
+  selectedWindow: SurfaceWindow | null;
+  fileData: ReturnType<typeof selectFileWindowStateByWorktree> | undefined;
+  activityContent: React.ReactNode;
+  onFileContentChange: (windowId: string, content: string) => void;
+  onFileSave: (windowId: string, filePath: string) => void | Promise<void>;
+}
+
+function WorkspaceSurfaceContent({
+  selectedWindow,
+  fileData,
+  activityContent,
+  onFileContentChange,
+  onFileSave,
+}: WorkspaceSurfaceContentProps) {
+  if (!selectedWindow || selectedWindow.kind === "git") {
+    return activityContent;
+  }
+
+  switch (selectedWindow.kind) {
+    case "file":
+      return (
+        <WorkspaceFileContent
+          filePath={selectedWindow.filePath}
+          content={fileData?.content ?? null}
+          isLoading={fileData?.isLoading}
+          error={fileData?.error}
+          isDirty={selectedWindow.isDirty}
+          isReadOnly={selectedWindow.isReadOnly}
+          onContentChange={(content) =>
+            onFileContentChange(selectedWindow.id, content)
+          }
+          onSave={() => onFileSave(selectedWindow.id, selectedWindow.filePath)}
+          className="h-full"
+        />
+      );
+    case "terminal":
+      return (
+        <Terminal
+          id={selectedWindow.terminalId}
+          cwd={selectedWindow.cwd}
+          backend={selectedWindow.backend}
+          ownerWindowId={selectedWindow.id}
+          className="h-full"
+        />
+      );
+  }
+}
+
 export function WorkspaceSurfacePanel({
   activeWorktreeId,
   selectedSurfaceKey,
@@ -42,47 +91,6 @@ export function WorkspaceSurfacePanel({
         )
       : undefined,
   );
-  const renderSelectedContent = () => {
-    if (!selectedWindow) {
-      return activityContent;
-    }
-
-    if (selectedWindow.kind === "file") {
-      return (
-        <WorkspaceFileContent
-          filePath={selectedWindow.filePath}
-          content={fileData?.content ?? null}
-          isLoading={fileData?.isLoading}
-          error={fileData?.error}
-          isDirty={selectedWindow.isDirty}
-          isReadOnly={selectedWindow.isReadOnly}
-          onContentChange={(content) =>
-            onFileContentChange(selectedWindow.id, content)
-          }
-          onSave={() => onFileSave(selectedWindow.id, selectedWindow.filePath)}
-          className="h-full"
-        />
-      );
-    }
-
-    if (selectedWindow.kind === "terminal") {
-      return (
-        <Terminal
-          id={selectedWindow.terminalId}
-          cwd={selectedWindow.cwd}
-          backend={selectedWindow.backend}
-          ownerWindowId={selectedWindow.id}
-          className="h-full"
-        />
-      );
-    }
-
-    if (selectedWindow.kind === "git") {
-      return activityContent;
-    }
-
-    return activityContent;
-  };
 
   return (
     <section
@@ -90,7 +98,13 @@ export function WorkspaceSurfacePanel({
       className={cn("flex min-h-0 flex-1 flex-col bg-transparent", className)}
     >
       <div className="min-h-0 flex-1 overflow-hidden">
-        {renderSelectedContent()}
+        <WorkspaceSurfaceContent
+          selectedWindow={selectedWindow}
+          fileData={fileData}
+          activityContent={activityContent}
+          onFileContentChange={onFileContentChange}
+          onFileSave={onFileSave}
+        />
       </div>
     </section>
   );

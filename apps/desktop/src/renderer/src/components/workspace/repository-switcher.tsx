@@ -3,6 +3,11 @@ import type { RepositorySnapshot } from "@pidesk/shared";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 
+function getPathTail(value: string): string {
+  const segments = value.split(/[\\/]+/).filter(Boolean);
+  return segments[segments.length - 1] ?? value;
+}
+
 export interface RepositorySwitcherProps {
   repositories: RepositorySnapshot[];
   activeRepositoryId: string | null;
@@ -45,33 +50,25 @@ export function RepositorySwitcher({
     ) ??
     activeRepository?.worktrees[0] ??
     null;
+  const triggerTitle = triggerAriaLabel ?? "Switch projects";
 
   return (
     <Popover>
       <PopoverTrigger asChild>
         <button
           type="button"
-          aria-label={triggerAriaLabel}
+          aria-label={triggerTitle}
+          title={triggerTitle}
           className={cn(
-            "group flex h-auto w-full items-center justify-between gap-2 py-0.5 text-left",
-            "text-white/70 transition-colors duration-[var(--duration-fast)] hover:text-white/90",
+            "group flex size-8 items-center justify-center rounded-sm text-left",
+            "text-white/70 transition-colors duration-[var(--duration-fast)] hover:bg-white/[0.04] hover:text-white/90",
             className,
           )}
         >
-          <div className="flex min-w-0 flex-1 items-center gap-2">
-            <Stack
-              className="size-5 shrink-0 text-white/30 group-hover:text-white/50 transition-colors"
-              weight="regular"
-            />
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-[16px] font-medium text-white/80">
-                {triggerLabel ?? activeRepository?.name ?? "Select project"}
-              </div>
-              <div className="truncate text-[14px] text-white/30">
-                {triggerSubtitle ?? activeWorktree?.path ?? ""}
-              </div>
-            </div>
-          </div>
+          <Stack
+            className="size-4 shrink-0 text-white/30 group-hover:text-white/50 transition-colors"
+            weight="regular"
+          />
         </button>
       </PopoverTrigger>
       <PopoverContent
@@ -110,11 +107,11 @@ export function RepositorySwitcher({
                   weight="regular"
                 />
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-[16px] font-medium text-white/80">
-                    {repository.name}
+                  <div className="truncate text-[14px] font-medium text-white/80">
+                    {repository.customName ?? repository.name}
                   </div>
-                  <div className="mt-0.5 truncate text-[14px] text-white/30">
-                    {repository.rootPath}
+                  <div className="mt-0.5 truncate text-[12px] text-white/30">
+                    {getPathTail(repository.rootPath)}
                   </div>
                 </div>
               </button>
@@ -124,7 +121,7 @@ export function RepositorySwitcher({
             type="button"
             onClick={() => onAdd()}
             className={cn(
-              "flex w-full items-center gap-2 px-3 py-3 text-[16px] font-medium",
+              "flex w-full items-center gap-2 px-3 py-3 text-[14px] font-medium",
               "text-white/30 transition-all duration-[var(--duration-fast)]",
               "hover:bg-white/[0.04] hover:text-white/80",
             )}

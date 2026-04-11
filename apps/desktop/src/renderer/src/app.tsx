@@ -26,6 +26,28 @@ type WorkspaceSwitchState = {
   startedAt?: number;
 };
 
+const APP_ROOT_STYLE = {
+  "--ease-out": "cubic-bezier(0.23, 1, 0.32, 1)",
+  "--duration-fast": "150ms",
+  "--duration-normal": "200ms",
+  "--duration-slow": "300ms",
+} as React.CSSProperties;
+
+function isWorkspaceSwitchState(value: unknown): value is WorkspaceSwitchState {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const candidate = value as Record<string, unknown>;
+
+  return (
+    (candidate.repositoryName === undefined ||
+      typeof candidate.repositoryName === "string") &&
+    (candidate.startedAt === undefined ||
+      typeof candidate.startedAt === "number")
+  );
+}
+
 function readWorkspaceSwitchState(): WorkspaceSwitchState | null {
   const serializedState = sessionStorage.getItem(WORKSPACE_SWITCH_STATE_KEY);
   if (!serializedState) {
@@ -33,7 +55,14 @@ function readWorkspaceSwitchState(): WorkspaceSwitchState | null {
   }
 
   try {
-    return JSON.parse(serializedState) as WorkspaceSwitchState;
+    const parsed = JSON.parse(serializedState) as unknown;
+
+    if (isWorkspaceSwitchState(parsed)) {
+      return parsed;
+    }
+
+    sessionStorage.removeItem(WORKSPACE_SWITCH_STATE_KEY);
+    return null;
   } catch {
     sessionStorage.removeItem(WORKSPACE_SWITCH_STATE_KEY);
     return null;
@@ -98,14 +127,7 @@ export default function App() {
               "motion-safe:[&>*]:animate-in motion-safe:[&>*]:fade-in-0",
               "motion-safe:[&>*]:duration-300 motion-safe:[&>*]:fill-mode-forwards",
             )}
-            style={{
-              // Emil Design: Custom easing via CSS variable
-              ["--ease-out" as string]: "cubic-bezier(0.23, 1, 0.32, 1)",
-              // Reduced motion: respect user preferences at app level
-              ["--duration-fast" as string]: "150ms",
-              ["--duration-normal" as string]: "200ms",
-              ["--duration-slow" as string]: "300ms",
-            }}
+            style={APP_ROOT_STYLE}
           >
             <WorkspaceShell {...controller.workspaceShellProps} />
             {workspaceSwitchLoaderName ? (

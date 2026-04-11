@@ -2,6 +2,7 @@ import type {
   GitRepositoryStatus,
   MentionSuggestion,
   ProviderSnapshot,
+  RepositoryDisplayMetadata,
   RepositorySnapshot,
   ShellGitSnapshot,
   SlashSuggestion,
@@ -15,6 +16,7 @@ import { ChatThreadPanel } from "./chat-thread-panel";
 import { GitPanel } from "./git-panel";
 import { LeftRail, SIDEBAR_WIDTH } from "./left-rail";
 import { PromptDock } from "./prompt-dock";
+import { TitleBar } from "./title-bar";
 import { WorkspaceActivityPanel } from "./workspace-activity-panel";
 import { FileTreeOverlay, LauncherOverlay } from "./workspace-overlays";
 import type { WorkspaceSearchAction } from "./workspace-search-content";
@@ -25,7 +27,6 @@ type ContextWindow = Extract<
   import("@pidesk/shared").WorkspaceWindow,
   { kind: "file" | "terminal" | "git" }
 >;
-type PromptMode = "build" | "plan";
 
 export interface WorkspaceShellProps {
   platform: string | null;
@@ -66,6 +67,10 @@ export interface WorkspaceShellProps {
   onModelMenuOpenChange: (open: boolean) => void | Promise<void>;
   onAddRepository: () => void | Promise<void>;
   onSelectRepository: (repositoryId: string) => void | Promise<void>;
+  onUpdateRepositoryPreferences: (
+    repositoryId: string,
+    updates: Partial<RepositoryDisplayMetadata>,
+  ) => void | Promise<void>;
   onRenameRepository: (
     repositoryId: string,
     name: string,
@@ -114,12 +119,12 @@ export interface WorkspaceShellProps {
   onModelSelection: (
     event: React.ChangeEvent<HTMLSelectElement>,
   ) => void | Promise<void>;
-  promptMode: PromptMode;
-  onPromptModeChange: (mode: PromptMode) => void;
+  promptMode: "build" | "plan";
+  onPromptModeChange: (mode: "build" | "plan") => void;
 }
 
 export function WorkspaceShell({
-  platform: _platform,
+  platform,
   repositories,
   activeRepository,
   activeRepositoryId,
@@ -152,11 +157,13 @@ export function WorkspaceShell({
   contextWindows,
   selectedContextSurface,
   leftRailWidth,
+  onSelectContextSurface: _onSelectContextSurface,
   onLeftRailResize,
-  onModelMenuOpenChange: _onModelMenuOpenChange,
+  onModelMenuOpenChange,
   onAddRepository,
-  onSelectRepository: _onSelectRepository,
-  onRenameRepository,
+  onSelectRepository,
+  onUpdateRepositoryPreferences: _onUpdateRepositoryPreferences,
+  onRenameRepository: _onRenameRepository,
   onRemoveRepository,
   onCopyRepositoryPath,
   onOpenInFinder,
@@ -168,13 +175,13 @@ export function WorkspaceShell({
   onCloseThread,
   onDeleteThread,
   onRenameThread,
-  onOpenLauncher: _onOpenLauncher,
+  onOpenLauncher,
   onCloseLauncher,
-  onOpenFileTree: _onOpenFileTree,
+  onOpenFileTree,
   onCloseFileTree,
   onOpenGit,
   onOpenTerminal,
-  onOpenActivity: _onOpenActivity,
+  onOpenActivity,
   onGitCommitMessageChange,
   onRefreshGit,
   onCommitGit,
@@ -257,8 +264,6 @@ export function WorkspaceShell({
 
   const hasActiveThread = activeThreadId !== null;
   const leftRailTargetWidth = Math.max(leftRailWidth, SIDEBAR_WIDTH);
-  const _hasTranscriptHistory =
-    threadMessages.length > 0 || isPromptExecuting || threadLastError !== null;
   const selectedSurfaceKey =
     selectedContextSurface === null
       ? null
@@ -267,13 +272,62 @@ export function WorkspaceShell({
         : contextWindows.some((window) => window.id === selectedContextSurface)
           ? selectedContextSurface
           : null;
-  const _activeSurfaceKind =
+  const activeSurfaceKind =
     selectedSurfaceKey === null
       ? null
       : selectedSurfaceKey === "activity"
         ? "activity"
         : (contextWindows.find((window) => window.id === selectedSurfaceKey)
             ?.kind ?? null);
+  const gitPanel = (
+    <GitPanel
+      projectName={projectName}
+      repositoryPath={
+        activeWorktree?.path ?? activeRepository?.rootPath ?? null
+      }
+      worktree={activeWorktree}
+      repositoryStatus={activeGitRepositoryStatus}
+      shellGit={shellGit}
+      commitMessage={gitCommitMessage}
+      onCommitMessageChange={onGitCommitMessageChange}
+      onRefresh={onRefreshGit}
+      onCommit={onCommitGit}
+      onPull={onPullGit}
+      onPush={onPushGit}
+      onStageFile={onStageGitFile}
+      onUnstageFile={onUnstageGitFile}
+      onDiscardFile={onDiscardGitFile}
+    />
+  );
+
+  function renderRightPanelContent() {
+    if (selectedSurfaceKey === "activity") {
+      return (
+        <WorkspaceActivityPanel
+          threadTitle={activeThreadTitle}
+          worktreeLabel={activeWorktreeLabel}
+          displayAgentStatus={displayAgentStatus}
+          liveFeed={liveFeed}
+          className="h-full"
+        />
+      );
+    }
+
+    if (selectedSurfaceKey !== null) {
+      return (
+        <WorkspaceSurfacePanel
+          activeWorktreeId={activeWorktreeId}
+          selectedSurfaceKey={selectedSurfaceKey}
+          windows={contextWindows}
+          onFileContentChange={onFileContentChange}
+          onFileSave={onFileSave}
+          activityContent={gitPanel}
+        />
+      );
+    }
+
+    return gitPanel;
+  }
 
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden select-none">
@@ -314,7 +368,6 @@ export function WorkspaceShell({
               isPromptExecuting={isPromptExecuting}
               width={leftRailTargetWidth}
               onResize={onLeftRailResize}
-              onRenameRepository={onRenameRepository}
               onRemoveRepository={onRemoveRepository}
               onCopyRepositoryPath={onCopyRepositoryPath}
               onOpenInFinder={onOpenInFinder}
@@ -339,29 +392,25 @@ export function WorkspaceShell({
             "bg-[var(--shell-main-bg)]",
           )}
         >
-          {/* Item 14: Workspace header */}
-          <div
-            data-drag-region="true"
-            className="flex h-11 shrink-0 items-center justify-between px-4 select-none border-b border-white/[0.03]"
-          >
-            <div className="flex items-center gap-2 text-[14px] text-white/60" />
-            <div className="flex items-center gap-1" data-no-drag="true">
-              <button
-                type="button"
-                onClick={onOpenMarketplace}
-                className="flex size-8 items-center justify-center rounded-sm text-white/30 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/60"
-              >
-                <SquaresFour className="size-5" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsRightPanelVisible(!isRightPanelVisible)}
-                className="flex size-8 items-center justify-center rounded-sm text-white/30 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/60"
-              >
-                <SidebarSimple className="size-5 -scale-x-100" />
-              </button>
-            </div>
-          </div>
+          <TitleBar
+            platform={platform}
+            repositories={repositories}
+            activeRepositoryId={activeRepositoryId}
+            activeRepositoryName={projectName}
+            activeWorktree={activeWorktree}
+            activeSurfaceKind={activeSurfaceKind}
+            isSidePanelVisible={isRightPanelVisible}
+            onSelectRepository={onSelectRepository}
+            onAddRepository={onAddRepository}
+            onOpenMarketplace={onOpenLauncher}
+            onOpenFileTree={onOpenFileTree}
+            onOpenTerminal={onOpenTerminal}
+            onOpenGit={onOpenGit}
+            onOpenSettings={onOpenSettings}
+            onToggleSidePanel={() =>
+              setIsRightPanelVisible(!isRightPanelVisible)
+            }
+          />
           <div className="flex min-h-0 flex-1 overflow-hidden select-none">
             {/* Chat panel - takes remaining space */}
             <div
@@ -404,7 +453,7 @@ export function WorkspaceShell({
                   isSwitchingModel={isSwitchingModel}
                   promptMode={promptMode}
                   onPromptModeChange={onPromptModeChange}
-                  onModelMenuOpenChange={_onModelMenuOpenChange}
+                  onModelMenuOpenChange={onModelMenuOpenChange}
                   onModelSelection={onModelSelection}
                 />
               </div>
@@ -427,64 +476,7 @@ export function WorkspaceShell({
                   isRightPanelVisible ? "opacity-100" : "opacity-0",
                 )}
               >
-                {selectedSurfaceKey === "activity" ? (
-                  <WorkspaceActivityPanel
-                    threadTitle={activeThreadTitle}
-                    worktreeLabel={activeWorktreeLabel}
-                    displayAgentStatus={displayAgentStatus}
-                    liveFeed={liveFeed}
-                    className="h-full"
-                  />
-                ) : selectedSurfaceKey !== null ? (
-                  <WorkspaceSurfacePanel
-                    activeWorktreeId={activeWorktreeId}
-                    selectedSurfaceKey={selectedSurfaceKey ?? ""}
-                    windows={contextWindows}
-                    onFileContentChange={onFileContentChange}
-                    onFileSave={onFileSave}
-                    activityContent={
-                      <GitPanel
-                        projectName={projectName}
-                        repositoryPath={
-                          activeWorktree?.path ??
-                          activeRepository?.rootPath ??
-                          null
-                        }
-                        worktree={activeWorktree}
-                        repositoryStatus={activeGitRepositoryStatus}
-                        shellGit={shellGit}
-                        commitMessage={gitCommitMessage}
-                        onCommitMessageChange={onGitCommitMessageChange}
-                        onRefresh={onRefreshGit}
-                        onCommit={onCommitGit}
-                        onPull={onPullGit}
-                        onPush={onPushGit}
-                        onStageFile={onStageGitFile}
-                        onUnstageFile={onUnstageGitFile}
-                        onDiscardFile={onDiscardGitFile}
-                      />
-                    }
-                  />
-                ) : (
-                  <GitPanel
-                    projectName={projectName}
-                    repositoryPath={
-                      activeWorktree?.path ?? activeRepository?.rootPath ?? null
-                    }
-                    worktree={activeWorktree}
-                    repositoryStatus={activeGitRepositoryStatus}
-                    shellGit={shellGit}
-                    commitMessage={gitCommitMessage}
-                    onCommitMessageChange={onGitCommitMessageChange}
-                    onRefresh={onRefreshGit}
-                    onCommit={onCommitGit}
-                    onPull={onPullGit}
-                    onPush={onPushGit}
-                    onStageFile={onStageGitFile}
-                    onUnstageFile={onUnstageGitFile}
-                    onDiscardFile={onDiscardGitFile}
-                  />
-                )}
+                {renderRightPanelContent()}
               </div>
             </div>
           </div>

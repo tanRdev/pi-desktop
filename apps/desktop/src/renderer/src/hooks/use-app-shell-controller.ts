@@ -73,30 +73,15 @@ function getInitialContextSurface(
   windows: WorkspaceShellProps["contextWindows"],
   current: WorkspaceShellProps["selectedContextSurface"] | null,
 ): WorkspaceShellProps["selectedContextSurface"] {
-  if (current === null) {
+  if (current === null || current === "activity") {
     return current;
   }
 
-  if (current === "activity") {
+  if (windows.some((window) => window.id === current)) {
     return current;
   }
 
-  if (current && windows.some((window) => window.id === current)) {
-    return current;
-  }
-
-  return current;
-}
-
-function persistWorkspaceSwitchState(repositoryName: string): void {
-  sessionStorage.setItem(
-    WORKSPACE_SWITCH_STATE_KEY,
-    JSON.stringify({ repositoryName, startedAt: Date.now() }),
-  );
-}
-
-function showWorkspaceSwitchLoader(repositoryName: string): void {
-  persistWorkspaceSwitchState(repositoryName);
+  return null;
 }
 
 export interface AppShellController {
@@ -933,7 +918,13 @@ export function useAppShellController(): AppShellController {
       return;
     }
 
-    showWorkspaceSwitchLoader(workspaceSwitchingRepositoryName);
+    sessionStorage.setItem(
+      WORKSPACE_SWITCH_STATE_KEY,
+      JSON.stringify({
+        repositoryName: workspaceSwitchingRepositoryName,
+        startedAt: Date.now(),
+      }),
+    );
   }, [workspaceSwitchingRepositoryName]);
 
   React.useEffect(() => {
@@ -1264,6 +1255,7 @@ export function useAppShellController(): AppShellController {
     onModelMenuOpenChange: handleModelMenuOpenChange,
     onAddRepository: handleAddRepository,
     onSelectRepository: handleSelectRepository,
+    onUpdateRepositoryPreferences: updateRepositoryPreferences,
     onRenameRepository: handleRenameRepository,
     onRemoveRepository: handleRemoveRepository,
     onCopyRepositoryPath: handleCopyRepositoryPath,

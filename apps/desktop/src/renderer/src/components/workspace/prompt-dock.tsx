@@ -13,11 +13,8 @@ import * as React from "react";
 import {
   ArrowUp,
   CaretDown,
-  Cpu,
   ICON_SIZE_MD,
-  ICON_SIZE_SM,
   ICON_SIZE_XS,
-  Microphone,
   Paperclip,
   Square,
 } from "@/components/ui/icons";
@@ -30,7 +27,7 @@ import { Loader } from "../ui/loader";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import PromptAutocomplete from "../ui/prompt-autocomplete";
 
-function _formatTokenCount(tokens: number): string {
+function formatTokenCount(tokens: number): string {
   if (tokens >= 1_000_000) {
     return `${(tokens / 1_000_000).toFixed(tokens % 1_000_000 === 0 ? 0 : 1)}M`;
   }
@@ -68,8 +65,8 @@ export interface PromptDockProps {
   ) => void;
   onAutocompleteHover: (index: number) => void;
   onPromptKeyDown: React.KeyboardEventHandler<HTMLTextAreaElement>;
-  displayAgentStatus: string;
-  runtimeModeLabel: string;
+  displayAgentStatus?: string;
+  runtimeModeLabel?: string;
   providerSnapshots: ProviderSnapshot[];
   currentModelValue: string;
   isSwitchingModel: boolean;
@@ -111,27 +108,22 @@ export function PromptDock({
   const [uploadedFiles, setUploadedFiles] = React.useState<UploadedFile[]>([]);
   const hasActiveThread = activeThreadId !== null;
 
-  const currentModelDisplay = React.useMemo(() => {
+  const currentModel = React.useMemo(() => {
     for (const provider of providerSnapshots) {
       for (const model of provider.models) {
         if (`${provider.id}::${model.id}` === currentModelValue) {
-          return model.name;
-        }
-      }
-    }
-    return "Select model";
-  }, [providerSnapshots, currentModelValue]);
-
-  const currentContextWindow = React.useMemo(() => {
-    for (const provider of providerSnapshots) {
-      for (const model of provider.models) {
-        if (`${provider.id}::${model.id}` === currentModelValue) {
-          return model.contextWindow ?? null;
+          return model;
         }
       }
     }
     return null;
   }, [providerSnapshots, currentModelValue]);
+  const currentModelDisplay = currentModel?.name ?? "Select model";
+  const currentContextWindow = currentModel?.contextWindow ?? null;
+  const currentContextPercentage =
+    currentContextWindow === null
+      ? null
+      : getContextPercentage(currentContextWindow);
 
   const imageFiles = React.useMemo(
     () => uploadedFiles.filter((file) => file.kind === "image"),
@@ -157,6 +149,10 @@ export function PromptDock({
     },
     [onModelMenuOpenChange],
   );
+
+  const handleSubmit = React.useCallback(() => {
+    void (isPromptExecuting ? onCancelPrompt() : onSend());
+  }, [isPromptExecuting, onCancelPrompt, onSend]);
 
   const handlePickFiles = React.useCallback(async () => {
     const selectedPaths = await window.pidesk.dialog.showOpenDialog({
@@ -266,9 +262,7 @@ export function PromptDock({
         <PromptInput
           value={draft}
           onValueChange={onDraftChange}
-          onSubmit={() =>
-            void (isPromptExecuting ? onCancelPrompt() : onSend())
-          }
+          onSubmit={handleSubmit}
           className={cn("px-6 pb-4 pt-4")}
         >
           <FileUpload
@@ -417,7 +411,8 @@ export function PromptDock({
 
             <div className="flex items-center gap-[var(--space-3)]">
               {isSwitchingModel ? <Loader label="Switching" /> : null}
-              {currentContextWindow != null ? (
+              {currentContextWindow != null &&
+              currentContextPercentage !== null ? (
                 <PromptInputAction
                   tooltip={
                     <div className="flex flex-col gap-1 px-1 py-0.5">
@@ -425,8 +420,7 @@ export function PromptDock({
                         {currentModelDisplay}
                       </div>
                       <div className="text-[14px] text-white/50">
-                        Context: {_formatTokenCount(currentContextWindow)}{" "}
-                        tokens
+                        Context: {formatTokenCount(currentContextWindow)} tokens
                       </div>
                     </div>
                   }
@@ -436,6 +430,8 @@ export function PromptDock({
                       <svg
                         className="size-full -rotate-90 transform"
                         viewBox="0 0 24 24"
+                        aria-label={`Context window usage ${currentContextPercentage}%`}
+                        role="img"
                       >
                         <circle
                           cx="12"
@@ -458,8 +454,7 @@ export function PromptDock({
                             2 *
                             Math.PI *
                             10 *
-                            (1 -
-                              getContextPercentage(currentContextWindow) / 100)
+                            (1 - currentContextPercentage / 100)
                           }
                           strokeLinecap="round"
                           className="text-[var(--color-text-tertiary)] transition-all duration-500 ease-in-out"
@@ -467,7 +462,7 @@ export function PromptDock({
                       </svg>
                     </div>
                     <span className="tabular-nums text-[14px] font-medium text-[var(--color-text-tertiary)]">
-                      {getContextPercentage(currentContextWindow)}%
+                      {currentContextPercentage}%
                     </span>
                   </div>
                 </PromptInputAction>
@@ -481,9 +476,7 @@ export function PromptDock({
                   variant={isPromptExecuting ? "destructive" : "default"}
                   size="icon"
                   disabled={isPromptExecuting ? false : !canSend}
-                  onClick={() =>
-                    void (isPromptExecuting ? onCancelPrompt() : onSend())
-                  }
+                  onClick={handleSubmit}
                   className={cn(
                     "size-8 rounded-full p-0",
                     !isPromptExecuting &&
