@@ -97,60 +97,61 @@ function ChangeList({
   onDiscard?: (filePath: string) => void | Promise<void>;
 }) {
   return (
-    <section className="space-y-2">
+    <section className="space-y-1.5">
       <div className="flex items-center justify-between px-1">
-        <h3 className="text-[10px] font-semibold uppercase tracking-[0.05em] text-white/30">
+        <h3 className="text-[10px] font-semibold uppercase tracking-wider text-white/20">
           {title}
         </h3>
-        <span className="text-[10px] tabular-nums text-white/20">
+        <span className="text-[10px] tabular-nums text-white/15">
           {changes.length}
         </span>
       </div>
-      <div className="space-y-0.5">
+      <div className="max-h-[200px] overflow-y-auto overflow-x-hidden rounded-lg bg-white/[0.01] transition-colors hover:bg-white/[0.02]">
         {changes.length === 0 ? (
-          <div className="px-1 py-2 text-[12px] text-white/25 italic">
+          <div className="px-3 py-2 text-[11px] text-white/15 italic">
             {emptyLabel}
           </div>
         ) : (
-          changes.map((change) => (
-            <div
-              key={`${title}-${change.path}`}
-              className="group flex items-center gap-3 rounded-md px-1.5 py-1.5 transition-colors hover:bg-white/[0.03]"
-            >
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-[12px] text-white/70 group-hover:text-white/90">
-                  {change.path}
+          <div className="divide-y divide-white/[0.02]">
+            {changes.map((change) => (
+              <div
+                key={`${title}-${change.path}`}
+                className="group flex items-center gap-2 px-2 py-1.5 transition-colors hover:bg-white/[0.03]"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-[11px] text-white/60 group-hover:text-white/80">
+                    {change.path}
+                  </div>
+                  <div className="text-[8px] uppercase tracking-wider text-white/15">
+                    {change.status.replaceAll("_", " ")}
+                  </div>
                 </div>
-                <div className="text-[9px] uppercase tracking-wider text-white/25">
-                  {change.status.replaceAll("_", " ")}
-                </div>
-              </div>
-              <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                {onDiscard ? (
+                <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+                  {onDiscard ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-xs"
+                      onClick={() => onDiscard(change.path)}
+                      aria-label={`Discard ${change.path}`}
+                      className="size-5 hover:text-red-400/70"
+                    >
+                      <Trash className="size-2.5" />
+                    </Button>
+                  ) : null}
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon-xs"
-                    onClick={() => onDiscard(change.path)}
-                    aria-label={`Discard ${change.path}`}
-                    className="hover:text-red-400"
+                    onClick={() => onAction(change.path)}
+                    className="size-5 text-white/30 hover:text-white/70"
                   >
-                    <Trash className="size-3" />
+                    {actionIcon}
                   </Button>
-                ) : null}
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="xs"
-                  onClick={() => onAction(change.path)}
-                  className="h-5 px-1.5 text-[10px]"
-                >
-                  {actionIcon}
-                  {actionLabel}
-                </Button>
+                </div>
               </div>
-            </div>
-          ))
+            ))}
+          </div>
         )}
       </div>
     </section>

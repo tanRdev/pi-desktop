@@ -791,3 +791,27 @@ This will cause a hydration error.
 
 
 12:42:49 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/workspace-activity-panel.tsx (x2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12:45:18 AM [vite] (client) hmr update /src/app.css, /src/components/workspace/git-panel.tsx
