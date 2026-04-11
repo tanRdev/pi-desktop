@@ -358,39 +358,11 @@ async function bootstrapDesktop() {
     const thread =
       threadCatalog
         .listByWorktree(inspection.currentWorktreePath)
-        .find((entry) => entry.archivedAt === null) ?? null;
-
-    if (!thread) {
-      selectionState.replace({
-        repositoryId: repositoryEntry.id,
+        .find((entry) => entry.archivedAt === null) ??
+      threadCatalog.create({
         worktreeId: inspection.currentWorktreePath,
-        threadId: null,
+        title: "Current thread",
       });
-      repositoryCatalog.setLastSelectedWorktree(
-        repositoryEntry.id,
-        inspection.currentWorktreePath,
-      );
-
-      return {
-        repositoryId: repositoryEntry.id,
-        worktreePath: inspection.currentWorktreePath,
-        thread: {
-          id: "pending-thread",
-          worktreeId: inspection.currentWorktreePath,
-          title: "Pending thread",
-          archivedAt: null,
-          lastActivityAt: null,
-          runtimeId: null,
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
-        },
-        socketPath: "",
-        runtimeId: null,
-        command: [],
-        agentMode: "mock",
-        agentDirectory: null,
-      };
-    }
 
     return buildThreadContext(repositoryEntry.id, inspection, thread);
   }
@@ -476,14 +448,6 @@ async function bootstrapDesktop() {
     host: AgentDesktopHost;
     transport: AgentHostSocketTransport;
   }> {
-    if (!context.socketPath || context.command.length === 0) {
-      return {
-        context,
-        host: createBootstrapErrorHost("No active thread is selected"),
-        transport: createAgentHostSocketTransport("/tmp/pidesk-pending-thread"),
-      };
-    }
-
     const launchSpec = {
       threadId: context.thread.id,
       worktreePath: context.worktreePath,

@@ -33,7 +33,6 @@ export interface CreateShellSnapshotOptions {
   catalog?: ShellCatalogSnapshot;
 }
 
-const DEFAULT_THREAD_ID = "default-thread";
 const gitService = new GitWorktreeService();
 
 function resolveAgentMode(agentMode?: string): ShellAgentMode {
@@ -87,11 +86,11 @@ function createThreadSnapshot(options: {
     agentSnapshot?.messages[agentSnapshot.messages.length - 1];
 
   return {
-    id: selectedThread?.id ?? DEFAULT_THREAD_ID,
-    title: selectedThread?.title ?? "Current thread",
+    id: selectedThread.id,
+    title: selectedThread.title,
     isArchived: false,
     lastActivityAt:
-      selectedThread?.lastActivityAt ?? lastMessage?.timestamp ?? null,
+      selectedThread.lastActivityAt ?? lastMessage?.timestamp ?? null,
     runtime: {
       status: agentSnapshot?.status ?? "starting",
       lastError: agentSnapshot?.lastError ?? null,
@@ -135,9 +134,12 @@ function createCatalog(options: {
     return createEmptyCatalog();
   }
 
-  const thread = createThreadSnapshot({ agentSnapshot, selectedThread });
   const repositoryRoot = inspection.rootPath;
   const currentWorktreePath = inspection.currentWorktreePath;
+
+  const thread = selectedThread
+    ? createThreadSnapshot({ agentSnapshot, selectedThread })
+    : null;
 
   return {
     repositories: [
@@ -153,15 +155,22 @@ function createCatalog(options: {
           isMain: worktree.isMain,
           isDetached: worktree.isDetached,
           git: worktree.git,
-          threads: worktree.path === currentWorktreePath ? [thread] : [],
+          threads:
+            thread && worktree.path === currentWorktreePath ? [thread] : [],
         })),
       },
     ],
-    selection: {
-      repositoryId: repositoryRoot,
-      worktreeId: currentWorktreePath,
-      threadId: thread.id,
-    },
+    selection: selectedThread
+      ? {
+          repositoryId: repositoryRoot,
+          worktreeId: currentWorktreePath,
+          threadId: thread.id,
+        }
+      : {
+          repositoryId: repositoryRoot,
+          worktreeId: currentWorktreePath,
+          threadId: null,
+        },
   };
 }
 

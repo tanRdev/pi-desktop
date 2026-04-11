@@ -99,7 +99,7 @@ describe("createShellSnapshot", () => {
     });
   });
 
-  it("builds a repo-wide worktree catalog and selects the current linked worktree thread", () => {
+  it("builds a repo-wide worktree catalog without inventing a thread", () => {
     const { sandbox, repoRoot } = initRepository("catalog");
     const featureWorktree = path.join(sandbox, "feature-worktree");
     runGit(repoRoot, [
@@ -138,7 +138,7 @@ describe("createShellSnapshot", () => {
     expect(snapshot.catalog.selection).toEqual({
       repositoryId: expectedRepoRoot,
       worktreeId: expectedFeatureWorktree,
-      threadId: "default-thread",
+      threadId: null,
     });
     expect(snapshot.catalog.repositories).toHaveLength(1);
 
@@ -169,18 +169,7 @@ describe("createShellSnapshot", () => {
         branch: "feature/worktree",
         hasChanges: true,
       },
-      threads: [
-        {
-          id: "default-thread",
-          title: "Current thread",
-          isArchived: false,
-          lastActivityAt: null,
-          runtime: {
-            status: "ready",
-            lastError: null,
-          },
-        },
-      ],
+      threads: [],
     });
 
     expect(snapshot.git).toMatchObject({
