@@ -6,6 +6,7 @@ import {
   Copy,
   Folder,
   PencilSimple,
+  Pi,
   Plus,
   SidebarSimple,
   Trash,
@@ -129,6 +130,7 @@ interface ThreadCategorySectionProps {
   count: number;
   tallyColor?: string;
   children?: React.ReactNode;
+  isWorking?: boolean;
 }
 
 function ThreadCategorySection({
@@ -137,17 +139,24 @@ function ThreadCategorySection({
   count,
   tallyColor,
   children,
+  isWorking,
 }: ThreadCategorySectionProps) {
   return (
     <div className="relative space-y-0.5">
       <div
         className={cn(
-          "flex w-full items-center justify-between rounded px-2 py-1.5 text-[12px] text-white/50",
+          "flex w-full items-center justify-between rounded px-2 py-2 text-[12px] text-white/50",
           "group/item",
         )}
       >
         <div className="flex min-w-0 flex-1 items-center gap-2 pl-2">
-          <Icon className="size-3.5 shrink-0 text-white/40" />
+          <span className="flex size-3.5 shrink-0 items-center justify-center">
+            {isWorking ? (
+              <ThreadStatusIcon displayStatus="working" />
+            ) : (
+              <Icon className="size-3.5 text-white/40" />
+            )}
+          </span>
           <span className="truncate">{label}</span>
         </div>
         <TallyBars count={count} colorClassName={tallyColor} />
@@ -216,6 +225,15 @@ export function LeftRail({
   const { active: activeThreads, archived: archivedThreads } = React.useMemo(
     () => collectThreads(repositories, activeRepositoryId),
     [repositories, activeRepositoryId],
+  );
+
+  const isAnyActiveThreadWorking = React.useMemo(
+    () =>
+      activeThreads.some(
+        (t) =>
+          t.runtime.status === "streaming" || t.runtime.status === "starting",
+      ),
+    [activeThreads],
   );
 
   React.useEffect(() => {
@@ -473,16 +491,17 @@ export function LeftRail({
         </div>
 
         <div className="space-y-0.5 px-2">
-          {/* Active threads */}
+          {/* Sessions */}
           <ThreadCategorySection
-            label="Active"
-            icon={Plus}
+            label="Sessions"
+            icon={Pi}
             count={activeThreads.length}
             tallyColor="bg-[#22c55e]"
+            isWorking={isAnyActiveThreadWorking}
           >
             {activeThreads.length === 0 ? (
               <div className="px-2 py-3 text-[11px] text-white/20">
-                No active threads
+                No sessions
               </div>
             ) : (
               activeThreads.map((thread) => {
@@ -502,7 +521,7 @@ export function LeftRail({
                       onSelectThread(thread.id);
                     }}
                     className={cn(
-                      "group flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[11px] transition-colors",
+                      "group flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-[11px] transition-colors",
                       isActive
                         ? "bg-white/[0.04] text-white/80"
                         : "text-white/40 hover:bg-white/[0.04] hover:text-white/70",
@@ -578,28 +597,22 @@ export function LeftRail({
               count={archivedThreads.length}
               tallyColor="bg-white/40"
             >
-              {archivedThreads.length === 0 ? (
-                <div className="px-2 py-3 text-[11px] text-white/20">
-                  No archived threads
-                </div>
-              ) : (
-                archivedThreads.map((thread) => (
-                  <button
-                    key={thread.id}
-                    type="button"
-                    onClick={() => onSelectThread(thread.id)}
-                    className={cn(
-                      "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[11px] transition-colors",
-                      "text-white/30 hover:bg-white/[0.04] hover:text-white/50",
-                    )}
-                  >
-                    <Archive className="size-3 shrink-0 text-white/20" />
-                    <span className="truncate flex-1">
-                      {thread.title || "Untitled thread"}
-                    </span>
-                  </button>
-                ))
-              )}
+              {archivedThreads.map((thread) => (
+                <button
+                  key={thread.id}
+                  type="button"
+                  onClick={() => onSelectThread(thread.id)}
+                  className={cn(
+                    "flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-[11px] transition-colors",
+                    "text-white/30 hover:bg-white/[0.04] hover:text-white/50",
+                  )}
+                >
+                  <Archive className="size-3 shrink-0 text-white/20" />
+                  <span className="truncate flex-1">
+                    {thread.title || "Untitled thread"}
+                  </span>
+                </button>
+              ))}
             </ThreadCategorySection>
           </div>
         </div>

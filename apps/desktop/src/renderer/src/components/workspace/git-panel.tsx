@@ -209,7 +209,7 @@ export function GitPanel({
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-2 min-w-0">
-              <h2 className="truncate text-[13px] font-semibold text-white/90">
+              <h2 className="truncate text-[13px] font-semibold text-white/50">
                 {projectName ?? worktree?.label}
               </h2>
               <span className="text-white/20 select-none">/</span>

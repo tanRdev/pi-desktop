@@ -1,6 +1,5 @@
 import type { ThreadRuntimeStatus } from "@pidesk/shared";
 import { cn } from "@/lib/utils";
-import { useUnicodeSpinner } from "@/hooks/use-unicode-spinner";
 
 export type ThreadDisplayStatus = "working" | "idle" | "archived";
 
@@ -19,26 +18,22 @@ interface ThreadStatusIconProps {
   className?: string;
 }
 
-function WorkingSpinner({ className }: { className?: string }) {
-  const frame = useUnicodeSpinner("braille", true);
-  return (
-    <span
-      role="img"
-      className={cn("text-violet-400/80 font-mono leading-none", className)}
-      aria-label="Agent working"
-    >
-      {frame}
-    </span>
-  );
-}
-
 export function ThreadStatusIcon({
   displayStatus,
   className,
 }: ThreadStatusIconProps) {
   switch (displayStatus) {
     case "working":
-      return <WorkingSpinner className={className} />;
+      return (
+        <span
+          role="img"
+          className={cn(
+            "inline-block size-1.5 rounded-full bg-violet-400",
+            className,
+          )}
+          aria-label="Agent working"
+        />
+      );
     case "archived":
       return (
         <span
