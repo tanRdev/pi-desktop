@@ -23,7 +23,13 @@ export function ThreadStatusIcon({
   displayStatus,
   className,
 }: ThreadStatusIconProps) {
-  const braille = useUnicodeSpinner("diagswipe", displayStatus === "working");
+  const frame = useUnicodeSpinner(
+    {
+      frames: ["▘", "▝", "▗", "▖"],
+      interval: 100,
+    },
+    displayStatus === "working",
+  );
 
   switch (displayStatus) {
     case "working":
@@ -36,7 +42,7 @@ export function ThreadStatusIcon({
           )}
           aria-label="Agent working"
         >
-          {braille}
+          {frame}
         </span>
       );
     case "archived":

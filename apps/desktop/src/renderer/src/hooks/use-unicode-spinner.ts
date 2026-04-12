@@ -1,16 +1,17 @@
 import { useEffect, useState } from "react";
-import type { BrailleSpinnerName } from "unicode-animations";
+import type { BrailleSpinnerName, Spinner } from "unicode-animations";
 import spinners from "unicode-animations";
 
 /**
- * Cycles through unicode-animations braille spinner frames.
+ * Cycles through unicode-animations braille spinner frames or custom frames.
  * Returns the current frame string. Only ticks while `active` is true.
  */
 export function useUnicodeSpinner(
-  name: BrailleSpinnerName,
+  spinnerOrName: BrailleSpinnerName | Spinner,
   active: boolean,
 ): string {
-  const spinner = spinners[name];
+  const spinner =
+    typeof spinnerOrName === "string" ? spinners[spinnerOrName] : spinnerOrName;
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
