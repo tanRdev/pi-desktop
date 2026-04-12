@@ -676,8 +676,8 @@ describe("buildShellCatalog", () => {
       ],
       selection: {
         repositoryId: "/tmp/folder-workspace",
-        worktreeId: null,
-        threadId: null,
+        worktreeId: "/tmp/folder-workspace",
+        threadId: "thread-folder",
       },
       inspectRepository: (rootPath) =>
         rootPath === "/tmp/folder-workspace"
@@ -717,14 +717,51 @@ describe("buildShellCatalog", () => {
                 },
               ],
             },
-      listThreadsByWorktree: () => [],
+      listThreadsByWorktree: (worktreeId) =>
+        worktreeId === "/tmp/folder-workspace"
+          ? [
+              {
+                id: "thread-folder",
+                worktreeId,
+                title: "Folder thread",
+                archivedAt: null,
+                lastActivityAt: 7,
+                runtimeId: "local-thread-folder",
+                createdAt: 1,
+                updatedAt: 1,
+              },
+            ]
+          : [],
       getRuntimeState: async () => ({ status: "ready", lastError: null }),
     });
 
     expect(catalog.selection).toEqual({
       repositoryId: "/tmp/folder-workspace",
-      worktreeId: null,
-      threadId: null,
+      worktreeId: "/tmp/folder-workspace",
+      threadId: "thread-folder",
+    });
+    expect(catalog.repositories[0]).toMatchObject({
+      id: "/tmp/folder-workspace",
+      rootPath: "/tmp/folder-workspace",
+      worktrees: [
+        {
+          id: "/tmp/folder-workspace",
+          path: "/tmp/folder-workspace",
+          isMain: true,
+          isDetached: false,
+          git: {
+            status: "unavailable",
+            message: "Git unavailable",
+          },
+          threads: [
+            {
+              id: "thread-folder",
+              title: "Folder thread",
+              isArchived: false,
+            },
+          ],
+        },
+      ],
     });
   });
 });

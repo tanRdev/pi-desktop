@@ -148,7 +148,7 @@ function ThreadCategorySection({
                   <Plus className="size-5" />
                 </button>
               </TooltipTrigger>
-              <TooltipContent side="top">{actionLabel}</TooltipContent>
+              <TooltipContent side="right">{actionLabel}</TooltipContent>
             </Tooltip>
           )}
         </div>
@@ -441,7 +441,7 @@ export function LeftRail({
                   <Folder className="size-5" />
                 </button>
               </TooltipTrigger>
-              <TooltipContent side="top">New workspace</TooltipContent>
+              <TooltipContent side="right">New workspace</TooltipContent>
             </Tooltip>
           </div>
         </div>
@@ -457,114 +457,105 @@ export function LeftRail({
             actionLabel="Create thread"
             actionTestId="create-thread-button"
           >
-            {activeThreads.length === 0 ? (
-              <div className="px-2 py-3 text-[14px] text-white/20">
-                No sessions
-              </div>
-            ) : (
-              activeThreads.map((thread) => {
-                const isActive = thread.id === activeThreadId;
-                const displayStatus =
-                  isActive && isPromptExecuting
-                    ? ("working" as const)
-                    : deriveThreadDisplayStatus(
-                        thread.runtime.status,
-                        thread.isArchived,
-                      );
-                const threadRowClassName = cn(
-                  "group flex w-full items-center gap-2 rounded-sm px-2 py-2 text-left text-[14px] transition-colors",
-                  isActive
-                    ? "bg-white/[0.04] text-white/80"
-                    : "text-white/40 hover:bg-white/[0.04] hover:text-white/70",
-                );
+            {activeThreads.map((thread) => {
+              const isActive = thread.id === activeThreadId;
+              const displayStatus =
+                isActive && isPromptExecuting
+                  ? ("working" as const)
+                  : deriveThreadDisplayStatus(
+                      thread.runtime.status,
+                      thread.isArchived,
+                    );
+              const threadRowClassName = cn(
+                "group flex w-full items-center gap-2 rounded-sm px-2 py-2 text-left text-[14px] transition-colors",
+                isActive
+                  ? "bg-white/[0.04] text-white/80"
+                  : "text-white/40 hover:bg-white/[0.04] hover:text-white/70",
+              );
 
-                return (
-                  <div
-                    key={thread.id}
-                    data-testid="thread-row"
-                    className={threadRowClassName}
-                  >
-                    {inlineEditingThreadId === thread.id ? (
-                      <div className="flex min-w-0 flex-1 items-center gap-2">
-                        <span className="flex size-5 shrink-0 items-center justify-center">
-                          <ThreadStatusIcon displayStatus={displayStatus} />
-                        </span>
-                        <input
-                          ref={inlineThreadInputRef}
-                          data-testid="thread-inline-input"
-                          type="text"
-                          value={inlineEditingValue}
-                          onChange={(event) =>
-                            setInlineEditingValue(event.target.value)
-                          }
-                          onClick={(event) => event.stopPropagation()}
-                          onBlur={() => {
+              return (
+                <div
+                  key={thread.id}
+                  data-testid="thread-row"
+                  className={threadRowClassName}
+                >
+                  {inlineEditingThreadId === thread.id ? (
+                    <div className="flex min-w-0 flex-1 items-center gap-2">
+                      <span className="flex size-5 shrink-0 items-center justify-center">
+                        <ThreadStatusIcon displayStatus={displayStatus} />
+                      </span>
+                      <input
+                        ref={inlineThreadInputRef}
+                        data-testid="thread-inline-input"
+                        type="text"
+                        value={inlineEditingValue}
+                        onChange={(event) =>
+                          setInlineEditingValue(event.target.value)
+                        }
+                        onClick={(event) => event.stopPropagation()}
+                        onBlur={() => {
+                          void finishInlineEdit(thread.id, thread.title || "");
+                        }}
+                        onKeyDown={(event) => {
+                          event.stopPropagation();
+                          if (event.key === "Enter") {
+                            event.preventDefault();
                             void finishInlineEdit(
                               thread.id,
                               thread.title || "",
                             );
-                          }}
-                          onKeyDown={(event) => {
-                            event.stopPropagation();
-                            if (event.key === "Enter") {
-                              event.preventDefault();
-                              void finishInlineEdit(
-                                thread.id,
-                                thread.title || "",
-                              );
-                            }
-                            if (event.key === "Escape") {
-                              event.preventDefault();
-                              setInlineEditingThreadId(null);
-                              setInlineEditingValue("");
-                            }
-                          }}
-                          className="block min-w-0 flex-1 rounded border border-white/[0.12] bg-[var(--color-bg-primary)] px-2 py-1 text-[14px] text-white/85 outline-none focus:border-white/[0.2]"
-                          placeholder="Name thread"
-                        />
-                      </div>
-                    ) : (
+                          }
+                          if (event.key === "Escape") {
+                            event.preventDefault();
+                            setInlineEditingThreadId(null);
+                            setInlineEditingValue("");
+                          }
+                        }}
+                        className="block min-w-0 flex-1 rounded border border-white/[0.12] bg-[var(--color-bg-primary)] px-2 py-1 text-[14px] text-white/85 outline-none focus:border-white/[0.2]"
+                        placeholder="Name thread"
+                      />
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPendingDeleteThreadId(null);
+                        onSelectThread(thread.id);
+                      }}
+                      className="flex min-w-0 flex-1 items-center gap-2 text-left"
+                    >
+                      <span className="flex size-5 shrink-0 items-center justify-center">
+                        <ThreadStatusIcon displayStatus={displayStatus} />
+                      </span>
+                      <span className="truncate flex-1">
+                        {thread.title || "Untitled thread"}
+                      </span>
+                    </button>
+                  )}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
                       <button
                         type="button"
-                        onClick={() => {
-                          setPendingDeleteThreadId(null);
-                          onSelectThread(thread.id);
+                        data-testid="thread-archive-button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          void onCloseThread?.(thread.id);
                         }}
-                        className="flex min-w-0 flex-1 items-center gap-2 text-left"
+                        className={cn(
+                          "flex size-5 shrink-0 items-center justify-center rounded opacity-0 transition-all duration-[var(--duration-fast)]",
+                          "hover:bg-white/[0.08] hover:text-white/80",
+                          "group-hover:opacity-100 focus-visible:opacity-100",
+                        )}
+                        aria-label="Archive thread"
                       >
-                        <span className="flex size-5 shrink-0 items-center justify-center">
-                          <ThreadStatusIcon displayStatus={displayStatus} />
-                        </span>
-                        <span className="truncate flex-1">
-                          {thread.title || "Untitled thread"}
-                        </span>
+                        <Archive className="size-3" />
                       </button>
-                    )}
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          type="button"
-                          data-testid="thread-archive-button"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            void onCloseThread?.(thread.id);
-                          }}
-                          className={cn(
-                            "flex size-5 shrink-0 items-center justify-center rounded opacity-0 transition-all duration-[var(--duration-fast)]",
-                            "hover:bg-white/[0.08] hover:text-white/80",
-                            "group-hover:opacity-100 focus-visible:opacity-100",
-                          )}
-                          aria-label="Archive thread"
-                        >
-                          <Archive className="size-3" />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top">Archive thread</TooltipContent>
-                    </Tooltip>
-                  </div>
-                );
-              })
-            )}
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Archive thread</TooltipContent>
+                  </Tooltip>
+                </div>
+              );
+            })}
           </ThreadCategorySection>
 
           <div className="mt-4">

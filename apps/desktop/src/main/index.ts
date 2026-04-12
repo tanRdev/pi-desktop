@@ -31,6 +31,7 @@ import {
   type ResolvedRepositoryInspection,
   type SelectedThreadContext,
 } from "./bootstrap/thread-context";
+import { resolveWorkspaceInspection } from "./bootstrap/workspace-inspection";
 import { createContextSwitchController } from "./context-switch-controller";
 import { GitWorktreeService } from "./git-worktree-service";
 import { registerIpcHandlers } from "./ipc-router";
@@ -209,7 +210,8 @@ async function bootstrapDesktop() {
       currentContext?.worktreePath
         ? path.join(currentContext.worktreePath, ".pi", "settings.json")
         : null,
-    getLocalWorkingDirectory: () => currentContext?.worktreePath ?? null,
+    getLocalWorkingDirectory: () =>
+      currentContext?.worktreePath ?? selectionState.get().worktreeId,
     emit: (event) => {
       mainWindow?.webContents.send(IPC_CHANNELS.packages.event, event);
     },
@@ -239,7 +241,11 @@ async function bootstrapDesktop() {
   }
 
   function resolveContextCwd(): string {
-    return currentContext?.worktreePath ?? process.cwd();
+    return (
+      currentContext?.worktreePath ??
+      selectionState.get().worktreeId ??
+      process.cwd()
+    );
   }
 
   async function handleSwitchModel(request: ModelSwitchRequest): Promise<void> {
@@ -313,17 +319,16 @@ async function bootstrapDesktop() {
     targetPath: string,
   ): ResolvedRepositoryInspection {
     const inspection = gitService.inspect(targetPath);
+    const resolvedInspection = resolveWorkspaceInspection(
+      targetPath,
+      inspection,
+    );
 
-    if (
-      inspection.status !== "repository" ||
-      !inspection.rootPath ||
-      !inspection.currentWorktreePath ||
-      !inspection.worktrees
-    ) {
+    if (!resolvedInspection) {
       throw new Error("Selected directory is not inside a git repository");
     }
 
-    return inspection as ResolvedRepositoryInspection;
+    return resolvedInspection;
   }
 
   function buildThreadContext(
@@ -716,7 +721,8 @@ async function bootstrapDesktop() {
         catalog,
       });
     },
-    getWorkspaceRootPath: () => currentContext?.worktreePath ?? null,
+    getWorkspaceRootPath: () =>
+      currentContext?.worktreePath ?? selectionState.get().worktreeId,
     agentHost: {
       getProviders: () => currentHost.getProviders(),
       getSettings: () => currentHost.getSettings(),

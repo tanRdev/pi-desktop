@@ -321,6 +321,31 @@ describe("bootstrap helpers (RED)", () => {
     });
   });
 
+  test("resolveWorkspaceInspection treats plain folders as thread-capable workspaces", async () => {
+    const { resolveWorkspaceInspection } = await import(
+      "../../../apps/desktop/src/main/bootstrap/workspace-inspection"
+    );
+
+    expect(
+      resolveWorkspaceInspection("/tmp/folder-workspace", {
+        status: "not_repo",
+        message: null,
+      }),
+    ).toEqual({
+      rootPath: "/tmp/folder-workspace",
+      currentWorktreePath: "/tmp/folder-workspace",
+      worktrees: [],
+      defaultBranch: null,
+    });
+
+    expect(
+      resolveWorkspaceInspection("/tmp/missing-workspace", {
+        status: "unavailable",
+        message: "boom",
+      }),
+    ).toBeNull();
+  });
+
   test("buildThreadContext skips directory creation when agentDir is absent", async () => {
     const { buildThreadContext } = await import(
       "../../../apps/desktop/src/main/bootstrap/thread-context"

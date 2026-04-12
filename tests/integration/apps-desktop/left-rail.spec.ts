@@ -218,4 +218,20 @@ describe("moveRepositorySnapshots", () => {
     );
     expect(archivedSection).toContain("onDeleteThread?.(thread.id)");
   });
+
+  it("keeps left-rail top actions from rendering tooltips into the title-bar chrome", () => {
+    const source = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
+    );
+
+    expect(source).toContain(
+      '<TooltipContent side="right">{actionLabel}</TooltipContent>',
+    );
+    expect(source).toContain(
+      '<TooltipContent side="right">New workspace</TooltipContent>',
+    );
+    expect(source).not.toContain(
+      '<TooltipContent side="top">{actionLabel}</TooltipContent>',
+    );
+  });
 });

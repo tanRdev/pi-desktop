@@ -208,6 +208,35 @@ function createWorktreeLabel(
   return path.basename(worktree.path) || fallbackName;
 }
 
+function createFolderWorkspaceSnapshot(options: {
+  rootPath: string;
+  fallbackName: string;
+  threads: ThreadSnapshot[];
+}): ShellCatalogSnapshot["repositories"][number]["worktrees"][number] {
+  const { rootPath, fallbackName, threads } = options;
+
+  return {
+    id: rootPath,
+    label: path.basename(rootPath) || fallbackName,
+    path: rootPath,
+    isMain: true,
+    isDetached: false,
+    git: {
+      status: "unavailable",
+      branch: null,
+      commit: null,
+      hasChanges: false,
+      ahead: null,
+      behind: null,
+      stagedCount: 0,
+      modifiedCount: 0,
+      untrackedCount: 0,
+      message: "Git unavailable",
+    },
+    threads,
+  };
+}
+
 function reconcileSelection(
   repositories: ShellCatalogSnapshot["repositories"],
   selection: AppSelectionState,
@@ -309,6 +338,18 @@ export async function buildShellCatalog({
         !inspection.rootPath ||
         !inspection.worktrees
       ) {
+        const folderThreads = await Promise.all(
+          listThreadsByWorktree(repository.rootPath).map((thread) =>
+            createThreadSnapshot(
+              thread,
+              repository.rootPath,
+              getRuntimeState,
+              selection.threadId,
+              selectedAgentSnapshot,
+            ),
+          ),
+        );
+
         return {
           id: repository.id,
           order: repository.order,
@@ -318,7 +359,13 @@ export async function buildShellCatalog({
           accentColor: preferences?.accentColor ?? null,
           rootPath: repository.rootPath,
           defaultBranch: null,
-          worktrees: [],
+          worktrees: [
+            createFolderWorkspaceSnapshot({
+              rootPath: repository.rootPath,
+              fallbackName,
+              threads: folderThreads,
+            }),
+          ],
         };
       }
 
