@@ -27,7 +27,8 @@ describe("e2e selector contract", () => {
     expect(titleBarSource).toContain('data-slot="titlebar-controls"');
     expect(titleBarSource).toContain('data-slot="titlebar-controls"');
     expect(titleBarSource).toContain('label: "Open launcher"');
-    expect(titleBarSource).toContain('? "Browse files"');
+    expect(titleBarSource).not.toContain("Browse files");
+    expect(titleBarSource).not.toContain("Open git");
   });
 
   it("adds stable settings and window chrome selectors for e2e flows", () => {

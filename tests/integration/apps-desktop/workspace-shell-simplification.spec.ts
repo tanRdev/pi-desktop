@@ -16,11 +16,11 @@ describe("workspace shell simplification", () => {
     );
 
     expect(titleBarSource).toContain('data-slot="titlebar-controls"');
-    expect(titleBarSource).toContain("onOpenLauncher");
-    expect(titleBarSource).toContain("onOpenFileTree");
+    expect(titleBarSource).toContain("onOpenMarketplace");
+    expect(titleBarSource).not.toContain("onOpenFileTree");
     expect(titleBarSource).not.toContain("onOpenNote");
     expect(titleBarSource).toContain("onOpenTerminal");
-    expect(titleBarSource).toContain("onOpenGit");
+    expect(titleBarSource).not.toContain("onOpenGit");
     expect(titleBarSource).toContain("onOpenSettings");
     expect(titleBarSource).not.toContain("Create worktree");
     expect(surfacePanelSource).not.toContain("sidecar-action-launcher");

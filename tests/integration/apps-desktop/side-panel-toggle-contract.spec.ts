@@ -7,13 +7,14 @@ function readSource(relativePath: string): string {
 }
 
 describe("side panel toggle contract", () => {
-  it("removes the create worktree icon from the title bar and keeps git action", () => {
+  it("removes the create worktree, browse files, and git icons from the title bar", () => {
     const titleBarSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/title-bar.tsx",
     );
 
     expect(titleBarSource).not.toContain("Create worktree");
-    expect(titleBarSource).toContain("Open git");
+    expect(titleBarSource).not.toContain("Browse files");
+    expect(titleBarSource).not.toContain("Open git");
     expect(titleBarSource).toContain("isActive");
   });
 

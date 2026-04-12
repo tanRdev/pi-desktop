@@ -27,15 +27,20 @@ describe("titlebar chrome", () => {
     expect(source).not.toContain("grid-cols-[1fr_auto_1fr]");
   });
 
-  it("guards the files action when there is no active worktree to browse", () => {
+  it("keeps only launcher, terminal, settings, and side panel controls in the title bar", () => {
     const source = readSource(
       "apps/desktop/src/renderer/src/components/workspace/title-bar.tsx",
     );
 
-    expect(source).toContain("canOpenFileTree");
-    expect(source).toContain("disabled: !canOpenFileTree");
-    expect(source).toContain('? "Browse files"');
-    expect(source).toContain(': "Select a worktree to browse files"');
+    expect(source).toContain('label: "Open launcher"');
+    expect(source).toContain('label: "Open terminal"');
+    expect(source).toContain('label: "Open settings"');
+    expect(source).toContain('aria-label="Toggle side panel"');
+    expect(source).not.toContain("Browse files");
+    expect(source).not.toContain("Open git");
+    expect(source).not.toContain("canOpenFileTree");
+    expect(source).not.toContain("onOpenFileTree");
+    expect(source).not.toContain("onOpenGit");
   });
 
   it("threads shell platform data into the workspace title bar layout", () => {
