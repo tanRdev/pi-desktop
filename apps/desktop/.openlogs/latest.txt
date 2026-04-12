@@ -119,3 +119,52 @@ dev server running for the electron renderer process at:
 
 starting electron app...
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+4:35:44 PM [vite] (client) hmr update /src/app.css, /src/components/workspace/left-rail.tsx

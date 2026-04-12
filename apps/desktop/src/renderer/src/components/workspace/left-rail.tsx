@@ -436,7 +436,7 @@ export function LeftRail({
                   type="button"
                   onClick={onAddRepository}
                   aria-label="New workspace"
-                  className="text-white/40 hover:text-white/80 p-0.5"
+                  className="flex size-8 items-center justify-center rounded-sm text-white/40 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/80"
                 >
                   <Folder className="size-5" />
                 </button>
