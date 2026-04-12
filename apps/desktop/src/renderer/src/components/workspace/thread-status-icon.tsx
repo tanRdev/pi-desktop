@@ -25,7 +25,7 @@ export function ThreadStatusIcon({
 }: ThreadStatusIconProps) {
   const frame = useUnicodeSpinner(
     {
-      frames: ["▘", "▝", "▗", "▖"],
+      frames: ["⠉", "⠘", "⠒", "⠃"],
       interval: 100,
     },
     displayStatus === "working",
