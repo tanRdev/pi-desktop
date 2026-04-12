@@ -9,7 +9,6 @@ import type {
 } from "@pidesk/shared";
 import type { AgentLiveFeed } from "@pidesk/shell-model";
 import * as React from "react";
-import { SidebarSimple, SquaresFour } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { uiInteractionStore } from "../../stores/ui-interaction-store";
 import { ChatThreadPanel } from "./chat-thread-panel";
@@ -66,7 +65,6 @@ export interface WorkspaceShellProps {
   onLeftRailResize: (width: number) => void;
   onModelMenuOpenChange: (open: boolean) => void | Promise<void>;
   onAddRepository: () => void | Promise<void>;
-  onSelectRepository: (repositoryId: string) => void | Promise<void>;
   onUpdateRepositoryPreferences: (
     repositoryId: string,
     updates: Partial<RepositoryDisplayMetadata>,
@@ -79,7 +77,6 @@ export interface WorkspaceShellProps {
   onCopyRepositoryPath: (repositoryId: string) => void | Promise<void>;
   onOpenInFinder: (repositoryId: string) => void | Promise<void>;
   onOpenSettings: () => void;
-  onOpenMarketplace: () => void;
   onSelectWorktree: (worktreeId: string) => void | Promise<void>;
   onSelectThread: (threadId: string) => void | Promise<void>;
   onCreateThread: (worktreeId: string) => string | Promise<string>;
@@ -88,11 +85,9 @@ export interface WorkspaceShellProps {
   onRenameThread: (threadId: string, title: string) => void | Promise<void>;
   onOpenLauncher: () => void;
   onCloseLauncher: () => void;
-  onOpenFileTree: () => void;
   onCloseFileTree: () => void;
   onOpenGit: () => void;
   onOpenTerminal: () => void;
-  onOpenActivity: () => void;
   onGitCommitMessageChange: (value: string) => void;
   onRefreshGit: () => void | Promise<void>;
   onCommitGit: () => void | Promise<void>;
@@ -161,14 +156,12 @@ export function WorkspaceShell({
   onLeftRailResize,
   onModelMenuOpenChange,
   onAddRepository,
-  onSelectRepository,
   onUpdateRepositoryPreferences: _onUpdateRepositoryPreferences,
   onRenameRepository: _onRenameRepository,
   onRemoveRepository,
   onCopyRepositoryPath,
   onOpenInFinder,
   onOpenSettings,
-  onOpenMarketplace,
   onSelectWorktree,
   onSelectThread,
   onCreateThread,
@@ -177,11 +170,9 @@ export function WorkspaceShell({
   onRenameThread,
   onOpenLauncher,
   onCloseLauncher,
-  onOpenFileTree,
   onCloseFileTree,
   onOpenGit,
   onOpenTerminal,
-  onOpenActivity,
   onGitCommitMessageChange,
   onRefreshGit,
   onCommitGit,
@@ -272,13 +263,13 @@ export function WorkspaceShell({
         : contextWindows.some((window) => window.id === selectedContextSurface)
           ? selectedContextSurface
           : null;
-  const activeSurfaceKind =
-    selectedSurfaceKey === null
-      ? null
-      : selectedSurfaceKey === "activity"
-        ? "activity"
-        : (contextWindows.find((window) => window.id === selectedSurfaceKey)
-            ?.kind ?? null);
+  const isTerminalActive =
+    selectedSurfaceKey !== null &&
+    selectedSurfaceKey !== "activity" &&
+    contextWindows.some(
+      (window) =>
+        window.id === selectedSurfaceKey && window.kind === "terminal",
+    );
   const gitPanel = (
     <GitPanel
       projectName={projectName}
@@ -394,18 +385,10 @@ export function WorkspaceShell({
         >
           <TitleBar
             platform={platform}
-            repositories={repositories}
-            activeRepositoryId={activeRepositoryId}
-            activeRepositoryName={projectName}
-            activeWorktree={activeWorktree}
-            activeSurfaceKind={activeSurfaceKind}
+            isTerminalActive={isTerminalActive}
             isSidePanelVisible={isRightPanelVisible}
-            onSelectRepository={onSelectRepository}
-            onAddRepository={onAddRepository}
             onOpenMarketplace={onOpenLauncher}
-            onOpenFileTree={onOpenFileTree}
             onOpenTerminal={onOpenTerminal}
-            onOpenGit={onOpenGit}
             onOpenSettings={onOpenSettings}
             onToggleSidePanel={() =>
               setIsRightPanelVisible(!isRightPanelVisible)

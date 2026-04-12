@@ -14,6 +14,12 @@ import {
   CircleDashed,
   Trash,
 } from "../ui/icons";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../ui/tooltip";
 import { buildGitPanelViewModel } from "./git-panel-model";
 
 export {
@@ -263,30 +269,46 @@ export function GitPanel({
                 >
                   Commit
                 </Button>
-                <div className="ml-auto flex items-center gap-0.5">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-xs"
-                    onClick={() => void onPull()}
-                    disabled={!canPull || isLoading}
-                    className="size-6 text-white/20 hover:text-white/60"
-                    title={viewModel.pullActionLabel ?? "Pull"}
-                  >
-                    <ArrowDown className="size-3" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-xs"
-                    onClick={() => void onPush()}
-                    disabled={!canPush || isLoading}
-                    className="size-6 text-white/20 hover:text-white/60"
-                    title={viewModel.pushActionLabel ?? "Push"}
-                  >
-                    <ArrowUp className="size-3" />
-                  </Button>
-                </div>
+                <TooltipProvider>
+                  <div className="ml-auto flex items-center gap-0.5">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-xs"
+                          onClick={() => void onPull()}
+                          disabled={!canPull || isLoading}
+                          className="size-6 text-white/20 hover:text-white/60"
+                          aria-label={viewModel.pullActionLabel ?? "Pull"}
+                        >
+                          <ArrowDown className="size-3" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        {viewModel.pullActionLabel ?? "Pull"}
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-xs"
+                          onClick={() => void onPush()}
+                          disabled={!canPush || isLoading}
+                          className="size-6 text-white/20 hover:text-white/60"
+                          aria-label={viewModel.pushActionLabel ?? "Push"}
+                        >
+                          <ArrowUp className="size-3" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        {viewModel.pushActionLabel ?? "Push"}
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                </TooltipProvider>
               </div>
             </div>
           </section>

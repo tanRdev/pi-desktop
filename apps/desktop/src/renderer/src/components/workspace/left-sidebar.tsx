@@ -3,6 +3,12 @@ import type { RepositorySnapshot, WorktreeSnapshot } from "@pidesk/shared";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "../ui/scroll-area";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../ui/tooltip";
 import { SIDEBAR_WIDTH } from "./left-rail";
 
 const MIN_SIDEBAR_WIDTH = 140;
@@ -255,17 +261,25 @@ export function LeftSidebar({
       </div>
 
       {!isCollapsed && (
-        <div
-          className={cn(
-            "absolute right-0 top-0 bottom-0 w-1 cursor-col-resize",
-            "hover:bg-white/[0.06] transition-colors duration-[var(--duration-fast)]",
-            isResizing && "bg-white/[0.08]",
-          )}
-          onMouseDown={() => setIsResizing(true)}
-          title="Drag to resize"
-          role="presentation"
-          aria-hidden="true"
-        />
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div
+                className={cn(
+                  "absolute right-0 top-0 bottom-0 w-1 cursor-col-resize",
+                  "hover:bg-white/[0.06] transition-colors duration-[var(--duration-fast)]",
+                  isResizing && "bg-white/[0.08]",
+                )}
+                onMouseDown={() => setIsResizing(true)}
+                role="presentation"
+                aria-hidden="true"
+              />
+            </TooltipTrigger>
+            <TooltipContent side="right" sideOffset={10}>
+              Drag to resize
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       )}
     </aside>
   );

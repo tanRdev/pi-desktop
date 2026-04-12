@@ -133,18 +133,23 @@ function ThreadCategorySection({
         </div>
         <div className="flex items-center ml-2">
           {onAction && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onAction();
-              }}
-              data-testid={actionTestId}
-              className="hidden group-hover/item:flex size-5 items-center justify-center rounded hover:bg-white/10 hover:text-white/80 transition-colors text-white/40"
-              title={actionLabel}
-            >
-              <Plus className="size-5" />
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onAction();
+                  }}
+                  data-testid={actionTestId}
+                  className="hidden group-hover/item:flex size-5 items-center justify-center rounded hover:bg-white/10 hover:text-white/80 transition-colors text-white/40"
+                  aria-label={actionLabel}
+                >
+                  <Plus className="size-5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="top">{actionLabel}</TooltipContent>
+            </Tooltip>
           )}
         </div>
       </div>
@@ -535,23 +540,27 @@ export function LeftRail({
                         </span>
                       </button>
                     )}
-                    <button
-                      type="button"
-                      data-testid="thread-archive-button"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        void onCloseThread?.(thread.id);
-                      }}
-                      className={cn(
-                        "flex size-5 shrink-0 items-center justify-center rounded opacity-0 transition-all duration-[var(--duration-fast)]",
-                        "hover:bg-white/[0.08] hover:text-white/80",
-                        "group-hover:opacity-100 focus-visible:opacity-100",
-                      )}
-                      aria-label="Archive thread"
-                      title="Archive thread"
-                    >
-                      <Archive className="size-3" />
-                    </button>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          data-testid="thread-archive-button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            void onCloseThread?.(thread.id);
+                          }}
+                          className={cn(
+                            "flex size-5 shrink-0 items-center justify-center rounded opacity-0 transition-all duration-[var(--duration-fast)]",
+                            "hover:bg-white/[0.08] hover:text-white/80",
+                            "group-hover:opacity-100 focus-visible:opacity-100",
+                          )}
+                          aria-label="Archive thread"
+                        >
+                          <Archive className="size-3" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top">Archive thread</TooltipContent>
+                    </Tooltip>
                   </div>
                 );
               })
@@ -594,27 +603,35 @@ export function LeftRail({
                         }
                       >
                         <PopoverTrigger asChild>
-                          <button
-                            type="button"
-                            data-testid="archived-thread-delete-button"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                            }}
-                            className={cn(
-                              "ml-auto flex size-5 shrink-0 items-center justify-center rounded text-white/35 opacity-0 transition-all duration-[var(--duration-fast)]",
-                              "hover:bg-white/[0.08] hover:text-white/80",
-                              "group-hover/archived:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100",
-                            )}
-                            aria-label="Delete archived thread"
-                            title="Delete archived thread"
-                          >
-                            <Trash className="size-3" />
-                          </button>
+                          <div className="flex items-center">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  type="button"
+                                  data-testid="archived-thread-delete-button"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                  }}
+                                  className={cn(
+                                    "ml-auto flex size-5 shrink-0 items-center justify-center rounded text-white/35 opacity-0 transition-all duration-[var(--duration-fast)]",
+                                    "hover:bg-white/[0.08] hover:text-white/80",
+                                    "group-hover/archived:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100",
+                                  )}
+                                  aria-label="Delete archived thread"
+                                >
+                                  <Trash className="size-3" />
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent side="top">
+                                Delete archived thread
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
                         </PopoverTrigger>
                         <PopoverContent
                           align="end"
                           side="bottom"
-                          className="w-auto min-w-[220px] rounded-sm border border-white/[0.06] bg-[var(--color-bg-tertiary)] p-2"
+                          className="w-auto min-w-[220px] rounded-md border border-white/[0.06] bg-[var(--color-bg-tertiary)] p-2 shadow-lg backdrop-blur-md"
                         >
                           <div className="space-y-2">
                             <p className="text-[14px] text-white/70">
@@ -658,25 +675,31 @@ export function LeftRail({
       </div>
 
       {/* Resize handle */}
-      <div
-        className={cn(
-          "absolute right-0 top-0 bottom-0 w-[2px] cursor-col-resize",
-          "transition-colors duration-[var(--duration-normal)]",
-          "bg-transparent hover:bg-[var(--color-border-strong)]",
-          isResizing && "bg-[var(--color-text-muted)]",
-        )}
-        onMouseDown={() => setIsResizing(true)}
-        title="Drag to resize"
-        role="presentation"
-        aria-hidden="true"
-      />
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div
+            className={cn(
+              "absolute right-0 top-0 bottom-0 w-[2px] cursor-col-resize",
+              "transition-colors duration-[var(--duration-normal)]",
+              "bg-transparent hover:bg-[var(--color-border-strong)]",
+              isResizing && "bg-[var(--color-text-muted)]",
+            )}
+            onMouseDown={() => setIsResizing(true)}
+            role="presentation"
+            aria-hidden="true"
+          />
+        </TooltipTrigger>
+        <TooltipContent side="right" sideOffset={10}>
+          Drag to resize
+        </TooltipContent>
+      </Tooltip>
 
       {/* Context Menu */}
       {contextMenu.isOpen && contextMenuRepositoryId !== null ? (
         <div
           ref={contextMenuRef}
           className={cn(
-            "fixed z-[100] min-w-[160px] rounded-sm border border-white/[0.06] bg-[var(--color-bg-primary)] p-1",
+            "fixed z-[100] min-w-[160px] rounded-md border border-white/[0.06] bg-[var(--color-bg-primary)] p-1 backdrop-blur-md",
             "shadow-[var(--shadow-hover)]",
             "animate-in fade-in-0 zoom-in-[0.98] duration-150 ease-out",
           )}

@@ -7,6 +7,12 @@ import {
   PencilSimple,
   X,
 } from "@/components/ui/icons";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 export interface ThreadListItemProps {
@@ -117,48 +123,58 @@ export function ThreadListItem({
           </span>
         )}
       </div>
-      {!isEditing && onRename && (
-        <button
-          type="button"
-          data-testid="thread-rename-button"
-          onClick={handleStartRename}
-          className={cn(
-            "ml-0.5 flex size-5 shrink-0 cursor-pointer items-center justify-center rounded opacity-0 transition-all duration-[var(--duration-fast)]",
-            "hover:bg-white/[0.1] hover:text-white/80",
-            "group-hover:opacity-100 focus-visible:opacity-100",
-          )}
-          aria-label="Rename thread"
-          title="Rename thread"
-        >
-          <PencilSimple className={ICON_SIZE_XS} />
-        </button>
-      )}
-      {!isEditing && onClose && (
-        <button
-          type="button"
-          data-testid="thread-close-button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onClose();
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              e.stopPropagation();
-              onClose?.();
-            }
-          }}
-          className={cn(
-            "ml-0.5 flex size-5 shrink-0 cursor-pointer items-center justify-center rounded opacity-0 transition-all duration-[var(--duration-fast)]",
-            "hover:bg-white/[0.1] hover:text-white/80",
-            "group-hover:opacity-100 focus-visible:opacity-100",
-          )}
-          aria-label="Close thread"
-          title="Close thread"
-        >
-          <X className={ICON_SIZE_XS} />
-        </button>
-      )}
+      <TooltipProvider>
+        {!isEditing && onRename && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                data-testid="thread-rename-button"
+                onClick={handleStartRename}
+                className={cn(
+                  "ml-0.5 flex size-5 shrink-0 cursor-pointer items-center justify-center rounded opacity-0 transition-all duration-[var(--duration-fast)]",
+                  "hover:bg-white/[0.1] hover:text-white/80",
+                  "group-hover:opacity-100 focus-visible:opacity-100",
+                )}
+                aria-label="Rename thread"
+              >
+                <PencilSimple className={ICON_SIZE_XS} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="top">Rename thread</TooltipContent>
+          </Tooltip>
+        )}
+        {!isEditing && onClose && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                data-testid="thread-close-button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClose();
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onClose?.();
+                  }
+                }}
+                className={cn(
+                  "ml-0.5 flex size-5 shrink-0 cursor-pointer items-center justify-center rounded opacity-0 transition-all duration-[var(--duration-fast)]",
+                  "hover:bg-white/[0.1] hover:text-white/80",
+                  "group-hover:opacity-100 focus-visible:opacity-100",
+                )}
+                aria-label="Close thread"
+              >
+                <X className={ICON_SIZE_XS} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="top">Close thread</TooltipContent>
+          </Tooltip>
+        )}
+      </TooltipProvider>
     </button>
   );
 }

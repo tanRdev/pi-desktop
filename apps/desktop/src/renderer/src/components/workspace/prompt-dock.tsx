@@ -317,7 +317,6 @@ export function PromptDock({
                   disabled={!hasActiveThread}
                   onClick={() => void handlePickFiles()}
                   aria-label="Attach files"
-                  title="Attach files"
                   className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-hover)]"
                 >
                   <Paperclip className={ICON_SIZE_MD} />
@@ -357,7 +356,7 @@ export function PromptDock({
                   align="start"
                   side="top"
                   sideOffset={8}
-                  className="w-64 rounded-md border border-white/[0.06] bg-[#111111] p-2 shadow-[0_8px_32px_rgba(0,0,0,0.5)]"
+                  className="w-64 rounded-md border border-white/[0.06] bg-[#141414] p-2 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-md"
                 >
                   <div className="max-h-72 overflow-y-auto">
                     {providerSnapshots.map((provider) => (
@@ -376,7 +375,7 @@ export function PromptDock({
                               data-testid={`model-option-${provider.id}-${model.id}`}
                               onClick={() => handleModelSelect(value)}
                               className={cn(
-                                "flex w-full items-center justify-between rounded-sm px-2.5 py-2 text-left text-[16px] transition-colors",
+                                "flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-[16px] transition-colors",
                                 isSelected
                                   ? "bg-white/[0.08] text-white"
                                   : "text-white/70 hover:bg-white/[0.04] hover:text-white",

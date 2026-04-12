@@ -274,10 +274,6 @@ export function useAppShellController(): AppShellController {
   const handleOpenSettings = React.useCallback(() => {
     setSettingsOpen(true);
   }, [setSettingsOpen]);
-  const handleOpenPackages = React.useCallback(() => {
-    setPackagesOpen(true);
-  }, [setPackagesOpen]);
-
   React.useEffect(() => {
     setPromptMode(detectPromptMode(draft));
   }, [draft]);
@@ -356,7 +352,7 @@ export function useAppShellController(): AppShellController {
       ): window is Extract<
         (typeof windowState.layout.windows)[number],
         { kind: "terminal" }
-      > => window.kind === "terminal",
+      > => window.kind === "terminal" && window.backend === "shell",
     );
     if (existingTerminal) {
       if (existingTerminal.id === selectedContextSurface) {
@@ -371,14 +367,13 @@ export function useAppShellController(): AppShellController {
     const terminalWindow = windowStore.createWindow(
       {
         kind: "terminal",
-        backend: activeThreadId ? "pi" : "shell",
+        backend: "shell",
         cwd: activeWorktreePath ?? undefined,
       },
       activeWorktreePath ?? undefined,
     );
     setSelectedContextSurface(terminalWindow.id);
   }, [
-    activeThreadId,
     activeWorktreePath,
     selectedContextSurface,
     windowState.layout.windows,
@@ -568,12 +563,6 @@ export function useAppShellController(): AppShellController {
     );
   }, [activeWorktreePath, runGitMutation]);
 
-  const handleOpenActivity = React.useCallback(() => {
-    setSelectedContextSurface((current) =>
-      current === "activity" ? null : "activity",
-    );
-  }, []);
-
   const handleFileContentChange = React.useCallback(
     (windowId: string, newContent: string) => {
       updateFileDraftForWorktree({
@@ -747,23 +736,6 @@ export function useAppShellController(): AppShellController {
       }
     }
   }, []);
-
-  const handleSelectRepository = React.useCallback(
-    async (repositoryId: string) => {
-      const repository = repositories.find(
-        (entry) => entry.id === repositoryId,
-      );
-      if (!repository) {
-        return;
-      }
-
-      setWorkspaceSwitchingRepositoryName(
-        repository.customName?.trim() || repository.name,
-      );
-      await window.pidesk.repositories.select(repositoryId);
-    },
-    [repositories],
-  );
 
   const handleRenameRepository = React.useCallback(
     async (repositoryId: string, name: string) => {
@@ -1254,14 +1226,12 @@ export function useAppShellController(): AppShellController {
     onLeftRailResize: handleLeftRailResize,
     onModelMenuOpenChange: handleModelMenuOpenChange,
     onAddRepository: handleAddRepository,
-    onSelectRepository: handleSelectRepository,
     onUpdateRepositoryPreferences: updateRepositoryPreferences,
     onRenameRepository: handleRenameRepository,
     onRemoveRepository: handleRemoveRepository,
     onCopyRepositoryPath: handleCopyRepositoryPath,
     onOpenInFinder: handleOpenInFinder,
     onOpenSettings: handleOpenSettings,
-    onOpenMarketplace: handleOpenPackages,
     onSelectWorktree: handleSelectWorktree,
     onSelectThread: handleSelectThread,
     onCreateThread: handleCreateThread,
@@ -1270,11 +1240,9 @@ export function useAppShellController(): AppShellController {
     onRenameThread: handleRenameThread,
     onOpenLauncher: openLauncherOverlay,
     onCloseLauncher: closeLauncherOverlay,
-    onOpenFileTree: openFileTreeOverlay,
     onCloseFileTree: closeFileTreeOverlay,
     onOpenGit: handleOpenGit,
     onOpenTerminal: handleOpenTerminal,
-    onOpenActivity: handleOpenActivity,
     onGitCommitMessageChange: setGitCommitMessage,
     onRefreshGit: refreshGitRepositoryStatus,
     onCommitGit: commitGitChanges,

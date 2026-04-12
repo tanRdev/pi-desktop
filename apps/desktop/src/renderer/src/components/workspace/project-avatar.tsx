@@ -1,6 +1,12 @@
 import type { RepositorySnapshot } from "@pidesk/shared";
 import type { CSSProperties, DragEventHandler } from "react";
 import { cn } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../ui/tooltip";
 import { resolveProjectIconOption } from "./project-icon-picker";
 
 export interface ProjectAvatarProps {
@@ -171,19 +177,27 @@ export function ProjectAvatar({
   }
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      draggable={draggable}
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
-      className={avatarClassName}
-      aria-controls={ariaControls}
-      aria-expanded={ariaExpanded}
-      aria-label={`Open repository ${displayName}`}
-      title={displayName}
-    >
-      {content}
-    </button>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            onClick={onClick}
+            draggable={draggable}
+            onDragStart={onDragStart}
+            onDragEnd={onDragEnd}
+            className={avatarClassName}
+            aria-controls={ariaControls}
+            aria-expanded={ariaExpanded}
+            aria-label={`Open repository ${displayName}`}
+          >
+            {content}
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="right" sideOffset={10}>
+          {displayName}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
