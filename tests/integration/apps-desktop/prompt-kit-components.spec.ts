@@ -25,31 +25,28 @@ describe("prompt kit workspace coverage", () => {
     }
   });
 
-  it("loads Prompt Kit interaction primitives into the prompt dock", () => {
+  it("loads the current prompt interaction primitives into the prompt dock", () => {
     const source = readSource(
       "apps/desktop/src/renderer/src/components/workspace/prompt-dock.tsx",
     );
 
     expect(source).toContain("FileUpload");
-    expect(source).toContain("PromptSuggestion");
     expect(source).toContain("Loader");
     expect(source).toContain("Image");
+    expect(source).toContain("PromptAutocomplete");
   });
 
-  it("uses the Prompt Kit transcript surfaces inside the chat-first thread panel", () => {
+  it("uses the current transcript surfaces inside the chat-first thread panel", () => {
     const source = readSource(
       "apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx",
     );
 
     expect(source).toContain("FeedbackBar");
     expect(source).toContain("ScrollButton");
-    expect(source).toContain("Source");
-    expect(source).toContain("Steps");
     expect(source).toContain("SystemMessage");
-    expect(source).toContain("ThinkingBar");
-    expect(source).toContain("Reasoning");
-    expect(source).toContain("ChainOfThought");
     expect(source).toContain("Tool");
-    expect(source).toContain("TextShimmer");
+    expect(source).not.toContain("Steps");
+    expect(source).not.toContain("ThinkingBar");
+    expect(source).not.toContain("TextShimmer");
   });
 });

@@ -16,7 +16,7 @@ describe("chat polish", () => {
     expect(shellSource).toContain("isVisible={isPromptVisible}");
   });
 
-  it("renames the visible assistant branding from PiDesk to Pi", () => {
+  it("keeps the visible assistant copy aligned with Pi-first messaging", () => {
     const chatSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx",
     );
@@ -24,7 +24,8 @@ describe("chat polish", () => {
       "apps/desktop/src/renderer/src/components/workspace/prompt-dock.tsx",
     );
 
-    expect(chatSource).toContain('return "Pi";');
+    expect(chatSource).toContain("Start a conversation with Pi.");
+    expect(chatSource).toContain("Pi is responding");
     expect(promptDockSource).toContain(
       "Ask Pi to inspect, plan, fix, or ship…",
     );

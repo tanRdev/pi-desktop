@@ -97,8 +97,8 @@ export function PromptDock({
   providerSnapshots,
   currentModelValue,
   isSwitchingModel,
-  promptMode = "build",
-  onPromptModeChange,
+  promptMode: _promptMode = "build",
+  onPromptModeChange: _onPromptModeChange,
   onModelMenuOpenChange,
   onModelSelection,
 }: PromptDockProps) {

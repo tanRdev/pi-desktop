@@ -149,7 +149,7 @@ export function WorkspaceShell({
   onCloseThread,
   onDeleteThread,
   onCloseFileTree,
-  onOpenGit,
+  onOpenGit: _onOpenGit,
   onOpenTerminal,
   onGitCommitMessageChange,
   onRefreshGit,

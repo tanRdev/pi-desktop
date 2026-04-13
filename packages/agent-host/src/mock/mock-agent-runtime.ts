@@ -122,7 +122,7 @@ export class MockAgentRuntime {
     };
 
     const assistantTimestamp = timestamp + 1;
-    const assistantText = `PiDesk mock assistant received: ${text}`;
+    const assistantText = `Pi Desktop mock assistant received: ${text}`;
     const assistantMessage: AgentMessageSnapshot = {
       id: `assistant-${assistantTimestamp}`,
       role: "assistant",

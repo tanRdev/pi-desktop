@@ -1,7 +1,6 @@
 import type {
   GitRepositoryStatus,
   MentionSuggestion,
-  SearchMatch,
   SlashSuggestion,
   ThreadSnapshot,
 } from "@pidesk/shared";
@@ -39,6 +38,10 @@ import { useWindowStore, workspaceSessionStore } from "./use-window-store";
 
 const EMPTY_AUTOCOMPLETE_SUGGESTIONS: (SlashSuggestion | MentionSuggestion)[] =
   [];
+
+function getErrorDescription(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}
 const PENDING_SURFACE_PREFIX = "__pending_surface__";
 const WORKSPACE_SWITCH_STATE_KEY = "pidesk.workspace-switch-state";
 
@@ -228,9 +231,6 @@ export function useAppShellController(): AppShellController {
     uiInteractionStore
       .getState()
       .setDialogOpen("confirmRemoveRepository", isOpen);
-  }, []);
-  const openFileTreeOverlay = React.useCallback(() => {
-    uiInteractionStore.getState().openFileTreeOverlay();
   }, []);
   const closeFileTreeOverlay = React.useCallback(() => {
     uiInteractionStore.getState().closeFileTreeOverlay();
@@ -539,20 +539,27 @@ export function useAppShellController(): AppShellController {
 
   const handleFileSave = React.useCallback(
     async (windowId: string, filePath: string) => {
-      try {
-        const didSave = await saveFileWindowForWorktree({
-          sessionStore: workspaceSessionStore,
-          worktreeId: activeWorktreeId,
-          windowId,
-          filePath,
-          writeFile: (nextFilePath, content) =>
-            window.pidesk.fs.writeFile(nextFilePath, content),
-        });
-        if (didSave) {
-          windowStore.setDirty(windowId, false);
-        }
-      } catch (error) {
-        console.error("Failed to save file:", error);
+      const didSave = await saveFileWindowForWorktree({
+        sessionStore: workspaceSessionStore,
+        worktreeId: activeWorktreeId,
+        windowId,
+        filePath,
+        writeFile: (nextFilePath, content) =>
+          window.pidesk.fs.writeFile(nextFilePath, content),
+      }).then(
+        (result) => result,
+        (error) => {
+          toast.error("Failed to save file", {
+            description: getErrorDescription(
+              error,
+              "The file could not be written to disk",
+            ),
+          });
+          return false;
+        },
+      );
+      if (didSave) {
+        windowStore.setDirty(windowId, false);
       }
     },
     [activeWorktreeId, windowStore],
@@ -901,11 +908,14 @@ export function useAppShellController(): AppShellController {
         return;
       }
 
-      try {
-        await switchModel(selection);
-      } catch (error) {
-        console.error("Failed to switch model:", error);
-      }
+      await switchModel(selection).then(undefined, (error) => {
+        toast.error("Failed to switch model", {
+          description: getErrorDescription(
+            error,
+            "The selected model could not be activated",
+          ),
+        });
+      });
     },
     [switchModel],
   );

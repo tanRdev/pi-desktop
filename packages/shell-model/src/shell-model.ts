@@ -58,6 +58,10 @@ const MESSAGE_STATUS_PRIORITY = {
   streaming: 1,
 } satisfies Record<AgentMessageSnapshot["status"], number>;
 
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}
+
 function normalizeEvent(
   event: PiDeskAgentEvent | MessageEnvelopeEvent,
 ): PiDeskAgentEvent {
@@ -212,6 +216,7 @@ export function createShellModel(api: PiDeskApi) {
         snapshotLoadedAt: Date.now(),
       },
     };
+
     notify();
   }
 
@@ -278,12 +283,16 @@ export function createShellModel(api: PiDeskApi) {
       notify();
 
       const eventSequenceAtStart = state.live.lastEventSequence;
+      let promptError: unknown = null;
 
       try {
         await api.agent.prompt(prompt);
       } catch (error) {
-        console.debug("[shell-model] prompt failed:", error);
+        promptError = error;
+        // Refreshing the snapshot below gives us the authoritative runtime state.
       }
+
+      void promptError;
 
       let agent = state.agent;
 
@@ -300,8 +309,7 @@ export function createShellModel(api: PiDeskApi) {
         agent = {
           ...state.agent,
           status: "error",
-          lastError:
-            error instanceof Error ? error.message : "Unknown agent host error",
+          lastError: getErrorMessage(error, "Unknown agent host error"),
         };
       }
 
@@ -318,10 +326,12 @@ export function createShellModel(api: PiDeskApi) {
     },
 
     async cancelPrompt(): Promise<void> {
+      let cancelError: unknown = null;
+
       try {
         await api.agent.cancelPrompt();
       } catch (error) {
-        console.debug("[shell-model] cancel prompt failed:", error);
+        cancelError = error;
       }
 
       try {
@@ -349,10 +359,10 @@ export function createShellModel(api: PiDeskApi) {
           agent: {
             ...state.agent,
             status: "error",
-            lastError:
-              error instanceof Error
-                ? error.message
-                : "Unknown agent host error",
+            lastError: getErrorMessage(
+              cancelError ?? error,
+              "Unknown agent host error",
+            ),
           },
         };
       }

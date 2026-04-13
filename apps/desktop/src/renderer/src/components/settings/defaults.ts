@@ -10,6 +10,10 @@ export interface InterfaceSettings {
 export interface Settings {
   ai: AISettings;
   interface: InterfaceSettings;
+  editor: Record<string, never>;
+  terminal: Record<string, never>;
+  keybindings: Record<string, never>;
+  advanced: Record<string, never>;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -49,6 +53,10 @@ export function mergeSettingsWithDefaults(value: unknown): Settings {
       ...DEFAULT_SETTINGS.interface,
       ...(sidebarWidth === null ? {} : { sidebarWidth }),
     },
+    editor: {},
+    terminal: {},
+    keybindings: {},
+    advanced: {},
   };
 }
 
@@ -77,6 +85,10 @@ export const DEFAULT_SETTINGS: Settings = {
   interface: {
     sidebarWidth: 280,
   },
+  editor: {},
+  terminal: {},
+  keybindings: {},
+  advanced: {},
 };
 
 export const STORAGE_KEY = "pidesk-settings";

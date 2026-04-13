@@ -107,6 +107,10 @@ function mergeSettingsState(
       ...base.interface,
       ...(isRecord(parsed.interface) ? parsed.interface : {}),
     },
+    editor: base.editor,
+    terminal: base.terminal,
+    keybindings: base.keybindings,
+    advanced: base.advanced,
   };
 }
 

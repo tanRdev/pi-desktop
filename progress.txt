@@ -55,7 +55,7 @@ Started: Fri Mar 20 10:36:15 EDT 2026
 - Rebuilt the fixed left rail into a two-step flow: project selector first, then workspace tools with a Back action and slide animation
 - Added real sidebar views for workspace overview, explorer, search, source control, debug, and extensions using repository/worktree/thread/git data
 - Moved the prompt into the same canvas region in workspace-shell so it reads as part of the canvas rather than a separate dock strip
-- Replaced OPERATOR_01 with PiDesk v0.1.0 in the status bar and removed the title-bar command box so traffic-light space stays clear
+- Replaced OPERATOR_01 with Pi Desktop v0.1.0 in the status bar and removed the title-bar command box so traffic-light space stays clear
 - Files changed: apps/desktop/src/renderer/src/components/workspace/left-rail.tsx, apps/desktop/src/renderer/src/components/workspace/left-sidebar.tsx, apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx, apps/desktop/src/renderer/src/components/workspace/status-bar.tsx, apps/desktop/src/renderer/src/components/workspace/title-bar.tsx, apps/desktop/src/renderer/src/components/workspace/prompt-dock.tsx, packages/ui/src/components/ui/prompt-input.tsx, apps/desktop/src/renderer/src/components/canvas/canvas-grid.tsx
 - **Learnings for future iterations:**
   - The fixed rail should own the left 64px offset; the sidebar can reserve that width internally instead of pushing thread content under the rail
@@ -73,5 +73,5 @@ Started: Fri Mar 20 10:36:15 EDT 2026
 - **Learnings for future iterations:**
   - File-upload affordances can piggyback on existing `@file:` prompt mention routing to become real prompt context instead of dead chrome
   - Centering canvas windows needs viewport-aware math that includes zoom rather than hard-coded top-left offsets
-  - Prompt Kit components read best in PiDesk when they are spread across real transcript/dock states instead of isolated showcase panels alone
+- Prompt Kit components read best in Pi Desktop when they are spread across real transcript/dock states instead of isolated showcase panels alone
 ---

@@ -38,9 +38,12 @@ function initRepository(
   const repoRoot = path.join(sandbox, name);
   fs.mkdirSync(repoRoot, { recursive: true });
   runGit(sandbox, ["init", "-b", "main", repoRoot]);
-  runGit(repoRoot, ["config", "user.name", "PiDesk Tests"]);
-  runGit(repoRoot, ["config", "user.email", "tests@pidesk.local"]);
-  fs.writeFileSync(path.join(repoRoot, "README.md"), "# PiDesk test repo\n");
+  runGit(repoRoot, ["config", "user.name", "Pi Desktop Tests"]);
+  runGit(repoRoot, ["config", "user.email", "tests@pi-desktop.local"]);
+  fs.writeFileSync(
+    path.join(repoRoot, "README.md"),
+    "# Pi Desktop test repo\n",
+  );
   runGit(repoRoot, ["add", "README.md"]);
   runGit(repoRoot, ["commit", "-m", "initial"]);
 

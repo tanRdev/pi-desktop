@@ -157,8 +157,6 @@ export function ProjectAvatar({
     repository.icon,
     repository.name,
   );
-  const accentStyle = resolveProjectAccentStyle(repository.accentColor);
-
   // Minimal flat icon - no backgrounds, just the icon
   const avatarClassName = cn(
     "relative flex items-center justify-center",

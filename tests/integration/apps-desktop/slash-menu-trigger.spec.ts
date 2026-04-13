@@ -35,28 +35,28 @@ describe("slash menu trigger detection", () => {
   it("detects a bare slash at the start of the draft as a slash trigger", () => {
     const match = getPromptAutocompleteMatch("/");
     expect(match).not.toBeNull();
-    expect(match!.trigger).toBe("/");
-    expect(match!.query).toBe("");
-    expect(match!.start).toBe(0);
-    expect(match!.end).toBe(1);
+    expect(match?.trigger).toBe("/");
+    expect(match?.query).toBe("");
+    expect(match?.start).toBe(0);
+    expect(match?.end).toBe(1);
   });
 
   it("detects a slash after a space as a slash trigger", () => {
     const match = getPromptAutocompleteMatch("hello /bra");
     expect(match).not.toBeNull();
-    expect(match!.trigger).toBe("/");
-    expect(match!.query).toBe("bra");
-    expect(match!.start).toBe(6);
-    expect(match!.end).toBe(10);
+    expect(match?.trigger).toBe("/");
+    expect(match?.query).toBe("bra");
+    expect(match?.start).toBe(6);
+    expect(match?.end).toBe(10);
   });
 
   it("detects a slash at the start with a query string", () => {
     const match = getPromptAutocompleteMatch("/deploy");
     expect(match).not.toBeNull();
-    expect(match!.trigger).toBe("/");
-    expect(match!.query).toBe("deploy");
-    expect(match!.start).toBe(0);
-    expect(match!.end).toBe(7);
+    expect(match?.trigger).toBe("/");
+    expect(match?.query).toBe("deploy");
+    expect(match?.start).toBe(0);
+    expect(match?.end).toBe(7);
   });
 
   it("does not detect a slash in the middle of a word", () => {
@@ -70,8 +70,8 @@ describe("slash menu trigger detection", () => {
   it("detects an at-sign mention after a space", () => {
     const match = getPromptAutocompleteMatch("look at @ter");
     expect(match).not.toBeNull();
-    expect(match!.trigger).toBe("@");
-    expect(match!.query).toBe("ter");
+    expect(match?.trigger).toBe("@");
+    expect(match?.query).toBe("ter");
   });
 
   it("returns null for text without trigger characters", () => {
@@ -88,8 +88,11 @@ describe("slash menu token replacement", () => {
     const draft = "Use /bra";
     const match = getPromptAutocompleteMatch(draft);
     expect(match).not.toBeNull();
+    if (match === null) {
+      throw new Error("Expected slash autocomplete match");
+    }
 
-    const result = replacePromptToken(draft, match!, "/skill:brainstorming ");
+    const result = replacePromptToken(draft, match, "/skill:brainstorming ");
     expect(result).toBe("Use /skill:brainstorming ");
   });
 
@@ -97,8 +100,11 @@ describe("slash menu token replacement", () => {
     const draft = "/dep";
     const match = getPromptAutocompleteMatch(draft);
     expect(match).not.toBeNull();
+    if (match === null) {
+      throw new Error("Expected slash autocomplete match");
+    }
 
-    const result = replacePromptToken(draft, match!, "/deploy ");
+    const result = replacePromptToken(draft, match, "/deploy ");
     expect(result).toBe("/deploy ");
   });
 
@@ -106,8 +112,11 @@ describe("slash menu token replacement", () => {
     const draft = "/";
     const match = getPromptAutocompleteMatch(draft);
     expect(match).not.toBeNull();
+    if (match === null) {
+      throw new Error("Expected slash autocomplete match");
+    }
 
-    const result = replacePromptToken(draft, match!, "/skill:build ");
+    const result = replacePromptToken(draft, match, "/skill:build ");
     expect(result).toBe("/skill:build ");
   });
 });
@@ -138,10 +147,13 @@ describe("slash menu end-to-end: trigger → discovery → suggestion", () => {
 
     const match = getPromptAutocompleteMatch("/");
     expect(match).not.toBeNull();
+    if (match === null) {
+      throw new Error("Expected slash autocomplete match");
+    }
 
     const suggestions = await loadPromptAutocompleteSuggestions({
       draft: "/",
-      autocompleteMatch: match!,
+      autocompleteMatch: match,
       activeWorktreePath: "/tmp/repo",
       windows: [],
       getSlashSuggestions,
@@ -168,10 +180,13 @@ describe("slash menu end-to-end: trigger → discovery → suggestion", () => {
 
     const match = getPromptAutocompleteMatch("/dep");
     expect(match).not.toBeNull();
+    if (match === null) {
+      throw new Error("Expected slash autocomplete match");
+    }
 
     const suggestions = await loadPromptAutocompleteSuggestions({
       draft: "/dep",
-      autocompleteMatch: match!,
+      autocompleteMatch: match,
       activeWorktreePath: "/tmp/repo",
       windows: [],
       getSlashSuggestions,
@@ -184,6 +199,9 @@ describe("slash menu end-to-end: trigger → discovery → suggestion", () => {
   it("does not call getSlashSuggestions when the trigger is @ (mention) instead of /", async () => {
     const match = getPromptAutocompleteMatch("@file");
     expect(match).not.toBeNull();
+    if (match === null) {
+      throw new Error("Expected mention autocomplete match");
+    }
 
     const getSlashSuggestions = async () => ({
       suggestions: [
@@ -194,7 +212,7 @@ describe("slash menu end-to-end: trigger → discovery → suggestion", () => {
 
     const suggestions = await loadPromptAutocompleteSuggestions({
       draft: "@file",
-      autocompleteMatch: match!,
+      autocompleteMatch: match,
       activeWorktreePath: "/tmp/repo",
       windows: [],
       getSlashSuggestions,

@@ -6,6 +6,7 @@ import type {
   SearchRequest,
   SearchResponse,
 } from "@pidesk/shared";
+import { Effect, Either } from "effect";
 
 const DEFAULT_TIMEOUT_MS = 10_000;
 
@@ -23,14 +24,20 @@ function globToRegExp(pattern: string): RegExp {
 
 function matchesAnyPattern(relativePath: string, patterns?: string[]): boolean {
   if (!patterns || patterns.length === 0) return true;
-  return patterns.some((p) => {
-    try {
-      const re = globToRegExp(p);
-      return re.test(relativePath);
-    } catch {
-      return relativePath.includes(p);
-    }
-  });
+  return patterns.some((pattern) => globToRegExp(pattern).test(relativePath));
+}
+
+function safeJsonParse(text: string): unknown | null {
+  const result = Effect.runSync(
+    Effect.either(
+      Effect.try({
+        try: () => JSON.parse(text),
+        catch: () => null,
+      }),
+    ),
+  );
+
+  return Either.isRight(result) ? result.right : null;
 }
 
 function toSearchMatch(
@@ -41,13 +48,8 @@ function toSearchMatch(
   const full = path.resolve(rootPath, filePath);
   const name = path.basename(filePath);
   const ext = path.extname(filePath).replace(/^\./, "") || undefined;
-  let type: "file" | "directory" = "file";
-  try {
-    const st = fs.statSync(full);
-    type = st.isDirectory() ? "directory" : "file";
-  } catch {
-    // keep as file when stat fails
-  }
+  const stat = fs.statSync(full, { throwIfNoEntry: false });
+  const type = stat?.isDirectory() ? "directory" : "file";
 
   return {
     path: full,
@@ -135,10 +137,8 @@ export class WorkspaceSearchService {
       const timer = setTimeout(() => {
         if (!finished) {
           finished = true;
-          try {
+          if (!proc.killed) {
             proc.kill();
-          } catch {
-            // ignore
           }
           reject(new Error("fff: timeout"));
         }
@@ -169,59 +169,43 @@ export class WorkspaceSearchService {
           );
         }
 
-        try {
-          const parsed = parseFffJson(stdout);
-          const mapped = parsed
-            .map((item) => {
-              const itemPath = getItemPath(item);
-              if (!itemPath) return null;
-              const rel = path.isAbsolute(itemPath)
-                ? path.relative(request.rootPath, itemPath)
-                : itemPath;
-              const match = toSearchMatch(
-                request.rootPath,
-                rel,
-                getItemScore(item),
-              );
-              match.highlights = getItemHighlights(item);
-              return match;
-            })
-            .filter((match): match is SearchMatch => match !== null);
+        const parsed = parseFffJson(stdout);
+        const mapped = parsed
+          .map((item) => {
+            const itemPath = getItemPath(item);
+            if (!itemPath) return null;
+            const rel = path.isAbsolute(itemPath)
+              ? path.relative(request.rootPath, itemPath)
+              : itemPath;
+            const match = toSearchMatch(
+              request.rootPath,
+              rel,
+              getItemScore(item),
+            );
+            match.highlights = getItemHighlights(item);
+            return match;
+          })
+          .filter((match): match is SearchMatch => match !== null);
 
-          // apply include/exclude patterns if any
-          const filtered = mapped.filter((m) => {
-            const relPath = path
-              .relative(request.rootPath, m.path)
-              .replace(/\\\\/g, "/");
-            if (!matchesAnyPattern(relPath, request.includePatterns))
-              return false;
-            if (request.excludePatterns && request.excludePatterns.length > 0) {
-              if (
-                !matchesAnyPattern(
-                  relPath,
-                  request.excludePatterns.map((p) =>
-                    p.startsWith("!") ? p.slice(1) : p,
-                  ),
-                )
-              ) {
-                // If exclude patterns provided, and none match, keep; if any match, remove
-              }
-            }
-            // exclude check using any match
-            if (
-              request.excludePatterns?.some((p) =>
-                globToRegExp(p).test(relPath),
-              )
-            ) {
-              return false;
-            }
-            return true;
-          });
+        // apply include/exclude patterns if any
+        const filtered = mapped.filter((match) => {
+          const relPath = path
+            .relative(request.rootPath, match.path)
+            .replace(/\\\\/g, "/");
+          if (!matchesAnyPattern(relPath, request.includePatterns)) {
+            return false;
+          }
+          if (
+            request.excludePatterns?.some((pattern) =>
+              globToRegExp(pattern).test(relPath),
+            )
+          ) {
+            return false;
+          }
+          return true;
+        });
 
-          resolve(filtered);
-        } catch (e) {
-          reject(e instanceof Error ? e : new Error(String(e)));
-        }
+        resolve(filtered);
       });
     });
   }
@@ -233,10 +217,13 @@ export class WorkspaceSearchService {
 
     async function walker(dir: string) {
       if (results.length >= max) return;
-      let entries: fs.Dirent[] = [];
-      try {
-        entries = await fs.promises.readdir(dir, { withFileTypes: true });
-      } catch {
+      const entries = await fs.promises
+        .readdir(dir, { withFileTypes: true })
+        .then(
+          (value) => value,
+          () => null,
+        );
+      if (!entries) {
         return;
       }
 
@@ -278,13 +265,12 @@ function parseFffJson(stdout: string): unknown[] {
   const trimmed = stdout.trim();
   if (!trimmed) return [];
 
-  try {
-    const parsed = JSON.parse(trimmed);
-    if (Array.isArray(parsed)) return parsed;
-    if (isRecord(parsed) && Array.isArray(parsed.results))
-      return parsed.results;
-  } catch {
-    // try NDJSON (newline-delimited JSON) below
+  const parsed = safeJsonParse(trimmed);
+  if (Array.isArray(parsed)) {
+    return parsed;
+  }
+  if (isRecord(parsed) && Array.isArray(parsed.results)) {
+    return parsed.results;
   }
 
   const lines = trimmed
@@ -293,10 +279,9 @@ function parseFffJson(stdout: string): unknown[] {
     .filter(Boolean);
   const out: unknown[] = [];
   for (const line of lines) {
-    try {
-      out.push(JSON.parse(line));
-    } catch {
-      // ignore unparsable lines
+    const item = safeJsonParse(line);
+    if (item !== null) {
+      out.push(item);
     }
   }
   return out;

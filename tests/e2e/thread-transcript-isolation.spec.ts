@@ -58,7 +58,7 @@ async function sendPrompt(
     timeout: 20_000,
   });
   await expect(page.getByTestId("chat-transcript")).toContainText(
-    `PiDesk mock assistant received: ${prompt}`,
+    `Pi Desktop mock assistant received: ${prompt}`,
     { timeout: 20_000 },
   );
 }
@@ -103,26 +103,26 @@ test("keeps transcript data isolated per thread in the desktop app", async () =>
       alphaPrompt,
     );
     await expect(page.getByTestId("chat-transcript")).toContainText(
-      `PiDesk mock assistant received: ${alphaPrompt}`,
+      `Pi Desktop mock assistant received: ${alphaPrompt}`,
     );
     await expect(page.getByTestId("chat-transcript")).not.toContainText(
       betaPrompt,
     );
     await expect(page.getByTestId("chat-transcript")).not.toContainText(
-      `PiDesk mock assistant received: ${betaPrompt}`,
+      `Pi Desktop mock assistant received: ${betaPrompt}`,
     );
 
     await selectThread(betaThread);
     await expect(page.getByTestId("left-rail")).toContainText("Thread Beta");
     await expect(page.getByTestId("chat-transcript")).toContainText(betaPrompt);
     await expect(page.getByTestId("chat-transcript")).toContainText(
-      `PiDesk mock assistant received: ${betaPrompt}`,
+      `Pi Desktop mock assistant received: ${betaPrompt}`,
     );
     await expect(page.getByTestId("chat-transcript")).not.toContainText(
       alphaPrompt,
     );
     await expect(page.getByTestId("chat-transcript")).not.toContainText(
-      `PiDesk mock assistant received: ${alphaPrompt}`,
+      `Pi Desktop mock assistant received: ${alphaPrompt}`,
     );
   } finally {
     await app.close();

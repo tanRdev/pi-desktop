@@ -192,7 +192,7 @@ export function Terminal({
                 "hover:bg-white/[0.12]",
               )}
             >
-              pnpm rebuild node-pty
+              bun rebuild node-pty
             </code>{" "}
             to rebuild native modules.
           </div>

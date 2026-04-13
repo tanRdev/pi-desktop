@@ -27,15 +27,16 @@ describe("titlebar chrome", () => {
     expect(source).not.toContain("grid-cols-[1fr_auto_1fr]");
   });
 
-  it("keeps only launcher, terminal, settings, and side panel controls in the title bar", () => {
+  it("keeps the current minimal titlebar controls for terminal and side panel flows", () => {
     const source = readSource(
       "apps/desktop/src/renderer/src/components/workspace/title-bar.tsx",
     );
 
-    expect(source).toContain('label: "Open launcher"');
     expect(source).toContain('label: "Open terminal"');
-    expect(source).toContain('label: "Open settings"');
     expect(source).toContain('aria-label="Toggle side panel"');
+    expect(source).not.toContain('label: "Open launcher"');
+    expect(source).not.toContain('label: "Open settings"');
+    expect(source).not.toContain('label: "Open packages"');
     expect(source).not.toContain("Browse files");
     expect(source).not.toContain("Open git");
     expect(source).not.toContain("canOpenFileTree");
@@ -58,13 +59,14 @@ describe("titlebar chrome", () => {
     );
   });
 
-  it("shows a guided empty state in the files overlay instead of a generic no-workspace message", () => {
+  it("shows the current worktree-scoped empty state in the files overlay", () => {
     const source = readSource(
       "apps/desktop/src/renderer/src/components/workspace/workspace-overlays.tsx",
     );
 
-    expect(source).toContain("Select a repository or worktree to browse files");
-    expect(source).toContain("Choose a branch on the right");
-    expect(source).toContain("max-w-3xl");
+    expect(source).toContain("Select a worktree to browse files");
+    expect(source).toContain("ariaLabel: string;");
+    expect(source).toContain("aria-label={ariaLabel}");
+    expect(source).toContain("activeWorktree ? (");
   });
 });

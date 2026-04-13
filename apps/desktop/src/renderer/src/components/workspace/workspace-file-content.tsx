@@ -187,7 +187,12 @@ export function WorkspaceFileContent({
       : `data:${content.mimeType ?? "image/png"};base64,${content.content}`;
 
     return (
-      <div className={cn("flex h-full flex-col bg-[var(--color-bg-primary)]", className)}>
+      <div
+        className={cn(
+          "flex h-full flex-col bg-[var(--color-bg-primary)]",
+          className,
+        )}
+      >
         {toolbar}
         <div className="flex min-h-0 flex-1 items-center justify-center p-4">
           <img

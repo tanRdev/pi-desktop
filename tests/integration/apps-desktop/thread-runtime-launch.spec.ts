@@ -9,7 +9,7 @@ describe("createThreadRuntimeLaunchDetails", () => {
       worktreePath: "/tmp/worktrees/feature-alpha",
       mode: "mock",
       socketDirectory: "/tmp/pidesk-runtime-sockets",
-      execPath: "/Applications/PiDesk.app/Contents/MacOS/PiDesk",
+      execPath: "/Applications/Pi Desktop.app/Contents/MacOS/Pi Desktop",
       sessionServerEntryPath:
         "/app/out/main/agent-host-session-server-entry.js",
       nodeEnv: "test",
@@ -30,7 +30,7 @@ describe("createThreadRuntimeLaunchDetails", () => {
         "PIDESK_AGENT_CWD=/tmp/worktrees/feature-alpha",
         "PIDESK_AGENT_DIR=/tmp/worktrees/feature-alpha/.pi/agent/threads/thread-alpha",
         "NODE_ENV=test",
-        "/Applications/PiDesk.app/Contents/MacOS/PiDesk",
+        "/Applications/Pi Desktop.app/Contents/MacOS/Pi Desktop",
         "/app/out/main/agent-host-session-server-entry.js",
       ],
     });

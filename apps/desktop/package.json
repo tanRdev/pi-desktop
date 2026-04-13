@@ -2,14 +2,15 @@
   "name": "@pidesk/desktop",
   "version": "0.1.0",
   "private": true,
-  "productName": "PiDesk",
-  "description": "PiDesk Electron desktop shell",
-  "author": "PiDesk",
+  "productName": "Pi Desktop",
+  "description": "Pi Desktop Electron desktop shell",
+  "author": "Pi Desktop",
   "type": "module",
   "build": {
-    "appId": "com.pidesk.desktop",
-    "productName": "PiDesk",
+    "appId": "dev.pi.desktop",
+    "productName": "Pi Desktop",
     "mac": {
+      "icon": "../../build/icon.icns",
       "category": "public.app-category.developer-tools",
       "target": [
         "dir",
@@ -22,6 +23,7 @@
   "scripts": {
     "build": "electron-vite build",
     "dev": "electron-vite dev",
+    "dist:mac": "bun run build && bun ../../scripts/stage-desktop-release.mjs && electron-builder --projectDir . --config ../../electron-builder.yml --mac dmg zip --arm64",
     "postinstall": "electron-rebuild -f -w node-pty",
     "typecheck": "tsc --project tsconfig.json --noEmit"
   },

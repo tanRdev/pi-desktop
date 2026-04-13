@@ -27,7 +27,7 @@ function createFakeSession(): FakeSession {
     async prompt(text: string) {
       const timestamp = 123;
       const assistantTimestamp = timestamp + 1;
-      const assistantText = `PiDesk SDK assistant received: ${text}`;
+      const assistantText = `Pi Desktop SDK assistant received: ${text}`;
 
       session.messages = [
         {
@@ -171,7 +171,7 @@ describe("PiSdkAgentRuntime", () => {
       {
         id: "assistant-124",
         role: "assistant",
-        text: "PiDesk SDK assistant received: hello from pi sdk",
+        text: "Pi Desktop SDK assistant received: hello from pi sdk",
         status: "complete",
         timestamp: 124,
       },

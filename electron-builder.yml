@@ -1,11 +1,20 @@
-appId: dev.pi.pidesk
-productName: PiDesk
+appId: dev.pi.desktop
+productName: Pi Desktop
 directories:
-  output: dist/release
+  app: ../../dist/electron-app
+  output: ../../dist/release
+  buildResources: ../../build
 files:
+  - package.json
   - out/**
+  - node_modules/node-pty/**/*
+asarUnpack:
+  - node_modules/node-pty/**/*.node
+  - node_modules/node-pty/**/spawn-helper
 mac:
+  icon: ../../build/icon.icns
   category: public.app-category.developer-tools
   target:
     - dmg
+    - zip
 artifactName: ${productName}-${version}-${arch}.${ext}

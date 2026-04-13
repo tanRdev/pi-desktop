@@ -10,7 +10,8 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./styles/pidesk-shell.css": "./src/styles/pidesk-shell.css"
+    "./styles/pidesk-shell.css": "./src/styles/pidesk-shell.css",
+    "./styles/pi-desktop-shell.css": "./src/styles/pi-desktop-shell.css"
   },
   "scripts": {
     "build": "tsc --project tsconfig.build.json",

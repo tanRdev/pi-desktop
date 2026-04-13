@@ -36,9 +36,12 @@ function initRepository(name: string) {
   const repoRoot = path.join(sandbox, name);
   fs.mkdirSync(repoRoot, { recursive: true });
   runGit(sandbox, ["init", "-b", "main", repoRoot]);
-  runGit(repoRoot, ["config", "user.name", "PiDesk Tests"]);
-  runGit(repoRoot, ["config", "user.email", "tests@pidesk.local"]);
-  fs.writeFileSync(path.join(repoRoot, "README.md"), "# PiDesk test repo\n");
+  runGit(repoRoot, ["config", "user.name", "Pi Desktop Tests"]);
+  runGit(repoRoot, ["config", "user.email", "tests@pi-desktop.local"]);
+  fs.writeFileSync(
+    path.join(repoRoot, "README.md"),
+    "# Pi Desktop test repo\n",
+  );
   runGit(repoRoot, ["add", "README.md"]);
   runGit(repoRoot, ["commit", "-m", "initial"]);
   return { sandbox, repoRoot };
@@ -54,7 +57,7 @@ describe("createShellSnapshot", () => {
   it("builds an empty repository catalog when cwd is not a git repository", () => {
     const nonRepoDir = createTempDir("pidesk-non-repo-");
     const snapshot = createShellSnapshot({
-      appName: "PiDesk",
+      appName: "Pi Desktop",
       appVersion: "0.1.0",
       chromeVersion: "141.0.0.0",
       electronVersion: "41.0.1",
@@ -67,7 +70,7 @@ describe("createShellSnapshot", () => {
     });
 
     expect(snapshot).toMatchObject({
-      appName: "PiDesk",
+      appName: "Pi Desktop",
       appVersion: "0.1.0",
       chromeVersion: "141.0.0.0",
       mode: "test",
@@ -121,7 +124,7 @@ describe("createShellSnapshot", () => {
       lastError: null,
     };
     const snapshot = createShellSnapshot({
-      appName: "PiDesk",
+      appName: "Pi Desktop",
       appVersion: "0.1.0",
       chromeVersion: "141.0.0.0",
       electronVersion: "41.0.1",

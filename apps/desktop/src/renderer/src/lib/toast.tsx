@@ -1,8 +1,7 @@
-import * as React from "react";
 import { toast as sonnerToast } from "sonner";
 
 // App-styled toast utility with consistent dark aesthetic
-// Matches the PiDesk design system
+// Matches the Pi Desktop design system
 
 const TOAST_STYLE = {
   background: "#141414",

@@ -1,6 +1,6 @@
 import type { ImageDimensions } from "./fs.js";
 /**
- * Workspace window descriptors for the PiDesk window manager.
+ * Workspace window descriptors for the Pi Desktop window manager.
  * Each window is a draggable, resizable workspace surface.
  */
 

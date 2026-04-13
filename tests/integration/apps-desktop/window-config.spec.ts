@@ -16,7 +16,7 @@ describe("createMainWindowOptions", () => {
       preloadPath: "/tmp/pidesk/preload.js",
     });
 
-    expect(options.title).toBe("PiDesk");
+    expect(options.title).toBe("Pi Desktop");
     expect(options.show).toBe(false);
     expect(options.minWidth).toBe(1180);
     expect(options.minHeight).toBe(720);
@@ -103,12 +103,12 @@ describe("resolveRendererTarget", () => {
     expect(
       resolveRendererTarget(
         undefined,
-        "file:///Applications/PiDesk.app/Contents/Resources/app/out/main/index.js",
+        "file:///Applications/Pi Desktop.app/Contents/Resources/app/out/main/index.js",
       ),
     ).toEqual({
       kind: "file",
       value:
-        "/Applications/PiDesk.app/Contents/Resources/app/out/renderer/index.html",
+        "/Applications/Pi Desktop.app/Contents/Resources/app/out/renderer/index.html",
     });
   });
 });
@@ -117,10 +117,10 @@ describe("resolvePreloadTarget", () => {
   it("resolves to the preload output relative to main entry", () => {
     expect(
       resolvePreloadTarget(
-        "file:///Applications/PiDesk.app/Contents/Resources/app/out/main/index.js",
+        "file:///Applications/Pi Desktop.app/Contents/Resources/app/out/main/index.js",
       ),
     ).toBe(
-      "/Applications/PiDesk.app/Contents/Resources/app/out/preload/index.cjs",
+      "/Applications/Pi Desktop.app/Contents/Resources/app/out/preload/index.cjs",
     );
   });
 });

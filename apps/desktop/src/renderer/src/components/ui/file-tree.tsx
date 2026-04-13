@@ -287,13 +287,13 @@ export function FileTree({ rootPath, onFileClick, className }: FileTreeProps) {
   const cache = React.useRef(new Map<string, DirectoryListing>());
 
   const loadDirectory = React.useCallback(async (path: string) => {
-    try {
-      const result = await window.pidesk.fs.readDirectory(path);
-      return result;
-    } catch (error) {
-      console.error("Failed to read directory:", error);
-      return null;
-    }
+    return window.pidesk.fs.readDirectory(path).then(
+      (result) => result,
+      (error) => {
+        console.error("Failed to read directory:", error);
+        return null;
+      },
+    );
   }, []);
 
   React.useEffect(() => {

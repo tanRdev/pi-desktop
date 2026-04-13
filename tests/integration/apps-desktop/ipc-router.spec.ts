@@ -362,7 +362,7 @@ function createTerminalManagerMock(
 
 function createShellSnapshot(): ShellSnapshotWithWorkspace {
   return {
-    appName: "PiDesk",
+    appName: "Pi Desktop",
     appVersion: "0.1.0",
     chromeVersion: "41.0.1",
     platform: "darwin",
@@ -491,7 +491,7 @@ function createAgentHost(agentSnapshot: AgentSnapshot) {
 function createStateHost() {
   const repositoryPreferences: RepositoryPreferences = {
     repositoryId: "/tmp/pidesk",
-    customName: "PiDesk",
+    customName: "Pi Desktop",
     icon: "pi",
     accentColor: "#224466",
   };
@@ -675,7 +675,7 @@ describe("registerIpcHandlers", () => {
     )?.(undefined, {
       repositoryId: "/tmp/pidesk",
       updates: {
-        customName: "PiDesk",
+        customName: "Pi Desktop",
         icon: "pi",
         accentColor: "#224466",
       },
@@ -720,7 +720,7 @@ describe("registerIpcHandlers", () => {
           repositories: [
             {
               repositoryId: "/tmp/pidesk",
-              customName: "PiDesk",
+              customName: "Pi Desktop",
             },
           ],
         },
@@ -733,7 +733,7 @@ describe("registerIpcHandlers", () => {
     expect(stateHost.updateRepositoryPreferences).toHaveBeenCalledWith(
       "/tmp/pidesk",
       {
-        customName: "PiDesk",
+        customName: "Pi Desktop",
         icon: "pi",
         accentColor: "#224466",
       },
@@ -774,7 +774,7 @@ describe("registerIpcHandlers", () => {
       repositories: [
         {
           repositoryId: "/tmp/pidesk",
-          customName: "PiDesk",
+          customName: "Pi Desktop",
         },
       ],
     });

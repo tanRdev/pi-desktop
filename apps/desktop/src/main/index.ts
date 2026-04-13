@@ -107,7 +107,7 @@ function createBootstrapErrorHost(message: string): AgentDesktopHost {
       await unavailableHost.cancelPrompt();
     },
     async reset() {
-      return Promise.resolve();
+      return;
     },
     subscribe() {
       return () => {};
@@ -176,7 +176,7 @@ function subscribeToFullscreenChanges(window: BrowserWindow) {
 
 async function bootstrapDesktop() {
   await app.whenReady();
-  app.setName("PiDesk");
+  app.setName("Pi Desktop");
 
   const explicitUserDataPath = process.env.PIDESK_USER_DATA_DIR;
   if (explicitUserDataPath) {
@@ -204,7 +204,7 @@ async function bootstrapDesktop() {
   let currentContext: SelectedThreadContext | null = null;
   let currentTransport: AgentHostSocketTransport | null = null;
   let currentHost: AgentDesktopHost = createBootstrapErrorHost(
-    "PiDesk agent host has not been attached yet",
+    "Pi Desktop agent host has not been attached yet",
   );
   const workspaceSearchService = new WorkspaceSearchService();
   const defaultAgentDirectory = path.join(app.getPath("home"), ".pi", "agent");
@@ -716,8 +716,14 @@ async function bootstrapDesktop() {
       let agentSnapshot: AgentSnapshot | null = null;
       try {
         agentSnapshot = await currentHost.getSnapshot();
-      } catch {
-        // Preserve shell visibility even when the selected agent runtime is unavailable.
+      } catch (error) {
+        agentSnapshot = {
+          sessionId: AGENT_BOOTSTRAP_ERROR_SESSION_ID,
+          status: "error",
+          messages: [],
+          lastError:
+            error instanceof Error ? error.message : "Unknown agent host error",
+        };
       }
 
       const selection = currentContext

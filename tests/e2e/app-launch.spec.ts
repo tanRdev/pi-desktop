@@ -28,7 +28,7 @@ test("launches the shell and streams a mock agent reply", async () => {
     await page.getByTestId("chat-send").click();
 
     await expect(page.getByTestId("chat-transcript")).toContainText(
-      "PiDesk mock assistant received: Summarize the current workspace",
+      "Pi Desktop mock assistant received: Summarize the current workspace",
     );
   } finally {
     await app.close();

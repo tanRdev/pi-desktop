@@ -1,6 +1,5 @@
 // Cursor Glass Chat - Complete redesign to match Cursor exactly
-import * as React from "react";
-import { ArrowRight, At, Paperclip, Plus, Star } from "@/components/ui/icons";
+import { At, Paperclip, Plus, Star } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 
 interface CursorChatProps {
@@ -8,9 +7,6 @@ interface CursorChatProps {
 }
 
 export function CursorChat({ className }: CursorChatProps) {
-  const [inputValue, setInputValue] = React.useState("");
-  const [showSkills, setShowSkills] = React.useState(false);
-
   return (
     <div
       className={cn(
@@ -151,7 +147,7 @@ export function CursorChat({ className }: CursorChatProps) {
 }
 
 function SkillItem({
-  icon,
+  icon: _icon,
   name,
   description,
   active,

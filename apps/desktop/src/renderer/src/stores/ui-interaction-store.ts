@@ -7,10 +7,18 @@ import type {
 import { createStore } from "zustand/vanilla";
 
 export type UiDialogId =
+  | "settings"
   | "packages"
   | "createWorktree"
   | "createThread"
   | "confirmRemoveRepository";
+
+export interface LauncherOverlayState {
+  isOpen: boolean;
+  query: string;
+  results: SearchMatch[];
+  selectedIndex: number;
+}
 
 export interface UiHoverTarget {
   kind: "repository" | "worktree" | "project" | "thread" | "window";
@@ -18,6 +26,7 @@ export interface UiHoverTarget {
 }
 
 export interface UiDialogsState {
+  settings: boolean;
   packages: boolean;
   createWorktree: boolean;
   createThread: boolean;
@@ -29,6 +38,7 @@ export interface FileTreeOverlayState {
 }
 
 export interface UiOverlaysState {
+  launcher: LauncherOverlayState;
   fileTree: FileTreeOverlayState;
 }
 
@@ -48,8 +58,13 @@ export interface UiInteractionState {
   clearHoveredItem(): void;
   setMainWindowFullscreen(isFullscreen: boolean): void;
   setDialogOpen(dialog: UiDialogId, isOpen: boolean): void;
+  openLauncherOverlay(): void;
+  closeLauncherOverlay(): void;
   openFileTreeOverlay(): void;
   closeFileTreeOverlay(): void;
+  setLauncherQuery(query: string): void;
+  setLauncherResults(results: SearchMatch[]): void;
+  setLauncherSelectedIndex(index: number): void;
   setSnapPreview(
     preview: { windowId: string; position: WindowPosition } | null,
   ): void;
@@ -70,12 +85,19 @@ export function createUiInteractionStore() {
     hoveredItem: null,
     isMainWindowFullscreen: false,
     dialogs: {
+      settings: false,
       packages: false,
       createWorktree: false,
       createThread: false,
       confirmRemoveRepository: false,
     },
     overlays: {
+      launcher: {
+        isOpen: false,
+        query: "",
+        results: [],
+        selectedIndex: -1,
+      },
       fileTree: {
         isOpen: false,
       },
@@ -106,9 +128,44 @@ export function createUiInteractionStore() {
         },
       }));
     },
+    openLauncherOverlay() {
+      set((state) => ({
+        overlays: {
+          launcher: {
+            ...state.overlays.launcher,
+            isOpen: true,
+          },
+          fileTree: {
+            ...state.overlays.fileTree,
+            isOpen: false,
+          },
+        },
+      }));
+    },
+    closeLauncherOverlay() {
+      set((state) => ({
+        overlays: {
+          ...state.overlays,
+          launcher: {
+            ...state.overlays.launcher,
+            isOpen: false,
+            query: "",
+            results: [],
+            selectedIndex: -1,
+          },
+        },
+      }));
+    },
     openFileTreeOverlay() {
       set((state) => ({
         overlays: {
+          launcher: {
+            ...state.overlays.launcher,
+            isOpen: false,
+            query: "",
+            results: [],
+            selectedIndex: -1,
+          },
           fileTree: {
             ...state.overlays.fileTree,
             isOpen: true,
@@ -123,6 +180,39 @@ export function createUiInteractionStore() {
           fileTree: {
             ...state.overlays.fileTree,
             isOpen: false,
+          },
+        },
+      }));
+    },
+    setLauncherQuery(query) {
+      set((state) => ({
+        overlays: {
+          ...state.overlays,
+          launcher: {
+            ...state.overlays.launcher,
+            query,
+          },
+        },
+      }));
+    },
+    setLauncherResults(results) {
+      set((state) => ({
+        overlays: {
+          ...state.overlays,
+          launcher: {
+            ...state.overlays.launcher,
+            results,
+          },
+        },
+      }));
+    },
+    setLauncherSelectedIndex(selectedIndex) {
+      set((state) => ({
+        overlays: {
+          ...state.overlays,
+          launcher: {
+            ...state.overlays.launcher,
+            selectedIndex,
           },
         },
       }));
@@ -152,6 +242,12 @@ export function createUiInteractionStore() {
         hoveredItem: null,
         isMainWindowFullscreen: state.isMainWindowFullscreen,
         overlays: {
+          launcher: {
+            isOpen: false,
+            query: "",
+            results: [],
+            selectedIndex: -1,
+          },
           fileTree: {
             isOpen: false,
           },

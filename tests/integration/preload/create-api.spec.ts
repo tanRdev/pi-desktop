@@ -19,7 +19,7 @@ import type { AppPreferences } from "../../../packages/shared/src/models/workspa
 describe("createPiDeskApi", () => {
   it("invokes typed shell and agent channels", async () => {
     const shellSnapshot: ShellSnapshot = {
-      appName: "PiDesk",
+      appName: "Pi Desktop",
       appVersion: "0.1.0",
       platform: "darwin",
       chromeVersion: "41.0.1",

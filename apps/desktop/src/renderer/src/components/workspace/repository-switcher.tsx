@@ -25,37 +25,16 @@ export interface RepositorySwitcherProps {
   className?: string;
 }
 
-function getActiveRepository(
-  repositories: RepositorySnapshot[],
-  activeRepositoryId: string | null,
-): RepositorySnapshot | null {
-  return (
-    repositories.find((repository) => repository.id === activeRepositoryId) ??
-    repositories[0] ??
-    null
-  );
-}
-
 export function RepositorySwitcher({
   repositories,
   activeRepositoryId,
   onSelect,
   onAdd,
-  triggerLabel,
-  triggerSubtitle,
+  triggerLabel: _triggerLabel,
+  triggerSubtitle: _triggerSubtitle,
   triggerAriaLabel,
   className,
 }: RepositorySwitcherProps) {
-  const activeRepository = getActiveRepository(
-    repositories,
-    activeRepositoryId,
-  );
-  const activeWorktree =
-    activeRepository?.worktrees.find(
-      (worktree) => worktree.id === activeRepositoryId,
-    ) ??
-    activeRepository?.worktrees[0] ??
-    null;
   const triggerTitle = triggerAriaLabel ?? "Switch projects";
 
   return (
@@ -92,10 +71,6 @@ export function RepositorySwitcher({
         >
           <div className="flex flex-col">
             {repositories.map((repository) => {
-              const repositoryWorktree =
-                repository.worktrees.find((worktree) => worktree.isMain) ??
-                repository.worktrees[0] ??
-                null;
               const isSelected = repository.id === activeRepositoryId;
 
               return (

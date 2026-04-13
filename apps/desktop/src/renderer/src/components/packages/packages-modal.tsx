@@ -1,18 +1,14 @@
+import * as React from "react";
 import { Button } from "@/components/ui/button";
 import {
   ArrowClockwise,
   Code,
   DownloadSimple,
-  Globe,
-  Link,
   MagnifyingGlass,
   Package,
   Trash,
 } from "@/components/ui/icons";
-import {
-  PACKAGE_KIND_OPTIONS,
-  usePackagesController,
-} from "@/hooks/use-packages-controller";
+import { usePackagesController } from "@/hooks/use-packages-controller";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Markdown } from "../ui/markdown";
@@ -37,6 +33,24 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
   );
   const installDisabled =
     controller.selectedScope === "local" && !controller.hasActiveWorktree;
+
+  const handleSelectedTabChange = React.useCallback(
+    (value: string) => {
+      if (value === "browse" || value === "installed") {
+        controller.setSelectedTab(value);
+      }
+    },
+    [controller],
+  );
+
+  const handleSortChange = React.useCallback(
+    (value: string) => {
+      if (value === "downloads" || value === "recent" || value === "name") {
+        controller.setSort(value);
+      }
+    },
+    [controller],
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -66,7 +80,7 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
             </div>
             <Select
               value={controller.selectedTab}
-              onValueChange={(value) => controller.setSelectedTab(value as any)}
+              onValueChange={handleSelectedTabChange}
             >
               <SelectTrigger className="h-9 min-w-[110px] border-none bg-white/[0.03] text-white/60 transition-colors hover:bg-white/[0.05]">
                 <SelectValue />
@@ -77,18 +91,7 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
               </SelectContent>
             </Select>
 
-            <Select
-              value={controller.sort}
-              onValueChange={(value) => {
-                if (
-                  value === "downloads" ||
-                  value === "recent" ||
-                  value === "name"
-                ) {
-                  controller.setSort(value as any);
-                }
-              }}
-            >
+            <Select value={controller.sort} onValueChange={handleSortChange}>
               <SelectTrigger className="h-9 min-w-[160px] border-none bg-white/[0.03] text-white/60 transition-colors hover:bg-white/[0.05]">
                 <SelectValue />
               </SelectTrigger>

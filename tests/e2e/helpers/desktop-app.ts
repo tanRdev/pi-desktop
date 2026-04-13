@@ -93,13 +93,14 @@ export async function waitForAppReady(page: Page): Promise<void> {
 
   await expect
     .poll(
-      async () => {
-        try {
-          return await page.getByTestId("app-ready").count();
-        } catch {
-          return 0;
-        }
-      },
+      () =>
+        page
+          .getByTestId("app-ready")
+          .count()
+          .then(
+            (count) => count,
+            () => 0,
+          ),
       { timeout: 15_000 },
     )
     .toBeGreaterThan(0);

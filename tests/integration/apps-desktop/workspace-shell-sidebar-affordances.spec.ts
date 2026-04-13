@@ -21,8 +21,6 @@ describe("Workspace shell sidebar affordances", () => {
     expect(shellSource).not.toContain(
       "onClick={() => setIsLeftRailVisible(true)}",
     );
-    expect(shellSource).toContain("onClick={onOpenMarketplace}");
-    expect(shellSource).toContain("SquaresFour");
     expect(shellSource).toContain(
       "transition-all duration-[var(--duration-normal)] ease-[var(--ease-out)]",
     );

@@ -37,7 +37,7 @@ describe("chunk4 architecture", () => {
     expect(appSource).toContain("controller.workspaceShellProps");
   });
 
-  it("keeps repository customization on the rail while removing the old sidebar header chrome", () => {
+  it("keeps repository customization primitives available while the title bar stays minimal", () => {
     const titleBarSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/title-bar.tsx",
     );
@@ -54,12 +54,16 @@ describe("chunk4 architecture", () => {
       "apps/desktop/src/renderer/src/components/workspace/project-icon-picker.tsx",
     );
 
-    expect(titleBarSource).toContain("activeWorktree");
+    expect(titleBarSource).toContain("platform: string | null");
+    expect(titleBarSource).toContain("onOpenTerminal");
     expect(titleBarSource).not.toContain('className="w-16"');
     expect(leftRailSource).not.toContain("ProjectCustomizationMenu");
     expect(customizationSource).toContain("updateRepositoryPreferences");
     expect(customizationSource).toContain("accentColor");
     expect(iconPickerSource).toContain("PROJECT_ICON_OPTIONS");
+    expect(avatarSource).toContain(
+      `aria-label={\`Open repository \${displayName}\`}`,
+    );
     expect(avatarSource).not.toContain("bg-rose-500");
     expect(avatarSource).not.toContain("bg-orange-500");
     expect(avatarSource).not.toContain("bg-amber-500");

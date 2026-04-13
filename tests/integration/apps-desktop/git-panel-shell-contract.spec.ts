@@ -29,7 +29,8 @@ describe("git panel shell contract", () => {
     );
 
     expect(controllerSource).toContain("WORKSPACE_SWITCH_STATE_KEY");
-    expect(controllerSource).toContain("showWorkspaceSwitchLoader(");
+    expect(controllerSource).toContain("setWorkspaceSwitchingRepositoryName(");
+    expect(controllerSource).toContain("sessionStorage.setItem(");
     expect(controllerSource).not.toContain("window.location.reload()");
   });
 

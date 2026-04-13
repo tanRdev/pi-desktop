@@ -6,6 +6,7 @@ import type {
   TerminalCreateOptions,
   TerminalSession,
 } from "@pidesk/shared";
+import { Effect } from "effect";
 import type { BrowserWindow } from "electron";
 import { resolveLocalShellProgram } from "./terminal/terminal-backends";
 import {
@@ -49,6 +50,17 @@ function createDefaultDependencies(): Required<
     cwd: () => process.cwd(),
     now: () => Date.now(),
   };
+}
+
+function runTerminalOperation(operation: () => void): void {
+  void Effect.runSync(
+    Effect.either(
+      Effect.try({
+        try: operation,
+        catch: () => undefined,
+      }),
+    ),
+  );
 }
 
 export class TerminalManager {
@@ -237,9 +249,9 @@ export class TerminalManager {
     const instance = this.terminals.get(id);
     if (!instance) return;
     if (instance.pty) {
-      try {
-        instance.pty.resize(cols, rows);
-      } catch {}
+      runTerminalOperation(() => {
+        instance.pty?.resize(cols, rows);
+      });
     }
   }
 
@@ -248,14 +260,14 @@ export class TerminalManager {
     if (!instance) return;
     try {
       if (instance.pty) {
-        try {
-          instance.pty.kill();
-        } catch {}
+        runTerminalOperation(() => {
+          instance.pty?.kill();
+        });
       }
       if (instance.childProcess) {
-        try {
-          instance.childProcess.kill();
-        } catch {}
+        runTerminalOperation(() => {
+          instance.childProcess?.kill();
+        });
       }
     } finally {
       this.terminals.delete(id);

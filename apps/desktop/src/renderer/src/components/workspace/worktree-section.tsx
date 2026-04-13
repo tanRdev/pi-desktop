@@ -44,10 +44,6 @@ export function WorktreeSection({
     (thread) => !thread.isArchived,
   );
 
-  const hasActiveThread = visibleThreads.some(
-    (thread) => thread.id === activeThreadId,
-  );
-
   const isWorktreeActive = visibleThreads.some(
     (thread) => thread.id === activeThreadId,
   );

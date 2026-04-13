@@ -1,11 +1,5 @@
 import type * as React from "react";
-import {
-  ICON_SIZE_SM,
-  ICON_SIZE_XS,
-  Image,
-  Paperclip,
-  X,
-} from "@/components/ui/icons";
+import { ICON_SIZE_SM, Image, Paperclip, X } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 
 export interface UploadedFile {

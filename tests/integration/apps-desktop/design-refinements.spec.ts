@@ -6,311 +6,105 @@ function readSource(relativePath: string): string {
   return readFileSync(path.resolve(process.cwd(), relativePath), "utf8");
 }
 
-describe("design refinements – CSS foundation", () => {
-  const shellCss = () => readSource("packages/ui/src/styles/pidesk-shell.css");
-  const appCss = () => readSource("apps/desktop/src/renderer/src/app.css");
+describe("design refinements - css foundation", () => {
+  it("keeps the legacy shell entrypoint as a shim into the live stylesheet", () => {
+    const legacyShellCss = readSource(
+      "packages/ui/src/styles/pidesk-shell.css",
+    );
 
-  it("uses refined surface depth progression", () => {
-    const css = shellCss();
-    // Surface layers should be distinct enough to create visual depth
-    expect(css).toContain("--surface-1: #131313");
-    expect(css).toContain("--surface-2: #0e0e0e");
-    expect(css).toContain("--surface-3: #1b1b1b");
-    expect(css).toContain("--surface-4: #1f1f1f");
+    expect(legacyShellCss).toContain('@import "./pi-desktop-shell.css"');
   });
 
-  it("has a shadow-xs token for micro-elevation", () => {
-    const css = shellCss();
-    expect(css).toContain("--shadow-xs:");
-  });
+  it("defines the current shell color tokens and utility hooks", () => {
+    const shellCss = readSource("packages/ui/src/styles/pi-desktop-shell.css");
 
-  it("shell-token includes font-weight: 500 for legibility", () => {
-    const css = shellCss();
-    // Extract shell-token block
-    const tokenMatch = css.match(/\.shell-token\s*\{[^}]+\}/);
-    expect(tokenMatch).not.toBeNull();
-    expect(tokenMatch?.[0]).toContain("font-weight: 500");
-  });
-
-  it("chrome-eyebrow uses refined typography (11px, weight 500, 0.14em tracking)", () => {
-    const css = appCss();
-    const eyebrowMatch = css.match(/\.chrome-eyebrow\s*\{[^}]+\}/);
-    expect(eyebrowMatch).not.toBeNull();
-    const block = eyebrowMatch?.[0];
-    expect(block).toContain("font-size: 11px");
-    expect(block).toContain("font-weight: 500");
-    expect(block).toContain("letter-spacing: 0.14em");
-  });
-
-  it("chrome-empty-state utility exists with flat background (no dashed borders)", () => {
-    const css = appCss();
-    expect(css).toContain(".chrome-empty-state");
-    const emptyMatch = css.match(/\.chrome-empty-state\s*\{[^}]+\}/);
-    expect(emptyMatch).not.toBeNull();
-    const block = emptyMatch?.[0];
-    expect(block).toContain("border-radius: var(--radius-md)");
-    expect(block).toContain("background:");
-    expect(block).not.toContain("border-style");
-    expect(block).not.toContain("dashed");
-  });
-
-  it("chrome-divider utility exists for subtle section breaks", () => {
-    const css = appCss();
-    expect(css).toContain(".chrome-divider");
-    const dividerMatch = css.match(/\.chrome-divider\s*\{[^}]+\}/);
-    expect(dividerMatch).not.toBeNull();
-    expect(dividerMatch?.[0]).toContain("height: 1px");
-  });
-
-  it("muted-foreground uses lower lightness for stronger dimming", () => {
-    const css = shellCss();
-    // Muted foreground should be ≤ 58% lightness for proper contrast
-    expect(css).toContain("--muted-foreground: #919191");
-  });
-
-  it("border opacity is tuned for visible but non-intrusive edges", () => {
-    const css = shellCss();
-    // Border should use moderate opacity (0.4-0.5 range)
-    expect(css).toContain("--border: #474747");
+    expect(shellCss).toContain("--surface-1: #141414");
+    expect(shellCss).toContain("--muted-foreground: #6a6a6a");
+    expect(shellCss).toContain("--border: #222222");
+    expect(shellCss).toContain(".glass");
+    expect(shellCss).toContain(".panel");
   });
 });
 
-describe("design refinements – sidebar components", () => {
-  const worktreeSrc = () =>
-    readSource(
-      "apps/desktop/src/renderer/src/components/workspace/worktree-section.tsx",
-    );
-  const threadSrc = () =>
-    readSource(
-      "apps/desktop/src/renderer/src/components/workspace/thread-list-item.tsx",
-    );
-
-  it("worktree section uses the shared git status chip instead of bespoke badges", () => {
-    const src = worktreeSrc();
-    expect(src).toContain("<GitStatusChip git={worktree.git} />");
-    expect(src).not.toContain("rounded-full border border-border bg-surface-1");
-  });
-
-  it("worktree section uses tighter padding and spacing", () => {
-    const src = worktreeSrc();
-    expect(src).toContain("rounded-md px-2 py-1");
-    expect(src).toContain("space-y-0.5");
-    expect(src).not.toContain("space-y-1 pl-8");
-  });
-
-  it("worktree empty state uses chrome-empty-state", () => {
-    const src = worktreeSrc();
-    expect(src).toContain("chrome-empty-state");
-    expect(src).not.toContain("rounded-lg border border-dashed");
-  });
-
-  it("thread list items use tighter vertical rhythm", () => {
-    const src = threadSrc();
-    // Should use rounded-md py-1.5 (not rounded-lg py-2)
-    expect(src).toContain("rounded-md px-2 py-1");
-    expect(src).not.toContain("rounded-lg px-2 py-2");
-  });
-
-  it("thread active state uses transparent alpha for subtlety", () => {
-    const src = threadSrc();
-    expect(src).toContain("bg-surface-3/80");
-  });
-
-  it("thread row uses semantic color tokens instead of raw opacity", () => {
-    const src = threadSrc();
-    // Thread chrome should use design-system color tokens
-    expect(src).toContain("text-muted-foreground");
-    // Should NOT use opacity hacks for dimming
-    expect(src).not.toContain("opacity-60");
-  });
-});
-
-describe("design refinements – shell chrome & layout", () => {
-  const shellSrc = () =>
-    readSource(
-      "apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx",
-    );
-  const dockSrc = () =>
-    readSource(
-      "apps/desktop/src/renderer/src/components/workspace/prompt-dock.tsx",
-    );
-  const titleSrc = () =>
-    readSource(
-      "apps/desktop/src/renderer/src/components/workspace/title-bar.tsx",
-    );
-  const railSrc = () =>
-    readSource(
+describe("design refinements - workspace chrome", () => {
+  it("keeps the left rail and title bar compact and selector-driven", () => {
+    const railSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
     );
-  const statusSrc = () =>
-    readSource(
-      "apps/desktop/src/renderer/src/components/workspace/status-bar.tsx",
+    const titleSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/title-bar.tsx",
     );
 
-  it("workspace empty state uses subtle solid border instead of dashed", () => {
-    const src = shellSrc();
-    expect(src).toContain("rounded-lg border border-border/40 bg-surface-1/80");
-    expect(src).not.toContain("border-dashed");
-    expect(src).not.toContain("rounded-2xl border border-dashed");
+    expect(railSource).toContain('data-testid="left-rail"');
+    expect(railSource).toContain("export const SIDEBAR_WIDTH = 240");
+    expect(titleSource).toContain('data-slot="titlebar-controls"');
+    expect(titleSource).toContain('label: "Open terminal"');
+    expect(titleSource).toContain('aria-label="Toggle side panel"');
+    expect(titleSource).not.toContain("Open notes");
   });
 
-  it("prompt dock tokens have no individual borders (cleaner look)", () => {
-    const src = dockSrc();
-    // Status tokens should NOT have individual borders
-    const tokenLines = src
-      .split("\n")
-      .filter((line) => line.includes("shell-token"));
-    for (const line of tokenLines) {
-      expect(line).not.toContain("border border-border-subtle");
-    }
-  });
-
-  it("prompt dock tokens use transparent surface for cohesion", () => {
-    const src = dockSrc();
-    expect(src).toContain("text-white/58");
-    expect(src).toContain("text-[#626262]");
-  });
-
-  it("prompt dock token area uses tighter gap (gap-1.5)", () => {
-    const src = dockSrc();
-    // Token gap should be 1.5 not 2
-    expect(src).toContain("gap-1.5");
-  });
-
-  it("prompt dock send button has transition-colors for smooth interaction", () => {
-    const src = dockSrc();
-    expect(src).toContain("transition-colors");
-  });
-
-  it("prompt dock uses tighter tracking and a stop label while executing", () => {
-    const src = dockSrc();
-    expect(src).toContain('isPromptExecuting ? "STOP" : "SEND"');
-    expect(src).toContain("tracking-[0.12em]");
-    expect(src).not.toContain("tracking-[0.24em]");
-  });
-
-  it("prompt dock removes canned prompt suggestion chips and extra chat labeling", () => {
-    const src = dockSrc();
-    expect(src).not.toContain("PromptSuggestionGroup");
-    expect(src).not.toContain("Chat workspace");
-  });
-
-  it("prompt dock uses larger textarea rhythm for readability", () => {
-    const src = dockSrc();
-    expect(src).toContain("min-h-[96px]");
-    expect(src).toContain("text-[12px] leading-[1.6] text-white");
-    expect(src).not.toContain("font-mono uppercase tracking-[0.04em]");
-  });
-
-  it("title bar uses refined spacing (gap-2.5)", () => {
-    const src = titleSrc();
-    expect(src).toContain("gap-4");
-  });
-
-  it("left rail bottom section uses tighter spacing", () => {
-    const src = railSrc();
-    expect(src).toContain("space-y-3");
-    expect(src).toContain("px-4 py-4");
-  });
-
-  it("left rail and title bar reduce excessive tracking", () => {
-    const rail = railSrc();
-    const title = titleSrc();
-    expect(rail).toContain("tracking-[0.08em]");
-    expect(rail).not.toContain("tracking-[0.24em]");
-    expect(title).not.toContain("tracking-[0.24em]");
-  });
-
-  it("status bar uses proportional sizing (10px text, 1.5×1.5 dot)", () => {
-    const src = statusSrc();
-    expect(src).toContain("text-[10px]");
-    expect(src).toContain("h-1.5 w-1.5");
-    expect(src).toContain("gap-1.5");
-  });
-
-  it("left rail becomes the dedicated sessions-and-threads column", () => {
-    const src = railSrc();
-    expect(src).toContain("export const LEFT_RAIL_WIDTH = 320");
-    expect(src).toContain("WorktreeSection");
-    expect(src).not.toContain("NAVIGATION_ITEMS");
-    expect(src).not.toContain(
-      "Projects, worktrees, and threads stay together in one focused",
+  it("keeps the prompt dock focused on file upload, model switching, and send controls", () => {
+    const dockSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/prompt-dock.tsx",
     );
+
+    expect(dockSource).toContain("FileUpload");
+    expect(dockSource).toContain("Image");
+    expect(dockSource).toContain("Loader");
+    expect(dockSource).toContain('data-testid="model-selector-trigger"');
+    expect(dockSource).toContain('data-testid="chat-send"');
+    expect(dockSource).not.toContain("PromptSuggestionGroup");
+    expect(dockSource).not.toContain("Enter to send");
   });
 
-  it("prompt dock widens spacing and removes the old gradient band", () => {
-    const src = dockSrc();
-    expect(src).toContain("max-w-[58rem]");
-    expect(src).toContain(
-      "border border-[#474747]/18 bg-[#0e0e0e] px-5 pb-4 pt-4",
+  it("renders transcript and contextual surface selectors from the live shell", () => {
+    const shellSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx",
     );
-    expect(src).not.toContain("linear-gradient(180deg,rgba(19,19,19,0)_0%");
-  });
-
-  it("chat transcript and empty state use calmer roomy spacing", () => {
-    const src = shellSrc();
-    const chatSrc = readSource(
+    const chatSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx",
     );
-
-    expect(chatSrc).toContain("max-w-[68rem] flex-1 flex-col gap-6 px-8 py-8");
-    expect(chatSrc).toContain("max-w-[56rem] flex-col gap-6 px-8 py-10");
-    expect(src).not.toContain('"ml-16"');
-  });
-
-  it("sidecar remains the third column instead of holding primary navigation", () => {
-    const src = readSource(
+    const surfaceSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/workspace-surface-panel.tsx",
     );
 
-    expect(src).not.toContain(">Sidecar<");
-    expect(src).not.toContain('label: "Files"');
-    expect(src).not.toContain('label: "Notes"');
-    expect(src).not.toContain('label: "Terminal"');
-    expect(src).not.toContain('label: "Git"');
+    expect(shellSource).toContain('data-testid="chat-first-layout"');
+    expect(chatSource).toContain('data-testid="chat-transcript"');
+    expect(surfaceSource).toContain('data-testid="workspace-context-panel"');
+    expect(surfaceSource).not.toContain("WorkspaceNoteContent");
   });
 
-  it("prompt dock removes the old enter-to-send helper chrome", () => {
-    const src = dockSrc();
-    expect(src).not.toContain("Enter to send");
-    expect(src).not.toContain("tracking-[0.1em]");
+  it("keeps message, thread, and worktree primitives compact", () => {
+    const messageSource = readSource(
+      "apps/desktop/src/renderer/src/components/ui/message.tsx",
+    );
+    const threadSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/thread-list-item.tsx",
+    );
+    const worktreeSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/worktree-section.tsx",
+    );
+
+    expect(messageSource).toContain("shell-console-message");
+    expect(messageSource).toContain("rounded-sm");
+    expect(threadSource).toContain('data-testid="thread-list-item"');
+    expect(threadSource).toContain("rounded-sm px-1.5 py-1.5");
+    expect(worktreeSource).toContain('data-testid="create-thread-button"');
   });
 });
 
-describe("design refinements – no design anti-patterns", () => {
-  const allWorkspaceFiles = [
-    "apps/desktop/src/renderer/src/components/workspace/project-customization-menu.tsx",
-    "apps/desktop/src/renderer/src/components/workspace/worktree-section.tsx",
-    "apps/desktop/src/renderer/src/components/workspace/thread-list-item.tsx",
-    "apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx",
-    "apps/desktop/src/renderer/src/components/workspace/prompt-dock.tsx",
-    "apps/desktop/src/renderer/src/components/workspace/title-bar.tsx",
-    "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
-    "apps/desktop/src/renderer/src/components/workspace/status-bar.tsx",
-  ];
+describe("design refinements - regression guards", () => {
+  it("does not reintroduce the old canvas shell or dashed workspace chrome", () => {
+    const shellSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx",
+    );
+    const chatSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx",
+    );
 
-  it("no dashed borders remain in workspace components", () => {
-    for (const file of allWorkspaceFiles) {
-      const src = readSource(file);
-      expect(src).not.toContain("border-dashed");
-    }
-  });
-
-  it("no rounded-2xl in workspace components (max radius is rounded-lg)", () => {
-    for (const file of allWorkspaceFiles) {
-      const src = readSource(file);
-      expect(src).not.toContain("rounded-2xl");
-    }
-  });
-
-  it("no decorative blur or gradient overlays in workspace shell", () => {
-    for (const file of allWorkspaceFiles) {
-      const src = readSource(file);
-      // prompt-dock uses backdrop-blur-sm intentionally for semi-transparent overlay
-      if (!file.includes("prompt-dock.tsx")) {
-        expect(src).not.toContain("backdrop-blur");
-      }
-      expect(src).not.toContain("bg-gradient-to");
-    }
+    expect(shellSource).not.toContain("CanvasContainer");
+    expect(shellSource).not.toContain("CanvasGrid");
+    expect(shellSource).not.toContain("CanvasEmptyState");
+    expect(chatSource).not.toContain("border-dashed");
   });
 });

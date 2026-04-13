@@ -6,17 +6,6 @@ import {
   waitForAppReady,
 } from "./helpers/desktop-app";
 
-async function getThreadButton(
-  page: import("@playwright/test").Page,
-  title: string,
-): Promise<Locator> {
-  const button = page.getByTestId("left-rail").getByRole("button", {
-    name: title,
-  });
-  await expect(button.first()).toBeVisible({ timeout: 15_000 });
-  return button.first();
-}
-
 async function createAutoNamedThread(
   page: import("@playwright/test").Page,
 ): Promise<Locator> {

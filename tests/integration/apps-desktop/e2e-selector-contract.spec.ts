@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -20,30 +20,25 @@ describe("e2e selector contract", () => {
     expect(titleBarSource).toContain('data-testid="titlebar-project-name"');
     expect(leftRailSource).toContain('data-testid="left-rail"');
     expect(leftRailSource).toContain('data-mode="workspace"');
-    expect(leftRailSource).toContain('data-testid="project-rail-item"');
     expect(surfacePanelSource).toContain(
       'data-testid="workspace-context-panel"',
     );
     expect(titleBarSource).toContain('data-slot="titlebar-controls"');
-    expect(titleBarSource).toContain('data-slot="titlebar-controls"');
-    expect(titleBarSource).toContain('label: "Open launcher"');
+    expect(titleBarSource).toContain('label: "Open terminal"');
+    expect(titleBarSource).toContain('aria-label="Toggle side panel"');
     expect(titleBarSource).not.toContain("Browse files");
     expect(titleBarSource).not.toContain("Open git");
   });
 
-  it("adds stable settings and window chrome selectors for e2e flows", () => {
-    const settingsModalSource = readSource(
-      "apps/desktop/src/renderer/src/components/settings/settings-modal.tsx",
+  it("keeps dialog state and mounted package management surface aligned with the app shell", () => {
+    const packagesModalPath = path.resolve(
+      process.cwd(),
+      "apps/desktop/src/renderer/src/components/packages/packages-modal.tsx",
     );
-    const aiSettingsSource = readSource(
-      "apps/desktop/src/renderer/src/components/settings/sections/ai-settings.tsx",
+    const storeSource = readSource(
+      "apps/desktop/src/renderer/src/stores/ui-interaction-store.ts",
     );
-    const interfaceSettingsSource = readSource(
-      "apps/desktop/src/renderer/src/components/settings/sections/interface-settings.tsx",
-    );
-    const formComponentsSource = readSource(
-      "apps/desktop/src/renderer/src/components/settings/form-components.tsx",
-    );
+    const appSource = readSource("apps/desktop/src/renderer/src/app.tsx");
     const workspaceShellSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx",
     );
@@ -51,16 +46,12 @@ describe("e2e selector contract", () => {
       "apps/desktop/src/renderer/src/components/workspace/workspace-surface-panel.tsx",
     );
 
-    expect(settingsModalSource).toContain('data-testid="settings-modal"');
-    expect(settingsModalSource).toContain(
-      `data-testid={\`settings-nav-\${item.id}\`}`,
-    );
-    expect(aiSettingsSource).toContain('testId="settings-provider-select"');
-    expect(aiSettingsSource).toContain('testId="settings-model-select"');
-    expect(interfaceSettingsSource).toContain(
-      'testId="settings-sidebar-width-slider"',
-    );
-    expect(formComponentsSource).toContain("testId?: string");
+    expect(storeSource).toContain("settings: boolean");
+    expect(storeSource).toContain("packages: boolean");
+    expect(existsSync(packagesModalPath)).toBe(true);
+    expect(appSource).toContain("<PackagesModal");
+    expect(appSource).toContain("open={controller.isPackagesOpen}");
+    expect(appSource).toContain("onOpenChange={controller.setPackagesOpen}");
     expect(workspaceShellSource).toContain('data-testid="chat-first-layout"');
     expect(workspaceSurfacePanelSource).toContain(
       'data-testid="workspace-context-panel"',

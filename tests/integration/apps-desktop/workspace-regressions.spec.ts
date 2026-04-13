@@ -91,7 +91,7 @@ describe("workspace regressions", () => {
     expect(chatSource).not.toContain('label="Transcript"');
   });
 
-  it("removes the version badge, notes entry points, and surface panel tab header", () => {
+  it("removes the version badge, notes entry points, and stale surface panel tab header", () => {
     const titleBarSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/title-bar.tsx",
     );
@@ -106,7 +106,6 @@ describe("workspace regressions", () => {
     expect(titleBarSource).not.toContain("appVersion");
     expect(titleBarSource).not.toContain("Open notes");
     expect(titleBarSource).toContain('label: "Open terminal"');
-    expect(titleBarSource).toContain('label: "Open settings"');
     expect(titleBarSource).toContain('aria-label="Toggle side panel"');
     expect(surfacePanelSource).not.toContain("getSurfaceLabel");
     expect(surfacePanelSource).not.toContain("getSurfaceIcon");

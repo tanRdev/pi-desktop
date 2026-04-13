@@ -8,7 +8,7 @@ import {
 
 function createSnapshot(): ShellSnapshot {
   return {
-    appName: "PiDesk",
+    appName: "Pi Desktop",
     appVersion: "0.1.0",
     chromeVersion: "141.0.0.0",
     platform: "darwin",

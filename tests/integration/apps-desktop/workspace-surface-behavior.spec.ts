@@ -23,7 +23,7 @@ describe("workspace surface behavior", () => {
     expect(switcherSource).not.toContain("<Button");
   });
 
-  it("replaces chat with the selected workspace surface instead of keeping a side panel", () => {
+  it("keeps the contextual workspace surface in the dedicated right panel", () => {
     const shellSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx",
     );
@@ -31,13 +31,12 @@ describe("workspace surface behavior", () => {
       "apps/desktop/src/renderer/src/components/workspace/workspace-surface-panel.tsx",
     );
 
-    expect(shellSource).toContain("selectedSurfaceKey === null ? (");
+    expect(shellSource).toContain("renderRightPanelContent");
     expect(shellSource).toContain("<WorkspaceSurfacePanel");
-    expect(surfacePanelSource).toContain(
-      'className={cn("flex min-h-0 flex-1 flex-col bg-[#0b0b0b]", className)}',
-    );
+    expect(shellSource).toContain("isRightPanelVisible");
+    expect(shellSource).toContain("w-[300px] xl:w-[400px] opacity-100");
+    expect(surfacePanelSource).toContain("bg-transparent");
     expect(surfacePanelSource).not.toContain("w-[min(28rem,30vw)]");
-    expect(surfacePanelSource).not.toContain("border-l border-[#474747]/20");
   });
 
   it("removes the activity tab from the workspace surface chrome", () => {

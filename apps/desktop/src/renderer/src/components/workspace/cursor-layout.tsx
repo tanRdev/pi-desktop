@@ -3,7 +3,7 @@ import * as React from "react";
 import { CornersOut, MagnifyingGlass, Minus, X } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { CursorChat } from "./cursor-chat";
-import { CursorSidebar, SIDEBAR_WIDTH } from "./cursor-sidebar";
+import { CursorSidebar } from "./cursor-sidebar";
 import { CursorTerminal } from "./cursor-terminal";
 
 interface CursorLayoutProps {

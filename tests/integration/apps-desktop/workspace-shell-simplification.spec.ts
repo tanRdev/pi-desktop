@@ -7,7 +7,7 @@ function readSource(relativePath: string): string {
 }
 
 describe("workspace shell simplification", () => {
-  it("moves workspace action buttons into the title bar and strips them from the surface panel", () => {
+  it("keeps the title bar limited to terminal and side-panel actions", () => {
     const titleBarSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/title-bar.tsx",
     );
@@ -16,12 +16,12 @@ describe("workspace shell simplification", () => {
     );
 
     expect(titleBarSource).toContain('data-slot="titlebar-controls"');
-    expect(titleBarSource).toContain("onOpenMarketplace");
+    expect(titleBarSource).toContain("onOpenTerminal");
+    expect(titleBarSource).toContain("onToggleSidePanel");
     expect(titleBarSource).not.toContain("onOpenFileTree");
     expect(titleBarSource).not.toContain("onOpenNote");
-    expect(titleBarSource).toContain("onOpenTerminal");
     expect(titleBarSource).not.toContain("onOpenGit");
-    expect(titleBarSource).toContain("onOpenSettings");
+    expect(titleBarSource).not.toContain("onOpenSettings");
     expect(titleBarSource).not.toContain("Create worktree");
     expect(surfacePanelSource).not.toContain("sidecar-action-launcher");
     expect(surfacePanelSource).not.toContain('label: "Browse files"');
@@ -45,32 +45,24 @@ describe("workspace shell simplification", () => {
     expect(promptDockSource).not.toContain('data-testid="agent-status"');
   });
 
-  it("switches settings selects to custom popover controls instead of visible native selects", () => {
-    const source = readSource(
-      "apps/desktop/src/renderer/src/components/settings/form-components.tsx",
-    );
-
-    expect(source).toContain("PopoverTrigger");
-    expect(source).toContain("PopoverContent");
-    expect(source).toContain('type="button"');
-  });
-
-  it("uses icon-only attachment controls and removes the visible attach label", () => {
+  it("uses icon-only attachment controls and the current model popover", () => {
     const promptDockSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/prompt-dock.tsx",
     );
 
     expect(promptDockSource).toContain('aria-label="Attach files"');
     expect(promptDockSource).not.toContain(">Attach files<");
+    expect(promptDockSource).toContain('data-testid="model-selector-trigger"');
+    expect(promptDockSource).toContain("PopoverContent");
   });
 
-  it("moves the active project summary into the rail header and removes redundant rail chrome", () => {
+  it("keeps the active repository summary in the rail header and removes redundant rail chrome", () => {
     const railSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
     );
 
-    expect(railSource).toContain('data-testid="project-rail-item"');
-    expect(railSource).toContain("activeRepository");
+    expect(railSource).toContain('data-testid="left-rail"');
+    expect(railSource).toContain("activeRepositoryName");
     expect(railSource).not.toContain("ProjectCustomizationMenu");
     expect(railSource).not.toContain("Edit");
     expect(railSource).not.toContain(">Settings<");
@@ -82,7 +74,7 @@ describe("workspace shell simplification", () => {
       "apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx",
     );
 
-    expect(chatSource).toContain("justify-end");
+    expect(chatSource).toContain("justify-end items-end");
     expect(chatSource).toContain("Pi is responding");
     expect(chatSource).not.toContain("TextShimmer");
     expect(chatSource).not.toContain("Steps");

@@ -31,7 +31,7 @@ type LegacyMessageEnvelopeEvent = {
 
 function createShellSnapshotFixture(): ShellSnapshot {
   return {
-    appName: "PiDesk",
+    appName: "Pi Desktop",
     appVersion: "0.1.0",
     chromeVersion: "141.0.0.0",
     platform: "darwin",
@@ -168,7 +168,7 @@ describe("createShellModel", () => {
     const model = createShellModel(api);
     await model.load();
 
-    expect(model.getState().shell.appName).toBe("PiDesk");
+    expect(model.getState().shell.appName).toBe("Pi Desktop");
     expect(model.getState().agent.status).toBe("ready");
     expect(eventListener).toBeTypeOf("function");
 
@@ -187,7 +187,7 @@ describe("createShellModel", () => {
       message: {
         id: "assistant-1",
         role: "assistant",
-        text: "PiDesk mock assistant received: hello",
+        text: "Pi Desktop mock assistant received: hello",
         status: "streaming",
         timestamp: 2,
       },
@@ -198,7 +198,7 @@ describe("createShellModel", () => {
       message: {
         id: "assistant-1",
         role: "assistant",
-        text: "PiDesk mock assistant received: hello",
+        text: "Pi Desktop mock assistant received: hello",
         status: "complete",
         timestamp: 3,
       },
@@ -208,7 +208,7 @@ describe("createShellModel", () => {
       {
         id: "assistant-1",
         role: "assistant",
-        text: "PiDesk mock assistant received: hello",
+        text: "Pi Desktop mock assistant received: hello",
         status: "complete",
         timestamp: 3,
       },
@@ -395,7 +395,7 @@ describe("createShellModel", () => {
         {
           id: "assistant-1",
           role: "assistant" as const,
-          text: `PiDesk mock assistant received: ${text}`,
+          text: `Pi Desktop mock assistant received: ${text}`,
           status: "complete" as const,
           timestamp: 2,
         },
@@ -436,7 +436,7 @@ describe("createShellModel", () => {
       {
         id: "assistant-1",
         role: "assistant",
-        text: "PiDesk mock assistant received: Summarize the current workspace",
+        text: "Pi Desktop mock assistant received: Summarize the current workspace",
         status: "complete",
         timestamp: 2,
       },
@@ -744,7 +744,7 @@ describe("createShellModel", () => {
       type: "message_end",
       messageId: "assistant-1",
       role: "assistant",
-      text: "PiDesk mock assistant received: Summarize the current workspace",
+      text: "Pi Desktop mock assistant received: Summarize the current workspace",
       timestamp: 3,
     });
     eventListener?.({ type: "turn_end" });
@@ -757,7 +757,7 @@ describe("createShellModel", () => {
     expect(model.getState().agent.messages).toContainEqual({
       id: "assistant-1",
       role: "assistant",
-      text: "PiDesk mock assistant received: Summarize the current workspace",
+      text: "Pi Desktop mock assistant received: Summarize the current workspace",
       status: "complete",
       timestamp: 3,
     });

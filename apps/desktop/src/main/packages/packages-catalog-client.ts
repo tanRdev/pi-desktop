@@ -155,18 +155,14 @@ function isValidMediaUrl(
   url: string | null | undefined,
   extensions: string[],
 ): boolean {
-  if (!url) {
+  if (!url || !URL.canParse(url)) {
     return false;
   }
 
-  try {
-    const parsedUrl = new URL(url);
-    return extensions.some((extension) =>
-      parsedUrl.pathname.toLowerCase().endsWith(extension),
-    );
-  } catch {
-    return false;
-  }
+  const parsedUrl = new URL(url);
+  return extensions.some((extension) =>
+    parsedUrl.pathname.toLowerCase().endsWith(extension),
+  );
 }
 
 export class PackagesCatalogClient {

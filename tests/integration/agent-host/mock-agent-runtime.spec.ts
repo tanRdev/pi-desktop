@@ -62,6 +62,6 @@ describe("MockAgentRuntime", () => {
       role: "assistant",
       status: "complete",
     });
-    expect(lastMessage?.text).toContain("hello from the shell test");
+    expect(lastMessage?.text).toContain("Pi Desktop mock assistant received");
   });
 });

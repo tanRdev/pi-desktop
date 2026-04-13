@@ -28,8 +28,13 @@ describe("chunk5 ui", () => {
     );
   });
 
-  it("adds flatter shell hooks that centralize the mission-control styling", () => {
-    const shellSource = readSource("packages/ui/src/styles/pidesk-shell.css");
+  it("keeps the live shell selectors wired through the current workspace layout", () => {
+    const shellStyleSource = readSource(
+      "packages/ui/src/styles/pidesk-shell.css",
+    );
+    const liveShellStyleSource = readSource(
+      "packages/ui/src/styles/pi-desktop-shell.css",
+    );
     const workspaceShellSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/workspace-shell.tsx",
     );
@@ -43,25 +48,19 @@ describe("chunk5 ui", () => {
       "packages/ui/src/components/ui/prompt-input.tsx",
     );
 
-    expect(shellSource).toContain(".shell-window");
-    expect(shellSource).toContain(".shell-titlebar");
-    expect(shellSource).toContain(".shell-control-dot");
-    expect(shellSource).toContain(".shell-backdrop");
-    expect(shellSource).toContain(".shell-console-panel");
-    expect(shellSource).toContain(".shell-console-message");
-    expect(shellSource).toContain(".shell-dock");
-    expect(shellSource).toContain(".shell-token");
-    expect(shellSource).toContain(".shell-send-button");
-    expect(shellSource).toContain(".shell-input-frame");
+    expect(shellStyleSource).toContain('@import "./pi-desktop-shell.css"');
+    expect(liveShellStyleSource).toContain("--surface-1: #141414");
+    expect(liveShellStyleSource).toContain(".glass");
+    expect(liveShellStyleSource).toContain(".panel");
 
     expect(workspaceShellSource).toContain("chat-first-layout");
     expect(workspaceSurfacePanelSource).toContain("workspace-context-panel");
-    expect(promptDockSource).toContain("shell-dock");
-    expect(promptDockSource).toContain("shell-send-button");
-    expect(promptInputSource).toContain("shell-input-frame");
+    expect(promptDockSource).toContain("PromptInput");
+    expect(promptDockSource).toContain('data-testid="chat-send"');
+    expect(promptInputSource).toContain("focus-visible:ring-0");
   });
 
-  it("tightens transcript density while preserving required chat selectors", () => {
+  it("keeps the transcript selectors and current empty or streaming copy", () => {
     const chatSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/chat-thread-panel.tsx",
     );
@@ -74,14 +73,12 @@ describe("chunk5 ui", () => {
     expect(promptDockSource).toContain('data-testid="chat-send"');
     expect(promptDockSource).not.toContain("PromptSuggestionGroup");
 
-    expect(chatSource).toContain("gap-6");
-    expect(chatSource).toContain("px-8 py-8");
+    expect(chatSource).toContain("Pi is responding");
+    expect(chatSource).toContain("Start a conversation with Pi.");
     expect(chatSource).toContain("text-[14px] leading-7");
     expect(chatSource).not.toContain("canvas preview");
     expect(chatSource).not.toContain("latest canvas state");
-    expect(chatSource).not.toContain("text-base leading-relaxed");
     expect(chatSource).not.toContain("border-dashed");
-    expect(chatSource).not.toContain("rounded-lg border border-dashed");
   });
 
   it("keeps the workspace at three columns max", () => {
@@ -98,7 +95,7 @@ describe("chunk5 ui", () => {
     expect(railSource).not.toContain("NAVIGATION_ITEMS");
   });
 
-  it("reshapes message and shared prompt primitives for compact console surfaces", () => {
+  it("keeps message and prompt primitives compact without restoring legacy wrappers", () => {
     const messageSource = readSource(
       "apps/desktop/src/renderer/src/components/ui/message.tsx",
     );
@@ -108,14 +105,11 @@ describe("chunk5 ui", () => {
 
     expect(messageSource).toContain("shell-console-message");
     expect(messageSource).toContain("rounded-sm");
-    expect(messageSource).toContain("px-3 py-2");
-    expect(messageSource).toContain("text-[13px] leading-6");
+    expect(messageSource).toContain("text-sm leading-7");
     expect(messageSource).not.toContain("rounded-md p-3 text-sm");
 
-    expect(promptInputSource).toContain("shell-input-frame");
-    expect(promptInputSource).toContain("p-2");
-    expect(promptInputSource).not.toContain("rounded-lg");
-    expect(promptInputSource).not.toContain("rounded-3xl");
-    expect(promptInputSource).not.toContain("shadow-xs");
+    expect(promptInputSource).toContain("min-h-[44px]");
+    expect(promptInputSource).toContain("focus-visible:border-none");
+    expect(promptInputSource).toContain("focus-visible:ring-0");
   });
 });

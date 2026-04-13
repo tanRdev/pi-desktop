@@ -176,8 +176,13 @@ function createApiFixture(
 }
 
 afterEach(() => {
+  if (
+    typeof globalThis.localStorage !== "undefined" &&
+    typeof globalThis.localStorage.clear === "function"
+  ) {
+    globalThis.localStorage.clear();
+  }
   vi.unstubAllGlobals();
-  localStorage.clear();
 });
 
 describe("app-shell-store", () => {

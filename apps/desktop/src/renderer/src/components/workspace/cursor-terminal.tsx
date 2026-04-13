@@ -1,5 +1,4 @@
 // Cursor Glass Terminal Panel - Complete redesign to match Cursor exactly
-import * as React from "react";
 import { Plus, TerminalWindow, X } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 
@@ -10,7 +9,10 @@ interface CursorTerminalProps {
 export function CursorTerminal({ className }: CursorTerminalProps) {
   return (
     <div
-      className={cn("flex h-full flex-col bg-[var(--color-bg-secondary)] select-none", className)}
+      className={cn(
+        "flex h-full flex-col bg-[var(--color-bg-secondary)] select-none",
+        className,
+      )}
     >
       {/* Terminal Header - Cursor style */}
       <div className="flex h-9 items-center justify-between border-b border-white/[0.03] px-3 select-none">
@@ -51,7 +53,7 @@ export function CursorTerminal({ className }: CursorTerminalProps) {
 
       {/* Terminal Content */}
       <div className="flex-1 overflow-hidden p-3 font-mono text-[16px] select-none">
-        <div className="text-white/50">~/Dev/PiDesk</div>
+        <div className="text-white/50">~/Dev/pi-desktop</div>
         <div className="flex items-center gap-2 text-white/70">
           <span className="text-white/40">❯</span>
           <span className="animate-pulse">|</span>

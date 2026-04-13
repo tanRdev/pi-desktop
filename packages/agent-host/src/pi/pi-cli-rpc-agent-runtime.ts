@@ -9,6 +9,7 @@ import type {
   ProviderSnapshot,
   SettingsSnapshot,
 } from "@pidesk/shared";
+import { Effect, Either } from "effect";
 
 import { normalizeAgentSessionEvent } from "../events/normalize-agent-session-event.js";
 import { applyEventToSnapshot } from "../state/state-helpers.js";
@@ -40,6 +41,19 @@ type RpcResponseLike = {
   data?: unknown;
   error?: string;
 };
+
+function safeJsonParse(text: string): unknown | null {
+  const result = Effect.runSync(
+    Effect.either(
+      Effect.try({
+        try: () => JSON.parse(text),
+        catch: () => null,
+      }),
+    ),
+  );
+
+  return Either.isRight(result) ? result.right : null;
+}
 
 type RpcMessageLike = {
   role: string;
@@ -376,11 +390,8 @@ export class PiCliRpcAgentRuntime {
   }
 
   private handleLine(line: string): void {
-    let parsed: unknown;
-
-    try {
-      parsed = JSON.parse(line);
-    } catch {
+    const parsed = safeJsonParse(line);
+    if (parsed === null) {
       return;
     }
 

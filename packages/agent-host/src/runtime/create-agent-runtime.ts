@@ -28,7 +28,9 @@ type CreateAgentRuntimeOptions =
     };
 
 function assertNever(value: never): never {
-  throw new Error(`Unsupported PiDesk agent runtime mode: ${String(value)}`);
+  throw new Error(
+    `Unsupported Pi Desktop agent runtime mode: ${String(value)}`,
+  );
 }
 
 export function createAgentRuntime(options: CreateAgentRuntimeOptions) {

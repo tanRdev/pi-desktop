@@ -25,17 +25,17 @@ test("streams a real Pi CLI reply through the desktop chat", async () => {
 
     await page
       .getByTestId("chat-input")
-      .fill("Reply with exactly: Pidesk real cli ok");
+      .fill("Reply with exactly: Pi Desktop real cli ok");
     await page.getByTestId("chat-send").click();
 
     await expect(page.getByTestId("chat-transcript")).toContainText(
-      "Reply with exactly: Pidesk real cli ok",
+      "Reply with exactly: Pi Desktop real cli ok",
       {
         timeout: 20_000,
       },
     );
     await expect(page.getByTestId("chat-transcript")).toContainText(
-      "Pidesk real cli ok",
+      "Pi Desktop real cli ok",
       {
         timeout: 60_000,
       },

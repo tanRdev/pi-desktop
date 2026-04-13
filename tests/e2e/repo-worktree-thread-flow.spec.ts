@@ -33,7 +33,7 @@ test("creates a worktree and restores worktree selection after relaunch", async 
   const createdWorktreePath = path.join(
     homeDir,
     ".worktrees",
-    "PiDesk",
+    "pi-desktop",
     worktreeDirectoryName,
   );
   fs.mkdirSync(userDataDir, { recursive: true });

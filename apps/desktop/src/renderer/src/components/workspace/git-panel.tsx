@@ -6,14 +6,7 @@ import type {
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
-import {
-  ArrowClockwise,
-  ArrowDown,
-  ArrowUp,
-  Check,
-  CircleDashed,
-  Trash,
-} from "../ui/icons";
+import { ArrowClockwise, ArrowDown, ArrowUp, Check, Trash } from "../ui/icons";
 import {
   Tooltip,
   TooltipContent,

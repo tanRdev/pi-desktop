@@ -32,7 +32,7 @@ export function createMainWindowOptions({
   preloadPath,
 }: CreateMainWindowOptionsInput): BrowserWindowConstructorOptions {
   return {
-    title: "PiDesk",
+    title: "Pi Desktop",
     width: 1440,
     height: 900,
     minWidth: 1180,
@@ -56,12 +56,11 @@ export function createMainWindowOptions({
 }
 
 export function shouldAllowNavigation(targetUrl: string): boolean {
-  try {
-    const parsedUrl = new URL(targetUrl);
-    return parsedUrl.protocol === "file:";
-  } catch {
+  if (!URL.canParse(targetUrl)) {
     return false;
   }
+
+  return new URL(targetUrl).protocol === "file:";
 }
 
 export function shouldDenyWindowOpen(details: HandlerDetails): boolean {

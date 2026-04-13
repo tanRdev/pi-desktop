@@ -1,28 +1,44 @@
-type StorageHost = typeof globalThis & {
-  localStorage?: Storage;
-};
+function hasUsableStorage(storage: Storage | undefined): storage is Storage {
+  return (
+    typeof storage?.getItem === "function" &&
+    typeof storage.setItem === "function" &&
+    typeof storage.removeItem === "function" &&
+    typeof storage.clear === "function"
+  );
+}
 
-const storageHost = globalThis as StorageHost;
+function createMemoryStorage(): Storage {
+  const store = new Map<string, string>();
 
-// Provide a minimal in-memory localStorage when running in a test/node
-// environment where the DOM's localStorage is not available. This keeps
-// behavior deterministic for unit tests that access `localStorage`.
-if (typeof storageHost.localStorage === "undefined") {
-  const _store = new Map<string, string>();
-  storageHost.localStorage = {
-    getItem(key: string) {
-      return _store.has(key) ? (_store.get(key) ?? null) : null;
-    },
-    setItem(key: string, value: string) {
-      _store.set(String(key), String(value));
-    },
-    removeItem(key: string) {
-      _store.delete(key);
+  return {
+    get length() {
+      return store.size;
     },
     clear() {
-      _store.clear();
+      store.clear();
     },
-  } as Storage;
+    getItem(key: string) {
+      return store.has(key) ? (store.get(key) ?? null) : null;
+    },
+    key(index: number) {
+      return Array.from(store.keys())[index] ?? null;
+    },
+    removeItem(key: string) {
+      store.delete(key);
+    },
+    setItem(key: string, value: string) {
+      store.set(String(key), String(value));
+    },
+  } satisfies Storage;
+}
+
+// Provide a minimal in-memory localStorage when running in a test/node
+// environment where the DOM's localStorage is missing or partially stubbed.
+if (!hasUsableStorage(globalThis.localStorage)) {
+  Object.defineProperty(globalThis, "localStorage", {
+    value: createMemoryStorage(),
+    configurable: true,
+  });
 }
 
 const LEFT_SIDEBAR_KEY = "pidesk.leftSidebarWidth";
@@ -33,11 +49,13 @@ const MAX_WIDTH = 400;
 export const DEFAULT_LEFT_SIDEBAR_WIDTH = DEFAULT_WIDTH;
 
 function getStorage(): Storage | null {
-  if (typeof window !== "undefined") {
+  if (typeof window !== "undefined" && hasUsableStorage(window.localStorage)) {
     return window.localStorage;
   }
 
-  return storageHost.localStorage ?? null;
+  return hasUsableStorage(globalThis.localStorage)
+    ? globalThis.localStorage
+    : null;
 }
 
 export function clampLeftSidebarWidth(width: number): number {

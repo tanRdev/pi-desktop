@@ -9,13 +9,14 @@ async function waitForShell(page: import("@playwright/test").Page) {
   await page.waitForLoadState("domcontentloaded");
   await expect
     .poll(
-      async () => {
-        try {
-          return await page.getByTestId("app-ready").count();
-        } catch {
-          return 0;
-        }
-      },
+      () =>
+        page
+          .getByTestId("app-ready")
+          .count()
+          .then(
+            (count) => count,
+            () => 0,
+          ),
       { timeout: 15_000 },
     )
     .toBeGreaterThan(0);
@@ -67,7 +68,7 @@ function createRepository(rootPath: string) {
   runGit(
     [
       "-c",
-      "user.name=PiDesk Test",
+      "user.name=Pi Desktop Test",
       "-c",
       "user.email=test@example.com",
       "commit",

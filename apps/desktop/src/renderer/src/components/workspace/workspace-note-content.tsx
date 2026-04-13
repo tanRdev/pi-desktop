@@ -71,7 +71,12 @@ export function WorkspaceNoteContent({
   }, []);
 
   return (
-    <div className={cn("flex h-full flex-col bg-[var(--color-bg-primary)]", className)}>
+    <div
+      className={cn(
+        "flex h-full flex-col bg-[var(--color-bg-primary)]",
+        className,
+      )}
+    >
       <div className="min-h-0 flex-1 overflow-hidden" onKeyDown={handleKeyDown}>
         {isEditorFocused ? (
           <CodeEditor

@@ -41,7 +41,7 @@ async function getSharp(): Promise<(input?: string | Buffer) => SharpInstance> {
     return sharpModule;
   } catch {
     throw new Error(
-      "sharp is not installed. Image processing is unavailable. Run: pnpm add sharp",
+      "sharp is not installed. Image processing is unavailable. Run: bun add sharp",
     );
   }
 }
@@ -74,12 +74,10 @@ export interface ImageServiceInterface {
  */
 export class ImageService implements ImageServiceInterface {
   async isAvailable(): Promise<boolean> {
-    try {
-      await getSharp();
-      return true;
-    } catch {
-      return false;
-    }
+    return getSharp().then(
+      () => true,
+      () => false,
+    );
   }
 
   async getMetadata(filePath: string): Promise<ImageMetadata> {
@@ -182,7 +180,7 @@ export class FallbackImageService implements ImageServiceInterface {
 
   async getMetadata(_filePath: string): Promise<ImageMetadata> {
     throw new Error(
-      "sharp is not installed. Image processing is unavailable. Run: pnpm add sharp",
+      "sharp is not installed. Image processing is unavailable. Run: bun add sharp",
     );
   }
 
@@ -191,7 +189,7 @@ export class FallbackImageService implements ImageServiceInterface {
     _options?: ImagePreviewOptions,
   ): Promise<ImagePreview> {
     throw new Error(
-      "sharp is not installed. Image processing is unavailable. Run: pnpm add sharp",
+      "sharp is not installed. Image processing is unavailable. Run: bun add sharp",
     );
   }
 }

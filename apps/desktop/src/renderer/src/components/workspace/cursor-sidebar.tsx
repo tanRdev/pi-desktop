@@ -7,7 +7,6 @@ import {
   Plus,
   Settings,
   SquaresFour,
-  User,
 } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 

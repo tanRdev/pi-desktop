@@ -16,9 +16,10 @@ describe("side panel toggle contract", () => {
     expect(titleBarSource).not.toContain("Browse files");
     expect(titleBarSource).not.toContain("Open git");
     expect(titleBarSource).toContain("isActive");
+    expect(titleBarSource).toContain("onToggleSidePanel");
   });
 
-  it("adds a project switcher affordance and vertical scrolling to the left rail", () => {
+  it("keeps the remaining rail and repository switcher affordances minimal", () => {
     const railSource = readSource(
       "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
     );
@@ -26,8 +27,11 @@ describe("side panel toggle contract", () => {
       "apps/desktop/src/renderer/src/components/workspace/repository-switcher.tsx",
     );
 
-    expect(railSource).toContain('triggerAriaLabel="Switch projects"');
     expect(railSource).toContain("overflow-y-auto");
+    expect(switcherSource).toContain("triggerAriaLabel?: string");
+    expect(switcherSource).toContain(
+      'const triggerTitle = triggerAriaLabel ?? "Switch projects";',
+    );
     expect(switcherSource).not.toContain("ChevronDown");
   });
 
@@ -43,7 +47,7 @@ describe("side panel toggle contract", () => {
     expect(surfacePanelSource).not.toContain("Close ");
   });
 
-  it("toggles the remaining title bar tools and collapses the side panel when re-clicked", () => {
+  it("toggles terminal and git surfaces closed when the active control is re-clicked", () => {
     const controllerSource = readSource(
       "apps/desktop/src/renderer/src/hooks/use-app-shell-controller.ts",
     );
@@ -56,9 +60,6 @@ describe("side panel toggle contract", () => {
     );
     expect(controllerSource).toContain(
       "existingTerminal.id === selectedContextSurface",
-    );
-    expect(controllerSource).toContain(
-      'current === "activity" ? null : "activity"',
     );
     expect(controllerSource).not.toContain("handleOpenNote");
     expect(controllerSource).toContain("setSelectedContextSurface(null)");
@@ -74,6 +75,7 @@ describe("side panel toggle contract", () => {
     );
 
     expect(controllerSource).toContain("windowStore.closeWindow(");
-    expect(shellSource).toContain("selectedSurfaceKey === null ? (");
+    expect(controllerSource).toContain("window.id !== selectedContextSurface");
+    expect(shellSource).toContain("renderRightPanelContent()");
   });
 });

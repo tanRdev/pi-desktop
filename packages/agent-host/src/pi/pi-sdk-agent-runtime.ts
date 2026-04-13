@@ -379,7 +379,10 @@ export class PiSdkAgentRuntime {
   }
 
   getSnapshot(): AgentSnapshot {
-    const sdkUsage = this.session?.getContextUsage();
+    const sdkUsage =
+      typeof this.session?.getContextUsage === "function"
+        ? this.session.getContextUsage()
+        : undefined;
     const contextUsage: ContextUsageSnapshot | undefined = sdkUsage
       ? {
           tokens: sdkUsage.tokens,
@@ -401,7 +404,9 @@ export class PiSdkAgentRuntime {
     await this.bootstrap();
 
     if (!this.session) {
-      throw new Error("PiDesk Pi SDK runtime failed to initialize a session");
+      throw new Error(
+        "Pi Desktop Pi SDK runtime failed to initialize a session",
+      );
     }
 
     this.snapshot = {
@@ -440,11 +445,7 @@ export class PiSdkAgentRuntime {
     abortController.abort();
 
     if (typeof this.session?.waitForIdle === "function") {
-      try {
-        await this.session.waitForIdle();
-      } catch {
-        // Ignore abort-related wait failures and reconcile from snapshot below.
-      }
+      await this.session.waitForIdle().then(undefined, () => undefined);
     }
 
     this.refreshSnapshot("ready");

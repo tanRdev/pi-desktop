@@ -3,8 +3,6 @@
  * All icons are from @phosphor-icons/react
  */
 
-import * as React from "react";
-
 // ============================================
 // CUSTOM ICONS
 // ============================================
