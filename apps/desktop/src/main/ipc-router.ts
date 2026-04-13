@@ -46,11 +46,10 @@ export interface AgentIpcHost {
   openRepositoryInFinder(repositoryId: string): Promise<void>;
   createWorktree(repositoryId: string, branchName: string): Promise<void>;
   selectWorktree(worktreeId: string): Promise<void>;
-  createThread(worktreeId: string, title?: string): Promise<string>;
+  createThread(worktreeId: string): Promise<string>;
   selectThread(threadId: string): Promise<void>;
   archiveThread(threadId: string): Promise<void>;
   deleteThread(threadId: string): Promise<void>;
-  renameThread(threadId: string, title: string): Promise<void>;
 }
 
 export interface IpcRegistrar {

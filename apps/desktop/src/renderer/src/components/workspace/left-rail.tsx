@@ -22,6 +22,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { DEFAULT_UNTITLED_THREAD_TITLE } from "../../../../thread-title-defaults";
 import {
   deriveThreadDisplayStatus,
   ThreadStatusIcon,
@@ -47,32 +48,14 @@ export interface LeftRailProps {
   onCreateThread: (worktreeId: string) => string | Promise<string>;
   onCloseThread?: (threadId: string) => void;
   onDeleteThread?: (threadId: string) => void;
-  onRenameThread?: (threadId: string, title: string) => void;
   onAddRepository: () => void;
   onToggleVisible?: () => void;
-  onOpenSettings?: () => void;
   onOpenFilter?: () => void;
   onNewAgent?: () => void;
   onRenameRepository?: (repositoryId: string, name: string) => void;
   onRemoveRepository?: (repositoryId: string) => void;
   onCopyRepositoryPath?: (repositoryId: string) => void;
   onOpenInFinder?: (repositoryId: string) => void;
-}
-
-const FALLBACK_THREAD_NAMES = [
-  "Thread Atlas",
-  "Thread Ember",
-  "Thread Nova",
-  "Thread Quartz",
-  "Thread Harbor",
-] as const;
-
-function generateFallbackThreadName(): string {
-  return (
-    FALLBACK_THREAD_NAMES[
-      Math.floor(Math.random() * FALLBACK_THREAD_NAMES.length)
-    ] ?? "New thread"
-  );
 }
 
 /** Collect all threads across worktrees from the active repository. */
@@ -176,7 +159,6 @@ export function LeftRail({
   onOpenInFinder,
   onCreateThread,
   onCloseThread,
-  onRenameThread,
   onAddRepository,
   onToggleVisible,
 }: LeftRailProps) {
@@ -207,15 +189,13 @@ export function LeftRail({
     repositoryId: string;
     value: string;
   } | null>(null);
-  const [inlineEditingThreadId, setInlineEditingThreadId] = React.useState<
-    string | null
-  >(null);
-  const [inlineEditingValue, setInlineEditingValue] = React.useState("");
   const [isCreatingThread, setIsCreatingThread] = React.useState(false);
   const [pendingDeleteThreadId, setPendingDeleteThreadId] = React.useState<
     string | null
   >(null);
-  const inlineThreadInputRef = React.useRef<HTMLInputElement>(null);
+  const [pendingDeleteThreadIds, setPendingDeleteThreadIds] = React.useState(
+    () => new Set<string>(),
+  );
 
   const { active: activeThreads, archived: archivedThreads } = React.useMemo(
     () => collectThreads(repositories, activeRepositoryId),
@@ -297,39 +277,6 @@ export function LeftRail({
     renameInputRef.current?.select();
   }, [renameState]);
 
-  React.useEffect(() => {
-    if (!inlineEditingThreadId) {
-      return;
-    }
-
-    inlineThreadInputRef.current?.focus();
-    inlineThreadInputRef.current?.select();
-  }, [inlineEditingThreadId]);
-
-  const startInlineEdit = React.useCallback(
-    (threadId: string, initialValue: string) => {
-      setInlineEditingThreadId(threadId);
-      setInlineEditingValue(initialValue);
-    },
-    [],
-  );
-
-  const finishInlineEdit = React.useCallback(
-    async (threadId: string, currentTitle: string) => {
-      const nextTitle =
-        inlineEditingValue.trim() || generateFallbackThreadName();
-      setInlineEditingThreadId(null);
-      setInlineEditingValue("");
-
-      if (nextTitle === currentTitle.trim()) {
-        return;
-      }
-
-      await onRenameThread?.(threadId, nextTitle);
-    },
-    [inlineEditingValue, onRenameThread],
-  );
-
   const handleCreateThread = React.useCallback(async () => {
     if (!activeWorktreeId || isCreatingThread) {
       return;
@@ -337,12 +284,11 @@ export function LeftRail({
 
     setIsCreatingThread(true);
     try {
-      const threadId = await onCreateThread(activeWorktreeId);
-      startInlineEdit(threadId, "");
+      await onCreateThread(activeWorktreeId);
     } finally {
       setIsCreatingThread(false);
     }
-  }, [activeWorktreeId, isCreatingThread, onCreateThread, startInlineEdit]);
+  }, [activeWorktreeId, isCreatingThread, onCreateThread]);
 
   const _handleDrop = React.useCallback(
     (targetRepositoryId: string) => {
@@ -366,6 +312,27 @@ export function LeftRail({
       setDraggedRepositoryId(null);
     },
     [draggedRepositoryId, persistRepositoryOrder],
+  );
+
+  const handleDeleteArchivedThread = React.useCallback(
+    async (threadId: string) => {
+      setPendingDeleteThreadIds((current) => {
+        const next = new Set(current);
+        next.add(threadId);
+        return next;
+      });
+
+      try {
+        await onDeleteThread?.(threadId);
+      } finally {
+        setPendingDeleteThreadIds((current) => {
+          const next = new Set(current);
+          next.delete(threadId);
+          return next;
+        });
+      }
+    },
+    [onDeleteThread],
   );
 
   const _handleContextMenu = React.useCallback(
@@ -479,59 +446,21 @@ export function LeftRail({
                   data-testid="thread-row"
                   className={threadRowClassName}
                 >
-                  {inlineEditingThreadId === thread.id ? (
-                    <div className="flex min-w-0 flex-1 items-center gap-2">
-                      <span className="flex size-5 shrink-0 items-center justify-center">
-                        <ThreadStatusIcon displayStatus={displayStatus} />
-                      </span>
-                      <input
-                        ref={inlineThreadInputRef}
-                        data-testid="thread-inline-input"
-                        type="text"
-                        value={inlineEditingValue}
-                        onChange={(event) =>
-                          setInlineEditingValue(event.target.value)
-                        }
-                        onClick={(event) => event.stopPropagation()}
-                        onBlur={() => {
-                          void finishInlineEdit(thread.id, thread.title || "");
-                        }}
-                        onKeyDown={(event) => {
-                          event.stopPropagation();
-                          if (event.key === "Enter") {
-                            event.preventDefault();
-                            void finishInlineEdit(
-                              thread.id,
-                              thread.title || "",
-                            );
-                          }
-                          if (event.key === "Escape") {
-                            event.preventDefault();
-                            setInlineEditingThreadId(null);
-                            setInlineEditingValue("");
-                          }
-                        }}
-                        className="block min-w-0 flex-1 rounded border border-white/[0.12] bg-[var(--color-bg-primary)] px-2 py-1 text-[14px] text-white/85 outline-none focus:border-white/[0.2]"
-                        placeholder="Name thread"
-                      />
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPendingDeleteThreadId(null);
-                        onSelectThread(thread.id);
-                      }}
-                      className="flex min-w-0 flex-1 items-center gap-2 text-left"
-                    >
-                      <span className="flex size-5 shrink-0 items-center justify-center">
-                        <ThreadStatusIcon displayStatus={displayStatus} />
-                      </span>
-                      <span className="truncate flex-1">
-                        {thread.title || "Untitled thread"}
-                      </span>
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPendingDeleteThreadId(null);
+                      onSelectThread(thread.id);
+                    }}
+                    className="flex min-w-0 flex-1 items-center gap-2 text-left"
+                  >
+                    <span className="flex size-5 shrink-0 items-center justify-center">
+                      <ThreadStatusIcon displayStatus={displayStatus} />
+                    </span>
+                    <span className="truncate flex-1">
+                      {thread.title || DEFAULT_UNTITLED_THREAD_TITLE}
+                    </span>
+                  </button>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <button
@@ -564,6 +493,7 @@ export function LeftRail({
               {archivedThreads.map((thread) => {
                 const isDeleteConfirmationOpen =
                   pendingDeleteThreadId === thread.id;
+                const isDeletingThread = pendingDeleteThreadIds.has(thread.id);
 
                 return (
                   <div
@@ -583,7 +513,7 @@ export function LeftRail({
                     >
                       <Archive className="size-3 shrink-0 text-white/20" />
                       <span className="truncate flex-1">
-                        {thread.title || "Untitled thread"}
+                        {thread.title || DEFAULT_UNTITLED_THREAD_TITLE}
                       </span>
                     </button>
                     {onDeleteThread ? (
@@ -594,12 +524,13 @@ export function LeftRail({
                         }
                       >
                         <PopoverTrigger asChild>
-                          <div className="flex items-center">
+                          <span className="flex items-center">
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <button
                                   type="button"
                                   data-testid="archived-thread-delete-button"
+                                  disabled={isDeletingThread}
                                   onClick={(event) => {
                                     event.stopPropagation();
                                   }}
@@ -617,7 +548,7 @@ export function LeftRail({
                                 Delete archived thread
                               </TooltipContent>
                             </Tooltip>
-                          </div>
+                          </span>
                         </PopoverTrigger>
                         <PopoverContent
                           align="end"
@@ -632,6 +563,7 @@ export function LeftRail({
                               <button
                                 type="button"
                                 data-testid="archived-thread-delete-cancel"
+                                disabled={isDeletingThread}
                                 onClick={(event) => {
                                   event.stopPropagation();
                                   setPendingDeleteThreadId(null);
@@ -643,14 +575,15 @@ export function LeftRail({
                               <button
                                 type="button"
                                 data-testid="archived-thread-delete-confirm"
+                                disabled={isDeletingThread}
                                 onClick={(event) => {
                                   event.stopPropagation();
                                   setPendingDeleteThreadId(null);
-                                  void onDeleteThread?.(thread.id);
+                                  void handleDeleteArchivedThread(thread.id);
                                 }}
                                 className="rounded bg-white/[0.08] px-2 py-1 text-[14px] text-white/85 transition-colors hover:bg-white/[0.14]"
                               >
-                                Delete
+                                {isDeletingThread ? "Deleting..." : "Delete"}
                               </button>
                             </div>
                           </div>

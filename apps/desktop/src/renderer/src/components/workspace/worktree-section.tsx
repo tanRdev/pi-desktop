@@ -18,7 +18,6 @@ export interface WorktreeSectionProps {
   onSelectThread: (threadId: string) => void;
   onCreateThread: () => void | Promise<void>;
   onCloseThread?: (threadId: string) => void;
-  onRenameThread?: (threadId: string, title: string) => void;
 }
 
 export function WorktreeSection({
@@ -29,7 +28,6 @@ export function WorktreeSection({
   onSelectThread,
   onCreateThread,
   onCloseThread,
-  onRenameThread,
 }: WorktreeSectionProps) {
   const [isCreatingThread, setIsCreatingThread] = React.useState(false);
 
@@ -148,11 +146,6 @@ export function WorktreeSection({
                     onClick={() => onSelectThread(thread.id)}
                     onClose={
                       onCloseThread ? () => onCloseThread(thread.id) : undefined
-                    }
-                    onRename={
-                      onRenameThread
-                        ? (title: string) => onRenameThread(thread.id, title)
-                        : undefined
                     }
                   />
                 </div>

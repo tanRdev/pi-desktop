@@ -13,12 +13,11 @@ export function registerThreadHandlers({
 }: RegisterThreadHandlersDependencies): void {
   handle(IPC_CHANNELS.threads.create, async (_event, payload) => {
     const worktreeId = getStringField(payload, "worktreeId");
-    const title = getStringField(payload, "title");
     if (!worktreeId) {
       throw new Error("Thread create payload must include worktreeId");
     }
 
-    return agentHost.createThread(worktreeId, title);
+    return agentHost.createThread(worktreeId);
   });
 
   handle(IPC_CHANNELS.threads.select, async (_event, payload) => {
@@ -46,15 +45,5 @@ export function registerThreadHandlers({
     }
 
     await agentHost.deleteThread(threadId);
-  });
-
-  handle(IPC_CHANNELS.threads.rename, async (_event, payload) => {
-    const threadId = getStringField(payload, "threadId");
-    const title = getStringField(payload, "title");
-    if (!threadId || !title) {
-      throw new Error("Thread rename payload must include threadId and title");
-    }
-
-    await agentHost.renameThread(threadId, title);
   });
 }

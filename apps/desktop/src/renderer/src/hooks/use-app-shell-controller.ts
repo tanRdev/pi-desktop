@@ -12,6 +12,7 @@ import {
 } from "@pidesk/shared";
 import * as React from "react";
 import { useStore } from "zustand";
+import { DEFAULT_UNTITLED_THREAD_TITLE } from "../../../thread-title-defaults";
 import type { WorkspaceShellProps } from "../components/workspace/workspace-shell";
 import { loadPromptAutocompleteSuggestions } from "../lib/prompt-autocomplete-loader";
 import {
@@ -66,7 +67,7 @@ function getThreadWindowTitle(
   thread: ThreadSnapshot | null | undefined,
 ): string {
   const title = thread?.title.trim();
-  return title && title.length > 0 ? title : "Untitled thread";
+  return title && title.length > 0 ? title : DEFAULT_UNTITLED_THREAD_TITLE;
 }
 
 function getInitialContextSurface(
@@ -97,8 +98,6 @@ export interface AppShellController {
   commitGitChanges: () => Promise<void>;
   pullGitChanges: () => Promise<void>;
   pushGitChanges: () => Promise<void>;
-  isSettingsOpen: boolean;
-  setSettingsOpen: (isOpen: boolean) => void;
   isPackagesOpen: boolean;
   setPackagesOpen: (isOpen: boolean) => void;
   isCreateWorktreeOpen: boolean;
@@ -165,33 +164,9 @@ export function useAppShellController(): AppShellController {
     uiInteractionStore,
     (storeState) => storeState.promptAutocompleteSelectedIndex,
   );
-  const launcherQuery = useStore(
-    uiInteractionStore,
-    (storeState) => storeState.overlays.launcher.query,
-  );
-  const isLauncherOpen = useStore(
-    uiInteractionStore,
-    (storeState) => storeState.overlays.launcher.isOpen,
-  );
-  const launcherResults = useStore(
-    uiInteractionStore,
-    (storeState) => storeState.overlays.launcher.results,
-  );
-  const launcherSelectedIndex = useStore(
-    uiInteractionStore,
-    (storeState) => storeState.overlays.launcher.selectedIndex,
-  );
-  const launcherIsLoading = useStore(
-    uiInteractionStore,
-    (storeState) => storeState.overlays.launcher.isLoading,
-  );
   const isFileTreeOpen = useStore(
     uiInteractionStore,
     (storeState) => storeState.overlays.fileTree.isOpen,
-  );
-  const isSettingsOpen = useStore(
-    uiInteractionStore,
-    (storeState) => storeState.dialogs.settings,
   );
   const isPackagesOpen = useStore(
     uiInteractionStore,
@@ -230,7 +205,6 @@ export function useAppShellController(): AppShellController {
     workspaceSwitchingRepositoryName,
     setWorkspaceSwitchingRepositoryName,
   ] = React.useState<string | null>(null);
-  const launcherRequestIdRef = React.useRef(0);
 
   const setAutocompleteSuggestions = React.useCallback(
     (suggestions: (SlashSuggestion | MentionSuggestion)[]) => {
@@ -244,9 +218,6 @@ export function useAppShellController(): AppShellController {
   const clearAutocomplete = React.useCallback(() => {
     uiInteractionStore.getState().clearPromptAutocomplete();
   }, []);
-  const setSettingsOpen = React.useCallback((isOpen: boolean) => {
-    uiInteractionStore.getState().setDialogOpen("settings", isOpen);
-  }, []);
   const setPackagesOpen = React.useCallback((isOpen: boolean) => {
     uiInteractionStore.getState().setDialogOpen("packages", isOpen);
   }, []);
@@ -258,12 +229,6 @@ export function useAppShellController(): AppShellController {
       .getState()
       .setDialogOpen("confirmRemoveRepository", isOpen);
   }, []);
-  const openLauncherOverlay = React.useCallback(() => {
-    uiInteractionStore.getState().openLauncherOverlay();
-  }, []);
-  const closeLauncherOverlay = React.useCallback(() => {
-    uiInteractionStore.getState().closeLauncherOverlay();
-  }, []);
   const openFileTreeOverlay = React.useCallback(() => {
     uiInteractionStore.getState().openFileTreeOverlay();
   }, []);
@@ -271,9 +236,6 @@ export function useAppShellController(): AppShellController {
     uiInteractionStore.getState().closeFileTreeOverlay();
   }, []);
 
-  const handleOpenSettings = React.useCallback(() => {
-    setSettingsOpen(true);
-  }, [setSettingsOpen]);
   React.useEffect(() => {
     setPromptMode(detectPromptMode(draft));
   }, [draft]);
@@ -313,7 +275,8 @@ export function useAppShellController(): AppShellController {
     agent.status !== "starting" &&
     agent.status !== "streaming";
   const isPromptExecuting =
-    agent.status === "starting" || agent.status === "streaming";
+    activeThreadConversation?.status === "starting" ||
+    activeThreadConversation?.status === "streaming";
   const isPromptVisible = activeThreadId !== null;
 
   const handleFileClick = React.useCallback(
@@ -332,14 +295,12 @@ export function useAppShellController(): AppShellController {
         readFile: (nextFilePath) => window.pidesk.fs.readFile(nextFilePath),
       });
       setSelectedContextSurface(createdWindowId);
-      closeLauncherOverlay();
       closeFileTreeOverlay();
     },
     [
       activeWorktreeId,
       activeWorktreePath,
       closeFileTreeOverlay,
-      closeLauncherOverlay,
       windowState.layout.windows,
       windowStore,
     ],
@@ -597,114 +558,6 @@ export function useAppShellController(): AppShellController {
     [activeWorktreeId, windowStore],
   );
 
-  const handleLauncherQueryChange = React.useCallback(
-    async (query: string) => {
-      const interactions = uiInteractionStore.getState();
-      interactions.setLauncherQuery(query);
-      launcherRequestIdRef.current += 1;
-      const requestId = launcherRequestIdRef.current;
-
-      if (!query.trim() || !activeWorktreePath) {
-        interactions.setLauncherResults([]);
-        interactions.setLauncherSelectedIndex(-1);
-        interactions.setLauncherLoading(false);
-        return;
-      }
-
-      interactions.setLauncherLoading(true);
-
-      try {
-        const response = await window.pidesk.search.searchFiles({
-          query,
-          rootPath: activeWorktreePath,
-          maxResults: 20,
-        });
-
-        if (launcherRequestIdRef.current !== requestId) {
-          return;
-        }
-
-        interactions.setLauncherResults(response.results);
-        interactions.setLauncherLoading(false);
-      } catch {
-        if (launcherRequestIdRef.current !== requestId) {
-          return;
-        }
-
-        interactions.setLauncherResults([]);
-        interactions.setLauncherSelectedIndex(-1);
-        interactions.setLauncherLoading(false);
-      }
-    },
-    [activeWorktreePath],
-  );
-
-  const handleLauncherSelect = React.useCallback(
-    (match: SearchMatch) => {
-      if (match.type === "file") {
-        void handleFileClick(match.path);
-        return;
-      }
-      openFileTreeOverlay();
-    },
-    [handleFileClick, openFileTreeOverlay],
-  );
-
-  const handleLauncherHover = React.useCallback((index: number) => {
-    uiInteractionStore.getState().setLauncherSelectedIndex(index);
-  }, []);
-
-  const handleLauncherKeyDown = React.useCallback(
-    (event: React.KeyboardEvent<HTMLInputElement>) => {
-      const launcherState = uiInteractionStore.getState().overlays.launcher;
-      const results = launcherState.results;
-
-      if (event.key === "ArrowDown") {
-        event.preventDefault();
-        if (results.length === 0) {
-          return;
-        }
-        const nextIndex =
-          launcherState.selectedIndex < results.length - 1
-            ? launcherState.selectedIndex + 1
-            : 0;
-        uiInteractionStore.getState().setLauncherSelectedIndex(nextIndex);
-        return;
-      }
-
-      if (event.key === "ArrowUp") {
-        event.preventDefault();
-        if (results.length === 0) {
-          return;
-        }
-        const previousIndex =
-          launcherState.selectedIndex > 0
-            ? launcherState.selectedIndex - 1
-            : results.length - 1;
-        uiInteractionStore.getState().setLauncherSelectedIndex(previousIndex);
-        return;
-      }
-
-      if (event.key === "Enter") {
-        const selectedMatch =
-          launcherState.selectedIndex >= 0
-            ? results[launcherState.selectedIndex]
-            : undefined;
-        if (selectedMatch) {
-          event.preventDefault();
-          handleLauncherSelect(selectedMatch);
-        }
-        return;
-      }
-
-      if (event.key === "Escape") {
-        event.preventDefault();
-        closeLauncherOverlay();
-      }
-    },
-    [closeLauncherOverlay, handleLauncherSelect],
-  );
-
   const handleAddRepository = React.useCallback(async () => {
     const paths = await window.pidesk.dialog.showOpenDialog({
       properties: ["openDirectory", "multiSelections"],
@@ -828,7 +681,7 @@ export function useAppShellController(): AppShellController {
   );
 
   const handleCreateThread = React.useCallback(async (worktreeId: string) => {
-    const threadId = await window.pidesk.threads.create(worktreeId, "");
+    const threadId = await window.pidesk.threads.create(worktreeId);
     setSelectedContextSurface(null);
     return threadId;
   }, []);
@@ -871,13 +724,6 @@ export function useAppShellController(): AppShellController {
       }
     },
     [activeThreadId],
-  );
-
-  const handleRenameThread = React.useCallback(
-    async (threadId: string, title: string) => {
-      await window.pidesk.threads.rename(threadId, title);
-    },
-    [],
   );
 
   const handleSelectThread = React.useCallback(async (threadId: string) => {
@@ -1205,14 +1051,9 @@ export function useAppShellController(): AppShellController {
     providerSnapshots,
     currentModelValue,
     isSwitchingModel,
-    isLauncherOpen,
     isFileTreeOpen,
     isPromptVisible,
     isPromptExecuting,
-    launcherQuery,
-    launcherResults,
-    launcherSelectedIndex,
-    launcherIsLoading,
     activeGitRepositoryStatus,
     shellGit: shell.git ?? null,
     gitCommitMessage,
@@ -1231,15 +1072,11 @@ export function useAppShellController(): AppShellController {
     onRemoveRepository: handleRemoveRepository,
     onCopyRepositoryPath: handleCopyRepositoryPath,
     onOpenInFinder: handleOpenInFinder,
-    onOpenSettings: handleOpenSettings,
     onSelectWorktree: handleSelectWorktree,
     onSelectThread: handleSelectThread,
     onCreateThread: handleCreateThread,
     onCloseThread: handleCloseThread,
     onDeleteThread: handleDeleteThread,
-    onRenameThread: handleRenameThread,
-    onOpenLauncher: openLauncherOverlay,
-    onCloseLauncher: closeLauncherOverlay,
     onCloseFileTree: closeFileTreeOverlay,
     onOpenGit: handleOpenGit,
     onOpenTerminal: handleOpenTerminal,
@@ -1254,10 +1091,6 @@ export function useAppShellController(): AppShellController {
     onFileClick: handleFileClick,
     onFileContentChange: handleFileContentChange,
     onFileSave: handleFileSave,
-    onLauncherQueryChange: handleLauncherQueryChange,
-    onLauncherSelect: handleLauncherSelect,
-    onLauncherHover: handleLauncherHover,
-    onLauncherKeyDown: handleLauncherKeyDown,
     onDraftChange: setDraft,
     onSend: handleSend,
     onCancelPrompt: handleCancelPrompt,
@@ -1282,8 +1115,6 @@ export function useAppShellController(): AppShellController {
     commitGitChanges,
     pullGitChanges,
     pushGitChanges,
-    isSettingsOpen,
-    setSettingsOpen,
     isPackagesOpen,
     setPackagesOpen,
     isCreateWorktreeOpen,

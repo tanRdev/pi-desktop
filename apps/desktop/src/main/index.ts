@@ -14,6 +14,10 @@ import type {
 } from "@pidesk/shared";
 import { IPC_CHANNELS } from "@pidesk/shared";
 import { app, BrowserWindow, ipcMain, shell } from "electron";
+import {
+  createThreadTitle,
+  getDefaultThreadTitle,
+} from "../thread-title-defaults";
 import { createAgentHostClient } from "./agent-host-client";
 import {
   createUnavailableAgentHost,
@@ -376,7 +380,7 @@ async function bootstrapDesktop() {
         .find((entry) => entry.archivedAt === null) ??
       threadCatalog.create({
         worktreeId: inspection.currentWorktreePath,
-        title: "Current thread",
+        title: getDefaultThreadTitle(),
       });
 
     return buildThreadContext(repositoryEntry.id, inspection, thread);
@@ -431,12 +435,16 @@ async function bootstrapDesktop() {
 
   async function createThreadContext(
     worktreeId: string,
-    title?: string,
   ): Promise<SelectedThreadContext> {
     const inspection = inspectWorktreeOrThrow(worktreeId);
+    const usedTitles = new Set(
+      threadCatalog
+        .listByWorktree(inspection.currentWorktreePath)
+        .map((thread) => thread.title),
+    );
     const thread = threadCatalog.create({
       worktreeId: inspection.currentWorktreePath,
-      title: title?.trim() || "New thread",
+      title: createThreadTitle(Math.random, usedTitles),
     });
     const repositoryEntry = repositoryCatalog.upsert({
       rootPath: inspection.rootPath,
@@ -632,9 +640,31 @@ async function bootstrapDesktop() {
       return;
     }
 
-    switchContextInBackground(
-      await resolveDefaultThreadContext(thread.worktreeId),
-    );
+    const nextOpenThread = threadCatalog
+      .listByWorktree(thread.worktreeId)
+      .find((entry) => entry.id !== threadId && entry.archivedAt === null);
+
+    if (!nextOpenThread) {
+      const repositoryId =
+        currentContext?.repositoryId ?? selectionState.get().repositoryId;
+      currentContext = null;
+      currentTransport?.close();
+      currentTransport = null;
+      unsubscribe();
+      unsubscribe = () => {};
+      currentHost = createBootstrapErrorHost(
+        "No active session is selected for this workspace",
+      );
+      selectionState.replace({
+        repositoryId,
+        worktreeId: thread.worktreeId,
+        threadId: null,
+      });
+      notifySessionChanged();
+      return;
+    }
+
+    switchContextInBackground(await resolveThreadContext(nextOpenThread.id));
   }
 
   async function deleteThreadAndRefresh(threadId: string): Promise<void> {
@@ -653,21 +683,31 @@ async function bootstrapDesktop() {
       return;
     }
 
-    switchContextInBackground(
-      await resolveDefaultThreadContext(thread.worktreeId),
-    );
-  }
+    const nextOpenThread = threadCatalog
+      .listByWorktree(thread.worktreeId)
+      .find((entry) => entry.id !== threadId && entry.archivedAt === null);
 
-  async function renameThreadAndRefresh(
-    threadId: string,
-    title: string,
-  ): Promise<void> {
-    const renamedThread = threadCatalog.rename(threadId, title);
-    if (!renamedThread) {
-      throw new Error(`Unknown thread: ${threadId}`);
+    if (!nextOpenThread) {
+      const repositoryId =
+        currentContext?.repositoryId ?? selectionState.get().repositoryId;
+      currentContext = null;
+      currentTransport?.close();
+      currentTransport = null;
+      unsubscribe();
+      unsubscribe = () => {};
+      currentHost = createBootstrapErrorHost(
+        "No active session is selected for this workspace",
+      );
+      selectionState.replace({
+        repositoryId,
+        worktreeId: thread.worktreeId,
+        threadId: null,
+      });
+      notifySessionChanged();
+      return;
     }
 
-    notifySessionChanged();
+    switchContextInBackground(await resolveThreadContext(nextOpenThread.id));
   }
 
   registerIpcHandlers({
@@ -803,8 +843,8 @@ async function bootstrapDesktop() {
           await resolveDefaultThreadContext(worktreeId),
         );
       },
-      createThread: async (worktreeId, title) => {
-        const context = await createThreadContext(worktreeId, title);
+      createThread: async (worktreeId) => {
+        const context = await createThreadContext(worktreeId);
         switchContextInBackground(context);
         return context.thread.id;
       },
@@ -816,9 +856,6 @@ async function bootstrapDesktop() {
       },
       deleteThread: async (threadId) => {
         await deleteThreadAndRefresh(threadId);
-      },
-      renameThread: async (threadId, title) => {
-        await renameThreadAndRefresh(threadId, title);
       },
     },
     gitService,

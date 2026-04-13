@@ -86,7 +86,7 @@ describe("workspace regressions", () => {
     expect(dockSource).not.toContain("PromptSuggestionGroup");
     expect(surfacePanelSource).not.toContain("Sidecar");
     expect(surfacePanelSource).not.toContain(">Activity<");
-    expect(activitySource).not.toContain("Current thread");
+    expect(activitySource).not.toContain("North Star");
     expect(chatSource).not.toContain('label="Role"');
     expect(chatSource).not.toContain('label="Transcript"');
   });
@@ -105,7 +105,9 @@ describe("workspace regressions", () => {
     expect(titleBarSource).not.toContain("desktopPackage");
     expect(titleBarSource).not.toContain("appVersion");
     expect(titleBarSource).not.toContain("Open notes");
-    expect(titleBarSource).toContain("activeSurfaceKind");
+    expect(titleBarSource).toContain('label: "Open terminal"');
+    expect(titleBarSource).toContain('label: "Open settings"');
+    expect(titleBarSource).toContain('aria-label="Toggle side panel"');
     expect(surfacePanelSource).not.toContain("getSurfaceLabel");
     expect(surfacePanelSource).not.toContain("getSurfaceIcon");
     expect(surfacePanelSource).not.toContain("WorkspaceNoteContent");

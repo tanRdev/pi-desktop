@@ -731,7 +731,7 @@ describe("app-shell-store", () => {
                 threads: [
                   {
                     id: "thread-1",
-                    title: "Current thread",
+                    title: "North Star",
                     isArchived: false,
                     lastActivityAt: null,
                     runtime: {

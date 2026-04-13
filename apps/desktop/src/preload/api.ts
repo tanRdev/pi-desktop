@@ -142,11 +142,8 @@ export function createPiDeskApi({
       },
     },
     threads: {
-      create(worktreeId: string, title?: string) {
-        return invoke<string>(IPC_CHANNELS.threads.create, {
-          worktreeId,
-          title,
-        });
+      create(worktreeId: string) {
+        return invoke<string>(IPC_CHANNELS.threads.create, { worktreeId });
       },
       select(threadId: string) {
         return invoke<void>(IPC_CHANNELS.threads.select, { threadId });
@@ -156,9 +153,6 @@ export function createPiDeskApi({
       },
       delete(threadId: string) {
         return invoke<void>(IPC_CHANNELS.threads.delete, { threadId });
-      },
-      rename(threadId: string, title: string) {
-        return invoke<void>(IPC_CHANNELS.threads.rename, { threadId, title });
       },
     },
     dialog: {

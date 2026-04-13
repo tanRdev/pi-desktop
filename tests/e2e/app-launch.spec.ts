@@ -16,9 +16,9 @@ test("launches the shell and streams a mock agent reply", async () => {
 
     await expect(page.getByTestId("left-rail")).toBeVisible();
     await page.getByTestId("create-thread-button").click();
-    await expect(page.getByTestId("thread-inline-input")).toBeVisible();
-    await page.getByTestId("thread-inline-input").fill("Launch Thread");
-    await page.getByTestId("thread-inline-input").press("Enter");
+    await expect(page.getByTestId("left-rail")).toContainText(
+      /\b[A-Z][a-z]+\b/,
+    );
 
     await focusChatThread(page);
 

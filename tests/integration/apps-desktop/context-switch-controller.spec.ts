@@ -100,7 +100,7 @@ describe("context-switch-controller", () => {
     expect(state.context).toEqual(nextContext);
     await expect(state.host.getSnapshot()).resolves.toEqual({
       sessionId: nextContext.thread.id,
-      status: "starting",
+      status: "ready",
       messages: [],
       lastError: null,
     });
@@ -222,7 +222,7 @@ describe("context-switch-controller", () => {
 
     await expect(loadingHost.getSnapshot()).resolves.toEqual({
       sessionId: context.thread.id,
-      status: "starting",
+      status: "ready",
       messages: [],
       lastError: null,
     });
@@ -237,5 +237,17 @@ describe("context-switch-controller", () => {
 
     expect(baseHost.getProviders).toHaveBeenCalledTimes(1);
     expect(baseHost.getSettings).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not mark the loading host as streaming while a thread switch is in progress", async () => {
+    const baseHost = createHost("base");
+    const context = createContext("beta", "/tmp/beta");
+    const loadingHost = createLoadingAgentHost(baseHost, context);
+
+    await expect(loadingHost.getSnapshot()).resolves.toMatchObject({
+      status: "ready",
+      messages: [],
+      lastError: null,
+    });
   });
 });

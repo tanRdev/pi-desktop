@@ -252,7 +252,7 @@ describe("bootstrap helpers (RED)", () => {
     const thread = {
       id: "thread-1",
       worktreeId: "/tmp/project",
-      title: "Current thread",
+      title: "North Star",
       archivedAt: null,
       lastActivityAt: null,
       runtimeId: null,
@@ -371,7 +371,7 @@ describe("bootstrap helpers (RED)", () => {
       thread: {
         id: "thread-2",
         worktreeId: "/tmp/project",
-        title: "New thread",
+        title: "Fresh Orbit",
         archivedAt: null,
         lastActivityAt: null,
         runtimeId: null,
@@ -413,5 +413,22 @@ describe("bootstrap helpers (RED)", () => {
       "/tmp/project/.pi/agent/threads/thread-2",
     );
     expect(result.agentMode).toBe("cli");
+  });
+
+  test("active thread archive and delete fall back to no selection instead of auto-creating a replacement", async () => {
+    const source = await import("node:fs/promises").then((fs) =>
+      fs.readFile(
+        new URL("../../../apps/desktop/src/main/index.ts", import.meta.url),
+        "utf8",
+      ),
+    );
+
+    expect(source).toContain(
+      '"No active session is selected for this workspace"',
+    );
+    expect(source).toContain("threadId: null");
+    expect(source).toContain(
+      "switchContextInBackground(await resolveThreadContext(nextOpenThread.id));",
+    );
   });
 });

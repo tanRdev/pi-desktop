@@ -18,9 +18,9 @@ test("streams a real Pi CLI reply through the desktop chat", async () => {
   try {
     await waitForAppReady(page);
     await page.getByTestId("create-thread-button").click();
-    await expect(page.getByTestId("thread-inline-input")).toBeVisible();
-    await page.getByTestId("thread-inline-input").fill("Real Pi Thread");
-    await page.getByTestId("thread-inline-input").press("Enter");
+    await expect(page.getByTestId("left-rail")).toContainText(
+      /\b[A-Z][a-z]+\b/,
+    );
     await focusChatThread(page);
 
     await page

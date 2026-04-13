@@ -76,7 +76,7 @@ describe("ThreadCatalog", () => {
 
     const first = catalog.ensureOpenThread({
       worktreeId: "/tmp/work/repo-one",
-      title: "Current thread",
+      title: "North Star",
     });
     const second = catalog.ensureOpenThread({
       worktreeId: "/tmp/work/repo-one/",
@@ -88,7 +88,7 @@ describe("ThreadCatalog", () => {
       {
         id: "thread-1",
         worktreeId: "/tmp/work/repo-one",
-        title: "Current thread",
+        title: "North Star",
         archivedAt: null,
         lastActivityAt: null,
         runtimeId: null,

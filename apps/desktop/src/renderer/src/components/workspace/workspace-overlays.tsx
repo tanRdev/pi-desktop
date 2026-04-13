@@ -1,13 +1,9 @@
-import type { SearchMatch, WorktreeSnapshot } from "@pidesk/shared";
+import type { WorktreeSnapshot } from "@pidesk/shared";
 import * as React from "react";
-import { FolderOpen, GitBranch, MagnifyingGlass } from "@/components/ui/icons";
+import { FolderOpen, GitBranch } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { FileTree } from "../ui/file-tree";
 import { ScrollArea } from "../ui/scroll-area";
-import {
-  type WorkspaceSearchAction as SearchWindowAction,
-  WorkspaceSearchContent,
-} from "./workspace-search-content";
 
 interface WorkspaceOverlayFrameProps {
   ariaLabel: string;
@@ -58,71 +54,6 @@ function WorkspaceOverlayFrame({
         {children}
       </div>
     </div>
-  );
-}
-
-export interface LauncherOverlayProps {
-  ariaLabel: string;
-  projectName: string;
-  activeWorktreeLabel: string | null;
-  query: string;
-  isLoading: boolean;
-  results: SearchMatch[];
-  selectedIndex: number;
-  actions: SearchWindowAction[];
-  onClose: () => void;
-  onQueryChange: (query: string) => void;
-  onSelect: (match: SearchMatch) => void;
-  onHover: (index: number) => void;
-  onKeyDown: React.KeyboardEventHandler<HTMLInputElement>;
-}
-
-export function LauncherOverlay({
-  ariaLabel,
-  projectName,
-  activeWorktreeLabel,
-  query,
-  isLoading,
-  results,
-  selectedIndex,
-  actions,
-  onClose,
-  onQueryChange,
-  onSelect,
-  onHover,
-  onKeyDown,
-}: LauncherOverlayProps) {
-  return (
-    <WorkspaceOverlayFrame ariaLabel={ariaLabel} onClose={onClose}>
-      <div className="flex flex-col">
-        <div className="flex items-center gap-3 border-b border-white/[0.06] px-4 py-3">
-          <MagnifyingGlass className="size-5 text-white/20 shrink-0" />
-          <div className="flex min-w-0 items-baseline gap-2">
-            <span className="text-sm font-medium text-white/80">
-              {projectName}
-            </span>
-            <span className="text-xs text-white/40 truncate">
-              {activeWorktreeLabel ?? "No worktree"}
-            </span>
-          </div>
-        </div>
-        <div className="max-h-[50vh]">
-          <WorkspaceSearchContent
-            query={query}
-            onQueryChange={onQueryChange}
-            isLoading={isLoading}
-            results={results}
-            selectedIndex={selectedIndex}
-            onSelect={onSelect}
-            onHover={onHover}
-            onKeyDown={onKeyDown}
-            actions={actions}
-            shouldFocusInput
-            className="bg-transparent"
-          />
-        </div>
-      </div>
-    </WorkspaceOverlayFrame>
   );
 }
 

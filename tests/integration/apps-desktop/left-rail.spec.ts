@@ -117,14 +117,15 @@ describe("moveRepositorySnapshots", () => {
     expect(shellSource).toContain("WorkspaceSurfacePanel");
   });
 
-  it("renders compact thread rows with inline creation affordances", () => {
+  it("renders compact thread rows without inline renaming affordances", () => {
     const source = readSource(
       "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
     );
 
     expect(source).toContain("ThreadStatusIcon");
     expect(source).toContain("create-thread-button");
-    expect(source).toContain("thread-inline-input");
+    expect(source).not.toContain("thread-inline-input");
+    expect(source).not.toContain("onRenameThread");
   });
 
   it("keeps the archive action out of a nested thread button", () => {
@@ -174,25 +175,39 @@ describe("moveRepositorySnapshots", () => {
     expect(source).toContain('data-mode="workspace"');
   });
 
-  it("prevents text selection in the rail while keeping inline rename selectable", () => {
+  it("prevents text selection in the rail without inline rename logic", () => {
     const source = readSource(
       "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
     );
 
     expect(source).toContain("select-none flex-col");
-    expect(source).toContain("thread-inline-input");
-    expect(source).toContain("inlineThreadInputRef.current?.select()");
+    expect(source).not.toContain("thread-inline-input");
+    expect(source).not.toContain("inlineThreadInputRef.current?.select()");
   });
 
-  it("removes the thread naming modal in favor of inline rail editing", () => {
+  it("removes thread custom naming instead of replacing it with inline editing", () => {
     const source = readSource(
       "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
     );
     const appSource = readSource("apps/desktop/src/renderer/src/app.tsx");
+    const listItemSource = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/thread-list-item.tsx",
+    );
 
-    expect(source).toContain("thread-inline-input");
+    expect(source).not.toContain("thread-inline-input");
     expect(appSource).not.toContain("Name your new thread");
     expect(appSource).not.toContain("Random Name");
+    expect(listItemSource).not.toContain("thread-rename-button");
+    expect(listItemSource).not.toContain("thread-rename-input");
+    expect(listItemSource).not.toContain("Rename thread");
+  });
+
+  it("removes the rename thread API from shared contracts", () => {
+    const apiSource = readSource("packages/shared/src/models/api.ts");
+    const channelsSource = readSource("packages/shared/src/ipc/channels.ts");
+
+    expect(apiSource).not.toContain("rename(threadId: string, title: string)");
+    expect(channelsSource).not.toContain('rename: "threads:rename"');
   });
 
   it("shows permanent delete confirmation only for archived threads", () => {
@@ -216,7 +231,36 @@ describe("moveRepositorySnapshots", () => {
     expect(archivedSection).toContain(
       "Permanently delete this archived thread?",
     );
-    expect(archivedSection).toContain("onDeleteThread?.(thread.id)");
+    expect(archivedSection).toContain("<PopoverTrigger asChild>");
+    expect(archivedSection).toContain(
+      "setPendingDeleteThreadId(open ? thread.id : null)",
+    );
+    expect(archivedSection).toContain("setPendingDeleteThreadId(null);");
+    expect(archivedSection).toContain("handleDeleteArchivedThread(thread.id)");
+  });
+
+  it("tracks archived delete state locally so confirm menus can reopen after async deletes", () => {
+    const source = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
+    );
+
+    expect(source).toContain("pendingDeleteThreadIds");
+    expect(source).toContain("new Set(current)");
+    expect(source).toContain("next.delete(threadId);");
+    expect(source).toContain("next.add(threadId);");
+    expect(source).toContain(
+      "const isDeletingThread = pendingDeleteThreadIds.has(thread.id)",
+    );
+  });
+
+  it("keeps archived delete confirmation buttons responsive while delete is pending", () => {
+    const source = readSource(
+      "apps/desktop/src/renderer/src/components/workspace/left-rail.tsx",
+    );
+
+    expect(source).toContain("disabled={isDeletingThread}");
+    expect(source).toContain("void handleDeleteArchivedThread(thread.id);");
+    expect(source).toContain('{isDeletingThread ? "Deleting..." : "Delete"}');
   });
 
   it("keeps left-rail top actions from rendering tooltips into the title-bar chrome", () => {

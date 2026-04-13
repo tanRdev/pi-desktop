@@ -418,7 +418,7 @@ function createShellSnapshot(): ShellSnapshotWithWorkspace {
               threads: [
                 {
                   id: "default-thread",
-                  title: "Current thread",
+                  title: "North Star",
                   isArchived: false,
                   lastActivityAt: null,
                   runtime: {
@@ -575,7 +575,6 @@ describe("registerIpcHandlers", () => {
       { sender: "electron-ipc-event" },
       {
         worktreeId: "/tmp/pidesk-feature",
-        title: "Investigate runtime",
       },
     );
     await harness.handlers.get(IPC_CHANNELS.threads.select)?.(
@@ -599,10 +598,7 @@ describe("registerIpcHandlers", () => {
     expect(agentHost.selectWorktree).toHaveBeenCalledWith(
       "/tmp/pidesk-feature",
     );
-    expect(agentHost.createThread).toHaveBeenCalledWith(
-      "/tmp/pidesk-feature",
-      "Investigate runtime",
-    );
+    expect(agentHost.createThread).toHaveBeenCalledWith("/tmp/pidesk-feature");
     expect(agentHost.selectThread).toHaveBeenCalledWith("thread-123");
   });
 
@@ -650,7 +646,7 @@ describe("registerIpcHandlers", () => {
     session.layout.windows.push({
       id: "chat-1",
       kind: "chat",
-      title: "Current thread",
+      title: "North Star",
       x: 20,
       y: 20,
       width: 600,
@@ -751,7 +747,7 @@ describe("registerIpcHandlers", () => {
           {
             id: "chat-1",
             kind: "chat",
-            title: "Current thread",
+            title: "North Star",
             x: 20,
             y: 20,
             width: 600,

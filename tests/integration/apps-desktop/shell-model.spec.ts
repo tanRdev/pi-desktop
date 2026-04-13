@@ -87,7 +87,7 @@ function createShellSnapshotFixture(): ShellSnapshot {
               threads: [
                 {
                   id: "default-thread",
-                  title: "Current thread",
+                  title: "North Star",
                   isArchived: false,
                   lastActivityAt: null,
                   runtime: {

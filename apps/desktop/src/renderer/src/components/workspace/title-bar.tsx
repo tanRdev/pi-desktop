@@ -1,9 +1,4 @@
-import {
-  Gear,
-  MagnifyingGlass,
-  SidebarSimple,
-  TerminalWindow,
-} from "@/components/ui/icons";
+import { SidebarSimple, TerminalWindow } from "@/components/ui/icons";
 import {
   Tooltip,
   TooltipContent,
@@ -17,9 +12,7 @@ export interface TitleBarProps {
   platform: string | null;
   isTerminalActive: boolean;
   isSidePanelVisible: boolean;
-  onOpenMarketplace: () => void;
   onOpenTerminal: () => void;
-  onOpenSettings: () => void;
   onToggleSidePanel: () => void;
 }
 
@@ -34,27 +27,15 @@ export function TitleBar({
   platform,
   isTerminalActive,
   isSidePanelVisible,
-  onOpenMarketplace,
   onOpenTerminal,
-  onOpenSettings,
   onToggleSidePanel,
 }: TitleBarProps) {
   const controlButtons: TitleBarControlButton[] = [
-    {
-      icon: MagnifyingGlass,
-      label: "Open launcher",
-      onClick: onOpenMarketplace,
-    },
     {
       icon: TerminalWindow,
       label: "Open terminal",
       onClick: onOpenTerminal,
       isActive: isTerminalActive,
-    },
-    {
-      icon: Gear,
-      label: "Open settings",
-      onClick: onOpenSettings,
     },
   ];
 

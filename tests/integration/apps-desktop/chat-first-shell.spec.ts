@@ -51,6 +51,12 @@ describe("chat-first workspace shell", () => {
     expect(controllerSource).toContain(
       "threadLastError: activeThreadConversation?.lastError ?? agent.lastError",
     );
+    expect(controllerSource).toContain(
+      'activeThreadConversation?.status === "starting" ||',
+    );
+    expect(controllerSource).toContain(
+      'activeThreadConversation?.status === "streaming"',
+    );
   });
 
   it("renders the transcript from the workspace component tree", () => {

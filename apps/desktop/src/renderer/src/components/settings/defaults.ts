@@ -1,4 +1,16 @@
-import type { Settings } from "./types";
+export interface AISettings {
+  provider?: string;
+  model?: string;
+}
+
+export interface InterfaceSettings {
+  sidebarWidth: number;
+}
+
+export interface Settings {
+  ai: AISettings;
+  interface: InterfaceSettings;
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;

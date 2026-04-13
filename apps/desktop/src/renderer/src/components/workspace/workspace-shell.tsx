@@ -10,6 +10,7 @@ import type {
 import type { AgentLiveFeed } from "@pidesk/shell-model";
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { DEFAULT_UNTITLED_THREAD_TITLE } from "../../../../thread-title-defaults";
 import { uiInteractionStore } from "../../stores/ui-interaction-store";
 import { ChatThreadPanel } from "./chat-thread-panel";
 import { GitPanel } from "./git-panel";
@@ -17,8 +18,7 @@ import { LeftRail, SIDEBAR_WIDTH } from "./left-rail";
 import { PromptDock } from "./prompt-dock";
 import { TitleBar } from "./title-bar";
 import { WorkspaceActivityPanel } from "./workspace-activity-panel";
-import { FileTreeOverlay, LauncherOverlay } from "./workspace-overlays";
-import type { WorkspaceSearchAction } from "./workspace-search-content";
+import { FileTreeOverlay } from "./workspace-overlays";
 import { WorkspaceSurfacePanel } from "./workspace-surface-panel";
 
 type ContextSurfaceKey = "activity" | string;
@@ -44,14 +44,9 @@ export interface WorkspaceShellProps {
   providerSnapshots: ProviderSnapshot[];
   currentModelValue: string;
   isSwitchingModel: boolean;
-  isLauncherOpen: boolean;
   isFileTreeOpen: boolean;
   isPromptVisible: boolean;
   isPromptExecuting: boolean;
-  launcherQuery: string;
-  launcherResults: import("@pidesk/shared").SearchMatch[];
-  launcherSelectedIndex: number;
-  launcherIsLoading: boolean;
   activeGitRepositoryStatus: GitRepositoryStatus | null;
   shellGit: ShellGitSnapshot | null;
   gitCommitMessage: string;
@@ -76,15 +71,11 @@ export interface WorkspaceShellProps {
   onRemoveRepository: (repositoryId: string) => void | Promise<void>;
   onCopyRepositoryPath: (repositoryId: string) => void | Promise<void>;
   onOpenInFinder: (repositoryId: string) => void | Promise<void>;
-  onOpenSettings: () => void;
   onSelectWorktree: (worktreeId: string) => void | Promise<void>;
   onSelectThread: (threadId: string) => void | Promise<void>;
   onCreateThread: (worktreeId: string) => string | Promise<string>;
   onCloseThread: (threadId: string) => void | Promise<void>;
   onDeleteThread?: (threadId: string) => void | Promise<void>;
-  onRenameThread: (threadId: string, title: string) => void | Promise<void>;
-  onOpenLauncher: () => void;
-  onCloseLauncher: () => void;
   onCloseFileTree: () => void;
   onOpenGit: () => void;
   onOpenTerminal: () => void;
@@ -99,10 +90,6 @@ export interface WorkspaceShellProps {
   onFileClick: (filePath: string) => void | Promise<void>;
   onFileContentChange: (windowId: string, content: string) => void;
   onFileSave: (windowId: string, filePath: string) => void | Promise<void>;
-  onLauncherQueryChange: (query: string) => void | Promise<void>;
-  onLauncherSelect: (match: import("@pidesk/shared").SearchMatch) => void;
-  onLauncherHover: (index: number) => void;
-  onLauncherKeyDown: React.KeyboardEventHandler<HTMLInputElement>;
   onDraftChange: (draft: string) => void;
   onSend: () => void | Promise<void>;
   onCancelPrompt: () => void | Promise<void>;
@@ -135,14 +122,9 @@ export function WorkspaceShell({
   providerSnapshots,
   currentModelValue,
   isSwitchingModel,
-  isLauncherOpen,
   isFileTreeOpen,
   isPromptVisible,
   isPromptExecuting,
-  launcherQuery,
-  launcherResults,
-  launcherSelectedIndex,
-  launcherIsLoading,
   activeGitRepositoryStatus,
   shellGit,
   gitCommitMessage,
@@ -161,15 +143,11 @@ export function WorkspaceShell({
   onRemoveRepository,
   onCopyRepositoryPath,
   onOpenInFinder,
-  onOpenSettings,
   onSelectWorktree,
   onSelectThread,
   onCreateThread,
   onCloseThread,
   onDeleteThread,
-  onRenameThread,
-  onOpenLauncher,
-  onCloseLauncher,
   onCloseFileTree,
   onOpenGit,
   onOpenTerminal,
@@ -184,10 +162,6 @@ export function WorkspaceShell({
   onFileClick,
   onFileContentChange,
   onFileSave,
-  onLauncherQueryChange,
-  onLauncherSelect,
-  onLauncherHover,
-  onLauncherKeyDown,
   onDraftChange,
   onSend,
   onCancelPrompt,
@@ -230,28 +204,6 @@ export function WorkspaceShell({
       (worktree) => worktree.id === activeWorktreeId,
     ) ?? null;
   const activeWorktreeLabel = activeWorktree?.label ?? null;
-
-  const launcherActions = React.useMemo<WorkspaceSearchAction[]>(
-    () => [
-      {
-        id: "terminal",
-        label: "Terminal",
-        onSelect: () => {
-          onCloseLauncher();
-          onOpenTerminal();
-        },
-      },
-      {
-        id: "git",
-        label: "Git",
-        onSelect: () => {
-          onCloseLauncher();
-          onOpenGit();
-        },
-      },
-    ],
-    [onCloseLauncher, onOpenGit, onOpenTerminal],
-  );
 
   const hasActiveThread = activeThreadId !== null;
   const leftRailTargetWidth = Math.max(leftRailWidth, SIDEBAR_WIDTH);
@@ -367,9 +319,7 @@ export function WorkspaceShell({
               onCreateThread={onCreateThread}
               onCloseThread={onCloseThread}
               onDeleteThread={onDeleteThread}
-              onRenameThread={onRenameThread}
               onAddRepository={onAddRepository}
-              onOpenSettings={onOpenSettings}
               onToggleVisible={() => setIsLeftRailVisible(false)}
             />
           </div>
@@ -387,9 +337,7 @@ export function WorkspaceShell({
             platform={platform}
             isTerminalActive={isTerminalActive}
             isSidePanelVisible={isRightPanelVisible}
-            onOpenMarketplace={onOpenLauncher}
             onOpenTerminal={onOpenTerminal}
-            onOpenSettings={onOpenSettings}
             onToggleSidePanel={() =>
               setIsRightPanelVisible(!isRightPanelVisible)
             }
@@ -405,7 +353,9 @@ export function WorkspaceShell({
               <div className="relative min-h-0 flex-1 overflow-hidden">
                 {hasActiveThread ? (
                   <ChatThreadPanel
-                    threadTitle={activeThreadTitle ?? "Untitled thread"}
+                    threadTitle={
+                      activeThreadTitle ?? DEFAULT_UNTITLED_THREAD_TITLE
+                    }
                     messages={threadMessages}
                     isStreaming={isPromptExecuting}
                     lastError={threadLastError}
@@ -467,24 +417,6 @@ export function WorkspaceShell({
       </div>
 
       {/* Overlays */}
-      {isLauncherOpen ? (
-        <LauncherOverlay
-          ariaLabel="Launcher overlay"
-          projectName={projectName}
-          activeWorktreeLabel={activeWorktreeLabel}
-          query={launcherQuery}
-          isLoading={launcherIsLoading}
-          results={launcherResults}
-          selectedIndex={launcherSelectedIndex}
-          actions={launcherActions}
-          onClose={onCloseLauncher}
-          onQueryChange={(query) => void onLauncherQueryChange(query)}
-          onSelect={onLauncherSelect}
-          onHover={onLauncherHover}
-          onKeyDown={onLauncherKeyDown}
-        />
-      ) : null}
-
       {isFileTreeOpen ? (
         <FileTreeOverlay
           ariaLabel="File tree overlay"

@@ -17,16 +17,14 @@ async function getThreadButton(
   return button.first();
 }
 
-async function createInlineThread(
+async function createAutoNamedThread(
   page: import("@playwright/test").Page,
-  title: string,
 ): Promise<Locator> {
   await page.getByTestId("create-thread-button").click();
-  const inlineInput = page.getByTestId("thread-inline-input");
-  await expect(inlineInput).toBeVisible({ timeout: 15_000 });
-  await inlineInput.fill(title);
-  await inlineInput.press("Enter");
-  return getThreadButton(page, title);
+  const leftRail = page.getByTestId("left-rail");
+  const createdThread = leftRail.getByTestId("thread-row").first();
+  await expect(createdThread).toBeVisible({ timeout: 15_000 });
+  return createdThread.getByRole("button").first();
 }
 
 async function selectThreadListItem(threadItem: Locator): Promise<void> {
@@ -45,9 +43,12 @@ test("creates, finds, and archives a thread from the flattened rail", async () =
     await waitForAppReady(page);
     await ensureWorkspaceMode(page);
 
-    const createdThread = await createInlineThread(page, "QA Thread");
+    const createdThread = await createAutoNamedThread(page);
+    const createdThreadName = await createdThread.textContent();
     await selectThreadListItem(createdThread);
-    await expect(page.getByTestId("left-rail")).toContainText("QA Thread");
+    await expect(page.getByTestId("left-rail")).toContainText(
+      createdThreadName ?? "",
+    );
 
     await focusChatThread(page);
     await expect(page.getByTestId("chat-transcript")).toBeVisible();
@@ -58,7 +59,7 @@ test("creates, finds, and archives a thread from the flattened rail", async () =
     await archiveButton.click();
 
     const archivedThread = page.getByTestId("left-rail").getByRole("button", {
-      name: "QA Thread",
+      name: createdThreadName ?? "",
     });
     await expect(archivedThread).toHaveCount(1);
     await expect(page.getByTestId("left-rail")).toContainText("Archived");
