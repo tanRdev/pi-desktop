@@ -12,7 +12,6 @@
     "dev": "bun run --parallel --filter @pi-desktop/shared --filter @pi-desktop/agent-host --filter @pi-desktop/desktop dev",
     "format": "biome check --write .",
     "lint": "biome check .",
-    "slop": "slop-scan scan . --lint",
     "test": "bun x vitest run --config vitest.workspace.ts",
     "test:e2e": "bun run --filter @pi-desktop/desktop build && playwright test",
     "typecheck": "bun run --workspaces typecheck"
@@ -34,7 +33,6 @@
     "playwright": "1.58.2",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
-    "slop-scan": "^0.2.0",
     "typescript": "5.9.3",
     "vitest": "4.1.0"
   },

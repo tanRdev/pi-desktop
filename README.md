@@ -5,7 +5,7 @@
 
 <h1>Pi Desktop</h1>
 
-<p>Native macOS desktop shell for the Pi coding agent.</p>
+<p>Native macOS agentic coding harness for the Pi coding agent. <strong>Alpha.</strong></p>
 
 <p>
   <a href="https://www.electronjs.org"><img src="https://img.shields.io/badge/Electron-41-47848F?style=flat-square&logo=electron&logoColor=white" alt="Electron"></a>
@@ -13,6 +13,7 @@
   <a href="https://www.typescriptlang.org"><img src="https://img.shields.io/badge/TypeScript-5.9-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript"></a>
   <a href="https://github.com/tanRdev/pi-desktop/releases"><img src="https://img.shields.io/github/v/release/tanRdev/pi-desktop?style=flat-square" alt="Release"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License"></a>
+  <a href="#"><img src="https://img.shields.io/badge/status-alpha-orange?style=flat-square" alt="Status"></a>
 </p>
 
 <p><a href="#overview">Overview</a> · <a href="#quick-start">Quick Start</a> · <a href="#installation">Installation</a> · <a href="#usage">Usage</a> · <a href="#architecture">Architecture</a> · <a href="#development">Development</a> · <a href="#contributing">Contributing</a></p>
@@ -27,7 +28,7 @@
 
 ## Overview
 
-**Pi Desktop** wraps the Pi coding agent in a hardened macOS application. It provides a native interface for managing repositories, creating isolated Git worktrees, running terminals, handling packages, and chatting with the agent—all without leaving the desktop.
+**Pi Desktop** is an agentic coding harness that wraps the Pi coding agent in a hardened macOS application. It provides a native interface for managing repositories, creating isolated Git worktrees, running terminals, handling packages, and chatting with the agent—all without leaving the desktop.
 
 Built with Electron 41, React 19, and TypeScript 5.9, it runs the agent locally through multiple runtime modes (mock, CLI, Pi SDK) and ships as a signed DMG for macOS 11+.
 
@@ -104,7 +105,7 @@ bun run build
 
 ```
 pi-desktop/
-├── apps/desktop/         # Electron shell
+├── apps/desktop/         # Electron harness
 │   ├── src/
 │   │   ├── main/         # Main process (windows, IPC, native integrations)
 │   │   ├── preload/      # Secure bridge between main and renderer
