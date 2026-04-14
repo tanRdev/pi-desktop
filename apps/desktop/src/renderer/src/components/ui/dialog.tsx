@@ -40,7 +40,7 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-0 rounded-lg border border-white/[0.06] bg-[var(--color-bg-tertiary)] p-0 shadow-[0_16px_48px_rgba(0,0,0,0.5)] outline-none ring-0 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0",
+        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-0 rounded-[var(--window-radius)] border border-white/[0.06] bg-[var(--color-bg-tertiary)] p-0 shadow-[0_16px_48px_rgba(0,0,0,0.5)] outline-none ring-0 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0",
         "duration-200 ease-out",
         "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-[0.98] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[50%]",
         "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-[0.98] data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[50%] data-[state=closed]:duration-150",
@@ -74,6 +74,7 @@ const DialogHeader = ({
     className={cn(
       "flex flex-col space-y-1 px-6 py-4",
       "bg-[var(--color-bg-secondary)]",
+      "rounded-t-[var(--window-radius)]",
       "border-b border-white/[0.06]",
       className,
     )}
@@ -90,6 +91,7 @@ const DialogFooter = ({
     className={cn(
       "flex flex-col-reverse sm:flex-row sm:justify-end gap-2 px-6 py-4",
       "bg-[var(--color-bg-secondary)]",
+      "rounded-b-[var(--window-radius)]",
       "border-t border-white/[0.06]",
       className,
     )}

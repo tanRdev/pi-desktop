@@ -222,6 +222,49 @@ describe("createPiDesktopApi", () => {
     ]);
   });
 
+  it("invokes oauth helper channels", async () => {
+    const invokeCalls: Array<[string, unknown?]> = [];
+    const invoke: PreloadInvoke = async <TReturn>(
+      channel: string,
+      payload?: unknown,
+    ) => {
+      invokeCalls.push([channel, payload]);
+
+      if (channel === IPC_CHANNELS.agent.getOAuthProviders) {
+        return [
+          {
+            id: "anthropic",
+            name: "Anthropic (Claude Pro/Max)",
+            usesCallbackServer: false,
+          },
+        ] as TReturn;
+      }
+
+      return undefined as TReturn;
+    };
+
+    const api = createPiDesktopApi({
+      invoke,
+      on: () => () => undefined,
+    });
+
+    await expect(api.agent.getOAuthProviders()).resolves.toEqual([
+      {
+        id: "anthropic",
+        name: "Anthropic (Claude Pro/Max)",
+        usesCallbackServer: false,
+      },
+    ]);
+    await api.agent.loginWithOAuth("anthropic");
+    await api.agent.logoutOAuth("anthropic");
+
+    expect(invokeCalls).toEqual([
+      [IPC_CHANNELS.agent.getOAuthProviders, undefined],
+      [IPC_CHANNELS.agent.loginWithOAuth, { providerId: "anthropic" }],
+      [IPC_CHANNELS.agent.logoutOAuth, { providerId: "anthropic" }],
+    ]);
+  });
+
   it("invokes repository, worktree, and thread navigation channels", async () => {
     const invokeCalls: Array<[string, unknown?]> = [];
     const invoke: PreloadInvoke = async <TReturn>(

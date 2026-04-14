@@ -2,12 +2,32 @@ import type { MentionSuggestion, SearchMatch } from "@pi-desktop/shared";
 
 export type PromptAutocompleteTrigger = "/" | "@";
 
+const OAUTH_PROVIDER_ALIASES: Record<string, string> = {
+  anthropic: "anthropic",
+  claude: "anthropic",
+  copilot: "github-copilot",
+  github: "github-copilot",
+  "github-copilot": "github-copilot",
+  gemini: "google-gemini-cli",
+  google: "google-gemini-cli",
+  "google-antigravity": "google-antigravity",
+  "google-gemini-cli": "google-gemini-cli",
+  openai: "openai-codex",
+  codex: "openai-codex",
+  "openai-codex": "openai-codex",
+};
+
 export interface PromptAutocompleteMatch {
   trigger: PromptAutocompleteTrigger;
   query: string;
   start: number;
   end: number;
 }
+
+export type OAuthChatCommand =
+  | { action: "providers" }
+  | { action: "login"; providerId: string | null }
+  | { action: "logout"; providerId: string | null };
 
 const AUTOCOMPLETE_PATTERN = /(^|\s)([@/])([^\s]*)$/;
 const TERMINAL_MENTION_PATTERN = /@terminal:([^\s]+)/g;
@@ -131,6 +151,35 @@ export function planPromptDispatch({
     threadId: activeThreadId,
     nextDraft: expandedPrompt,
   };
+}
+
+export function parseOAuthChatCommand(text: string): OAuthChatCommand | null {
+  const trimmed = text.trim();
+  if (!trimmed.startsWith("/")) {
+    return null;
+  }
+
+  const [commandToken, providerToken] = trimmed.split(/\s+/, 2);
+  if (!commandToken) {
+    return null;
+  }
+  const command = commandToken.slice(1).toLowerCase();
+  const providerId = providerToken
+    ? (OAUTH_PROVIDER_ALIASES[providerToken.toLowerCase()] ??
+      providerToken.toLowerCase())
+    : null;
+
+  switch (command) {
+    case "provider":
+    case "providers":
+      return { action: "providers" };
+    case "login":
+      return { action: "login", providerId };
+    case "logout":
+      return { action: "logout", providerId };
+    default:
+      return null;
+  }
 }
 
 type WindowLike = {

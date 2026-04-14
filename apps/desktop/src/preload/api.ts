@@ -11,6 +11,7 @@ import {
   IPC_CHANNELS,
   type LegacyPreferencesImport,
   type ModelSwitchRequest,
+  type OAuthProviderSnapshot,
   type PackageInstallRequest,
   type PackageManagerStatus,
   type PackageOperationSnapshot,
@@ -80,6 +81,18 @@ export function createPiDesktopApi({
       },
       getSnapshot() {
         return invoke<AgentSnapshot>(IPC_CHANNELS.agent.getSnapshot, undefined);
+      },
+      getOAuthProviders() {
+        return invoke<OAuthProviderSnapshot[]>(
+          IPC_CHANNELS.agent.getOAuthProviders,
+          undefined,
+        );
+      },
+      loginWithOAuth(providerId: string) {
+        return invoke<void>(IPC_CHANNELS.agent.loginWithOAuth, { providerId });
+      },
+      logoutOAuth(providerId: string) {
+        return invoke<void>(IPC_CHANNELS.agent.logoutOAuth, { providerId });
       },
       prompt(text: string) {
         return invoke<void>(IPC_CHANNELS.agent.prompt, { text });

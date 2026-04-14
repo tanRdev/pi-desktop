@@ -1,6 +1,7 @@
 import type {
   AgentSnapshot,
   ModelSwitchRequest,
+  OAuthProviderSnapshot,
   PiDesktopAgentEvent,
   PiDiscoveryResult,
   ProviderSnapshot,
@@ -57,6 +58,9 @@ export interface PiDesktopApi {
     getProviders(): Promise<ProviderSnapshot[]>;
     getSettings(): Promise<SettingsSnapshot>;
     getSnapshot(): Promise<AgentSnapshot>;
+    getOAuthProviders(): Promise<OAuthProviderSnapshot[]>;
+    loginWithOAuth(providerId: string): Promise<void>;
+    logoutOAuth(providerId: string): Promise<void>;
     prompt(text: string): Promise<void>;
     cancelPrompt(): Promise<void>;
     reset(): Promise<void>;

@@ -36,6 +36,13 @@ export interface ProviderSnapshot {
   isConfigured?: boolean;
 }
 
+export interface OAuthProviderSnapshot {
+  id: string;
+  name: string;
+  usesCallbackServer?: boolean;
+  isAuthenticated?: boolean;
+}
+
 /**
  * Settings snapshot with current selection.
  */

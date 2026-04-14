@@ -1,6 +1,7 @@
 import type {
   GitRepositoryStatus,
   MentionSuggestion,
+  OAuthProviderSnapshot,
   SlashSuggestion,
   ThreadSnapshot,
 } from "@pi-desktop/shared";
@@ -18,6 +19,7 @@ import {
   buildFileMention,
   buildTerminalMention,
   getPromptAutocompleteMatch,
+  parseOAuthChatCommand,
   replacePromptToken,
 } from "../lib/prompt-routing";
 import { toast } from "../lib/toast";
@@ -91,6 +93,15 @@ function getInitialContextSurface(
 export interface AppShellController {
   workspaceShellProps: WorkspaceShellProps;
   workspaceSwitchingRepositoryName: string | null;
+  oauthDialogState: {
+    open: boolean;
+    mode: "providers" | "login" | "logout";
+    providers: OAuthProviderSnapshot[];
+    requestedProviderId: string | null;
+    isBusy: boolean;
+  };
+  setOAuthDialogOpen: (open: boolean) => void;
+  submitOAuthDialog: (providerId: string) => Promise<void>;
   activeGitRepositoryStatus: GitRepositoryStatus | null;
   gitCommitMessage: string;
   setGitCommitMessage: (value: string) => void;
@@ -203,10 +214,98 @@ export function useAppShellController(): AppShellController {
   const [activeGitRepositoryStatus, setActiveGitRepositoryStatus] =
     React.useState<GitRepositoryStatus | null>(null);
   const [gitCommitMessage, setGitCommitMessage] = React.useState("");
+  const [oauthProviders, setOAuthProviders] = React.useState<
+    OAuthProviderSnapshot[]
+  >([]);
+  const [oauthDialogOpen, setOAuthDialogOpenState] = React.useState(false);
+  const [oauthDialogMode, setOAuthDialogMode] = React.useState<
+    "providers" | "login" | "logout"
+  >("providers");
+  const [oauthRequestedProviderId, setOAuthRequestedProviderId] =
+    React.useState<string | null>(null);
+  const [isOAuthBusy, setIsOAuthBusy] = React.useState(false);
   const [
     workspaceSwitchingRepositoryName,
     setWorkspaceSwitchingRepositoryName,
   ] = React.useState<string | null>(null);
+
+  const loadOAuthProviders = React.useCallback(async () => {
+    const providers = await window.piDesktop.agent.getOAuthProviders();
+    setOAuthProviders(providers);
+    return providers;
+  }, []);
+
+  const setOAuthDialogOpen = React.useCallback((open: boolean) => {
+    setOAuthDialogOpenState(open);
+    if (!open) {
+      setOAuthRequestedProviderId(null);
+      setOAuthDialogMode("providers");
+    }
+  }, []);
+
+  const submitOAuthDialog = React.useCallback(
+    async (providerId: string) => {
+      setIsOAuthBusy(true);
+      try {
+        if (oauthDialogMode === "logout") {
+          await window.piDesktop.agent.logoutOAuth(providerId);
+          toast.success("Logged out", { description: providerId });
+        } else {
+          await window.piDesktop.agent.loginWithOAuth(providerId);
+          toast.success("Login complete", { description: providerId });
+        }
+        await Promise.all([reload(), loadOAuthProviders()]);
+        setOAuthDialogOpen(false);
+      } catch (error) {
+        toast.error(
+          oauthDialogMode === "logout" ? "Logout failed" : "Login failed",
+          {
+            description: getErrorDescription(
+              error,
+              oauthDialogMode === "logout"
+                ? "Could not clear provider credentials"
+                : "Could not complete provider authentication",
+            ),
+          },
+        );
+      } finally {
+        setIsOAuthBusy(false);
+      }
+    },
+    [loadOAuthProviders, oauthDialogMode, reload, setOAuthDialogOpen],
+  );
+
+  const openOAuthDialog = React.useCallback(
+    async (
+      mode: "providers" | "login" | "logout",
+      providerId: string | null,
+    ) => {
+      try {
+        const providers = await loadOAuthProviders();
+        setOAuthDialogMode(mode);
+        setOAuthRequestedProviderId(providerId);
+
+        if (
+          providerId &&
+          mode !== "providers" &&
+          providers.some((provider) => provider.id === providerId)
+        ) {
+          await submitOAuthDialog(providerId);
+          return;
+        }
+
+        setOAuthDialogOpenState(true);
+      } catch (error) {
+        toast.error("Failed to load providers", {
+          description: getErrorDescription(
+            error,
+            "Could not load OAuth providers",
+          ),
+        });
+      }
+    },
+    [loadOAuthProviders, submitOAuthDialog],
+  );
 
   const setAutocompleteSuggestions = React.useCallback(
     (suggestions: (SlashSuggestion | MentionSuggestion)[]) => {
@@ -911,12 +1010,24 @@ export function useAppShellController(): AppShellController {
   );
 
   const handleSend = React.useCallback(async () => {
+    const oauthCommand = parseOAuthChatCommand(draft);
+    if (oauthCommand) {
+      setDraft("");
+      if (oauthCommand.action === "providers") {
+        await openOAuthDialog("providers", null);
+        return;
+      }
+
+      await openOAuthDialog(oauthCommand.action, oauthCommand.providerId);
+      return;
+    }
+
     if (!canSend || !activeThreadId) {
       return;
     }
 
     void sendPrompt();
-  }, [activeThreadId, canSend, sendPrompt]);
+  }, [activeThreadId, canSend, draft, openOAuthDialog, sendPrompt, setDraft]);
 
   const handlePromptModeChange = React.useCallback(
     (nextMode: PromptMode) => {
@@ -1099,11 +1210,21 @@ export function useAppShellController(): AppShellController {
     onModelSelection: handleModelSelection,
     promptMode,
     onPromptModeChange: handlePromptModeChange,
+    onConnectProvider: () => void openOAuthDialog("providers", null),
   };
 
   return {
     workspaceShellProps,
     workspaceSwitchingRepositoryName,
+    oauthDialogState: {
+      open: oauthDialogOpen,
+      mode: oauthDialogMode,
+      providers: oauthProviders,
+      requestedProviderId: oauthRequestedProviderId,
+      isBusy: isOAuthBusy,
+    },
+    setOAuthDialogOpen,
+    submitOAuthDialog,
     activeGitRepositoryStatus,
     gitCommitMessage,
     setGitCommitMessage,

@@ -302,6 +302,70 @@ describe("slash menu discovery: skills and commands from filesystem", () => {
     expect((commandSuggestion as SlashSuggestion).slash).toBe("/deploy");
   });
 
+  it("includes built-in auth commands in slash suggestions", () => {
+    const agentDir = createTempDir();
+
+    const suggestions = getPiSlashSuggestions({
+      agentDir,
+      cwd: agentDir,
+      discoveryOptions: {
+        homeDir: agentDir,
+        includeMachineAgentRoots: false,
+      },
+      context: {
+        text: "/logi",
+        cursorPosition: 5,
+        trigger: "/" as const,
+        query: "logi",
+      },
+    });
+
+    expect(
+      suggestions.suggestions.find(
+        (suggestion) =>
+          suggestion.kind === "command" && suggestion.slash === "/login",
+      ),
+    ).toMatchObject({
+      kind: "command",
+      name: "login",
+    });
+    expect(
+      suggestions.suggestions.find(
+        (suggestion) =>
+          suggestion.kind === "command" && suggestion.slash === "/logout",
+      ),
+    ).toBeFalsy();
+  });
+
+  it("matches built-in provider listing command aliases", () => {
+    const agentDir = createTempDir();
+
+    const suggestions = getPiSlashSuggestions({
+      agentDir,
+      cwd: agentDir,
+      discoveryOptions: {
+        homeDir: agentDir,
+        includeMachineAgentRoots: false,
+      },
+      context: {
+        text: "/pro",
+        cursorPosition: 4,
+        trigger: "/" as const,
+        query: "pro",
+      },
+    });
+
+    expect(
+      suggestions.suggestions.find(
+        (suggestion) =>
+          suggestion.kind === "command" && suggestion.slash === "/providers",
+      ),
+    ).toMatchObject({
+      kind: "command",
+      name: "providers",
+    });
+  });
+
   it("filters suggestions by query string", () => {
     const agentDir = createTempDir();
     const skillDir = path.join(agentDir, "skills", "brainstorming");

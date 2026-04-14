@@ -90,6 +90,7 @@ function renderPromptDock(
       }}
       isSwitchingModel={false}
       onModelSelection={vi.fn()}
+      onConnectProvider={vi.fn()}
       {...overrides}
     />,
   );

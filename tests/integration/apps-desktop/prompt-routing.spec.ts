@@ -12,6 +12,7 @@ import {
   expandFileMentions,
   extractTerminalRoute,
   getPromptAutocompleteMatch,
+  parseOAuthChatCommand,
   // RED: expected pure helpers (not implemented yet)
   planPromptDispatch,
   replacePromptToken,
@@ -130,6 +131,21 @@ describe("prompt-routing helpers", () => {
       activeThreadId: "thread-1",
     });
     expect(plan).toEqual({ action: "noop" });
+  });
+
+  it("parses oauth chat commands and provider aliases", () => {
+    expect(parseOAuthChatCommand("/providers")).toEqual({
+      action: "providers",
+    });
+    expect(parseOAuthChatCommand("/login claude")).toEqual({
+      action: "login",
+      providerId: "anthropic",
+    });
+    expect(parseOAuthChatCommand("/logout openai")).toEqual({
+      action: "logout",
+      providerId: "openai-codex",
+    });
+    expect(parseOAuthChatCommand("hello /login")).toBeNull();
   });
 
   it("builds and dedupes mention suggestions from open windows and file search results", () => {

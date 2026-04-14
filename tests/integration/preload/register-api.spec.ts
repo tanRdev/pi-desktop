@@ -66,4 +66,45 @@ describe("registerPiDesktopApi", () => {
     });
     expect(removeListener).not.toHaveBeenCalled();
   });
+
+  it("exposes oauth helper methods in preload api", async () => {
+    const exposeInMainWorld = vi.fn();
+    const invoke = vi.fn(async () => undefined);
+    const on = vi.fn(() => () => undefined);
+
+    registerPiDesktopApi({
+      exposeInMainWorld,
+      invoke,
+      on,
+    });
+
+    const [, api] = exposeInMainWorld.mock.calls[0] as [
+      string,
+      {
+        agent: {
+          getOAuthProviders(): Promise<unknown>;
+          loginWithOAuth(providerId: string): Promise<void>;
+          logoutOAuth(providerId: string): Promise<void>;
+        };
+      },
+    ];
+
+    await api.agent.getOAuthProviders();
+    await api.agent.loginWithOAuth("anthropic");
+    await api.agent.logoutOAuth("anthropic");
+
+    expect(invoke).toHaveBeenNthCalledWith(
+      1,
+      IPC_CHANNELS.agent.getOAuthProviders,
+      undefined,
+    );
+    expect(invoke).toHaveBeenNthCalledWith(
+      2,
+      IPC_CHANNELS.agent.loginWithOAuth,
+      { providerId: "anthropic" },
+    );
+    expect(invoke).toHaveBeenNthCalledWith(3, IPC_CHANNELS.agent.logoutOAuth, {
+      providerId: "anthropic",
+    });
+  });
 });

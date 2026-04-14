@@ -4,6 +4,7 @@ import {
   type AutocompleteSuggestions,
   IPC_CHANNELS,
   type ModelSwitchRequest,
+  type OAuthProviderSnapshot,
   type PiDiscoveryResult,
   type ProviderSnapshot,
   type SearchRequest,
@@ -73,6 +74,9 @@ export interface RegisterIpcHandlersDependencies {
   gitService?: GitWorktreeService;
   searchFiles?(request: SearchRequest): Promise<SearchResponse>;
   switchModel?(request: ModelSwitchRequest): Promise<void>;
+  getOAuthProviders?(): Promise<OAuthProviderSnapshot[]>;
+  loginWithOAuth?(providerId: string): Promise<void>;
+  logoutOAuth?(providerId: string): Promise<void>;
   getDiscovery?(): Promise<PiDiscoveryResult>;
   getSlashSuggestions?(
     context: AutocompleteContext,
@@ -92,6 +96,9 @@ export function registerIpcHandlers({
   gitService,
   searchFiles,
   switchModel,
+  getOAuthProviders,
+  loginWithOAuth,
+  logoutOAuth,
   getDiscovery,
   getSlashSuggestions,
   packagesService,
@@ -250,6 +257,36 @@ export function registerIpcHandlers({
       ? getDiscovery()
       : { isInstalled: false, skills: [], commands: [] },
   );
+
+  handle(IPC_CHANNELS.agent.getOAuthProviders, async () =>
+    getOAuthProviders ? getOAuthProviders() : [],
+  );
+
+  handle(IPC_CHANNELS.agent.loginWithOAuth, async (_event, payload) => {
+    if (!loginWithOAuth) {
+      throw new Error("OAuth login is unavailable");
+    }
+
+    const providerId = getStringField(payload, "providerId");
+    if (!providerId) {
+      throw new Error("OAuth login payload must include providerId");
+    }
+
+    await loginWithOAuth(providerId);
+  });
+
+  handle(IPC_CHANNELS.agent.logoutOAuth, async (_event, payload) => {
+    if (!logoutOAuth) {
+      throw new Error("OAuth logout is unavailable");
+    }
+
+    const providerId = getStringField(payload, "providerId");
+    if (!providerId) {
+      throw new Error("OAuth logout payload must include providerId");
+    }
+
+    await logoutOAuth(providerId);
+  });
 
   handle(IPC_CHANNELS.agent.getSlashSuggestions, async (_event, payload) => {
     if (!getSlashSuggestions) {

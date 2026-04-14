@@ -10,6 +10,30 @@ import type {
   SlashSuggestion,
 } from "@pi-desktop/shared";
 
+const BUILT_IN_COMMANDS: PiCommandInfo[] = [
+  {
+    name: "login",
+    description: "Authenticate with an OAuth provider",
+    source: "builtin",
+  },
+  {
+    name: "logout",
+    description: "Clear saved OAuth credentials for a provider",
+    source: "builtin",
+  },
+  {
+    name: "providers",
+    description: "List available OAuth providers and auth status",
+    source: "builtin",
+  },
+];
+
+const BUILT_IN_COMMAND_ALIASES: Record<string, string[]> = {
+  login: ["auth", "oauth", "signin", "sign-in"],
+  logout: ["signout", "sign-out"],
+  providers: ["provider", "models", "oauth"],
+};
+
 function readMarkdownDescription(filePath: string): string | undefined {
   try {
     const content = readFileSync(filePath, "utf8");
@@ -253,6 +277,17 @@ function matchesQuery(
   );
 }
 
+function matchesBuiltInCommand(command: PiCommandInfo, query: string) {
+  const normalizedQuery = query.trim().toLowerCase();
+  if (!normalizedQuery) {
+    return true;
+  }
+
+  return [command.name, ...(BUILT_IN_COMMAND_ALIASES[command.name] ?? [])].some(
+    (value) => value.includes(normalizedQuery),
+  );
+}
+
 function toSkillSuggestion(skill: PiSkillInfo): SlashSuggestion {
   return {
     kind: "skill",
@@ -296,6 +331,9 @@ export function getPiSlashSuggestions(options: {
         matchesQuery(command.name, command.description, query),
       )
       .map(toCommandSuggestion),
+    ...BUILT_IN_COMMANDS.filter((command) =>
+      matchesBuiltInCommand(command, query),
+    ).map(toCommandSuggestion),
   ].slice(0, maxResults);
 
   return {

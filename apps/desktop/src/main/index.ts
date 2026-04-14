@@ -42,6 +42,11 @@ import { registerIpcHandlers } from "./ipc-router";
 import { LocalThreadRuntimeManager } from "./local-thread-runtime-manager";
 import { PackagesServiceImpl } from "./packages/packages-service-impl";
 import {
+  getOAuthProvidersForAgentDir,
+  loginWithOAuthForAgentDir,
+  logoutOAuthForAgentDir,
+} from "./pi-oauth-service";
+import {
   discoverPiResources,
   getPiSlashSuggestions,
 } from "./pi-resource-discovery";
@@ -193,6 +198,36 @@ async function createMainWindow() {
   return window;
 }
 
+async function promptForOAuthInput(params: {
+  providerId: string;
+  message: string;
+  authUrl?: string;
+  verificationUri?: string;
+  userCode?: string;
+}): Promise<string> {
+  if (!mainWindow) {
+    throw new Error("Main window is unavailable");
+  }
+
+  const detailLines = [
+    params.message,
+    params.authUrl ? `URL: ${params.authUrl}` : null,
+    params.verificationUri ? `Verify at: ${params.verificationUri}` : null,
+    params.userCode ? `Code: ${params.userCode}` : null,
+  ].filter((value): value is string => Boolean(value));
+
+  const response = await mainWindow.webContents.executeJavaScript(
+    `window.prompt(${JSON.stringify(detailLines.join("\n\n"))}, "")`,
+    true,
+  );
+
+  if (typeof response !== "string") {
+    throw new Error(`OAuth input cancelled for ${params.providerId}`);
+  }
+
+  return response.trim();
+}
+
 function subscribeToFullscreenChanges(window: BrowserWindow) {
   const emitFullscreenState = () => {
     window.webContents.send(
@@ -236,7 +271,10 @@ async function bootstrapDesktop() {
     app.setPath("userData", explicitUserDataPath);
   } else if (process.env.NODE_ENV === "test") {
     const testHomePath = process.env.HOME ?? app.getPath("home");
-    app.setPath("userData", path.join(testHomePath, ".pi-desktop-test-user-data"));
+    app.setPath(
+      "userData",
+      path.join(testHomePath, ".pi-desktop-test-user-data"),
+    );
   }
 
   const userDataPath = app.getPath("userData");
@@ -355,6 +393,25 @@ async function bootstrapDesktop() {
     request: SearchRequest,
   ): Promise<SearchResponse> {
     return workspaceSearchService.search(request);
+  }
+
+  async function handleGetOAuthProviders() {
+    return getOAuthProvidersForAgentDir(resolveAgentDirectory());
+  }
+
+  async function handleLoginWithOAuth(providerId: string): Promise<void> {
+    await loginWithOAuthForAgentDir(resolveAgentDirectory(), providerId, {
+      openExternal: async (url) => {
+        await shell.openExternal(url);
+      },
+      requestInput: promptForOAuthInput,
+    });
+    notifySessionChanged();
+  }
+
+  async function handleLogoutOAuth(providerId: string): Promise<void> {
+    await logoutOAuthForAgentDir(resolveAgentDirectory(), providerId);
+    notifySessionChanged();
   }
 
   async function connectSocketHost(socketPath: string): Promise<{
@@ -971,6 +1028,9 @@ async function bootstrapDesktop() {
     mainWindow: null,
     searchFiles: handleSearchFiles,
     switchModel: handleSwitchModel,
+    getOAuthProviders: handleGetOAuthProviders,
+    loginWithOAuth: handleLoginWithOAuth,
+    logoutOAuth: handleLogoutOAuth,
     getDiscovery: handleGetDiscovery,
     getSlashSuggestions: handleGetSlashSuggestions,
     threadCatalog,

@@ -95,6 +95,7 @@ export interface WorkspaceShellProps {
   ) => void | Promise<void>;
   promptMode: "build" | "plan";
   onPromptModeChange: (mode: "build" | "plan") => void;
+  onConnectProvider?: () => void;
 }
 
 export function WorkspaceShell({
@@ -127,7 +128,7 @@ export function WorkspaceShell({
   contextWindows,
   selectedContextSurface,
   leftRailWidth,
-  onSelectContextSurface: _onSelectContextSurface,
+  onSelectContextSurface,
   onLeftRailResize,
   onModelMenuOpenChange,
   onAddRepository,
@@ -140,7 +141,7 @@ export function WorkspaceShell({
   onCloseThread,
   onDeleteThread,
   onCloseFileTree,
-  onOpenGit: _onOpenGit,
+  onOpenGit,
   onOpenTerminal,
   onGitCommitMessageChange,
   onRefreshGit,
@@ -162,6 +163,7 @@ export function WorkspaceShell({
   onModelSelection,
   promptMode,
   onPromptModeChange,
+  onConnectProvider,
 }: WorkspaceShellProps) {
   const [isLeftRailVisible, setIsLeftRailVisible] = React.useState(true);
   const [isRightPanelVisible, setIsRightPanelVisible] = React.useState(true);
@@ -381,6 +383,7 @@ export function WorkspaceShell({
                   onPromptModeChange={onPromptModeChange}
                   onModelMenuOpenChange={onModelMenuOpenChange}
                   onModelSelection={onModelSelection}
+                  onConnectProvider={onConnectProvider}
                 />
               </div>
             </div>

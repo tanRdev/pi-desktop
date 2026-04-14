@@ -16,6 +16,7 @@ import {
   ICON_SIZE_MD,
   ICON_SIZE_XS,
   Paperclip,
+  Plus,
   Square,
 } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
@@ -83,6 +84,7 @@ export interface PromptDockProps {
   onModelSelection: (
     event: React.ChangeEvent<HTMLSelectElement>,
   ) => void | Promise<void>;
+  onConnectProvider?: () => void;
 }
 
 export function PromptDock({
@@ -109,6 +111,7 @@ export function PromptDock({
   onPromptModeChange: _onPromptModeChange,
   onModelMenuOpenChange,
   onModelSelection,
+  onConnectProvider,
 }: PromptDockProps) {
   const modelSelectRef = React.useRef<HTMLSelectElement | null>(null);
   const [modelOpen, setModelOpen] = React.useState(false);
@@ -369,6 +372,21 @@ export function PromptDock({
                   className="w-64 rounded-md border border-white/[0.06] bg-[#141414] p-2 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-md"
                 >
                   <div className="max-h-72 overflow-y-auto">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onConnectProvider?.();
+                        setModelOpen(false);
+                      }}
+                      className={cn(
+                        "flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-[14px] transition-colors",
+                        "text-white/50 hover:bg-white/[0.04] hover:text-white/90",
+                      )}
+                    >
+                      <Plus className="size-4" />
+                      <span>Connect provider</span>
+                    </button>
+                    <div className="my-1 h-px bg-white/[0.04]" />
                     {providerSnapshots.map((provider) => (
                       <div key={provider.id}>
                         <div className="px-2 py-1.5 text-[14px] text-white/40">

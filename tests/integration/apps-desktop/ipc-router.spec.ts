@@ -593,7 +593,9 @@ describe("registerIpcHandlers", () => {
     expect(agentHost.selectWorktree).toHaveBeenCalledWith(
       "/tmp/pi-desktop-feature",
     );
-    expect(agentHost.createThread).toHaveBeenCalledWith("/tmp/pi-desktop-feature");
+    expect(agentHost.createThread).toHaveBeenCalledWith(
+      "/tmp/pi-desktop-feature",
+    );
     expect(agentHost.selectThread).toHaveBeenCalledWith("thread-123");
   });
 
@@ -728,7 +730,9 @@ describe("registerIpcHandlers", () => {
         accentColor: "#224466",
       },
     );
-    expect(stateHost.getWorkspaceSession).toHaveBeenCalledWith("/tmp/pi-desktop");
+    expect(stateHost.getWorkspaceSession).toHaveBeenCalledWith(
+      "/tmp/pi-desktop",
+    );
     expect(stateHost.saveWorkspaceSession).toHaveBeenCalledWith({
       ...session,
       layout: {
@@ -867,6 +871,45 @@ describe("registerIpcHandlers", () => {
       providerId: "google",
       modelId: "gemini-2.5-pro",
     });
+  });
+
+  it("delegates oauth provider listing and login handlers", async () => {
+    const harness = createHandlerHarness();
+    const authProviders = [
+      {
+        id: "anthropic",
+        name: "Anthropic (Claude Pro/Max)",
+        usesCallbackServer: false,
+      },
+    ];
+    const getOAuthProviders = vi.fn(async () => authProviders);
+    const loginWithOAuth = vi.fn(async () => undefined);
+    const logoutOAuth = vi.fn(async () => undefined);
+
+    registerIpcHandlers({
+      handle: harness.handle,
+      getShellSnapshot: vi.fn(createShellSnapshot),
+      agentHost: createAgentHost(createAgentSnapshot()),
+      mainWindow: null,
+      getOAuthProviders,
+      loginWithOAuth,
+      logoutOAuth,
+    });
+
+    await expect(
+      harness.handlers.get(IPC_CHANNELS.agent.getOAuthProviders)?.(),
+    ).resolves.toEqual(authProviders);
+
+    await harness.handlers.get(IPC_CHANNELS.agent.loginWithOAuth)?.(undefined, {
+      providerId: "anthropic",
+    });
+    await harness.handlers.get(IPC_CHANNELS.agent.logoutOAuth)?.(undefined, {
+      providerId: "anthropic",
+    });
+
+    expect(getOAuthProviders).toHaveBeenCalledTimes(1);
+    expect(loginWithOAuth).toHaveBeenCalledWith("anthropic");
+    expect(logoutOAuth).toHaveBeenCalledWith("anthropic");
   });
 
   it("binds package handlers when a packages service is provided", async () => {
