@@ -1,9 +1,14 @@
-import type { RepositorySnapshot, ThreadSnapshot } from "@pi-desktop/shared";
+import type {
+  RepositorySnapshot,
+  ThreadSnapshot,
+  WorktreeSnapshot,
+} from "@pi-desktop/shared";
 import * as React from "react";
 import {
   Archive,
   Copy,
   Folder,
+  GitBranch,
   ChatsCircle,
   Plus,
   SidebarSimple,
@@ -43,7 +48,7 @@ export interface LeftRailProps {
   onResize: (width: number) => void;
   onSelectWorktree: (worktreeId: string) => void;
   onSelectThread: (threadId: string) => void;
-  onCreateThread: (worktreeId: string) => string | Promise<string>;
+  onCreateSession: () => void | Promise<void>;
   onCloseThread?: (threadId: string) => void;
   onDeleteThread?: (threadId: string) => void;
   onAddRepository: () => void;
@@ -55,29 +60,30 @@ export interface LeftRailProps {
   onOpenInFinder?: (repositoryId: string) => void;
 }
 
-/** Collect all threads across worktrees from the active repository. */
-function collectThreads(
+function collectSessionsAndArchivedThreads(
   repositories: RepositorySnapshot[],
   activeRepositoryId: string | null,
 ) {
   const repo = repositories.find((r) => r.id === activeRepositoryId);
-  if (!repo)
-    return { active: [] as ThreadSnapshot[], archived: [] as ThreadSnapshot[] };
+  if (!repo) {
+    return {
+      sessions: [] as WorktreeSnapshot[],
+      archived: [] as ThreadSnapshot[],
+    };
+  }
 
-  const active: ThreadSnapshot[] = [];
+  const sessions = [...repo.worktrees];
   const archived: ThreadSnapshot[] = [];
 
-  for (const worktree of repo.worktrees) {
+  for (const worktree of sessions) {
     for (const thread of worktree.threads) {
       if (thread.isArchived) {
         archived.push(thread);
-      } else {
-        active.push(thread);
       }
     }
   }
 
-  return { active, archived };
+  return { sessions, archived };
 }
 
 interface ThreadCategorySectionProps {
@@ -149,12 +155,13 @@ export function LeftRail({
   isPromptExecuting,
   width,
   onResize,
+  onSelectWorktree,
   onSelectThread,
   onDeleteThread,
   onRemoveRepository,
   onCopyRepositoryPath,
   onOpenInFinder,
-  onCreateThread,
+  onCreateSession,
   onCloseThread,
   onAddRepository,
   onToggleVisible,
@@ -177,7 +184,7 @@ export function LeftRail({
   });
 
   const contextMenuRef = React.useRef<HTMLDivElement>(null);
-  const [isCreatingThread, setIsCreatingThread] = React.useState(false);
+  const [isCreatingSession, setIsCreatingSession] = React.useState(false);
   const [pendingDeleteThreadId, setPendingDeleteThreadId] = React.useState<
     string | null
   >(null);
@@ -185,8 +192,8 @@ export function LeftRail({
     () => new Set<string>(),
   );
 
-  const { active: activeThreads, archived: archivedThreads } = React.useMemo(
-    () => collectThreads(repositories, activeRepositoryId),
+  const { sessions, archived: archivedThreads } = React.useMemo(
+    () => collectSessionsAndArchivedThreads(repositories, activeRepositoryId),
     [repositories, activeRepositoryId],
   );
 
@@ -243,18 +250,18 @@ export function LeftRail({
     };
   }, [contextMenu.isOpen]);
 
-  const handleCreateThread = React.useCallback(async () => {
-    if (!activeWorktreeId || isCreatingThread) {
+  const handleCreateSession = React.useCallback(async () => {
+    if (isCreatingSession) {
       return;
     }
 
-    setIsCreatingThread(true);
+    setIsCreatingSession(true);
     try {
-      await onCreateThread(activeWorktreeId);
+      await onCreateSession();
     } finally {
-      setIsCreatingThread(false);
+      setIsCreatingSession(false);
     }
-  }, [activeWorktreeId, isCreatingThread, onCreateThread]);
+  }, [isCreatingSession, onCreateSession]);
 
   const handleDeleteArchivedThread = React.useCallback(
     async (threadId: string) => {
@@ -361,21 +368,17 @@ export function LeftRail({
             label="Sessions"
             icon={ChatsCircle}
             onAction={() => {
-              void handleCreateThread();
+              void handleCreateSession();
             }}
-            actionLabel="Create thread"
-            actionTestId="create-thread-button"
+            actionLabel="Create session"
+            actionTestId="create-session-button"
           >
-            {activeThreads.map((thread) => {
-              const isActive = thread.id === activeThreadId;
-              const displayStatus =
-                isActive && isPromptExecuting
-                  ? ("working" as const)
-                  : deriveThreadDisplayStatus(
-                      thread.runtime.status,
-                      thread.isArchived,
-                    );
-              const threadRowClassName = cn(
+            {sessions.map((session) => {
+              const isActive = session.id === activeWorktreeId;
+              const openThreadCount = session.threads.filter(
+                (thread) => thread.isArchived === false,
+              ).length;
+              const sessionRowClassName = cn(
                 "group flex w-full items-center gap-2 rounded-sm px-2 py-2 text-left text-[14px] transition-colors",
                 isActive
                   ? "bg-white/[0.04] text-white/80"
@@ -383,48 +386,21 @@ export function LeftRail({
               );
 
               return (
-                <div
-                  key={thread.id}
-                  data-testid="thread-row"
-                  className={threadRowClassName}
+                <button
+                  key={session.id}
+                  type="button"
+                  data-testid="session-row"
+                  onClick={() => onSelectWorktree(session.id)}
+                  className={sessionRowClassName}
                 >
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPendingDeleteThreadId(null);
-                      onSelectThread(thread.id);
-                    }}
-                    className="flex min-w-0 flex-1 items-center gap-2 text-left"
-                  >
-                    <span className="flex size-5 shrink-0 items-center justify-center">
-                      <ThreadStatusIcon displayStatus={displayStatus} />
-                    </span>
-                    <span className="truncate flex-1">
-                      {thread.title || DEFAULT_UNTITLED_THREAD_TITLE}
-                    </span>
-                  </button>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        data-testid="thread-archive-button"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          void onCloseThread?.(thread.id);
-                        }}
-                        className={cn(
-                          "flex size-5 shrink-0 items-center justify-center rounded opacity-0 transition-all duration-[var(--duration-fast)]",
-                          "hover:bg-white/[0.08] hover:text-white/80",
-                          "group-hover:opacity-100 focus-visible:opacity-100",
-                        )}
-                        aria-label="Archive thread"
-                      >
-                        <Archive className="size-3" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top">Archive thread</TooltipContent>
-                  </Tooltip>
-                </div>
+                  <span className="flex size-5 shrink-0 items-center justify-center">
+                    <GitBranch className="size-3 text-white/40" />
+                  </span>
+                  <span className="truncate flex-1">{session.label}</span>
+                  <span className="shrink-0 text-[13px] text-white/30">
+                    {openThreadCount}
+                  </span>
+                </button>
               );
             })}
           </ThreadCategorySection>

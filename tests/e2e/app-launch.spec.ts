@@ -10,15 +10,21 @@ import {
 test("launches the shell and streams a mock agent reply", async () => {
   test.setTimeout(45_000);
 
-  const { app, page, launchContext } =
-    await launchDesktopApp("pi-desktop-e2e-launch-");
+  const { app, page, launchContext } = await launchDesktopApp(
+    "pi-desktop-e2e-launch-",
+  );
 
   try {
     await waitForAppReady(page);
 
     await expect(page.getByTestId("left-rail")).toBeVisible();
+    const tabButtonsBefore = await page
+      .getByTestId("thread-tab-select")
+      .count();
     await createThreadFromRail(page);
-    await expect(page.getByTestId("thread-row").first()).toBeVisible();
+    await expect(page.getByTestId("thread-tab-select")).toHaveCount(
+      tabButtonsBefore + 1,
+    );
 
     await focusChatThread(page);
 

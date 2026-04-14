@@ -764,4 +764,113 @@ describe("buildShellCatalog", () => {
       ],
     });
   });
+
+  it("keeps selected session active when worktree only has archived threads", async () => {
+    const session = createEmptyWorkspaceSession("/tmp/repo-archived/main");
+    session.layout.windows = [
+      {
+        id: "git-window",
+        kind: "git",
+        title: "Git",
+        x: 10,
+        y: 10,
+        width: 320,
+        height: 240,
+        zIndex: 1,
+        isFocused: true,
+        state: "normal",
+        repositoryPath: "/tmp/repo-archived/main",
+      },
+    ];
+
+    const catalog = await buildShellCatalog({
+      repositories: [
+        {
+          id: "/tmp/repo-archived",
+          rootPath: "/tmp/repo-archived",
+          label: null,
+          order: 0,
+          lastSelectedWorktreeId: null,
+          addedAt: 1,
+          updatedAt: 1,
+        },
+      ],
+      selection: {
+        repositoryId: "/tmp/repo-archived",
+        worktreeId: "/tmp/repo-archived/main",
+        threadId: "thread-archived",
+      },
+      workspaceSessions: [session],
+      inspectRepository: (rootPath) => ({
+        status: "repository" as const,
+        rootPath,
+        currentWorktreePath: "/tmp/repo-archived/main",
+        defaultBranch: "main",
+        message: null,
+        worktrees: [
+          {
+            id: "/tmp/repo-archived/main",
+            path: "/tmp/repo-archived/main",
+            isMain: true,
+            isCurrent: true,
+            isDetached: false,
+            isPrunable: false,
+            prunableReason: null,
+            branch: "main",
+            commit: "aaaaaaa",
+            git: {
+              status: "ready",
+              branch: "main",
+              commit: "aaaaaaa",
+              hasChanges: false,
+              ahead: 0,
+              behind: 0,
+              stagedCount: 0,
+              modifiedCount: 0,
+              untrackedCount: 0,
+              message: null,
+            },
+          },
+        ],
+      }),
+      listThreadsByWorktree: (worktreeId) => [
+        {
+          id: "thread-archived",
+          worktreeId,
+          title: "Archived thread",
+          archivedAt: 10,
+          lastActivityAt: 9,
+          runtimeId: "local-thread-archived",
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      ],
+      getRuntimeState: async () => ({ status: "exited", lastError: null }),
+    });
+
+    expect(catalog.selection).toEqual({
+      repositoryId: "/tmp/repo-archived",
+      worktreeId: "/tmp/repo-archived/main",
+      threadId: null,
+    });
+    expect(catalog.repositories[0]?.worktrees[0]?.threads).toEqual([
+      expect.objectContaining({
+        id: "thread-archived",
+        isArchived: true,
+      }),
+    ]);
+    expect(catalog.reconciledWorkspaceSessions).toEqual([
+      expect.objectContaining({
+        worktreeId: "/tmp/repo-archived/main",
+        layout: expect.objectContaining({
+          windows: [
+            expect.objectContaining({
+              id: "git-window",
+              kind: "git",
+            }),
+          ],
+        }),
+      }),
+    ]);
+  });
 });

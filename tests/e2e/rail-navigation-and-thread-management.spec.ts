@@ -12,16 +12,15 @@ async function createAutoNamedThread(
   page: import("@playwright/test").Page,
 ): Promise<Locator> {
   await createThreadFromRail(page);
-  const leftRail = page.getByTestId("left-rail");
-  const createdThread = leftRail.getByTestId("thread-row").first();
+  const threadTabs = page.getByTestId("thread-tabs");
+  const createdThread = threadTabs.getByTestId("thread-tab-select").last();
   await expect(createdThread).toBeVisible({ timeout: 15_000 });
   return createdThread;
 }
 
 async function selectThreadListItem(threadItem: Locator): Promise<void> {
-  const trigger = threadItem.getByRole("button").first();
-  await trigger.click();
-  await trigger.press("Enter");
+  await threadItem.click();
+  await threadItem.press("Enter");
 }
 
 test("creates, finds, and archives a thread from the flattened rail", async () => {
@@ -45,8 +44,9 @@ test("creates, finds, and archives a thread from the flattened rail", async () =
     await focusChatThread(page);
     await expect(page.getByTestId("chat-transcript")).toBeVisible();
 
+    const threadTabs = page.getByTestId("thread-tabs");
     await createdThread.hover();
-    const archiveButton = createdThread.getByTestId("thread-archive-button");
+    const archiveButton = threadTabs.getByTestId("thread-tab-close").first();
     await expect(archiveButton).toBeVisible();
     await archiveButton.click();
 

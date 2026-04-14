@@ -269,7 +269,9 @@ function reconcileSelection(
       null)
     : null;
   const thread = worktree
-    ? (worktree.threads.find((item) => item.id === selection.threadId) ??
+    ? (worktree.threads.find(
+        (item) => item.id === selection.threadId && item.isArchived === false,
+      ) ??
       worktree.threads.find((item) => item.isArchived === false) ??
       null)
     : null;

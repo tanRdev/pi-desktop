@@ -182,4 +182,26 @@ describe("shell catalog selectors", () => {
 
     expect(getActiveThread(snapshot)).toBeNull();
   });
+
+  it("keeps selected worktree active when session has no open threads", () => {
+    const snapshot = createSnapshot();
+    const betaWorktree = snapshot.catalog.repositories[1]?.worktrees[0];
+    if (!betaWorktree) {
+      throw new Error("Expected beta worktree fixture");
+    }
+
+    betaWorktree.threads = betaWorktree.threads.map((thread) => ({
+      ...thread,
+      isArchived: true,
+    }));
+    snapshot.catalog.selection = {
+      repositoryId: "repo-2",
+      worktreeId: "repo-2/main",
+      threadId: null,
+    };
+
+    expect(getActiveRepository(snapshot)?.id).toBe("repo-2");
+    expect(getActiveWorktree(snapshot)?.id).toBe("repo-2/main");
+    expect(getActiveThread(snapshot)).toBeNull();
+  });
 });

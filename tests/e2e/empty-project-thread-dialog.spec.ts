@@ -113,13 +113,13 @@ test("creates a thread inline instead of opening a naming dialog", async () => {
 
     await createThreadFromRail(page);
     await expect(page.getByTestId("thread-inline-input")).toHaveCount(0);
-    await expect(page.getByTestId("thread-row").first()).toBeVisible({
+    await expect(page.getByTestId("thread-tabs")).toBeVisible({
       timeout: 15_000,
     });
     await expect(
       page.getByRole("dialog", { name: "Name your new thread" }),
     ).toHaveCount(0);
-    await expect(page.getByTestId("thread-row").first()).toContainText(/\S+/);
+    await expect(page.getByTestId("thread-tabs")).toContainText(/\S+/);
   } finally {
     await closeDesktopApp(app);
     launchContext.cleanup();

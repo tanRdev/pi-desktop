@@ -1,3 +1,4 @@
+import type { RepositorySnapshot } from "@pi-desktop/shared";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ComponentProps } from "react";
@@ -50,12 +51,67 @@ vi.mock("./workspace-surface-panel", () => ({
 function createWorkspaceShellProps(
   overrides: Partial<ComponentProps<typeof WorkspaceShell>> = {},
 ): ComponentProps<typeof WorkspaceShell> {
+  const repositories: RepositorySnapshot[] = [
+    {
+      id: "repo-1",
+      name: "Alpha Workspace",
+      customName: null,
+      icon: null,
+      accentColor: null,
+      rootPath: "/tmp/alpha-workspace",
+      defaultBranch: "main",
+      worktrees: [
+        {
+          id: "worktree-1",
+          label: "main",
+          path: "/tmp/alpha-workspace",
+          isMain: true,
+          isDetached: false,
+          git: {
+            status: "ready",
+            branch: "main",
+            commit: "abc123",
+            hasChanges: false,
+            ahead: 0,
+            behind: 0,
+            stagedCount: 0,
+            modifiedCount: 0,
+            untrackedCount: 0,
+            message: null,
+          },
+          threads: [
+            {
+              id: "thread-1",
+              title: "Signal",
+              isArchived: false,
+              lastActivityAt: 1,
+              runtime: {
+                status: "ready",
+                lastError: null,
+              },
+            },
+            {
+              id: "thread-2",
+              title: "Echo",
+              isArchived: false,
+              lastActivityAt: 2,
+              runtime: {
+                status: "ready",
+                lastError: null,
+              },
+            },
+          ],
+        },
+      ],
+    },
+  ];
+
   return {
     platform: "darwin",
-    repositories: [],
-    activeRepository: null,
-    activeRepositoryId: null,
-    activeWorktreeId: null,
+    repositories,
+    activeRepository: repositories[0] ?? null,
+    activeRepositoryId: "repo-1",
+    activeWorktreeId: "worktree-1",
     activeThreadId: "thread-1",
     activeThreadTitle: "Signal",
     draft: "",
@@ -99,6 +155,7 @@ function createWorkspaceShellProps(
     onRemoveRepository: vi.fn(),
     onCopyRepositoryPath: vi.fn(),
     onOpenInFinder: vi.fn(),
+    onCreateSession: vi.fn(),
     onSelectWorktree: vi.fn(),
     onSelectThread: vi.fn(),
     onCreateThread: vi.fn(async () => "thread-2"),
@@ -178,5 +235,35 @@ describe("WorkspaceShell", () => {
     await user.click(screen.getByRole("button", { name: "Open terminal" }));
 
     expect(onOpenTerminal).toHaveBeenCalledTimes(1);
+  });
+
+  it("renders thread tabs above message area and creates threads inside active session", async () => {
+    const user = userEvent.setup();
+    const onCreateThread = vi.fn(async () => "thread-3");
+    const onSelectThread = vi.fn();
+    const onCloseThread = vi.fn();
+
+    render(
+      <WorkspaceShell
+        {...createWorkspaceShellProps({
+          onCreateThread,
+          onSelectThread,
+          onCloseThread,
+        })}
+      />,
+    );
+
+    expect(screen.getByText("Signal")).toBeInTheDocument();
+    expect(screen.getByText("Echo")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Echo" }));
+    await user.click(screen.getByRole("button", { name: "Close Signal" }));
+    await user.click(screen.getByRole("button", { name: "Create thread" }));
+
+    expect(onSelectThread).toHaveBeenCalledWith("thread-2");
+    expect(onCloseThread).toHaveBeenCalledWith("thread-1");
+    expect(onCreateThread).toHaveBeenCalledWith("worktree-1");
+    expect(screen.getByTestId("chat-thread-panel")).toBeInTheDocument();
+    expect(screen.getByTestId("prompt-dock")).toBeInTheDocument();
   });
 });

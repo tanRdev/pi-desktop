@@ -4,7 +4,7 @@ import * as React from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "./components/ui/avatar";
-import { Check, Globe, Info, Key, SignOut } from "./components/ui/icons";
+import { Check, Globe, Info, SignOut } from "./components/ui/icons";
 import { PackagesModal } from "./components/packages/packages-modal";
 import { Button } from "./components/ui/button";
 import {
@@ -141,9 +141,10 @@ export default function App() {
           >
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
-                <DialogTitle>Create worktree</DialogTitle>
+                <DialogTitle>Create session</DialogTitle>
                 <DialogDescription>
-                  Start a new git worktree from the active repository branch.
+                  Start a new session by creating a git worktree from active
+                  repository branch.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-3 px-6 py-4">

@@ -15,6 +15,7 @@ import { ChatThreadPanel } from "./chat-thread-panel";
 import { GitPanel } from "./git-panel";
 import { LeftRail, SIDEBAR_WIDTH } from "./left-rail";
 import { PromptDock } from "./prompt-dock";
+import { ThreadTabs } from "./thread-tabs";
 import { TitleBar } from "./title-bar";
 import { WorkspaceActivityPanel } from "./workspace-activity-panel";
 import { FileTreeOverlay } from "./workspace-overlays";
@@ -63,6 +64,7 @@ export interface WorkspaceShellProps {
   onRemoveRepository: (repositoryId: string) => void | Promise<void>;
   onCopyRepositoryPath: (repositoryId: string) => void | Promise<void>;
   onOpenInFinder: (repositoryId: string) => void | Promise<void>;
+  onCreateSession: () => void | Promise<void>;
   onSelectWorktree: (worktreeId: string) => void | Promise<void>;
   onSelectThread: (threadId: string) => void | Promise<void>;
   onCreateThread: (worktreeId: string) => string | Promise<string>;
@@ -135,6 +137,7 @@ export function WorkspaceShell({
   onRemoveRepository,
   onCopyRepositoryPath,
   onOpenInFinder,
+  onCreateSession,
   onSelectWorktree,
   onSelectThread,
   onCreateThread,
@@ -307,9 +310,9 @@ export function WorkspaceShell({
               onRemoveRepository={onRemoveRepository}
               onCopyRepositoryPath={onCopyRepositoryPath}
               onOpenInFinder={onOpenInFinder}
+              onCreateSession={onCreateSession}
               onSelectWorktree={onSelectWorktree}
               onSelectThread={onSelectThread}
-              onCreateThread={onCreateThread}
               onCloseThread={onCloseThread}
               onDeleteThread={onDeleteThread}
               onAddRepository={onAddRepository}
@@ -344,6 +347,24 @@ export function WorkspaceShell({
                 "border-r border-white/[0.06]",
               )}
             >
+              {activeWorktree ? (
+                <ThreadTabs
+                  threads={activeWorktree.threads}
+                  activeThreadId={activeThreadId}
+                  onSelectThread={(threadId) => {
+                    void onSelectThread(threadId);
+                  }}
+                  onCloseThread={(threadId) => {
+                    void onCloseThread(threadId);
+                  }}
+                  onCreateThread={() => {
+                    if (!activeWorktreeId) {
+                      return;
+                    }
+                    void onCreateThread(activeWorktreeId);
+                  }}
+                />
+              ) : null}
               <div className="relative min-h-0 flex-1 overflow-hidden">
                 {hasActiveThread ? (
                   <ChatThreadPanel

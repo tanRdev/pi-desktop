@@ -30,7 +30,7 @@ async function createNamedThread(
     return window.piDesktop.threads.create(nextWorktreeId);
   }, worktreeId);
 
-  await expect(page.getByTestId("thread-row").first()).toBeVisible();
+  await expect(page.getByTestId("thread-tabs")).toBeVisible();
   await expect
     .poll(async () => {
       const shell = await page.evaluate(async () => {

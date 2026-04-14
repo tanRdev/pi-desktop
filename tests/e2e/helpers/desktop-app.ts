@@ -235,8 +235,8 @@ export async function focusChatThread(page: Page): Promise<void> {
 export async function createThreadFromRail(page: Page): Promise<void> {
   await ensureWorkspaceMode(page);
 
-  await page.getByText("Sessions").hover();
-  await page.locator('[data-testid="create-thread-button"]:visible').click();
+  await expect(page.getByTestId("thread-tabs")).toBeVisible();
+  await page.getByTestId("create-thread-button").click();
 }
 
 export function getWorkspaceContextPanel(page: Page) {

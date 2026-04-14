@@ -57,6 +57,37 @@ function createRepository(): RepositorySnapshot {
           },
         ],
       },
+      {
+        id: "worktree-2",
+        label: "feature/session-tabs",
+        path: "/tmp/alpha-workspace-feature",
+        isMain: false,
+        isDetached: false,
+        git: {
+          status: "ready",
+          branch: "feature/session-tabs",
+          commit: "def456",
+          hasChanges: false,
+          ahead: 0,
+          behind: 0,
+          stagedCount: 0,
+          modifiedCount: 0,
+          untrackedCount: 0,
+          message: null,
+        },
+        threads: [
+          {
+            id: "thread-feature",
+            title: "Feature thread",
+            isArchived: false,
+            lastActivityAt: 3,
+            runtime: {
+              status: "ready",
+              lastError: null,
+            },
+          },
+        ],
+      },
     ],
   };
 }
@@ -75,7 +106,7 @@ function renderLeftRail(
         onResize={vi.fn()}
         onSelectWorktree={vi.fn()}
         onSelectThread={vi.fn()}
-        onCreateThread={vi.fn(async () => "thread-new")}
+        onCreateSession={vi.fn()}
         onCloseThread={vi.fn()}
         onDeleteThread={vi.fn(async () => undefined)}
         onAddRepository={vi.fn()}
@@ -92,13 +123,15 @@ afterEach(() => {
 describe("LeftRail", () => {
   it("renders session groups and forwards primary rail actions", async () => {
     const user = userEvent.setup();
+    const onSelectWorktree = vi.fn();
     const onSelectThread = vi.fn();
-    const onCreateThread = vi.fn(async () => "thread-new");
+    const onCreateSession = vi.fn();
     const onAddRepository = vi.fn();
 
     renderLeftRail({
+      onSelectWorktree,
       onSelectThread,
-      onCreateThread,
+      onCreateSession,
       onAddRepository,
     });
 
@@ -109,14 +142,18 @@ describe("LeftRail", () => {
     expect(screen.getByText("Alpha Workspace")).toBeInTheDocument();
     expect(screen.getByText("Sessions")).toBeInTheDocument();
     expect(screen.getByText("Archived")).toBeInTheDocument();
-    expect(screen.queryByTestId("thread-inline-input")).not.toBeInTheDocument();
+    expect(screen.getByText("main")).toBeInTheDocument();
+    expect(screen.getByText("feature/session-tabs")).toBeInTheDocument();
+    expect(screen.queryByText("Active thread")).not.toBeInTheDocument();
 
-    await user.click(screen.getByText("Active thread"));
-    await user.click(screen.getByTestId("create-thread-button"));
+    await user.click(screen.getByText("feature/session-tabs"));
+    await user.click(screen.getByTestId("create-session-button"));
     await user.click(screen.getByRole("button", { name: "New workspace" }));
+    await user.click(screen.getByText("Archived thread"));
 
-    expect(onSelectThread).toHaveBeenCalledWith("thread-active");
-    expect(onCreateThread).toHaveBeenCalledWith("worktree-1");
+    expect(onSelectWorktree).toHaveBeenCalledWith("worktree-2");
+    expect(onSelectThread).toHaveBeenCalledWith("thread-archived");
+    expect(onCreateSession).toHaveBeenCalledTimes(1);
     expect(onAddRepository).toHaveBeenCalledTimes(1);
   });
 });

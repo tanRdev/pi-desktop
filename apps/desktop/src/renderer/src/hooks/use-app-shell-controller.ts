@@ -755,7 +755,7 @@ export function useAppShellController(): AppShellController {
       setCreateWorktreeOpen(false);
       setNewWorktreeBranchState("");
       setWorktreeCreateError(null);
-      toast.success("Worktree created");
+      toast.success("Session created");
     } catch (error) {
       setWorktreeCreateError(
         error instanceof Error ? error.message : "Failed to create worktree",
@@ -775,6 +775,10 @@ export function useAppShellController(): AppShellController {
     },
     [activeRepository?.customName, activeRepository?.name],
   );
+
+  const handleCreateSession = React.useCallback(() => {
+    setCreateWorktreeOpen(true);
+  }, [setCreateWorktreeOpen]);
 
   const handleCreateThread = React.useCallback(async (worktreeId: string) => {
     const threadId = await window.piDesktop.threads.create(worktreeId);
@@ -1182,6 +1186,7 @@ export function useAppShellController(): AppShellController {
     onRemoveRepository: handleRemoveRepository,
     onCopyRepositoryPath: handleCopyRepositoryPath,
     onOpenInFinder: handleOpenInFinder,
+    onCreateSession: handleCreateSession,
     onSelectWorktree: handleSelectWorktree,
     onSelectThread: handleSelectThread,
     onCreateThread: handleCreateThread,

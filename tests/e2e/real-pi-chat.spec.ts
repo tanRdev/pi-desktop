@@ -27,7 +27,7 @@ test("streams a real Pi CLI reply through the desktop chat", async () => {
   try {
     await waitForAppReady(page);
     await createThreadFromRail(page);
-    await expect(page.getByTestId("thread-row").first()).toBeVisible();
+    await expect(page.getByTestId("thread-tabs")).toContainText("Echo");
     await focusChatThread(page);
 
     await page
