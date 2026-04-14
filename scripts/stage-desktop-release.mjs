@@ -30,7 +30,7 @@ writeFileSync(
   `${JSON.stringify(
     {
       name: "@pi-desktop/desktop-release",
-      version: "0.1.0",
+      version: "0.2.0",
       main: "out/main/index.js",
       dependencies: {
         "node-pty": "1.1.0",
