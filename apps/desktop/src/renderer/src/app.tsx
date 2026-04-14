@@ -227,6 +227,37 @@ export default function App() {
             </DialogContent>
           </Dialog>
 
+          <Dialog
+            open={controller.isInitGitRepoOpen}
+            onOpenChange={controller.setInitGitRepoOpen}
+          >
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Initialize git repository?</DialogTitle>
+                <DialogDescription>
+                  {controller.initGitRepoName
+                    ? `"${controller.initGitRepoName}" is not a git repository. Initialize one to enable version control?`
+                    : "This folder is not a git repository. Initialize one to enable version control?"}
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => void controller.skipInitGitRepo()}
+                >
+                  Not now
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => void controller.submitInitGitRepo()}
+                >
+                  Initialize
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
           <Toaster />
         </div>
       </IconContext.Provider>

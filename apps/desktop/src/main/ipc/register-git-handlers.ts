@@ -34,6 +34,14 @@ export function registerGitHandlers({
     gitService.getRepositoryStatus(requireRepositoryPath(payload)),
   );
 
+  handle(IPC_CHANNELS.git.isRepository, async (_event, payload) =>
+    gitService.isRepository(requireRepositoryPath(payload)),
+  );
+
+  handle(IPC_CHANNELS.git.init, async (_event, payload) => {
+    gitService.init(requireRepositoryPath(payload));
+  });
+
   handle(IPC_CHANNELS.git.stageFile, async (_event, payload) =>
     gitService.stageFile(
       requireRepositoryPath(payload),
