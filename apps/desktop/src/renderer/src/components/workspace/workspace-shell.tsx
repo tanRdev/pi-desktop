@@ -100,6 +100,8 @@ export interface WorkspaceShellProps {
   promptMode: "build" | "plan";
   onPromptModeChange: (mode: "build" | "plan") => void;
   onConnectProvider?: () => void;
+  favoriteModels?: string[];
+  onToggleFavorite?: (modelValue: string) => void;
 }
 
 export function WorkspaceShell({
@@ -171,6 +173,8 @@ export function WorkspaceShell({
   promptMode,
   onPromptModeChange,
   onConnectProvider,
+  favoriteModels,
+  onToggleFavorite,
 }: WorkspaceShellProps) {
   const [isLeftRailVisible, setIsLeftRailVisible] = React.useState(true);
   const [isRightPanelVisible, setIsRightPanelVisible] = React.useState(true);
@@ -411,6 +415,8 @@ export function WorkspaceShell({
                   onModelMenuOpenChange={onModelMenuOpenChange}
                   onModelSelection={onModelSelection}
                   onConnectProvider={onConnectProvider}
+                  favoriteModels={favoriteModels}
+                  onToggleFavorite={onToggleFavorite}
                 />
               </div>
             </div>

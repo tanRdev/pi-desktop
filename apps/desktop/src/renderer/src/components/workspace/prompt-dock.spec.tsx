@@ -184,4 +184,46 @@ describe("PromptDock", () => {
 
     expect(onAutocompleteSelect).toHaveBeenCalledWith(suggestion);
   });
+
+  it("shows favorited models at top with Favorites header", async () => {
+    const user = userEvent.setup();
+
+    renderPromptDock({
+      favoriteModels: ["anthropic::claude-sonnet-4-20250514"],
+    });
+
+    await user.click(screen.getByTestId("model-selector-trigger"));
+
+    expect(screen.getByText("Favorites")).toBeInTheDocument();
+    expect(screen.getByText("Google")).toBeInTheDocument();
+  });
+
+  it("calls onToggleFavorite when star is clicked", async () => {
+    const user = userEvent.setup();
+    const onToggleFavorite = vi.fn();
+
+    renderPromptDock({
+      favoriteModels: ["anthropic::claude-sonnet-4-20250514"],
+      onToggleFavorite,
+    });
+
+    await user.click(screen.getByTestId("model-selector-trigger"));
+    await user.click(
+      screen.getByTestId("toggle-favorite-anthropic-claude-sonnet-4-20250514"),
+    );
+
+    expect(onToggleFavorite).toHaveBeenCalledWith(
+      "anthropic::claude-sonnet-4-20250514",
+    );
+  });
+
+  it("does not show Favorites header when no models are favorited", async () => {
+    const user = userEvent.setup();
+
+    renderPromptDock({ favoriteModels: [] });
+
+    await user.click(screen.getByTestId("model-selector-trigger"));
+
+    expect(screen.queryByText("Favorites")).not.toBeInTheDocument();
+  });
 });

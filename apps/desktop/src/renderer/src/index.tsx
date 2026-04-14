@@ -4,6 +4,10 @@ import ReactDOM from "react-dom/client";
 import "./app.css";
 import App from "./app";
 
+if (import.meta.env.DEV) {
+  import("react-grab");
+}
+
 const root = document.getElementById("root");
 
 if (!root) {
