@@ -64,7 +64,6 @@ import {
   resolvePreloadTarget,
   resolveRendererTarget,
   shouldDeferWindowShowUntilReady,
-  shouldOpenDevTools,
   shouldQuitWhenAllWindowsClosed,
   shouldShowMainWindow,
 } from "./window-config";
@@ -172,10 +171,6 @@ async function createMainWindow() {
   const window = new BrowserWindow(windowOptions);
   hardenMainWindow(window);
 
-  if (shouldOpenDevTools(process.env, app.isPackaged)) {
-    window.webContents.openDevTools();
-  }
-
   if (shouldShowMainWindow(process.env)) {
     const showWindow = () => {
       window.show();
@@ -250,21 +245,6 @@ function subscribeToFullscreenChanges(window: BrowserWindow) {
 async function bootstrapDesktop() {
   app.setName("Pi Desktop");
   await app.whenReady();
-
-  if (shouldOpenDevTools(process.env, app.isPackaged)) {
-    try {
-      const { default: installExtension, REACT_DEVELOPER_TOOLS } = await import(
-        "electron-devtools-installer"
-      );
-      const name = await installExtension(REACT_DEVELOPER_TOOLS, {
-        loadExtensionOptions: { allowFileAccess: true },
-        forceDownload: true,
-      });
-      console.log(`Added Extension: ${name}`);
-    } catch (e) {
-      console.error("Failed to install React DevTools:", e);
-    }
-  }
 
   const explicitUserDataPath = process.env.PI_DESKTOP_USER_DATA_DIR;
   if (explicitUserDataPath) {
