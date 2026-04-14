@@ -127,6 +127,12 @@ export interface AppShellController {
   setNewWorktreeBranch: (value: string) => void;
   worktreeCreateError: string | null;
   submitCreateWorktree: () => Promise<void>;
+  isInitGitRepoOpen: boolean;
+  setInitGitRepoOpen: (isOpen: boolean) => void;
+  initGitRepoPath: string | null;
+  initGitRepoName: string | null;
+  submitInitGitRepo: () => Promise<void>;
+  skipInitGitRepo: () => Promise<void>;
 }
 
 export function useAppShellController(): AppShellController {
@@ -195,6 +201,10 @@ export function useAppShellController(): AppShellController {
     uiInteractionStore,
     (storeState) => storeState.dialogs.confirmRemoveRepository,
   );
+  const isInitGitRepoOpen = useStore(
+    uiInteractionStore,
+    (storeState) => storeState.dialogs.initGitRepo,
+  );
 
   const [newWorktreeBranch, setNewWorktreeBranchState] = React.useState("");
   const [worktreeCreateError, setWorktreeCreateError] = React.useState<
@@ -207,6 +217,12 @@ export function useAppShellController(): AppShellController {
   const [removeRepositoryError, setRemoveRepositoryError] = React.useState<
     string | null
   >(null);
+  const [initGitRepoPath, setInitGitRepoPath] = React.useState<string | null>(
+    null,
+  );
+  const [initGitRepoName, setInitGitRepoName] = React.useState<string | null>(
+    null,
+  );
   const [selectedContextSurface, setSelectedContextSurface] =
     React.useState<WorkspaceShellProps["selectedContextSurface"]>(null);
   const [leftRailWidth, setLeftRailWidth] = React.useState(260);
@@ -331,6 +347,13 @@ export function useAppShellController(): AppShellController {
     uiInteractionStore
       .getState()
       .setDialogOpen("confirmRemoveRepository", isOpen);
+  }, []);
+  const setInitGitRepoOpen = React.useCallback((isOpen: boolean) => {
+    uiInteractionStore.getState().setDialogOpen("initGitRepo", isOpen);
+    if (!isOpen) {
+      setInitGitRepoPath(null);
+      setInitGitRepoName(null);
+    }
   }, []);
   const closeFileTreeOverlay = React.useCallback(() => {
     uiInteractionStore.getState().closeFileTreeOverlay();
@@ -714,6 +737,15 @@ export function useAppShellController(): AppShellController {
           .filter(Boolean)
           .pop() ?? repositoryPath;
 
+      const isRepo = await window.piDesktop.git.isRepository(repositoryPath);
+
+      if (!isRepo) {
+        setInitGitRepoPath(repositoryPath);
+        setInitGitRepoName(repositoryName);
+        setInitGitRepoOpen(true);
+        return;
+      }
+
       setWorkspaceSwitchingRepositoryName(repositoryName);
 
       try {
@@ -729,7 +761,7 @@ export function useAppShellController(): AppShellController {
         return;
       }
     }
-  }, []);
+  }, [setInitGitRepoOpen]);
 
   const handleRemoveRepository = React.useCallback(
     async (repositoryId: string) => {
@@ -841,6 +873,39 @@ export function useAppShellController(): AppShellController {
       );
     }
   }, [confirmRemoveRepositoryId, reload, setRemoveRepositoryOpen]);
+
+  const submitInitGitRepo = React.useCallback(async () => {
+    if (!initGitRepoPath || !initGitRepoName) {
+      return;
+    }
+
+    try {
+      await window.piDesktop.git.init(initGitRepoPath);
+      setWorkspaceSwitchingRepositoryName(initGitRepoName);
+      await window.piDesktop.repositories.add(initGitRepoPath);
+      setInitGitRepoOpen(false);
+      toast.success("Git repository initialized");
+    } catch (error) {
+      toast.error("Failed to initialize git repository", {
+        description: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  }, [initGitRepoPath, initGitRepoName, setInitGitRepoOpen]);
+
+  const skipInitGitRepo = React.useCallback(async () => {
+    if (!initGitRepoPath) {
+      setInitGitRepoOpen(false);
+      return;
+    }
+
+    setWorkspaceSwitchingRepositoryName(initGitRepoName ?? initGitRepoPath);
+    try {
+      await window.piDesktop.repositories.add(initGitRepoPath);
+    } catch {
+      // non-repo folder handled by main process
+    }
+    setInitGitRepoOpen(false);
+  }, [initGitRepoPath, initGitRepoName, setInitGitRepoOpen]);
 
   const handleCloseThread = React.useCallback(
     async (threadId: string) => {
@@ -1293,5 +1358,11 @@ export function useAppShellController(): AppShellController {
     setNewWorktreeBranch: setNewWorktreeBranchState,
     worktreeCreateError,
     submitCreateWorktree,
+    isInitGitRepoOpen,
+    setInitGitRepoOpen,
+    initGitRepoPath,
+    initGitRepoName,
+    submitInitGitRepo,
+    skipInitGitRepo,
   };
 }

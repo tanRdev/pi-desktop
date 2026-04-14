@@ -362,6 +362,14 @@ export class GitWorktreeService {
     return inspection;
   }
 
+  isRepository(targetPath: string): boolean {
+    return this.inspect(targetPath).status === "repository";
+  }
+
+  init(targetPath: string): void {
+    this.runCheckedGit(targetPath, ["init"], "initialize git repository");
+  }
+
   createWorktree(options: {
     repositoryRoot: string;
     branchName: string;

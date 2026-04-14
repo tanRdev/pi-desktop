@@ -104,6 +104,8 @@ export interface PiDesktopApi {
   };
   git: {
     getRepositoryStatus(repositoryPath: string): Promise<GitRepositoryStatus>;
+    isRepository(targetPath: string): Promise<boolean>;
+    init(targetPath: string): Promise<void>;
     stageFile(
       repositoryPath: string,
       filePath: string,

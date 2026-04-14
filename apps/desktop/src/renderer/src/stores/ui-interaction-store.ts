@@ -10,7 +10,8 @@ export type UiDialogId =
   | "packages"
   | "createWorktree"
   | "createThread"
-  | "confirmRemoveRepository";
+  | "confirmRemoveRepository"
+  | "initGitRepo";
 
 export interface LauncherOverlayState {
   isOpen: boolean;
@@ -29,6 +30,7 @@ export interface UiDialogsState {
   createWorktree: boolean;
   createThread: boolean;
   confirmRemoveRepository: boolean;
+  initGitRepo: boolean;
 }
 
 export interface FileTreeOverlayState {
@@ -87,6 +89,7 @@ export function createUiInteractionStore() {
       createWorktree: false,
       createThread: false,
       confirmRemoveRepository: false,
+      initGitRepo: false,
     },
     overlays: {
       launcher: {

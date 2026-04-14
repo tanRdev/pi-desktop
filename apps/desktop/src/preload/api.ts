@@ -216,6 +216,16 @@ export function createPiDesktopApi({
           },
         );
       },
+      isRepository(targetPath: string) {
+        return invoke<boolean>(IPC_CHANNELS.git.isRepository, {
+          repositoryPath: targetPath,
+        });
+      },
+      init(targetPath: string) {
+        return invoke<void>(IPC_CHANNELS.git.init, {
+          repositoryPath: targetPath,
+        });
+      },
       stageFile(repositoryPath: string, filePath: string) {
         return invoke<GitRepositoryStatus>(IPC_CHANNELS.git.stageFile, {
           repositoryPath,
