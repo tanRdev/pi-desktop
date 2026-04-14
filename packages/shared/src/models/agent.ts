@@ -111,7 +111,7 @@ export interface AgentSnapshot {
 /**
  * Pi agent event types.
  */
-export type PiDeskAgentEvent =
+export type PiDesktopAgentEvent =
   | {
       type: "session_changed";
     }

@@ -7,7 +7,7 @@ import type {
   GitRepositoryStatus,
   ShellGitSnapshot,
   WorktreeGitSnapshot,
-} from "@pidesk/shared";
+} from "@pi-desktop/shared";
 
 export interface GitWorktreeSummary {
   id: string;

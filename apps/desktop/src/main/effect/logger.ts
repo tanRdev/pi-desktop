@@ -1,7 +1,7 @@
 import { Effect, Logger } from "effect";
 
 // Use the pretty logger from Effect
-export const PiDeskLoggerLive = Logger.replace(
+export const PiDesktopLoggerLive = Logger.replace(
   Logger.defaultLogger,
   Logger.prettyLogger(),
 );

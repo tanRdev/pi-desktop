@@ -9,7 +9,7 @@ import type {
   PackageSearchResponse,
   PackagesEvent,
   PackageUpdateRequest,
-} from "@pidesk/shared";
+} from "@pi-desktop/shared";
 
 export interface PackagesService {
   getManagerStatus(): Promise<PackageManagerStatus>;

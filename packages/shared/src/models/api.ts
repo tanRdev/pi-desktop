@@ -1,7 +1,7 @@
 import type {
   AgentSnapshot,
   ModelSwitchRequest,
-  PiDeskAgentEvent,
+  PiDesktopAgentEvent,
   PiDiscoveryResult,
   ProviderSnapshot,
   SettingsSnapshot,
@@ -49,7 +49,7 @@ import type {
   WorkspaceSession,
 } from "./workspace-session.js";
 
-export interface PiDeskApi {
+export interface PiDesktopApi {
   shell: {
     getSnapshot(): Promise<ShellSnapshot>;
   };
@@ -65,7 +65,7 @@ export interface PiDeskApi {
     getSlashSuggestions(
       context: AutocompleteContext,
     ): Promise<AutocompleteSuggestions>;
-    subscribe(listener: (event: PiDeskAgentEvent) => void): () => void;
+    subscribe(listener: (event: PiDesktopAgentEvent) => void): () => void;
   };
   repositories: {
     add(path: string): Promise<void>;

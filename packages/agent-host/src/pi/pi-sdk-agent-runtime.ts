@@ -15,15 +15,15 @@ import type {
   ContextUsageSnapshot,
   ModelSnapshot,
   ModelSwitchRequest,
-  PiDeskAgentEvent,
+  PiDesktopAgentEvent,
   ProviderSnapshot,
   SettingsSnapshot,
-} from "@pidesk/shared";
+} from "@pi-desktop/shared";
 
 import { normalizeAgentSessionEvent } from "../events/normalize-agent-session-event.js";
 import { applyEventToSnapshot } from "../state/state-helpers.js";
 
-type AgentListener = (event: PiDeskAgentEvent) => void;
+type AgentListener = (event: PiDesktopAgentEvent) => void;
 
 type CreateAgentSession = typeof createPiAgentSession;
 
@@ -474,7 +474,7 @@ export class PiSdkAgentRuntime {
     };
   }
 
-  private emit(event: PiDeskAgentEvent): void {
+  private emit(event: PiDesktopAgentEvent): void {
     for (const listener of this.listeners) {
       listener(event);
     }

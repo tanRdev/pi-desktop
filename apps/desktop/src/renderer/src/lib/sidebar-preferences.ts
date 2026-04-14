@@ -41,7 +41,7 @@ if (!hasUsableStorage(globalThis.localStorage)) {
   });
 }
 
-const LEFT_SIDEBAR_KEY = "pidesk.leftSidebarWidth";
+const LEFT_SIDEBAR_KEY = "pi-desktop.leftSidebarWidth";
 const DEFAULT_WIDTH = 280;
 const MIN_WIDTH = 140;
 const MAX_WIDTH = 400;

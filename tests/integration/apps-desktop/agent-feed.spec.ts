@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type {
   AgentSnapshot,
-  PiDeskAgentEvent,
+  PiDesktopAgentEvent,
 } from "../../../packages/shared/src";
 import {
   applyAgentEvent,
@@ -71,7 +71,7 @@ describe("applyAgentEvent", () => {
       lastError: null,
     };
 
-    const events: PiDeskAgentEvent[] = [
+    const events: PiDesktopAgentEvent[] = [
       { type: "agent_start" },
       { type: "agent_end" },
     ];

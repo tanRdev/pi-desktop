@@ -8,7 +8,7 @@ const tempDirs: string[] = [];
 
 function createUserDataPath(): string {
   const directory = mkdtempSync(
-    path.join(tmpdir(), "pidesk-app-preferences-catalog-"),
+    path.join(tmpdir(), "pi-desktop-app-preferences-catalog-"),
   );
   tempDirs.push(directory);
   return directory;

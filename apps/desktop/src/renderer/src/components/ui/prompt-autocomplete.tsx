@@ -1,4 +1,4 @@
-import type { MentionSuggestion, SlashSuggestion } from "@pidesk/shared";
+import type { MentionSuggestion, SlashSuggestion } from "@pi-desktop/shared";
 import * as React from "react";
 import {
   AtSign,

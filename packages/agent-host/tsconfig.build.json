@@ -6,8 +6,8 @@
     "outDir": "dist",
     "baseUrl": ".",
     "paths": {
-      "@pidesk/shared": ["../shared/dist/index.d.ts"],
-      "@pidesk/shared/*": ["../shared/dist/*"]
+      "@pi-desktop/shared": ["../shared/dist/index.d.ts"],
+      "@pi-desktop/shared/*": ["../shared/dist/*"]
     }
   }
 }

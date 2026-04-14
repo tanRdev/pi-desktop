@@ -3,7 +3,7 @@ import type {
   ShellGitSnapshot,
   WorktreeGitSnapshot,
   WorktreeSnapshot,
-} from "@pidesk/shared";
+} from "@pi-desktop/shared";
 import { Match } from "effect";
 
 export interface GitPanelRow {

@@ -11,7 +11,7 @@ test("launches the shell and streams a mock agent reply", async () => {
   test.setTimeout(45_000);
 
   const { app, page, launchContext } =
-    await launchDesktopApp("pidesk-e2e-launch-");
+    await launchDesktopApp("pi-desktop-e2e-launch-");
 
   try {
     await waitForAppReady(page);

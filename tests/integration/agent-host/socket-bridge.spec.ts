@@ -7,15 +7,13 @@ import { startAgentHostSocketServer } from "../../../packages/agent-host/src/ses
 import type {
   AgentHostEnvelope,
   AgentSnapshot,
-  PiDeskAgentEvent,
+  PiDesktopAgentEvent,
 } from "../../../packages/shared/src";
 
 const tempDirs: string[] = [];
 
 function createSocketPath(): string {
-  const directory = fs.mkdtempSync(
-    path.join(os.tmpdir(), "pidesk-socket-server-"),
-  );
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "pd-srv-"));
   tempDirs.push(directory);
   return path.join(directory, "agent-host.sock");
 }
@@ -72,7 +70,7 @@ describe("startAgentHostSocketServer", () => {
       messages: [],
       lastError: null,
     };
-    let eventListener: ((event: PiDeskAgentEvent) => void) | undefined;
+    let eventListener: ((event: PiDesktopAgentEvent) => void) | undefined;
     const server = await startAgentHostSocketServer({
       socketPath: createSocketPath(),
       runtime: {

@@ -1,4 +1,4 @@
-import type { TerminalBackend } from "@pidesk/shared";
+import type { TerminalBackend } from "@pi-desktop/shared";
 
 type PiTerminalRouteRequest = {
   terminalId: string;

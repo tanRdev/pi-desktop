@@ -1,4 +1,4 @@
-import type { ProviderSnapshot, SettingsSnapshot } from "@pidesk/shared";
+import type { ProviderSnapshot, SettingsSnapshot } from "@pi-desktop/shared";
 import { useCallback, useEffect, useSyncExternalStore } from "react";
 import {
   type AppShellStoreState,
@@ -34,7 +34,7 @@ export function useShellModel() {
 
   const reset = useCallback(async () => {
     try {
-      await window.pidesk.agent.reset();
+      await window.piDesktop.agent.reset();
     } catch (error) {
       // A failed reset should still attempt to refresh snapshot state so the
       // renderer can surface the latest runtime status without a full reload.

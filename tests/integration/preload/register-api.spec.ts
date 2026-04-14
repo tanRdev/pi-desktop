@@ -1,17 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
 import {
-  registerPiDeskApi,
-  registerPiDeskApiFromElectron,
+  registerPiDesktopApi,
+  registerPiDesktopApiFromElectron,
 } from "../../../apps/desktop/src/preload/index";
 import { IPC_CHANNELS } from "../../../packages/shared/src";
 
-describe("registerPiDeskApi", () => {
+describe("registerPiDesktopApi", () => {
   it("exposes the PiDesk API in the isolated preload context", async () => {
     const exposeInMainWorld = vi.fn();
     const invoke = vi.fn(async () => undefined);
     const on = vi.fn(() => () => undefined);
 
-    registerPiDeskApi({
+    registerPiDesktopApi({
       exposeInMainWorld,
       invoke,
       on,
@@ -24,7 +24,7 @@ describe("registerPiDeskApi", () => {
       { agent: { prompt(text: string): Promise<void> } },
     ];
 
-    expect(key).toBe("pidesk");
+    expect(key).toBe("piDesktop");
 
     await api.agent.prompt("Open the diff inspector");
 
@@ -39,7 +39,7 @@ describe("registerPiDeskApi", () => {
     const on = vi.fn(() => () => undefined);
     const removeListener = vi.fn();
 
-    registerPiDeskApiFromElectron({
+    registerPiDesktopApiFromElectron({
       contextBridge: {
         exposeInMainWorld,
       },
@@ -57,7 +57,7 @@ describe("registerPiDeskApi", () => {
       { agent: { prompt(text: string): Promise<void> } },
     ];
 
-    expect(key).toBe("pidesk");
+    expect(key).toBe("piDesktop");
 
     await api.agent.prompt("Open the diff inspector");
 

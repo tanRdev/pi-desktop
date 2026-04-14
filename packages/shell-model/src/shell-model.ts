@@ -1,10 +1,10 @@
 import type {
   AgentMessageSnapshot,
   AgentSnapshot,
-  PiDeskAgentEvent,
-  PiDeskApi,
+  PiDesktopAgentEvent,
+  PiDesktopApi,
   ShellSnapshot,
-} from "@pidesk/shared";
+} from "@pi-desktop/shared";
 import {
   type AgentLiveFeed,
   applyAgentEvent,
@@ -63,8 +63,8 @@ function getErrorMessage(error: unknown, fallback: string): string {
 }
 
 function normalizeEvent(
-  event: PiDeskAgentEvent | MessageEnvelopeEvent,
-): PiDeskAgentEvent {
+  event: PiDesktopAgentEvent | MessageEnvelopeEvent,
+): PiDesktopAgentEvent {
   if ("message" in event) {
     const timestamp = event.message.timestamp ?? 0;
 
@@ -189,7 +189,7 @@ function mergeAgentSnapshots(
   };
 }
 
-export function createShellModel(api: PiDeskApi) {
+export function createShellModel(api: PiDesktopApi) {
   let state: ShellModelState = INITIAL_STATE;
   let unsubscribe: (() => void) | undefined;
   const listeners = new Set<(state: ShellModelState) => void>();
@@ -227,7 +227,7 @@ export function createShellModel(api: PiDeskApi) {
   }
 
   function handleAgentEvent(
-    event: PiDeskAgentEvent | MessageEnvelopeEvent,
+    event: PiDesktopAgentEvent | MessageEnvelopeEvent,
   ): void {
     const normalized = normalizeEvent(event);
 

@@ -1,8 +1,8 @@
 import type {
   AgentHostEnvelope,
   AgentHostRequest,
-  PiDeskAgentEvent,
-} from "@pidesk/shared";
+  PiDesktopAgentEvent,
+} from "@pi-desktop/shared";
 
 import type { CommandHandlerRuntime } from "./command-handler.js";
 
@@ -17,7 +17,7 @@ export interface ParentPortLike {
 export interface WireAgentHostParentPortDependencies {
   parentPort: ParentPortLike;
   runtime: CommandHandlerRuntime & {
-    subscribe(listener: (event: PiDeskAgentEvent) => void): () => void;
+    subscribe(listener: (event: PiDesktopAgentEvent) => void): () => void;
   };
 }
 
@@ -25,7 +25,7 @@ export function wireAgentHostParentPort({
   parentPort,
   runtime,
 }: WireAgentHostParentPortDependencies): () => void {
-  const unsubscribe = runtime.subscribe((event: PiDeskAgentEvent) => {
+  const unsubscribe = runtime.subscribe((event: PiDesktopAgentEvent) => {
     parentPort.postMessage({
       type: "event",
       event,

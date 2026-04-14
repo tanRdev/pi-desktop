@@ -27,7 +27,7 @@
       },
     },
     "apps/desktop": {
-      "name": "@pidesk/desktop",
+      "name": "@pi-desktop/desktop",
       "version": "0.1.0",
       "dependencies": {
         "@effect/platform": "^0.80.13",
@@ -41,10 +41,10 @@
         "@mariozechner/pi-coding-agent": "0.57.1",
         "@monaco-editor/react": "^4.7.0",
         "@phosphor-icons/react": "^2.1.10",
-        "@pidesk/agent-host": "workspace:*",
-        "@pidesk/shared": "workspace:*",
-        "@pidesk/shell-model": "workspace:*",
-        "@pidesk/ui": "workspace:*",
+        "@pi-desktop/agent-host": "workspace:*",
+        "@pi-desktop/shared": "workspace:*",
+        "@pi-desktop/shell-model": "workspace:*",
+        "@pi-desktop/ui": "workspace:*",
         "@radix-ui/react-avatar": "^1.1.11",
         "@radix-ui/react-collapsible": "^1.1.0",
         "@radix-ui/react-dialog": "^1.1.15",
@@ -105,30 +105,30 @@
       },
     },
     "packages/agent-host": {
-      "name": "@pidesk/agent-host",
+      "name": "@pi-desktop/agent-host",
       "version": "0.1.0",
       "dependencies": {
         "@mariozechner/pi-coding-agent": "0.57.1",
-        "@pidesk/shared": "workspace:*",
+        "@pi-desktop/shared": "workspace:*",
       },
     },
     "packages/shared": {
-      "name": "@pidesk/shared",
+      "name": "@pi-desktop/shared",
       "version": "0.1.0",
       "devDependencies": {
         "electron": "41.0.1",
       },
     },
     "packages/shell-model": {
-      "name": "@pidesk/shell-model",
+      "name": "@pi-desktop/shell-model",
       "version": "0.1.0",
       "dependencies": {
-        "@pidesk/agent-host": "workspace:*",
-        "@pidesk/shared": "workspace:*",
+        "@pi-desktop/agent-host": "workspace:*",
+        "@pi-desktop/shared": "workspace:*",
       },
     },
     "packages/ui": {
-      "name": "@pidesk/ui",
+      "name": "@pi-desktop/ui",
       "version": "0.1.0",
       "dependencies": {
         "@phosphor-icons/react": "^2.1.10",
@@ -570,15 +570,15 @@
 
     "@phosphor-icons/react": ["@phosphor-icons/react@2.1.10", "", { "peerDependencies": { "react": ">= 16.8", "react-dom": ">= 16.8" } }, "sha512-vt8Tvq8GLjheAZZYa+YG/pW7HDbov8El/MANW8pOAz4eGxrwhnbfrQZq0Cp4q8zBEu8NIhHdnr+r8thnfRSNYA=="],
 
-    "@pidesk/agent-host": ["@pidesk/agent-host@workspace:packages/agent-host"],
+    "@pi-desktop/agent-host": ["@pi-desktop/agent-host@workspace:packages/agent-host"],
 
-    "@pidesk/desktop": ["@pidesk/desktop@workspace:apps/desktop"],
+    "@pi-desktop/desktop": ["@pi-desktop/desktop@workspace:apps/desktop"],
 
-    "@pidesk/shared": ["@pidesk/shared@workspace:packages/shared"],
+    "@pi-desktop/shared": ["@pi-desktop/shared@workspace:packages/shared"],
 
-    "@pidesk/shell-model": ["@pidesk/shell-model@workspace:packages/shell-model"],
+    "@pi-desktop/shell-model": ["@pi-desktop/shell-model@workspace:packages/shell-model"],
 
-    "@pidesk/ui": ["@pidesk/ui@workspace:packages/ui"],
+    "@pi-desktop/ui": ["@pi-desktop/ui@workspace:packages/ui"],
 
     "@pkgjs/parseargs": ["@pkgjs/parseargs@0.11.0", "", {}, "sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg=="],
 

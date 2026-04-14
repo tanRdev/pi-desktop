@@ -1,4 +1,4 @@
-import { createEmptyWindowLayoutState } from "@pidesk/shared";
+import { createEmptyWindowLayoutState } from "@pi-desktop/shared";
 import type {
   FileWindowState,
   NoteWindowState,

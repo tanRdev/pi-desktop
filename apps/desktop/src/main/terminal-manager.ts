@@ -5,7 +5,7 @@ import type {
   TerminalBackend,
   TerminalCreateOptions,
   TerminalSession,
-} from "@pidesk/shared";
+} from "@pi-desktop/shared";
 import { Effect } from "effect";
 import type { BrowserWindow } from "electron";
 import { resolveLocalShellProgram } from "./terminal/terminal-backends";

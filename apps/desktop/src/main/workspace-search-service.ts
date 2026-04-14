@@ -5,7 +5,7 @@ import type {
   SearchMatch,
   SearchRequest,
   SearchResponse,
-} from "@pidesk/shared";
+} from "@pi-desktop/shared";
 import { Effect, Either } from "effect";
 
 const DEFAULT_TIMEOUT_MS = 10_000;

@@ -10,7 +10,7 @@ import {
 const tempDirs: string[] = [];
 
 function createTempAgentDir() {
-  const dir = mkdtempSync(path.join(os.tmpdir(), "pidesk-pi-discovery-"));
+  const dir = mkdtempSync(path.join(os.tmpdir(), "pi-desktop-pi-discovery-"));
   tempDirs.push(dir);
   return dir;
 }
@@ -167,7 +167,7 @@ describe("pi-resource-discovery", () => {
   it("discovers project-local skills even when the global agent dir is missing", () => {
     const missingGlobalAgentDir = path.join(
       os.tmpdir(),
-      `pidesk-missing-global-${Date.now()}`,
+      `pi-desktop-missing-global-${Date.now()}`,
     );
     const projectRoot = createTempAgentDir();
     const localSkillDir = path.join(

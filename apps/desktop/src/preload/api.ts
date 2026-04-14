@@ -19,8 +19,8 @@ import {
   type PackageSearchResponse,
   type PackagesEvent,
   type PackageUpdateRequest,
-  type PiDeskAgentEvent,
-  type PiDeskApi,
+  type PiDesktopAgentEvent,
+  type PiDesktopApi,
   type PiDiscoveryResult,
   type ProviderSnapshot,
   type RepositoryDisplayMetadata,
@@ -35,7 +35,7 @@ import {
   type WindowPosition,
   type WorkspaceSession,
   type WorkspaceWindow,
-} from "@pidesk/shared";
+} from "@pi-desktop/shared";
 
 const OPEN_EXTERNAL_CHANNEL =
   IPC_CHANNELS.dialog.openExternal ?? "dialog:openExternal";
@@ -50,15 +50,15 @@ export type PreloadOn = <TPayload>(
   listener: (payload: TPayload) => void,
 ) => () => void;
 
-export interface CreatePiDeskApiDependencies {
+export interface CreatePiDesktopApiDependencies {
   invoke: PreloadInvoke;
   on: PreloadOn;
 }
 
-export function createPiDeskApi({
+export function createPiDesktopApi({
   invoke,
   on,
-}: CreatePiDeskApiDependencies): PiDeskApi {
+}: CreatePiDesktopApiDependencies): PiDesktopApi {
   return {
     shell: {
       getSnapshot() {
@@ -105,8 +105,8 @@ export function createPiDeskApi({
           context,
         );
       },
-      subscribe(listener: (event: PiDeskAgentEvent) => void) {
-        return on<PiDeskAgentEvent>(IPC_CHANNELS.agent.event, listener);
+      subscribe(listener: (event: PiDesktopAgentEvent) => void) {
+        return on<PiDesktopAgentEvent>(IPC_CHANNELS.agent.event, listener);
       },
     },
     repositories: {
@@ -168,13 +168,13 @@ export function createPiDeskApi({
     },
     fs: {
       readDirectory(path: string) {
-        return invoke<import("@pidesk/shared").DirectoryListing>(
+        return invoke<import("@pi-desktop/shared").DirectoryListing>(
           IPC_CHANNELS.fs.readDirectory,
           { path },
         );
       },
       readFile(path: string) {
-        return invoke<import("@pidesk/shared").FileContent>(
+        return invoke<import("@pi-desktop/shared").FileContent>(
           IPC_CHANNELS.fs.readFile,
           { path },
         );
@@ -252,13 +252,13 @@ export function createPiDeskApi({
         );
       },
       getPackageDetail(packageName: string) {
-        return invoke<import("@pidesk/shared").PackageCatalogDetail>(
+        return invoke<import("@pi-desktop/shared").PackageCatalogDetail>(
           IPC_CHANNELS.packages.getPackageDetail,
           { packageName },
         );
       },
       listInstalled(scope?: "global" | "local") {
-        return invoke<import("@pidesk/shared").InstalledPackageSnapshot[]>(
+        return invoke<import("@pi-desktop/shared").InstalledPackageSnapshot[]>(
           IPC_CHANNELS.packages.listInstalled,
           { scope },
         );

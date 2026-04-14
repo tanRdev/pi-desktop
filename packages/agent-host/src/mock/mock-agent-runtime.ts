@@ -2,12 +2,12 @@ import type {
   AgentMessageSnapshot,
   AgentSnapshot,
   ModelSwitchRequest,
-  PiDeskAgentEvent,
+  PiDesktopAgentEvent,
   ProviderSnapshot,
   SettingsSnapshot,
-} from "@pidesk/shared";
+} from "@pi-desktop/shared";
 
-type AgentListener = (event: PiDeskAgentEvent) => void;
+type AgentListener = (event: PiDesktopAgentEvent) => void;
 
 const SESSION_ID = "mock-session";
 
@@ -282,7 +282,7 @@ export class MockAgentRuntime {
     this.currentPromptAbort = null;
   }
 
-  private emit(event: PiDeskAgentEvent): void {
+  private emit(event: PiDesktopAgentEvent): void {
     for (const listener of this.listeners) {
       listener(event);
     }

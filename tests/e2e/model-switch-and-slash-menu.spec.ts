@@ -18,14 +18,14 @@ async function addAndSelectRepository(
   const expectedRepositoryPath = repositoryPath.replace(/^\/private/, "");
 
   await page.evaluate(async (targetPath) => {
-    await window.pidesk.repositories.add(targetPath);
+    await window.piDesktop.repositories.add(targetPath);
   }, repositoryPath);
 
   await expect
     .poll(
       async () =>
         page.evaluate(async () => {
-          const shell = await window.pidesk.shell.getSnapshot();
+          const shell = await window.piDesktop.shell.getSnapshot();
           return (shell.catalog.selection.repositoryId ?? "").replace(
             /^\/private/,
             "",
@@ -68,8 +68,8 @@ function createRepository(rootPath: string) {
 
 async function getActiveThreadAndModel(page: import("@playwright/test").Page) {
   return page.evaluate(async () => {
-    const shell = await window.pidesk.shell.getSnapshot();
-    const agent = await window.pidesk.agent.getSnapshot();
+    const shell = await window.piDesktop.shell.getSnapshot();
+    const agent = await window.piDesktop.agent.getSnapshot();
 
     return {
       threadId: shell.catalog.selection.threadId,
@@ -87,13 +87,13 @@ test("switches models while idle without changing the active thread", async () =
   test.setTimeout(90_000);
 
   const repoParent = fs.mkdtempSync(
-    path.join(os.tmpdir(), "pidesk-model-switch-e2e-"),
+    path.join(os.tmpdir(), "pi-desktop-model-switch-e2e-"),
   );
   const repositoryPath = path.join(repoParent, "ModelSwitchRepo");
   createRepository(repositoryPath);
 
   const { app, page, launchContext } = await launchDesktopApp(
-    "pidesk-e2e-model-switch-",
+    "pi-desktop-e2e-model-switch-",
   );
 
   try {
@@ -181,7 +181,7 @@ test("shows project-local slash commands in prompt autocomplete", async () => {
   test.setTimeout(90_000);
 
   const repoParent = fs.mkdtempSync(
-    path.join(os.tmpdir(), "pidesk-slash-menu-e2e-"),
+    path.join(os.tmpdir(), "pi-desktop-slash-menu-e2e-"),
   );
   const repositoryPath = path.join(repoParent, "SlashMenuRepo");
   const localCommandDir = path.join(repositoryPath, ".pi", "agent", "commands");
@@ -195,7 +195,7 @@ test("shows project-local slash commands in prompt autocomplete", async () => {
   );
 
   const { app, page, launchContext } = await launchDesktopApp(
-    "pidesk-e2e-slash-menu-",
+    "pi-desktop-e2e-slash-menu-",
   );
 
   try {

@@ -28,7 +28,7 @@ test("creates, finds, and archives a thread from the flattened rail", async () =
   test.setTimeout(75_000);
 
   const { app, page, launchContext } = await launchDesktopApp(
-    "pidesk-e2e-threads-",
+    "pi-desktop-e2e-threads-",
   );
 
   try {
@@ -63,7 +63,7 @@ test("creates, finds, and archives a thread from the flattened rail", async () =
 
 test("keeps the shell to sessions rail, chat, and sidecar only", async () => {
   const { app, page, launchContext } = await launchDesktopApp(
-    "pidesk-e2e-rail-views-",
+    "pi-desktop-e2e-rail-views-",
   );
 
   try {

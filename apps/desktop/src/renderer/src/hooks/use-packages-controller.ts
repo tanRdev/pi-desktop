@@ -7,7 +7,7 @@ import type {
   PackageManagerStatus,
   PackageOperationSnapshot,
   PackageSort,
-} from "@pidesk/shared";
+} from "@pi-desktop/shared";
 import * as React from "react";
 
 export const PACKAGE_KIND_OPTIONS: PackageKind[] = [
@@ -58,7 +58,7 @@ export function usePackagesController({ open }: UsePackagesControllerOptions) {
 
     let cancelled = false;
 
-    const unsubscribe = window.pidesk.packages.subscribe((event) => {
+    const unsubscribe = window.piDesktop.packages.subscribe((event) => {
       if (cancelled) {
         return;
       }
@@ -72,14 +72,14 @@ export function usePackagesController({ open }: UsePackagesControllerOptions) {
       }
     });
 
-    void window.pidesk.packages
+    void window.piDesktop.packages
       .getManagerStatus()
       .then((nextStatus) => {
         if (!cancelled) {
           setStatus(nextStatus);
         }
       })
-      .then(() => window.pidesk.shell.getSnapshot())
+      .then(() => window.piDesktop.shell.getSnapshot())
       .then((snapshot) => {
         if (!cancelled) {
           setHasActiveWorktree(snapshot.catalog.selection.worktreeId !== null);
@@ -110,7 +110,7 @@ export function usePackagesController({ open }: UsePackagesControllerOptions) {
     setIsLoadingCatalog(true);
 
     const timer = window.setTimeout(() => {
-      void window.pidesk.packages
+      void window.piDesktop.packages
         .searchCatalog({
           query,
           sort,
@@ -164,7 +164,7 @@ export function usePackagesController({ open }: UsePackagesControllerOptions) {
     let cancelled = false;
     setIsLoadingInstalled(true);
 
-    void window.pidesk.packages
+    void window.piDesktop.packages
       .listInstalled()
       .then((nextInstalledPackages) => {
         if (!cancelled) {
@@ -200,7 +200,7 @@ export function usePackagesController({ open }: UsePackagesControllerOptions) {
     let cancelled = false;
     setIsLoadingDetail(true);
 
-    void window.pidesk.packages
+    void window.piDesktop.packages
       .getPackageDetail(selectedPackageName)
       .then((detail) => {
         if (!cancelled) {
@@ -237,7 +237,7 @@ export function usePackagesController({ open }: UsePackagesControllerOptions) {
 
   const installPackage = React.useCallback(
     async (packageName: string, scope: PackageInstallScope) => {
-      const operation = await window.pidesk.packages.install({
+      const operation = await window.piDesktop.packages.install({
         packageName,
         scope,
       });
@@ -248,7 +248,7 @@ export function usePackagesController({ open }: UsePackagesControllerOptions) {
 
   const removePackage = React.useCallback(
     async (packageName: string, scope: PackageInstallScope) => {
-      const operation = await window.pidesk.packages.remove({
+      const operation = await window.piDesktop.packages.remove({
         packageName,
         scope,
       });
@@ -259,7 +259,7 @@ export function usePackagesController({ open }: UsePackagesControllerOptions) {
 
   const updatePackage = React.useCallback(
     async (packageName: string | undefined, scope: PackageInstallScope) => {
-      const operation = await window.pidesk.packages.update({
+      const operation = await window.piDesktop.packages.update({
         packageName,
         scope,
       });

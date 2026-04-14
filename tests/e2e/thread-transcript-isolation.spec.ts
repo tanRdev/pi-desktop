@@ -11,7 +11,7 @@ async function getActiveWorktreeId(
   page: import("@playwright/test").Page,
 ): Promise<string> {
   const activeWorktreeId = await page.evaluate(async () => {
-    const shell = await window.pidesk.shell.getSnapshot();
+    const shell = await window.piDesktop.shell.getSnapshot();
     return shell.catalog.selection.worktreeId;
   });
 
@@ -27,14 +27,14 @@ async function createNamedThread(
   worktreeId: string,
 ): Promise<string> {
   const threadId = await page.evaluate(async (nextWorktreeId) => {
-    return window.pidesk.threads.create(nextWorktreeId);
+    return window.piDesktop.threads.create(nextWorktreeId);
   }, worktreeId);
 
   await expect(page.getByTestId("thread-row").first()).toBeVisible();
   await expect
     .poll(async () => {
       const shell = await page.evaluate(async () => {
-        const snapshot = await window.pidesk.shell.getSnapshot();
+        const snapshot = await window.piDesktop.shell.getSnapshot();
         return {
           threadId: snapshot.catalog.selection.threadId,
           activeThreadTitle:
@@ -55,8 +55,8 @@ async function selectThread(
   threadId: string,
 ): Promise<void> {
   const selected = await page.evaluate(async (nextThreadId) => {
-    await window.pidesk.threads.select(nextThreadId);
-    const snapshot = await window.pidesk.shell.getSnapshot();
+    await window.piDesktop.threads.select(nextThreadId);
+    const snapshot = await window.piDesktop.shell.getSnapshot();
     return snapshot.catalog.selection.threadId;
   }, threadId);
 
@@ -73,7 +73,7 @@ async function expectActiveThreadId(
     .poll(
       () =>
         page.evaluate(async () => {
-          const snapshot = await window.pidesk.shell.getSnapshot();
+          const snapshot = await window.piDesktop.shell.getSnapshot();
           return snapshot.catalog.selection.threadId;
         }),
       { timeout: 10_000 },
@@ -102,7 +102,7 @@ test("keeps transcript data isolated per thread in the desktop app", async () =>
   test.setTimeout(90_000);
 
   const { app, page, launchContext } = await launchDesktopApp(
-    "pidesk-e2e-thread-isolation-",
+    "pi-desktop-e2e-thread-isolation-",
   );
 
   const alphaPrompt = "Thread alpha only says ALPHA-THREAD-DATA";

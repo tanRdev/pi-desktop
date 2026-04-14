@@ -8,16 +8,16 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src/renderer/src", import.meta.url)),
-      "@pidesk/shared": fileURLToPath(
+      "@pi-desktop/shared": fileURLToPath(
         new URL("../../packages/shared/src/index.ts", import.meta.url),
       ),
-      "@pidesk/shared/*": fileURLToPath(
+      "@pi-desktop/shared/*": fileURLToPath(
         new URL("../../packages/shared/src", import.meta.url),
       ),
-      "@pidesk/ui": fileURLToPath(
+      "@pi-desktop/ui": fileURLToPath(
         new URL("../../packages/ui/src/index.ts", import.meta.url),
       ),
-      "@pidesk/ui/*": fileURLToPath(
+      "@pi-desktop/ui/*": fileURLToPath(
         new URL("../../packages/ui/src", import.meta.url),
       ),
     },

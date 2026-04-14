@@ -6,5 +6,5 @@ declare module "*?modulePath" {
 }
 
 interface Window {
-  pidesk: import("@pidesk/shared").PiDeskApi;
+  piDesktop: import("@pi-desktop/shared").PiDesktopApi;
 }

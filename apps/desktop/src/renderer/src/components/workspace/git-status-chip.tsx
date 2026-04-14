@@ -1,4 +1,4 @@
-import type { WorktreeGitSnapshot } from "@pidesk/shared";
+import type { WorktreeGitSnapshot } from "@pi-desktop/shared";
 import {
   ArrowDown,
   ArrowUp,

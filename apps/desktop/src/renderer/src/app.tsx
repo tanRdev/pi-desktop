@@ -1,5 +1,5 @@
 import { IconContext } from "@phosphor-icons/react";
-import { TooltipProvider } from "@pidesk/ui";
+import { TooltipProvider } from "@pi-desktop/ui";
 import * as React from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
@@ -17,7 +17,7 @@ import { WorkspaceSwitchLoader } from "./components/ui/workspace-switch-loader";
 import { WorkspaceShell } from "./components/workspace/workspace-shell";
 import { useAppShellController } from "./hooks/use-app-shell-controller";
 
-const WORKSPACE_SWITCH_STATE_KEY = "pidesk.workspace-switch-state";
+const WORKSPACE_SWITCH_STATE_KEY = "pi-desktop.workspace-switch-state";
 const WORKSPACE_SWITCH_MIN_VISIBLE_MS = 600;
 
 type WorkspaceSwitchState = {

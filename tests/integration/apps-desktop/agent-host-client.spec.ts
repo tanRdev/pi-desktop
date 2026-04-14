@@ -3,7 +3,7 @@ import { createAgentHostClient } from "../../../apps/desktop/src/main/agent-host
 import type {
   AgentSnapshot,
   ModelSwitchRequest,
-  PiDeskAgentEvent,
+  PiDesktopAgentEvent,
 } from "../../../packages/shared/src";
 
 type MessageListener = (message: unknown) => void;
@@ -172,8 +172,8 @@ describe("createAgentHostClient", () => {
   it("forwards agent events to subscribers", () => {
     const child = new FakeUtilityProcess();
     const client = createAgentHostClient(child);
-    const listener = vi.fn<(event: PiDeskAgentEvent) => void>();
-    const event: PiDeskAgentEvent = {
+    const listener = vi.fn<(event: PiDesktopAgentEvent) => void>();
+    const event: PiDesktopAgentEvent = {
       type: "message_update",
       messageId: "assistant-1",
       role: "assistant",

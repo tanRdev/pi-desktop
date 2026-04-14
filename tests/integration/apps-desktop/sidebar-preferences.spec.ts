@@ -18,23 +18,23 @@ describe("sidebar preference helpers", () => {
   });
 
   it("readLegacyLeftSidebarWidth returns null when localStorage value is missing", () => {
-    localStorage.removeItem("pidesk.leftSidebarWidth");
+    localStorage.removeItem("pi-desktop.leftSidebarWidth");
     expect(readLegacyLeftSidebarWidth()).toBeNull();
   });
 
   it("readLegacyLeftSidebarWidth returns null when localStorage value is invalid", () => {
-    localStorage.setItem("pidesk.leftSidebarWidth", "not-a-number");
+    localStorage.setItem("pi-desktop.leftSidebarWidth", "not-a-number");
     expect(readLegacyLeftSidebarWidth()).toBeNull();
   });
 
   it("readLegacyLeftSidebarWidth returns a clamped width for valid legacy values", () => {
-    localStorage.setItem("pidesk.leftSidebarWidth", "100");
+    localStorage.setItem("pi-desktop.leftSidebarWidth", "100");
     expect(readLegacyLeftSidebarWidth()).toBe(140);
 
-    localStorage.setItem("pidesk.leftSidebarWidth", "250");
+    localStorage.setItem("pi-desktop.leftSidebarWidth", "250");
     expect(readLegacyLeftSidebarWidth()).toBe(250);
 
-    localStorage.setItem("pidesk.leftSidebarWidth", "1000");
+    localStorage.setItem("pi-desktop.leftSidebarWidth", "1000");
     expect(readLegacyLeftSidebarWidth()).toBe(400);
   });
 });

@@ -3,7 +3,7 @@ import {
   createEmptyWorkspaceSession,
   type WorkspaceSession,
   type WorkspaceWindow,
-} from "@pidesk/shared";
+} from "@pi-desktop/shared";
 import { PersistentJsonFile } from "./persistent-json-file";
 
 type WorkspaceSessionDocument = {

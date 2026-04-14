@@ -9,12 +9,12 @@
   },
   "scripts": {
     "build": "bun run --workspaces build",
-    "dev": "bun run --parallel --filter @pidesk/shared --filter @pidesk/agent-host --filter @pidesk/desktop dev",
+    "dev": "bun run --parallel --filter @pi-desktop/shared --filter @pi-desktop/agent-host --filter @pi-desktop/desktop dev",
     "format": "biome check --write .",
     "lint": "biome check .",
     "slop": "slop-scan scan . --lint",
     "test": "bun x vitest run --config vitest.workspace.ts",
-    "test:e2e": "bun run --filter @pidesk/desktop build && playwright test",
+    "test:e2e": "bun run --filter @pi-desktop/desktop build && playwright test",
     "typecheck": "bun run --workspaces typecheck"
   },
   "devDependencies": {

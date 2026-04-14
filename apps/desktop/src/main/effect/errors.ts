@@ -1,12 +1,12 @@
 import { Data, Effect } from "effect";
 
 // Base error class for PiDesk errors
-export class PiDeskError extends Data.TaggedError("PiDeskError")<{
+export class PiDesktopError extends Data.TaggedError("PiDesktopError")<{
   readonly message: string;
   readonly cause?: unknown;
 }> {
   override toString() {
-    return `PiDeskError: ${this.message}${this.cause ? ` (caused by: ${this.cause})` : ""}`;
+    return `PiDesktopError: ${this.message}${this.cause ? ` (caused by: ${this.cause})` : ""}`;
   }
 }
 
@@ -38,18 +38,18 @@ export class IPCError extends Data.TaggedError("IPCError")<{
   readonly cause?: unknown;
 }> {}
 
-// Helper to wrap unknown errors into PiDeskError
+// Helper to wrap unknown errors into PiDesktopError
 export const fromUnknownError = (
   error: unknown,
   context?: string,
-): PiDeskError => {
+): PiDesktopError => {
   const message = context
     ? `${context}: ${error instanceof Error ? error.message : String(error)}`
     : error instanceof Error
       ? error.message
       : String(error);
 
-  return new PiDeskError({ message, cause: error });
+  return new PiDesktopError({ message, cause: error });
 };
 
 // Helper to wrap async operations with error handling - generic version

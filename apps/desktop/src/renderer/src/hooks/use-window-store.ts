@@ -3,8 +3,8 @@
  * Provides reactive access to the active worktree's layout state.
  */
 
-import type { WindowLayoutState, WorkspaceWindow } from "@pidesk/shared";
-import { getActiveWorktree } from "@pidesk/shared";
+import type { WindowLayoutState, WorkspaceWindow } from "@pi-desktop/shared";
+import { getActiveWorktree } from "@pi-desktop/shared";
 import { useSyncExternalStore } from "react";
 import {
   type AppShellStoreState,
@@ -31,9 +31,9 @@ const FALLBACK_LAYOUT: WindowLayoutState = {
 
 const workspaceSessionStore = createWorkspaceSessionStore({
   getWorkspaceSession: (worktreeId) =>
-    window.pidesk.state.getWorkspaceSession(worktreeId),
+    window.piDesktop.state.getWorkspaceSession(worktreeId),
   saveWorkspaceSession: (session) =>
-    window.pidesk.state.saveWorkspaceSession(session),
+    window.piDesktop.state.saveWorkspaceSession(session),
 });
 
 export interface WindowStoreState {

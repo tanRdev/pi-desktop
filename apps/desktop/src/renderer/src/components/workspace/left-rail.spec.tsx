@@ -1,4 +1,4 @@
-import type { RepositorySnapshot } from "@pidesk/shared";
+import type { RepositorySnapshot } from "@pi-desktop/shared";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ComponentProps } from "react";

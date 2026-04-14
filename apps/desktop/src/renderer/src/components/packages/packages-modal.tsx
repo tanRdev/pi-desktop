@@ -349,7 +349,7 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
                             return;
                           }
 
-                          void window.pidesk.dialog.openExternal(
+                          void window.piDesktop.dialog.openExternal(
                             packageDetail.npmUrl,
                           );
                         }}
@@ -369,7 +369,7 @@ export function PackagesModal({ open, onOpenChange }: PackagesModalProps) {
                               return;
                             }
 
-                            void window.pidesk.dialog.openExternal(
+                            void window.piDesktop.dialog.openExternal(
                               packageDetail.repositoryUrl,
                             );
                           }}

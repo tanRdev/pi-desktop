@@ -1,8 +1,8 @@
 import type {
   AgentMessageSnapshot,
   AgentSnapshot,
-  PiDeskAgentEvent,
-} from "@pidesk/shared";
+  PiDesktopAgentEvent,
+} from "@pi-desktop/shared";
 
 export interface AgentLiveTurn {
   id: string;
@@ -28,7 +28,7 @@ export interface AgentLiveTool {
 
 export interface AgentActivityItem {
   id: string;
-  type: PiDeskAgentEvent["type"];
+  type: PiDesktopAgentEvent["type"];
   timestamp: number;
   turnId: string | null;
   messageId?: string;
@@ -66,7 +66,7 @@ function createTurn(id: string, startedAt: number): AgentLiveTurn {
 
 function addActivity(
   feed: AgentLiveFeed,
-  event: PiDeskAgentEvent,
+  event: PiDesktopAgentEvent,
   timestamp: number,
   turnId: string | null,
 ): AgentLiveFeed {
@@ -201,7 +201,7 @@ export function createAgentLiveFeedFromSnapshot(
 
 export function applyLiveAgentEvent(
   snapshot: AgentLiveFeed,
-  event: PiDeskAgentEvent,
+  event: PiDesktopAgentEvent,
   receivedAt: number,
 ): AgentLiveFeed {
   const timestamp = "timestamp" in event ? event.timestamp : receivedAt;
@@ -400,7 +400,7 @@ function createToolMessageId(toolName: string, toolCallId: string): string {
 function createToolMessage(
   snapshot: AgentSnapshot,
   event: Extract<
-    PiDeskAgentEvent,
+    PiDesktopAgentEvent,
     | { type: "tool_execution_start" }
     | { type: "tool_execution_update" }
     | { type: "tool_execution_end" }
@@ -439,7 +439,7 @@ function createToolMessage(
 
 export function applyAgentEvent(
   snapshot: AgentSnapshot,
-  event: PiDeskAgentEvent,
+  event: PiDesktopAgentEvent,
 ): AgentSnapshot {
   switch (event.type) {
     case "agent_start":

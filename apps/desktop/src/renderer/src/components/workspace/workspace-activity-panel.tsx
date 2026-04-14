@@ -1,5 +1,5 @@
-import type { ThreadRuntimeStatus } from "@pidesk/shared";
-import type { AgentLiveFeed } from "@pidesk/shell-model";
+import type { ThreadRuntimeStatus } from "@pi-desktop/shared";
+import type { AgentLiveFeed } from "@pi-desktop/shell-model";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { RuntimeStatusChip } from "./runtime-status-chip";

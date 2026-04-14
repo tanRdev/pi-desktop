@@ -5,7 +5,7 @@ import {
   Plus,
   Spinner,
 } from "@phosphor-icons/react";
-import type { WorktreeSnapshot } from "@pidesk/shared";
+import type { WorktreeSnapshot } from "@pi-desktop/shared";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { ThreadListItem } from "./thread-list-item";

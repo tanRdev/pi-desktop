@@ -1,6 +1,6 @@
 import type { AgentSessionEvent } from "@mariozechner/pi-coding-agent";
 
-import type { AgentMessageRole, PiDeskAgentEvent } from "@pidesk/shared";
+import type { AgentMessageRole, PiDesktopAgentEvent } from "@pi-desktop/shared";
 
 function isStructuredMessage(value: unknown): value is {
   role: string;
@@ -55,7 +55,7 @@ function getMessageId(value: unknown): string | null {
 
 export function normalizeAgentSessionEvent(
   event: AgentSessionEvent,
-): PiDeskAgentEvent | null {
+): PiDesktopAgentEvent | null {
   switch (event.type) {
     case "agent_start":
       return { type: "agent_start" };

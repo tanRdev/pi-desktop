@@ -9,7 +9,7 @@ describe("createAgentRuntime", () => {
   it("creates the mock runtime when mock mode is requested", () => {
     const runtime = createAgentRuntime({
       mode: "mock",
-      cwd: "/tmp/pidesk-workspace",
+      cwd: "/tmp/pi-desktop-workspace",
     });
 
     expect(runtime).toBeInstanceOf(MockAgentRuntime);
@@ -18,7 +18,7 @@ describe("createAgentRuntime", () => {
   it("creates the Pi SDK runtime when sdk mode is requested", () => {
     const runtime = createAgentRuntime({
       mode: "sdk",
-      cwd: "/tmp/pidesk-workspace",
+      cwd: "/tmp/pi-desktop-workspace",
       createAgentSession: vi.fn(),
     });
 
@@ -28,8 +28,8 @@ describe("createAgentRuntime", () => {
   it("creates the Pi CLI RPC runtime when cli mode is requested", () => {
     const runtime = createAgentRuntime({
       mode: "cli",
-      cwd: "/tmp/pidesk-workspace",
-      agentDir: "/tmp/pidesk-workspace/.pi/agent",
+      cwd: "/tmp/pi-desktop-workspace",
+      agentDir: "/tmp/pi-desktop-workspace/.pi/agent",
     });
 
     expect(runtime).toBeInstanceOf(PiCliRpcAgentRuntime);

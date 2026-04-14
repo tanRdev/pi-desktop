@@ -1,5 +1,5 @@
 {
-  "name": "@pidesk/ui",
+  "name": "@pi-desktop/ui",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -10,7 +10,6 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./styles/pidesk-shell.css": "./src/styles/pidesk-shell.css",
     "./styles/pi-desktop-shell.css": "./src/styles/pi-desktop-shell.css"
   },
   "scripts": {

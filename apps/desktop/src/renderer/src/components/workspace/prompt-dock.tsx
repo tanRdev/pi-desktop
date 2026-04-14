@@ -2,13 +2,13 @@ import type {
   MentionSuggestion,
   ProviderSnapshot,
   SlashSuggestion,
-} from "@pidesk/shared";
+} from "@pi-desktop/shared";
 import {
   PromptInput,
   PromptInputAction,
   PromptInputActions,
   PromptInputTextarea,
-} from "@pidesk/ui";
+} from "@pi-desktop/ui";
 import * as React from "react";
 import {
   ArrowUp,
@@ -165,7 +165,7 @@ export function PromptDock({
   }, [isPromptExecuting, onCancelPrompt, onSend]);
 
   const handlePickFiles = React.useCallback(async () => {
-    const selectedPaths = await window.pidesk.dialog.showOpenDialog({
+    const selectedPaths = await window.piDesktop.dialog.showOpenDialog({
       properties: ["openFile", "multiSelections"],
       title: "Attach files to prompt",
     });

@@ -4,15 +4,15 @@ import path from "node:path";
 import type {
   AgentHostEnvelope,
   AgentHostRequest,
-  PiDeskAgentEvent,
-} from "@pidesk/shared";
+  PiDesktopAgentEvent,
+} from "@pi-desktop/shared";
 import {
   type CommandHandlerRuntime,
   createAgentHostCommandHandler,
 } from "../utility-process/command-handler.js";
 
 export interface SocketAgentHostRuntime extends CommandHandlerRuntime {
-  subscribe(listener: (event: PiDeskAgentEvent) => void): () => void;
+  subscribe(listener: (event: PiDesktopAgentEvent) => void): () => void;
 }
 
 export interface StartAgentHostSocketServerOptions {

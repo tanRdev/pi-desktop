@@ -19,14 +19,14 @@
     "types": ["node"],
     "baseUrl": ".",
     "paths": {
-      "@pidesk/shared": ["packages/shared/src/index.ts"],
-      "@pidesk/shared/*": ["packages/shared/src/*"],
-      "@pidesk/agent-host": ["packages/agent-host/src/index.ts"],
-      "@pidesk/agent-host/*": ["packages/agent-host/src/*"],
-      "@pidesk/shell-model": ["packages/shell-model/src/index.ts"],
-      "@pidesk/shell-model/*": ["packages/shell-model/src/*"],
-      "@pidesk/ui": ["packages/ui/src/index.ts"],
-      "@pidesk/ui/*": ["packages/ui/src/*"]
+      "@pi-desktop/shared": ["packages/shared/src/index.ts"],
+      "@pi-desktop/shared/*": ["packages/shared/src/*"],
+      "@pi-desktop/agent-host": ["packages/agent-host/src/index.ts"],
+      "@pi-desktop/agent-host/*": ["packages/agent-host/src/*"],
+      "@pi-desktop/shell-model": ["packages/shell-model/src/index.ts"],
+      "@pi-desktop/shell-model/*": ["packages/shell-model/src/*"],
+      "@pi-desktop/ui": ["packages/ui/src/index.ts"],
+      "@pi-desktop/ui/*": ["packages/ui/src/*"]
     }
   }
 }

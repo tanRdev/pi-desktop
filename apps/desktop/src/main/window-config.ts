@@ -18,21 +18,21 @@ export interface RendererTarget {
 export function shouldShowMainWindow(
   env: Record<string, string | undefined>,
 ): boolean {
-  return env.PIDESK_HEADLESS !== "1";
+  return env.PI_DESKTOP_HEADLESS !== "1";
 }
 
 export function shouldQuitWhenAllWindowsClosed(
   env: Record<string, string | undefined>,
   platform: NodeJS.Platform,
 ): boolean {
-  return platform !== "darwin" || env.PIDESK_HEADLESS === "1";
+  return platform !== "darwin" || env.PI_DESKTOP_HEADLESS === "1";
 }
 
 export function shouldOpenDevTools(
   env: Record<string, string | undefined>,
   isPackaged: boolean,
 ): boolean {
-  return !isPackaged && env.NODE_ENV !== "test" && env.PIDESK_HEADLESS !== "1";
+  return !isPackaged && env.NODE_ENV !== "test" && env.PI_DESKTOP_HEADLESS !== "1";
 }
 
 export function shouldDeferWindowShowUntilReady(options: {

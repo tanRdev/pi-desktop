@@ -7,15 +7,13 @@ import { createAgentHostSocketTransport } from "../../../apps/desktop/src/main/a
 import { startAgentHostSocketServer } from "../../../packages/agent-host/src/session-server/socket-bridge";
 import type {
   AgentSnapshot,
-  PiDeskAgentEvent,
+  PiDesktopAgentEvent,
 } from "../../../packages/shared/src";
 
 const tempDirs: string[] = [];
 
 function createSocketPath(): string {
-  const directory = fs.mkdtempSync(
-    path.join(os.tmpdir(), "pidesk-agent-socket-transport-"),
-  );
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "pd-st-"));
   tempDirs.push(directory);
   return path.join(directory, "agent-host.sock");
 }
@@ -34,7 +32,7 @@ describe("createAgentHostSocketTransport", () => {
       messages: [],
       lastError: null,
     };
-    let eventListener: ((event: PiDeskAgentEvent) => void) | undefined;
+    let eventListener: ((event: PiDesktopAgentEvent) => void) | undefined;
     const server = await startAgentHostSocketServer({
       socketPath: createSocketPath(),
       runtime: {
@@ -56,7 +54,7 @@ describe("createAgentHostSocketTransport", () => {
     const transport = createAgentHostSocketTransport(server.socketPath);
     await transport.connect();
     const client = createAgentHostClient(transport);
-    const received: PiDeskAgentEvent[] = [];
+    const received: PiDesktopAgentEvent[] = [];
     client.subscribe((event) => {
       received.push(event);
     });

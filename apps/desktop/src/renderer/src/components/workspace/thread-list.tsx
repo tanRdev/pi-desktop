@@ -1,5 +1,5 @@
 import { ChatText, Plus } from "@phosphor-icons/react";
-import type { ThreadSnapshot } from "@pidesk/shared";
+import type { ThreadSnapshot } from "@pi-desktop/shared";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { RuntimeStatusChip } from "./runtime-status-chip";

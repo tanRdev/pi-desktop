@@ -1,10 +1,10 @@
-import type { RepositorySnapshot, ThreadSnapshot } from "@pidesk/shared";
+import type { RepositorySnapshot, ThreadSnapshot } from "@pi-desktop/shared";
 import * as React from "react";
 import {
   Archive,
   Copy,
   Folder,
-  Pi,
+  ChatsCircle,
   Plus,
   SidebarSimple,
   Trash,
@@ -359,7 +359,7 @@ export function LeftRail({
           {/* Sessions */}
           <ThreadCategorySection
             label="Sessions"
-            icon={Pi}
+            icon={ChatsCircle}
             onAction={() => {
               void handleCreateThread();
             }}

@@ -7,7 +7,7 @@ import { SelectionState } from "../../../apps/desktop/src/main/selection-state";
 const tempDirs: string[] = [];
 
 function createUserDataPath(): string {
-  const directory = mkdtempSync(path.join(tmpdir(), "pidesk-selection-state-"));
+  const directory = mkdtempSync(path.join(tmpdir(), "pi-desktop-selection-state-"));
   tempDirs.push(directory);
   return directory;
 }

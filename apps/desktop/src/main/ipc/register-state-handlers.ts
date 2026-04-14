@@ -5,7 +5,7 @@ import {
   type RepositoryDisplayMetadata,
   type RepositoryPreferences,
   type WorkspaceSession,
-} from "@pidesk/shared";
+} from "@pi-desktop/shared";
 import type { RegisterIpcHandlersDependencies } from "../ipc-router";
 import { sanitizeWorkspaceSession } from "../workspace-session-catalog";
 import { getNumberField, getStringField } from "./payload-parsers";

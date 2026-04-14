@@ -83,4 +83,4 @@ export const DEFAULT_AI_PREFERENCES = {
   model: "",
 };
 
-export const STORAGE_KEY = "pidesk-settings";
+export const STORAGE_KEY = "pi-desktop-settings";

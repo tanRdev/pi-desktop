@@ -1,4 +1,4 @@
-import type { MentionSuggestion, SearchMatch } from "@pidesk/shared";
+import type { MentionSuggestion, SearchMatch } from "@pi-desktop/shared";
 
 export type PromptAutocompleteTrigger = "/" | "@";
 

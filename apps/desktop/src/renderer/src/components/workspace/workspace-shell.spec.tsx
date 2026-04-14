@@ -132,7 +132,7 @@ function createWorkspaceShellProps(
 }
 
 beforeEach(() => {
-  Object.defineProperty(window, "pidesk", {
+  Object.defineProperty(window, "piDesktop", {
     configurable: true,
     value: {
       window: {

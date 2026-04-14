@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import {
-  type CreatePiDeskApiDependencies,
-  createPiDeskApi,
+  type CreatePiDesktopApiDependencies,
+  createPiDesktopApi,
   type PreloadInvoke,
   type PreloadOn,
 } from "../../../apps/desktop/src/preload/api";
@@ -10,13 +10,13 @@ import {
   createEmptyWorkspaceSession,
   IPC_CHANNELS,
   type PackageManagerStatus,
-  type PiDeskAgentEvent,
+  type PiDesktopAgentEvent,
   type RepositoryPreferences,
   type ShellSnapshot,
 } from "../../../packages/shared/src";
 import type { AppPreferences } from "../../../packages/shared/src/models/workspace-session";
 
-describe("createPiDeskApi", () => {
+describe("createPiDesktopApi", () => {
   it("invokes typed shell and agent channels", async () => {
     const shellSnapshot: ShellSnapshot = {
       appName: "Pi Desktop",
@@ -27,37 +27,37 @@ describe("createPiDeskApi", () => {
       runtime: {
         agentMode: "mock",
         electronVersion: "41.0.1",
-        agentDirectory: "/tmp/pidesk/.pidesk-agent",
+        agentDirectory: "/tmp/pi-desktop/.pi-desktop-agent",
       },
       workspace: {
-        rootPath: "/tmp/pidesk",
-        agentDirectory: "/tmp/pidesk/.pidesk-agent",
+        rootPath: "/tmp/pi-desktop",
+        agentDirectory: "/tmp/pi-desktop/.pi-desktop-agent",
         projects: [
           {
-            id: "/tmp/pidesk",
-            name: "pidesk",
-            path: "/tmp/pidesk",
+            id: "/tmp/pi-desktop",
+            name: "pi-desktop",
+            path: "/tmp/pi-desktop",
             isActive: true,
           },
         ],
       },
       catalog: {
         selection: {
-          repositoryId: "/tmp/pidesk",
-          worktreeId: "/tmp/pidesk",
+          repositoryId: "/tmp/pi-desktop",
+          worktreeId: "/tmp/pi-desktop",
           threadId: "default-thread",
         },
         repositories: [
           {
-            id: "/tmp/pidesk",
-            name: "pidesk",
-            rootPath: "/tmp/pidesk",
+            id: "/tmp/pi-desktop",
+            name: "pi-desktop",
+            rootPath: "/tmp/pi-desktop",
             defaultBranch: "main",
             worktrees: [
               {
-                id: "/tmp/pidesk",
+                id: "/tmp/pi-desktop",
                 label: "main",
-                path: "/tmp/pidesk",
+                path: "/tmp/pi-desktop",
                 isMain: true,
                 isDetached: false,
                 git: {
@@ -122,10 +122,10 @@ describe("createPiDeskApi", () => {
       return undefined as TReturn;
     };
 
-    const api: ReturnType<typeof createPiDeskApi> = createPiDeskApi({
+    const api: ReturnType<typeof createPiDesktopApi> = createPiDesktopApi({
       invoke,
       on: () => () => undefined,
-    } satisfies CreatePiDeskApiDependencies);
+    } satisfies CreatePiDesktopApiDependencies);
 
     await expect(api.shell.getSnapshot()).resolves.toEqual(shellSnapshot);
     await expect(api.agent.getSnapshot()).resolves.toEqual(agentSnapshot);
@@ -135,7 +135,7 @@ describe("createPiDeskApi", () => {
   });
 
   it("subscribes to agent events and returns an unsubscribe callback", () => {
-    const event: PiDeskAgentEvent = {
+    const event: PiDesktopAgentEvent = {
       type: "message_update",
       messageId: "assistant-1",
       role: "assistant",
@@ -157,7 +157,7 @@ describe("createPiDeskApi", () => {
 
     const invoke: PreloadInvoke = async <TReturn>() => undefined as TReturn;
 
-    const api = createPiDeskApi({
+    const api = createPiDesktopApi({
       invoke,
       on,
     });
@@ -184,7 +184,7 @@ describe("createPiDeskApi", () => {
       return undefined as TReturn;
     };
 
-    const api = createPiDeskApi({
+    const api = createPiDesktopApi({
       invoke,
       on: () => () => undefined,
     });
@@ -209,7 +209,7 @@ describe("createPiDeskApi", () => {
       return undefined as TReturn;
     };
 
-    const api = createPiDeskApi({
+    const api = createPiDesktopApi({
       invoke,
       on: () => () => undefined,
     });
@@ -235,7 +235,7 @@ describe("createPiDeskApi", () => {
       return undefined as TReturn;
     };
 
-    const api = createPiDeskApi({
+    const api = createPiDesktopApi({
       invoke,
       on: () => () => undefined,
     });
@@ -329,7 +329,7 @@ describe("createPiDeskApi", () => {
       return undefined as TReturn;
     };
 
-    const api = createPiDeskApi({
+    const api = createPiDesktopApi({
       invoke,
       on: () => () => undefined,
     });
@@ -483,7 +483,7 @@ describe("createPiDeskApi", () => {
       return off;
     };
 
-    const api = createPiDeskApi({ invoke, on });
+    const api = createPiDesktopApi({ invoke, on });
 
     await expect(api.packages.getManagerStatus()).resolves.toEqual(
       managerStatus,

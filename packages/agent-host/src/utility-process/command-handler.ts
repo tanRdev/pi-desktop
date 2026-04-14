@@ -5,7 +5,7 @@ import type {
   ModelSwitchRequest,
   ProviderSnapshot,
   SettingsSnapshot,
-} from "@pidesk/shared";
+} from "@pi-desktop/shared";
 
 export interface CommandHandlerRuntime {
   bootstrap(): Promise<void>;

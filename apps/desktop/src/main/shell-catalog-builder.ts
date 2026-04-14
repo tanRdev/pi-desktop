@@ -8,7 +8,7 @@ import {
   type TerminalWindow,
   type ThreadSnapshot,
   type WorkspaceSession,
-} from "@pidesk/shared";
+} from "@pi-desktop/shared";
 import type {
   GitRepositoryInspection,
   GitWorktreeSummary,

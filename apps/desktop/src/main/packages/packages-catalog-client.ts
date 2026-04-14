@@ -4,7 +4,7 @@ import type {
   PackageKind,
   PackageSearchRequest,
   PackageSearchResponse,
-} from "@pidesk/shared";
+} from "@pi-desktop/shared";
 
 const SEARCH_API = "https://registry.npmjs.org/-/v1/search";
 const MANIFEST_API = "https://registry.npmjs.org";

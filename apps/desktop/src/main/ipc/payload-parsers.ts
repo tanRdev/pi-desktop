@@ -1,4 +1,4 @@
-import type { SearchRequest, TerminalCreateOptions } from "@pidesk/shared";
+import type { SearchRequest, TerminalCreateOptions } from "@pi-desktop/shared";
 import type { OpenDialogOptions } from "electron";
 
 function isPayloadRecord(value: unknown): value is Record<string, unknown> {

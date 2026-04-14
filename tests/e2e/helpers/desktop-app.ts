@@ -106,7 +106,7 @@ export function createLaunchContext(
   const homeDir =
     options?.homeDir ?? fs.mkdtempSync(path.join(os.tmpdir(), prefix));
   const userDataDir =
-    options?.userDataDir ?? path.join(homeDir, ".pidesk-test-user-data");
+    options?.userDataDir ?? path.join(homeDir, ".pi-desktop-test-user-data");
 
   fs.mkdirSync(userDataDir, { recursive: true });
 
@@ -185,9 +185,9 @@ export async function launchDesktopApp(
       ELECTRON_RENDERER_URL: "",
       HOME: launchContext.homeDir,
       NODE_ENV: "test",
-      PIDESK_AGENT_MODE: options?.agentMode ?? "mock",
-      PIDESK_HEADLESS: "1",
-      PIDESK_USER_DATA_DIR: launchContext.userDataDir,
+      PI_DESKTOP_AGENT_MODE: options?.agentMode ?? "mock",
+      PI_DESKTOP_HEADLESS: "1",
+      PI_DESKTOP_USER_DATA_DIR: launchContext.userDataDir,
     },
   });
 

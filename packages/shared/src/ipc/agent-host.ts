@@ -70,7 +70,7 @@ export type AgentHostResponse =
 export type AgentHostEnvelope =
   | {
       type: "event";
-      event: import("../models/agent.js").PiDeskAgentEvent;
+      event: import("../models/agent.js").PiDesktopAgentEvent;
     }
   | {
       type: "response";

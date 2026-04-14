@@ -9,8 +9,8 @@ import {
 
 async function getModelState(page: import("@playwright/test").Page) {
   return page.evaluate(async () => {
-    const shell = await window.pidesk.shell.getSnapshot();
-    const agent = await window.pidesk.agent.getSnapshot();
+    const shell = await window.piDesktop.shell.getSnapshot();
+    const agent = await window.piDesktop.agent.getSnapshot();
 
     return {
       shellSelectionThreadId: shell.catalog.selection.threadId,
@@ -26,7 +26,7 @@ test("reproduces model selector behavior in cli mode", async () => {
   test.setTimeout(120_000);
 
   const { app, page, launchContext } = await launchDesktopApp(
-    "pidesk-e2e-model-switch-cli-",
+    "pi-desktop-e2e-model-switch-cli-",
     {
       agentMode: "cli",
     },

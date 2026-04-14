@@ -34,7 +34,7 @@ function initRepository(
   name: string,
   options: { withRemoteHead?: boolean } = {},
 ) {
-  const sandbox = createTempDir(`pidesk-git-${name}-`);
+  const sandbox = createTempDir(`pi-desktop-git-${name}-`);
   const repoRoot = path.join(sandbox, name);
   fs.mkdirSync(repoRoot, { recursive: true });
   runGit(sandbox, ["init", "-b", "main", repoRoot]);
@@ -68,7 +68,7 @@ afterEach(() => {
 describe("GitWorktreeService", () => {
   it("returns not_repo for directories outside git repositories", () => {
     const service = new GitWorktreeService();
-    const nonRepoDir = createTempDir("pidesk-non-repo-");
+    const nonRepoDir = createTempDir("pi-desktop-non-repo-");
 
     expect(service.inspect(nonRepoDir)).toEqual({
       status: "not_repo",

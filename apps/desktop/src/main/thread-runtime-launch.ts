@@ -1,5 +1,5 @@
 import path from "node:path";
-import type { CreateAgentRuntimeOptions } from "@pidesk/agent-host";
+import type { CreateAgentRuntimeOptions } from "@pi-desktop/agent-host";
 
 type AgentRuntimeMode = CreateAgentRuntimeOptions["mode"];
 
@@ -58,10 +58,10 @@ export function createThreadRuntimeLaunchDetails({
     command: [
       "env",
       "ELECTRON_RUN_AS_NODE=1",
-      `PIDESK_AGENT_SOCKET_PATH=${socketPath}`,
-      `PIDESK_AGENT_MODE=${mode}`,
-      `PIDESK_AGENT_CWD=${worktreePath}`,
-      `PIDESK_AGENT_DIR=${runtimeAgentDirectory}`,
+      `PI_DESKTOP_AGENT_SOCKET_PATH=${socketPath}`,
+      `PI_DESKTOP_AGENT_MODE=${mode}`,
+      `PI_DESKTOP_AGENT_CWD=${worktreePath}`,
+      `PI_DESKTOP_AGENT_DIR=${runtimeAgentDirectory}`,
       ...(nodeEnv ? [`NODE_ENV=${nodeEnv}`] : []),
       execPath,
       sessionServerEntryPath,

@@ -120,7 +120,7 @@ const INITIAL_COMPONENTS: Partial<Components> = {
           }
 
           event.preventDefault();
-          void window.pidesk.dialog.openExternal(href);
+          void window.piDesktop.dialog.openExternal(href);
         }}
         className={cn(
           "text-sm text-blue-400/80 underline underline-offset-4 decoration-blue-400/30",

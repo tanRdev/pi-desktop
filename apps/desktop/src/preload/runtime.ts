@@ -1,19 +1,19 @@
-import { type CreatePiDeskApiDependencies, createPiDeskApi } from "./api";
+import { type CreatePiDesktopApiDependencies, createPiDesktopApi } from "./api";
 
-export interface RegisterPiDeskApiDependencies
-  extends CreatePiDeskApiDependencies {
-  exposeInMainWorld(key: string, api: ReturnType<typeof createPiDeskApi>): void;
+export interface RegisterPiDesktopApiDependencies
+  extends CreatePiDesktopApiDependencies {
+  exposeInMainWorld(key: string, api: ReturnType<typeof createPiDesktopApi>): void;
 }
 
 export interface ElectronPreloadBindings {
   contextBridge: {
     exposeInMainWorld(
       key: string,
-      api: ReturnType<typeof createPiDeskApi>,
+      api: ReturnType<typeof createPiDesktopApi>,
     ): void;
   };
   ipcRenderer: {
-    invoke: CreatePiDeskApiDependencies["invoke"];
+    invoke: CreatePiDesktopApiDependencies["invoke"];
     on(
       channel: string,
       listener: (event: unknown, payload: unknown) => void,
@@ -25,19 +25,19 @@ export interface ElectronPreloadBindings {
   };
 }
 
-export function registerPiDeskApi({
+export function registerPiDesktopApi({
   exposeInMainWorld,
   invoke,
   on,
-}: RegisterPiDeskApiDependencies): void {
-  exposeInMainWorld("pidesk", createPiDeskApi({ invoke, on }));
+}: RegisterPiDesktopApiDependencies): void {
+  exposeInMainWorld("piDesktop", createPiDesktopApi({ invoke, on }));
 }
 
-export function registerPiDeskApiFromElectron({
+export function registerPiDesktopApiFromElectron({
   contextBridge,
   ipcRenderer,
 }: ElectronPreloadBindings): void {
-  registerPiDeskApi({
+  registerPiDesktopApi({
     exposeInMainWorld: contextBridge.exposeInMainWorld.bind(contextBridge),
     invoke: (channel, payload) => ipcRenderer.invoke(channel, payload),
     on: (channel, listener) => {
@@ -61,7 +61,7 @@ async function bootstrapPreload(): Promise<void> {
 
   const electronModule = require("electron") as ElectronPreloadBindings;
 
-  registerPiDeskApiFromElectron(electronModule);
+  registerPiDesktopApiFromElectron(electronModule);
 }
 
 void bootstrapPreload();

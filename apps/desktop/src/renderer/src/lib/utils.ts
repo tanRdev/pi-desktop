@@ -1,4 +1,4 @@
-// Re-exported from @pidesk/ui — kept locally for @/ alias convenience
+// Re-exported from @pi-desktop/ui — kept locally for @/ alias convenience
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 

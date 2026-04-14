@@ -1,12 +1,12 @@
-import { startAgentHostSocketServer } from "@pidesk/agent-host";
+import { startAgentHostSocketServer } from "@pi-desktop/agent-host";
 import { createAgentRuntimeForEntry } from "./agent-host-runtime";
 
 async function bootstrapSessionServer() {
-  const socketPath = process.env.PIDESK_AGENT_SOCKET_PATH;
+  const socketPath = process.env.PI_DESKTOP_AGENT_SOCKET_PATH;
 
   if (!socketPath) {
     throw new Error(
-      "PiDesk agent session server requires PIDESK_AGENT_SOCKET_PATH",
+      "PiDesk agent session server requires PI_DESKTOP_AGENT_SOCKET_PATH",
     );
   }
 

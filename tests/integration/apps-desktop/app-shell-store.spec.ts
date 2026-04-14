@@ -5,7 +5,7 @@ import {
 } from "../../../apps/desktop/src/renderer/src/lib/app-preferences";
 import { createAppShellStore } from "../../../apps/desktop/src/renderer/src/stores/app-shell-store";
 import type {
-  PiDeskAgentEvent,
+  PiDesktopAgentEvent,
   ShellSnapshot,
 } from "../../../packages/shared/src";
 
@@ -14,7 +14,7 @@ type AppShellStoreApi = Parameters<typeof createAppShellStore>[0];
 function createApiFixture(
   overrides: Partial<AppShellStoreApi> = {},
 ): AppShellStoreApi {
-  const listeners = new Set<(event: PiDeskAgentEvent) => void>();
+  const listeners = new Set<(event: PiDesktopAgentEvent) => void>();
 
   return {
     shell: {
@@ -204,7 +204,7 @@ describe("app-shell-store", () => {
       STORAGE_KEY,
       JSON.stringify({ interface: { theme: "dark", sidebarWidth: 320 } }),
     );
-    storage.set("pidesk.leftSidebarWidth", "260");
+    storage.set("pi-desktop.leftSidebarWidth", "260");
 
     const api = createApiFixture();
     const store = createAppShellStore(api);
@@ -713,7 +713,7 @@ describe("app-shell-store", () => {
   });
 
   it("skips provider metadata refreshes for thread-only session changes", async () => {
-    let eventListener: ((event: PiDeskAgentEvent) => void) | undefined;
+    let eventListener: ((event: PiDesktopAgentEvent) => void) | undefined;
     const initialShellSnapshot: ShellSnapshot = {
       appName: "PiDesk",
       appVersion: "0.1.0",

@@ -5,14 +5,14 @@ import type {
   AutocompleteContext,
   AutocompleteSuggestions,
   ModelSwitchRequest,
-  PiDeskAgentEvent,
+  PiDesktopAgentEvent,
   PiDiscoveryResult,
   ProviderSnapshot,
   SearchRequest,
   SearchResponse,
   SettingsSnapshot,
-} from "@pidesk/shared";
-import { IPC_CHANNELS } from "@pidesk/shared";
+} from "@pi-desktop/shared";
+import { IPC_CHANNELS } from "@pi-desktop/shared";
 import { app, BrowserWindow, ipcMain, shell } from "electron";
 import {
   createThreadTitle,
@@ -82,7 +82,7 @@ type AgentDesktopHost = {
   prompt(text: string): Promise<void>;
   cancelPrompt(): Promise<void>;
   reset(): Promise<void>;
-  subscribe(listener: (event: PiDeskAgentEvent) => void): () => void;
+  subscribe(listener: (event: PiDesktopAgentEvent) => void): () => void;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -153,7 +153,7 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function getEventTimestamp(event: PiDeskAgentEvent): number | null {
+function getEventTimestamp(event: PiDesktopAgentEvent): number | null {
   return "timestamp" in event && typeof event.timestamp === "number"
     ? event.timestamp
     : null;
@@ -231,12 +231,12 @@ async function bootstrapDesktop() {
     }
   }
 
-  const explicitUserDataPath = process.env.PIDESK_USER_DATA_DIR;
+  const explicitUserDataPath = process.env.PI_DESKTOP_USER_DATA_DIR;
   if (explicitUserDataPath) {
     app.setPath("userData", explicitUserDataPath);
   } else if (process.env.NODE_ENV === "test") {
     const testHomePath = process.env.HOME ?? app.getPath("home");
-    app.setPath("userData", path.join(testHomePath, ".pidesk-test-user-data"));
+    app.setPath("userData", path.join(testHomePath, ".pi-desktop-test-user-data"));
   }
 
   const userDataPath = app.getPath("userData");
@@ -424,7 +424,7 @@ async function bootstrapDesktop() {
         return {
           mode: runtimeOptions.mode,
           cwd: runtimeOptions.cwd,
-          agentDir: environment.PIDESK_AGENT_DIR || defaultAgentDirectory,
+          agentDir: environment.PI_DESKTOP_AGENT_DIR || defaultAgentDirectory,
         };
       },
       createLaunchDetails: (input) =>

@@ -56,14 +56,14 @@ describe("payload-parsers", () => {
 
     const req = parsers.parseSearchRequest({
       query: "app",
-      rootPath: "/tmp/pidesk",
+      rootPath: "/tmp/pi-desktop",
       includePatterns: ["**/*.ts"],
       excludePatterns: ["node_modules"],
     });
 
     expect(req).toMatchObject({
       query: "app",
-      rootPath: "/tmp/pidesk",
+      rootPath: "/tmp/pi-desktop",
       includePatterns: ["**/*.ts"],
       excludePatterns: ["node_modules"],
     });
@@ -130,14 +130,14 @@ vi.mock("node:fs/promises", () => {
 it("fs.readFile rejects out-of-workspace absolute paths before touching node:fs.readFileSync/statSync", async () => {
   const harness = createHandlerHarness();
   const shellSnapshot = createShellSnapshot();
-  // ensure workspace root is /tmp/pidesk for the policy
-  shellSnapshot.workspace.rootPath = "/tmp/pidesk";
+  // ensure workspace root is /tmp/pi-desktop for the policy
+  shellSnapshot.workspace.rootPath = "/tmp/pi-desktop";
   const getShellSnapshot = vi.fn(() => shellSnapshot);
 
   registerIpcHandlers({
     handle: harness.handle,
     getShellSnapshot,
-    getWorkspaceRootPath: () => "/tmp/pidesk",
+    getWorkspaceRootPath: () => "/tmp/pi-desktop",
     agentHost: createAgentHost(createAgentSnapshot()),
     mainWindow: null,
   });
@@ -160,13 +160,13 @@ it("fs.readFile rejects out-of-workspace absolute paths before touching node:fs.
 it("fs.writeFile rejects out-of-workspace absolute paths before touching node:fs/promises.mkdir or writeFile", async () => {
   const harness = createHandlerHarness();
   const shellSnapshot = createShellSnapshot();
-  shellSnapshot.workspace.rootPath = "/tmp/pidesk";
+  shellSnapshot.workspace.rootPath = "/tmp/pi-desktop";
   const getShellSnapshot = vi.fn(() => shellSnapshot);
 
   registerIpcHandlers({
     handle: harness.handle,
     getShellSnapshot,
-    getWorkspaceRootPath: () => "/tmp/pidesk",
+    getWorkspaceRootPath: () => "/tmp/pi-desktop",
     agentHost: createAgentHost(createAgentSnapshot()),
     mainWindow: null,
   });
@@ -192,13 +192,13 @@ it("fs.writeFile rejects out-of-workspace absolute paths before touching node:fs
 it("fs.writeFile resolves relative paths against the workspace root before writing", async () => {
   const harness = createHandlerHarness();
   const shellSnapshot = createShellSnapshot();
-  shellSnapshot.workspace.rootPath = "/tmp/pidesk";
+  shellSnapshot.workspace.rootPath = "/tmp/pi-desktop";
   const getShellSnapshot = vi.fn(() => shellSnapshot);
 
   registerIpcHandlers({
     handle: harness.handle,
     getShellSnapshot,
-    getWorkspaceRootPath: () => "/tmp/pidesk",
+    getWorkspaceRootPath: () => "/tmp/pi-desktop",
     agentHost: createAgentHost(createAgentSnapshot()),
     mainWindow: null,
   });
@@ -215,11 +215,11 @@ it("fs.writeFile resolves relative paths against the workspace root before writi
   });
 
   // Expect production code to have anchored the relative path to the workspace
-  expect(nodeFsPromises.mkdir).toHaveBeenCalledWith("/tmp/pidesk/notes", {
+  expect(nodeFsPromises.mkdir).toHaveBeenCalledWith("/tmp/pi-desktop/notes", {
     recursive: true,
   });
   expect(nodeFsPromises.writeFile).toHaveBeenCalledWith(
-    "/tmp/pidesk/notes/today.md",
+    "/tmp/pi-desktop/notes/today.md",
     "I wrote this note",
     "utf-8",
   );
@@ -370,37 +370,37 @@ function createShellSnapshot(): ShellSnapshotWithWorkspace {
     runtime: {
       agentMode: "mock",
       electronVersion: "41.0.1",
-      agentDirectory: "/tmp/pidesk/.pidesk-agent",
+      agentDirectory: "/tmp/pi-desktop/.pi-desktop-agent",
     },
     workspace: {
-      rootPath: "/tmp/pidesk",
-      agentDirectory: "/tmp/pidesk/.pidesk-agent",
+      rootPath: "/tmp/pi-desktop",
+      agentDirectory: "/tmp/pi-desktop/.pi-desktop-agent",
       projects: [
         {
-          id: "/tmp/pidesk",
-          name: "pidesk",
-          path: "/tmp/pidesk",
+          id: "/tmp/pi-desktop",
+          name: "pi-desktop",
+          path: "/tmp/pi-desktop",
           isActive: true,
         },
       ],
     },
     catalog: {
       selection: {
-        repositoryId: "/tmp/pidesk",
-        worktreeId: "/tmp/pidesk",
+        repositoryId: "/tmp/pi-desktop",
+        worktreeId: "/tmp/pi-desktop",
         threadId: "default-thread",
       },
       repositories: [
         {
-          id: "/tmp/pidesk",
-          name: "pidesk",
-          rootPath: "/tmp/pidesk",
+          id: "/tmp/pi-desktop",
+          name: "pi-desktop",
+          rootPath: "/tmp/pi-desktop",
           defaultBranch: "main",
           worktrees: [
             {
-              id: "/tmp/pidesk",
+              id: "/tmp/pi-desktop",
               label: "main",
-              path: "/tmp/pidesk",
+              path: "/tmp/pi-desktop",
               isMain: true,
               isDetached: false,
               git: {
@@ -490,13 +490,13 @@ function createAgentHost(agentSnapshot: AgentSnapshot) {
 
 function createStateHost() {
   const repositoryPreferences: RepositoryPreferences = {
-    repositoryId: "/tmp/pidesk",
+    repositoryId: "/tmp/pi-desktop",
     customName: "Pi Desktop",
     icon: "pi",
     accentColor: "#224466",
   };
   const workspaceSession: WorkspaceSession =
-    createEmptyWorkspaceSession("/tmp/pidesk");
+    createEmptyWorkspaceSession("/tmp/pi-desktop");
   const appPreferences: AppPreferences = {
     leftSidebarWidth: 220,
   };
@@ -543,33 +543,33 @@ describe("registerIpcHandlers", () => {
     );
     await harness.handlers.get(IPC_CHANNELS.repositories.add)?.(
       { sender: "electron-ipc-event" },
-      { path: "/tmp/pidesk" },
+      { path: "/tmp/pi-desktop" },
     );
     await harness.handlers.get(IPC_CHANNELS.repositories.select)?.(
       { sender: "electron-ipc-event" },
-      { repositoryId: "/tmp/pidesk" },
+      { repositoryId: "/tmp/pi-desktop" },
     );
     await harness.handlers.get(IPC_CHANNELS.repositories.reorder)?.(
       { sender: "electron-ipc-event" },
       {
-        repositoryIds: ["/tmp/second", "/tmp/pidesk"],
+        repositoryIds: ["/tmp/second", "/tmp/pi-desktop"],
       },
     );
     await harness.handlers.get(IPC_CHANNELS.worktrees.create)?.(
       { sender: "electron-ipc-event" },
       {
-        repositoryId: "/tmp/pidesk",
+        repositoryId: "/tmp/pi-desktop",
         branchName: "feature/runtime",
       },
     );
     await harness.handlers.get(IPC_CHANNELS.worktrees.select)?.(
       { sender: "electron-ipc-event" },
-      { worktreeId: "/tmp/pidesk-feature" },
+      { worktreeId: "/tmp/pi-desktop-feature" },
     );
     await harness.handlers.get(IPC_CHANNELS.threads.create)?.(
       { sender: "electron-ipc-event" },
       {
-        worktreeId: "/tmp/pidesk-feature",
+        worktreeId: "/tmp/pi-desktop-feature",
       },
     );
     await harness.handlers.get(IPC_CHANNELS.threads.select)?.(
@@ -580,20 +580,20 @@ describe("registerIpcHandlers", () => {
     expect(getShellSnapshot).toHaveBeenCalledTimes(1);
     expect(agentHost.getSnapshot).toHaveBeenCalledTimes(1);
     expect(agentHost.prompt).toHaveBeenCalledWith("Inspect the workspace");
-    expect(agentHost.addRepository).toHaveBeenCalledWith("/tmp/pidesk");
-    expect(agentHost.selectRepository).toHaveBeenCalledWith("/tmp/pidesk");
+    expect(agentHost.addRepository).toHaveBeenCalledWith("/tmp/pi-desktop");
+    expect(agentHost.selectRepository).toHaveBeenCalledWith("/tmp/pi-desktop");
     expect(agentHost.reorderRepositories).toHaveBeenCalledWith([
       "/tmp/second",
-      "/tmp/pidesk",
+      "/tmp/pi-desktop",
     ]);
     expect(agentHost.createWorktree).toHaveBeenCalledWith(
-      "/tmp/pidesk",
+      "/tmp/pi-desktop",
       "feature/runtime",
     );
     expect(agentHost.selectWorktree).toHaveBeenCalledWith(
-      "/tmp/pidesk-feature",
+      "/tmp/pi-desktop-feature",
     );
-    expect(agentHost.createThread).toHaveBeenCalledWith("/tmp/pidesk-feature");
+    expect(agentHost.createThread).toHaveBeenCalledWith("/tmp/pi-desktop-feature");
     expect(agentHost.selectThread).toHaveBeenCalledWith("thread-123");
   });
 
@@ -636,7 +636,7 @@ describe("registerIpcHandlers", () => {
   it("binds state persistence handlers", async () => {
     const harness = createHandlerHarness();
     const stateHost = createStateHost();
-    const session = createEmptyWorkspaceSession("/tmp/pidesk");
+    const session = createEmptyWorkspaceSession("/tmp/pi-desktop");
 
     session.layout.windows.push({
       id: "chat-1",
@@ -663,12 +663,12 @@ describe("registerIpcHandlers", () => {
 
     await harness.handlers.get(IPC_CHANNELS.state.getRepositoryPreferences)?.(
       undefined,
-      { repositoryId: "/tmp/pidesk" },
+      { repositoryId: "/tmp/pi-desktop" },
     );
     await harness.handlers.get(
       IPC_CHANNELS.state.updateRepositoryPreferences,
     )?.(undefined, {
-      repositoryId: "/tmp/pidesk",
+      repositoryId: "/tmp/pi-desktop",
       updates: {
         customName: "Pi Desktop",
         icon: "pi",
@@ -677,7 +677,7 @@ describe("registerIpcHandlers", () => {
     });
     await harness.handlers.get(IPC_CHANNELS.state.getWorkspaceSession)?.(
       undefined,
-      { worktreeId: "/tmp/pidesk" },
+      { worktreeId: "/tmp/pi-desktop" },
     );
     await harness.handlers.get(IPC_CHANNELS.state.saveWorkspaceSession)?.(
       undefined,
@@ -709,7 +709,7 @@ describe("registerIpcHandlers", () => {
           leftSidebarWidth: 220,
           repositories: [
             {
-              repositoryId: "/tmp/pidesk",
+              repositoryId: "/tmp/pi-desktop",
               customName: "Pi Desktop",
             },
           ],
@@ -718,17 +718,17 @@ describe("registerIpcHandlers", () => {
     );
 
     expect(stateHost.getRepositoryPreferences).toHaveBeenCalledWith(
-      "/tmp/pidesk",
+      "/tmp/pi-desktop",
     );
     expect(stateHost.updateRepositoryPreferences).toHaveBeenCalledWith(
-      "/tmp/pidesk",
+      "/tmp/pi-desktop",
       {
         customName: "Pi Desktop",
         icon: "pi",
         accentColor: "#224466",
       },
     );
-    expect(stateHost.getWorkspaceSession).toHaveBeenCalledWith("/tmp/pidesk");
+    expect(stateHost.getWorkspaceSession).toHaveBeenCalledWith("/tmp/pi-desktop");
     expect(stateHost.saveWorkspaceSession).toHaveBeenCalledWith({
       ...session,
       layout: {
@@ -758,7 +758,7 @@ describe("registerIpcHandlers", () => {
       leftSidebarWidth: 220,
       repositories: [
         {
-          repositoryId: "/tmp/pidesk",
+          repositoryId: "/tmp/pi-desktop",
           customName: "Pi Desktop",
         },
       ],
@@ -802,7 +802,7 @@ describe("registerIpcHandlers", () => {
       query: "app",
       results: [
         {
-          path: "/tmp/pidesk/apps/desktop/src/renderer/src/app.tsx",
+          path: "/tmp/pi-desktop/apps/desktop/src/renderer/src/app.tsx",
           name: "app.tsx",
           score: 100,
           type: "file",
@@ -844,7 +844,7 @@ describe("registerIpcHandlers", () => {
     await expect(
       harness.handlers.get(IPC_CHANNELS.search.searchFiles)?.(undefined, {
         query: "app",
-        rootPath: "/tmp/pidesk",
+        rootPath: "/tmp/pi-desktop",
       }),
     ).resolves.toEqual(searchResponse);
     await harness.handlers.get(IPC_CHANNELS.agent.switchModel)?.(undefined, {
@@ -861,7 +861,7 @@ describe("registerIpcHandlers", () => {
     });
     expect(searchFiles).toHaveBeenCalledWith({
       query: "app",
-      rootPath: "/tmp/pidesk",
+      rootPath: "/tmp/pi-desktop",
     });
     expect(switchModel).toHaveBeenCalledWith({
       providerId: "google",
@@ -1076,14 +1076,14 @@ describe("registerIpcHandlers", () => {
   it("fs.readDirectory outside workspace root should not call node:fs and should resolve a typed error", async () => {
     const harness = createHandlerHarness();
     const shellSnapshot = createShellSnapshot();
-    // ensure workspace root is /tmp/pidesk for the policy
-    shellSnapshot.workspace.rootPath = "/tmp/pidesk";
+    // ensure workspace root is /tmp/pi-desktop for the policy
+    shellSnapshot.workspace.rootPath = "/tmp/pi-desktop";
     const getShellSnapshot = vi.fn(() => shellSnapshot);
 
     registerIpcHandlers({
       handle: harness.handle,
       getShellSnapshot,
-      getWorkspaceRootPath: () => "/tmp/pidesk",
+      getWorkspaceRootPath: () => "/tmp/pi-desktop",
       agentHost: createAgentHost(createAgentSnapshot()),
       mainWindow: null,
     });
@@ -1107,14 +1107,14 @@ describe("registerIpcHandlers", () => {
   it("fs.readDirectory must reject paths that canonicalize outside the workspace root (symlink safety)", async () => {
     const harness = createHandlerHarness();
     const shellSnapshot = createShellSnapshot();
-    // ensure workspace root is /tmp/pidesk for the policy
-    shellSnapshot.workspace.rootPath = "/tmp/pidesk";
+    // ensure workspace root is /tmp/pi-desktop for the policy
+    shellSnapshot.workspace.rootPath = "/tmp/pi-desktop";
     const getShellSnapshot = vi.fn(() => shellSnapshot);
 
     registerIpcHandlers({
       handle: harness.handle,
       getShellSnapshot,
-      getWorkspaceRootPath: () => "/tmp/pidesk",
+      getWorkspaceRootPath: () => "/tmp/pi-desktop",
       agentHost: createAgentHost(createAgentSnapshot()),
       mainWindow: null,
     });
@@ -1125,11 +1125,11 @@ describe("registerIpcHandlers", () => {
     // Simulate canonicalization outside the workspace and assert that the
     // handler rejects before attempting to read the directory.
     nodeFs.realpathSync.mockImplementation((value) => {
-      if (value.toString() === "/tmp/pidesk") {
-        return "/tmp/pidesk";
+      if (value.toString() === "/tmp/pi-desktop") {
+        return "/tmp/pi-desktop";
       }
 
-      if (value.toString() === "/tmp/pidesk/link-to-outside") {
+      if (value.toString() === "/tmp/pi-desktop/link-to-outside") {
         return "/outside/workspace";
       }
 
@@ -1138,7 +1138,7 @@ describe("registerIpcHandlers", () => {
 
     await expect(
       harness.handlers.get(IPC_CHANNELS.fs.readDirectory)?.(undefined, {
-        path: "/tmp/pidesk/link-to-outside",
+        path: "/tmp/pi-desktop/link-to-outside",
       }),
     ).resolves.toEqual({
       success: false,
@@ -1151,13 +1151,13 @@ describe("registerIpcHandlers", () => {
   it("fs.readDirectory returns entry paths based on the normalized resolved target", async () => {
     const harness = createHandlerHarness();
     const shellSnapshot = createShellSnapshot();
-    shellSnapshot.workspace.rootPath = "/tmp/pidesk";
+    shellSnapshot.workspace.rootPath = "/tmp/pi-desktop";
     const getShellSnapshot = vi.fn(() => shellSnapshot);
 
     registerIpcHandlers({
       handle: harness.handle,
       getShellSnapshot,
-      getWorkspaceRootPath: () => "/tmp/pidesk",
+      getWorkspaceRootPath: () => "/tmp/pi-desktop",
       agentHost: createAgentHost(createAgentSnapshot()),
       mainWindow: null,
     });
@@ -1173,27 +1173,27 @@ describe("registerIpcHandlers", () => {
 
     // Expect the handler to read the normalized (resolved) target path
     nodeFs.readdirSync.mockImplementation((targetPath) => {
-      expect(targetPath).toBe("/tmp/pidesk/project");
+      expect(targetPath).toBe("/tmp/pi-desktop/project");
       return fakeEntries;
     });
 
     const result = await harness.handlers.get(IPC_CHANNELS.fs.readDirectory)?.(
       undefined,
-      { path: "/tmp/pidesk/project/../project" },
+      { path: "/tmp/pi-desktop/project/../project" },
     );
 
     expect(result).toEqual({
-      path: "/tmp/pidesk/project/../project",
+      path: "/tmp/pi-desktop/project/../project",
       entries: [
         {
           name: "dir1",
-          path: "/tmp/pidesk/project/dir1",
+          path: "/tmp/pi-desktop/project/dir1",
           type: "directory",
           extension: undefined,
         },
         {
           name: "file1.txt",
-          path: "/tmp/pidesk/project/file1.txt",
+          path: "/tmp/pi-desktop/project/file1.txt",
           type: "file",
           extension: "txt",
         },
@@ -1204,14 +1204,14 @@ describe("registerIpcHandlers", () => {
   it("fs.readDirectory resolves relative payload paths against the workspace root", async () => {
     const harness = createHandlerHarness();
     const shellSnapshot = createShellSnapshot();
-    // ensure workspace root is /tmp/pidesk for the policy
-    shellSnapshot.workspace.rootPath = "/tmp/pidesk";
+    // ensure workspace root is /tmp/pi-desktop for the policy
+    shellSnapshot.workspace.rootPath = "/tmp/pi-desktop";
     const getShellSnapshot = vi.fn(() => shellSnapshot);
 
     registerIpcHandlers({
       handle: harness.handle,
       getShellSnapshot,
-      getWorkspaceRootPath: () => "/tmp/pidesk",
+      getWorkspaceRootPath: () => "/tmp/pi-desktop",
       agentHost: createAgentHost(createAgentSnapshot()),
       mainWindow: null,
     });
@@ -1226,9 +1226,9 @@ describe("registerIpcHandlers", () => {
     ];
 
     // Production should resolve the relative payload "project" against
-    // the workspace root (/tmp/pidesk) before calling node:fs.readdirSync.
+    // the workspace root (/tmp/pi-desktop) before calling node:fs.readdirSync.
     nodeFs.readdirSync.mockImplementation((targetPath) => {
-      expect(targetPath).toBe("/tmp/pidesk/project");
+      expect(targetPath).toBe("/tmp/pi-desktop/project");
       return fakeEntries;
     });
 
@@ -1242,13 +1242,13 @@ describe("registerIpcHandlers", () => {
       entries: [
         {
           name: "dir1",
-          path: "/tmp/pidesk/project/dir1",
+          path: "/tmp/pi-desktop/project/dir1",
           type: "directory",
           extension: undefined,
         },
         {
           name: "file1.txt",
-          path: "/tmp/pidesk/project/file1.txt",
+          path: "/tmp/pi-desktop/project/file1.txt",
           type: "file",
           extension: "txt",
         },

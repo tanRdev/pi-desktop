@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { MockAgentRuntime } from "../../../packages/agent-host/src/mock/mock-agent-runtime";
-import type { PiDeskAgentEvent } from "../../../packages/shared/src";
+import type { PiDesktopAgentEvent } from "../../../packages/shared/src";
 
 describe("MockAgentRuntime", () => {
   it("boots into a ready state with a stable mock session", async () => {
@@ -18,7 +18,7 @@ describe("MockAgentRuntime", () => {
 
   it("streams assistant updates after a prompt", async () => {
     const runtime = new MockAgentRuntime();
-    const events: PiDeskAgentEvent[] = [];
+    const events: PiDesktopAgentEvent[] = [];
 
     runtime.subscribe((event) => {
       events.push(event);

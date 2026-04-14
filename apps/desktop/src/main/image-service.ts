@@ -8,7 +8,7 @@ import type {
   ImageMetadata,
   ImagePreview,
   ImagePreviewOptions,
-} from "@pidesk/shared";
+} from "@pi-desktop/shared";
 
 type SharpInstance = import("sharp").Sharp;
 type SharpMetadata = import("sharp").Metadata;

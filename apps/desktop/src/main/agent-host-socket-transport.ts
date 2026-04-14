@@ -1,5 +1,5 @@
 import net from "node:net";
-import type { AgentHostEnvelope, AgentHostRequest } from "@pidesk/shared";
+import type { AgentHostEnvelope, AgentHostRequest } from "@pi-desktop/shared";
 import type { AgentHostTransport } from "./agent-host-client";
 
 type MessageListener = (message: unknown) => void;

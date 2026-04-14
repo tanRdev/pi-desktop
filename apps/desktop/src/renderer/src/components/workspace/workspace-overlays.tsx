@@ -1,4 +1,4 @@
-import type { WorktreeSnapshot } from "@pidesk/shared";
+import type { WorktreeSnapshot } from "@pi-desktop/shared";
 import * as React from "react";
 import { FolderOpen, GitBranch } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";

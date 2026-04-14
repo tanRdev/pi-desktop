@@ -1,7 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
 import type {
   AgentSnapshot,
-  PiDeskAgentEvent,
+  PiDesktopAgentEvent,
   ShellSnapshot,
 } from "../../../packages/shared/src";
 import { createShellModel } from "../../../packages/shell-model/src";
@@ -39,37 +39,37 @@ function createShellSnapshotFixture(): ShellSnapshot {
     runtime: {
       agentMode: "mock" as const,
       electronVersion: "41.0.1",
-      agentDirectory: "/tmp/pidesk/.pidesk-agent",
+      agentDirectory: "/tmp/pi-desktop/.pi-desktop-agent",
     },
     workspace: {
-      rootPath: "/tmp/pidesk",
-      agentDirectory: "/tmp/pidesk/.pidesk-agent",
+      rootPath: "/tmp/pi-desktop",
+      agentDirectory: "/tmp/pi-desktop/.pi-desktop-agent",
       projects: [
         {
-          id: "/tmp/pidesk",
-          name: "pidesk",
-          path: "/tmp/pidesk",
+          id: "/tmp/pi-desktop",
+          name: "pi-desktop",
+          path: "/tmp/pi-desktop",
           isActive: true,
         },
       ],
     },
     catalog: {
       selection: {
-        repositoryId: "/tmp/pidesk",
-        worktreeId: "/tmp/pidesk",
+        repositoryId: "/tmp/pi-desktop",
+        worktreeId: "/tmp/pi-desktop",
         threadId: "default-thread",
       },
       repositories: [
         {
-          id: "/tmp/pidesk",
-          name: "pidesk",
-          rootPath: "/tmp/pidesk",
+          id: "/tmp/pi-desktop",
+          name: "pi-desktop",
+          rootPath: "/tmp/pi-desktop",
           defaultBranch: "main",
           worktrees: [
             {
-              id: "/tmp/pidesk",
+              id: "/tmp/pi-desktop",
               label: "main",
-              path: "/tmp/pidesk",
+              path: "/tmp/pi-desktop",
               isMain: true,
               isDetached: false,
               git: {
@@ -126,7 +126,7 @@ function createStateApiFixture(): ShellModelStateApi {
   return {
     getRepositoryPreferences: vi.fn(async () => null),
     updateRepositoryPreferences: vi.fn(async () => ({
-      repositoryId: "/tmp/pidesk",
+      repositoryId: "/tmp/pi-desktop",
       customName: null,
       icon: null,
       accentColor: null,
@@ -145,7 +145,7 @@ function createStateApiFixture(): ShellModelStateApi {
 describe("createShellModel", () => {
   test("loads snapshots and folds live agent events into renderer state", async () => {
     let eventListener:
-      | ((event: PiDeskAgentEvent | LegacyMessageEnvelopeEvent) => void)
+      | ((event: PiDesktopAgentEvent | LegacyMessageEnvelopeEvent) => void)
       | undefined;
     const api = {
       shell: {
@@ -219,7 +219,7 @@ describe("createShellModel", () => {
   });
 
   test("refreshes shell and agent snapshots when the active session changes", async () => {
-    let eventListener: ((event: PiDeskAgentEvent) => void) | undefined;
+    let eventListener: ((event: PiDesktopAgentEvent) => void) | undefined;
     const shellSnapshot = createShellSnapshotFixture();
     const nextShellSnapshot = {
       ...createShellSnapshotFixture(),
@@ -289,7 +289,7 @@ describe("createShellModel", () => {
   });
 
   test("notifies renderer subscribers when live turn and tool events arrive", async () => {
-    let eventListener: ((event: PiDeskAgentEvent) => void) | undefined;
+    let eventListener: ((event: PiDesktopAgentEvent) => void) | undefined;
     const api = {
       shell: {
         getSnapshot: vi.fn(async () => createShellSnapshotFixture()),
@@ -590,7 +590,7 @@ describe("createShellModel", () => {
   });
 
   test("preserves newer live activity when a snapshot refresh returns stale data", async () => {
-    let eventListener: ((event: PiDeskAgentEvent) => void) | undefined;
+    let eventListener: ((event: PiDesktopAgentEvent) => void) | undefined;
     const prompt = vi.fn(async () => {
       eventListener?.({ type: "agent_start" });
       eventListener?.({ type: "turn_start" });
@@ -670,7 +670,7 @@ describe("createShellModel", () => {
   });
 
   test("keeps final ready state when completion events arrive during snapshot refresh", async () => {
-    let eventListener: ((event: PiDeskAgentEvent) => void) | undefined;
+    let eventListener: ((event: PiDesktopAgentEvent) => void) | undefined;
     let releaseSnapshot: (() => void) | undefined;
     const prompt = vi.fn(async () => {
       eventListener?.({ type: "agent_start" });
@@ -764,7 +764,7 @@ describe("createShellModel", () => {
   });
 
   test("marks the agent ready when the final message ends without an explicit agent_end event", async () => {
-    let eventListener: ((event: PiDeskAgentEvent) => void) | undefined;
+    let eventListener: ((event: PiDesktopAgentEvent) => void) | undefined;
     const api = {
       shell: {
         getSnapshot: vi.fn(async () => createShellSnapshotFixture()),

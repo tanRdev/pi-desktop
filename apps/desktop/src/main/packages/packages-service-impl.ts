@@ -12,7 +12,7 @@ import type {
   PackageSearchResponse,
   PackagesEvent,
   PackageUpdateRequest,
-} from "@pidesk/shared";
+} from "@pi-desktop/shared";
 import { PackageOperationQueue } from "./package-operation-queue";
 import { PackagesCatalogClient } from "./packages-catalog-client";
 import { PackagesCli } from "./packages-cli";

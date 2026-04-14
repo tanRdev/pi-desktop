@@ -35,14 +35,14 @@ async function addAndSelectRepository(
   const expectedRepositoryPath = repositoryPath.replace(/^\/private/, "");
 
   await page.evaluate(async (targetPath) => {
-    await window.pidesk.repositories.add(targetPath);
+    await window.piDesktop.repositories.add(targetPath);
   }, repositoryPath);
 
   await expect
     .poll(
       async () =>
         page.evaluate(async () => {
-          const shell = await window.pidesk.shell.getSnapshot();
+          const shell = await window.piDesktop.shell.getSnapshot();
           return (shell.catalog.selection.repositoryId ?? "").replace(
             /^\/private/,
             "",
@@ -92,13 +92,13 @@ test("creates a thread inline instead of opening a naming dialog", async () => {
   test.setTimeout(60_000);
 
   const repoParent = fs.mkdtempSync(
-    path.join(os.tmpdir(), "pidesk-empty-project-"),
+    path.join(os.tmpdir(), "pi-desktop-empty-project-"),
   );
   const repositoryPath = path.join(repoParent, "EmptyProject");
   createRepository(repositoryPath);
 
   const { app, page, launchContext } = await launchDesktopApp(
-    "pidesk-e2e-empty-project-",
+    "pi-desktop-e2e-empty-project-",
   );
 
   try {
@@ -131,13 +131,13 @@ test("opening a plain folder from the workspace button makes it the active proje
   test.setTimeout(60_000);
 
   const repoParent = fs.mkdtempSync(
-    path.join(os.tmpdir(), "pidesk-folder-workspace-"),
+    path.join(os.tmpdir(), "pi-desktop-folder-workspace-"),
   );
   const folderPath = path.join(repoParent, "PlainWorkspace");
   createFolderWorkspace(folderPath);
 
   const { app, page, launchContext } = await launchDesktopApp(
-    "pidesk-e2e-folder-workspace-",
+    "pi-desktop-e2e-folder-workspace-",
   );
 
   try {
@@ -145,17 +145,17 @@ test("opening a plain folder from the workspace button makes it the active proje
 
     await page.evaluate(async (targetPath) => {
       sessionStorage.setItem(
-        "pidesk.workspace-switch-state",
+        "pi-desktop.workspace-switch-state",
         JSON.stringify({
           repositoryName: "PlainWorkspace",
           startedAt: Date.now(),
         }),
       );
       sessionStorage.setItem(
-        "pidesk.workspace-switch-notice",
+        "pi-desktop.workspace-switch-notice",
         JSON.stringify({ repositoryName: "PlainWorkspace" }),
       );
-      await window.pidesk.repositories.add(targetPath);
+      await window.piDesktop.repositories.add(targetPath);
       window.location.reload();
     }, folderPath);
 
@@ -174,7 +174,7 @@ test("opening a plain folder from the workspace button makes it the active proje
       .poll(
         async () =>
           page.evaluate(async () => {
-            const shell = await window.pidesk.shell.getSnapshot();
+            const shell = await window.piDesktop.shell.getSnapshot();
             return {
               repositoryId: (
                 shell.catalog.selection.repositoryId ?? ""

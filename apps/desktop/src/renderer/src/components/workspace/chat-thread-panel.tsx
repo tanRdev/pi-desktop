@@ -1,9 +1,9 @@
-import type { AgentMessageSnapshot } from "@pidesk/shared";
+import type { AgentMessageSnapshot } from "@pi-desktop/shared";
 import {
   ChatContainerContent,
   ChatContainerRoot,
   ChatContainerScrollAnchor,
-} from "@pidesk/ui";
+} from "@pi-desktop/ui";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { FeedbackBar, type FeedbackValue } from "../ui/feedback-bar";

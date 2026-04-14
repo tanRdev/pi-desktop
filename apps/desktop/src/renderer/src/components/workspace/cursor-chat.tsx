@@ -17,7 +17,7 @@ export function CursorChat({ className }: CursorChatProps) {
       {/* Header - Context bar */}
       <div className="flex h-10 items-center border-b border-white/[0.03] px-4 select-none">
         <div className="flex items-center gap-2 text-white/50">
-          <span className="text-[16px]">tan/dev/pidesk</span>
+          <span className="text-[16px]">tan/dev/pi-desktop</span>
           <span className="text-white/20">›</span>
           <span className="text-[16px] text-white/70">frontend-design</span>
         </div>

@@ -1,5 +1,5 @@
 import path from "node:path";
-import type { RepositoryPreferences } from "@pidesk/shared";
+import type { RepositoryPreferences } from "@pi-desktop/shared";
 import { PersistentJsonFile } from "./persistent-json-file";
 import type { RepositoryCatalogEntry } from "./repository-catalog";
 

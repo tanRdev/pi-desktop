@@ -1,4 +1,4 @@
-import type { ThreadRuntimeStatus } from "@pidesk/shared";
+import type { ThreadRuntimeStatus } from "@pi-desktop/shared";
 
 export interface ThreadRuntimeRef {
   threadId: string;

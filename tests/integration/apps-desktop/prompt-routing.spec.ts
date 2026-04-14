@@ -50,11 +50,11 @@ describe("prompt-routing helpers", () => {
 
   it("builds and expands file mentions safely", () => {
     const mention = buildFileMention(
-      "/tmp/pidesk/apps/desktop/src/renderer/src/app.tsx",
+      "/tmp/pi-desktop/apps/desktop/src/renderer/src/app.tsx",
     );
     expect(mention.startsWith("@file:")).toBe(true);
     expect(expandFileMentions(`Open ${mention}next`)).toContain(
-      "/tmp/pidesk/apps/desktop/src/renderer/src/app.tsx",
+      "/tmp/pi-desktop/apps/desktop/src/renderer/src/app.tsx",
     );
   });
 

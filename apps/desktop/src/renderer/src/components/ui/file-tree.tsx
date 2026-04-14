@@ -1,4 +1,4 @@
-import type { DirectoryListing, FileEntry } from "@pidesk/shared";
+import type { DirectoryListing, FileEntry } from "@pi-desktop/shared";
 import * as React from "react";
 import {
   Box,
@@ -287,7 +287,7 @@ export function FileTree({ rootPath, onFileClick, className }: FileTreeProps) {
   const cache = React.useRef(new Map<string, DirectoryListing>());
 
   const loadDirectory = React.useCallback(async (path: string) => {
-    return window.pidesk.fs.readDirectory(path).then(
+    return window.piDesktop.fs.readDirectory(path).then(
       (result) => result,
       (error) => {
         console.error("Failed to read directory:", error);

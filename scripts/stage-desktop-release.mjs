@@ -29,7 +29,7 @@ writeFileSync(
   path.join(stageDir, "package.json"),
   `${JSON.stringify(
     {
-      name: "@pidesk/desktop-release",
+      name: "@pi-desktop/desktop-release",
       version: "0.1.0",
       main: "out/main/index.js",
       dependencies: {

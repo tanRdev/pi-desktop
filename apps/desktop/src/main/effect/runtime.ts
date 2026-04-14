@@ -11,21 +11,21 @@ const loggerLayer = Logger.replace(
 );
 
 // Default runtime with logger
-export const PiDeskLive = Layer.mergeAll(
+export const PiDesktopLive = Layer.mergeAll(
   loggerLayer,
   Logger.minimumLogLevel(LogLevel.Info),
 );
 
 // Helper to run effects with the default runtime
 export const runEffect = <A, E>(effect: Effect.Effect<A, E>) => {
-  return Effect.runPromise(effect.pipe(Effect.provide(PiDeskLive)));
+  return Effect.runPromise(effect.pipe(Effect.provide(PiDesktopLive)));
 };
 
 // Helper to run effects that don't return (fire and forget with error logging)
 export const runEffectVoid = <E>(effect: Effect.Effect<void, E>) => {
   Effect.runFork(
     effect.pipe(
-      Effect.provide(PiDeskLive),
+      Effect.provide(PiDesktopLive),
       Effect.tapError((error) =>
         Effect.sync(() => console.error("Effect failed:", error)),
       ),

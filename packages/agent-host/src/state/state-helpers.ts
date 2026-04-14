@@ -1,8 +1,8 @@
 import type {
   AgentMessageSnapshot,
   AgentSnapshot,
-  PiDeskAgentEvent,
-} from "@pidesk/shared";
+  PiDesktopAgentEvent,
+} from "@pi-desktop/shared";
 
 /**
  * Inserts or updates a message in the messages array.
@@ -47,7 +47,7 @@ function createToolMessageId(toolName: string, toolCallId: string): string {
 function createToolMessage(
   snapshot: AgentSnapshot,
   event: Extract<
-    PiDeskAgentEvent,
+    PiDesktopAgentEvent,
     | { type: "tool_execution_start" }
     | { type: "tool_execution_update" }
     | { type: "tool_execution_end" }
@@ -90,7 +90,7 @@ function createToolMessage(
  */
 export function applyEventToSnapshot(
   snapshot: AgentSnapshot,
-  event: PiDeskAgentEvent,
+  event: PiDesktopAgentEvent,
 ): AgentSnapshot {
   switch (event.type) {
     case "agent_start":

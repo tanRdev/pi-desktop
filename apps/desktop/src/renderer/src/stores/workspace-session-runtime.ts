@@ -1,4 +1,4 @@
-import type { FileContent, WorkspaceWindow } from "@pidesk/shared";
+import type { FileContent, WorkspaceWindow } from "@pi-desktop/shared";
 import {
   selectFileWindowStateByWorktree,
   selectNoteWindowStateByWorktree,

@@ -10,7 +10,7 @@ test("toggles the side panel and opens terminal content from the title bar", asy
   test.setTimeout(45_000);
 
   const { app, page, launchContext } = await launchDesktopApp(
-    "pidesk-e2e-launcher-overlay-",
+    "pi-desktop-e2e-launcher-overlay-",
   );
 
   try {

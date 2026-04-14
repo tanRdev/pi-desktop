@@ -1,4 +1,4 @@
-import type { WorkspaceWindow } from "@pidesk/shared";
+import type { WorkspaceWindow } from "@pi-desktop/shared";
 import type * as React from "react";
 import { useStore } from "zustand";
 import { cn } from "@/lib/utils";

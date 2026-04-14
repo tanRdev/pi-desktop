@@ -6,7 +6,7 @@ import type {
   ShellGitSnapshot,
   ShellSnapshot,
   ThreadSnapshot,
-} from "@pidesk/shared";
+} from "@pi-desktop/shared";
 import type {
   GitRepositoryInspection,
   GitWorktreeSummary,

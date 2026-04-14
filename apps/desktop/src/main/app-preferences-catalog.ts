@@ -1,5 +1,5 @@
 import path from "node:path";
-import type { AppPreferences } from "@pidesk/shared";
+import type { AppPreferences } from "@pi-desktop/shared";
 import { PersistentJsonFile } from "./persistent-json-file";
 
 type AppPreferencesDocument = {

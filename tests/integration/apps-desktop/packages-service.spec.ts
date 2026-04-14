@@ -23,8 +23,8 @@ afterEach(() => {
 
 describe("packages-service", () => {
   it("infers installed package scope from global and local settings", async () => {
-    const homePath = createTempDir("pidesk-packages-home-");
-    const worktreePath = createTempDir("pidesk-packages-worktree-");
+    const homePath = createTempDir("pi-desktop-packages-home-");
+    const worktreePath = createTempDir("pi-desktop-packages-worktree-");
     mkdirSync(path.join(homePath, ".pi", "agent"), { recursive: true });
     mkdirSync(path.join(worktreePath, ".pi"), { recursive: true });
     writeFileSync(
@@ -82,7 +82,7 @@ describe("packages-service", () => {
   });
 
   it("fails local installs when there is no active worktree", async () => {
-    const homePath = createTempDir("pidesk-packages-home-");
+    const homePath = createTempDir("pi-desktop-packages-home-");
     const cli = {
       run: vi.fn(async () => ({ exitCode: 0, stdout: "", stderr: "" })),
     };

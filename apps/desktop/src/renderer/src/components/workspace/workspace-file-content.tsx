@@ -1,4 +1,4 @@
-import type { FileContent } from "@pidesk/shared";
+import type { FileContent } from "@pi-desktop/shared";
 import * as React from "react";
 import { File, Image as ImageIcon, Loader2, Save } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";

@@ -10,19 +10,19 @@ import {
 describe("resolveAgentRuntimeOptions", () => {
   test("defaults to mock mode in test environments", () => {
     expect(
-      resolveAgentRuntimeOptions({ NODE_ENV: "test" }, "/tmp/pidesk-workspace"),
+      resolveAgentRuntimeOptions({ NODE_ENV: "test" }, "/tmp/pi-desktop-workspace"),
     ).toEqual({
       mode: "mock",
-      cwd: "/tmp/pidesk-workspace",
-      agentDir: "/tmp/pidesk-workspace/.pi/agent",
+      cwd: "/tmp/pi-desktop-workspace",
+      agentDir: "/tmp/pi-desktop-workspace/.pi/agent",
     });
   });
 
   test("defaults to sdk mode outside tests", () => {
-    expect(resolveAgentRuntimeOptions({}, "/tmp/pidesk-workspace")).toEqual({
+    expect(resolveAgentRuntimeOptions({}, "/tmp/pi-desktop-workspace")).toEqual({
       mode: "cli",
-      cwd: "/tmp/pidesk-workspace",
-      agentDir: "/tmp/pidesk-workspace/.pi/agent",
+      cwd: "/tmp/pi-desktop-workspace",
+      agentDir: "/tmp/pi-desktop-workspace/.pi/agent",
     });
   });
 
@@ -30,11 +30,11 @@ describe("resolveAgentRuntimeOptions", () => {
     expect(
       resolveAgentRuntimeOptions(
         {
-          PIDESK_AGENT_MODE: "mock",
-          PIDESK_AGENT_CWD: "/tmp/custom-workspace",
-          PIDESK_AGENT_DIR: "/tmp/custom-agent-dir",
+          PI_DESKTOP_AGENT_MODE: "mock",
+          PI_DESKTOP_AGENT_CWD: "/tmp/custom-workspace",
+          PI_DESKTOP_AGENT_DIR: "/tmp/custom-agent-dir",
         },
-        "/tmp/pidesk-workspace",
+        "/tmp/pi-desktop-workspace",
       ),
     ).toEqual({
       mode: "mock",
@@ -48,7 +48,7 @@ describe("createAgentRuntimeForEntry", () => {
   test("creates the mock runtime in test mode", () => {
     const runtime = createAgentRuntimeForEntry(
       { NODE_ENV: "test" },
-      "/tmp/pidesk-workspace",
+      "/tmp/pi-desktop-workspace",
     );
 
     expect(runtime).toBeTruthy();
@@ -59,7 +59,7 @@ describe("createAgentRuntimeForEntry", () => {
   });
 
   test("creates the Pi CLI runtime outside test mode", () => {
-    const runtime = createAgentRuntimeForEntry({}, "/tmp/pidesk-workspace");
+    const runtime = createAgentRuntimeForEntry({}, "/tmp/pi-desktop-workspace");
 
     expect(runtime).toBeTruthy();
     if (!runtime) {
@@ -70,8 +70,8 @@ describe("createAgentRuntimeForEntry", () => {
 
   test("honors explicit mock mode for packaged smoke tests", () => {
     const runtime = createAgentRuntimeForEntry(
-      { PIDESK_AGENT_MODE: "mock" },
-      "/tmp/pidesk-workspace",
+      { PI_DESKTOP_AGENT_MODE: "mock" },
+      "/tmp/pi-desktop-workspace",
     );
 
     expect(runtime).toBeTruthy();
@@ -88,16 +88,16 @@ describe("resolveAgentRuntimeLaunchOptions", () => {
       resolveAgentRuntimeLaunchOptions(
         {},
         "/tmp/random-cwd",
-        "/tmp/pidesk-user-data",
+        "/tmp/pi-desktop-user-data",
         true,
-        "/tmp/pidesk-home",
+        "/tmp/pi-desktop-home",
       ),
     ).toEqual({
-      cwd: "/tmp/pidesk-home",
+      cwd: "/tmp/pi-desktop-home",
       env: expect.objectContaining({
-        PIDESK_AGENT_MODE: "cli",
-        PIDESK_AGENT_CWD: "/tmp/pidesk-home",
-        PIDESK_AGENT_DIR: "/tmp/pidesk-home/.pi/agent",
+        PI_DESKTOP_AGENT_MODE: "cli",
+        PI_DESKTOP_AGENT_CWD: "/tmp/pi-desktop-home",
+        PI_DESKTOP_AGENT_DIR: "/tmp/pi-desktop-home/.pi/agent",
       }),
     });
   });
@@ -105,18 +105,18 @@ describe("resolveAgentRuntimeLaunchOptions", () => {
   test("keeps test launches pinned to the provided cwd", () => {
     expect(
       resolveAgentRuntimeLaunchOptions(
-        { NODE_ENV: "test", PIDESK_AGENT_MODE: "mock" },
-        "/tmp/pidesk-workspace",
-        "/tmp/pidesk-user-data",
+        { NODE_ENV: "test", PI_DESKTOP_AGENT_MODE: "mock" },
+        "/tmp/pi-desktop-workspace",
+        "/tmp/pi-desktop-user-data",
         false,
-        "/tmp/pidesk-home",
+        "/tmp/pi-desktop-home",
       ),
     ).toEqual({
-      cwd: "/tmp/pidesk-workspace",
+      cwd: "/tmp/pi-desktop-workspace",
       env: expect.objectContaining({
-        PIDESK_AGENT_MODE: "mock",
-        PIDESK_AGENT_CWD: "/tmp/pidesk-workspace",
-        PIDESK_AGENT_DIR: "/tmp/pidesk-workspace/.pi/agent",
+        PI_DESKTOP_AGENT_MODE: "mock",
+        PI_DESKTOP_AGENT_CWD: "/tmp/pi-desktop-workspace",
+        PI_DESKTOP_AGENT_DIR: "/tmp/pi-desktop-workspace/.pi/agent",
       }),
     });
   });
@@ -127,24 +127,24 @@ describe("resolveAgentRuntimeLaunchOptions", () => {
     const launchOptions = prepareAgentRuntimeLaunchOptions(
       {},
       "/tmp/random-cwd",
-      "/tmp/pidesk-user-data",
+      "/tmp/pi-desktop-user-data",
       true,
-      "/tmp/pidesk-home",
+      "/tmp/pi-desktop-home",
       createDirectory,
     );
 
     expect(launchOptions).toEqual({
-      cwd: "/tmp/pidesk-home",
+      cwd: "/tmp/pi-desktop-home",
       env: expect.objectContaining({
-        PIDESK_AGENT_MODE: "cli",
-        PIDESK_AGENT_CWD: "/tmp/pidesk-home",
-        PIDESK_AGENT_DIR: "/tmp/pidesk-home/.pi/agent",
+        PI_DESKTOP_AGENT_MODE: "cli",
+        PI_DESKTOP_AGENT_CWD: "/tmp/pi-desktop-home",
+        PI_DESKTOP_AGENT_DIR: "/tmp/pi-desktop-home/.pi/agent",
       }),
     });
-    expect(createDirectory).toHaveBeenNthCalledWith(1, "/tmp/pidesk-home");
+    expect(createDirectory).toHaveBeenNthCalledWith(1, "/tmp/pi-desktop-home");
     expect(createDirectory).toHaveBeenNthCalledWith(
       2,
-      "/tmp/pidesk-home/.pi/agent",
+      "/tmp/pi-desktop-home/.pi/agent",
     );
   });
 });

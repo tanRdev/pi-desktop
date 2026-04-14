@@ -1,4 +1,4 @@
-import type { AgentSnapshot } from "@pidesk/shared";
+import type { AgentSnapshot } from "@pi-desktop/shared";
 
 type SwitchContext = {
   repositoryId: string;

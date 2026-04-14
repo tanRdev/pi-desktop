@@ -27,8 +27,8 @@ function readSelection(userDataDir: string): {
 test("creates a worktree and restores worktree selection after relaunch", async () => {
   test.setTimeout(60_000);
 
-  const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), "pidesk-e2e-home-"));
-  const userDataDir = path.join(homeDir, ".pidesk-test-user-data");
+  const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), "pi-desktop-e2e-home-"));
+  const userDataDir = path.join(homeDir, ".pi-desktop-test-user-data");
   const branchName = `feature/e2e-${Date.now()}`;
   const worktreeDirectoryName = branchName.replace(/[\\/]+/g, "-");
   const createdWorktreePath = path.join(
@@ -39,7 +39,7 @@ test("creates a worktree and restores worktree selection after relaunch", async 
   );
   fs.mkdirSync(userDataDir, { recursive: true });
 
-  const firstLaunch = await launchDesktopApp("pidesk-e2e-home-", {
+  const firstLaunch = await launchDesktopApp("pi-desktop-e2e-home-", {
     homeDir,
     userDataDir,
   });
@@ -57,7 +57,7 @@ test("creates a worktree and restores worktree selection after relaunch", async 
 
     await page.evaluate(
       async ({ nextRepositoryId, nextBranchName }) => {
-        await window.pidesk.worktrees.create(nextRepositoryId, nextBranchName);
+        await window.piDesktop.worktrees.create(nextRepositoryId, nextBranchName);
       },
       { nextRepositoryId: repositoryId, nextBranchName: branchName },
     );
@@ -68,7 +68,7 @@ test("creates a worktree and restores worktree selection after relaunch", async 
 
     await closeDesktopApp(app);
 
-    const relaunched = await launchDesktopApp("pidesk-e2e-home-relaunch-", {
+    const relaunched = await launchDesktopApp("pi-desktop-e2e-home-relaunch-", {
       homeDir,
       userDataDir,
     });
@@ -82,7 +82,7 @@ test("creates a worktree and restores worktree selection after relaunch", async 
         .poll(
           () =>
             relaunched.page.evaluate(async () => {
-              const shell = await window.pidesk.shell.getSnapshot();
+              const shell = await window.piDesktop.shell.getSnapshot();
               return shell.catalog.selection.worktreeId;
             }),
           { timeout: 10_000 },

@@ -3,12 +3,12 @@ import type {
   MentionSuggestion,
   SlashSuggestion,
   ThreadSnapshot,
-} from "@pidesk/shared";
+} from "@pi-desktop/shared";
 import {
   getActiveRepository,
   getActiveThread,
   getActiveWorktree,
-} from "@pidesk/shared";
+} from "@pi-desktop/shared";
 import * as React from "react";
 import { useStore } from "zustand";
 import { DEFAULT_UNTITLED_THREAD_TITLE } from "../../../thread-title-defaults";
@@ -43,7 +43,7 @@ function getErrorDescription(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
 }
 const PENDING_SURFACE_PREFIX = "__pending_surface__";
-const WORKSPACE_SWITCH_STATE_KEY = "pidesk.workspace-switch-state";
+const WORKSPACE_SWITCH_STATE_KEY = "pi-desktop.workspace-switch-state";
 
 type PromptMode = "build" | "plan";
 
@@ -291,7 +291,7 @@ export function useAppShellController(): AppShellController {
         worktreeId: activeWorktreeId,
         worktreePath: activeWorktreePath,
         filePath,
-        readFile: (nextFilePath) => window.pidesk.fs.readFile(nextFilePath),
+        readFile: (nextFilePath) => window.piDesktop.fs.readFile(nextFilePath),
       });
       setSelectedContextSurface(createdWindowId);
       closeFileTreeOverlay();
@@ -387,7 +387,7 @@ export function useAppShellController(): AppShellController {
     }
 
     const status =
-      await window.pidesk.git.getRepositoryStatus(activeWorktreePath);
+      await window.piDesktop.git.getRepositoryStatus(activeWorktreePath);
     setActiveGitRepositoryStatus(status);
   }, [activeWorktreePath]);
 
@@ -399,7 +399,7 @@ export function useAppShellController(): AppShellController {
       return;
     }
 
-    void window.pidesk.git
+    void window.piDesktop.git
       .getRepositoryStatus(activeWorktreePath)
       .then((status) => {
         if (!disposed) {
@@ -444,7 +444,7 @@ export function useAppShellController(): AppShellController {
       }
 
       await runGitMutation(
-        () => window.pidesk.git.stageFile(activeWorktreePath, filePath),
+        () => window.piDesktop.git.stageFile(activeWorktreePath, filePath),
         "File staged",
       );
     },
@@ -458,7 +458,7 @@ export function useAppShellController(): AppShellController {
       }
 
       await runGitMutation(
-        () => window.pidesk.git.unstageFile(activeWorktreePath, filePath),
+        () => window.piDesktop.git.unstageFile(activeWorktreePath, filePath),
         "File unstaged",
       );
     },
@@ -472,7 +472,7 @@ export function useAppShellController(): AppShellController {
       }
 
       await runGitMutation(
-        () => window.pidesk.git.discardFile(activeWorktreePath, filePath),
+        () => window.piDesktop.git.discardFile(activeWorktreePath, filePath),
         "Changes discarded",
       );
     },
@@ -485,7 +485,7 @@ export function useAppShellController(): AppShellController {
     }
 
     try {
-      const status = await window.pidesk.git.commit(
+      const status = await window.piDesktop.git.commit(
         activeWorktreePath,
         gitCommitMessage,
       );
@@ -507,7 +507,7 @@ export function useAppShellController(): AppShellController {
     }
 
     await runGitMutation(
-      () => window.pidesk.git.pull(activeWorktreePath),
+      () => window.piDesktop.git.pull(activeWorktreePath),
       "Repository updated",
     );
   }, [activeWorktreePath, runGitMutation]);
@@ -518,7 +518,7 @@ export function useAppShellController(): AppShellController {
     }
 
     await runGitMutation(
-      () => window.pidesk.git.push(activeWorktreePath),
+      () => window.piDesktop.git.push(activeWorktreePath),
       "Changes pushed",
     );
   }, [activeWorktreePath, runGitMutation]);
@@ -544,7 +544,7 @@ export function useAppShellController(): AppShellController {
         windowId,
         filePath,
         writeFile: (nextFilePath, content) =>
-          window.pidesk.fs.writeFile(nextFilePath, content),
+          window.piDesktop.fs.writeFile(nextFilePath, content),
       }).then(
         (result) => result,
         (error) => {
@@ -565,7 +565,7 @@ export function useAppShellController(): AppShellController {
   );
 
   const handleAddRepository = React.useCallback(async () => {
-    const paths = await window.pidesk.dialog.showOpenDialog({
+    const paths = await window.piDesktop.dialog.showOpenDialog({
       properties: ["openDirectory", "multiSelections"],
       title: "Add Repository",
     });
@@ -582,7 +582,7 @@ export function useAppShellController(): AppShellController {
       setWorkspaceSwitchingRepositoryName(repositoryName);
 
       try {
-        await window.pidesk.repositories.add(repositoryPath);
+        await window.piDesktop.repositories.add(repositoryPath);
         return;
       } catch (error) {
         toast.error("Invalid repository", {
@@ -629,7 +629,7 @@ export function useAppShellController(): AppShellController {
   );
 
   const handleOpenInFinder = React.useCallback(async (repositoryId: string) => {
-    await window.pidesk.repositories.openInFinder(repositoryId);
+    await window.piDesktop.repositories.openInFinder(repositoryId);
     toast.success("Opened in Finder");
   }, []);
 
@@ -640,7 +640,7 @@ export function useAppShellController(): AppShellController {
 
     let repositoryId = activeRepositoryId;
     if (!repositoryId) {
-      const freshShell = await window.pidesk.shell.getSnapshot();
+      const freshShell = await window.piDesktop.shell.getSnapshot();
       repositoryId = getActiveRepository(freshShell)?.id ?? null;
     }
 
@@ -649,7 +649,7 @@ export function useAppShellController(): AppShellController {
     }
 
     try {
-      await window.pidesk.worktrees.create(
+      await window.piDesktop.worktrees.create(
         repositoryId,
         newWorktreeBranch.trim(),
       );
@@ -672,13 +672,13 @@ export function useAppShellController(): AppShellController {
         "Workspace";
 
       setWorkspaceSwitchingRepositoryName(repositoryName);
-      await window.pidesk.worktrees.select(worktreeId);
+      await window.piDesktop.worktrees.select(worktreeId);
     },
     [activeRepository?.customName, activeRepository?.name],
   );
 
   const handleCreateThread = React.useCallback(async (worktreeId: string) => {
-    const threadId = await window.pidesk.threads.create(worktreeId);
+    const threadId = await window.piDesktop.threads.create(worktreeId);
     setSelectedContextSurface(null);
     return threadId;
   }, []);
@@ -689,7 +689,7 @@ export function useAppShellController(): AppShellController {
     }
 
     try {
-      await window.pidesk.repositories.remove(confirmRemoveRepositoryId);
+      await window.piDesktop.repositories.remove(confirmRemoveRepositoryId);
       setRemoveRepositoryOpen(false);
       setConfirmRemoveRepositoryId(null);
       setConfirmRemoveRepositoryName(null);
@@ -705,7 +705,7 @@ export function useAppShellController(): AppShellController {
 
   const handleCloseThread = React.useCallback(
     async (threadId: string) => {
-      await window.pidesk.threads.archive(threadId);
+      await window.piDesktop.threads.archive(threadId);
       if (activeThreadId === threadId) {
         setSelectedContextSurface(null);
       }
@@ -715,7 +715,7 @@ export function useAppShellController(): AppShellController {
 
   const handleDeleteThread = React.useCallback(
     async (threadId: string) => {
-      await window.pidesk.threads.delete(threadId);
+      await window.piDesktop.threads.delete(threadId);
       if (activeThreadId === threadId) {
         setSelectedContextSurface(null);
       }
@@ -725,7 +725,7 @@ export function useAppShellController(): AppShellController {
 
   const handleSelectThread = React.useCallback(async (threadId: string) => {
     setSelectedContextSurface(null);
-    await window.pidesk.threads.select(threadId);
+    await window.piDesktop.threads.select(threadId);
   }, []);
 
   React.useEffect(() => {
@@ -786,8 +786,8 @@ export function useAppShellController(): AppShellController {
           activeWorktreePath,
           windows: windowState.layout.windows,
           getSlashSuggestions: (args) =>
-            window.pidesk.agent.getSlashSuggestions(args),
-          searchFiles: (args) => window.pidesk.search.searchFiles(args),
+            window.piDesktop.agent.getSlashSuggestions(args),
+          searchFiles: (args) => window.piDesktop.search.searchFiles(args),
         });
 
         if (!disposed) {

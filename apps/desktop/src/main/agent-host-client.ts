@@ -4,12 +4,12 @@ import type {
   AgentHostResponse,
   AgentSnapshot,
   ModelSwitchRequest,
-  PiDeskAgentEvent,
+  PiDesktopAgentEvent,
   ProviderSnapshot,
   SettingsSnapshot,
-} from "@pidesk/shared";
+} from "@pi-desktop/shared";
 
-type AgentEventListener = (event: PiDeskAgentEvent) => void;
+type AgentEventListener = (event: PiDesktopAgentEvent) => void;
 
 type DistributiveOmit<T, TKey extends PropertyKey> = T extends unknown
   ? Omit<T, TKey>

@@ -11,7 +11,7 @@ test("opens a terminal surface from the title bar", async () => {
   test.setTimeout(45_000);
 
   const { app, page, launchContext } = await launchDesktopApp(
-    "pidesk-e2e-launcher-",
+    "pi-desktop-e2e-launcher-",
   );
 
   try {

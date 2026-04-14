@@ -2,12 +2,12 @@ import type {
   AiPreferences,
   AppPreferences,
   ModelSwitchRequest,
-  PiDeskApi,
+  PiDesktopApi,
   ProviderSnapshot,
   RepositoryDisplayMetadata,
   SettingsSnapshot,
-} from "@pidesk/shared";
-import { createShellModel, type ShellModelState } from "@pidesk/shell-model";
+} from "@pi-desktop/shared";
+import { createShellModel, type ShellModelState } from "@pi-desktop/shell-model";
 import { createStore } from "zustand/vanilla";
 import {
   DEFAULT_AI_PREFERENCES,
@@ -150,7 +150,7 @@ export type AppShellStore = ReturnType<typeof createAppShellStore>;
 
 let appShellStoreInstance: AppShellStore | null = null;
 
-export function createAppShellStore(api: PiDeskApi) {
+export function createAppShellStore(api: PiDesktopApi) {
   const shellModel = createShellModel(api);
   let initializePromise: Promise<void> | null = null;
   let runtimeRefreshVersion = 0;
@@ -356,7 +356,7 @@ export function createAppShellStore(api: PiDeskApi) {
 
 export function getAppShellStore(): AppShellStore {
   if (!appShellStoreInstance) {
-    appShellStoreInstance = createAppShellStore(window.pidesk);
+    appShellStoreInstance = createAppShellStore(window.piDesktop);
   }
 
   return appShellStoreInstance;

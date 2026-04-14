@@ -2,7 +2,7 @@ import type { AgentSessionEvent } from "@mariozechner/pi-coding-agent";
 import { describe, expect, it, vi } from "vitest";
 
 import { PiSdkAgentRuntime } from "../../../packages/agent-host/src/pi/pi-sdk-agent-runtime";
-import type { PiDeskAgentEvent } from "../../../packages/shared/src";
+import type { PiDesktopAgentEvent } from "../../../packages/shared/src";
 
 type FakeSession = {
   sessionId: string;
@@ -105,8 +105,8 @@ describe("PiSdkAgentRuntime", () => {
     });
 
     const runtime = new PiSdkAgentRuntime({
-      cwd: "/tmp/pidesk-workspace",
-      agentDir: "/tmp/pidesk-agent",
+      cwd: "/tmp/pi-desktop-workspace",
+      agentDir: "/tmp/pi-desktop-agent",
       createAgentSession,
     });
 
@@ -114,8 +114,8 @@ describe("PiSdkAgentRuntime", () => {
 
     expect(createAgentSession).toHaveBeenCalledWith(
       expect.objectContaining({
-        cwd: "/tmp/pidesk-workspace",
-        agentDir: "/tmp/pidesk-agent",
+        cwd: "/tmp/pi-desktop-workspace",
+        agentDir: "/tmp/pi-desktop-agent",
       }),
     );
     expect(runtime.getSnapshot()).toMatchObject({
@@ -127,9 +127,9 @@ describe("PiSdkAgentRuntime", () => {
 
   it("normalizes Pi session events and refreshes the snapshot after prompting", async () => {
     const session = createFakeSession();
-    const events: PiDeskAgentEvent[] = [];
+    const events: PiDesktopAgentEvent[] = [];
     const runtime = new PiSdkAgentRuntime({
-      cwd: "/tmp/pidesk-workspace",
+      cwd: "/tmp/pi-desktop-workspace",
       createAgentSession: vi.fn().mockResolvedValue({
         session,
         extensionsResult: {
@@ -199,7 +199,7 @@ describe("PiSdkAgentRuntime", () => {
       },
     };
     const runtime = new PiSdkAgentRuntime({
-      cwd: "/tmp/pidesk-workspace",
+      cwd: "/tmp/pi-desktop-workspace",
       createAgentSession: vi.fn().mockResolvedValue({
         session,
         extensionsResult: {
@@ -222,7 +222,7 @@ describe("PiSdkAgentRuntime", () => {
 
   it("marks the snapshot as errored when sdk bootstrap fails", async () => {
     const runtime = new PiSdkAgentRuntime({
-      cwd: "/tmp/pidesk-workspace",
+      cwd: "/tmp/pi-desktop-workspace",
       createAgentSession: vi.fn(async () => {
         throw new Error("Missing SDK auth");
       }),
@@ -253,7 +253,7 @@ describe("PiSdkAgentRuntime", () => {
       },
     };
     const runtime = new PiSdkAgentRuntime({
-      cwd: "/tmp/pidesk-workspace",
+      cwd: "/tmp/pi-desktop-workspace",
       createAgentSession: vi.fn().mockResolvedValue({
         session,
         extensionsResult: {
@@ -333,7 +333,7 @@ describe("PiSdkAgentRuntime", () => {
       },
     };
     const runtime = new PiSdkAgentRuntime({
-      cwd: "/tmp/pidesk-workspace",
+      cwd: "/tmp/pi-desktop-workspace",
       createAgentSession: vi.fn().mockResolvedValue({
         session,
         extensionsResult: {
@@ -423,7 +423,7 @@ describe("PiSdkAgentRuntime", () => {
       },
     };
     const runtime = new PiSdkAgentRuntime({
-      cwd: "/tmp/pidesk-workspace",
+      cwd: "/tmp/pi-desktop-workspace",
       createAgentSession: vi.fn().mockResolvedValue({
         session,
         extensionsResult: {

@@ -32,7 +32,7 @@ function runGit(cwd: string, args: string[]): string {
 }
 
 function initRepository(name: string) {
-  const sandbox = createTempDir(`pidesk-shell-snapshot-${name}-`);
+  const sandbox = createTempDir(`pi-desktop-shell-snapshot-${name}-`);
   const repoRoot = path.join(sandbox, name);
   fs.mkdirSync(repoRoot, { recursive: true });
   runGit(sandbox, ["init", "-b", "main", repoRoot]);
@@ -55,7 +55,7 @@ afterEach(() => {
 
 describe("createShellSnapshot", () => {
   it("builds an empty repository catalog when cwd is not a git repository", () => {
-    const nonRepoDir = createTempDir("pidesk-non-repo-");
+    const nonRepoDir = createTempDir("pi-desktop-non-repo-");
     const snapshot = createShellSnapshot({
       appName: "Pi Desktop",
       appVersion: "0.1.0",
@@ -65,7 +65,7 @@ describe("createShellSnapshot", () => {
       env: { NODE_ENV: "test" },
       isPackaged: false,
       cwd: nonRepoDir,
-      agentDir: `${nonRepoDir}/.pidesk-agent`,
+      agentDir: `${nonRepoDir}/.pi-desktop-agent`,
       agentMode: "mock",
     });
 
@@ -78,7 +78,7 @@ describe("createShellSnapshot", () => {
       runtime: {
         agentMode: "mock",
         electronVersion: "41.0.1",
-        agentDirectory: `${nonRepoDir}/.pidesk-agent`,
+        agentDirectory: `${nonRepoDir}/.pi-desktop-agent`,
       },
       capabilities: {
         supportsTurns: true,
@@ -132,7 +132,7 @@ describe("createShellSnapshot", () => {
       env: { NODE_ENV: "test" },
       isPackaged: false,
       cwd: path.join(featureWorktree, "nested"),
-      agentDir: `${featureWorktree}/.pidesk-agent`,
+      agentDir: `${featureWorktree}/.pi-desktop-agent`,
       agentMode: "mock",
       agentSnapshot,
     });

@@ -3,7 +3,7 @@ import type {
   PackageOperationKind,
   PackageOperationSnapshot,
   PackageOperationStatus,
-} from "@pidesk/shared";
+} from "@pi-desktop/shared";
 
 function buildSnapshot(
   id: string,

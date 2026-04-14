@@ -2,12 +2,12 @@ import path from "node:path";
 import {
   type CreateAgentRuntimeOptions,
   createAgentRuntime,
-} from "@pidesk/agent-host";
-import type { AgentSnapshot } from "@pidesk/shared";
+} from "@pi-desktop/agent-host";
+import type { AgentSnapshot } from "@pi-desktop/shared";
 
 type AgentRuntimeEnvironment = Partial<
   Record<
-    "NODE_ENV" | "PIDESK_AGENT_CWD" | "PIDESK_AGENT_DIR" | "PIDESK_AGENT_MODE",
+    "NODE_ENV" | "PI_DESKTOP_AGENT_CWD" | "PI_DESKTOP_AGENT_DIR" | "PI_DESKTOP_AGENT_MODE",
     string
   >
 >;
@@ -31,11 +31,11 @@ function resolveAgentRuntimeMode(
   environment: AgentRuntimeEnvironment,
 ): AgentRuntimeMode {
   if (
-    environment.PIDESK_AGENT_MODE === "mock" ||
-    environment.PIDESK_AGENT_MODE === "sdk" ||
-    environment.PIDESK_AGENT_MODE === "cli"
+    environment.PI_DESKTOP_AGENT_MODE === "mock" ||
+    environment.PI_DESKTOP_AGENT_MODE === "sdk" ||
+    environment.PI_DESKTOP_AGENT_MODE === "cli"
   ) {
-    return environment.PIDESK_AGENT_MODE;
+    return environment.PI_DESKTOP_AGENT_MODE;
   }
 
   return environment.NODE_ENV === "test" ? "mock" : "cli";
@@ -45,9 +45,9 @@ export function resolveAgentRuntimeOptions(
   environment: AgentRuntimeEnvironment,
   cwd: string,
 ): CreateAgentRuntimeOptions {
-  const resolvedCwd = environment.PIDESK_AGENT_CWD || cwd;
+  const resolvedCwd = environment.PI_DESKTOP_AGENT_CWD || cwd;
   const resolvedAgentDir =
-    environment.PIDESK_AGENT_DIR || path.join(resolvedCwd, ".pi", "agent");
+    environment.PI_DESKTOP_AGENT_DIR || path.join(resolvedCwd, ".pi", "agent");
 
   const mode = resolveAgentRuntimeMode(environment);
 
@@ -80,9 +80,9 @@ export function resolveAgentRuntimeLaunchOptions(
     cwd: runtimeOptions.cwd,
     env: {
       ...environment,
-      PIDESK_AGENT_MODE: runtimeOptions.mode,
-      PIDESK_AGENT_CWD: runtimeOptions.cwd,
-      PIDESK_AGENT_DIR: runtimeOptions.agentDir,
+      PI_DESKTOP_AGENT_MODE: runtimeOptions.mode,
+      PI_DESKTOP_AGENT_CWD: runtimeOptions.cwd,
+      PI_DESKTOP_AGENT_DIR: runtimeOptions.agentDir,
     },
   };
 }
@@ -105,7 +105,7 @@ export function prepareAgentRuntimeLaunchOptions(
 
   ensureDirectory(launchOptions.cwd);
 
-  const agentDirectory = launchOptions.env.PIDESK_AGENT_DIR;
+  const agentDirectory = launchOptions.env.PI_DESKTOP_AGENT_DIR;
 
   if (agentDirectory) {
     ensureDirectory(agentDirectory);

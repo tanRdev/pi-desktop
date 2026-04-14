@@ -16,7 +16,7 @@ function createSnapshot(): ShellSnapshot {
     runtime: {
       agentMode: "mock",
       electronVersion: "41.0.1",
-      agentDirectory: "/tmp/pidesk/.pidesk-agent",
+      agentDirectory: "/tmp/pi-desktop/.pi-desktop-agent",
     },
     catalog: {
       selection: {

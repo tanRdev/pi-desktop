@@ -1,5 +1,5 @@
 import { Folder, Plus, Stack } from "@phosphor-icons/react";
-import type { RepositorySnapshot } from "@pidesk/shared";
+import type { RepositorySnapshot } from "@pi-desktop/shared";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import {

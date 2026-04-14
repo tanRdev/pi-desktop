@@ -26,7 +26,7 @@ afterEach(() => {
 });
 
 function createTempDir() {
-  const dir = mkdtempSync(path.join(os.tmpdir(), "pidesk-slash-test-"));
+  const dir = mkdtempSync(path.join(os.tmpdir(), "pi-desktop-slash-test-"));
   tempDirs.push(dir);
   return dir;
 }

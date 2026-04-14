@@ -3,7 +3,7 @@ import type {
   SearchMatch,
   SlashSuggestion,
   WindowPosition,
-} from "@pidesk/shared";
+} from "@pi-desktop/shared";
 import { createStore } from "zustand/vanilla";
 
 export type UiDialogId =

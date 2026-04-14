@@ -1,8 +1,0 @@
-/* Legacy compatibility shim for tests and old import paths.
-   --background: #131313;
-   --radius-sm: 0px;
-   --app-font-sans: "Space Grotesk";
-   ::-webkit-scrollbar
-*/
-
-@import "./pi-desktop-shell.css";

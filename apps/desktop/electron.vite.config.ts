@@ -43,10 +43,13 @@ export default defineConfig({
     resolve: {
       alias: {
         "@": fileURLToPath(new URL("./src/renderer/src", import.meta.url)),
-        "@pidesk/ui": fileURLToPath(
+        "@pi-desktop/shared": fileURLToPath(
+          new URL("../../packages/shared/src", import.meta.url),
+        ),
+        "@pi-desktop/ui": fileURLToPath(
           new URL("../../packages/ui/src", import.meta.url),
         ),
-        "@pidesk/shell-model": fileURLToPath(
+        "@pi-desktop/shell-model": fileURLToPath(
           new URL("../../packages/shell-model/src/index.ts", import.meta.url),
         ),
         "@tiptap/react": fileURLToPath(

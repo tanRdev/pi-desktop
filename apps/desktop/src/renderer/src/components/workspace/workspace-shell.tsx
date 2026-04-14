@@ -5,8 +5,8 @@ import type {
   RepositorySnapshot,
   ShellGitSnapshot,
   SlashSuggestion,
-} from "@pidesk/shared";
-import type { AgentLiveFeed } from "@pidesk/shell-model";
+} from "@pi-desktop/shared";
+import type { AgentLiveFeed } from "@pi-desktop/shell-model";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { DEFAULT_UNTITLED_THREAD_TITLE } from "../../../../thread-title-defaults";
@@ -22,7 +22,7 @@ import { WorkspaceSurfacePanel } from "./workspace-surface-panel";
 
 type ContextSurfaceKey = "activity" | string;
 type ContextWindow = Extract<
-  import("@pidesk/shared").WorkspaceWindow,
+  import("@pi-desktop/shared").WorkspaceWindow,
   { kind: "file" | "terminal" | "git" }
 >;
 
@@ -42,7 +42,7 @@ export interface WorkspaceShellProps {
   runtimeModeLabel: string;
   providerSnapshots: ProviderSnapshot[];
   currentModelValue: string;
-  contextUsage: import("@pidesk/shared").AgentSnapshot["contextUsage"];
+  contextUsage: import("@pi-desktop/shared").AgentSnapshot["contextUsage"];
   isSwitchingModel: boolean;
   isFileTreeOpen: boolean;
   isPromptVisible: boolean;
@@ -50,7 +50,7 @@ export interface WorkspaceShellProps {
   activeGitRepositoryStatus: GitRepositoryStatus | null;
   shellGit: ShellGitSnapshot | null;
   gitCommitMessage: string;
-  threadMessages: import("@pidesk/shared").AgentMessageSnapshot[];
+  threadMessages: import("@pi-desktop/shared").AgentMessageSnapshot[];
   threadLastError: string | null;
   liveFeed: AgentLiveFeed;
   contextWindows: ContextWindow[];
@@ -170,13 +170,13 @@ export function WorkspaceShell({
     let disposed = false;
     const interactions = uiInteractionStore.getState();
 
-    void window.pidesk.window.getFullscreenState().then((isFullscreen) => {
+    void window.piDesktop.window.getFullscreenState().then((isFullscreen) => {
       if (!disposed) {
         interactions.setMainWindowFullscreen(isFullscreen);
       }
     });
 
-    const unsubscribe = window.pidesk.window.onFullscreenChanged(
+    const unsubscribe = window.piDesktop.window.onFullscreenChanged(
       (isFullscreen) => {
         uiInteractionStore.getState().setMainWindowFullscreen(isFullscreen);
       },

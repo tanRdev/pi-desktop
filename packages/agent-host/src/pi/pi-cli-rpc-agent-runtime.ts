@@ -6,16 +6,16 @@ import type {
   AgentSnapshot,
   ModelSnapshot,
   ModelSwitchRequest,
-  PiDeskAgentEvent,
+  PiDesktopAgentEvent,
   ProviderSnapshot,
   SettingsSnapshot,
-} from "@pidesk/shared";
+} from "@pi-desktop/shared";
 import { Effect, Either } from "effect";
 
 import { normalizeAgentSessionEvent } from "../events/normalize-agent-session-event.js";
 import { applyEventToSnapshot } from "../state/state-helpers.js";
 
-type AgentListener = (event: PiDeskAgentEvent) => void;
+type AgentListener = (event: PiDesktopAgentEvent) => void;
 
 type SpawnProcess = typeof spawn;
 
@@ -568,7 +568,7 @@ export class PiCliRpcAgentRuntime {
     };
   }
 
-  private emit(event: PiDeskAgentEvent): void {
+  private emit(event: PiDesktopAgentEvent): void {
     for (const listener of this.listeners) {
       listener(event);
     }

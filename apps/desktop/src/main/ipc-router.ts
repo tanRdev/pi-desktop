@@ -10,7 +10,7 @@ import {
   type SearchResponse,
   type SettingsSnapshot,
   type ShellSnapshot,
-} from "@pidesk/shared";
+} from "@pi-desktop/shared";
 import type { BrowserWindow } from "electron";
 import type { GitWorktreeService } from "./git-worktree-service";
 import {

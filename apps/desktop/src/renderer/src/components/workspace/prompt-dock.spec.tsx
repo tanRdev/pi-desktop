@@ -1,4 +1,4 @@
-import type { ProviderSnapshot } from "@pidesk/shared";
+import type { ProviderSnapshot } from "@pi-desktop/shared";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type * as React from "react";
@@ -19,7 +19,7 @@ type PromptInputSectionProps = React.PropsWithChildren<{
 
 type PromptTextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement>;
 
-vi.mock("@pidesk/ui", () => ({
+vi.mock("@pi-desktop/ui", () => ({
   PromptInput({ children, className }: PromptInputProps) {
     return <div className={className}>{children}</div>;
   },

@@ -7,18 +7,18 @@ import {
   waitForAppReady,
 } from "./helpers/desktop-app";
 
-const shouldRunRealCliE2E = process.env.PIDESK_RUN_REAL_CLI_E2E === "1";
+const shouldRunRealCliE2E = process.env.PI_DESKTOP_RUN_REAL_CLI_E2E === "1";
 
 test.skip(
   !shouldRunRealCliE2E,
-  "Set PIDESK_RUN_REAL_CLI_E2E=1 to opt into live Pi CLI coverage.",
+  "Set PI_DESKTOP_RUN_REAL_CLI_E2E=1 to opt into live Pi CLI coverage.",
 );
 
 test("streams a real Pi CLI reply through the desktop chat", async () => {
   test.setTimeout(90_000);
 
   const { app, page, launchContext } = await launchDesktopApp(
-    "pidesk-e2e-real-pi-",
+    "pi-desktop-e2e-real-pi-",
     {
       agentMode: "cli",
     },

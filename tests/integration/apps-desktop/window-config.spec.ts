@@ -29,7 +29,7 @@ function createWindowOpenDetails(url: string): HandlerDetails {
 describe("createMainWindowOptions", () => {
   it("locks down the BrowserWindow web preferences", () => {
     const options = createMainWindowOptions({
-      preloadPath: "/tmp/pidesk/preload.js",
+      preloadPath: "/tmp/pi-desktop/preload.js",
     });
 
     expect(options.title).toBe("Pi Desktop");
@@ -40,7 +40,7 @@ describe("createMainWindowOptions", () => {
     expect(options.paintWhenInitiallyHidden).toBe(false);
     expect(options.titleBarStyle).toBe("hiddenInset");
     expect(options.webPreferences).toMatchObject({
-      preload: "/tmp/pidesk/preload.js",
+      preload: "/tmp/pi-desktop/preload.js",
       contextIsolation: true,
       sandbox: true,
       nodeIntegration: false,
@@ -52,7 +52,7 @@ describe("createMainWindowOptions", () => {
 
   it("keeps the window hidden until the main process decides to show it", () => {
     const options = createMainWindowOptions({
-      preloadPath: "/tmp/pidesk/preload.js",
+      preloadPath: "/tmp/pi-desktop/preload.js",
     });
 
     expect(options.show).toBe(false);
@@ -65,11 +65,11 @@ describe("shouldShowMainWindow", () => {
   });
 
   it("suppresses the main window when headless mode is enabled", () => {
-    expect(shouldShowMainWindow({ PIDESK_HEADLESS: "1" })).toBe(false);
+    expect(shouldShowMainWindow({ PI_DESKTOP_HEADLESS: "1" })).toBe(false);
   });
 
   it("preserves the normal app behavior for other values", () => {
-    expect(shouldShowMainWindow({ PIDESK_HEADLESS: "0" })).toBe(true);
+    expect(shouldShowMainWindow({ PI_DESKTOP_HEADLESS: "0" })).toBe(true);
   });
 });
 
@@ -84,7 +84,7 @@ describe("shouldQuitWhenAllWindowsClosed", () => {
 
   it("quits headless macOS runs so tests do not hang on child processes", () => {
     expect(
-      shouldQuitWhenAllWindowsClosed({ PIDESK_HEADLESS: "1" }, "darwin"),
+      shouldQuitWhenAllWindowsClosed({ PI_DESKTOP_HEADLESS: "1" }, "darwin"),
     ).toBe(true);
   });
 });
@@ -96,7 +96,7 @@ describe("shouldOpenDevTools", () => {
 
   it("keeps DevTools closed for tests, packaged apps, and headless runs", () => {
     expect(shouldOpenDevTools({ NODE_ENV: "test" }, false)).toBe(false);
-    expect(shouldOpenDevTools({ PIDESK_HEADLESS: "1" }, false)).toBe(false);
+    expect(shouldOpenDevTools({ PI_DESKTOP_HEADLESS: "1" }, false)).toBe(false);
     expect(shouldOpenDevTools({ NODE_ENV: "development" }, true)).toBe(false);
   });
 });
@@ -171,7 +171,7 @@ describe("resolvePreloadTarget", () => {
 
 describe("window navigation hardening", () => {
   it("allows file navigation targets", () => {
-    expect(shouldAllowNavigation("file:///tmp/pidesk/index.html")).toBe(true);
+    expect(shouldAllowNavigation("file:///tmp/pi-desktop/index.html")).toBe(true);
   });
 
   it("blocks remote navigation targets", () => {

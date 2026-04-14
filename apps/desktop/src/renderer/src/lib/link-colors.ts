@@ -1,4 +1,4 @@
-import type { LinkColor } from "@pidesk/shared";
+import type { LinkColor } from "@pi-desktop/shared";
 
 const LINK_COLORS: LinkColor[] = [
   "blue",

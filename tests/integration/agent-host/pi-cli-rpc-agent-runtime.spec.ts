@@ -3,7 +3,7 @@ import { PassThrough, Writable } from "node:stream";
 import { describe, expect, it, vi } from "vitest";
 
 import { PiCliRpcAgentRuntime } from "../../../packages/agent-host/src/pi/pi-cli-rpc-agent-runtime";
-import type { PiDeskAgentEvent } from "../../../packages/shared/src";
+import type { PiDesktopAgentEvent } from "../../../packages/shared/src";
 
 type FakeRpcCommand = {
   id?: string;
@@ -81,7 +81,7 @@ describe("PiCliRpcAgentRuntime", () => {
           success: true,
           data: {
             sessionId: "cli-session",
-            sessionFile: "/tmp/pidesk-agent/sessions/cli-session.jsonl",
+            sessionFile: "/tmp/pi-desktop-agent/sessions/cli-session.jsonl",
             thinkingLevel: "high",
             isStreaming: false,
             isCompacting: false,
@@ -118,8 +118,8 @@ describe("PiCliRpcAgentRuntime", () => {
     );
 
     const runtime = new PiCliRpcAgentRuntime({
-      cwd: "/tmp/pidesk-workspace",
-      agentDir: "/tmp/pidesk-agent",
+      cwd: "/tmp/pi-desktop-workspace",
+      agentDir: "/tmp/pi-desktop-agent",
       spawnProcess,
     });
 
@@ -129,9 +129,9 @@ describe("PiCliRpcAgentRuntime", () => {
       "pi",
       ["--mode", "rpc", "--continue"],
       expect.objectContaining({
-        cwd: "/tmp/pidesk-workspace",
+        cwd: "/tmp/pi-desktop-workspace",
         env: expect.objectContaining({
-          PI_CODING_AGENT_DIR: "/tmp/pidesk-agent",
+          PI_CODING_AGENT_DIR: "/tmp/pi-desktop-agent",
         }),
       }),
     );
@@ -153,7 +153,7 @@ describe("PiCliRpcAgentRuntime", () => {
           success: true,
           data: {
             sessionId: "cli-session",
-            sessionFile: "/tmp/pidesk-agent/sessions/cli-session.jsonl",
+            sessionFile: "/tmp/pi-desktop-agent/sessions/cli-session.jsonl",
             thinkingLevel: "medium",
             isStreaming: false,
             isCompacting: false,
@@ -254,11 +254,11 @@ describe("PiCliRpcAgentRuntime", () => {
     });
 
     const runtime = new PiCliRpcAgentRuntime({
-      cwd: "/tmp/pidesk-workspace",
-      agentDir: "/tmp/pidesk-agent",
+      cwd: "/tmp/pi-desktop-workspace",
+      agentDir: "/tmp/pi-desktop-agent",
       spawnProcess: vi.fn(() => child),
     });
-    const events: PiDeskAgentEvent[] = [];
+    const events: PiDesktopAgentEvent[] = [];
 
     runtime.subscribe((event) => {
       events.push(event);
@@ -370,8 +370,8 @@ describe("PiCliRpcAgentRuntime", () => {
     });
 
     const runtime = new PiCliRpcAgentRuntime({
-      cwd: "/tmp/pidesk-workspace",
-      agentDir: "/tmp/pidesk-agent",
+      cwd: "/tmp/pi-desktop-workspace",
+      agentDir: "/tmp/pi-desktop-agent",
       spawnProcess: vi.fn(() => child),
     });
 
@@ -455,11 +455,11 @@ describe("PiCliRpcAgentRuntime", () => {
     });
 
     const runtime = new PiCliRpcAgentRuntime({
-      cwd: "/tmp/pidesk-workspace",
-      agentDir: "/tmp/pidesk-agent",
+      cwd: "/tmp/pi-desktop-workspace",
+      agentDir: "/tmp/pi-desktop-agent",
       spawnProcess: vi.fn(() => child),
     });
-    const listener = vi.fn<(event: PiDeskAgentEvent) => void>();
+    const listener = vi.fn<(event: PiDesktopAgentEvent) => void>();
 
     runtime.subscribe(listener);
     await runtime.bootstrap();
@@ -542,8 +542,8 @@ describe("PiCliRpcAgentRuntime", () => {
     });
 
     const runtime = new PiCliRpcAgentRuntime({
-      cwd: "/tmp/pidesk-workspace",
-      agentDir: "/tmp/pidesk-agent",
+      cwd: "/tmp/pi-desktop-workspace",
+      agentDir: "/tmp/pi-desktop-agent",
       spawnProcess: vi.fn(() => child),
     });
 
@@ -616,8 +616,8 @@ describe("PiCliRpcAgentRuntime", () => {
     });
 
     const runtime = new PiCliRpcAgentRuntime({
-      cwd: "/tmp/pidesk-workspace",
-      agentDir: "/tmp/pidesk-agent",
+      cwd: "/tmp/pi-desktop-workspace",
+      agentDir: "/tmp/pi-desktop-agent",
       spawnProcess: vi.fn(() => child),
     });
 

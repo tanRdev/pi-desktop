@@ -17,7 +17,7 @@ import type {
   WindowPosition,
   WorkspaceWindow,
   WorkspaceWindowBase,
-} from "@pidesk/shared";
+} from "@pi-desktop/shared";
 
 /**
  * Window store state.

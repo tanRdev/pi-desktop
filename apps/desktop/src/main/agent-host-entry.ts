@@ -1,7 +1,7 @@
 import {
   type ParentPortLike,
   wireAgentHostParentPort,
-} from "@pidesk/agent-host";
+} from "@pi-desktop/agent-host";
 
 import { createAgentRuntimeForEntry } from "./agent-host-runtime";
 

@@ -66,7 +66,7 @@ export function CursorSidebar({ className }: CursorSidebarProps) {
         <div className="space-y-0.5">
           <FileTreeItem
             icon={<FolderOpen className="size-5" />}
-            label="tan/dev/pidesk"
+            label="tan/dev/pi-desktop"
             active
           />
           <FileTreeItem

@@ -1,4 +1,4 @@
-import type { ThreadSnapshot } from "@pidesk/shared";
+import type { ThreadSnapshot } from "@pi-desktop/shared";
 import { ChatText, ICON_SIZE_XS, X } from "@/components/ui/icons";
 import {
   Tooltip,

@@ -1,4 +1,4 @@
-import { IPC_CHANNELS } from "@pidesk/shared";
+import { IPC_CHANNELS } from "@pi-desktop/shared";
 import type { RegisterIpcHandlersDependencies } from "../ipc-router";
 import { getStringField } from "./payload-parsers";
 

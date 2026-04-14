@@ -3,8 +3,8 @@ import type {
   CreateWindowAction,
   FileContent,
   WorkspaceSession,
-} from "@pidesk/shared";
-import { createEmptyWorkspaceSession } from "@pidesk/shared";
+} from "@pi-desktop/shared";
+import { createEmptyWorkspaceSession } from "@pi-desktop/shared";
 import { createStore } from "zustand/vanilla";
 import {
   createInitialWindowStoreState,

@@ -1,4 +1,4 @@
-import type { ModelSwitchRequest } from "@pidesk/shared";
+import type { ModelSwitchRequest } from "@pi-desktop/shared";
 
 type SwitchModelContext = {
   worktreePath: string;

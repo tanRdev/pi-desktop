@@ -104,7 +104,7 @@ export function Terminal({
     const { cols, rows } = terminal;
     void (async () => {
       try {
-        const session = await window.pidesk.terminal.create({
+        const session = await window.piDesktop.terminal.create({
           id,
           cols,
           rows,
@@ -129,7 +129,7 @@ export function Terminal({
     })();
 
     terminal.onData((data) => {
-      window.pidesk.terminal.write(id, data).catch(console.error);
+      window.piDesktop.terminal.write(id, data).catch(console.error);
     });
 
     const handleResize = () => {
@@ -137,14 +137,14 @@ export function Terminal({
         syncTerminalSurface(containerRef.current);
         fitAddonRef.current.fit();
         const { cols, rows } = terminalRef.current;
-        window.pidesk.terminal.resize(id, cols, rows).catch(console.error);
+        window.piDesktop.terminal.resize(id, cols, rows).catch(console.error);
       }
     };
 
     const resizeObserver = new ResizeObserver(handleResize);
     resizeObserver.observe(containerRef.current);
 
-    const unsubscribe = window.pidesk.terminal.onEvent((event) => {
+    const unsubscribe = window.piDesktop.terminal.onEvent((event) => {
       if (event.id !== id) return;
 
       if (event.type === "data" && event.data) {
@@ -159,7 +159,7 @@ export function Terminal({
     return () => {
       resizeObserver.disconnect();
       unsubscribe();
-      window.pidesk.terminal.destroy(id).catch(console.error);
+      window.piDesktop.terminal.destroy(id).catch(console.error);
       terminal.dispose();
       terminalRef.current = null;
       fitAddonRef.current = null;

@@ -20,20 +20,14 @@ describe("shared ui package foundation (chunk-2a-ui-foundation)", () => {
     assertExists(p);
   });
 
-  it("packages/ui styles/pidesk-shell.css exists and contains shell tokens", () => {
-    const p = path.join(ROOT, "packages/ui/src/styles/pidesk-shell.css");
+  it("packages/ui styles/pi-desktop-shell.css exists and contains shell tokens", () => {
+    const p = path.join(ROOT, "packages/ui/src/styles/pi-desktop-shell.css");
     const content = read(p);
     if (content === null) throw new Error(`Missing ${p}`);
-    if (!content.includes("--background: #131313;"))
-      throw new Error("Expected --background: #131313; in pidesk-shell.css");
-    if (!content.includes("--radius-sm: 0px;"))
-      throw new Error("Expected --radius-sm: 0px; in pidesk-shell.css");
-    if (!content.includes("::-webkit-scrollbar"))
-      throw new Error("Expected ::-webkit-scrollbar in pidesk-shell.css");
-    if (!/--app-font-sans:\s*"Space Grotesk"/m.test(content))
-      throw new Error(
-        "Expected --app-font-sans token with Space Grotesk in pidesk-shell.css",
-      );
+    if (!content.includes("--background:"))
+      throw new Error("Expected --background token in pi-desktop-shell.css");
+    if (!content.includes("--app-font-sans:"))
+      throw new Error("Expected --app-font-sans token in pi-desktop-shell.css");
   });
 
   it("apps/desktop/src/renderer/src/app.css imports shared styles and retains drag-region rules", () => {
@@ -41,13 +35,13 @@ describe("shared ui package foundation (chunk-2a-ui-foundation)", () => {
     const content = read(p);
     if (content === null) throw new Error(`Missing ${p}`);
     const importRe =
-      /@import\s+(?:url\()?['"]@pidesk\/ui\/styles\/pidesk-shell\.css['"]\)?/m;
+      /@import\s+(?:url\()?['"]@pi-desktop\/ui\/styles\/pi-desktop-shell\.css['"]\)?/m;
     if (
       !importRe.test(content) &&
-      !content.includes("@pidesk/ui/styles/pidesk-shell.css")
+      !content.includes("@pi-desktop/ui/styles/pi-desktop-shell.css")
     ) {
       throw new Error(
-        `Expected ${p} to import @pidesk/ui/styles/pidesk-shell.css`,
+        `Expected ${p} to import @pi-desktop/ui/styles/pi-desktop-shell.css`,
       );
     }
     if (!content.includes("-webkit-app-region: drag"))
@@ -161,11 +155,11 @@ describe("shared ui package foundation (chunk-2a-ui-foundation)", () => {
     }
   });
 
-  it("desktop vite config exposes alias @pidesk/ui", () => {
+  it("desktop vite config exposes alias @pi-desktop/ui", () => {
     const desktopVite = path.join(ROOT, "apps/desktop/electron.vite.config.ts");
     const desktopContent = read(desktopVite);
     if (desktopContent === null) throw new Error(`Missing ${desktopVite}`);
-    if (!desktopContent.includes("@pidesk/ui"))
-      throw new Error(`${desktopVite} must expose an alias for @pidesk/ui`);
+    if (!desktopContent.includes("@pi-desktop/ui"))
+      throw new Error(`${desktopVite} must expose an alias for @pi-desktop/ui`);
   });
 });

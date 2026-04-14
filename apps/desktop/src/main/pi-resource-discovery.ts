@@ -8,7 +8,7 @@ import type {
   PiDiscoveryResult,
   PiSkillInfo,
   SlashSuggestion,
-} from "@pidesk/shared";
+} from "@pi-desktop/shared";
 
 function readMarkdownDescription(filePath: string): string | undefined {
   try {

@@ -2,7 +2,7 @@ import type {
   MentionSuggestion,
   SearchMatch,
   SlashSuggestion,
-} from "@pidesk/shared";
+} from "@pi-desktop/shared";
 import {
   buildMentionSuggestions,
   type PromptAutocompleteMatch,

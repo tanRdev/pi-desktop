@@ -1,4 +1,4 @@
-import type { ThreadRuntimeStatus } from "@pidesk/shared";
+import type { ThreadRuntimeStatus } from "@pi-desktop/shared";
 import { useUnicodeSpinner } from "@/hooks/use-unicode-spinner";
 import { cn } from "@/lib/utils";
 

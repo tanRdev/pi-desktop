@@ -2,11 +2,11 @@ export {
   FileSystemError,
   fromUnknownError,
   IPCError,
-  PiDeskError,
+  PiDesktopError,
   RepositoryError,
   ThreadError,
   tryPromise,
   trySync,
 } from "./errors";
-export { createModuleLogger, PiDeskLoggerLive } from "./logger";
-export { PiDeskLive, runEffect, runEffectVoid } from "./runtime";
+export { createModuleLogger, PiDesktopLoggerLive } from "./logger";
+export { PiDesktopLive, runEffect, runEffectVoid } from "./runtime";
