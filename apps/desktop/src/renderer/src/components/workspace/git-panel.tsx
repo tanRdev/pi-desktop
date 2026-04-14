@@ -72,6 +72,25 @@ function CombinedChangeList({
     return Array.from(paths).sort();
   }, [repositoryStatus]);
 
+  const { added, deleted, modified } = React.useMemo(() => {
+    let a = 0;
+    let d = 0;
+    let m = 0;
+    allPaths.forEach((path) => {
+      const staged = repositoryStatus?.stagedChanges.find(
+        (c) => c.path === path,
+      );
+      const unstaged = repositoryStatus?.unstagedChanges.find(
+        (c) => c.path === path,
+      );
+      const status = (unstaged || staged)?.status ?? "unknown";
+      if (status === "added" || status === "untracked") a++;
+      else if (status === "deleted") d++;
+      else if (status === "modified" || status === "renamed") m++;
+    });
+    return { added: a, deleted: d, modified: m };
+  }, [allPaths, repositoryStatus]);
+
   if (allPaths.length === 0) {
     return (
       <div className="px-1 py-10 text-[13px] text-white/30 italic text-center">
@@ -83,12 +102,32 @@ function CombinedChangeList({
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between px-1">
-        <h3 className="text-[12px] font-bold uppercase tracking-[0.1em] text-white/40">
-          Changes
-        </h3>
-        <span className="text-[12px] font-mono text-white/30">
-          {allPaths.length}
-        </span>
+        <h3 className="text-[14px] text-white/50">Changes</h3>
+        <div className="flex items-center gap-1.5 font-mono text-[11px] font-bold">
+          {added > 0 && (
+            <span className="flex items-center justify-center rounded bg-emerald-500/10 px-1.5 py-0.5 text-emerald-400">
+              +{added}
+            </span>
+          )}
+          {modified > 0 && (
+            <span className="flex items-center justify-center rounded bg-amber-500/10 px-1.5 py-0.5 text-amber-400">
+              ~{modified}
+            </span>
+          )}
+          {deleted > 0 && (
+            <span className="flex items-center justify-center rounded bg-rose-500/10 px-1.5 py-0.5 text-rose-400">
+              -{deleted}
+            </span>
+          )}
+          {added === 0 &&
+            modified === 0 &&
+            deleted === 0 &&
+            allPaths.length > 0 && (
+              <span className="flex items-center justify-center rounded bg-white/5 px-1.5 py-0.5 text-white/40">
+                {allPaths.length}
+              </span>
+            )}
+        </div>
       </div>
       <div className="max-h-[500px] overflow-y-auto overflow-x-hidden transition-colors custom-scrollbar">
         <div className="divide-y divide-white/[0.06]">
@@ -104,7 +143,7 @@ function CombinedChangeList({
             return (
               <div
                 key={path}
-                className="group flex items-center gap-3 py-2.5 transition-colors hover:bg-white/[0.02]"
+                className="group flex w-full items-center gap-2 rounded-sm px-2 py-2 text-left text-[14px] transition-colors text-white/40 hover:bg-white/[0.04] hover:text-white/70"
               >
                 <button
                   type="button"
@@ -121,21 +160,23 @@ function CombinedChangeList({
                   <Check className="size-3" />
                 </button>
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-[13px] text-white/70 group-hover:text-white/90">
+                  <div className="truncate group-hover:text-white/80">
                     {path}
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-3">
                   <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                    <Button
+                    <button
                       type="button"
-                      variant="ghost"
-                      size="icon-xs"
                       onClick={() => void onDiscard(path)}
-                      className="size-6 hover:bg-red-500/10 hover:text-red-400"
+                      title="Discard changes"
+                      className={cn(
+                        "flex size-5 items-center justify-center rounded text-white/35 transition-colors duration-150",
+                        "hover:bg-red-500/20 hover:text-red-400",
+                      )}
                     >
                       <Trash className="size-3" />
-                    </Button>
+                    </button>
                   </div>
                   <div
                     className={cn(
@@ -224,27 +265,25 @@ export function GitPanel({
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-2 min-w-0">
-              <h2 className="truncate text-[16px] font-semibold text-white/70">
+              <h2 className="truncate text-[14px] text-white/40 font-semibold uppercase tracking-wider">
                 {projectName ?? worktree?.label}
               </h2>
               <span className="text-white/20 select-none">/</span>
-              <span className="truncate text-[16px] font-medium text-white/50">
+              <span className="truncate text-[14px] font-medium text-white/50">
                 {viewModel.branchLabel}
               </span>
             </div>
             <div className="flex items-center gap-1 shrink-0">
-              <Button
+              <button
                 type="button"
-                variant="ghost"
-                size="icon-xs"
                 onClick={() => void onRefresh()}
                 disabled={!canRefresh || isRefreshing}
-                className="size-7 text-white/30 hover:text-white/80 hover:bg-white/[0.06]"
+                className="flex size-8 items-center justify-center rounded-sm text-white/40 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/80 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ArrowClockwise
-                  className={cn("size-3.5", isRefreshing && "animate-spin")}
+                  className={cn("size-5", isRefreshing && "animate-spin")}
                 />
-              </Button>
+              </button>
             </div>
           </div>
           <div className="flex items-center gap-2 text-[13px] tabular-nums tracking-wide text-white/40">
@@ -347,17 +386,15 @@ export function GitPanel({
                   <div className="ml-auto flex items-center gap-1">
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button
+                        <button
                           type="button"
-                          variant="ghost"
-                          size="icon-xs"
                           onClick={() => void onPull()}
                           disabled={!canPull || isLoading}
-                          className="size-7 text-white/30 hover:bg-white/[0.05] hover:text-white/70"
+                          className="flex size-8 items-center justify-center rounded-sm text-white/40 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/80 disabled:opacity-50 disabled:cursor-not-allowed"
                           aria-label={viewModel.pullActionLabel ?? "Pull"}
                         >
-                          <ArrowDown className="size-3.5" />
-                        </Button>
+                          <ArrowDown className="size-5" />
+                        </button>
                       </TooltipTrigger>
                       <TooltipContent side="top">
                         {viewModel.pullActionLabel ?? "Pull"}
@@ -365,17 +402,15 @@ export function GitPanel({
                     </Tooltip>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button
+                        <button
                           type="button"
-                          variant="ghost"
-                          size="icon-xs"
                           onClick={() => void onPush()}
                           disabled={!canPush || isLoading}
-                          className="size-7 text-white/30 hover:bg-white/[0.05] hover:text-white/70"
+                          className="flex size-8 items-center justify-center rounded-sm text-white/40 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/80 disabled:opacity-50 disabled:cursor-not-allowed"
                           aria-label={viewModel.pushActionLabel ?? "Push"}
                         >
-                          <ArrowUp className="size-3.5" />
-                        </Button>
+                          <ArrowUp className="size-5" />
+                        </button>
                       </TooltipTrigger>
                       <TooltipContent side="top">
                         {viewModel.pushActionLabel ?? "Push"}
