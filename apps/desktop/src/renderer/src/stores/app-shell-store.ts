@@ -7,7 +7,10 @@ import type {
   RepositoryDisplayMetadata,
   SettingsSnapshot,
 } from "@pi-desktop/shared";
-import { createShellModel, type ShellModelState } from "@pi-desktop/shell-model";
+import {
+  createShellModel,
+  type ShellModelState,
+} from "@pi-desktop/shell-model";
 import { createStore } from "zustand/vanilla";
 import {
   DEFAULT_AI_PREFERENCES,

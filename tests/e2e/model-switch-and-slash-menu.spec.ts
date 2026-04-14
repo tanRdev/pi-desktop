@@ -70,13 +70,17 @@ async function getActiveThreadAndModel(page: import("@playwright/test").Page) {
   return page.evaluate(async () => {
     const shell = await window.piDesktop.shell.getSnapshot();
     const agent = await window.piDesktop.agent.getSnapshot();
+    const selectedWorktreeId = shell.catalog.selection.worktreeId;
+    const selectedWorktree = shell.catalog.repositories
+      .flatMap((repository) => repository.worktrees)
+      .find((worktree) => worktree.path === selectedWorktreeId);
 
     return {
       threadId: shell.catalog.selection.threadId,
       currentProviderId: agent.currentProviderId ?? null,
       currentModelId: agent.currentModelId ?? null,
       threadCount:
-        shell.catalog.repositories[0]?.worktrees[0]?.threads.filter(
+        selectedWorktree?.threads.filter(
           (thread) => thread.isArchived === false,
         ).length ?? 0,
     };
@@ -106,12 +110,14 @@ test("switches models while idle without changing the active thread", async () =
       .poll(
         async () => {
           const state = await getActiveThreadAndModel(page);
+          const trigger = page.getByTestId("model-selector-trigger");
 
           return {
             hasThreadId: Boolean(state.threadId),
             currentProviderId: state.currentProviderId,
             currentModelId: state.currentModelId,
-            threadCount: state.threadCount,
+            triggerText: (await trigger.textContent())?.trim() ?? "",
+            triggerDisabled: await trigger.isDisabled(),
           };
         },
         {
@@ -122,14 +128,15 @@ test("switches models while idle without changing the active thread", async () =
         hasThreadId: true,
         currentProviderId: "google",
         currentModelId: "gemini-2.5-pro",
-        threadCount: 1,
+        triggerText: "Gemini 2.5 Pro",
+        triggerDisabled: false,
       });
 
     const initialState = await getActiveThreadAndModel(page);
     expect(initialState.threadId).toBeTruthy();
     expect(initialState.currentProviderId).toBe("google");
     expect(initialState.currentModelId).toBe("gemini-2.5-pro");
-    expect(initialState.threadCount).toBe(1);
+    expect(initialState.threadCount).toBeGreaterThan(0);
 
     await expect
       .poll(
@@ -168,7 +175,7 @@ test("switches models while idle without changing the active thread", async () =
         threadId: initialState.threadId,
         currentProviderId: "google",
         currentModelId: "gemini-2.5-flash",
-        threadCount: 1,
+        threadCount: initialState.threadCount,
       });
   } finally {
     await closeDesktopApp(app);

@@ -35,11 +35,19 @@ async function createNamedThread(
     .poll(async () => {
       const shell = await page.evaluate(async () => {
         const snapshot = await window.piDesktop.shell.getSnapshot();
+        const selectedWorktreeId = snapshot.catalog.selection.worktreeId;
+        const selectedWorktree = snapshot.catalog.repositories
+          .flatMap((repository) => repository.worktrees)
+          .find((worktree) => worktree.path === selectedWorktreeId);
+        const selectedThreadId = snapshot.catalog.selection.threadId;
+        const activeThreadTitle =
+          selectedWorktree?.threads.find(
+            (thread) => thread.id === selectedThreadId,
+          )?.title ?? null;
+
         return {
           threadId: snapshot.catalog.selection.threadId,
-          activeThreadTitle:
-            snapshot.catalog.repositories[0]?.worktrees[0]?.threads[0]?.title ??
-            null,
+          activeThreadTitle,
         };
       });
 

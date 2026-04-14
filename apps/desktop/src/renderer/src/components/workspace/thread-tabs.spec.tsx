@@ -115,7 +115,7 @@ describe("ThreadTabs", () => {
     const activeLabel = screen.getByText("Alpha");
     const activeTabContainer = activeTab.parentElement;
 
-    expect(activeTabContainer).toHaveClass("rounded-sm");
+    expect(activeTabContainer).toHaveClass("border-b");
     expect(activeTab).not.toHaveClass("font-mono");
     expect(activeLabel).not.toHaveClass("uppercase");
     expect(activeLabel).not.toHaveClass("tracking-widest");

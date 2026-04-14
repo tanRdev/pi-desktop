@@ -49,7 +49,6 @@ export function ThreadList({
           <span className="text-[14px] font-medium text-white/30 uppercase tracking-[0.16em]">
             Threads
           </span>
-          <span className="text-[14px] text-white/20">{threads.length}</span>
         </div>
         <Button
           type="button"

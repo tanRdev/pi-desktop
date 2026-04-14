@@ -375,9 +375,6 @@ export function LeftRail({
           >
             {sessions.map((session) => {
               const isActive = session.id === activeWorktreeId;
-              const openThreadCount = session.threads.filter(
-                (thread) => thread.isArchived === false,
-              ).length;
               const sessionRowClassName = cn(
                 "group flex w-full items-center gap-2 rounded-sm px-2 py-2 text-left text-[14px] transition-colors",
                 isActive
@@ -397,9 +394,6 @@ export function LeftRail({
                     <GitBranch className="size-3 text-white/40" />
                   </span>
                   <span className="truncate flex-1">{session.label}</span>
-                  <span className="shrink-0 text-[13px] text-white/30">
-                    {openThreadCount}
-                  </span>
                 </button>
               );
             })}

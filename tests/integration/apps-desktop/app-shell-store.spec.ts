@@ -857,16 +857,230 @@ describe("app-shell-store", () => {
 
     await store.getState().initialize();
     eventListener?.({ type: "session_changed" });
-    await Promise.resolve();
-    await Promise.resolve();
+    await vi.waitFor(() => {
+      expect(api.shell.getSnapshot).toHaveBeenCalledTimes(2);
+      expect(api.agent.getSnapshot).toHaveBeenCalledTimes(2);
+    });
+    await vi.waitFor(() => {
+      expect(store.getState().shellState.shell.catalog.selection.threadId).toBe(
+        "thread-2",
+      );
+    });
 
     expect(api.agent.getProviders).toHaveBeenCalledTimes(1);
     expect(api.agent.getSettings).toHaveBeenCalledTimes(1);
-    expect(api.shell.getSnapshot).toHaveBeenCalledTimes(2);
-    expect(api.agent.getSnapshot).toHaveBeenCalledTimes(2);
-    expect(store.getState().shellState.shell.catalog.selection.threadId).toBe(
-      "thread-2",
-    );
+  });
+
+  it("refreshes provider metadata when session context changes to another worktree", async () => {
+    let eventListener: ((event: PiDesktopAgentEvent) => void) | undefined;
+    const initialShellSnapshot: ShellSnapshot = {
+      appName: "PiDesk",
+      appVersion: "0.1.0",
+      chromeVersion: "141.0.0.0",
+      platform: "darwin",
+      mode: "test" as const,
+      catalog: {
+        repositories: [
+          {
+            id: "/tmp/repo",
+            name: "PiDesk",
+            customName: null,
+            icon: null,
+            accentColor: null,
+            rootPath: "/tmp/repo",
+            defaultBranch: "main",
+            worktrees: [
+              {
+                id: "/tmp/repo",
+                label: "main",
+                path: "/tmp/repo",
+                isMain: true,
+                isDetached: false,
+                git: {
+                  status: "ready",
+                  branch: "main",
+                  commit: "abc1234",
+                  hasChanges: false,
+                  ahead: 0,
+                  behind: 0,
+                  stagedCount: 0,
+                  modifiedCount: 0,
+                  untrackedCount: 0,
+                  message: null,
+                },
+                threads: [
+                  {
+                    id: "thread-1",
+                    title: "North Star",
+                    isArchived: false,
+                    lastActivityAt: null,
+                    runtime: {
+                      status: "ready",
+                      lastError: null,
+                    },
+                  },
+                ],
+              },
+              {
+                id: "/tmp/repo-feature",
+                label: "feature/ui-guardrails",
+                path: "/tmp/repo-feature",
+                isMain: false,
+                isDetached: false,
+                git: {
+                  status: "ready",
+                  branch: "feature/ui-guardrails",
+                  commit: "def5678",
+                  hasChanges: false,
+                  ahead: 0,
+                  behind: 0,
+                  stagedCount: 0,
+                  modifiedCount: 0,
+                  untrackedCount: 0,
+                  message: null,
+                },
+                threads: [
+                  {
+                    id: "thread-2",
+                    title: "Guardrails",
+                    isArchived: false,
+                    lastActivityAt: null,
+                    runtime: {
+                      status: "ready",
+                      lastError: null,
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+        selection: {
+          repositoryId: "/tmp/repo",
+          worktreeId: "/tmp/repo",
+          threadId: "thread-1",
+        },
+      },
+    };
+    const nextShellSnapshot: ShellSnapshot = {
+      ...initialShellSnapshot,
+      catalog: {
+        ...initialShellSnapshot.catalog,
+        selection: {
+          repositoryId: "/tmp/repo",
+          worktreeId: "/tmp/repo-feature",
+          threadId: "thread-2",
+        },
+      },
+    };
+    const api = createApiFixture({
+      shell: {
+        getSnapshot: vi
+          .fn<() => Promise<ShellSnapshot>>()
+          .mockResolvedValueOnce(initialShellSnapshot)
+          .mockResolvedValueOnce(nextShellSnapshot),
+      },
+      agent: {
+        getProviders: vi
+          .fn()
+          .mockResolvedValueOnce([
+            {
+              id: "google",
+              name: "Google",
+              models: [
+                {
+                  id: "gemini-2.5-pro",
+                  name: "Gemini 2.5 Pro",
+                  providerId: "google",
+                },
+              ],
+            },
+          ])
+          .mockResolvedValueOnce([
+            {
+              id: "anthropic",
+              name: "Anthropic",
+              models: [
+                {
+                  id: "claude-sonnet-4-20250514",
+                  name: "Claude Sonnet 4",
+                  providerId: "anthropic",
+                },
+              ],
+            },
+          ]),
+        getSettings: vi
+          .fn()
+          .mockResolvedValueOnce({
+            currentProviderId: "google",
+            currentModelId: "gemini-2.5-pro",
+          })
+          .mockResolvedValueOnce({
+            currentProviderId: "anthropic",
+            currentModelId: "claude-sonnet-4-20250514",
+          }),
+        getSnapshot: vi
+          .fn()
+          .mockResolvedValueOnce({
+            sessionId: "session-1",
+            status: "ready" as const,
+            messages: [],
+            lastError: null,
+          })
+          .mockResolvedValueOnce({
+            sessionId: "session-2",
+            status: "ready" as const,
+            messages: [],
+            lastError: null,
+          }),
+        prompt: vi.fn(async () => undefined),
+        cancelPrompt: vi.fn(async () => undefined),
+        reset: vi.fn(async () => undefined),
+        switchModel: vi.fn(async () => undefined),
+        getDiscovery: vi.fn(async () => ({
+          isInstalled: false,
+          skills: [],
+          commands: [],
+        })),
+        getSlashSuggestions: vi.fn(async () => ({
+          kind: "slash",
+          suggestions: [],
+          hasMore: false,
+        })),
+        subscribe: vi.fn((listener) => {
+          eventListener = listener;
+          return () => {
+            eventListener = undefined;
+          };
+        }),
+      },
+    });
+    const store = createAppShellStore(api);
+
+    await store.getState().initialize();
+    eventListener?.({ type: "session_changed" });
+    await vi.waitFor(() => {
+      expect(api.agent.getProviders).toHaveBeenCalledTimes(2);
+      expect(api.agent.getSettings).toHaveBeenCalledTimes(2);
+    });
+
+    expect(store.getState().providerSnapshots).toEqual([
+      {
+        id: "anthropic",
+        name: "Anthropic",
+        models: [
+          {
+            id: "claude-sonnet-4-20250514",
+            name: "Claude Sonnet 4",
+            providerId: "anthropic",
+          },
+        ],
+      },
+    ]);
+    expect(store.getState().settingsSnapshot).toMatchObject({
+      currentProviderId: "anthropic",
+      currentModelId: "claude-sonnet-4-20250514",
+    });
   });
 
   it("updates repository preferences through the state API and reloads renderer-facing shell state", async () => {

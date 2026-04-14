@@ -37,4 +37,27 @@ describe("TitleBar", () => {
     expect(onOpenTerminal).toHaveBeenCalledTimes(1);
     expect(onToggleSidePanel).toHaveBeenCalledTimes(1);
   });
+
+  it("keeps drag-region shell chrome styling", () => {
+    const { container } = render(
+      <TitleBar
+        platform="darwin"
+        isTerminalActive={false}
+        isSidePanelVisible
+        onOpenTerminal={vi.fn()}
+        onToggleSidePanel={vi.fn()}
+      />,
+    );
+
+    expect(container.firstElementChild).toHaveAttribute(
+      "data-drag-region",
+      "true",
+    );
+    expect(container.firstElementChild).toHaveClass("h-11");
+    expect(container.firstElementChild).toHaveClass("border-b");
+    expect(container.firstElementChild).toHaveClass("border-white/[0.03]");
+    expect(
+      screen.getByRole("button", { name: "Toggle side panel" }),
+    ).toHaveClass("text-white/70");
+  });
 });

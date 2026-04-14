@@ -144,6 +144,9 @@ describe("LeftRail", () => {
     expect(screen.getByText("Archived")).toBeInTheDocument();
     expect(screen.getByText("main")).toBeInTheDocument();
     expect(screen.getByText("feature/session-tabs")).toBeInTheDocument();
+    expect(
+      screen.getAllByTestId("session-row").map((row) => row.textContent),
+    ).toEqual(["main", "feature/session-tabs"]);
     expect(screen.queryByText("Active thread")).not.toBeInTheDocument();
 
     await user.click(screen.getByText("feature/session-tabs"));
@@ -155,6 +158,15 @@ describe("LeftRail", () => {
     expect(onSelectThread).toHaveBeenCalledWith("thread-archived");
     expect(onCreateSession).toHaveBeenCalledTimes(1);
     expect(onAddRepository).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps current rail chrome classes for shell surface", () => {
+    renderLeftRail();
+
+    const rail = screen.getByTestId("left-rail");
+    expect(rail).toHaveClass("bg-[var(--color-bg-primary)]");
+    expect(rail).toHaveClass("border-r");
+    expect(rail).toHaveClass("border-white/[0.06]");
   });
 });
 
