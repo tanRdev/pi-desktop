@@ -74,8 +74,10 @@ export interface WorkspaceShellProps {
   onGitCommitMessageChange: (value: string) => void;
   onRefreshGit: () => void | Promise<void>;
   onCommitGit: () => void | Promise<void>;
+  onCommitAndPushGit: () => void | Promise<void>;
   onPullGit: () => void | Promise<void>;
   onPushGit: () => void | Promise<void>;
+  onFetchGit: () => void | Promise<void>;
   onStageGitFile: (filePath: string) => void | Promise<void>;
   onUnstageGitFile: (filePath: string) => void | Promise<void>;
   onDiscardGitFile: (filePath: string) => void | Promise<void>;
@@ -145,8 +147,10 @@ export function WorkspaceShell({
   onGitCommitMessageChange,
   onRefreshGit,
   onCommitGit,
+  onCommitAndPushGit,
   onPullGit,
   onPushGit,
+  onFetchGit,
   onStageGitFile,
   onUnstageGitFile,
   onDiscardGitFile,
@@ -226,8 +230,10 @@ export function WorkspaceShell({
       onCommitMessageChange={onGitCommitMessageChange}
       onRefresh={onRefreshGit}
       onCommit={onCommitGit}
+      onCommitAndPush={onCommitAndPushGit}
       onPull={onPullGit}
       onPush={onPushGit}
+      onFetch={onFetchGit}
       onStageFile={onStageGitFile}
       onUnstageFile={onUnstageGitFile}
       onDiscardFile={onDiscardGitFile}

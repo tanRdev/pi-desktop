@@ -26,8 +26,10 @@ export interface GitPanelViewModel {
   syncLabel: string;
   upstreamLabel: string;
   commitActionLabel: string | null;
+  commitAndPushActionLabel: string | null;
   pullActionLabel: string | null;
   pushActionLabel: string | null;
+  fetchActionLabel: string | null;
   statusTone: GitPanelStatusTone;
   statusMessage: string;
   sections: GitPanelSection[];
@@ -85,8 +87,10 @@ function resolveStatusState(
 ): Pick<
   GitPanelViewModel,
   | "commitActionLabel"
+  | "commitAndPushActionLabel"
   | "pullActionLabel"
   | "pushActionLabel"
+  | "fetchActionLabel"
   | "statusMessage"
   | "statusTone"
 > {
@@ -94,8 +98,10 @@ function resolveStatusState(
     if (shellGit?.status === "not_repo") {
       return {
         commitActionLabel: null,
+        commitAndPushActionLabel: null,
         pullActionLabel: null,
         pushActionLabel: null,
+        fetchActionLabel: null,
         statusTone: "muted",
         statusMessage: "This folder is open, but it is not a git repository.",
       };
@@ -103,8 +109,10 @@ function resolveStatusState(
 
     return {
       commitActionLabel: null,
+      commitAndPushActionLabel: null,
       pullActionLabel: null,
       pushActionLabel: null,
+      fetchActionLabel: null,
       statusTone: "muted",
       statusMessage:
         "Select a repository worktree to inspect its git state here.",
@@ -114,31 +122,45 @@ function resolveStatusState(
   return Match.value(worktree.git.status).pipe(
     Match.when("missing", () => ({
       commitActionLabel: null,
+      commitAndPushActionLabel: null,
       pullActionLabel: null,
       pushActionLabel: null,
+      fetchActionLabel: null,
       statusTone: "warning" as const,
       statusMessage:
         worktree.git.message ?? "This worktree is missing git metadata.",
     })),
     Match.when("unavailable", () => ({
       commitActionLabel: null,
+      commitAndPushActionLabel: null,
       pullActionLabel: null,
       pushActionLabel: null,
+      fetchActionLabel: null,
       statusTone: "warning" as const,
       statusMessage:
         worktree.git.message ?? "Git is unavailable for this worktree.",
     })),
-    Match.orElse(() => ({
-      commitActionLabel: "Commit changes",
-      pullActionLabel: "Pull",
-      pushActionLabel: "Push",
-      statusTone: worktree.git.hasChanges
-        ? ("warning" as const)
-        : ("neutral" as const),
-      statusMessage: worktree.git.hasChanges
-        ? "Working tree has local changes."
-        : "Working tree is clean.",
-    })),
+    Match.orElse(() => {
+      const hasUncommittedChanges =
+        worktree.git.stagedCount > 0 ||
+        worktree.git.modifiedCount > 0 ||
+        worktree.git.untrackedCount > 0;
+      const canCommit = worktree.git.stagedCount > 0;
+
+      return {
+        commitActionLabel: canCommit ? "Commit" : null,
+        commitAndPushActionLabel: canCommit ? "Commit & Push" : null,
+        pullActionLabel: "Pull",
+        pushActionLabel: "Push",
+        fetchActionLabel: "Fetch",
+        statusTone: hasUncommittedChanges
+          ? ("warning" as const)
+          : ("neutral" as const),
+        statusMessage: hasUncommittedChanges
+          ? "Working tree has local changes."
+          : "Working tree is clean.",
+      };
+    }),
   );
 }
 

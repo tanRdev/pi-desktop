@@ -101,6 +101,8 @@ export interface AppShellController {
   commitGitChanges: () => Promise<void>;
   pullGitChanges: () => Promise<void>;
   pushGitChanges: () => Promise<void>;
+  fetchGitChanges: () => Promise<void>;
+  commitAndPushGitChanges: () => Promise<void>;
   isPackagesOpen: boolean;
   setPackagesOpen: (isOpen: boolean) => void;
   isCreateWorktreeOpen: boolean;
@@ -501,6 +503,29 @@ export function useAppShellController(): AppShellController {
     }
   }, [activeWorktreePath, gitCommitMessage, reload]);
 
+  const commitAndPushGitChanges = React.useCallback(async () => {
+    if (!activeWorktreePath || !gitCommitMessage.trim()) {
+      return;
+    }
+
+    try {
+      let status = await window.piDesktop.git.commit(
+        activeWorktreePath,
+        gitCommitMessage,
+      );
+      status = await window.piDesktop.git.push(activeWorktreePath);
+      setActiveGitRepositoryStatus(status);
+      setGitCommitMessage("");
+      toast.success("Committed and pushed");
+      await reload();
+    } catch (error) {
+      toast.error("Commit & Push failed", {
+        description:
+          error instanceof Error ? error.message : "Unknown git error",
+      });
+    }
+  }, [activeWorktreePath, gitCommitMessage, reload]);
+
   const pullGitChanges = React.useCallback(async () => {
     if (!activeWorktreePath) {
       return;
@@ -520,6 +545,17 @@ export function useAppShellController(): AppShellController {
     await runGitMutation(
       () => window.piDesktop.git.push(activeWorktreePath),
       "Changes pushed",
+    );
+  }, [activeWorktreePath, runGitMutation]);
+
+  const fetchGitChanges = React.useCallback(async () => {
+    if (!activeWorktreePath) {
+      return;
+    }
+
+    await runGitMutation(
+      () => window.piDesktop.git.fetch(activeWorktreePath),
+      "Repository fetched",
     );
   }, [activeWorktreePath, runGitMutation]);
 
@@ -1082,8 +1118,10 @@ export function useAppShellController(): AppShellController {
     onGitCommitMessageChange: setGitCommitMessage,
     onRefreshGit: refreshGitRepositoryStatus,
     onCommitGit: commitGitChanges,
+    onCommitAndPushGit: commitAndPushGitChanges,
     onPullGit: pullGitChanges,
     onPushGit: pushGitChanges,
+    onFetchGit: fetchGitChanges,
     onStageGitFile: stageGitFile,
     onUnstageGitFile: unstageGitFile,
     onDiscardGitFile: discardGitFile,
@@ -1112,8 +1150,10 @@ export function useAppShellController(): AppShellController {
     unstageGitFile,
     discardGitFile,
     commitGitChanges,
+    commitAndPushGitChanges,
     pullGitChanges,
     pushGitChanges,
+    fetchGitChanges,
     isPackagesOpen,
     setPackagesOpen,
     isCreateWorktreeOpen,
