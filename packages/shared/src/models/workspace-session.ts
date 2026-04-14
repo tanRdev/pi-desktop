@@ -18,6 +18,7 @@ export interface AiPreferences {
 export interface AppPreferences {
   leftSidebarWidth?: number | null;
   ai?: AiPreferences | null;
+  favoriteModels?: string[] | null;
 }
 
 export interface WorkspaceSidebarState {

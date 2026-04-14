@@ -146,6 +146,8 @@ export function useAppShellController(): AppShellController {
     settingsSnapshot,
     isSwitchingModel,
     switchModel,
+    appPreferences,
+    updateAppPreferences,
   } = useShellModel();
   const { agent, draft, live, shell } = state;
   const { state: windowState, store: windowStore } = useWindowStore();
@@ -1114,6 +1116,22 @@ export function useAppShellController(): AppShellController {
     [switchModel],
   );
 
+  const favoriteModels = React.useMemo(
+    () => appPreferences.favoriteModels ?? [],
+    [appPreferences.favoriteModels],
+  );
+
+  const handleToggleFavorite = React.useCallback(
+    (modelValue: string) => {
+      const current = appPreferences.favoriteModels ?? [];
+      const next = current.includes(modelValue)
+        ? current.filter((v) => v !== modelValue)
+        : [...current, modelValue];
+      void updateAppPreferences({ favoriteModels: next });
+    },
+    [appPreferences.favoriteModels, updateAppPreferences],
+  );
+
   const handleSend = React.useCallback(async () => {
     const oauthCommand = parseOAuthChatCommand(draft);
     if (oauthCommand) {
@@ -1319,6 +1337,8 @@ export function useAppShellController(): AppShellController {
     promptMode,
     onPromptModeChange: handlePromptModeChange,
     onConnectProvider: () => void openOAuthDialog("providers", null),
+    favoriteModels,
+    onToggleFavorite: handleToggleFavorite,
   };
 
   return {

@@ -97,6 +97,9 @@ function normalizeAppPreferences(
   return {
     leftSidebarWidth: resolvedLeftSidebarWidth,
     ai: getStoredAiPreferences(value),
+    favoriteModels: Array.isArray(value?.favoriteModels)
+      ? value.favoriteModels
+      : undefined,
   };
 }
 
@@ -391,10 +394,17 @@ function mergeAppPreferences(
         ? base.ai
         : updates.ai
       : response.ai;
+  const favoriteModels =
+    response?.favoriteModels === undefined
+      ? updates.favoriteModels === undefined
+        ? base.favoriteModels
+        : updates.favoriteModels
+      : response.favoriteModels;
 
   return {
     ...(leftSidebarWidth === undefined ? {} : { leftSidebarWidth }),
     ...(ai === undefined ? {} : { ai }),
+    ...(favoriteModels === undefined ? {} : { favoriteModels }),
   };
 }
 
@@ -433,5 +443,8 @@ function normalizeAppPreferenceUpdates(
   return {
     leftSidebarWidth: resolvedLeftSidebarWidth,
     ai: mergeAiPreferenceUpdates(currentNormalizedPreferences.ai, updates.ai),
+    ...(updates.favoriteModels !== undefined
+      ? { favoriteModels: updates.favoriteModels }
+      : {}),
   };
 }

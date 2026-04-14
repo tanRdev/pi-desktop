@@ -18,6 +18,7 @@ import {
   Paperclip,
   Plus,
   Square,
+  Star,
 } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { buildFileMention } from "../../lib/prompt-routing";
@@ -27,6 +28,7 @@ import { Image } from "../ui/image";
 import { Loader } from "../ui/loader";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import PromptAutocomplete from "../ui/prompt-autocomplete";
+import { getProviderDisplayName, ProviderIcon } from "../ui/provider-icon";
 
 function formatTokenCount(tokens: number): string {
   if (tokens >= 1_000_000) {
@@ -85,6 +87,8 @@ export interface PromptDockProps {
     event: React.ChangeEvent<HTMLSelectElement>,
   ) => void | Promise<void>;
   onConnectProvider?: () => void;
+  favoriteModels?: string[];
+  onToggleFavorite?: (modelValue: string) => void;
 }
 
 export function PromptDock({
@@ -112,12 +116,44 @@ export function PromptDock({
   onModelMenuOpenChange,
   onModelSelection,
   onConnectProvider,
+  favoriteModels = [],
+  onToggleFavorite,
 }: PromptDockProps) {
   const modelSelectRef = React.useRef<HTMLSelectElement | null>(null);
   const [modelOpen, setModelOpen] = React.useState(false);
   const [isFocused, setIsFocused] = React.useState(false);
   const [uploadedFiles, setUploadedFiles] = React.useState<UploadedFile[]>([]);
   const hasActiveThread = activeThreadId !== null;
+
+  const favoriteSet = React.useMemo(
+    () => new Set(favoriteModels),
+    [favoriteModels],
+  );
+
+  const favoriteModelsList = React.useMemo(() => {
+    const results: {
+      providerId: string;
+      modelId: string;
+      modelName: string;
+      value: string;
+    }[] = [];
+    for (const favValue of favoriteModels) {
+      for (const provider of providerSnapshots) {
+        const model = provider.models.find(
+          (m) => `${provider.id}::${m.id}` === favValue,
+        );
+        if (model) {
+          results.push({
+            providerId: provider.id,
+            modelId: model.id,
+            modelName: model.name,
+            value: favValue,
+          });
+        }
+      }
+    }
+    return results;
+  }, [favoriteModels, providerSnapshots]);
 
   const currentModel = React.useMemo(() => {
     for (const provider of providerSnapshots) {
@@ -387,32 +423,46 @@ export function PromptDock({
                       <span>Connect provider</span>
                     </button>
                     <div className="my-1 h-px bg-white/[0.04]" />
-                    {providerSnapshots.map((provider) => (
-                      <div key={provider.id}>
-                        <div className="px-2 py-1.5 text-[14px] text-white/40">
-                          {provider.name}
+                    {favoriteModelsList.length > 0 && (
+                      <>
+                        <div className="px-2 py-1.5 text-[11px] font-medium uppercase tracking-wider text-white/30">
+                          Favorites
                         </div>
-                        {provider.models.map((model) => {
-                          const value = `${provider.id}::${model.id}`;
-                          const isSelected = value === currentModelValue;
+                        {favoriteModelsList.map((fav) => {
+                          const isSelected = fav.value === currentModelValue;
 
                           return (
                             <button
-                              key={`${provider.id}:${model.id}`}
+                              key={`fav-${fav.value}`}
                               type="button"
-                              data-testid={`model-option-${provider.id}-${model.id}`}
-                              onClick={() => handleModelSelect(value)}
+                              data-testid={`model-option-${fav.providerId}-${fav.modelId}`}
+                              onClick={() => handleModelSelect(fav.value)}
                               className={cn(
-                                "flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-[16px] transition-colors",
+                                "flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-[14px] transition-colors",
                                 isSelected
                                   ? "bg-white/[0.08] text-white"
                                   : "text-white/70 hover:bg-white/[0.04] hover:text-white",
                               )}
                             >
-                              <span>{model.name}</span>
+                              <ProviderIcon
+                                providerId={fav.providerId}
+                                className="shrink-0"
+                              />
+                              <span className="truncate">{fav.modelName}</span>
+                              <button
+                                type="button"
+                                data-testid={`toggle-favorite-${fav.providerId}-${fav.modelId}`}
+                                className="ml-auto shrink-0 p-0.5 text-amber-400/80 hover:text-amber-400 transition-colors"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onToggleFavorite?.(fav.value);
+                                }}
+                              >
+                                <Star weight="fill" className="size-3.5" />
+                              </button>
                               {isSelected && (
                                 <svg
-                                  className="size-5 text-white/60"
+                                  className="size-4 text-white/60 shrink-0"
                                   fill="none"
                                   viewBox="0 0 24 24"
                                   stroke="currentColor"
@@ -429,8 +479,76 @@ export function PromptDock({
                             </button>
                           );
                         })}
-                      </div>
-                    ))}
+                        <div className="my-1 h-px bg-white/[0.04]" />
+                      </>
+                    )}
+                    {providerSnapshots.map((provider) => {
+                      const nonFavoriteModels = provider.models.filter(
+                        (model) =>
+                          !favoriteSet.has(`${provider.id}::${model.id}`),
+                      );
+                      if (nonFavoriteModels.length === 0) return null;
+
+                      return (
+                        <div key={provider.id}>
+                          <div className="flex items-center gap-2 px-2 py-1.5 text-[11px] font-medium uppercase tracking-wider text-white/30">
+                            <ProviderIcon
+                              providerId={provider.id}
+                              className="shrink-0"
+                            />
+                            <span>{getProviderDisplayName(provider.id)}</span>
+                          </div>
+                          {nonFavoriteModels.map((model) => {
+                            const value = `${provider.id}::${model.id}`;
+                            const isSelected = value === currentModelValue;
+
+                            return (
+                              <button
+                                key={`${provider.id}:${model.id}`}
+                                type="button"
+                                data-testid={`model-option-${provider.id}-${model.id}`}
+                                onClick={() => handleModelSelect(value)}
+                                className={cn(
+                                  "flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-[14px] transition-colors",
+                                  isSelected
+                                    ? "bg-white/[0.08] text-white"
+                                    : "text-white/70 hover:bg-white/[0.04] hover:text-white",
+                                )}
+                              >
+                                <span className="truncate">{model.name}</span>
+                                <button
+                                  type="button"
+                                  data-testid={`toggle-favorite-${provider.id}-${model.id}`}
+                                  className="ml-auto shrink-0 p-0.5 text-white/20 hover:text-amber-400/80 transition-colors"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onToggleFavorite?.(value);
+                                  }}
+                                >
+                                  <Star weight="regular" className="size-3.5" />
+                                </button>
+                                {isSelected && (
+                                  <svg
+                                    className="size-4 text-white/60 shrink-0"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth={2}
+                                    aria-hidden="true"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      d="M5 13l4 4L19 7"
+                                    />
+                                  </svg>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      );
+                    })}
                   </div>
                 </PopoverContent>
               </Popover>
