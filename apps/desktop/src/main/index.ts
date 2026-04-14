@@ -13,7 +13,7 @@ import type {
   SettingsSnapshot,
 } from "@pi-desktop/shared";
 import { IPC_CHANNELS } from "@pi-desktop/shared";
-import { app, BrowserWindow, ipcMain, shell } from "electron";
+import { app, BrowserWindow, ipcMain, shell, Menu } from "electron";
 import {
   createThreadTitle,
   getDefaultThreadTitle,
@@ -29,6 +29,7 @@ import {
   createAgentHostSocketTransport,
 } from "./agent-host-socket-transport";
 import { AppPreferencesCatalog } from "./app-preferences-catalog";
+import { initAutoUpdater } from "./auto-updater";
 import { switchModelForContext } from "./bootstrap/model-switch";
 import {
   buildThreadContext as buildThreadContextFromHelper,
@@ -67,7 +68,6 @@ import {
   shouldQuitWhenAllWindowsClosed,
   shouldShowMainWindow,
 } from "./window-config";
-import { initAutoUpdater } from "./auto-updater";
 import { WorkspaceSearchService } from "./workspace-search-service";
 import { WorkspaceSessionCatalog } from "./workspace-session-catalog";
 
@@ -244,8 +244,133 @@ function subscribeToFullscreenChanges(window: BrowserWindow) {
 }
 
 async function bootstrapDesktop() {
+  app.name = "Pi Desktop";
   app.setName("Pi Desktop");
   await app.whenReady();
+
+  const isMac = process.platform === "darwin";
+  const template: Electron.MenuItemConstructorOptions[] = [
+    ...(isMac
+      ? [
+          {
+            label: app.name,
+            submenu: [
+              { role: "about" } as Electron.MenuItemConstructorOptions,
+              { type: "separator" } as Electron.MenuItemConstructorOptions,
+              {
+                label: "Uninstall Pi Desktop...",
+                click: async () => {
+                  const { dialog } = require("electron");
+                  const fs = require("fs");
+                  const path = require("path");
+                  
+                  const response = await dialog.showMessageBox({
+                    type: "warning",
+                    buttons: ["Cancel", "Uninstall"],
+                    defaultId: 1,
+                    title: "Uninstall Pi Desktop",
+                    message: "Are you sure you want to uninstall Pi Desktop?",
+                    detail: "This will remove the application, your settings, and cached data. This action cannot be undone."
+                  });
+
+                  if (response.response === 1) {
+                    try {
+                      // Get paths to delete
+                      const userDataPath = app.getPath("userData");
+                      const appPath = app.getPath("exe"); // Only works well if packaged
+                      
+                      // Delete user data
+                      if (fs.existsSync(userDataPath)) {
+                        fs.rmSync(userDataPath, { recursive: true, force: true });
+                      }
+
+                      // If packaged on Mac, delete the .app bundle
+                      if (isMac && app.isPackaged) {
+                        const appBundlePath = appPath.substring(0, appPath.indexOf(".app") + 4);
+                        if (fs.existsSync(appBundlePath)) {
+                          app.relaunch({ args: ['--uninstall-script', appBundlePath] });
+                          app.quit();
+                          return;
+                        }
+                      }
+                      
+                      dialog.showMessageBoxSync({ message: "Pi Desktop data removed. You can now move the app to Trash." });
+                      app.quit();
+                    } catch (err) {
+                      dialog.showErrorBox("Uninstall Failed", String(err));
+                    }
+                  }
+                }
+              },
+              { type: "separator" } as Electron.MenuItemConstructorOptions,
+              { role: "services" } as Electron.MenuItemConstructorOptions,
+              { type: "separator" } as Electron.MenuItemConstructorOptions,
+              { role: "hide" } as Electron.MenuItemConstructorOptions,
+              { role: "hideOthers" } as Electron.MenuItemConstructorOptions,
+              { role: "unhide" } as Electron.MenuItemConstructorOptions,
+              { type: "separator" } as Electron.MenuItemConstructorOptions,
+              { role: "quit" } as Electron.MenuItemConstructorOptions
+            ]
+          }
+        ]
+      : []),
+    {
+      label: "Edit",
+      submenu: [
+        { role: "undo" },
+        { role: "redo" },
+        { type: "separator" },
+        { role: "cut" },
+        { role: "copy" },
+        { role: "paste" },
+        ...(isMac
+          ? [
+              { role: "pasteAndMatchStyle" },
+              { role: "delete" },
+              { role: "selectAll" },
+              { type: "separator" },
+              {
+                label: "Speech",
+                submenu: [{ role: "startSpeaking" }, { role: "stopSpeaking" }]
+              }
+            ]
+          : [{ role: "delete" }, { type: "separator" }, { role: "selectAll" }])
+      ] as Electron.MenuItemConstructorOptions[]
+    },
+    {
+      label: "View",
+      submenu: [
+        { role: "reload" },
+        { role: "forceReload" },
+        { role: "toggleDevTools" },
+        { type: "separator" },
+        { role: "resetZoom" },
+        { role: "zoomIn" },
+        { role: "zoomOut" },
+        { type: "separator" },
+        { role: "togglefullscreen" }
+      ]
+    },
+    {
+      label: "Window",
+      submenu: [
+        { role: "minimize" },
+        { role: "zoom" },
+        ...(isMac
+          ? [
+              { type: "separator" },
+              { role: "front" },
+              { type: "separator" },
+              { role: "window" }
+            ]
+          : [{ role: "close" }])
+      ] as Electron.MenuItemConstructorOptions[]
+    }
+  ];
+
+  const menu = Menu.buildFromTemplate(template);
+  Menu.setApplicationMenu(menu);
+
 
   const explicitUserDataPath = process.env.PI_DESKTOP_USER_DATA_DIR;
   if (explicitUserDataPath) {

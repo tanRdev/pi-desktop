@@ -39,5 +39,8 @@
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "dependencies": {
+    "boneyard-js": "^1.7.6"
+  }
 }

@@ -93,7 +93,7 @@ function CombinedChangeList({
 
   if (allPaths.length === 0) {
     return (
-      <div className="px-1 py-10 text-[13px] text-white/30 italic text-center">
+      <div className="px-1 py-10 text-[12px] text-white/30 italic text-center">
         No changes detected
       </div>
     );
@@ -102,7 +102,7 @@ function CombinedChangeList({
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between px-1">
-        <h3 className="text-[14px] text-white/50">Changes</h3>
+        <h3 className="text-[12px] text-white/50">Changes</h3>
         <div className="flex items-center gap-1.5 font-mono text-[11px] font-bold">
           {added > 0 && (
             <span className="flex items-center justify-center rounded bg-emerald-500/10 px-1.5 py-0.5 text-emerald-400">
@@ -143,7 +143,7 @@ function CombinedChangeList({
             return (
               <div
                 key={path}
-                className="group flex w-full items-center gap-2 rounded-sm px-2 py-2 text-left text-[14px] transition-colors text-white/40 hover:bg-white/[0.04] hover:text-white/70"
+                className="group flex w-full items-center gap-2 rounded-sm px-2 py-2 text-left text-[12px] transition-colors text-white/40 hover:bg-white/[0.04] hover:text-white/70"
               >
                 <button
                   type="button"
@@ -157,7 +157,7 @@ function CombinedChangeList({
                       : "border-white/10 text-transparent hover:border-white/30",
                   )}
                 >
-                  <Check className="size-3" />
+                  <Check className="size-2.5" />
                 </button>
                 <div className="min-w-0 flex-1">
                   <div className="truncate group-hover:text-white/80">
@@ -175,7 +175,7 @@ function CombinedChangeList({
                         "hover:bg-red-500/20 hover:text-red-400",
                       )}
                     >
-                      <Trash className="size-3" />
+                      <Trash className="size-2.5" />
                     </button>
                   </div>
                   <div
@@ -265,11 +265,7 @@ export function GitPanel({
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-2 min-w-0">
-              <h2 className="truncate text-[14px] text-white/40 font-semibold uppercase tracking-wider">
-                {projectName ?? worktree?.label}
-              </h2>
-              <span className="text-white/20 select-none">/</span>
-              <span className="truncate text-[14px] font-medium text-white/50">
+              <span className="truncate text-[12px] font-medium text-white/50">
                 {viewModel.branchLabel}
               </span>
             </div>
@@ -281,12 +277,12 @@ export function GitPanel({
                 className="flex size-8 items-center justify-center rounded-sm text-white/40 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/80 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ArrowClockwise
-                  className={cn("size-5", isRefreshing && "animate-spin")}
+                  className={cn("size-4", isRefreshing && "animate-spin")}
                 />
               </button>
             </div>
           </div>
-          <div className="flex items-center gap-2 text-[13px] tabular-nums tracking-wide text-white/40">
+          <div className="flex items-center gap-2 text-[12px] tabular-nums tracking-wide text-white/40">
             <span className="truncate font-medium">{viewModel.summary}</span>
             <span className="text-white/20 select-none">·</span>
             <span className="truncate">{viewModel.syncLabel}</span>
@@ -304,17 +300,17 @@ export function GitPanel({
                 placeholder="Commit message..."
                 rows={2}
                 disabled={!repositoryPath || isLoading}
-                className="w-full resize-none rounded-md border-none bg-transparent px-2 py-2 text-[14px] leading-relaxed text-white/90 transition-all duration-150 placeholder:text-white/30 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full resize-none rounded-md border-none bg-transparent px-2 py-2 text-[12px] leading-relaxed text-white/90 transition-all duration-150 placeholder:text-white/30 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               />
               <div className="flex items-center gap-1 p-1 pt-0">
-                <div className="flex items-center">
+                <div className="flex items-center ml-auto">
                   <Button
                     type="button"
                     variant="ghost"
                     size="xs"
                     onClick={() => void onCommit()}
                     disabled={!canCommit || !commitMessage.trim() || isLoading}
-                    className="h-7 rounded-r-none border-r border-white/10 bg-white/[0.05] px-3 text-[13px] font-medium text-white/70 hover:bg-white/[0.1] hover:text-white disabled:bg-transparent"
+                    className="h-7 rounded-r-none border-r border-white/10 bg-white/[0.05] px-3 text-[12px] font-medium text-white/70 hover:bg-white/[0.1] hover:text-white disabled:bg-transparent"
                   >
                     Commit
                   </Button>
@@ -327,7 +323,7 @@ export function GitPanel({
                         disabled={!repositoryPath || isLoading}
                         className="h-7 w-6 rounded-l-none bg-white/[0.05] text-white/40 hover:bg-white/[0.1] hover:text-white/70 disabled:bg-transparent"
                       >
-                        <CaretDown className="size-3" />
+                        <CaretDown className="size-2.5" />
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent
@@ -345,7 +341,7 @@ export function GitPanel({
                             isLoading
                           }
                           onClick={() => void onCommitAndPush()}
-                          className="justify-start px-2 py-1.5 text-[13px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
+                          className="justify-start px-2 py-1.5 text-[12px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
                         >
                           Commit & Push
                         </Button>
@@ -355,7 +351,7 @@ export function GitPanel({
                           size="sm"
                           disabled={!canPush || isLoading}
                           onClick={() => void onPush()}
-                          className="justify-start px-2 py-1.5 text-[13px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
+                          className="justify-start px-2 py-1.5 text-[12px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
                         >
                           Push
                         </Button>
@@ -364,7 +360,7 @@ export function GitPanel({
                           size="sm"
                           disabled={!canPull || isLoading}
                           onClick={() => void onPull()}
-                          className="justify-start px-2 py-1.5 text-[13px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
+                          className="justify-start px-2 py-1.5 text-[12px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
                         >
                           Pull
                         </Button>
@@ -373,7 +369,7 @@ export function GitPanel({
                           size="sm"
                           disabled={!canFetch || isLoading}
                           onClick={() => void onFetch()}
-                          className="justify-start px-2 py-1.5 text-[13px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
+                          className="justify-start px-2 py-1.5 text-[12px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
                         >
                           Fetch
                         </Button>
@@ -381,43 +377,6 @@ export function GitPanel({
                     </PopoverContent>
                   </Popover>
                 </div>
-
-                <TooltipProvider>
-                  <div className="ml-auto flex items-center gap-1">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          type="button"
-                          onClick={() => void onPull()}
-                          disabled={!canPull || isLoading}
-                          className="flex size-8 items-center justify-center rounded-sm text-white/40 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/80 disabled:opacity-50 disabled:cursor-not-allowed"
-                          aria-label={viewModel.pullActionLabel ?? "Pull"}
-                        >
-                          <ArrowDown className="size-5" />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top">
-                        {viewModel.pullActionLabel ?? "Pull"}
-                      </TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          type="button"
-                          onClick={() => void onPush()}
-                          disabled={!canPush || isLoading}
-                          className="flex size-8 items-center justify-center rounded-sm text-white/40 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/80 disabled:opacity-50 disabled:cursor-not-allowed"
-                          aria-label={viewModel.pushActionLabel ?? "Push"}
-                        >
-                          <ArrowUp className="size-5" />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top">
-                        {viewModel.pushActionLabel ?? "Push"}
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
-                </TooltipProvider>
               </div>
             </div>
           </section>

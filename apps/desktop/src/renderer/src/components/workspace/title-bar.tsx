@@ -68,7 +68,7 @@ export function TitleBar({
                       isActive && "bg-white/[0.04] text-white/80",
                     )}
                   >
-                    <Icon className="size-5" />
+                    <Icon className="size-4" />
                   </button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" sideOffset={8}>
@@ -87,7 +87,7 @@ export function TitleBar({
                     isSidePanelVisible && "bg-white/[0.04] text-white/80",
                   )}
                 >
-                  <SidebarSimple className="size-5 -scale-x-100" />
+                  <SidebarSimple className="size-4 -scale-x-100" />
                 </button>
               </TooltipTrigger>
               <TooltipContent side="bottom" sideOffset={8}>

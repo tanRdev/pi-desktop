@@ -12,7 +12,10 @@ import {
 } from "@pi-desktop/shared";
 import * as React from "react";
 import { useStore } from "zustand";
-import { DEFAULT_UNTITLED_THREAD_TITLE } from "../../../thread-title-defaults";
+import {
+  createThreadTitle,
+  DEFAULT_UNTITLED_THREAD_TITLE,
+} from "../../../thread-title-defaults";
 import type { WorkspaceShellProps } from "../components/workspace/workspace-shell";
 import { loadPromptAutocompleteSuggestions } from "../lib/prompt-autocomplete-loader";
 import {
@@ -801,8 +804,9 @@ export function useAppShellController(): AppShellController {
   }, []);
 
   const submitCreateWorktree = React.useCallback(async () => {
-    if (!newWorktreeBranch.trim()) {
-      return;
+    let branchName = newWorktreeBranch.trim();
+    if (!branchName) {
+      branchName = `session/${createThreadTitle().toLowerCase()}`;
     }
 
     let repositoryId = activeRepositoryId;
@@ -816,10 +820,7 @@ export function useAppShellController(): AppShellController {
     }
 
     try {
-      await window.piDesktop.worktrees.create(
-        repositoryId,
-        newWorktreeBranch.trim(),
-      );
+      await window.piDesktop.worktrees.create(repositoryId, branchName);
       setCreateWorktreeOpen(false);
       setNewWorktreeBranchState("");
       setWorktreeCreateError(null);

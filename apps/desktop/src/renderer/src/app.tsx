@@ -153,6 +153,18 @@ export default function App() {
                   onChange={(e) =>
                     controller.setNewWorktreeBranch(e.target.value)
                   }
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      if (
+                        controller.newWorktreeBranch.trim() ||
+                        e.metaKey ||
+                        e.ctrlKey
+                      ) {
+                        void controller.submitCreateWorktree();
+                      }
+                    }
+                  }}
                   placeholder="feature/my-task"
                   className={cn(
                     "w-full rounded border border-white/[0.06] bg-[#141414] px-3 py-2 text-[16px] text-white/80 outline-none",
@@ -178,9 +190,17 @@ export default function App() {
                 <Button
                   type="button"
                   onClick={() => void controller.submitCreateWorktree()}
-                  disabled={!controller.newWorktreeBranch.trim()}
                 >
-                  Create
+                  {controller.newWorktreeBranch.trim() ? (
+                    "Create"
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      Auto-name{" "}
+                      <span className="font-sans text-[11px] text-white/40 tracking-widest">
+                        ⌘↵
+                      </span>
+                    </span>
+                  )}
                 </Button>
               </DialogFooter>
             </DialogContent>
