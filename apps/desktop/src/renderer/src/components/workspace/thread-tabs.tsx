@@ -22,9 +22,9 @@ export function ThreadTabs({
   return (
     <div
       data-testid="thread-tabs"
-      className="flex h-8 items-center border-b border-white/[0.04] bg-[var(--color-bg-secondary)] px-0 select-none"
+      className="flex h-11 items-center border-b border-white/[0.03] bg-[var(--shell-main-bg)] px-3 select-none"
     >
-      <div className="flex min-w-0 flex-1 h-full gap-0 overflow-x-auto no-scrollbar select-none">
+      <div className="flex h-full min-w-0 flex-1 items-end gap-1 overflow-x-auto no-scrollbar select-none">
         {openThreads.map((thread) => {
           const isActive = thread.id === activeThreadId;
           const isRunning = thread.runtime.status === "streaming";
@@ -33,31 +33,31 @@ export function ThreadTabs({
             <div
               key={thread.id}
               className={cn(
-                "group flex min-w-0 max-w-[200px] flex-1 items-center gap-2 border-r border-white/[0.04] px-3 h-full text-left transition-all duration-75",
+                "group flex h-full min-w-0 max-w-[220px] flex-1 items-center gap-2 border-b px-3 text-left text-[14px] transition-colors duration-150",
                 isActive
-                  ? "bg-white/[0.04] text-white/80"
-                  : "bg-transparent text-white/30 hover:bg-white/[0.02] hover:text-white/50",
+                  ? "border-white/20 text-white/80"
+                  : "border-transparent text-white/40 hover:border-white/10 hover:text-white/70",
               )}
             >
               <button
                 type="button"
                 data-testid="thread-tab-select"
-                aria-label={thread.title || "UNTITLED_THREAD"}
+                aria-label={thread.title || "Untitled thread"}
                 onClick={() => onSelectThread(thread.id)}
                 className="flex min-w-0 flex-1 items-center gap-2 text-left"
               >
                 <div
                   className={cn(
-                    "h-1.5 w-1.5 rounded-full shrink-0 transition-all duration-300",
+                    "h-1.5 w-1.5 shrink-0 rounded-full transition-all duration-300",
                     isRunning
-                      ? "bg-emerald-400/70 shadow-[0_0_4px_rgba(16,185,129,0.4)] animate-pulse"
+                      ? "animate-pulse bg-emerald-400/70 shadow-[0_0_4px_rgba(16,185,129,0.4)]"
                       : isActive
-                        ? "bg-white/20"
-                        : "bg-white/10",
+                        ? "bg-white/25"
+                        : "bg-white/12",
                   )}
                 />
-                <span className="flex-1 truncate text-[14px] font-mono font-medium uppercase tracking-widest">
-                  {thread.title || "UNTITLED_THREAD"}
+                <span className="flex-1 truncate font-medium">
+                  {thread.title || "Untitled thread"}
                 </span>
               </button>
 
@@ -70,11 +70,11 @@ export function ThreadTabs({
                   onCloseThread(thread.id);
                 }}
                 className={cn(
-                  "flex h-4 w-4 shrink-0 items-center justify-center rounded-xs transition-all duration-75",
+                  "flex size-5 shrink-0 items-center justify-center rounded-sm transition-colors duration-150",
                   isActive
-                    ? "text-white/30 hover:text-white/60 hover:bg-white/[0.06]"
-                    : "text-white/20 hover:text-white/50 hover:bg-white/[0.06]",
-                  "opacity-0 group-hover:opacity-100",
+                    ? "text-white/35 hover:bg-white/[0.04] hover:text-white/70"
+                    : "text-white/25 hover:bg-white/[0.04] hover:text-white/60",
+                  "opacity-0 group-hover:opacity-100 focus-visible:opacity-100",
                   isActive && "opacity-100",
                 )}
               >
@@ -90,9 +90,9 @@ export function ThreadTabs({
           onClick={() => {
             void onCreateThread();
           }}
-          className="flex h-full shrink-0 items-center justify-center border-r border-white/[0.04] px-3 text-white/30 transition-all duration-75 hover:bg-white/[0.02] hover:text-white/60"
+          className="flex h-full shrink-0 items-center justify-center px-3 text-white/30 transition-colors duration-150 hover:text-white/60"
         >
-          <Plus className="h-3.5 w-3.5" />
+          <Plus className="h-4 w-4" />
         </button>
       </div>
     </div>

@@ -99,4 +99,25 @@ describe("ThreadTabs", () => {
       screen.getByRole("button", { name: "Create thread" }),
     ).toBeInTheDocument();
   });
+
+  it("uses workspace row styling instead of mono uppercase tab labels", () => {
+    render(
+      <ThreadTabs
+        threads={createThreads()}
+        activeThreadId="thread-1"
+        onSelectThread={vi.fn()}
+        onCloseThread={vi.fn()}
+        onCreateThread={vi.fn()}
+      />,
+    );
+
+    const activeTab = screen.getByRole("button", { name: "Alpha" });
+    const activeLabel = screen.getByText("Alpha");
+    const activeTabContainer = activeTab.parentElement;
+
+    expect(activeTabContainer).toHaveClass("rounded-sm");
+    expect(activeTab).not.toHaveClass("font-mono");
+    expect(activeLabel).not.toHaveClass("uppercase");
+    expect(activeLabel).not.toHaveClass("tracking-widest");
+  });
 });

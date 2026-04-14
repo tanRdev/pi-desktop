@@ -81,7 +81,7 @@ function ChatMessageBody({
     case "user":
       return (
         <div className="w-full space-y-2">
-          <div className="prose prose-invert max-w-none text-sm leading-7 text-white/70">
+          <div className="max-w-none text-sm leading-6 text-white/70">
             <SlashCommandHighlighter text={message.text || " "} />
           </div>
         </div>
@@ -99,7 +99,7 @@ function ChatMessageBody({
         <div className="w-full space-y-2">
           <MessageContent
             markdown={true}
-            className="prose prose-invert max-w-none"
+            className="max-w-none leading-6 [&_blockquote]:my-4 [&_li]:my-1 [&_ol]:my-2 [&_p]:my-2 [&_pre]:my-4 [&_ul]:my-2"
           >
             {message.text || " "}
           </MessageContent>
@@ -210,7 +210,7 @@ export function ChatThreadPanel({
   }, []);
 
   const streamingIndicator = isStreaming ? (
-    <div className="mx-auto flex w-full max-w-3xl px-6 py-4 text-[14px] leading-7 text-white/40">
+    <div className="mx-auto flex w-full max-w-3xl px-6 py-3 text-[14px] leading-6 text-white/40">
       Pi is responding
     </div>
   ) : null;
@@ -231,7 +231,7 @@ export function ChatThreadPanel({
           data-testid="chat-transcript"
           className={cn(
             "flex w-full flex-1 flex-col px-0 select-text",
-            messages.length > 0 && "pb-48",
+            messages.length > 0 && "pb-32",
           )}
         >
           {messages.length === 0 && !isStreaming && !lastError ? (
@@ -254,7 +254,7 @@ export function ChatThreadPanel({
                   <div
                     key={message.id}
                     className={cn(
-                      "group flex flex-col w-full py-8 px-0",
+                      "group flex w-full flex-col px-0 py-5",
                       isUser && "justify-end items-end",
                       isAssistant && "justify-start items-start",
                       (isSystem || isTool) && "justify-center items-center",
@@ -274,7 +274,7 @@ export function ChatThreadPanel({
                       {/* Message body */}
                       <div
                         className={cn(
-                          "text-sm leading-7 w-full",
+                          "w-full text-sm leading-6",
                           isUser && "text-white/70 text-right",
                           isAssistant && "text-white/70",
                           (isSystem || isTool) && "text-white/40",
