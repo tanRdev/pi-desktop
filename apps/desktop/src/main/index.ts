@@ -578,6 +578,71 @@ async function bootstrapDesktop() {
     return buildThreadContext(repositoryEntry.id, inspection, thread);
   }
 
+  function getRepositoryIdForWorktree(worktreeId: string): string | null {
+    const normalizedWorktreeId = path
+      .resolve(worktreeId)
+      .replace(/[\\/]+$/, "");
+
+    for (const repository of repositoryCatalog.list()) {
+      if (
+        normalizedWorktreeId === repository.rootPath ||
+        normalizedWorktreeId.startsWith(`${repository.rootPath}${path.sep}`)
+      ) {
+        return repository.id;
+      }
+    }
+
+    return currentContext?.repositoryId ?? selectionState.get().repositoryId;
+  }
+
+  function buildFastThreadContext(options: {
+    repositoryId: string;
+    worktreePath: string;
+    thread: ThreadCatalogEntry;
+  }): SelectedThreadContext {
+    const runtimeOptions = resolveAgentRuntimeOptions(
+      process.env,
+      options.worktreePath,
+    );
+
+    if (runtimeOptions.agentDir) {
+      mkdirSync(runtimeOptions.agentDir, { recursive: true });
+    }
+
+    const launch = createThreadRuntimeLaunchDetails({
+      threadId: options.thread.id,
+      worktreePath: options.worktreePath,
+      mode: runtimeOptions.mode,
+      socketDirectory: runtimeSocketDirectory,
+      execPath: process.execPath,
+      sessionServerEntryPath: agentHostSessionServerEntryPath,
+      nodeEnv: process.env.NODE_ENV,
+      agentDirectory: runtimeOptions.agentDir ?? undefined,
+    });
+
+    repositoryCatalog.setLastSelectedWorktree(
+      options.repositoryId,
+      options.worktreePath,
+    );
+    selectionState.replace({
+      repositoryId: options.repositoryId,
+      worktreeId: options.worktreePath,
+      threadId: options.thread.id,
+    });
+
+    return {
+      repositoryId: options.repositoryId,
+      worktreePath: options.worktreePath,
+      thread: options.thread,
+      socketPath: launch.socketPath,
+      runtimeId: launch.runtimeId ?? null,
+      command: launch.command,
+      agentMode: runtimeOptions.mode,
+      agentDirectory: runtimeOptions.agentDir ?? null,
+      runtimeAgentDirectory: launch.agentDirectory ?? null,
+    };
+  }
+
   async function attachContext(context: SelectedThreadContext): Promise<{
     context: SelectedThreadContext;
     host: AgentDesktopHost;
@@ -975,12 +1040,51 @@ async function bootstrapDesktop() {
         );
       },
       createThread: async (worktreeId) => {
-        const context = await createThreadContext(worktreeId);
+        const normalizedWorktreeId = path
+          .resolve(worktreeId)
+          .replace(/[\\/]+$/, "");
+        const isCurrentWorktree =
+          normalizedWorktreeId ===
+          (currentContext?.worktreePath ?? selectionState.get().worktreeId);
+        const context = isCurrentWorktree
+          ? buildFastThreadContext({
+              repositoryId:
+                getRepositoryIdForWorktree(normalizedWorktreeId) ??
+                repositoryCatalog.upsert({ rootPath: normalizedWorktreeId }).id,
+              worktreePath: normalizedWorktreeId,
+              thread: threadCatalog.create({
+                worktreeId: normalizedWorktreeId,
+                title: createThreadTitle(
+                  Math.random,
+                  new Set(
+                    threadCatalog
+                      .listByWorktree(normalizedWorktreeId)
+                      .map((entry) => entry.title),
+                  ),
+                ),
+              }),
+            })
+          : await createThreadContext(normalizedWorktreeId);
         switchContextInBackground(context);
         return context.thread.id;
       },
       selectThread: async (threadId) => {
-        switchContextInBackground(await resolveThreadContext(threadId));
+        const thread = threadCatalog.get(threadId);
+        if (!thread) {
+          throw new Error(`Unknown thread: ${threadId}`);
+        }
+        switchContextInBackground(
+          thread.worktreeId ===
+            (currentContext?.worktreePath ?? selectionState.get().worktreeId)
+            ? buildFastThreadContext({
+                repositoryId:
+                  getRepositoryIdForWorktree(thread.worktreeId) ??
+                  repositoryCatalog.upsert({ rootPath: thread.worktreeId }).id,
+                worktreePath: thread.worktreeId,
+                thread,
+              })
+            : await resolveThreadContext(threadId),
+        );
       },
       archiveThread: async (threadId) => {
         await archiveThreadAndRefresh(threadId);

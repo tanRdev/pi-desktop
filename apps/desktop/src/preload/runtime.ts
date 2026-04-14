@@ -2,7 +2,10 @@ import { type CreatePiDesktopApiDependencies, createPiDesktopApi } from "./api";
 
 export interface RegisterPiDesktopApiDependencies
   extends CreatePiDesktopApiDependencies {
-  exposeInMainWorld(key: string, api: ReturnType<typeof createPiDesktopApi>): void;
+  exposeInMainWorld(
+    key: string,
+    api: ReturnType<typeof createPiDesktopApi>,
+  ): void;
 }
 
 export interface ElectronPreloadBindings {

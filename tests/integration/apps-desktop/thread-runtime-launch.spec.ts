@@ -19,7 +19,10 @@ describe("createThreadRuntimeLaunchDetails", () => {
       threadId: "thread-alpha",
       worktreePath: "/tmp/worktrees/feature-alpha",
       runtimeId: "local-thread-alpha",
-      socketPath: path.join("/tmp/pi-desktop-runtime-sockets", "pd-thread-a.sock"),
+      socketPath: path.join(
+        "/tmp/pi-desktop-runtime-sockets",
+        "pd-thread-a.sock",
+      ),
       agentDirectory:
         "/tmp/worktrees/feature-alpha/.pi/agent/threads/thread-alpha",
       command: [

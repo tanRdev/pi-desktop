@@ -7,7 +7,10 @@ import type { AgentSnapshot } from "@pi-desktop/shared";
 
 type AgentRuntimeEnvironment = Partial<
   Record<
-    "NODE_ENV" | "PI_DESKTOP_AGENT_CWD" | "PI_DESKTOP_AGENT_DIR" | "PI_DESKTOP_AGENT_MODE",
+    | "NODE_ENV"
+    | "PI_DESKTOP_AGENT_CWD"
+    | "PI_DESKTOP_AGENT_DIR"
+    | "PI_DESKTOP_AGENT_MODE",
     string
   >
 >;

@@ -10,7 +10,10 @@ import {
 describe("resolveAgentRuntimeOptions", () => {
   test("defaults to mock mode in test environments", () => {
     expect(
-      resolveAgentRuntimeOptions({ NODE_ENV: "test" }, "/tmp/pi-desktop-workspace"),
+      resolveAgentRuntimeOptions(
+        { NODE_ENV: "test" },
+        "/tmp/pi-desktop-workspace",
+      ),
     ).toEqual({
       mode: "mock",
       cwd: "/tmp/pi-desktop-workspace",
@@ -19,11 +22,13 @@ describe("resolveAgentRuntimeOptions", () => {
   });
 
   test("defaults to sdk mode outside tests", () => {
-    expect(resolveAgentRuntimeOptions({}, "/tmp/pi-desktop-workspace")).toEqual({
-      mode: "cli",
-      cwd: "/tmp/pi-desktop-workspace",
-      agentDir: "/tmp/pi-desktop-workspace/.pi/agent",
-    });
+    expect(resolveAgentRuntimeOptions({}, "/tmp/pi-desktop-workspace")).toEqual(
+      {
+        mode: "cli",
+        cwd: "/tmp/pi-desktop-workspace",
+        agentDir: "/tmp/pi-desktop-workspace/.pi/agent",
+      },
+    );
   });
 
   test("honors explicit runtime mode and path overrides", () => {

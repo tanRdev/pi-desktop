@@ -12,6 +12,14 @@ import { ScrollButton } from "../ui/scroll-button";
 import { SystemMessage } from "../ui/system-message";
 import { Tool } from "../ui/tool";
 
+type ChatMessageRowProps = {
+  message: AgentMessageSnapshot;
+  index: number;
+  feedback: FeedbackValue | null;
+  onFeedbackChange: (messageId: string, value: FeedbackValue) => void;
+  onCopyMessage: (text: string) => void;
+};
+
 function getToolState(message: AgentMessageSnapshot) {
   switch (message.status) {
     case "error":
@@ -115,6 +123,8 @@ function ChatMessageBody({
   }
 }
 
+const MemoizedChatMessageBody = React.memo(ChatMessageBody);
+
 // Slash command highlighter component
 interface SlashCommandHighlighterProps {
   text: string;
@@ -124,6 +134,57 @@ function SlashCommandHighlighter({ text }: SlashCommandHighlighterProps) {
   const parts = text.split(/(\/[a-zA-Z0-9_-]+)/g);
   return <>{parts.map(renderSlashCommandPart)}</>;
 }
+
+const ChatMessageRow = React.memo(function ChatMessageRow({
+  message,
+  index,
+  feedback,
+  onFeedbackChange,
+  onCopyMessage,
+}: ChatMessageRowProps) {
+  const isSystem = message.role === "system";
+  const isTool = message.role === "tool";
+  const isAssistant = message.role === "assistant";
+  const isUser = message.role === "user";
+
+  return (
+    <div
+      className={cn(
+        "group flex w-full flex-col px-0 py-5",
+        isUser && "justify-end items-end",
+        isAssistant && "justify-start items-start",
+        (isSystem || isTool) && "justify-center items-center",
+        "stagger-item",
+      )}
+      style={{ animationDelay: `${(index % 8) * 30}ms` }}
+    >
+      <div
+        className={cn(
+          "min-w-0 flex flex-col gap-1 w-full max-w-3xl mx-auto px-6",
+          isUser && "items-end",
+          isAssistant && "items-start",
+          (isSystem || isTool) && "items-center",
+        )}
+      >
+        <div
+          className={cn(
+            "w-full text-sm leading-6",
+            isUser && "text-white/70 text-right",
+            isAssistant && "text-white/70",
+            (isSystem || isTool) && "text-white/40",
+          )}
+        >
+          <MemoizedChatMessageBody
+            message={message}
+            feedback={feedback}
+            onFeedbackChange={(value) => onFeedbackChange(message.id, value)}
+            onCopy={() => onCopyMessage(message.text)}
+          />
+        </div>
+      </div>
+    </div>
+  );
+});
 
 function getLastErrorTitle(lastError: string): string {
   const normalized = lastError.toLowerCase();
@@ -214,6 +275,8 @@ export function ChatThreadPanel({
       Pi is responding
     </div>
   ) : null;
+  const hasConversationState =
+    messages.length > 0 || isStreaming || lastError !== null;
 
   return (
     <div
@@ -230,12 +293,15 @@ export function ChatThreadPanel({
         <ChatContainerContent
           data-testid="chat-transcript"
           className={cn(
-            "flex w-full flex-1 flex-col px-0 select-text",
+            "flex w-full min-h-full flex-1 flex-col px-0 select-text",
             messages.length > 0 && "pb-32",
           )}
         >
-          {messages.length === 0 && !isStreaming && !lastError ? (
-            <div className="flex w-full flex-1 items-center justify-center px-6">
+          {!hasConversationState ? (
+            <div
+              data-testid="chat-empty-state"
+              className="flex min-h-full w-full flex-1 items-center justify-center px-6"
+            >
               <div className="max-w-md text-center font-mono text-[14px] uppercase tracking-[0.08em] text-white/25">
                 Start a conversation with Pi.
               </div>
@@ -244,53 +310,17 @@ export function ChatThreadPanel({
 
           {messages.length > 0
             ? messages.map((message, index) => {
-                const isSystem = message.role === "system";
-                const isTool = message.role === "tool";
-                const isAssistant = message.role === "assistant";
-                const isUser = message.role === "user";
                 const feedbackValue = feedbackByMessageId[message.id] ?? null;
 
                 return (
-                  <div
+                  <ChatMessageRow
                     key={message.id}
-                    className={cn(
-                      "group flex w-full flex-col px-0 py-5",
-                      isUser && "justify-end items-end",
-                      isAssistant && "justify-start items-start",
-                      (isSystem || isTool) && "justify-center items-center",
-                      "stagger-item",
-                    )}
-                    style={{ animationDelay: `${(index % 8) * 30}ms` }}
-                  >
-                    {/* Message content wrapper for width control */}
-                    <div
-                      className={cn(
-                        "min-w-0 flex flex-col gap-1 w-full max-w-3xl mx-auto px-6",
-                        isUser && "items-end",
-                        isAssistant && "items-start",
-                        (isSystem || isTool) && "items-center",
-                      )}
-                    >
-                      {/* Message body */}
-                      <div
-                        className={cn(
-                          "w-full text-sm leading-6",
-                          isUser && "text-white/70 text-right",
-                          isAssistant && "text-white/70",
-                          (isSystem || isTool) && "text-white/40",
-                        )}
-                      >
-                        <ChatMessageBody
-                          message={message}
-                          feedback={feedbackValue}
-                          onFeedbackChange={(value) =>
-                            handleFeedbackChange(message.id, value)
-                          }
-                          onCopy={() => handleCopyMessage(message.text)}
-                        />
-                      </div>
-                    </div>
-                  </div>
+                    message={message}
+                    index={index}
+                    feedback={feedbackValue}
+                    onFeedbackChange={handleFeedbackChange}
+                    onCopyMessage={handleCopyMessage}
+                  />
                 );
               })
             : null}
@@ -304,7 +334,7 @@ export function ChatThreadPanel({
             </SystemMessage>
           )}
 
-          <ChatContainerScrollAnchor />
+          {hasConversationState ? <ChatContainerScrollAnchor /> : null}
         </ChatContainerContent>
       </ChatContainerRoot>
 

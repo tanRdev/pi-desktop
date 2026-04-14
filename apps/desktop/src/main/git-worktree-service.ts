@@ -221,23 +221,49 @@ function parseWorktreeBlocks(output: string): ParsedWorktree[] {
 }
 
 export class GitWorktreeService {
+  private readonly inspectionCache = new Map<
+    string,
+    { inspection: GitRepositoryInspection; updatedAt: number }
+  >();
+
+  private readonly repositoryStatusCache = new Map<
+    string,
+    { status: GitRepositoryStatus; updatedAt: number }
+  >();
+
   inspect(targetPath: string): GitRepositoryInspection {
+    const cacheKey = normalizePathId(resolveCommandCwd(targetPath));
+    const cachedInspection = this.inspectionCache.get(cacheKey);
+    if (cachedInspection && Date.now() - cachedInspection.updatedAt < 250) {
+      return cachedInspection.inspection;
+    }
+
     const commandCwd = resolveCommandCwd(targetPath);
     const currentWorktreeRoot = this.resolveCurrentWorktreeRoot(commandCwd);
 
     if (!currentWorktreeRoot) {
-      return {
+      const inspection: GitRepositoryInspection = {
         status: "not_repo",
         message: null,
       };
+      this.inspectionCache.set(cacheKey, {
+        inspection,
+        updatedAt: Date.now(),
+      });
+      return inspection;
     }
 
     const commonGitDir = this.resolveCommonGitDir(currentWorktreeRoot);
     if (!commonGitDir) {
-      return {
+      const inspection: GitRepositoryInspection = {
         status: "unavailable",
         message: "Failed to resolve the common git directory",
       };
+      this.inspectionCache.set(cacheKey, {
+        inspection,
+        updatedAt: Date.now(),
+      });
+      return inspection;
     }
 
     const worktreeList = this.runGit(currentWorktreeRoot, [
@@ -246,16 +272,26 @@ export class GitWorktreeService {
       "--porcelain",
     ]);
     if (worktreeList.error) {
-      return {
+      const inspection: GitRepositoryInspection = {
         status: "unavailable",
         message: worktreeList.error.message,
       };
+      this.inspectionCache.set(cacheKey, {
+        inspection,
+        updatedAt: Date.now(),
+      });
+      return inspection;
     }
     if (worktreeList.status !== 0) {
-      return {
+      const inspection: GitRepositoryInspection = {
         status: "unavailable",
         message: worktreeList.stderr.trim() || "Failed to list git worktrees",
       };
+      this.inspectionCache.set(cacheKey, {
+        inspection,
+        updatedAt: Date.now(),
+      });
+      return inspection;
     }
 
     const parsedWorktrees = parseWorktreeBlocks(worktreeList.stdout);
@@ -281,7 +317,7 @@ export class GitWorktreeService {
       mainWorktree?.branch ?? null,
     );
 
-    return {
+    const inspection: GitRepositoryInspection = {
       status: "repository",
       rootPath,
       currentWorktreePath: currentWorktree?.path ?? currentWorktreeRoot,
@@ -306,6 +342,24 @@ export class GitWorktreeService {
         : undefined,
       message: null,
     };
+
+    const timestamp = Date.now();
+    this.inspectionCache.set(cacheKey, {
+      inspection,
+      updatedAt: timestamp,
+    });
+    this.inspectionCache.set(rootPath, {
+      inspection,
+      updatedAt: timestamp,
+    });
+    if (inspection.currentWorktreePath) {
+      this.inspectionCache.set(inspection.currentWorktreePath, {
+        inspection,
+        updatedAt: timestamp,
+      });
+    }
+
+    return inspection;
   }
 
   createWorktree(options: {
@@ -356,6 +410,14 @@ export class GitWorktreeService {
   }
 
   getRepositoryStatus(repositoryPath: string): GitRepositoryStatus {
+    const normalizedRepositoryPath = normalizePathId(repositoryPath);
+    const cachedStatus = this.repositoryStatusCache.get(
+      normalizedRepositoryPath,
+    );
+    if (cachedStatus && Date.now() - cachedStatus.updatedAt < 250) {
+      return cachedStatus.status;
+    }
+
     const inspection = this.inspect(repositoryPath);
 
     if (
@@ -391,7 +453,7 @@ export class GitWorktreeService {
       return parsed ? [parsed] : [];
     });
 
-    return {
+    const status: GitRepositoryStatus = {
       repositoryPath: inspection.currentWorktreePath,
       branch: currentWorktree.branch,
       commit: currentWorktree.commit,
@@ -412,6 +474,13 @@ export class GitWorktreeService {
           change.worktreeStatus === "unmerged",
       ),
     };
+
+    this.repositoryStatusCache.set(normalizedRepositoryPath, {
+      status,
+      updatedAt: Date.now(),
+    });
+
+    return status;
   }
 
   stageFile(repositoryPath: string, filePath: string): GitRepositoryStatus {
@@ -437,6 +506,7 @@ export class GitWorktreeService {
     if (isUntracked) {
       const absolutePath = path.join(repositoryPath, filePath);
       fs.rmSync(absolutePath, { force: true, recursive: true });
+      this.clearCaches();
       return this.getRepositoryStatus(repositoryPath);
     }
 
@@ -739,5 +809,17 @@ export class GitWorktreeService {
         result.error?.message || result.stderr.trim() || `Failed to ${label}`,
       );
     }
+
+    this.clearCachesForPath(cwd);
+  }
+
+  private clearCachesForPath(targetPath: string): void {
+    void targetPath;
+    this.clearCaches();
+  }
+
+  private clearCaches(): void {
+    this.inspectionCache.clear();
+    this.repositoryStatusCache.clear();
   }
 }

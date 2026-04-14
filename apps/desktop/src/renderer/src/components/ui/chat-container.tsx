@@ -41,7 +41,7 @@ function ChatContainerContent({
 }: ChatContainerContentProps) {
   return (
     <StickToBottom.Content
-      className={cn("flex w-full flex-col", className)}
+      className={cn("flex w-full min-h-full flex-col", className)}
       {...props}
     >
       {children}

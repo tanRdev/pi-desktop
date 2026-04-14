@@ -171,7 +171,9 @@ describe("resolvePreloadTarget", () => {
 
 describe("window navigation hardening", () => {
   it("allows file navigation targets", () => {
-    expect(shouldAllowNavigation("file:///tmp/pi-desktop/index.html")).toBe(true);
+    expect(shouldAllowNavigation("file:///tmp/pi-desktop/index.html")).toBe(
+      true,
+    );
   });
 
   it("blocks remote navigation targets", () => {

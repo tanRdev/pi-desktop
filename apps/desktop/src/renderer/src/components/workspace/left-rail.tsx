@@ -6,10 +6,10 @@ import type {
 import * as React from "react";
 import {
   Archive,
+  ChatsCircle,
   Copy,
   Folder,
   GitBranch,
-  ChatsCircle,
   Plus,
   SidebarSimple,
   Trash,
@@ -26,10 +26,6 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { DEFAULT_UNTITLED_THREAD_TITLE } from "../../../../thread-title-defaults";
-import {
-  deriveThreadDisplayStatus,
-  ThreadStatusIcon,
-} from "./thread-status-icon";
 
 // Sidebar width for minimalist layout
 export const SIDEBAR_WIDTH = 240;
@@ -151,8 +147,8 @@ export function LeftRail({
   repositories,
   activeRepositoryId,
   activeWorktreeId,
-  activeThreadId,
-  isPromptExecuting,
+  activeThreadId: _activeThreadId,
+  isPromptExecuting: _isPromptExecuting,
   width,
   onResize,
   onSelectWorktree,
@@ -162,7 +158,7 @@ export function LeftRail({
   onCopyRepositoryPath,
   onOpenInFinder,
   onCreateSession,
-  onCloseThread,
+  onCloseThread: _onCloseThread,
   onAddRepository,
   onToggleVisible,
 }: LeftRailProps) {

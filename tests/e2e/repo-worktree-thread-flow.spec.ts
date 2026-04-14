@@ -27,7 +27,9 @@ function readSelection(userDataDir: string): {
 test("creates a worktree and restores worktree selection after relaunch", async () => {
   test.setTimeout(60_000);
 
-  const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), "pi-desktop-e2e-home-"));
+  const homeDir = fs.mkdtempSync(
+    path.join(os.tmpdir(), "pi-desktop-e2e-home-"),
+  );
   const userDataDir = path.join(homeDir, ".pi-desktop-test-user-data");
   const branchName = `feature/e2e-${Date.now()}`;
   const worktreeDirectoryName = branchName.replace(/[\\/]+/g, "-");
@@ -57,7 +59,10 @@ test("creates a worktree and restores worktree selection after relaunch", async 
 
     await page.evaluate(
       async ({ nextRepositoryId, nextBranchName }) => {
-        await window.piDesktop.worktrees.create(nextRepositoryId, nextBranchName);
+        await window.piDesktop.worktrees.create(
+          nextRepositoryId,
+          nextBranchName,
+        );
       },
       { nextRepositoryId: repositoryId, nextBranchName: branchName },
     );

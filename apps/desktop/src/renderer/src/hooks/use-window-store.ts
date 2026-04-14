@@ -109,6 +109,42 @@ function getLayoutState(
   });
 }
 
+function hasRelevantWindowStoreChange(
+  shellState: AppShellStoreState,
+  prevShellState: AppShellStoreState | undefined,
+): boolean {
+  return (
+    shellState.shellState !== prevShellState?.shellState ||
+    shellState.isShellReady !== prevShellState?.isShellReady
+  );
+}
+
+function hasRelevantWorkspaceSessionChange(
+  state: WorkspaceSessionStoreState,
+  previousState: WorkspaceSessionStoreState,
+): boolean {
+  if (
+    state.activeWorktreeId !== previousState.activeWorktreeId ||
+    state.activeWorktreeVersion !== previousState.activeWorktreeVersion
+  ) {
+    return true;
+  }
+
+  const activeWorktreeId = state.activeWorktreeId;
+  if (!activeWorktreeId) {
+    return false;
+  }
+
+  const nextSession = state.sessionsByWorktreeId[activeWorktreeId];
+  const previousSession = previousState.sessionsByWorktreeId[activeWorktreeId];
+
+  if (nextSession !== previousSession) {
+    return nextSession?.layout !== previousSession?.layout;
+  }
+
+  return false;
+}
+
 function subscribe(listener: () => void): () => void {
   const unsubscribers = [
     getAppShellStore().subscribe((shellState, prevShellState) => {
@@ -142,10 +178,25 @@ function subscribe(listener: () => void): () => void {
           .getState()
           .hydrateCatalogSessions(nextCatalogSessions);
       }
-      listener();
+
+      if (hasRelevantWindowStoreChange(shellState, prevShellState)) {
+        listener();
+      }
     }),
-    workspaceSessionStore.subscribe(() => listener()),
-    uiInteractionStore.subscribe(() => listener()),
+    workspaceSessionStore.subscribe((state, previousState) => {
+      if (hasRelevantWorkspaceSessionChange(state, previousState)) {
+        listener();
+      }
+    }),
+    uiInteractionStore.subscribe((state, previousState) => {
+      if (
+        state.draggingWindowId !== previousState.draggingWindowId ||
+        state.resizingWindowId !== previousState.resizingWindowId ||
+        state.snapPreview !== previousState.snapPreview
+      ) {
+        listener();
+      }
+    }),
   ];
 
   queueMicrotask(() => {

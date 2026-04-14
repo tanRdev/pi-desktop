@@ -1,11 +1,13 @@
 import path from "node:path";
-import type {
-  AgentSnapshot,
-  ShellAgentMode,
-  ShellCatalogSnapshot,
-  ShellGitSnapshot,
-  ShellSnapshot,
-  ThreadSnapshot,
+import {
+  type AgentSnapshot,
+  getActiveRepository,
+  getActiveWorktree,
+  type ShellAgentMode,
+  type ShellCatalogSnapshot,
+  type ShellGitSnapshot,
+  type ShellSnapshot,
+  type ThreadSnapshot,
 } from "@pi-desktop/shared";
 import type {
   GitRepositoryInspection,
@@ -174,6 +176,31 @@ function createCatalog(options: {
   };
 }
 
+function toShellGitSnapshotFromCatalog(
+  catalog: ShellCatalogSnapshot,
+): ShellGitSnapshot | null {
+  const repository = getActiveRepository({ catalog });
+  const worktree = getActiveWorktree({ catalog });
+
+  if (!repository || !worktree || worktree.git.status !== "ready") {
+    return null;
+  }
+
+  return {
+    status: "repository",
+    rootPath: repository.rootPath,
+    branch: worktree.isDetached ? "HEAD" : (worktree.git.branch ?? undefined),
+    commit: worktree.git.commit ?? undefined,
+    hasChanges: worktree.git.hasChanges,
+    ahead: worktree.git.ahead ?? 0,
+    behind: worktree.git.behind ?? 0,
+    stagedCount: worktree.git.stagedCount,
+    modifiedCount: worktree.git.modifiedCount,
+    untrackedCount: worktree.git.untrackedCount,
+    message: worktree.git.message,
+  };
+}
+
 export function createShellSnapshot({
   appName,
   appVersion,
@@ -190,12 +217,25 @@ export function createShellSnapshot({
   catalog,
 }: CreateShellSnapshotOptions): ShellSnapshot {
   const requestedPath = cwd ?? process.cwd();
-  const inspection = gitService.inspect(requestedPath);
-  const git = toShellGitSnapshot(inspection);
-  const activePath =
-    inspection.status === "repository" && inspection.currentWorktreePath
-      ? inspection.currentWorktreePath
-      : requestedPath;
+  const activeCatalogWorktree = catalog ? getActiveWorktree({ catalog }) : null;
+  const gitFromCatalog = catalog
+    ? toShellGitSnapshotFromCatalog(catalog)
+    : null;
+  let inspection: GitRepositoryInspection | null = null;
+
+  let git: ShellGitSnapshot;
+  let activePath = activeCatalogWorktree?.path ?? requestedPath;
+
+  if (gitFromCatalog) {
+    git = gitFromCatalog;
+  } else {
+    inspection = gitService.inspect(requestedPath);
+    git = toShellGitSnapshot(inspection);
+    if (inspection.status === "repository" && inspection.currentWorktreePath) {
+      activePath = inspection.currentWorktreePath;
+    }
+  }
+
   const projectName = path.basename(activePath) || appName;
 
   return {
@@ -230,7 +270,10 @@ export function createShellSnapshot({
       catalog ??
       createCatalog({
         appName,
-        inspection,
+        inspection: inspection ?? {
+          status: "not_repo",
+          message: null,
+        },
         agentSnapshot,
         selectedThread,
       }),

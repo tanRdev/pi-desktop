@@ -3,6 +3,8 @@ import {
   createWindowStoreSnapshotCache,
   type WindowStoreState,
 } from "../../../apps/desktop/src/renderer/src/hooks/use-window-store";
+import { createUiInteractionStore } from "../../../apps/desktop/src/renderer/src/stores/ui-interaction-store";
+import { createWorkspaceSessionStore } from "../../../apps/desktop/src/renderer/src/stores/workspace-session-store";
 import { createEmptyWorkspaceSession } from "../../../packages/shared/src";
 
 describe("use-window-store snapshot stability", () => {
@@ -72,6 +74,53 @@ describe("use-window-store snapshot stability", () => {
     });
 
     expect(secondSnapshot).toBe(firstSnapshot);
+  });
+
+  it("does not change layout references when only thread conversation state updates", () => {
+    const uiStore = createUiInteractionStore();
+    const sessionStore = createWorkspaceSessionStore({
+      getWorkspaceSession: async () => null,
+      saveWorkspaceSession: async (session) => session,
+    });
+
+    void uiStore;
+
+    const worktreeId = "/tmp/repo-a";
+    const session = createEmptyWorkspaceSession(worktreeId);
+    sessionStore.getState().hydrateCatalogSessions([session]);
+
+    const beforeSession =
+      sessionStore.getState().sessionsByWorktreeId[worktreeId];
+    if (!beforeSession) {
+      throw new Error("Expected hydrated workspace session");
+    }
+
+    sessionStore
+      .getState()
+      .setThreadConversationForWorktree(worktreeId, "thread-1", {
+        messages: [
+          {
+            id: "assistant-1",
+            role: "assistant",
+            text: "Hello",
+            status: "complete",
+            timestamp: 1,
+          },
+        ],
+        status: "ready",
+        lastError: null,
+      });
+
+    const afterSession =
+      sessionStore.getState().sessionsByWorktreeId[worktreeId];
+    if (!afterSession) {
+      throw new Error("Expected updated workspace session");
+    }
+
+    expect(afterSession.layout).toBe(beforeSession.layout);
+    expect(afterSession.threadConversations).not.toBe(
+      beforeSession.threadConversations,
+    );
   });
 });
 

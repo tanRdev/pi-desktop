@@ -63,11 +63,7 @@ function CombinedChangeList({
   }, [repositoryStatus]);
 
   if (allPaths.length === 0) {
-    return (
-      <div className="px-1 py-8 text-[14px] text-white/10 italic text-center">
-        No changes detected
-      </div>
-    );
+    return null;
   }
 
   return (

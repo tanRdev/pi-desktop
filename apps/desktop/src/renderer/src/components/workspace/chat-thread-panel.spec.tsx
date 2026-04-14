@@ -1,6 +1,6 @@
 import type { AgentMessageSnapshot } from "@pi-desktop/shared";
-import type * as React from "react";
 import { cleanup, render, screen } from "@testing-library/react";
+import type * as React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ChatThreadPanel } from "./chat-thread-panel";
 
@@ -111,6 +111,33 @@ afterEach(() => {
 });
 
 describe("ChatThreadPanel", () => {
+  it("keeps the empty chat state as the only directly centered transcript child", () => {
+    render(
+      <ChatThreadPanel
+        threadTitle="Signal"
+        messages={[]}
+        isStreaming={false}
+        lastError={null}
+      />,
+    );
+
+    const transcript = screen.getByTestId("chat-transcript");
+    const emptyState = screen.getByTestId("chat-empty-state");
+
+    expect(transcript).toHaveClass("min-h-full");
+    expect(transcript.childElementCount).toBe(1);
+    expect(transcript.firstElementChild).toBe(emptyState);
+    expect(emptyState).toHaveClass(
+      "flex",
+      "min-h-full",
+      "flex-1",
+      "items-center",
+      "justify-center",
+    );
+    expect(emptyState).toHaveTextContent("Start a conversation with Pi.");
+    expect(screen.queryByTestId("chat-scroll-anchor")).not.toBeInTheDocument();
+  });
+
   it("uses tighter transcript spacing for message rows", () => {
     render(
       <ChatThreadPanel
@@ -123,10 +150,12 @@ describe("ChatThreadPanel", () => {
 
     const transcript = screen.getByTestId("chat-transcript");
     const messageContent = screen.getByTestId("message-content");
+    const scrollAnchor = screen.getByTestId("chat-scroll-anchor");
     const messageRow = messageContent.closest(".group");
     const messageBody = messageContent.parentElement?.parentElement;
 
     expect(transcript).toHaveClass("pb-32");
+    expect(transcript).toHaveClass("min-h-full");
     expect(transcript).not.toHaveClass("pb-48");
     expect(messageRow).toHaveClass("py-5");
     expect(messageRow).not.toHaveClass("py-8");
@@ -134,5 +163,6 @@ describe("ChatThreadPanel", () => {
     expect(messageBody).not.toHaveClass("leading-7");
     expect(messageContent).toHaveClass("leading-6");
     expect(messageContent).toHaveClass("[&_p]:my-2");
+    expect(scrollAnchor).toBeInTheDocument();
   });
 });

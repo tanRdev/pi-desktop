@@ -7,7 +7,9 @@ import { ThreadCatalog } from "../../../apps/desktop/src/main/thread-catalog";
 const tempDirs: string[] = [];
 
 function createUserDataPath(): string {
-  const directory = mkdtempSync(path.join(tmpdir(), "pi-desktop-thread-catalog-"));
+  const directory = mkdtempSync(
+    path.join(tmpdir(), "pi-desktop-thread-catalog-"),
+  );
   tempDirs.push(directory);
   return directory;
 }

@@ -3,9 +3,8 @@ import { TooltipProvider } from "@pi-desktop/ui";
 import * as React from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "./components/ui/avatar";
-import { Check, Globe, Info, SignOut } from "./components/ui/icons";
 import { PackagesModal } from "./components/packages/packages-modal";
+import { Avatar, AvatarFallback } from "./components/ui/avatar";
 import { Button } from "./components/ui/button";
 import {
   Dialog,
@@ -15,7 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./components/ui/dialog";
-import { Textarea } from "./components/ui/textarea";
+import { Globe, Info } from "./components/ui/icons";
 import { WorkspaceSwitchLoader } from "./components/ui/workspace-switch-loader";
 import { WorkspaceShell } from "./components/workspace/workspace-shell";
 import { useAppShellController } from "./hooks/use-app-shell-controller";

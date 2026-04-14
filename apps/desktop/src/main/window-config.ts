@@ -32,7 +32,9 @@ export function shouldOpenDevTools(
   env: Record<string, string | undefined>,
   isPackaged: boolean,
 ): boolean {
-  return !isPackaged && env.NODE_ENV !== "test" && env.PI_DESKTOP_HEADLESS !== "1";
+  return (
+    !isPackaged && env.NODE_ENV !== "test" && env.PI_DESKTOP_HEADLESS !== "1"
+  );
 }
 
 export function shouldDeferWindowShowUntilReady(options: {
