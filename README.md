@@ -4,8 +4,9 @@
 <img src="docs/assets/logo.svg" alt="Pi Desktop" height="80" />
 
 <h1>Pi Desktop</h1>
+<p><strong>Alpha</strong></p>
 
-<p>Native macOS agentic coding harness for the Pi coding agent. <strong>Alpha.</strong></p>
+<p>Native macOS agentic coding harness for the Pi coding agent.</p>
 
 <p>
   <a href="https://www.electronjs.org"><img src="https://img.shields.io/badge/Electron-41-47848F?style=flat-square&logo=electron&logoColor=white" alt="Electron"></a>
@@ -22,6 +23,9 @@
 <!-- <img src="docs/assets/screenshot.png" alt="Pi Desktop Screenshot" /> -->
 
 </div>
+
+> [!CAUTION]
+> **Alpha software.** Expect breaking changes, incomplete features, and rough edges. Not ready for daily use.
 
 > [!TIP]
 > Download the latest DMG from [GitHub Releases](https://github.com/tanRdev/pi-desktop/releases) and drag **Pi Desktop.app** into your `Applications` folder.
