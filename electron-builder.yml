@@ -1,5 +1,9 @@
 appId: dev.pi.desktop
 productName: Pi Desktop
+publish:
+  provider: github
+  owner: tanRdev
+  repo: pi-desktop
 directories:
   app: ../../dist/electron-app
   output: ../../dist/release

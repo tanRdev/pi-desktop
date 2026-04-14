@@ -67,6 +67,7 @@ import {
   shouldQuitWhenAllWindowsClosed,
   shouldShowMainWindow,
 } from "./window-config";
+import { initAutoUpdater } from "./auto-updater";
 import { WorkspaceSearchService } from "./workspace-search-service";
 import { WorkspaceSessionCatalog } from "./workspace-session-catalog";
 
@@ -1124,6 +1125,10 @@ async function bootstrapDesktop() {
   mainWindow = await createMainWindow();
   terminalManager.setMainWindow(mainWindow);
   let unsubscribeFullscreen = subscribeToFullscreenChanges(mainWindow);
+
+  if (app.isPackaged) {
+    initAutoUpdater();
+  }
   mainWindow.on("closed", () => {
     unsubscribeFullscreen();
     mainWindow = null;
