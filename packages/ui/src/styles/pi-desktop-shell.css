@@ -1,0 +1,198 @@
+/* ============================================
+   Pi Desktop Shell - Base layer & utilities
+   Imported by app.css which is the source of truth
+   for radius, spacing, duration, font, and easing tokens.
+   This file provides:
+     - Semantic color variables (shadcn compat)
+     - Global border-color reset
+     - html/body/root base styles (no fonts, no bg overrides)
+     - Utility classes (.glass, .interactive, .panel, etc.)
+     - .prose styles
+   ============================================ */
+
+@layer base {
+  :root {
+    --background: #141414;
+    --foreground: #e7e7e7;
+    --surface-1: #141414;
+    --surface-2: #181818;
+    --surface-3: #1c1c1c;
+    --surface-4: #222222;
+    --card: #181818;
+    --card-foreground: #e7e7e7;
+    --popover: #1c1c1c;
+    --popover-foreground: #e7e7e7;
+    --primary: #ffffff;
+    --primary-foreground: #141414;
+    --secondary: #8a8a8a;
+    --secondary-foreground: #141414;
+    --muted: #1c1c1c;
+    --muted-foreground: #6a6a6a;
+    --accent: #3b82f6;
+    --accent-foreground: #ffffff;
+    --destructive: #ef4444;
+    --destructive-foreground: #ffffff;
+    --border: #222222;
+    --border-subtle: #1c1c1c;
+    --border-hover: #3f3f46;
+    --input: #1c1c1c;
+    --ring: #3b82f6;
+    --glass-blur: 12px;
+    --glass-bg: rgba(20, 20, 20, 0.7);
+    --glass-bg-solid: rgba(20, 20, 20, 0.95);
+    --glass-border: rgba(255, 255, 255, 0.04);
+    --glass-border-strong: rgba(255, 255, 255, 0.08);
+    --app-font-sans: var(--font-body, sans-serif);
+    --app-font-mono: var(--font-mono, monospace);
+  }
+}
+
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--border);
+  }
+
+  html {
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    line-height: 1.5;
+    font-weight: 400;
+  }
+
+  .text-medium {
+    font-weight: 500;
+  }
+
+  .text-small {
+    font-size: 14px;
+  }
+
+  code,
+  pre,
+  kbd,
+  samp {
+    font-family: var(--app-font-mono);
+  }
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.prose {
+  color: var(--foreground);
+  line-height: 1.6;
+}
+
+.prose code {
+  background: var(--surface-3);
+  border-radius: var(--radius-md);
+  padding: 0.15em 0.4em;
+  font-size: 0.9em;
+  font-family: var(--app-font-mono);
+}
+
+.prose pre {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+.prose pre code {
+  background: none;
+  padding: 0;
+  border: none;
+}
+
+@layer utilities {
+  .glass {
+    background: var(--glass-bg-primary, var(--glass-bg));
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border-default, var(--glass-border));
+  }
+
+  .glass-solid {
+    background: var(--glass-bg-solid);
+    border: 1px solid var(--glass-border-strong);
+  }
+
+  .glass-border {
+    border: 1px solid var(--glass-border-default, var(--glass-border));
+  }
+
+  .glass-border-strong {
+    border: 1px solid var(--glass-border-strong);
+  }
+
+  .interactive {
+    transition: background-color var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out);
+  }
+
+  .interactive:hover {
+    background: var(--surface-3);
+    border-color: var(--border-hover);
+  }
+
+  .interactive:active {
+    transform: scale(0.98);
+  }
+
+  .btn-base {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all var(--duration-fast) var(--ease-out);
+  }
+
+  .btn-base:active {
+    transform: scale(0.97);
+  }
+
+  .panel {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+  }
+
+  .input-minimal {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    transition: border-color var(--duration-fast) var(--ease-out);
+  }
+
+  .input-minimal:focus {
+    border-color: var(--border-hover);
+    outline: none;
+  }
+
+  .text-muted {
+    color: var(--muted-foreground);
+  }
+
+  .text-sm {
+    font-size: 0.8125rem;
+  }
+
+  .text-xs {
+    font-size: 0.75rem;
+  }
+}

@@ -1,0 +1,564 @@
+@import "tailwindcss";
+@import "@pidesk/ui/styles/pidesk-shell.css";
+@import "@fontsource-variable/source-code-pro";
+@import "@fontsource-variable/geist";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ============================================
+   DESIGN SYSTEM - Semantic Variables
+   ============================================ */
+
+:root {
+  /* Color System - Semantic Names - Darkest floor #141414 */
+  --color-bg-primary: #141414;
+  --color-bg-secondary: #181818;
+  --color-bg-tertiary: #1c1c1c;
+  --color-bg-quaternary: #222222;
+  --color-bg-hover: #222222;
+  --color-bg-active: #2a2a2a;
+
+  /* Glass Morphism System - Cursor IDE Style */
+  --glass-bg-primary: rgba(20, 20, 20, 0.95);
+  --glass-bg-secondary: rgba(24, 24, 24, 0.90);
+  --glass-bg-tertiary: rgba(28, 28, 28, 0.85);
+  --glass-bg-solid: rgba(20, 20, 20, 1);
+  --shell-sidebar-bg: #141414;
+  --shell-main-bg: #141414;
+  --shell-overlay-bg: #161616;
+
+  --glass-border-subtle: rgba(255, 255, 255, 0.04);
+  --glass-border-default: rgba(255, 255, 255, 0.06);
+  --glass-border-strong: rgba(255, 255, 255, 0.10);
+  --glass-border-glow: rgba(59, 130, 246, 0.25);
+
+  --glass-blur-sm: blur(8px);
+  --glass-blur-md: blur(16px);
+  --glass-blur-lg: blur(24px);
+  --glass-blur-xl: blur(40px);
+
+  --glass-highlight-top: rgba(255, 255, 255, 0.03);
+  --glass-highlight-bottom: rgba(0, 0, 0, 0.2);
+  --glass-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --glass-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  --glass-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+
+  --color-border-subtle: #222222;
+  --color-border-default: #262626;
+  --color-border-strong: #2a2a2a;
+  --color-border-hover: #3a3a3a;
+
+  --color-text-primary: #e7e7e7;
+  --color-text-secondary: #a0a0a0;
+  --color-text-tertiary: #6a6a6a;
+  --color-text-quaternary: #525252;
+  --color-text-inverse: #141414;
+
+  /* Surface aliases (for component-level semantics) */
+  --color-surface: #141414;
+  --color-surface-secondary: #1c1c1c;
+  --color-surface-tertiary: #181818;
+  --color-text-muted: #6a6a6a;
+  --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --accent-pale-red-text: #f87171;
+  --accent-pale-red-bg: rgba(239, 68, 68, 0.08);
+
+  --color-accent: #3b82f6;
+  --color-accent-hover: #60a5fa;
+  --color-error: #ef4444;
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+
+  /* Spacing Scale - 4px Rule */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  /* Animation - Custom Easing Curves */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Animation - Durations */
+  --duration-instant: 80ms;
+  --duration-fast: 120ms;
+  --duration-normal: 180ms;
+  --duration-slow: 250ms;
+  --duration-slower: 350ms;
+
+  /* Border Radius - 8px to 40px Range */
+  --radius-xs: 4px; /* For very small elements if needed */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-2xl: 40px;
+
+  /* Window Chrome */
+  --window-radius: 12px;
+  --titlebar-height: 44px;
+}
+
+@keyframes word-pulse {
+  0%, 100% { opacity: 0.5; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-2px); }
+}
+
+/* ============================================
+   GLASS MORPHISM UTILITIES - Tailwind v4
+   ============================================ */
+
+@layer utilities {
+  /* Glass panel - main chrome effect */
+  .glass-panel {
+    background: var(--glass-bg-primary);
+    backdrop-filter: var(--glass-blur-md);
+    -webkit-backdrop-filter: var(--glass-blur-md);
+    border: 1px solid var(--glass-border-default);
+    box-shadow: var(--glass-shadow-md);
+  }
+
+  /* Glass panel variants */
+  .glass-panel-subtle {
+    background: var(--glass-bg-secondary);
+    backdrop-filter: var(--glass-blur-sm);
+    -webkit-backdrop-filter: var(--glass-blur-sm);
+    border: 1px solid var(--glass-border-subtle);
+    box-shadow: var(--glass-shadow-sm);
+  }
+
+  .glass-panel-strong {
+    background: var(--glass-bg-solid);
+    backdrop-filter: var(--glass-blur-lg);
+    -webkit-backdrop-filter: var(--glass-blur-lg);
+    border: 1px solid var(--glass-border-strong);
+    box-shadow: var(--glass-shadow-lg);
+  }
+
+  /* Glass with glow effect */
+  .glass-glow {
+    border-color: var(--glass-border-glow);
+    box-shadow:
+      0 0 20px rgba(59, 130, 246, 0.1),
+      var(--glass-shadow-md);
+  }
+
+  /* Window chrome title bar */
+  .glass-titlebar {
+    background: rgba(13, 13, 13, 0.95);
+    backdrop-filter: var(--glass-blur-md);
+    -webkit-backdrop-filter: var(--glass-blur-md);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  }
+
+  /* Surface overlays */
+  .glass-surface {
+    background: var(--shell-sidebar-bg);
+    backdrop-filter: var(--glass-blur-sm);
+    -webkit-backdrop-filter: var(--glass-blur-sm);
+    border: 0;
+  }
+
+  /* Floating elements */
+  .glass-floating {
+    background: var(--shell-overlay-bg);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.34);
+    border-radius: var(--radius-md);
+  }
+
+  /* Light mode glass adjustment */
+  .glass-light .glass-panel,
+  .glass-light .glass-titlebar,
+  .glass-light .glass-surface {
+    background: rgba(255, 255, 255, 0.7);
+    border-color: rgba(0, 0, 0, 0.08);
+  }
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
+html {
+  background: transparent !important;
+}
+
+body {
+  -webkit-app-region: drag;
+  font-family: var(--app-font-sans);
+  background: transparent !important;
+  color: var(--color-text-primary);
+  overflow: hidden;
+}
+
+#root {
+  background: transparent !important;
+  border-radius: var(--window-radius);
+  overflow: hidden;
+}
+
+* {
+  -webkit-app-region: no-drag;
+}
+
+[data-drag-region="true"] {
+  -webkit-app-region: drag;
+}
+
+[data-no-drag="true"] {
+  -webkit-app-region: no-drag;
+}
+
+/* ============================================
+   MICRO-INTERACTIONS - Button Press Feedback
+   ============================================ */
+
+button:not(:disabled):active,
+[role="button"]:not(:disabled):active,
+.interactive:not(:disabled):active {
+  transform: scale(0.97);
+  transition: transform var(--duration-instant) var(--ease-out);
+}
+
+/* Button hover transition */
+button,
+[role="button"],
+.interactive {
+  transition: 
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-instant) var(--ease-out);
+}
+
+/* ============================================
+   STAGGERED REVEALS
+   ============================================ */
+
+@keyframes stagger-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.stagger-item {
+  opacity: 0;
+  animation: stagger-fade-in var(--duration-normal) var(--ease-out) forwards;
+}
+
+/* Stagger delays */
+.stagger-item:nth-child(1) { animation-delay: 0ms; }
+.stagger-item:nth-child(2) { animation-delay: 30ms; }
+.stagger-item:nth-child(3) { animation-delay: 60ms; }
+.stagger-item:nth-child(4) { animation-delay: 90ms; }
+.stagger-item:nth-child(5) { animation-delay: 120ms; }
+.stagger-item:nth-child(6) { animation-delay: 150ms; }
+.stagger-item:nth-child(7) { animation-delay: 180ms; }
+.stagger-item:nth-child(8) { animation-delay: 210ms; }
+
+/* ============================================
+   POPOVER ANIMATIONS - Origin Aware
+   ============================================ */
+
+@keyframes popover-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Ensure Radix popper overlays (Select, Combobox, etc.) stack above dialogs.
+   The wrapper div is position:fixed with no z-index by default, which loses
+   to any dialog at z-50. */
+[data-radix-popper-content-wrapper] {
+  z-index: 200;
+}
+
+[data-radix-popper-content-wrapper] > div {
+  transform-origin: var(--radix-popover-content-transform-origin, center);
+  animation: popover-enter var(--duration-fast) var(--ease-out) forwards;
+}
+
+/* ============================================
+   MODAL ANIMATIONS
+   ============================================ */
+
+@keyframes modal-backdrop-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modal-content-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+[data-radix-dialog-overlay] {
+  animation: modal-backdrop-enter var(--duration-normal) var(--ease-out) forwards;
+}
+
+[data-radix-dialog-content] {
+  animation: modal-content-enter var(--duration-slow) var(--ease-out) forwards;
+}
+
+/* ============================================
+   LOADING & STREAMING STATES
+   ============================================ */
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.streaming-indicator {
+  animation: pulse-subtle 2s var(--ease-in-out) infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spinner {
+  animation: spin 0.8s linear infinite;
+}
+
+/* ============================================
+   TOOLTIP ENHANCEMENTS
+   ============================================ */
+
+[data-radix-tooltip-content] {
+  transform-origin: var(--radix-tooltip-content-transform-origin);
+  animation: popover-enter var(--duration-fast) var(--ease-out) forwards;
+}
+
+/* Skip animation on subsequent tooltips */
+[data-radix-tooltip-content][data-state="instant"] {
+  animation: none;
+}
+
+/* ============================================
+   HOVER STATES - Touch Device Protection
+   ============================================ */
+
+@media (hover: hover) and (pointer: fine) {
+  .hover-lift:hover {
+    transform: translateY(-1px);
+  }
+
+  .hover-scale:hover {
+    transform: scale(1.02);
+  }
+}
+
+/* ============================================
+   REDUCED MOTION - Accessibility
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transform: none !important;
+  }
+
+  .stagger-item {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+}
+
+/* ============================================
+   CODE HIGHLIGHTING
+   ============================================ */
+
+.shiki {
+  background: transparent !important;
+}
+
+.shiki code {
+  background: transparent !important;
+  font-family: var(--app-font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.shiki pre {
+  background: transparent !important;
+  margin: 0;
+  padding: 0;
+}
+
+[class*="shiki"] {
+  background: transparent !important;
+}
+
+/* Inline code styling */
+code:not(.shiki code):not(pre code) {
+  background: var(--color-bg-quaternary);
+  border-radius: var(--radius-md);
+  padding: 0.15em 0.4em;
+  font-family: var(--app-font-mono);
+  font-size: 0.9em;
+  color: var(--color-text-secondary);
+}
+
+.shiki ::selection {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* ============================================
+   SCROLLBAR - Minimal
+   ============================================ */
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+/* ============================================
+   SELECTION
+   ============================================ */
+
+::selection {
+  background: rgba(59, 130, 246, 0.3);
+  color: var(--color-text-primary);
+}
+
+@theme inline {
+  /* Spacing - 4px Rule */
+  --spacing: 4px;
+
+  /* Fonts */
+  --font-heading: Geist Variable;
+  --font-body: Geist Variable;
+  --font-mono: Source Code Pro Variable;
+  --font-source-code-pro: Source Code Pro Variable;
+  --font-geist: Geist Variable;
+
+  /* shadcn color variable bridge */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+@layer base {
+  h1 {
+    font-family: var(--font-heading);
+    font-size: 2.25rem;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    font-weight: 600; /* Medium */
+  }
+  h2 {
+    font-family: var(--font-heading);
+    font-size: 1.875rem;
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+    font-weight: 600;
+  }
+  h3 {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    font-weight: 600;
+  }
+  h4, h5, h6 {
+    font-family: var(--font-heading);
+    letter-spacing: -0.01em;
+    font-weight: 600;
+  }
+  body, p {
+    font-family: var(--font-body);
+    font-size: 16px; /* Geist 16px for body */
+    line-height: 1.5;
+    font-weight: 400; /* Regular */
+  }
+  
+  .text-secondary-body {
+    font-size: 14px; /* Geist 14px for body */
+    font-weight: 500; /* Medium */
+  }
+
+  code, pre {
+    font-family: var(--font-mono);
+  }
+
+  /* Global Icon Styling: 20px, stroke 1.5px */
+  svg[class*="ph-"], 
+  .phosphor-icon {
+    width: 20px !important;
+    height: 20px !important;
+    stroke-width: 1.5px !important;
+  }
+}
+
+@layer utilities {
+  /* Icon Bounding Box: 32px */
+  .icon-bound {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+}

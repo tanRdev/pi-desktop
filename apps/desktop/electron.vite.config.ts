@@ -1,0 +1,86 @@
+import { fileURLToPath } from "node:url";
+import tailwindcss from "@tailwindcss/vite";
+import react from "@vitejs/plugin-react";
+import { defineConfig } from "electron-vite";
+
+const mainEntry = fileURLToPath(
+  new URL("./src/main/index.ts", import.meta.url),
+);
+const agentHostSessionServerEntry = fileURLToPath(
+  new URL("./src/main/agent-host-session-server-entry.ts", import.meta.url),
+);
+export default defineConfig({
+  main: {
+    build: {
+      externalizeDeps: true,
+      outDir: "out/main",
+      rollupOptions: {
+        external: ["electron", "node-pty"],
+        input: {
+          index: mainEntry,
+          agentHostSessionServer: agentHostSessionServerEntry,
+        },
+        treeshake: false,
+      },
+    },
+  },
+  preload: {
+    build: {
+      externalizeDeps: false,
+      outDir: "out/preload",
+      rollupOptions: {
+        external: ["electron"],
+        input: "src/preload/index.ts",
+        output: {
+          format: "cjs",
+          inlineDynamicImports: true,
+        },
+      },
+    },
+  },
+  renderer: {
+    root: "src/renderer",
+    resolve: {
+      alias: {
+        "@": fileURLToPath(new URL("./src/renderer/src", import.meta.url)),
+        "@pidesk/ui": fileURLToPath(
+          new URL("../../packages/ui/src", import.meta.url),
+        ),
+        "@pidesk/shell-model": fileURLToPath(
+          new URL("../../packages/shell-model/src/index.ts", import.meta.url),
+        ),
+        "@tiptap/react": fileURLToPath(
+          new URL("./node_modules/@tiptap/react/src/index.ts", import.meta.url),
+        ),
+        "@tiptap/starter-kit": fileURLToPath(
+          new URL(
+            "./node_modules/@tiptap/starter-kit/src/index.ts",
+            import.meta.url,
+          ),
+        ),
+        "@tiptap/extension-placeholder": fileURLToPath(
+          new URL(
+            "./node_modules/@tiptap/extension-placeholder/src/index.ts",
+            import.meta.url,
+          ),
+        ),
+        "@tiptap/extension-mathematics": fileURLToPath(
+          new URL(
+            "./node_modules/@tiptap/extension-mathematics/src/index.ts",
+            import.meta.url,
+          ),
+        ),
+        "@tiptap/core": fileURLToPath(
+          new URL("./node_modules/@tiptap/core/src/index.ts", import.meta.url),
+        ),
+        "@tiptap/pm": fileURLToPath(
+          new URL("./node_modules/@tiptap/pm", import.meta.url),
+        ),
+      },
+    },
+    build: {
+      outDir: "out/renderer",
+    },
+    plugins: [react(), tailwindcss()],
+  },
+});

@@ -1,0 +1,4 @@
+{
+  "extends": "./tsconfig.json",
+  "files": ["src/renderer/src/components/ui/chain-of-thought.tsx"]
+}

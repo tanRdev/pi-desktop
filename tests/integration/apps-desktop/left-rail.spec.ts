@@ -1,0 +1,63 @@
+import { describe, expect, it } from "vitest";
+import { moveRepositorySnapshots } from "../../../packages/shared/src/models/repository";
+
+function createRepository(id: string) {
+  return {
+    id,
+    name: id,
+    rootPath: `/tmp/${id}`,
+    defaultBranch: "main",
+    worktrees: [],
+  };
+}
+
+describe("moveRepositorySnapshots", () => {
+  it("moves a dragged repository before the drop target", () => {
+    const repositories = [
+      createRepository("alpha"),
+      createRepository("beta"),
+      createRepository("gamma"),
+    ];
+
+    expect(
+      moveRepositorySnapshots(repositories, "gamma", "alpha").map(
+        (repository) => repository.id,
+      ),
+    ).toEqual(["gamma", "alpha", "beta"]);
+  });
+
+  it("returns the original order when the drag does not change position", () => {
+    const repositories = [
+      createRepository("alpha"),
+      createRepository("beta"),
+      createRepository("gamma"),
+    ];
+
+    expect(
+      moveRepositorySnapshots(repositories, "beta", "beta").map(
+        (repository) => repository.id,
+      ),
+    ).toEqual(["alpha", "beta", "gamma"]);
+  });
+
+  it("returns a new ordered list when a drag target changes position", () => {
+    const repositories = [
+      createRepository("alpha"),
+      createRepository("beta"),
+      createRepository("gamma"),
+    ];
+
+    const nextRepositories = moveRepositorySnapshots(
+      repositories,
+      "alpha",
+      "gamma",
+    );
+
+    expect(nextRepositories).not.toBe(repositories);
+    expect(nextRepositories.map((repository) => repository.id)).toEqual([
+      "beta",
+      "gamma",
+      "alpha",
+    ]);
+  });
+});
