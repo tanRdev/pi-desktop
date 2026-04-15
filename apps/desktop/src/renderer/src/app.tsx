@@ -65,7 +65,7 @@ export default function App() {
                   repository branch.
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-3 px-6 py-4">
+              <div className="space-y-3 px-6 py-4 bg-[var(--color-bg-secondary)]">
                 <input
                   data-testid="worktree-branch-input"
                   value={controller.newWorktreeBranch}
@@ -115,7 +115,7 @@ export default function App() {
                   ) : (
                     <span className="flex items-center gap-2">
                       Auto-name{" "}
-                      <span className="font-sans text-[11px] text-white/40 tracking-widest">
+                      <span className="font-sans text-[11px] text-[var(--color-bg-secondary)]/50 tracking-widest">
                         ⌘↵
                       </span>
                     </span>
@@ -253,7 +253,7 @@ export default function App() {
                 </DialogDescription>
               </DialogHeader>
               {controller.removeRepositoryError ? (
-                <div className="space-y-3 px-6 py-4">
+                <div className="space-y-3 px-6 py-4 bg-[var(--color-bg-secondary)]">
                   <p className="text-[14px] text-destructive">
                     {controller.removeRepositoryError}
                   </p>

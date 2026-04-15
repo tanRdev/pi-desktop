@@ -130,8 +130,8 @@ test("keeps sessions and threads isolated per workspace and recovers empty works
 
           return shell.catalog.repositories.map((repository) => ({
             name: repository.name,
-            openThreads: repository.worktrees.flatMap((worktree) =>
-              worktree.threads.filter((thread) => !thread.isArchived),
+            openThreads: repository.worktrees.flatMap(
+              (worktree) => worktree.threads,
             ).length,
           }));
         },

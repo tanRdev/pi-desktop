@@ -231,7 +231,7 @@ export function ActivityGroup({
           <div className="h-px flex-1 bg-white/[0.04]" />
         </div>
       )}
-      <div className="flex flex-wrap gap-2">{children}</div>
+      <div className="flex flex-col gap-1.5">{children}</div>
     </div>
   );
 }

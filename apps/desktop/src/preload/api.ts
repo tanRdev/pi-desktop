@@ -164,9 +164,6 @@ export function createPiDesktopApi({
       select(threadId: string) {
         return invoke<void>(IPC_CHANNELS.threads.select, { threadId });
       },
-      archive(threadId: string) {
-        return invoke<void>(IPC_CHANNELS.threads.archive, { threadId });
-      },
       delete(threadId: string) {
         return invoke<void>(IPC_CHANNELS.threads.delete, { threadId });
       },

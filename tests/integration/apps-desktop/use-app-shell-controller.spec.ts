@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  getSessionArchiveThreadIds,
   isPromptExecutionVisible,
   shouldPersistThreadConversation,
 } from "../../../apps/desktop/src/renderer/src/hooks/use-app-shell-controller";
@@ -72,38 +71,5 @@ describe("use-app-shell-controller helpers", () => {
         },
       }),
     ).toBe(true);
-  });
-
-  it("archives the selected thread last so session archival is deterministic", () => {
-    expect(
-      getSessionArchiveThreadIds(
-        {
-          threads: [
-            {
-              id: "thread-1",
-              isArchived: false,
-              title: "First",
-              lastActivityAt: 1,
-              runtime: { status: "ready", lastError: null },
-            },
-            {
-              id: "thread-2",
-              isArchived: true,
-              title: "Archived",
-              lastActivityAt: 2,
-              runtime: { status: "ready", lastError: null },
-            },
-            {
-              id: "thread-3",
-              isArchived: false,
-              title: "Current",
-              lastActivityAt: 3,
-              runtime: { status: "ready", lastError: null },
-            },
-          ],
-        },
-        "thread-3",
-      ),
-    ).toEqual(["thread-1", "thread-3"]);
   });
 });

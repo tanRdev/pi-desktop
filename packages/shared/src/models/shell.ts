@@ -139,14 +139,8 @@ export function getActiveThread(
   }
 
   const selectedThread = worktree.threads.find(
-    (thread) =>
-      thread.id === snapshot.catalog.selection.threadId &&
-      thread.isArchived === false,
+    (thread) => thread.id === snapshot.catalog.selection.threadId,
   );
 
-  return (
-    selectedThread ??
-    worktree.threads.find((thread) => thread.isArchived === false) ??
-    null
-  );
+  return selectedThread ?? worktree.threads[0] ?? null;
 }

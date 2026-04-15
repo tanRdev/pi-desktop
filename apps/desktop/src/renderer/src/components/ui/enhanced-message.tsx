@@ -261,7 +261,7 @@ export function StreamingIndicator({
     >
       {/* Activities */}
       {activities && activities.length > 0 && (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-col gap-1.5">
           {activities.map((activity) => (
             <ActivityIndicator
               key={activity.id}

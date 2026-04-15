@@ -86,7 +86,6 @@ export interface PiDesktopApi {
   threads: {
     create(worktreeId: string): Promise<string>;
     select(threadId: string): Promise<void>;
-    archive(threadId: string): Promise<void>;
     delete(threadId: string): Promise<void>;
   };
   dialog: {

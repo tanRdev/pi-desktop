@@ -53,7 +53,6 @@ function createSnapshot(): ShellSnapshot {
                 {
                   id: "thread-1a",
                   title: "Alpha thread",
-                  isArchived: false,
                   lastActivityAt: 1,
                   runtime: {
                     status: "ready",
@@ -91,8 +90,7 @@ function createSnapshot(): ShellSnapshot {
               threads: [
                 {
                   id: "thread-2a",
-                  title: "Archived beta thread",
-                  isArchived: true,
+                  title: "Beta thread A",
                   lastActivityAt: 2,
                   runtime: {
                     status: "exited",
@@ -102,7 +100,6 @@ function createSnapshot(): ShellSnapshot {
                 {
                   id: "thread-2b",
                   title: "Active beta thread",
-                  isArchived: false,
                   lastActivityAt: 3,
                   runtime: {
                     status: "streaming",
@@ -133,7 +130,7 @@ describe("shell catalog selectors", () => {
     expect(getActiveThread(snapshot)?.id).toBe("thread-2b");
   });
 
-  it("falls back to the first non-archived thread when selection is missing or stale", () => {
+  it("falls back to the first thread when selection is missing or stale", () => {
     const snapshot = createSnapshot();
     snapshot.catalog.selection = {
       repositoryId: "missing-repo",
@@ -144,26 +141,6 @@ describe("shell catalog selectors", () => {
     expect(getActiveRepository(snapshot)?.id).toBe("repo-1");
     expect(getActiveWorktree(snapshot)?.id).toBe("repo-1/main");
     expect(getActiveThread(snapshot)?.id).toBe("thread-1a");
-  });
-
-  it("returns null when the active worktree only has archived threads", () => {
-    const snapshot = createSnapshot();
-    snapshot.catalog.selection = {
-      repositoryId: "repo-2",
-      worktreeId: "repo-2/main",
-      threadId: "thread-2a",
-    };
-    const betaWorktree = snapshot.catalog.repositories[1]?.worktrees[0];
-    if (!betaWorktree) {
-      throw new Error("Expected beta worktree fixture");
-    }
-
-    betaWorktree.threads = betaWorktree.threads.map((thread) => ({
-      ...thread,
-      isArchived: true,
-    }));
-
-    expect(getActiveThread(snapshot)).toBeNull();
   });
 
   it("returns null when the active worktree has no threads", () => {
@@ -183,17 +160,14 @@ describe("shell catalog selectors", () => {
     expect(getActiveThread(snapshot)).toBeNull();
   });
 
-  it("keeps selected worktree active when session has no open threads", () => {
+  it("keeps selected worktree active when session has no threads", () => {
     const snapshot = createSnapshot();
     const betaWorktree = snapshot.catalog.repositories[1]?.worktrees[0];
     if (!betaWorktree) {
       throw new Error("Expected beta worktree fixture");
     }
 
-    betaWorktree.threads = betaWorktree.threads.map((thread) => ({
-      ...thread,
-      isArchived: true,
-    }));
+    betaWorktree.threads = [];
     snapshot.catalog.selection = {
       repositoryId: "repo-2",
       worktreeId: "repo-2/main",

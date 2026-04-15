@@ -32,7 +32,6 @@ export const IPC_CHANNELS = {
   threads: {
     create: "threads:create",
     select: "threads:select",
-    archive: "threads:archive",
     delete: "threads:delete",
   },
   dialog: {

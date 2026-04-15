@@ -6,7 +6,6 @@ export interface ThreadCatalogEntry {
   id: string;
   worktreeId: string;
   title: string;
-  archivedAt: number | null;
   lastActivityAt: number | null;
   runtimeId: string | null;
   createdAt: number;
@@ -47,12 +46,6 @@ function sortThreads(
   left: ThreadCatalogEntry,
   right: ThreadCatalogEntry,
 ): number {
-  const archiveWeight =
-    Number(left.archivedAt !== null) - Number(right.archivedAt !== null);
-  if (archiveWeight !== 0) {
-    return archiveWeight;
-  }
-
   const activityWeight =
     (right.lastActivityAt ?? -1) - (left.lastActivityAt ?? -1);
   if (activityWeight !== 0) {
@@ -124,7 +117,6 @@ export class ThreadCatalog {
       id: this.createId(),
       worktreeId,
       title: input.title,
-      archivedAt: null,
       lastActivityAt: null,
       runtimeId: null,
       createdAt: currentTime,
@@ -141,10 +133,14 @@ export class ThreadCatalog {
 
   ensureOpenThread(input: CreateThreadInput): ThreadCatalogEntry {
     const openThread = this.listByWorktree(input.worktreeId).find(
-      (thread) => thread.archivedAt === null,
+      (thread) => thread.id !== undefined,
     );
 
     return openThread ?? this.create(input);
+  }
+
+  listAll(): ThreadCatalogEntry[] {
+    return this.readThreads().sort(sortThreads);
   }
 
   touch(
@@ -154,14 +150,6 @@ export class ThreadCatalog {
     return this.updateThread(threadId, (thread, currentTime) => ({
       ...thread,
       lastActivityAt,
-      updatedAt: currentTime,
-    }));
-  }
-
-  archive(threadId: string): ThreadCatalogEntry | null {
-    return this.updateThread(threadId, (thread, currentTime) => ({
-      ...thread,
-      archivedAt: currentTime,
       updatedAt: currentTime,
     }));
   }

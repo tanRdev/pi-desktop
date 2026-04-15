@@ -9,7 +9,6 @@ function createThreads(): ThreadSnapshot[] {
     {
       id: "thread-1",
       title: "Alpha",
-      isArchived: false,
       lastActivityAt: 1,
       runtime: {
         status: "ready",
@@ -19,7 +18,6 @@ function createThreads(): ThreadSnapshot[] {
     {
       id: "thread-2",
       title: "Beta",
-      isArchived: false,
       lastActivityAt: 2,
       runtime: {
         status: "streaming",
@@ -29,7 +27,6 @@ function createThreads(): ThreadSnapshot[] {
     {
       id: "thread-3",
       title: "Gamma",
-      isArchived: true,
       lastActivityAt: 3,
       runtime: {
         status: "ready",
@@ -44,7 +41,7 @@ afterEach(() => {
 });
 
 describe("ThreadTabs", () => {
-  it("renders open threads and forwards select, close, and create actions", async () => {
+  it("renders threads and forwards select, close, and create actions", async () => {
     const user = userEvent.setup();
     const onSelectThread = vi.fn();
     const onCloseThread = vi.fn();
@@ -62,7 +59,7 @@ describe("ThreadTabs", () => {
 
     expect(screen.getByText("Alpha")).toBeInTheDocument();
     expect(screen.getByText("Beta")).toBeInTheDocument();
-    expect(screen.queryByText("Gamma")).not.toBeInTheDocument();
+    expect(screen.getByText("Gamma")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Beta" }));
     await user.click(screen.getByRole("button", { name: "Close Alpha" }));
@@ -73,21 +70,10 @@ describe("ThreadTabs", () => {
     expect(onCreateThread).toHaveBeenCalledTimes(1);
   });
 
-  it("keeps create action visible when no open threads remain", () => {
+  it("keeps create action visible when no threads remain", () => {
     render(
       <ThreadTabs
-        threads={[
-          {
-            id: "thread-archived",
-            title: "Archived",
-            isArchived: true,
-            lastActivityAt: 1,
-            runtime: {
-              status: "ready",
-              lastError: null,
-            },
-          },
-        ]}
+        threads={[]}
         activeThreadId={null}
         onSelectThread={vi.fn()}
         onCloseThread={vi.fn()}

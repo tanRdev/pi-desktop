@@ -12,7 +12,7 @@ import {
   waitForAppReady,
 } from "./helpers/desktop-app";
 
-test("creates a session from the rail, keeps tabs in sync per session, and archives it", async () => {
+test("creates a session from the rail and keeps tabs in sync per session", async () => {
   test.setTimeout(90_000);
 
   const homeDir = fs.mkdtempSync(
@@ -107,13 +107,6 @@ test("creates a session from the rail, keeps tabs in sync per session, and archi
       )
       .toContain(worktreeDirectoryName);
     await expect(page.getByTestId("thread-tab-select")).toHaveCount(2);
-
-    await createdSessionRow.hover();
-    await createdSessionRow.getByTestId("archive-session-button").click();
-
-    await expect(page.getByTestId("archived-session-row")).toContainText(
-      branchName,
-    );
   } finally {
     await closeDesktopApp(app);
     removeWorktree(repoRoot, createdWorktreePath, branchName);

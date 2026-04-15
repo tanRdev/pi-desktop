@@ -42,9 +42,7 @@ export function WorktreeList({
       </div>
       <div className="space-y-1">
         {worktrees.map((worktree, index) => {
-          const liveThreadCount = worktree.threads.filter(
-            (thread) => thread.isArchived === false,
-          ).length;
+          const threadCount = worktree.threads.length;
 
           return (
             <button
@@ -84,8 +82,8 @@ export function WorktreeList({
               </div>
               <div className="mt-2 flex items-center justify-between text-[14px] text-white/30">
                 <span>
-                  {liveThreadCount} live thread
-                  {liveThreadCount === 1 ? "" : "s"}
+                  {threadCount} thread
+                  {threadCount === 1 ? "" : "s"}
                 </span>
                 <span>{worktree.git.branch ?? "detached"}</span>
               </div>

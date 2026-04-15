@@ -69,7 +69,6 @@ export interface WorkspaceShellProps {
   onSelectWorktree: (worktreeId: string) => void | Promise<void>;
   onSelectThread: (threadId: string) => void | Promise<void>;
   onCreateThread: (worktreeId: string) => string | Promise<string>;
-  onArchiveSession: (worktreeId: string) => void | Promise<void>;
   onDeleteWorktree?: (worktreeId: string) => void | Promise<void>;
   onCloseThread: (threadId: string) => void | Promise<void>;
   onDeleteThread?: (threadId: string) => void | Promise<void>;
@@ -149,7 +148,6 @@ export function WorkspaceShell({
   onSelectWorktree,
   onSelectThread,
   onCreateThread,
-  onArchiveSession,
   onDeleteWorktree,
   onCloseThread,
   onDeleteThread,
@@ -330,7 +328,6 @@ export function WorkspaceShell({
               onCreateSession={onCreateSession}
               onSelectWorktree={onSelectWorktree}
               onSelectThread={onSelectThread}
-              onArchiveSession={onArchiveSession}
               onDeleteWorktree={onDeleteWorktree}
               onDeleteThread={onDeleteThread}
               onAddRepository={onAddRepository}

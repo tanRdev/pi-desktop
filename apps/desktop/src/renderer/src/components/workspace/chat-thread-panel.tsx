@@ -192,7 +192,7 @@ function ChatMessageBody({
         <div className="w-full space-y-2">
           {/* Activities for this message */}
           {activities.length > 0 && (
-            <div className="flex flex-wrap gap-2 pb-1">
+            <div className="flex flex-col gap-1.5 pb-1">
               {activities.map((activity) => (
                 <ActivityIndicator
                   key={activity.id}

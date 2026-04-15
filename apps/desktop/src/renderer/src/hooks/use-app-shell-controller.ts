@@ -118,21 +118,6 @@ export function isPromptExecutionVisible({
   );
 }
 
-export function getSessionArchiveThreadIds(
-  worktree: Pick<WorktreeSnapshot, "threads">,
-  activeThreadId: string | null,
-): string[] {
-  const openThreads = worktree.threads.filter((thread) => !thread.isArchived);
-  const inactiveThreadIds = openThreads
-    .filter((thread) => thread.id !== activeThreadId)
-    .map((thread) => thread.id);
-  const activeThreadIds = openThreads
-    .filter((thread) => thread.id === activeThreadId)
-    .map((thread) => thread.id);
-
-  return [...inactiveThreadIds, ...activeThreadIds];
-}
-
 export interface AppShellController {
   workspaceShellProps: WorkspaceShellProps;
   oauthDialogState: {
@@ -935,35 +920,6 @@ export function useAppShellController(): AppShellController {
     return threadId;
   }, []);
 
-  const handleArchiveSession = React.useCallback(
-    async (worktreeId: string) => {
-      const repository = repositories.find(
-        (item) => item.id === activeRepositoryId,
-      );
-      const worktree = repository?.worktrees.find(
-        (item) => item.id === worktreeId,
-      );
-
-      if (!worktree) {
-        return;
-      }
-
-      const threadIds = getSessionArchiveThreadIds(worktree, activeThreadId);
-      if (threadIds.length === 0) {
-        return;
-      }
-
-      if (activeWorktreeId === worktreeId) {
-        setSelectedContextSurface(null);
-      }
-
-      for (const threadId of threadIds) {
-        await window.piDesktop.threads.archive(threadId);
-      }
-    },
-    [activeRepositoryId, activeThreadId, activeWorktreeId, repositories],
-  );
-
   const submitRemoveRepository = React.useCallback(async () => {
     if (!confirmRemoveRepositoryId) {
       return;
@@ -1019,7 +975,7 @@ export function useAppShellController(): AppShellController {
     async (threadId: string) => {
       if (activeThreadId === threadId) {
         const otherThreads = activeWorktree?.threads.filter(
-          (t) => t.id !== threadId && !t.isArchived,
+          (t) => t.id !== threadId,
         );
         if (otherThreads && otherThreads.length > 0 && otherThreads[0]) {
           await window.piDesktop.threads.select(otherThreads[0].id);
@@ -1398,7 +1354,6 @@ export function useAppShellController(): AppShellController {
     onSelectWorktree: handleSelectWorktree,
     onSelectThread: handleSelectThread,
     onCreateThread: handleCreateThread,
-    onArchiveSession: handleArchiveSession,
     onCloseThread: handleCloseThread,
     onDeleteThread: handleDeleteThread,
     onDeleteWorktree: handleDeleteWorktree,

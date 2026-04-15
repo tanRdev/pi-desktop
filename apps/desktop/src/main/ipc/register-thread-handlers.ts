@@ -29,15 +29,6 @@ export function registerThreadHandlers({
     await agentHost.selectThread(threadId);
   });
 
-  handle(IPC_CHANNELS.threads.archive, async (_event, payload) => {
-    const threadId = getStringField(payload, "threadId");
-    if (!threadId) {
-      throw new Error("Thread archive payload must include threadId");
-    }
-
-    await agentHost.archiveThread(threadId);
-  });
-
   handle(IPC_CHANNELS.threads.delete, async (_event, payload) => {
     const threadId = getStringField(payload, "threadId");
     if (!threadId) {

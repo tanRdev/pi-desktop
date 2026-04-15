@@ -615,9 +615,9 @@ async function bootstrapDesktop() {
     const repositoryEntry = repositoryCatalog.upsert({
       rootPath: inspection.rootPath,
     });
-    const thread = threadCatalog
-      .listByWorktree(inspection.currentWorktreePath)
-      .find((entry) => entry.archivedAt === null);
+    const thread = threadCatalog.listByWorktree(
+      inspection.currentWorktreePath,
+    )[0];
 
     if (!thread && options.createIfMissing === false) {
       repositoryCatalog.setLastSelectedWorktree(
@@ -1001,36 +1001,6 @@ async function bootstrapDesktop() {
     }
   }
 
-  async function archiveThreadAndRefresh(threadId: string): Promise<void> {
-    const thread = threadCatalog.get(threadId);
-    if (!thread) {
-      throw new Error(`Unknown thread: ${threadId}`);
-    }
-
-    const isActiveThread =
-      (currentContext?.thread.id ?? selectionState.get().threadId) === threadId;
-
-    threadCatalog.archive(threadId);
-
-    if (!isActiveThread) {
-      notifySessionChanged();
-      return;
-    }
-
-    const nextOpenThread = threadCatalog
-      .listByWorktree(thread.worktreeId)
-      .find((entry) => entry.id !== threadId && entry.archivedAt === null);
-
-    if (!nextOpenThread) {
-      const repositoryId =
-        currentContext?.repositoryId ?? selectionState.get().repositoryId;
-      selectWorktreeWithoutThread(repositoryId, thread.worktreeId);
-      return;
-    }
-
-    switchContextInBackground(await resolveThreadContext(nextOpenThread.id));
-  }
-
   async function deleteThreadAndRefresh(threadId: string): Promise<void> {
     const thread = threadCatalog.get(threadId);
     if (!thread) {
@@ -1049,7 +1019,7 @@ async function bootstrapDesktop() {
 
     const nextOpenThread = threadCatalog
       .listByWorktree(thread.worktreeId)
-      .find((entry) => entry.id !== threadId && entry.archivedAt === null);
+      .find((entry) => entry.id !== threadId);
 
     if (!nextOpenThread) {
       const repositoryId =
@@ -1331,9 +1301,6 @@ async function bootstrapDesktop() {
               })
             : await resolveThreadContext(threadId),
         );
-      },
-      archiveThread: async (threadId) => {
-        await archiveThreadAndRefresh(threadId);
       },
       deleteThread: async (threadId) => {
         await deleteThreadAndRefresh(threadId);

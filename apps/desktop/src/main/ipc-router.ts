@@ -50,7 +50,6 @@ export interface AgentIpcHost {
   removeWorktree(worktreeId: string): Promise<void>;
   createThread(worktreeId: string): Promise<string>;
   selectThread(threadId: string): Promise<void>;
-  archiveThread(threadId: string): Promise<void>;
   deleteThread(threadId: string): Promise<void>;
 }
 

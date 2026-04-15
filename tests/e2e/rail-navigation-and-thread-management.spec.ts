@@ -23,7 +23,7 @@ async function selectThreadListItem(threadItem: Locator): Promise<void> {
   await threadItem.press("Enter");
 }
 
-test("creates, finds, and archives a thread from the flattened rail", async () => {
+test("creates and finds a thread from the flattened rail", async () => {
   test.setTimeout(75_000);
 
   const { app, page, launchContext } = await launchDesktopApp(
@@ -43,19 +43,6 @@ test("creates, finds, and archives a thread from the flattened rail", async () =
 
     await focusChatThread(page);
     await expect(page.getByTestId("chat-transcript")).toBeVisible();
-
-    await createdThread.hover();
-    const archiveButton = page.getByRole("button", {
-      name: `Close ${createdThreadName ?? "thread"}`,
-    });
-    await expect(archiveButton).toBeVisible();
-    await archiveButton.click();
-
-    const archivedThread = page.getByTestId("left-rail").getByRole("button", {
-      name: createdThreadName ?? "",
-    });
-    await expect(archivedThread).toHaveCount(1);
-    await expect(page.getByTestId("left-rail")).toContainText("Archived");
   } finally {
     await closeDesktopApp(app);
     launchContext.cleanup();

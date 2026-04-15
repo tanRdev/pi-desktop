@@ -21,7 +21,7 @@ afterEach(() => {
 });
 
 describe("ThreadCatalog", () => {
-  it("persists thread metadata and sorts active threads before archived threads", () => {
+  it("persists thread metadata", () => {
     let tick = 0;
     const now = () => ++tick;
     let idCounter = 0;
@@ -40,35 +40,20 @@ describe("ThreadCatalog", () => {
 
     catalog.touch(first.id, 100);
     catalog.touch(second.id, 200);
-    catalog.archive(first.id);
     catalog.updateRuntimeSession(second.id, "local-thread-2");
 
     const reloaded = new ThreadCatalog(userDataPath, { now, createId });
-    expect(reloaded.listByWorktree("/tmp/work/repo-one")).toEqual([
-      {
-        id: "thread-2",
-        worktreeId: "/tmp/work/repo-one",
-        title: "Second thread",
-        archivedAt: null,
-        lastActivityAt: 200,
-        runtimeId: "local-thread-2",
-        createdAt: 2,
-        updatedAt: 6,
-      },
-      {
-        id: "thread-1",
-        worktreeId: "/tmp/work/repo-one",
-        title: "First thread",
-        archivedAt: 5,
-        lastActivityAt: 100,
-        runtimeId: null,
-        createdAt: 1,
-        updatedAt: 5,
-      },
-    ]);
+    const threads = reloaded.listByWorktree("/tmp/work/repo-one");
+    expect(threads).toHaveLength(2);
+    expect(threads[0]?.id).toBe("thread-2");
+    expect(threads[1]?.id).toBe("thread-1");
+    expect(threads[0]?.lastActivityAt).toBe(200);
+    expect(threads[1]?.lastActivityAt).toBe(100);
+    expect(threads[0]?.runtimeId).toBe("local-thread-2");
+    expect(threads[1]?.runtimeId).toBeNull();
   });
 
-  it("reuses the newest open thread when ensuring a worktree thread", () => {
+  it("reuses the newest thread when ensuring a worktree thread", () => {
     let tick = 0;
     const now = () => ++tick;
     let idCounter = 0;
@@ -91,7 +76,6 @@ describe("ThreadCatalog", () => {
         id: "thread-1",
         worktreeId: "/tmp/work/repo-one",
         title: "North Star",
-        archivedAt: null,
         lastActivityAt: null,
         runtimeId: null,
         createdAt: 1,
@@ -115,7 +99,6 @@ describe("ThreadCatalog", () => {
               id: "thread-1",
               worktreeId: "/tmp/work/repo-one",
               title: "Legacy thread",
-              archivedAt: null,
               lastActivityAt: 7,
               runtimeSessionName: "legacy-runtime",
               createdAt: 1,

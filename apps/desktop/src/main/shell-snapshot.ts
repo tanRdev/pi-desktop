@@ -106,7 +106,6 @@ function createThreadSnapshot(options: {
   return {
     id: selectedThread.id,
     title: selectedThread.title,
-    isArchived: false,
     lastActivityAt:
       selectedThread.lastActivityAt ?? lastMessage?.timestamp ?? null,
     createdAt: selectedThread.createdAt,

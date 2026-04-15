@@ -92,7 +92,6 @@ function createWorkspaceShellProps(
             {
               id: "thread-1",
               title: "Signal",
-              isArchived: false,
               lastActivityAt: 1,
               runtime: {
                 status: "ready",
@@ -102,7 +101,6 @@ function createWorkspaceShellProps(
             {
               id: "thread-2",
               title: "Echo",
-              isArchived: false,
               lastActivityAt: 2,
               runtime: {
                 status: "ready",
@@ -169,7 +167,6 @@ function createWorkspaceShellProps(
     onSelectWorktree: vi.fn(),
     onSelectThread: vi.fn(),
     onCreateThread: vi.fn(async () => "thread-2"),
-    onArchiveSession: vi.fn(),
     onCloseThread: vi.fn(),
     onDeleteThread: vi.fn(),
     onCloseFileTree: vi.fn(),

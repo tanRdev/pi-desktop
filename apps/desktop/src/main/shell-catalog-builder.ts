@@ -65,11 +65,7 @@ function indexThreadsByWorktree(
     for (const worktree of repository.worktrees) {
       index.set(
         worktree.id,
-        new Set(
-          worktree.threads
-            .filter((thread) => thread.isArchived === false)
-            .map((thread) => thread.id),
-        ),
+        new Set(worktree.threads.map((thread) => thread.id)),
       );
     }
   }
@@ -285,10 +281,8 @@ function reconcileSelection(
       null)
     : null;
   const thread = worktree
-    ? (worktree.threads.find(
-        (item) => item.id === selection.threadId && item.isArchived === false,
-      ) ??
-      worktree.threads.find((item) => item.isArchived === false) ??
+    ? (worktree.threads.find((item) => item.id === selection.threadId) ??
+      worktree.threads[0] ??
       null)
     : null;
 
@@ -320,7 +314,6 @@ async function createThreadSnapshot(
   return {
     id: thread.id,
     title: thread.title,
-    isArchived: thread.archivedAt !== null,
     lastActivityAt: thread.lastActivityAt,
     createdAt: thread.createdAt,
     runtime: {

@@ -17,15 +17,13 @@ export function ThreadTabs({
   onCloseThread,
   onCreateThread,
 }: ThreadTabsProps) {
-  const openThreads = threads.filter((t) => !t.isArchived);
-
   return (
     <div
       data-testid="thread-tabs"
       className="flex h-11 items-center border-b border-white/[0.03] bg-[var(--shell-main-bg)] px-3 select-none"
     >
       <div className="flex h-full min-w-0 flex-1 items-end gap-1 overflow-x-auto no-scrollbar select-none">
-        {openThreads.map((thread) => {
+        {threads.map((thread) => {
           const isActive = thread.id === activeThreadId;
           const isRunning = thread.runtime.status === "streaming";
 

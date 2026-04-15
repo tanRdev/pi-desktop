@@ -40,11 +40,7 @@ export function WorktreeSection({
     }
   }, [onCreateThread]);
 
-  const visibleThreads = worktree.threads.filter(
-    (thread) => !thread.isArchived,
-  );
-
-  const isWorktreeActive = visibleThreads.some(
+  const isWorktreeActive = worktree.threads.some(
     (thread) => thread.id === activeThreadId,
   );
 
@@ -121,7 +117,7 @@ export function WorktreeSection({
               )}
             />
             <div className="space-y-0 pl-6">
-              {visibleThreads.map((thread, index) => (
+              {worktree.threads.map((thread, index) => (
                 <div
                   key={thread.id}
                   className="stagger-item relative"
