@@ -495,4 +495,19 @@ describe("bootstrap helpers (RED)", () => {
       "switchContextInBackground(await resolveThreadContext(nextOpenThread.id));",
     );
   });
+
+  test("workspace selection preserves empty workspaces until user explicitly creates a thread", async () => {
+    const source = await import("node:fs/promises").then((fs) =>
+      fs.readFile(
+        new URL("../../../apps/desktop/src/main/index.ts", import.meta.url),
+        "utf8",
+      ),
+    );
+
+    expect(source).toContain("createIfMissing: false");
+    expect(source).toContain("selectWorktreeWithoutThread(");
+    expect(source).toContain(
+      "if (!thread && options.createIfMissing === false)",
+    );
+  });
 });

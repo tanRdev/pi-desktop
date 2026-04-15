@@ -96,7 +96,7 @@ describe("git-panel view model", () => {
     ).toBe("2 staged, 3 modified, 1 untracked");
   });
 
-  it("builds a clean repository state with sync details and a git action", () => {
+  it("builds a clean repository state with sync details and sync actions", () => {
     const viewModel = buildGitPanelViewModel({
       worktree: createWorktree({
         label: "release",
@@ -118,7 +118,8 @@ describe("git-panel view model", () => {
     expect(viewModel.commitLabel).toBe("7654321");
     expect(viewModel.summary).toBe("Clean");
     expect(viewModel.syncLabel).toBe("2 ahead, 1 behind");
-    expect(viewModel.commitActionLabel).toBe("Commit changes");
+    expect(viewModel.commitActionLabel).toBeNull();
+    expect(viewModel.commitAndPushActionLabel).toBeNull();
     expect(viewModel.pullActionLabel).toBe("Pull");
     expect(viewModel.pushActionLabel).toBe("Push");
     expect(viewModel.statusTone).toBe("neutral");

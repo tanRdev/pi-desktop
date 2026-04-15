@@ -266,4 +266,92 @@ describe("createShellSnapshot", () => {
       message: null,
     });
   });
+
+  it("surfaces every repository as workspace project and marks active one", () => {
+    const nonRepoDir = createTempDir("pi-desktop-multi-projects-");
+    const catalog: ShellCatalogSnapshot = {
+      selection: {
+        repositoryId: "/tmp/repo-b",
+        worktreeId: "/tmp/repo-b/feature",
+        threadId: "thread-b",
+      },
+      repositories: [
+        {
+          id: "/tmp/repo-a",
+          name: "repo-a",
+          rootPath: "/tmp/repo-a",
+          defaultBranch: "main",
+          worktrees: [],
+        },
+        {
+          id: "/tmp/repo-b",
+          name: "repo-b",
+          rootPath: "/tmp/repo-b",
+          defaultBranch: "main",
+          worktrees: [
+            {
+              id: "/tmp/repo-b/feature",
+              label: "feature",
+              path: "/tmp/repo-b/feature",
+              isMain: false,
+              isDetached: false,
+              git: {
+                status: "ready",
+                branch: "feature",
+                commit: "abc1234",
+                hasChanges: false,
+                ahead: 0,
+                behind: 0,
+                stagedCount: 0,
+                modifiedCount: 0,
+                untrackedCount: 0,
+                message: null,
+              },
+              threads: [
+                {
+                  id: "thread-b",
+                  title: "Thread B",
+                  isArchived: false,
+                  lastActivityAt: null,
+                  runtime: {
+                    status: "ready",
+                    lastError: null,
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    const snapshot = createShellSnapshot({
+      appName: "Pi Desktop",
+      appVersion: "0.1.0",
+      chromeVersion: "141.0.0.0",
+      electronVersion: "41.0.1",
+      platform: "darwin",
+      env: { NODE_ENV: "test" },
+      isPackaged: false,
+      cwd: nonRepoDir,
+      agentDir: `${nonRepoDir}/.pi-desktop-agent`,
+      agentMode: "mock",
+      catalog,
+    });
+
+    expect(snapshot.workspace?.projects).toEqual([
+      {
+        id: "/tmp/repo-a",
+        name: "repo-a",
+        path: "/tmp/repo-a",
+        isActive: false,
+      },
+      {
+        id: "/tmp/repo-b",
+        name: "repo-b",
+        path: "/tmp/repo-b",
+        isActive: true,
+      },
+    ]);
+  });
 });

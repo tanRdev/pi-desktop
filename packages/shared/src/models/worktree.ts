@@ -13,6 +13,7 @@ export interface WorktreeGitSnapshot {
   modifiedCount: number;
   untrackedCount: number;
   message: string | null;
+  prStatus?: "merged" | "open" | "closed" | null;
 }
 
 export interface WorktreeSnapshot {
@@ -23,4 +24,5 @@ export interface WorktreeSnapshot {
   isDetached: boolean;
   git: WorktreeGitSnapshot;
   threads: ThreadSnapshot[];
+  createdAt?: number;
 }

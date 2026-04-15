@@ -64,7 +64,7 @@ afterEach(() => {
 });
 
 describe("GitPanel", () => {
-  it("renders no empty change-list placeholder when repository has no file changes", () => {
+  it("renders an empty change-list placeholder when repository has no file changes", () => {
     render(
       <GitPanel
         projectName="Pi"
@@ -76,15 +76,17 @@ describe("GitPanel", () => {
         onCommitMessageChange={vi.fn()}
         onRefresh={vi.fn()}
         onCommit={vi.fn()}
+        onCommitAndPush={vi.fn()}
         onPull={vi.fn()}
         onPush={vi.fn()}
+        onFetch={vi.fn()}
         onStageFile={vi.fn()}
         onUnstageFile={vi.fn()}
         onDiscardFile={vi.fn()}
       />,
     );
 
-    expect(screen.queryByText("No changes detected")).not.toBeInTheDocument();
+    expect(screen.getByText("No changes detected")).toBeInTheDocument();
     expect(screen.queryByText("Changes")).not.toBeInTheDocument();
   });
 });

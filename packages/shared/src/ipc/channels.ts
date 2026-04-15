@@ -27,6 +27,7 @@ export const IPC_CHANNELS = {
   worktrees: {
     create: "worktrees:create",
     select: "worktrees:select",
+    remove: "worktrees:remove",
   },
   threads: {
     create: "threads:create",
@@ -53,6 +54,7 @@ export const IPC_CHANNELS = {
     unstageFile: "git:unstageFile",
     discardFile: "git:discardFile",
     commit: "git:commit",
+    fetch: "git:fetch",
     pull: "git:pull",
     push: "git:push",
   },

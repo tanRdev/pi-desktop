@@ -5,13 +5,14 @@ import { expect, test } from "@playwright/test";
 import {
   closeDesktopApp,
   ensureWorkspaceMode,
+  getCurrentBranchName,
   launchDesktopApp,
   removeWorktree,
   repoRoot,
   waitForAppReady,
 } from "./helpers/desktop-app";
 
-test("creates a session from the rail and manages thread tabs inside it", async () => {
+test("creates a session from the rail, keeps tabs in sync per session, and archives it", async () => {
   test.setTimeout(90_000);
 
   const homeDir = fs.mkdtempSync(
@@ -19,13 +20,14 @@ test("creates a session from the rail and manages thread tabs inside it", async 
   );
   const userDataDir = path.join(homeDir, ".pi-desktop-test-user-data");
   const branchName = `feature/e2e-session-${Date.now()}`;
-  const worktreeDirectoryName = branchName.replace(/[\\/]+/g, "-");
+  const worktreeDirectoryName = branchName.replace(/[/]+/g, "-");
   const createdWorktreePath = path.join(
     homeDir,
     ".worktrees",
     "pi-desktop",
     worktreeDirectoryName,
   );
+  const defaultBranchName = getCurrentBranchName();
 
   fs.mkdirSync(userDataDir, { recursive: true });
 
@@ -38,7 +40,8 @@ test("creates a session from the rail and manages thread tabs inside it", async 
     await waitForAppReady(page);
     await ensureWorkspaceMode(page);
 
-    await page.getByText("Sessions").hover();
+    const workspaceRow = page.getByRole("button", { name: /pi-desktop/i });
+    await workspaceRow.hover();
     await page.getByTestId("create-session-button").click();
     await expect(
       page.getByRole("dialog", { name: "Create session" }),
@@ -49,19 +52,18 @@ test("creates a session from the rail and manages thread tabs inside it", async 
     await expect
       .poll(
         async () => {
-          const shell = await page.evaluate(async () => {
-            const snapshot = await window.piDesktop.shell.getSnapshot();
-            return {
-              worktreeId: snapshot.catalog.selection.worktreeId,
-              threadId: snapshot.catalog.selection.threadId,
-              worktreeLabels:
-                snapshot.catalog.repositories[0]?.worktrees.map(
-                  (worktree) => worktree.label,
-                ) ?? [],
-            };
+          const snapshot = await page.evaluate(async () => {
+            return window.piDesktop.shell.getSnapshot();
           });
 
-          return shell;
+          return {
+            worktreeId: snapshot.catalog.selection.worktreeId,
+            threadId: snapshot.catalog.selection.threadId,
+            worktreeLabels:
+              snapshot.catalog.repositories[0]?.worktrees.map(
+                (worktree) => worktree.label,
+              ) ?? [],
+          };
         },
         { timeout: 20_000 },
       )
@@ -71,16 +73,47 @@ test("creates a session from the rail and manages thread tabs inside it", async 
         worktreeLabels: expect.arrayContaining([branchName]),
       });
 
+    const createdSessionRow = page
+      .getByTestId("session-row")
+      .filter({ hasText: branchName });
+    const defaultSessionRow = page
+      .getByTestId("session-row")
+      .filter({ hasText: defaultBranchName });
+
     await expect(page.getByTestId("left-rail")).toContainText(branchName);
     await expect(page.getByTestId("thread-tab-select")).toHaveCount(1);
 
     await page.getByTestId("create-thread-button").click();
     await expect(page.getByTestId("thread-tab-select")).toHaveCount(2);
 
-    const closeButtons = page.getByTestId("thread-tab-close");
-    await closeButtons.nth(1).click();
-
+    await defaultSessionRow.click();
+    await expect
+      .poll(() =>
+        page.evaluate(async () => {
+          const snapshot = await window.piDesktop.shell.getSnapshot();
+          return snapshot.catalog.selection.worktreeId;
+        }),
+      )
+      .toBe(repoRoot);
     await expect(page.getByTestId("thread-tab-select")).toHaveCount(1);
+
+    await createdSessionRow.click();
+    await expect
+      .poll(() =>
+        page.evaluate(async () => {
+          const snapshot = await window.piDesktop.shell.getSnapshot();
+          return snapshot.catalog.selection.worktreeId;
+        }),
+      )
+      .toContain(worktreeDirectoryName);
+    await expect(page.getByTestId("thread-tab-select")).toHaveCount(2);
+
+    await createdSessionRow.hover();
+    await createdSessionRow.getByTestId("archive-session-button").click();
+
+    await expect(page.getByTestId("archived-session-row")).toContainText(
+      branchName,
+    );
   } finally {
     await closeDesktopApp(app);
     removeWorktree(repoRoot, createdWorktreePath, branchName);

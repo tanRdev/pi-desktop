@@ -37,16 +37,17 @@ test("creates, finds, and archives a thread from the flattened rail", async () =
     const createdThread = await createAutoNamedThread(page);
     const createdThreadName = await createdThread.textContent();
     await selectThreadListItem(createdThread);
-    await expect(page.getByTestId("left-rail")).toContainText(
+    await expect(page.getByTestId("thread-tabs")).toContainText(
       createdThreadName ?? "",
     );
 
     await focusChatThread(page);
     await expect(page.getByTestId("chat-transcript")).toBeVisible();
 
-    const threadTabs = page.getByTestId("thread-tabs");
     await createdThread.hover();
-    const archiveButton = threadTabs.getByTestId("thread-tab-close").first();
+    const archiveButton = page.getByRole("button", {
+      name: `Close ${createdThreadName ?? "thread"}`,
+    });
     await expect(archiveButton).toBeVisible();
     await archiveButton.click();
 

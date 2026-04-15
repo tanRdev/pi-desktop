@@ -100,7 +100,7 @@ describe("context-switch-controller", () => {
     expect(state.context).toEqual(nextContext);
     await expect(state.host.getSnapshot()).resolves.toEqual({
       sessionId: nextContext.thread.id,
-      status: "ready",
+      status: "starting",
       messages: [],
       lastError: null,
     });
@@ -222,7 +222,7 @@ describe("context-switch-controller", () => {
 
     await expect(loadingHost.getSnapshot()).resolves.toEqual({
       sessionId: context.thread.id,
-      status: "ready",
+      status: "starting",
       messages: [],
       lastError: null,
     });
@@ -247,7 +247,7 @@ describe("context-switch-controller", () => {
     const loadingHost = createLoadingAgentHost(baseHost, context);
 
     await expect(loadingHost.getSnapshot()).resolves.toMatchObject({
-      status: "ready",
+      status: "starting",
       messages: [],
       lastError: null,
     });

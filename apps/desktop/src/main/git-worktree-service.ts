@@ -1,6 +1,7 @@
-import { spawnSync } from "node:child_process";
+import { execFile, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
+import { promisify } from "node:util";
 import type {
   GitFileChange,
   GitFileChangeStatus,
@@ -220,7 +221,12 @@ function parseWorktreeBlocks(output: string): ParsedWorktree[] {
   });
 }
 
+const execFileAsync = promisify(execFile);
+
 export class GitWorktreeService {
+  private static readonly INSPECTION_CACHE_TTL = 2000;
+  private static readonly STATUS_CACHE_TTL = 2000;
+
   private readonly inspectionCache = new Map<
     string,
     { inspection: GitRepositoryInspection; updatedAt: number }
@@ -234,7 +240,11 @@ export class GitWorktreeService {
   inspect(targetPath: string): GitRepositoryInspection {
     const cacheKey = normalizePathId(resolveCommandCwd(targetPath));
     const cachedInspection = this.inspectionCache.get(cacheKey);
-    if (cachedInspection && Date.now() - cachedInspection.updatedAt < 250) {
+    if (
+      cachedInspection &&
+      Date.now() - cachedInspection.updatedAt <
+        GitWorktreeService.INSPECTION_CACHE_TTL
+    ) {
       return cachedInspection.inspection;
     }
 
@@ -362,6 +372,125 @@ export class GitWorktreeService {
     return inspection;
   }
 
+  async inspectAsync(targetPath: string): Promise<GitRepositoryInspection> {
+    const cacheKey = normalizePathId(resolveCommandCwd(targetPath));
+    const cachedInspection = this.inspectionCache.get(cacheKey);
+    if (
+      cachedInspection &&
+      Date.now() - cachedInspection.updatedAt <
+        GitWorktreeService.INSPECTION_CACHE_TTL
+    ) {
+      return cachedInspection.inspection;
+    }
+
+    const commandCwd = resolveCommandCwd(targetPath);
+    const currentWorktreeRoot =
+      await this.resolveCurrentWorktreeRootAsync(commandCwd);
+
+    if (!currentWorktreeRoot) {
+      const inspection: GitRepositoryInspection = {
+        status: "not_repo",
+        message: null,
+      };
+      this.inspectionCache.set(cacheKey, { inspection, updatedAt: Date.now() });
+      return inspection;
+    }
+
+    const commonGitDir =
+      await this.resolveCommonGitDirAsync(currentWorktreeRoot);
+    if (!commonGitDir) {
+      const inspection: GitRepositoryInspection = {
+        status: "unavailable",
+        message: "Failed to resolve the common git directory",
+      };
+      this.inspectionCache.set(cacheKey, { inspection, updatedAt: Date.now() });
+      return inspection;
+    }
+
+    const worktreeList = await this.runGitAsync(currentWorktreeRoot, [
+      "worktree",
+      "list",
+      "--porcelain",
+    ]);
+    if (worktreeList.error) {
+      const inspection: GitRepositoryInspection = {
+        status: "unavailable",
+        message: worktreeList.error.message,
+      };
+      this.inspectionCache.set(cacheKey, { inspection, updatedAt: Date.now() });
+      return inspection;
+    }
+    if (worktreeList.status !== 0) {
+      const inspection: GitRepositoryInspection = {
+        status: "unavailable",
+        message: worktreeList.stderr.trim() || "Failed to list git worktrees",
+      };
+      this.inspectionCache.set(cacheKey, { inspection, updatedAt: Date.now() });
+      return inspection;
+    }
+
+    const parsedWorktrees = parseWorktreeBlocks(worktreeList.stdout);
+
+    const worktrees = await Promise.all(
+      parsedWorktrees.map((entry) =>
+        this.inspectWorktreeAsync(entry, currentWorktreeRoot, commonGitDir),
+      ),
+    );
+    worktrees.sort((left, right) => {
+      if (left.isMain !== right.isMain) return left.isMain ? -1 : 1;
+      return left.path.localeCompare(right.path);
+    });
+
+    const mainWorktree = worktrees.find((wt) => wt.isMain);
+    const currentWorktree =
+      worktrees.find((wt) => wt.path === currentWorktreeRoot) ??
+      worktrees[0] ??
+      null;
+    const rootPath = mainWorktree?.path ?? currentWorktreeRoot;
+    const defaultBranch = await this.detectDefaultBranchAsync(
+      currentWorktreeRoot,
+      mainWorktree?.branch ?? null,
+    );
+
+    const inspection: GitRepositoryInspection = {
+      status: "repository",
+      rootPath,
+      currentWorktreePath: currentWorktree?.path ?? currentWorktreeRoot,
+      defaultBranch,
+      worktrees,
+      currentGit: currentWorktree
+        ? {
+            status: "repository" as const,
+            rootPath,
+            branch: currentWorktree.isDetached
+              ? "HEAD"
+              : (currentWorktree.branch ?? undefined),
+            commit: currentWorktree.commit ?? undefined,
+            hasChanges: currentWorktree.git.hasChanges,
+            ahead: currentWorktree.git.ahead ?? 0,
+            behind: currentWorktree.git.behind ?? 0,
+            stagedCount: currentWorktree.git.stagedCount,
+            modifiedCount: currentWorktree.git.modifiedCount,
+            untrackedCount: currentWorktree.git.untrackedCount,
+            message: currentWorktree.git.message,
+          }
+        : undefined,
+      message: null,
+    };
+
+    const timestamp = Date.now();
+    this.inspectionCache.set(cacheKey, { inspection, updatedAt: timestamp });
+    this.inspectionCache.set(rootPath, { inspection, updatedAt: timestamp });
+    if (inspection.currentWorktreePath) {
+      this.inspectionCache.set(inspection.currentWorktreePath, {
+        inspection,
+        updatedAt: timestamp,
+      });
+    }
+
+    return inspection;
+  }
+
   isRepository(targetPath: string): boolean {
     return this.inspect(targetPath).status === "repository";
   }
@@ -417,12 +546,37 @@ export class GitWorktreeService {
     return normalizePathId(worktreePath);
   }
 
+  removeWorktree(options: {
+    worktreePath: string;
+    repositoryRoot: string;
+  }): void {
+    const worktreePath = normalizePathId(options.worktreePath);
+    const repositoryRoot = normalizePathId(options.repositoryRoot);
+
+    if (!fs.existsSync(worktreePath)) {
+      this.runGit(repositoryRoot, ["worktree", "prune"]);
+      this.clearCaches();
+      return;
+    }
+
+    this.runCheckedGit(
+      repositoryRoot,
+      ["worktree", "remove", "--force", worktreePath],
+      "remove worktree",
+    );
+    this.runGit(repositoryRoot, ["worktree", "prune"]);
+    this.clearCaches();
+  }
+
   getRepositoryStatus(repositoryPath: string): GitRepositoryStatus {
     const normalizedRepositoryPath = normalizePathId(repositoryPath);
     const cachedStatus = this.repositoryStatusCache.get(
       normalizedRepositoryPath,
     );
-    if (cachedStatus && Date.now() - cachedStatus.updatedAt < 250) {
+    if (
+      cachedStatus &&
+      Date.now() - cachedStatus.updatedAt < GitWorktreeService.STATUS_CACHE_TTL
+    ) {
       return cachedStatus.status;
     }
 
@@ -786,6 +940,215 @@ export class GitWorktreeService {
     return normalizePathId(result.stdout.trim());
   }
 
+  private async resolveCurrentWorktreeRootAsync(
+    targetPath: string,
+  ): Promise<string | null> {
+    const result = await this.runGitAsync(targetPath, [
+      "rev-parse",
+      "--show-toplevel",
+    ]);
+    if (result.error || result.status !== 0 || !result.stdout.trim())
+      return null;
+    return normalizePathId(result.stdout.trim());
+  }
+
+  private async resolveCommonGitDirAsync(
+    worktreeRoot: string,
+  ): Promise<string | null> {
+    const result = await this.runGitAsync(worktreeRoot, [
+      "rev-parse",
+      "--git-common-dir",
+    ]);
+    if (result.error || result.status !== 0 || !result.stdout.trim())
+      return null;
+    const commonDir = result.stdout.trim();
+    const absoluteCommonDir = path.isAbsolute(commonDir)
+      ? commonDir
+      : path.join(worktreeRoot, commonDir);
+    return normalizePathId(absoluteCommonDir);
+  }
+
+  private async inspectWorktreeAsync(
+    entry: ParsedWorktree,
+    currentWorktreeRoot: string,
+    commonGitDir: string,
+  ): Promise<GitWorktreeSummary> {
+    const branch = parseBranchName(entry.branchRef);
+    const isDetached = entry.detached || branch === null;
+    const commit = entry.head ? entry.head.slice(0, 7) : null;
+
+    if (!fs.existsSync(entry.path)) {
+      return {
+        id: entry.path,
+        path: entry.path,
+        isMain: false,
+        isCurrent: entry.path === currentWorktreeRoot,
+        isDetached,
+        isPrunable: entry.prunableReason !== null,
+        prunableReason: entry.prunableReason,
+        branch: isDetached ? null : branch,
+        commit,
+        git: {
+          ...createMissingGitSummary(
+            entry.prunableReason ?? "Worktree path missing",
+          ),
+          branch: isDetached ? null : branch,
+          commit,
+        },
+      };
+    }
+
+    const absoluteGitDir = await this.resolveAbsoluteGitDirAsync(entry.path);
+    const git = await this.inspectWorktreeGitAsync(entry.path, {
+      branch: isDetached ? null : branch,
+      commit,
+      message: entry.prunableReason,
+    });
+
+    return {
+      id: entry.path,
+      path: entry.path,
+      isMain: absoluteGitDir === commonGitDir,
+      isCurrent: entry.path === currentWorktreeRoot,
+      isDetached,
+      isPrunable: entry.prunableReason !== null,
+      prunableReason: entry.prunableReason,
+      branch: git.branch,
+      commit: git.commit,
+      git,
+    };
+  }
+
+  private async inspectWorktreeGitAsync(
+    worktreePath: string,
+    fallback: {
+      branch: string | null;
+      commit: string | null;
+      message: string | null;
+    },
+  ): Promise<WorktreeGitSnapshot> {
+    const statusResult = await this.runGitAsync(worktreePath, [
+      "status",
+      "--porcelain=2",
+      "--branch",
+    ]);
+    if (statusResult.error)
+      return createUnavailableGitSummary(statusResult.error.message);
+    if (statusResult.status !== 0)
+      return createUnavailableGitSummary(
+        statusResult.stderr.trim() || "Failed to inspect worktree status",
+      );
+
+    let branch = fallback.branch;
+    let commit = fallback.commit;
+    let ahead = 0;
+    let behind = 0;
+
+    for (const line of statusResult.stdout.split(/\r?\n/)) {
+      if (line.startsWith("# branch.head ")) {
+        const head = line.replace(/^# branch\.head\s+/, "").trim();
+        branch = head === "(detached)" ? null : head;
+        continue;
+      }
+      if (line.startsWith("# branch.oid ")) {
+        const oid = line.replace(/^# branch\.oid\s+/, "").trim();
+        if (oid && oid !== "(initial)") commit = oid.slice(0, 7);
+        continue;
+      }
+      if (line.startsWith("# branch.ab ")) {
+        const match = line.match(/^# branch\.ab \+(\d+) -(\d+)/);
+        if (match) {
+          ahead = Number(match[1]);
+          behind = Number(match[2]);
+        }
+      }
+    }
+
+    let stagedCount = 0;
+    let modifiedCount = 0;
+    let untrackedCount = 0;
+    const porcelainResult = await this.runGitAsync(worktreePath, [
+      "status",
+      "--porcelain",
+    ]);
+    if (porcelainResult.error)
+      return createUnavailableGitSummary(porcelainResult.error.message);
+    if (porcelainResult.status !== 0)
+      return createUnavailableGitSummary(
+        porcelainResult.stderr.trim() || "Failed to inspect worktree changes",
+      );
+
+    for (const line of porcelainResult.stdout.split(/\r?\n/)) {
+      if (!line) continue;
+      if (line.startsWith("??")) {
+        untrackedCount++;
+        continue;
+      }
+      const staged = line[0];
+      const modified = line[1];
+      if (staged && staged !== " ") stagedCount++;
+      if (modified && modified !== " ") modifiedCount++;
+    }
+
+    return {
+      status: "ready",
+      branch,
+      commit,
+      hasChanges: stagedCount + modifiedCount + untrackedCount > 0,
+      ahead,
+      behind,
+      stagedCount,
+      modifiedCount,
+      untrackedCount,
+      message: fallback.message,
+    };
+  }
+
+  private async resolveAbsoluteGitDirAsync(
+    worktreePath: string,
+  ): Promise<string | null> {
+    const result = await this.runGitAsync(worktreePath, [
+      "rev-parse",
+      "--absolute-git-dir",
+    ]);
+    if (result.error || result.status !== 0 || !result.stdout.trim())
+      return null;
+    return normalizePathId(result.stdout.trim());
+  }
+
+  private async detectDefaultBranchAsync(
+    currentWorktreeRoot: string,
+    fallbackBranch: string | null,
+  ): Promise<string | null> {
+    const remotesResult = await this.runGitAsync(currentWorktreeRoot, [
+      "remote",
+    ]);
+    if (!remotesResult.error && remotesResult.status === 0) {
+      const remotes = remotesResult.stdout
+        .split(/\r?\n/)
+        .map((l) => l.trim())
+        .filter(Boolean);
+      const preferredRemote = remotes.includes("origin")
+        ? "origin"
+        : remotes[0];
+      if (preferredRemote) {
+        const symbolicRef = await this.runGitAsync(currentWorktreeRoot, [
+          "symbolic-ref",
+          "--quiet",
+          `refs/remotes/${preferredRemote}/HEAD`,
+        ]);
+        if (
+          !symbolicRef.error &&
+          symbolicRef.status === 0 &&
+          symbolicRef.stdout.trim()
+        ) {
+          return parseRemoteHeadBranch(symbolicRef.stdout.trim());
+        }
+      }
+    }
+    return fallbackBranch;
+  }
+
   private runGit(cwd: string, args: string[]): GitCommandResult {
     try {
       const result = spawnSync("git", args, {
@@ -809,6 +1172,45 @@ export class GitWorktreeService {
     }
   }
 
+  private async runGitAsync(
+    cwd: string,
+    args: string[],
+  ): Promise<GitCommandResult> {
+    try {
+      const { stdout, stderr } = await execFileAsync("git", args, {
+        cwd,
+        encoding: "utf8",
+      });
+      return {
+        status: 0,
+        stdout: String(stdout ?? ""),
+        stderr: String(stderr ?? ""),
+        error: null,
+      };
+    } catch (error: unknown) {
+      if (error && typeof error === "object" && "status" in error) {
+        const execError = error as {
+          status?: number;
+          stdout?: string;
+          stderr?: string;
+          message?: string;
+        };
+        return {
+          status: execError.status ?? 1,
+          stdout: String(execError.stdout ?? ""),
+          stderr: String(execError.stderr ?? ""),
+          error: null,
+        };
+      }
+      return {
+        status: 1,
+        stdout: "",
+        stderr: "",
+        error: error instanceof Error ? error : new Error(String(error)),
+      };
+    }
+  }
+
   private runCheckedGit(cwd: string, args: string[], label: string): void {
     const result = this.runGit(cwd, args);
 
@@ -822,8 +1224,19 @@ export class GitWorktreeService {
   }
 
   private clearCachesForPath(targetPath: string): void {
-    void targetPath;
-    this.clearCaches();
+    this.inspectionCache.delete(normalizePathId(targetPath));
+    const now = Date.now();
+    for (const [key, entry] of this.inspectionCache) {
+      if (now - entry.updatedAt > GitWorktreeService.INSPECTION_CACHE_TTL * 2) {
+        this.inspectionCache.delete(key);
+      }
+    }
+    this.repositoryStatusCache.delete(normalizePathId(targetPath));
+    for (const [key, entry] of this.repositoryStatusCache) {
+      if (now - entry.updatedAt > GitWorktreeService.STATUS_CACHE_TTL * 2) {
+        this.repositoryStatusCache.delete(key);
+      }
+    }
   }
 
   private clearCaches(): void {

@@ -61,6 +61,7 @@ export interface WorkspaceShellProps {
   onLeftRailResize: (width: number) => void;
   onModelMenuOpenChange: (open: boolean) => void | Promise<void>;
   onAddRepository: () => void | Promise<void>;
+  onSelectRepository: (repositoryId: string) => void | Promise<void>;
   onRemoveRepository: (repositoryId: string) => void | Promise<void>;
   onCopyRepositoryPath: (repositoryId: string) => void | Promise<void>;
   onOpenInFinder: (repositoryId: string) => void | Promise<void>;
@@ -68,6 +69,8 @@ export interface WorkspaceShellProps {
   onSelectWorktree: (worktreeId: string) => void | Promise<void>;
   onSelectThread: (threadId: string) => void | Promise<void>;
   onCreateThread: (worktreeId: string) => string | Promise<string>;
+  onArchiveSession: (worktreeId: string) => void | Promise<void>;
+  onDeleteWorktree?: (worktreeId: string) => void | Promise<void>;
   onCloseThread: (threadId: string) => void | Promise<void>;
   onDeleteThread?: (threadId: string) => void | Promise<void>;
   onCloseFileTree: () => void;
@@ -138,6 +141,7 @@ export function WorkspaceShell({
   onLeftRailResize,
   onModelMenuOpenChange,
   onAddRepository,
+  onSelectRepository,
   onRemoveRepository,
   onCopyRepositoryPath,
   onOpenInFinder,
@@ -145,6 +149,8 @@ export function WorkspaceShell({
   onSelectWorktree,
   onSelectThread,
   onCreateThread,
+  onArchiveSession,
+  onDeleteWorktree,
   onCloseThread,
   onDeleteThread,
   onCloseFileTree,
@@ -317,13 +323,15 @@ export function WorkspaceShell({
               isPromptExecuting={isPromptExecuting}
               width={leftRailTargetWidth}
               onResize={onLeftRailResize}
+              onSelectRepository={onSelectRepository}
               onRemoveRepository={onRemoveRepository}
               onCopyRepositoryPath={onCopyRepositoryPath}
               onOpenInFinder={onOpenInFinder}
               onCreateSession={onCreateSession}
               onSelectWorktree={onSelectWorktree}
               onSelectThread={onSelectThread}
-              onCloseThread={onCloseThread}
+              onArchiveSession={onArchiveSession}
+              onDeleteWorktree={onDeleteWorktree}
               onDeleteThread={onDeleteThread}
               onAddRepository={onAddRepository}
               onToggleVisible={() => setIsLeftRailVisible(false)}

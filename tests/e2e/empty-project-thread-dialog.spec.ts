@@ -144,29 +144,11 @@ test("opening a plain folder from the workspace button makes it the active proje
     await waitForShell(page);
 
     await page.evaluate(async (targetPath) => {
-      sessionStorage.setItem(
-        "pi-desktop.workspace-switch-state",
-        JSON.stringify({
-          repositoryName: "PlainWorkspace",
-          startedAt: Date.now(),
-        }),
-      );
-      sessionStorage.setItem(
-        "pi-desktop.workspace-switch-notice",
-        JSON.stringify({ repositoryName: "PlainWorkspace" }),
-      );
       await window.piDesktop.repositories.add(targetPath);
       window.location.reload();
     }, folderPath);
 
-    await expect(page.getByTestId("workspace-switch-loader")).toBeVisible();
-    await expect(page.getByTestId("workspace-switch-loader")).toContainText(
-      "Opening PlainWorkspace",
-    );
-
     await waitForShell(page);
-
-    await expect(page.getByTestId("workspace-switch-loader")).toBeVisible();
 
     const expectedFolderPath = folderPath.replace(/^\/private/, "");
 

@@ -47,6 +47,7 @@ export interface AgentIpcHost {
   openRepositoryInFinder(repositoryId: string): Promise<void>;
   createWorktree(repositoryId: string, branchName: string): Promise<void>;
   selectWorktree(worktreeId: string): Promise<void>;
+  removeWorktree(worktreeId: string): Promise<void>;
   createThread(worktreeId: string): Promise<string>;
   selectThread(threadId: string): Promise<void>;
   archiveThread(threadId: string): Promise<void>;

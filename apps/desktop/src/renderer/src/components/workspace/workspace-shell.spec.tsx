@@ -19,8 +19,17 @@ vi.mock("./git-panel", () => ({
 
 vi.mock("./left-rail", () => ({
   SIDEBAR_WIDTH: 240,
-  LeftRail() {
-    return <div data-testid="mock-left-rail">Left rail</div>;
+  LeftRail(props: { onSelectRepository?: unknown }) {
+    return (
+      <div
+        data-testid="mock-left-rail"
+        data-has-select-repository={String(
+          typeof props.onSelectRepository === "function",
+        )}
+      >
+        Left rail
+      </div>
+    );
   },
 }));
 
@@ -152,6 +161,7 @@ function createWorkspaceShellProps(
     onLeftRailResize: vi.fn(),
     onModelMenuOpenChange: vi.fn(),
     onAddRepository: vi.fn(),
+    onSelectRepository: vi.fn(),
     onRemoveRepository: vi.fn(),
     onCopyRepositoryPath: vi.fn(),
     onOpenInFinder: vi.fn(),
@@ -159,6 +169,7 @@ function createWorkspaceShellProps(
     onSelectWorktree: vi.fn(),
     onSelectThread: vi.fn(),
     onCreateThread: vi.fn(async () => "thread-2"),
+    onArchiveSession: vi.fn(),
     onCloseThread: vi.fn(),
     onDeleteThread: vi.fn(),
     onCloseFileTree: vi.fn(),
@@ -167,6 +178,8 @@ function createWorkspaceShellProps(
     onGitCommitMessageChange: vi.fn(),
     onRefreshGit: vi.fn(),
     onCommitGit: vi.fn(),
+    onCommitAndPushGit: vi.fn(),
+    onFetchGit: vi.fn(),
     onPullGit: vi.fn(),
     onPushGit: vi.fn(),
     onStageGitFile: vi.fn(),
@@ -265,5 +278,22 @@ describe("WorkspaceShell", () => {
     expect(onCreateThread).toHaveBeenCalledWith("worktree-1");
     expect(screen.getByTestId("chat-thread-panel")).toBeInTheDocument();
     expect(screen.getByTestId("prompt-dock")).toBeInTheDocument();
+  });
+
+  it("forwards workspace switching into left rail", () => {
+    const onSelectRepository = vi.fn();
+
+    render(
+      <WorkspaceShell
+        {...createWorkspaceShellProps({
+          onSelectRepository,
+        })}
+      />,
+    );
+
+    expect(screen.getByTestId("mock-left-rail")).toHaveAttribute(
+      "data-has-select-repository",
+      "true",
+    );
   });
 });

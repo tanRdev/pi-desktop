@@ -5,7 +5,7 @@ import {
   Copy,
   ThumbsDown,
   ThumbsUp,
-} from "@/components/ui/icons";
+} from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 export type FeedbackValue = "up" | "down" | null;

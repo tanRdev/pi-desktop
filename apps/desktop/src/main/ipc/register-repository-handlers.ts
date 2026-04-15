@@ -91,4 +91,13 @@ export function registerRepositoryHandlers({
 
     await agentHost.selectWorktree(worktreeId);
   });
+
+  handle(IPC_CHANNELS.worktrees.remove, async (_event, payload) => {
+    const worktreeId = getStringField(payload, "worktreeId");
+    if (!worktreeId) {
+      throw new Error("Worktree remove payload must include worktreeId");
+    }
+
+    await agentHost.removeWorktree(worktreeId);
+  });
 }

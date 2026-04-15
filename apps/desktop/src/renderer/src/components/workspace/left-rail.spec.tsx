@@ -1,5 +1,5 @@
 import type { RepositorySnapshot } from "@pi-desktop/shared";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ComponentProps } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -92,6 +92,61 @@ function createRepository(): RepositorySnapshot {
   };
 }
 
+function createRepositoryTwo(): RepositorySnapshot {
+  return {
+    id: "repo-2",
+    name: "Beta Workspace",
+    customName: null,
+    icon: null,
+    accentColor: null,
+    rootPath: "/tmp/beta-workspace",
+    defaultBranch: "main",
+    worktrees: [
+      {
+        id: "beta-worktree-1",
+        label: "main",
+        path: "/tmp/beta-workspace",
+        isMain: true,
+        isDetached: false,
+        git: {
+          status: "ready",
+          branch: "main",
+          commit: "987abc",
+          hasChanges: false,
+          ahead: 0,
+          behind: 0,
+          stagedCount: 0,
+          modifiedCount: 0,
+          untrackedCount: 0,
+          message: null,
+        },
+        threads: [
+          {
+            id: "beta-thread-active",
+            title: "Beta thread",
+            isArchived: false,
+            lastActivityAt: 4,
+            runtime: {
+              status: "ready",
+              lastError: null,
+            },
+          },
+          {
+            id: "beta-thread-archived",
+            title: "Beta archived",
+            isArchived: true,
+            lastActivityAt: 5,
+            runtime: {
+              status: "ready",
+              lastError: null,
+            },
+          },
+        ],
+      },
+    ],
+  };
+}
+
 function renderLeftRail(
   overrides: Partial<ComponentProps<typeof LeftRail>> = {},
 ) {
@@ -104,10 +159,11 @@ function renderLeftRail(
         activeThreadId="thread-active"
         width={240}
         onResize={vi.fn()}
+        onSelectRepository={vi.fn()}
         onSelectWorktree={vi.fn()}
         onSelectThread={vi.fn()}
         onCreateSession={vi.fn()}
-        onCloseThread={vi.fn()}
+        onArchiveSession={vi.fn()}
         onDeleteThread={vi.fn(async () => undefined)}
         onAddRepository={vi.fn()}
         {...overrides}
@@ -140,24 +196,76 @@ describe("LeftRail", () => {
       "workspace",
     );
     expect(screen.getByText("Alpha Workspace")).toBeInTheDocument();
-    expect(screen.getByText("Sessions")).toBeInTheDocument();
-    expect(screen.getByText("Archived")).toBeInTheDocument();
     expect(screen.getByText("main")).toBeInTheDocument();
     expect(screen.getByText("feature/session-tabs")).toBeInTheDocument();
-    expect(
-      screen.getAllByTestId("session-row").map((row) => row.textContent),
-    ).toEqual(["main", "feature/session-tabs"]);
+    expect(screen.getByText("Archived branches")).toBeInTheDocument();
+    expect(screen.queryByText("Sessions")).not.toBeInTheDocument();
+    expect(screen.getAllByTestId("session-row")).toHaveLength(2);
     expect(screen.queryByText("Active thread")).not.toBeInTheDocument();
 
     await user.click(screen.getByText("feature/session-tabs"));
     await user.click(screen.getByTestId("create-session-button"));
-    await user.click(screen.getByRole("button", { name: "New workspace" }));
+    await user.click(
+      screen.getByRole("button", { name: "Open project folder" }),
+    );
     await user.click(screen.getByText("Archived thread"));
 
     expect(onSelectWorktree).toHaveBeenCalledWith("worktree-2");
     expect(onSelectThread).toHaveBeenCalledWith("thread-archived");
     expect(onCreateSession).toHaveBeenCalledTimes(1);
     expect(onAddRepository).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows a hover archive action for session rows and forwards onArchiveSession", async () => {
+    const user = userEvent.setup();
+    const onArchiveSession = vi.fn();
+
+    renderLeftRail({ onArchiveSession });
+
+    const mainSessionRow = screen
+      .getAllByTestId("session-row")
+      .find((row) => within(row).queryByText("main"));
+    if (!mainSessionRow) {
+      throw new Error("Expected main session row");
+    }
+
+    await user.hover(mainSessionRow);
+
+    const archiveButton = within(mainSessionRow).getByRole("button", {
+      name: "Archive branch main",
+    });
+
+    await user.click(archiveButton);
+
+    expect(onArchiveSession).toHaveBeenCalledWith("worktree-1");
+  });
+
+  it("moves fully archived sessions into the archived section", () => {
+    const repository = createRepository();
+    const archivedSession = repository.worktrees.find(
+      (worktree) => worktree.id === "worktree-2",
+    );
+    if (!archivedSession) {
+      throw new Error("Expected archived session fixture");
+    }
+
+    archivedSession.threads = archivedSession.threads.map((thread) => ({
+      ...thread,
+      isArchived: true,
+    }));
+
+    renderLeftRail({
+      repositories: [repository],
+      activeWorktreeId: "worktree-1",
+      activeThreadId: "thread-active",
+    });
+
+    // Only worktree-1 is active now (worktree-2 is fully archived)
+    expect(screen.getAllByTestId("session-row")).toHaveLength(1);
+    expect(screen.getAllByTestId("archived-session-row")).toHaveLength(1);
+    expect(screen.getByTestId("archived-session-row")).toHaveTextContent(
+      "feature/session-tabs",
+    );
   });
 
   it("keeps current rail chrome classes for shell surface", () => {
@@ -167,6 +275,89 @@ describe("LeftRail", () => {
     expect(rail).toHaveClass("bg-[var(--color-bg-primary)]");
     expect(rail).toHaveClass("border-r");
     expect(rail).toHaveClass("border-white/[0.06]");
+  });
+
+  it("toggles the active workspace open state when the workspace row is clicked", async () => {
+    const user = userEvent.setup();
+
+    renderLeftRail();
+
+    const workspaceRow = screen.getByRole("button", {
+      name: /Alpha Workspace/i,
+    });
+
+    // 2 active sessions + 1 archived thread = 3 visible (global archived always shows)
+    expect(screen.getAllByTestId("session-row")).toHaveLength(2);
+    expect(screen.getByText("Archived thread")).toBeInTheDocument();
+
+    await user.click(workspaceRow);
+    // Active sessions are hidden when collapsed, but archived is global and always visible
+    expect(screen.queryAllByTestId("session-row")).toHaveLength(0);
+    expect(screen.getByText("Archived thread")).toBeInTheDocument();
+
+    await user.click(workspaceRow);
+    expect(screen.getAllByTestId("session-row")).toHaveLength(2);
+    expect(screen.getByText("Archived thread")).toBeInTheDocument();
+  });
+
+  it("expands only the active workspace and switches expansion when another project is selected", async () => {
+    const user = userEvent.setup();
+    const onSelectRepository = vi.fn();
+
+    const view = renderLeftRail({
+      repositories: [createRepository(), createRepositoryTwo()],
+      activeRepositoryId: "repo-2",
+      activeWorktreeId: "beta-worktree-1",
+      activeThreadId: "beta-thread-active",
+      onSelectRepository,
+    });
+
+    expect(screen.getByText("Beta Workspace")).toBeInTheDocument();
+    expect(screen.getByText("main")).toBeInTheDocument();
+    // Archived is global - shows items from ALL workspaces
+    expect(screen.getByText("Beta archived")).toBeInTheDocument();
+    expect(screen.getByText("Archived thread")).toBeInTheDocument();
+    expect(screen.queryByText("feature/session-tabs")).not.toBeInTheDocument();
+    expect(screen.getAllByTestId("session-row")).toHaveLength(1);
+
+    await user.click(screen.getByRole("button", { name: /Alpha Workspace/i }));
+
+    expect(onSelectRepository).toHaveBeenCalledWith("repo-1");
+
+    view.rerender(
+      <TooltipProvider>
+        <LeftRail
+          repositories={[createRepository(), createRepositoryTwo()]}
+          activeRepositoryId="repo-1"
+          activeWorktreeId="worktree-1"
+          activeThreadId="thread-active"
+          width={240}
+          onResize={vi.fn()}
+          onSelectRepository={onSelectRepository}
+          onSelectWorktree={vi.fn()}
+          onSelectThread={vi.fn()}
+          onCreateSession={vi.fn()}
+          onArchiveSession={vi.fn()}
+          onDeleteThread={vi.fn(async () => undefined)}
+          onAddRepository={vi.fn()}
+        />
+      </TooltipProvider>,
+    );
+
+    expect(screen.getByText("feature/session-tabs")).toBeInTheDocument();
+    expect(screen.getByText("Archived thread")).toBeInTheDocument();
+    // Archived is global - shows items from ALL workspaces, including Beta
+    expect(screen.getByText("Beta archived")).toBeInTheDocument();
+    expect(screen.getAllByTestId("session-row")).toHaveLength(2);
+
+    const alphaWorkspaceRow = screen
+      .getAllByTestId("workspace-row")
+      .find((row) => within(row).queryByText("Alpha Workspace"));
+    if (!alphaWorkspaceRow) {
+      throw new Error("Expected Alpha Workspace row");
+    }
+
+    expect(alphaWorkspaceRow).toHaveTextContent("Alpha Workspace");
   });
 });
 

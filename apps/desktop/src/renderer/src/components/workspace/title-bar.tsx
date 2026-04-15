@@ -64,8 +64,8 @@ export function TitleBar({
                     onClick={onClick}
                     aria-label={label}
                     className={cn(
-                      "flex size-8 items-center justify-center rounded-sm text-white/30 outline-none ring-0 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/60 focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0",
-                      isActive && "bg-white/[0.04] text-white/70",
+                      "flex size-8 items-center justify-center rounded-sm text-white/40 outline-none ring-0 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/80 focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0",
+                      isActive && "bg-white/[0.04] text-white/80",
                     )}
                   >
                     <Icon className="size-4" />
@@ -83,11 +83,11 @@ export function TitleBar({
                   onClick={onToggleSidePanel}
                   aria-label="Toggle side panel"
                   className={cn(
-                    "flex size-8 items-center justify-center rounded-sm text-white/30 outline-none ring-0 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/60 focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0",
-                    isSidePanelVisible && "text-white/70",
+                    "flex size-8 items-center justify-center rounded-sm text-white/40 outline-none ring-0 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/80 focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0",
+                    isSidePanelVisible && "bg-white/[0.04] text-white/80",
                   )}
                 >
-                  <SidebarSimple className="size-5 -scale-x-100" />
+                  <SidebarSimple className="size-4 -scale-x-100" />
                 </button>
               </TooltipTrigger>
               <TooltipContent side="bottom" sideOffset={8}>

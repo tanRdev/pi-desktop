@@ -3,14 +3,11 @@ import { autoUpdater } from "electron-updater";
 
 const CHECK_DELAY_MS = 5_000;
 
-let updateAvailable = false;
-
 export function initAutoUpdater(): void {
   autoUpdater.autoDownload = false;
   autoUpdater.autoInstallOnAppQuit = true;
 
   autoUpdater.on("update-available", (info) => {
-    updateAvailable = true;
     dialog
       .showMessageBox({
         type: "info",
