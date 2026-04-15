@@ -15,5 +15,6 @@ export interface ThreadSnapshot {
   title: string;
   isArchived: boolean;
   lastActivityAt: number | null;
+  createdAt?: number;
   runtime: ThreadRuntimeSnapshot;
 }

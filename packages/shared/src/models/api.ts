@@ -81,6 +81,7 @@ export interface PiDesktopApi {
   worktrees: {
     create(repositoryId: string, branchName: string): Promise<void>;
     select(worktreeId: string): Promise<void>;
+    remove(worktreeId: string): Promise<void>;
   };
   threads: {
     create(worktreeId: string): Promise<string>;
@@ -122,6 +123,7 @@ export interface PiDesktopApi {
       repositoryPath: string,
       message: string,
     ): Promise<GitRepositoryStatus>;
+    fetch(repositoryPath: string): Promise<GitRepositoryStatus>;
     pull(repositoryPath: string): Promise<GitRepositoryStatus>;
     push(repositoryPath: string): Promise<GitRepositoryStatus>;
   };

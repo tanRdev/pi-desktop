@@ -1083,6 +1083,284 @@ describe("app-shell-store", () => {
     });
   });
 
+  it("waits to refresh provider metadata until a newly selected thread finishes loading", async () => {
+    let eventListener: ((event: PiDesktopAgentEvent) => void) | undefined;
+    const initialShellSnapshot: ShellSnapshot = {
+      appName: "PiDesk",
+      appVersion: "0.1.0",
+      chromeVersion: "141.0.0.0",
+      platform: "darwin",
+      mode: "test" as const,
+      catalog: {
+        repositories: [
+          {
+            id: "/tmp/repo",
+            name: "PiDesk",
+            customName: null,
+            icon: null,
+            accentColor: null,
+            rootPath: "/tmp/repo",
+            defaultBranch: "main",
+            worktrees: [
+              {
+                id: "/tmp/repo",
+                label: "main",
+                path: "/tmp/repo",
+                isMain: true,
+                isDetached: false,
+                git: {
+                  status: "ready",
+                  branch: "main",
+                  commit: "abc1234",
+                  hasChanges: false,
+                  ahead: 0,
+                  behind: 0,
+                  stagedCount: 0,
+                  modifiedCount: 0,
+                  untrackedCount: 0,
+                  message: null,
+                },
+                threads: [
+                  {
+                    id: "thread-1",
+                    title: "North Star",
+                    isArchived: false,
+                    lastActivityAt: null,
+                    runtime: {
+                      status: "ready",
+                      lastError: null,
+                    },
+                  },
+                  {
+                    id: "thread-2",
+                    title: "Signal",
+                    isArchived: false,
+                    lastActivityAt: null,
+                    runtime: {
+                      status: "starting",
+                      lastError: null,
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+        selection: {
+          repositoryId: "/tmp/repo",
+          worktreeId: "/tmp/repo",
+          threadId: "thread-1",
+        },
+      },
+    };
+    const initialRepository = initialShellSnapshot.catalog.repositories[0];
+    if (!initialRepository) {
+      throw new Error("Expected initial repository in shell snapshot");
+    }
+
+    const initialWorktree = initialRepository.worktrees[0];
+    if (!initialWorktree) {
+      throw new Error("Expected initial worktree in shell snapshot");
+    }
+
+    const initialSelectedThread = initialWorktree.threads[0];
+    if (!initialSelectedThread) {
+      throw new Error("Expected initial selected thread in shell snapshot");
+    }
+
+    const loadingThread = initialWorktree.threads[1];
+    if (!loadingThread) {
+      throw new Error("Expected loading thread in shell snapshot");
+    }
+
+    const loadingShellSnapshot: ShellSnapshot = {
+      ...initialShellSnapshot,
+      catalog: {
+        ...initialShellSnapshot.catalog,
+        repositories: [
+          {
+            ...initialRepository,
+            worktrees: [
+              {
+                ...initialWorktree,
+                threads: [
+                  initialSelectedThread,
+                  {
+                    ...loadingThread,
+                    runtime: {
+                      status: "starting",
+                      lastError: null,
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+        selection: {
+          repositoryId: "/tmp/repo",
+          worktreeId: "/tmp/repo",
+          threadId: "thread-2",
+        },
+      },
+    };
+    const loadingRepository = loadingShellSnapshot.catalog.repositories[0];
+    if (!loadingRepository) {
+      throw new Error("Expected loading repository in shell snapshot");
+    }
+
+    const loadingWorktree = loadingRepository.worktrees[0];
+    if (!loadingWorktree) {
+      throw new Error("Expected loading worktree in shell snapshot");
+    }
+
+    const readyThread = loadingWorktree.threads[1];
+    if (!readyThread) {
+      throw new Error("Expected ready thread in shell snapshot");
+    }
+
+    const readyShellSnapshot: ShellSnapshot = {
+      ...loadingShellSnapshot,
+      catalog: {
+        ...loadingShellSnapshot.catalog,
+        repositories: [
+          {
+            ...loadingRepository,
+            worktrees: [
+              {
+                ...loadingWorktree,
+                threads: [
+                  initialSelectedThread,
+                  {
+                    ...readyThread,
+                    runtime: {
+                      status: "ready",
+                      lastError: null,
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    };
+    const api = createApiFixture({
+      shell: {
+        getSnapshot: vi
+          .fn<() => Promise<ShellSnapshot>>()
+          .mockResolvedValueOnce(initialShellSnapshot)
+          .mockResolvedValueOnce(loadingShellSnapshot)
+          .mockResolvedValueOnce(readyShellSnapshot),
+      },
+      agent: {
+        getProviders: vi
+          .fn()
+          .mockResolvedValueOnce([
+            {
+              id: "google",
+              name: "Google",
+              models: [
+                {
+                  id: "gemini-2.5-pro",
+                  name: "Gemini 2.5 Pro",
+                  providerId: "google",
+                },
+              ],
+            },
+          ])
+          .mockResolvedValueOnce([
+            {
+              id: "google",
+              name: "Google",
+              models: [
+                {
+                  id: "gemini-2.5-pro",
+                  name: "Gemini 2.5 Pro",
+                  providerId: "google",
+                },
+              ],
+            },
+          ]),
+        getSettings: vi
+          .fn()
+          .mockResolvedValueOnce({
+            currentProviderId: "google",
+            currentModelId: "gemini-2.5-pro",
+          })
+          .mockResolvedValueOnce({
+            currentProviderId: "google",
+            currentModelId: "gemini-2.5-pro",
+          }),
+        getSnapshot: vi
+          .fn()
+          .mockResolvedValueOnce({
+            sessionId: "thread-1",
+            status: "ready" as const,
+            messages: [],
+            lastError: null,
+          })
+          .mockResolvedValueOnce({
+            sessionId: "thread-2",
+            status: "starting" as const,
+            messages: [],
+            lastError: null,
+          })
+          .mockResolvedValueOnce({
+            sessionId: "thread-2",
+            status: "ready" as const,
+            messages: [],
+            lastError: null,
+          }),
+        prompt: vi.fn(async () => undefined),
+        cancelPrompt: vi.fn(async () => undefined),
+        reset: vi.fn(async () => undefined),
+        switchModel: vi.fn(async () => undefined),
+        getDiscovery: vi.fn(async () => ({
+          isInstalled: false,
+          skills: [],
+          commands: [],
+        })),
+        getSlashSuggestions: vi.fn(async () => ({
+          kind: "slash",
+          suggestions: [],
+          hasMore: false,
+        })),
+        subscribe: vi.fn((listener) => {
+          eventListener = listener;
+          return () => {
+            eventListener = undefined;
+          };
+        }),
+      },
+    });
+    const store = createAppShellStore(api);
+
+    await store.getState().initialize();
+
+    eventListener?.({ type: "session_changed" });
+    await vi.waitFor(() => {
+      expect(store.getState().shellState.agent.status).toBe("starting");
+      expect(store.getState().shellState.shell.catalog.selection.threadId).toBe(
+        "thread-2",
+      );
+    });
+
+    expect(api.agent.getProviders).toHaveBeenCalledTimes(1);
+    expect(api.agent.getSettings).toHaveBeenCalledTimes(1);
+
+    eventListener?.({ type: "session_changed" });
+    await vi.waitFor(() => {
+      expect(api.agent.getProviders).toHaveBeenCalledTimes(2);
+      expect(api.agent.getSettings).toHaveBeenCalledTimes(2);
+    });
+
+    expect(store.getState().settingsSnapshot).toMatchObject({
+      currentProviderId: "google",
+      currentModelId: "gemini-2.5-pro",
+    });
+  });
+
   it("updates repository preferences through the state API and reloads renderer-facing shell state", async () => {
     const initialShellSnapshot: ShellSnapshot = {
       appName: "PiDesk",

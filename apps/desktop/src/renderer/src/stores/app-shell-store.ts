@@ -161,6 +161,7 @@ export function createAppShellStore(api: PiDesktopApi) {
   let initializePromise: Promise<void> | null = null;
   let runtimeRefreshVersion = 0;
   let lastRuntimeContextKey = createRuntimeContextKey(shellModel.getState());
+  let pendingRuntimeMetadataRefresh = false;
 
   async function refreshRuntimeMetadata(): Promise<void> {
     const nextVersion = runtimeRefreshVersion + 1;
@@ -344,15 +345,35 @@ export function createAppShellStore(api: PiDesktopApi) {
   }));
 
   shellModel.subscribe((shellState) => {
+    const previousShellState = store.getState().shellState;
+    const previousSelection = previousShellState.shell.catalog.selection;
+    const nextSelection = shellState.shell.catalog.selection;
     const nextRuntimeContextKey = createRuntimeContextKey(shellState);
+    const runtimeSelectionChanged =
+      nextRuntimeContextKey !== lastRuntimeContextKey;
+    const selectedThreadChanged =
+      previousSelection.threadId !== nextSelection.threadId;
+    const hasSelectedThread =
+      shellState.shell.catalog.selection.threadId !== null;
+    const isSelectedThreadLoading =
+      hasSelectedThread && shellState.agent.status === "starting";
     const shouldRefreshRuntimeMetadata =
       store.getState().isShellReady &&
-      nextRuntimeContextKey !== lastRuntimeContextKey;
+      ((runtimeSelectionChanged && !isSelectedThreadLoading) ||
+        (pendingRuntimeMetadataRefresh && !isSelectedThreadLoading));
+
+    if (
+      store.getState().isShellReady &&
+      (runtimeSelectionChanged || selectedThreadChanged)
+    ) {
+      pendingRuntimeMetadataRefresh = isSelectedThreadLoading;
+    }
 
     lastRuntimeContextKey = nextRuntimeContextKey;
     store.setState({ shellState });
 
     if (shouldRefreshRuntimeMetadata) {
+      pendingRuntimeMetadataRefresh = false;
       void refreshRuntimeMetadata();
     }
   });

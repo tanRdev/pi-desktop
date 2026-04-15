@@ -31,6 +31,7 @@ export interface CreateShellSnapshotOptions {
     id: string;
     title: string;
     lastActivityAt: number | null;
+    createdAt?: number;
   };
   catalog?: ShellCatalogSnapshot;
 }
@@ -54,6 +55,20 @@ function createEmptyCatalog(): ShellCatalogSnapshot {
       threadId: null,
     },
   };
+}
+
+function createWorkspaceProjects(
+  appName: string,
+  catalog: ShellCatalogSnapshot,
+): NonNullable<ShellSnapshot["workspace"]>["projects"] {
+  const activeRepository = getActiveRepository({ catalog });
+
+  return catalog.repositories.map((repository) => ({
+    id: repository.id,
+    name: repository.customName?.trim() || repository.name || appName,
+    path: repository.rootPath,
+    isActive: repository.id === activeRepository?.id,
+  }));
 }
 
 function toShellGitSnapshot(
@@ -81,6 +96,7 @@ function createThreadSnapshot(options: {
     id: string;
     title: string;
     lastActivityAt: number | null;
+    createdAt?: number;
   };
 }): ThreadSnapshot {
   const { agentSnapshot, selectedThread } = options;
@@ -93,6 +109,7 @@ function createThreadSnapshot(options: {
     isArchived: false,
     lastActivityAt:
       selectedThread.lastActivityAt ?? lastMessage?.timestamp ?? null,
+    createdAt: selectedThread.createdAt,
     runtime: {
       status: agentSnapshot?.status ?? "starting",
       lastError: agentSnapshot?.lastError ?? null,
@@ -159,6 +176,10 @@ function createCatalog(options: {
           git: worktree.git,
           threads:
             thread && worktree.path === currentWorktreePath ? [thread] : [],
+          createdAt:
+            thread && worktree.path === currentWorktreePath
+              ? thread.createdAt
+              : undefined,
         })),
       },
     ],
@@ -236,7 +257,17 @@ export function createShellSnapshot({
     }
   }
 
-  const projectName = path.basename(activePath) || appName;
+  const resolvedCatalog =
+    catalog ??
+    createCatalog({
+      appName,
+      inspection: inspection ?? {
+        status: "not_repo",
+        message: null,
+      },
+      agentSnapshot,
+      selectedThread,
+    });
 
   return {
     appName,
@@ -257,26 +288,9 @@ export function createShellSnapshot({
     workspace: {
       rootPath: activePath,
       agentDirectory: agentDir ?? null,
-      projects: [
-        {
-          id: activePath,
-          name: projectName,
-          path: activePath,
-          isActive: true,
-        },
-      ],
+      projects: createWorkspaceProjects(appName, resolvedCatalog),
     },
-    catalog:
-      catalog ??
-      createCatalog({
-        appName,
-        inspection: inspection ?? {
-          status: "not_repo",
-          message: null,
-        },
-        agentSnapshot,
-        selectedThread,
-      }),
+    catalog: resolvedCatalog,
     capabilities: {
       supportsTurns: true,
       supportsTools: true,

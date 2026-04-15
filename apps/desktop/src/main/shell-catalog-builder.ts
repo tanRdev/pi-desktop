@@ -1,3 +1,4 @@
+import os from "node:os";
 import path from "node:path";
 import {
   type AgentSnapshot,
@@ -13,6 +14,17 @@ import type {
   GitRepositoryInspection,
   GitWorktreeSummary,
 } from "./git-worktree-service";
+
+const PI_DESKTOP_WORKTREES_DIR = path.join(os.homedir(), ".pi-desktop");
+
+function isPiDesktopWorktree(worktreePath: string): boolean {
+  const normalized = path.resolve(worktreePath);
+  const normalizedBase = path.resolve(PI_DESKTOP_WORKTREES_DIR);
+  return (
+    normalized.startsWith(normalizedBase + path.sep) ||
+    normalized === normalizedBase
+  );
+}
 import type { RepositoryCatalogEntry } from "./repository-catalog";
 import type { AppSelectionState } from "./selection-state";
 import type { ThreadCatalogEntry } from "./thread-catalog";
@@ -23,7 +35,9 @@ export interface BuildShellCatalogOptions {
   selection: AppSelectionState;
   repositoryPreferences?: RepositoryPreferences[];
   workspaceSessions?: WorkspaceSession[];
-  inspectRepository: (rootPath: string) => GitRepositoryInspection;
+  inspectRepository: (
+    rootPath: string,
+  ) => GitRepositoryInspection | Promise<GitRepositoryInspection>;
   listThreadsByWorktree: (worktreeId: string) => ThreadCatalogEntry[];
   getRuntimeState: (thread: ThreadRuntimeRef) => Promise<{
     status: ThreadSnapshot["runtime"]["status"];
@@ -212,8 +226,9 @@ function createFolderWorkspaceSnapshot(options: {
   rootPath: string;
   fallbackName: string;
   threads: ThreadSnapshot[];
+  createdAt?: number;
 }): ShellCatalogSnapshot["repositories"][number]["worktrees"][number] {
-  const { rootPath, fallbackName, threads } = options;
+  const { rootPath, fallbackName, threads, createdAt } = options;
 
   return {
     id: rootPath,
@@ -234,6 +249,7 @@ function createFolderWorkspaceSnapshot(options: {
       message: "Git unavailable",
     },
     threads,
+    createdAt,
   };
 }
 
@@ -306,6 +322,7 @@ async function createThreadSnapshot(
     title: thread.title,
     isArchived: thread.archivedAt !== null,
     lastActivityAt: thread.lastActivityAt,
+    createdAt: thread.createdAt,
     runtime: {
       status: runtimeState.status,
       lastError: runtimeState.lastError,
@@ -329,7 +346,7 @@ export async function buildShellCatalog({
         repositoryPreferences.find(
           (entry) => entry.repositoryId === repository.id,
         ) ?? null;
-      const inspection = inspectRepository(repository.rootPath);
+      const inspection = await inspectRepository(repository.rootPath);
       const fallbackName =
         preferences?.customName ??
         repository.label ??
@@ -352,6 +369,16 @@ export async function buildShellCatalog({
           ),
         );
 
+        const folderCreatedAt = folderThreads.reduce<number | undefined>(
+          (oldest, t) =>
+            t.createdAt != null
+              ? oldest == null
+                ? t.createdAt
+                : Math.min(oldest, t.createdAt)
+              : oldest,
+          undefined,
+        );
+
         return {
           id: repository.id,
           order: repository.order,
@@ -366,20 +393,19 @@ export async function buildShellCatalog({
               rootPath: repository.rootPath,
               fallbackName,
               threads: folderThreads,
+              createdAt: folderCreatedAt,
             }),
           ],
         };
       }
 
+      const appWorktrees = inspection.worktrees.filter(
+        (worktree) => worktree.isMain || isPiDesktopWorktree(worktree.path),
+      );
+
       const worktrees = await Promise.all(
-        inspection.worktrees.map(async (worktree) => ({
-          id: worktree.path,
-          label: createWorktreeLabel(worktree, fallbackName),
-          path: worktree.path,
-          isMain: worktree.isMain,
-          isDetached: worktree.isDetached,
-          git: worktree.git,
-          threads: await Promise.all(
+        appWorktrees.map(async (worktree) => {
+          const threads = await Promise.all(
             listThreadsByWorktree(worktree.path).map((thread) =>
               createThreadSnapshot(
                 thread,
@@ -389,8 +415,29 @@ export async function buildShellCatalog({
                 selectedAgentSnapshot,
               ),
             ),
-          ),
-        })),
+          );
+
+          const createdAt = threads.reduce<number | undefined>(
+            (oldest, t) =>
+              t.createdAt != null
+                ? oldest == null
+                  ? t.createdAt
+                  : Math.min(oldest, t.createdAt)
+                : oldest,
+            undefined,
+          );
+
+          return {
+            id: worktree.path,
+            label: createWorktreeLabel(worktree, fallbackName),
+            path: worktree.path,
+            isMain: worktree.isMain,
+            isDetached: worktree.isDetached,
+            git: worktree.git,
+            threads,
+            createdAt,
+          };
+        }),
       );
 
       return {

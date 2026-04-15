@@ -153,6 +153,9 @@ export function createPiDesktopApi({
       select(worktreeId: string) {
         return invoke<void>(IPC_CHANNELS.worktrees.select, { worktreeId });
       },
+      remove(worktreeId: string) {
+        return invoke<void>(IPC_CHANNELS.worktrees.remove, { worktreeId });
+      },
     },
     threads: {
       create(worktreeId: string) {
@@ -248,6 +251,11 @@ export function createPiDesktopApi({
         return invoke<GitRepositoryStatus>(IPC_CHANNELS.git.commit, {
           repositoryPath,
           message,
+        });
+      },
+      fetch(repositoryPath: string) {
+        return invoke<GitRepositoryStatus>(IPC_CHANNELS.git.fetch, {
+          repositoryPath,
         });
       },
       pull(repositoryPath: string) {

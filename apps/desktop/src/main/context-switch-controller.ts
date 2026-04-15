@@ -69,7 +69,7 @@ export function createLoadingAgentHost<THost extends AgentHostLike>(
       return {};
     },
     async getSnapshot() {
-      return createSessionSnapshot(context, "ready", null);
+      return createSessionSnapshot(context, "starting", null);
     },
     async prompt() {
       throw new Error("Selected project is still loading");

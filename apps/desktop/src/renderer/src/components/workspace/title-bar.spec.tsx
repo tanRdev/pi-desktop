@@ -58,6 +58,6 @@ describe("TitleBar", () => {
     expect(container.firstElementChild).toHaveClass("border-white/[0.03]");
     expect(
       screen.getByRole("button", { name: "Toggle side panel" }),
-    ).toHaveClass("text-white/70");
+    ).toHaveClass("text-white/80");
   });
 });

@@ -1,6 +1,6 @@
 import { IconContext } from "@phosphor-icons/react";
 import { TooltipProvider } from "@pi-desktop/ui";
-import * as React from "react";
+import type * as React from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import { PackagesModal } from "./components/packages/packages-modal";
@@ -15,17 +15,8 @@ import {
   DialogTitle,
 } from "./components/ui/dialog";
 import { Globe, Info } from "./components/ui/icons";
-import { WorkspaceSwitchLoader } from "./components/ui/workspace-switch-loader";
 import { WorkspaceShell } from "./components/workspace/workspace-shell";
 import { useAppShellController } from "./hooks/use-app-shell-controller";
-
-const WORKSPACE_SWITCH_STATE_KEY = "pi-desktop.workspace-switch-state";
-const WORKSPACE_SWITCH_MIN_VISIBLE_MS = 600;
-
-type WorkspaceSwitchState = {
-  repositoryName?: string;
-  startedAt?: number;
-};
 
 const APP_ROOT_STYLE = {
   "--ease-out": "cubic-bezier(0.23, 1, 0.32, 1)",
@@ -34,77 +25,8 @@ const APP_ROOT_STYLE = {
   "--duration-slow": "300ms",
 } as React.CSSProperties;
 
-function isWorkspaceSwitchState(value: unknown): value is WorkspaceSwitchState {
-  if (typeof value !== "object" || value === null) {
-    return false;
-  }
-
-  const candidate = value as Record<string, unknown>;
-
-  return (
-    (candidate.repositoryName === undefined ||
-      typeof candidate.repositoryName === "string") &&
-    (candidate.startedAt === undefined ||
-      typeof candidate.startedAt === "number")
-  );
-}
-
-function readWorkspaceSwitchState(): WorkspaceSwitchState | null {
-  const serializedState = sessionStorage.getItem(WORKSPACE_SWITCH_STATE_KEY);
-  if (!serializedState) {
-    return null;
-  }
-
-  try {
-    const parsed = JSON.parse(serializedState) as unknown;
-
-    if (isWorkspaceSwitchState(parsed)) {
-      return parsed;
-    }
-
-    sessionStorage.removeItem(WORKSPACE_SWITCH_STATE_KEY);
-    return null;
-  } catch {
-    sessionStorage.removeItem(WORKSPACE_SWITCH_STATE_KEY);
-    return null;
-  }
-}
-
 export default function App() {
   const controller = useAppShellController();
-  const [workspaceSwitchState, setWorkspaceSwitchState] =
-    React.useState<WorkspaceSwitchState | null>(() =>
-      readWorkspaceSwitchState(),
-    );
-  const workspaceSwitchLoaderName =
-    controller.workspaceSwitchingRepositoryName ??
-    workspaceSwitchState?.repositoryName ??
-    null;
-
-  React.useEffect(() => {
-    if (!workspaceSwitchState) {
-      return;
-    }
-
-    if (!controller.workspaceShellProps.activeRepository) {
-      return;
-    }
-
-    const startedAt =
-      typeof workspaceSwitchState.startedAt === "number"
-        ? workspaceSwitchState.startedAt
-        : Date.now();
-    const remainingDuration = Math.max(
-      WORKSPACE_SWITCH_MIN_VISIBLE_MS - (Date.now() - startedAt),
-      0,
-    );
-    const timer = window.setTimeout(() => {
-      sessionStorage.removeItem(WORKSPACE_SWITCH_STATE_KEY);
-      setWorkspaceSwitchState(null);
-    }, remainingDuration);
-
-    return () => window.clearTimeout(timer);
-  }, [controller.workspaceShellProps.activeRepository, workspaceSwitchState]);
 
   return (
     <TooltipProvider>
@@ -130,9 +52,6 @@ export default function App() {
           style={APP_ROOT_STYLE}
         >
           <WorkspaceShell {...controller.workspaceShellProps} />
-          {workspaceSwitchLoaderName ? (
-            <WorkspaceSwitchLoader repositoryName={workspaceSwitchLoaderName} />
-          ) : null}
 
           <Dialog
             open={controller.isCreateWorktreeOpen}

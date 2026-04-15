@@ -41,12 +41,50 @@ function isClosedTargetError(error: unknown): boolean {
   );
 }
 
-async function waitForAppClose(
+function getAppProcessId(app: ElectronApplication): number | null {
+  if (typeof app.process !== "function") {
+    return null;
+  }
+
+  const childProcess = app.process();
+  return typeof childProcess?.pid === "number" ? childProcess.pid : null;
+}
+
+function isProcessAlive(processId: number): boolean {
+  try {
+    process.kill(processId, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function waitForProcessExit(
+  processId: number | null,
+  timeoutMs: number,
+): Promise<boolean> {
+  if (processId === null) {
+    await delay(timeoutMs);
+    return false;
+  }
+
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (!isProcessAlive(processId)) {
+      return true;
+    }
+
+    await delay(100);
+  }
+
+  return !isProcessAlive(processId);
+}
+
+async function attemptPlaywrightClose(
   app: ElectronApplication,
   timeoutMs: number,
 ): Promise<boolean> {
   const timeoutToken = Symbol("timeout");
-
   const result = await Promise.race([
     app.close().then(
       () => true,
@@ -61,7 +99,7 @@ async function waitForAppClose(
     delay(timeoutMs).then(() => timeoutToken),
   ]);
 
-  return result !== timeoutToken && result !== false;
+  return result === true;
 }
 
 async function requestAppShutdown(
@@ -84,19 +122,38 @@ async function requestAppShutdown(
 }
 
 export async function closeDesktopApp(app: ElectronApplication): Promise<void> {
-  if (await waitForAppClose(app, 2_000)) {
+  const processId = getAppProcessId(app);
+
+  if (
+    (await attemptPlaywrightClose(app, 2_000)) ||
+    (await waitForProcessExit(processId, 2_000))
+  ) {
     return;
   }
 
   await requestAppShutdown(app, "quit");
 
-  if (await waitForAppClose(app, 5_000)) {
+  if (await waitForProcessExit(processId, 5_000)) {
     return;
   }
 
   await requestAppShutdown(app, "exit");
 
-  await waitForAppClose(app, 5_000);
+  if (await waitForProcessExit(processId, 5_000)) {
+    return;
+  }
+
+  if (processId !== null) {
+    try {
+      process.kill(processId, "SIGKILL");
+    } catch {
+      // The process may have already exited between checks.
+    }
+  }
+
+  await waitForProcessExit(processId, 5_000);
+
+  void attemptPlaywrightClose(app, 1_000);
 }
 
 export function createLaunchContext(

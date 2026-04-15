@@ -1,4 +1,4 @@
-import { mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, rmSync } from "node:fs";
 import path from "node:path";
 import type {
   AgentSnapshot,
@@ -13,7 +13,7 @@ import type {
   SettingsSnapshot,
 } from "@pi-desktop/shared";
 import { IPC_CHANNELS } from "@pi-desktop/shared";
-import { app, BrowserWindow, ipcMain, shell, Menu } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, Menu, shell } from "electron";
 import {
   createThreadTitle,
   getDefaultThreadTitle,
@@ -260,17 +260,14 @@ async function bootstrapDesktop() {
               {
                 label: "Uninstall Pi Desktop...",
                 click: async () => {
-                  const { dialog } = require("electron");
-                  const fs = require("fs");
-                  const path = require("path");
-                  
                   const response = await dialog.showMessageBox({
                     type: "warning",
                     buttons: ["Cancel", "Uninstall"],
                     defaultId: 1,
                     title: "Uninstall Pi Desktop",
                     message: "Are you sure you want to uninstall Pi Desktop?",
-                    detail: "This will remove the application, your settings, and cached data. This action cannot be undone."
+                    detail:
+                      "This will remove the application, your settings, and cached data. This action cannot be undone.",
                   });
 
                   if (response.response === 1) {
@@ -278,29 +275,40 @@ async function bootstrapDesktop() {
                       // Get paths to delete
                       const userDataPath = app.getPath("userData");
                       const appPath = app.getPath("exe"); // Only works well if packaged
-                      
+
                       // Delete user data
-                      if (fs.existsSync(userDataPath)) {
-                        fs.rmSync(userDataPath, { recursive: true, force: true });
+                      if (existsSync(userDataPath)) {
+                        rmSync(userDataPath, {
+                          recursive: true,
+                          force: true,
+                        });
                       }
 
                       // If packaged on Mac, delete the .app bundle
                       if (isMac && app.isPackaged) {
-                        const appBundlePath = appPath.substring(0, appPath.indexOf(".app") + 4);
-                        if (fs.existsSync(appBundlePath)) {
-                          app.relaunch({ args: ['--uninstall-script', appBundlePath] });
+                        const appBundlePath = appPath.substring(
+                          0,
+                          appPath.indexOf(".app") + 4,
+                        );
+                        if (existsSync(appBundlePath)) {
+                          app.relaunch({
+                            args: ["--uninstall-script", appBundlePath],
+                          });
                           app.quit();
                           return;
                         }
                       }
-                      
-                      dialog.showMessageBoxSync({ message: "Pi Desktop data removed. You can now move the app to Trash." });
+
+                      dialog.showMessageBoxSync({
+                        message:
+                          "Pi Desktop data removed. You can now move the app to Trash.",
+                      });
                       app.quit();
                     } catch (err) {
                       dialog.showErrorBox("Uninstall Failed", String(err));
                     }
                   }
-                }
+                },
               },
               { type: "separator" } as Electron.MenuItemConstructorOptions,
               { role: "services" } as Electron.MenuItemConstructorOptions,
@@ -309,9 +317,9 @@ async function bootstrapDesktop() {
               { role: "hideOthers" } as Electron.MenuItemConstructorOptions,
               { role: "unhide" } as Electron.MenuItemConstructorOptions,
               { type: "separator" } as Electron.MenuItemConstructorOptions,
-              { role: "quit" } as Electron.MenuItemConstructorOptions
-            ]
-          }
+              { role: "quit" } as Electron.MenuItemConstructorOptions,
+            ],
+          },
         ]
       : []),
     {
@@ -331,11 +339,11 @@ async function bootstrapDesktop() {
               { type: "separator" },
               {
                 label: "Speech",
-                submenu: [{ role: "startSpeaking" }, { role: "stopSpeaking" }]
-              }
+                submenu: [{ role: "startSpeaking" }, { role: "stopSpeaking" }],
+              },
             ]
-          : [{ role: "delete" }, { type: "separator" }, { role: "selectAll" }])
-      ] as Electron.MenuItemConstructorOptions[]
+          : [{ role: "delete" }, { type: "separator" }, { role: "selectAll" }]),
+      ] as Electron.MenuItemConstructorOptions[],
     },
     {
       label: "View",
@@ -348,8 +356,8 @@ async function bootstrapDesktop() {
         { role: "zoomIn" },
         { role: "zoomOut" },
         { type: "separator" },
-        { role: "togglefullscreen" }
-      ]
+        { role: "togglefullscreen" },
+      ],
     },
     {
       label: "Window",
@@ -361,16 +369,15 @@ async function bootstrapDesktop() {
               { type: "separator" },
               { role: "front" },
               { type: "separator" },
-              { role: "window" }
+              { role: "window" },
             ]
-          : [{ role: "close" }])
-      ] as Electron.MenuItemConstructorOptions[]
-    }
+          : [{ role: "close" }]),
+      ] as Electron.MenuItemConstructorOptions[],
+    },
   ];
 
   const menu = Menu.buildFromTemplate(template);
   Menu.setApplicationMenu(menu);
-
 
   const explicitUserDataPath = process.env.PI_DESKTOP_USER_DATA_DIR;
   if (explicitUserDataPath) {
@@ -600,27 +607,43 @@ async function bootstrapDesktop() {
 
   async function resolveDefaultThreadContext(
     targetPath: string,
-  ): Promise<SelectedThreadContext> {
+    options: { createIfMissing?: boolean } = {},
+  ): Promise<SelectedThreadContext | null> {
     const inspection = inspectWorktreeOrThrow(targetPath);
     const repositoryEntry = repositoryCatalog.upsert({
       rootPath: inspection.rootPath,
     });
-    const thread =
-      threadCatalog
-        .listByWorktree(inspection.currentWorktreePath)
-        .find((entry) => entry.archivedAt === null) ??
+    const thread = threadCatalog
+      .listByWorktree(inspection.currentWorktreePath)
+      .find((entry) => entry.archivedAt === null);
+
+    if (!thread && options.createIfMissing === false) {
+      repositoryCatalog.setLastSelectedWorktree(
+        repositoryEntry.id,
+        inspection.currentWorktreePath,
+      );
+      selectionState.replace({
+        repositoryId: repositoryEntry.id,
+        worktreeId: inspection.currentWorktreePath,
+        threadId: null,
+      });
+      return null;
+    }
+
+    const resolvedThread =
+      thread ??
       threadCatalog.create({
         worktreeId: inspection.currentWorktreePath,
         title: getDefaultThreadTitle(),
       });
 
-    return buildThreadContext(repositoryEntry.id, inspection, thread);
+    return buildThreadContext(repositoryEntry.id, inspection, resolvedThread);
   }
 
   async function createWorktreeContext(
     repositoryId: string,
     branchName: string,
-  ): Promise<SelectedThreadContext> {
+  ): Promise<SelectedThreadContext | null> {
     const repository = repositoryCatalog.get(repositoryId);
     if (!repository) {
       throw new Error(`Unknown repository: ${repositoryId}`);
@@ -634,7 +657,7 @@ async function bootstrapDesktop() {
 
     const worktreePath = path.join(
       app.getPath("home"),
-      ".worktrees",
+      ".pi-desktop",
       path.basename(repository.rootPath),
       trimmedBranchName.replace(/[\\/]+/g, "-"),
     );
@@ -749,6 +772,30 @@ async function bootstrapDesktop() {
     };
   }
 
+  function selectWorktreeWithoutThread(
+    repositoryId: string | null,
+    worktreePath: string,
+  ): void {
+    if (repositoryId) {
+      repositoryCatalog.setLastSelectedWorktree(repositoryId, worktreePath);
+    }
+
+    currentContext = null;
+    currentTransport?.close();
+    currentTransport = null;
+    unsubscribe();
+    unsubscribe = () => {};
+    currentHost = createBootstrapErrorHost(
+      "No active session is selected for this workspace",
+    );
+    selectionState.replace({
+      repositoryId,
+      worktreeId: worktreePath,
+      threadId: null,
+    });
+    notifySessionChanged();
+  }
+
   async function attachContext(context: SelectedThreadContext): Promise<{
     context: SelectedThreadContext;
     host: AgentDesktopHost;
@@ -772,8 +819,16 @@ async function bootstrapDesktop() {
     }
   }
 
-  async function attachToPath(targetPath: string) {
-    return attachContext(await resolveDefaultThreadContext(targetPath));
+  async function attachToPath(
+    targetPath: string,
+    options: { createIfMissing?: boolean } = {},
+  ) {
+    const context = await resolveDefaultThreadContext(targetPath, options);
+    if (!context) {
+      return null;
+    }
+
+    return attachContext(context);
   }
 
   function selectFolderWorkspace(targetPath: string): void {
@@ -795,7 +850,10 @@ async function bootstrapDesktop() {
     previousTransport?.close();
   }
 
-  async function activateWorkspacePath(targetPath: string): Promise<void> {
+  async function activateWorkspacePath(
+    targetPath: string,
+    options: { createIfMissing?: boolean } = {},
+  ): Promise<void> {
     const inspection = gitService.inspect(targetPath);
 
     if (
@@ -804,7 +862,10 @@ async function bootstrapDesktop() {
       inspection.currentWorktreePath &&
       inspection.worktrees
     ) {
-      commitAttachment(await attachToPath(targetPath));
+      const attached = await attachToPath(targetPath, options);
+      if (attached) {
+        commitAttachment(attached);
+      }
       return;
     }
 
@@ -873,9 +934,15 @@ async function bootstrapDesktop() {
     preferredSelection.worktreeId ??
     preferredSelection.repositoryId ??
     process.cwd();
+  const shouldPreserveEmptySelection =
+    preferredSelection.threadId === null &&
+    (preferredSelection.worktreeId !== null ||
+      preferredSelection.repositoryId !== null);
 
   try {
-    await activateWorkspacePath(preferredWorkspacePath);
+    await activateWorkspacePath(preferredWorkspacePath, {
+      createIfMissing: !shouldPreserveEmptySelection,
+    });
   } catch (error) {
     const fallbackPath = process.cwd();
     if (preferredWorkspacePath !== fallbackPath) {
@@ -903,7 +970,10 @@ async function bootstrapDesktop() {
     void contextSwitchController.switchContext(async () => context);
   }
 
-  async function switchRepositoryPath(targetPath: string): Promise<void> {
+  async function switchRepositoryPath(
+    targetPath: string,
+    options: { createIfMissing?: boolean } = {},
+  ): Promise<void> {
     const inspection = gitService.inspect(targetPath);
 
     if (
@@ -912,12 +982,26 @@ async function bootstrapDesktop() {
       inspection.currentWorktreePath &&
       inspection.worktrees
     ) {
-      switchContextInBackground(await resolveDefaultThreadContext(targetPath));
+      const context = await resolveDefaultThreadContext(targetPath, options);
+      if (!context) {
+        const repositoryEntry = repositoryCatalog.upsert({
+          rootPath: inspection.rootPath,
+        });
+        selectWorktreeWithoutThread(
+          repositoryEntry.id,
+          inspection.currentWorktreePath,
+        );
+        return;
+      }
+
+      switchContextInBackground(context);
       return;
     }
 
-    await activateWorkspacePath(targetPath);
-    notifySessionChanged();
+    await activateWorkspacePath(targetPath, options);
+    if (inspection.status !== "repository") {
+      notifySessionChanged();
+    }
   }
 
   async function archiveThreadAndRefresh(threadId: string): Promise<void> {
@@ -943,20 +1027,7 @@ async function bootstrapDesktop() {
     if (!nextOpenThread) {
       const repositoryId =
         currentContext?.repositoryId ?? selectionState.get().repositoryId;
-      currentContext = null;
-      currentTransport?.close();
-      currentTransport = null;
-      unsubscribe();
-      unsubscribe = () => {};
-      currentHost = createBootstrapErrorHost(
-        "No active session is selected for this workspace",
-      );
-      selectionState.replace({
-        repositoryId,
-        worktreeId: thread.worktreeId,
-        threadId: null,
-      });
-      notifySessionChanged();
+      selectWorktreeWithoutThread(repositoryId, thread.worktreeId);
       return;
     }
 
@@ -986,20 +1057,7 @@ async function bootstrapDesktop() {
     if (!nextOpenThread) {
       const repositoryId =
         currentContext?.repositoryId ?? selectionState.get().repositoryId;
-      currentContext = null;
-      currentTransport?.close();
-      currentTransport = null;
-      unsubscribe();
-      unsubscribe = () => {};
-      currentHost = createBootstrapErrorHost(
-        "No active session is selected for this workspace",
-      );
-      selectionState.replace({
-        repositoryId,
-        worktreeId: thread.worktreeId,
-        threadId: null,
-      });
-      notifySessionChanged();
+      selectWorktreeWithoutThread(repositoryId, thread.worktreeId);
       return;
     }
 
@@ -1034,7 +1092,7 @@ async function bootstrapDesktop() {
         selection,
         repositoryPreferences: repositoryPreferencesCatalog.list(),
         workspaceSessions: workspaceSessionCatalog.list(),
-        inspectRepository: (rootPath) => gitService.inspect(rootPath),
+        inspectRepository: (rootPath) => gitService.inspectAsync(rootPath),
         listThreadsByWorktree: (worktreeId) =>
           threadCatalog.listByWorktree(worktreeId),
         getRuntimeState: (thread) => runtimeManager.getRuntimeState(thread),
@@ -1086,6 +1144,7 @@ async function bootstrapDesktop() {
 
         await switchRepositoryPath(
           repository.lastSelectedWorktreeId ?? repository.rootPath,
+          { createIfMissing: false },
         );
       },
       removeRepository: async (repositoryId) => {
@@ -1136,14 +1195,93 @@ async function bootstrapDesktop() {
         await shell.openPath(repository.rootPath);
       },
       createWorktree: async (repositoryId, branchName) => {
-        switchContextInBackground(
-          await createWorktreeContext(repositoryId, branchName),
-        );
+        const context = await createWorktreeContext(repositoryId, branchName);
+        if (!context) {
+          throw new Error(
+            "Failed to create a default thread for the new worktree",
+          );
+        }
+
+        switchContextInBackground(context);
       },
       selectWorktree: async (worktreeId) => {
-        switchContextInBackground(
-          await resolveDefaultThreadContext(worktreeId),
-        );
+        const context = await resolveDefaultThreadContext(worktreeId, {
+          createIfMissing: false,
+        });
+        if (!context) {
+          const repositoryId = getRepositoryIdForWorktree(worktreeId);
+          selectWorktreeWithoutThread(repositoryId, worktreeId);
+          return;
+        }
+
+        switchContextInBackground(context);
+      },
+      removeWorktree: async (worktreeId) => {
+        const normalizedWorktreeId = path
+          .resolve(worktreeId)
+          .replace(/[\\/]+$/, "");
+
+        const repositoryId = getRepositoryIdForWorktree(normalizedWorktreeId);
+        const repository = repositoryId
+          ? repositoryCatalog.get(repositoryId)
+          : null;
+
+        if (!repository) {
+          throw new Error(`Cannot find repository for worktree: ${worktreeId}`);
+        }
+
+        const isActiveWorktree =
+          (currentContext?.worktreePath ?? selectionState.get().worktreeId) ===
+          normalizedWorktreeId;
+
+        const threadsInWorktree =
+          threadCatalog.listByWorktree(normalizedWorktreeId);
+        for (const thread of threadsInWorktree) {
+          threadCatalog.delete(thread.id);
+        }
+
+        gitService.removeWorktree({
+          worktreePath: normalizedWorktreeId,
+          repositoryRoot: repository.rootPath,
+        });
+
+        if (isActiveWorktree) {
+          const remainingWorktrees = gitService.inspect(repository.rootPath);
+          const nextWorktree =
+            remainingWorktrees.status === "repository" &&
+            remainingWorktrees.worktrees
+              ? remainingWorktrees.worktrees.find(
+                  (wt) => wt.path !== normalizedWorktreeId,
+                )
+              : null;
+
+          if (nextWorktree) {
+            const context = await resolveDefaultThreadContext(
+              nextWorktree.path,
+              {
+                createIfMissing: true,
+              },
+            );
+            if (context) {
+              switchContextInBackground(context);
+              return;
+            }
+          }
+
+          const remainingRepositories = repositoryCatalog
+            .list()
+            .filter((r) => r.id !== repositoryId);
+          const nextRepo = remainingRepositories[0];
+          if (nextRepo) {
+            await activateWorkspacePath(
+              nextRepo.lastSelectedWorktreeId ?? nextRepo.rootPath,
+            );
+          } else {
+            selectionState.clear();
+          }
+        }
+
+        notifySessionChanged();
       },
       createThread: async (worktreeId) => {
         const normalizedWorktreeId = path

@@ -7,7 +7,8 @@ import { Skeleton } from "boneyard-js/react";
 import * as React from "react";
 import {
   Archive,
-  ChatsCircle,
+  CaretDown,
+  CaretRight,
   Copy,
   Folder,
   GitBranch,
@@ -30,6 +31,7 @@ import {
 import { useUnicodeSpinner } from "@/hooks/use-unicode-spinner";
 import { cn } from "@/lib/utils";
 import { DEFAULT_UNTITLED_THREAD_TITLE } from "../../../../thread-title-defaults";
+import { RepositorySwitcher } from "./repository-switcher";
 
 // Sidebar width for minimalist layout
 
@@ -60,10 +62,12 @@ export interface LeftRailProps {
   isLoading?: boolean;
   width: number;
   onResize: (width: number) => void;
+  onSelectRepository: (repositoryId: string) => void;
   onSelectWorktree: (worktreeId: string) => void;
   onSelectThread: (threadId: string) => void;
   onCreateSession: () => void | Promise<void>;
-  onCloseThread?: (threadId: string) => void;
+  onArchiveSession?: (worktreeId: string) => void;
+  onDeleteWorktree?: (worktreeId: string) => void;
   onDeleteThread?: (threadId: string) => void;
   onAddRepository: () => void;
   onToggleVisible?: () => void;
@@ -74,30 +78,87 @@ export interface LeftRailProps {
   onOpenInFinder?: (repositoryId: string) => void;
 }
 
-function collectSessionsAndArchivedThreads(
-  repositories: RepositorySnapshot[],
-  activeRepositoryId: string | null,
-) {
-  const repo = repositories.find((r) => r.id === activeRepositoryId);
-  if (!repo) {
-    return {
-      sessions: [] as WorktreeSnapshot[],
-      archived: [] as ThreadSnapshot[],
-    };
+function getRepositoryActiveSessions(
+  repository: RepositorySnapshot,
+): WorktreeSnapshot[] {
+  const sessions: WorktreeSnapshot[] = [];
+
+  for (const worktree of repository.worktrees) {
+    const openThreads = worktree.threads.filter((thread) => !thread.isArchived);
+    const worktreeArchivedThreads = worktree.threads.filter(
+      (thread) => thread.isArchived,
+    );
+
+    // Only show worktrees that have at least one non-archived thread
+    if (openThreads.length === 0 && worktreeArchivedThreads.length > 0) {
+      continue;
+    }
+
+    sessions.push(worktree);
   }
 
-  const sessions = [...repo.worktrees];
-  const archived: ThreadSnapshot[] = [];
+  return sessions;
+}
 
-  for (const worktree of sessions) {
-    for (const thread of worktree.threads) {
-      if (thread.isArchived) {
-        archived.push(thread);
+interface GlobalArchivedItem {
+  type: "session" | "thread";
+  id: string;
+  title: string;
+  repositoryId: string;
+  repositoryName: string;
+  worktreeId: string;
+  // For sessions
+  session?: WorktreeSnapshot;
+  // For threads
+  thread?: ThreadSnapshot;
+}
+
+function getGlobalArchivedItems(
+  repositories: RepositorySnapshot[],
+): GlobalArchivedItem[] {
+  const items: GlobalArchivedItem[] = [];
+
+  for (const repository of repositories) {
+    for (const worktree of repository.worktrees) {
+      // Check if this worktree is fully archived (all threads archived)
+      const openThreads = worktree.threads.filter(
+        (thread) => !thread.isArchived,
+      );
+      const archivedThreads = worktree.threads.filter(
+        (thread) => thread.isArchived,
+      );
+
+      if (openThreads.length === 0 && archivedThreads.length > 0) {
+        // Fully archived session
+        items.push({
+          type: "session",
+          id: worktree.id,
+          title: worktree.label,
+          repositoryId: repository.id,
+          repositoryName:
+            repository.customName?.trim() || repository.name || "Unknown",
+          worktreeId: worktree.id,
+          session: worktree,
+        });
+      } else {
+        // Individual archived threads from active sessions
+        for (const thread of archivedThreads) {
+          items.push({
+            type: "thread",
+            id: thread.id,
+            title: thread.title || "Untitled thread",
+            repositoryId: repository.id,
+            repositoryName:
+              repository.customName?.trim() || repository.name || "Unknown",
+            worktreeId: worktree.id,
+            thread,
+          });
+        }
       }
     }
   }
 
-  return { sessions, archived };
+  return items;
 }
 
 interface ThreadCategorySectionProps {
@@ -164,16 +225,16 @@ function ThreadCategorySection({
 export function SessionRow({
   session,
   isActive,
+  isWorking = false,
   onSelect,
+  onArchive,
 }: {
   session: WorktreeSnapshot;
   isActive: boolean;
+  isWorking?: boolean;
   onSelect: (id: string) => void;
+  onArchive?: (id: string) => void;
 }) {
-  const isWorking = session.threads.some(
-    (t) => t.runtime.status === "streaming" || t.runtime.status === "starting",
-  );
-
   const spinnerFrame = useUnicodeSpinner(
     { frames: ["⡇", "⠏", "⠹", "⠼", "⡸", "⣇"], interval: 150 },
     isWorking,
@@ -183,48 +244,146 @@ export function SessionRow({
   if (session.git.prStatus === "merged") Icon = GitMerge;
   else if (session.git.prStatus === "open") Icon = GitPullRequest;
 
-  // Use createdAt or earliest thread activity
+  // Use createdAt or fall back to earliest thread creation time
   let startedAt: number | undefined = session.createdAt;
   if (!startedAt && session.threads.length > 0) {
     startedAt = session.threads.reduce(
       (oldest, t) => {
-        if (!oldest) return t.lastActivityAt ?? undefined;
-        if (!t.lastActivityAt) return oldest;
-        return Math.min(oldest, t.lastActivityAt);
+        if (!oldest) return t.createdAt ?? undefined;
+        if (!t.createdAt) return oldest;
+        return Math.min(oldest, t.createdAt);
       },
       undefined as number | undefined,
     );
   }
 
   return (
-    <button
-      type="button"
-      data-testid="session-row"
-      onClick={() => onSelect(session.id)}
-      className={cn(
-        "group relative flex w-full items-center gap-2 rounded-sm px-2 py-2 text-left text-[13px] transition-colors",
-        isActive
-          ? "bg-transparent text-white/80"
-          : "text-white/40 hover:bg-white/[0.04] hover:text-white/70",
-      )}
-    >
-      <span className="flex size-5 shrink-0 items-center justify-center">
-        {isWorking ? (
-          <span className="text-[14px] leading-none text-white font-mono whitespace-nowrap">
-            {spinnerFrame}
-          </span>
-        ) : (
-          <Icon className="size-2.5 text-white/40" />
+    <div data-testid="session-row" className="group/session relative">
+      <button
+        type="button"
+        onClick={() => onSelect(session.id)}
+        className={cn(
+          "group relative flex w-full items-center gap-2 rounded-sm px-2 py-2 text-left text-[13px] transition-colors",
+          onArchive ? "pr-8" : undefined,
+          isActive
+            ? "bg-transparent text-white/80"
+            : "text-white/40 hover:bg-white/[0.04] hover:text-white/70",
         )}
-      </span>
-      <span className="truncate flex-1">{session.label}</span>
-      <span className="text-[10px] pr-2 text-white/30 whitespace-nowrap">
-        {formatTimePassed(startedAt)}
-      </span>
-      {isActive && (
-        <span className="absolute right-0 top-1/2 -translate-y-1/2 h-[60%] w-[2px] rounded-full bg-white/80" />
-      )}
-    </button>
+      >
+        <span className="flex size-5 shrink-0 items-center justify-center">
+          {isWorking ? (
+            <span className="text-[14px] leading-none text-white font-mono whitespace-nowrap">
+              {spinnerFrame}
+            </span>
+          ) : (
+            <Icon className="size-2.5 text-white/40" />
+          )}
+        </span>
+        <span className="truncate flex-1">{session.label}</span>
+        <span
+          className={cn(
+            "text-[10px] text-white/30 whitespace-nowrap",
+            onArchive ? "pr-6" : "pr-2",
+          )}
+        >
+          {formatTimePassed(startedAt)}
+        </span>
+        {isActive && (
+          <span
+            className={cn(
+              "absolute top-1/2 h-[60%] w-[2px] -translate-y-1/2 rounded-full bg-white/80",
+              onArchive ? "left-0" : "left-0",
+            )}
+          />
+        )}
+      </button>
+      {onArchive ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              data-testid="archive-session-button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onArchive(session.id);
+              }}
+              className={cn(
+                "absolute right-2 top-1/2 flex size-5 -translate-y-1/2 items-center justify-center rounded text-white/35 opacity-0 transition-all duration-[var(--duration-fast)]",
+                "hover:bg-white/[0.08] hover:text-white/80",
+                "group-hover/session:opacity-100 focus-visible:opacity-100",
+              )}
+              aria-label={`Archive session ${session.label}`}
+            >
+              <Archive className="size-2.5" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="top">Archive session</TooltipContent>
+        </Tooltip>
+      ) : null}
+    </div>
+  );
+}
+
+function WorkspaceRow({
+  repository,
+  isActive,
+  isExpanded,
+  onSelect,
+  onCreateSession,
+  onContextMenu,
+}: {
+  repository: RepositorySnapshot;
+  isActive: boolean;
+  isExpanded: boolean;
+  onSelect: (id: string) => void;
+  onCreateSession?: () => void;
+  onContextMenu?: (event: React.MouseEvent<HTMLButtonElement>) => void;
+}) {
+  return (
+    <div
+      data-testid="workspace-row"
+      className="group relative flex items-center gap-1"
+    >
+      <button
+        type="button"
+        onClick={() => onSelect(repository.id)}
+        onContextMenu={onContextMenu}
+        className={cn(
+          "group/row relative flex min-w-0 flex-1 items-center gap-2 rounded-sm px-2 py-2 text-left text-[13px] transition-colors",
+          isActive
+            ? "bg-transparent text-white/80"
+            : "text-white/40 hover:bg-white/[0.04] hover:text-white/70",
+        )}
+      >
+        <span className="flex size-5 shrink-0 items-center justify-center">
+          <Folder className="size-2.5 text-white/35" />
+        </span>
+        <span className="truncate flex-1">{getRepositoryName(repository)}</span>
+        <span className="flex size-4 shrink-0 items-center justify-center text-white/25">
+          {isExpanded ? (
+            <CaretDown className="size-2.5" />
+          ) : (
+            <CaretRight className="size-2.5" />
+          )}
+        </span>
+      </button>
+      {onCreateSession ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              data-testid="create-session-button"
+              onClick={onCreateSession}
+              className="flex size-5 shrink-0 items-center justify-center rounded text-white/35 opacity-0 transition-all duration-[var(--duration-fast)] hover:bg-white/[0.08] hover:text-white/80 group-hover:opacity-100 focus-visible:opacity-100"
+              aria-label="Create session"
+            >
+              <Plus className="size-2.5" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="right">Create session</TooltipContent>
+        </Tooltip>
+      ) : null}
+    </div>
   );
 }
 
@@ -233,18 +392,20 @@ export function LeftRail({
   activeRepositoryId,
   activeWorktreeId,
   activeThreadId: _activeThreadId,
-  isPromptExecuting: _isPromptExecuting,
+  isPromptExecuting,
   isLoading,
   width,
   onResize,
+  onSelectRepository,
   onSelectWorktree,
   onSelectThread,
   onDeleteThread,
+  onDeleteWorktree,
   onRemoveRepository,
   onCopyRepositoryPath,
   onOpenInFinder,
   onCreateSession,
-  onCloseThread: _onCloseThread,
+  onArchiveSession,
   onAddRepository,
   onToggleVisible,
 }: LeftRailProps) {
@@ -270,14 +431,34 @@ export function LeftRail({
   const [pendingDeleteThreadId, setPendingDeleteThreadId] = React.useState<
     string | null
   >(null);
+  const [pendingDeleteWorktreeId, setPendingDeleteWorktreeId] = React.useState<
+    string | null
+  >(null);
   const [pendingDeleteThreadIds, setPendingDeleteThreadIds] = React.useState(
     () => new Set<string>(),
   );
+  const [pendingDeleteWorktreeIds, setPendingDeleteWorktreeIds] =
+    React.useState(() => new Set<string>());
 
-  const { sessions, archived: archivedThreads } = React.useMemo(
-    () => collectSessionsAndArchivedThreads(repositories, activeRepositoryId),
-    [repositories, activeRepositoryId],
-  );
+  const [expandedRepositoryIds, setExpandedRepositoryIds] = React.useState<
+    Set<string>
+  >(() => (activeRepositoryId ? new Set([activeRepositoryId]) : new Set()));
+
+  React.useEffect(() => {
+    setExpandedRepositoryIds((current) => {
+      const next = new Set(
+        Array.from(current).filter((repositoryId) =>
+          repositories.some((repository) => repository.id === repositoryId),
+        ),
+      );
+
+      if (activeRepositoryId) {
+        next.add(activeRepositoryId);
+      }
+
+      return next;
+    });
+  }, [activeRepositoryId, repositories]);
 
   React.useEffect(() => {
     if (!isResizing) return;
@@ -366,7 +547,28 @@ export function LeftRail({
     [onDeleteThread],
   );
 
-  const _handleContextMenu = React.useCallback(
+  const handleDeleteArchivedWorktree = React.useCallback(
+    async (worktreeId: string) => {
+      setPendingDeleteWorktreeIds((current) => {
+        const next = new Set(current);
+        next.add(worktreeId);
+        return next;
+      });
+
+      try {
+        await onDeleteWorktree?.(worktreeId);
+      } finally {
+        setPendingDeleteWorktreeIds((current) => {
+          const next = new Set(current);
+          next.delete(worktreeId);
+          return next;
+        });
+      }
+    },
+    [onDeleteWorktree],
+  );
+
+  const handleContextMenu = React.useCallback(
     (e: React.MouseEvent, repository: RepositorySnapshot) => {
       e.preventDefault();
       e.stopPropagation();
@@ -386,13 +588,29 @@ export function LeftRail({
     setContextMenu((prev) => ({ ...prev, isOpen: false }));
   }, []);
 
-  const activeRepository = repositories.find(
-    (repo) => repo.id === activeRepositoryId,
+  const handleSelectWorkspace = React.useCallback(
+    (repositoryId: string) => {
+      const isActiveRepository = repositoryId === activeRepositoryId;
+      const isExpanded = expandedRepositoryIds.has(repositoryId);
+
+      setExpandedRepositoryIds((current) => {
+        if (isActiveRepository && isExpanded) {
+          const next = new Set(current);
+          next.delete(repositoryId);
+          return next;
+        }
+
+        return new Set([repositoryId]);
+      });
+
+      if (!isActiveRepository) {
+        onSelectRepository(repositoryId);
+      }
+    },
+    [activeRepositoryId, expandedRepositoryIds, onSelectRepository],
   );
+
   const contextMenuRepositoryId = contextMenu.repositoryId;
-  const activeRepositoryName = activeRepository
-    ? getRepositoryName(activeRepository)
-    : "Empty workspace";
 
   return (
     <aside
@@ -425,9 +643,15 @@ export function LeftRail({
       <div className="min-h-0 flex-1 overflow-y-auto py-2">
         <div className="px-3 py-2 flex items-center justify-between group">
           <div className="text-[13px] text-white/40 font-semibold uppercase tracking-wider truncate mr-2">
-            {activeRepositoryName}
+            Pi Desktop
           </div>
           <div className="flex gap-1 shrink-0">
+            <RepositorySwitcher
+              repositories={repositories}
+              activeRepositoryId={activeRepositoryId}
+              onSelect={onSelectRepository}
+              onAdd={onAddRepository}
+            />
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
@@ -445,160 +669,312 @@ export function LeftRail({
         </div>
 
         <div className="space-y-0.5 px-2">
-          {/* Sessions */}
-          <ThreadCategorySection
-            label="Sessions"
-            icon={ChatsCircle}
-            onAction={() => {
-              void handleCreateSession();
-            }}
-            actionLabel="Create session"
-            actionTestId="create-session-button"
-          >
-            <Skeleton
-              name="session-list"
-              loading={isLoading ?? false}
-              fixture={
-                <>
-                  {[1, 2, 3].map((i) => (
-                    <SessionRow
-                      key={i}
-                      session={{
-                        id: String(i),
-                        label: "Loading session...",
-                        path: "",
-                        isMain: false,
-                        isDetached: false,
-                        threads: [],
-                        git: {
-                          status: "ready",
-                          branch: null,
-                          commit: null,
-                          hasChanges: false,
-                          ahead: null,
-                          behind: null,
-                          stagedCount: 0,
-                          modifiedCount: 0,
-                          untrackedCount: 0,
-                          message: null,
-                        },
-                      }}
-                      isActive={false}
-                      onSelect={() => {}}
-                    />
-                  ))}
-                </>
-              }
-            >
-              {sessions.map((session) => (
-                <SessionRow
-                  key={session.id}
-                  session={session}
-                  isActive={session.id === activeWorktreeId}
-                  onSelect={onSelectWorktree}
-                />
-              ))}
-            </Skeleton>
-          </ThreadCategorySection>
+          {repositories.map((repository) => {
+            const isActiveRepository = repository.id === activeRepositoryId;
+            const isExpanded = expandedRepositoryIds.has(repository.id);
+            const sessions = getRepositoryActiveSessions(repository);
 
-          <div className="mt-4">
-            {/* Archived threads */}
-            <ThreadCategorySection label="Archived" icon={Archive}>
-              {archivedThreads.map((thread) => {
-                const isDeleteConfirmationOpen =
-                  pendingDeleteThreadId === thread.id;
-                const isDeletingThread = pendingDeleteThreadIds.has(thread.id);
-
-                return (
-                  <div
-                    key={thread.id}
-                    className={cn(
-                      "group/archived flex w-full items-center gap-1 rounded-sm px-2 py-1 text-[13px] transition-colors",
-                      "text-white/30 hover:bg-white/[0.04] hover:text-white/50",
-                    )}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPendingDeleteThreadId(null);
-                        onSelectThread(thread.id);
-                      }}
-                      className="flex min-w-0 flex-1 items-center gap-2 rounded-sm px-0 py-1 text-left"
-                    >
-                      <Archive className="size-2.5 shrink-0 text-white/20" />
-                      <span className="truncate flex-1">
-                        {thread.title || DEFAULT_UNTITLED_THREAD_TITLE}
-                      </span>
-                    </button>
-                    {onDeleteThread ? (
-                      <Popover
-                        open={isDeleteConfirmationOpen}
-                        onOpenChange={(open) =>
-                          setPendingDeleteThreadId(open ? thread.id : null)
+            return (
+              <div key={repository.id} className="space-y-1.5">
+                <WorkspaceRow
+                  repository={repository}
+                  isActive={isActiveRepository}
+                  isExpanded={isExpanded}
+                  onSelect={handleSelectWorkspace}
+                  onCreateSession={
+                    isActiveRepository
+                      ? () => {
+                          void handleCreateSession();
                         }
-                      >
-                        <PopoverTrigger asChild>
-                          <button
-                            type="button"
-                            data-testid="archived-thread-delete-button"
-                            disabled={isDeletingThread}
-                            title="Delete archived thread"
-                            className={cn(
-                              "ml-auto flex size-5 shrink-0 items-center justify-center rounded text-white/35 opacity-0 transition-all duration-[var(--duration-fast)]",
-                              "hover:bg-white/[0.08] hover:text-white/80",
-                              "group-hover/archived:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100",
-                            )}
-                            aria-label="Delete archived thread"
-                          >
-                            <Trash className="size-2.5" />
-                          </button>
-                        </PopoverTrigger>
-                        <PopoverContent
-                          align="end"
-                          side="bottom"
-                          className="w-auto min-w-[220px] rounded-md border border-white/[0.06] bg-[var(--color-bg-tertiary)] p-2 shadow-lg backdrop-blur-md"
-                        >
-                          <div className="space-y-2">
-                            <p className="text-[13px] text-white/70">
-                              Permanently delete this archived thread?
-                            </p>
-                            <div className="flex items-center justify-end gap-1.5">
-                              <button
-                                type="button"
-                                data-testid="archived-thread-delete-cancel"
-                                disabled={isDeletingThread}
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  setPendingDeleteThreadId(null);
-                                }}
-                                className="rounded px-2 py-1 text-[13px] text-white/55 transition-colors hover:bg-white/[0.06] hover:text-white/80"
-                              >
-                                Cancel
-                              </button>
-                              <button
-                                type="button"
-                                data-testid="archived-thread-delete-confirm"
-                                disabled={isDeletingThread}
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  setPendingDeleteThreadId(null);
-                                  void handleDeleteArchivedThread(thread.id);
-                                }}
-                                className="rounded bg-white/[0.08] px-2 py-1 text-[13px] text-white/85 transition-colors hover:bg-white/[0.14]"
-                              >
-                                {isDeletingThread ? "Deleting..." : "Delete"}
-                              </button>
-                            </div>
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                    ) : null}
+                      : undefined
+                  }
+                  onContextMenu={(event) =>
+                    handleContextMenu(event, repository)
+                  }
+                />
+
+                {isExpanded ? (
+                  <div className="space-y-1.5 pl-4">
+                    <Skeleton
+                      name="session-list"
+                      loading={Boolean(isLoading && isActiveRepository)}
+                      fixture={[1, 2, 3].map((i) => (
+                        <SessionRow
+                          key={i}
+                          session={{
+                            id: String(i),
+                            label: "Loading session...",
+                            path: "",
+                            isMain: false,
+                            isDetached: false,
+                            threads: [],
+                            git: {
+                              status: "ready",
+                              branch: null,
+                              commit: null,
+                              hasChanges: false,
+                              ahead: null,
+                              behind: null,
+                              stagedCount: 0,
+                              modifiedCount: 0,
+                              untrackedCount: 0,
+                              message: null,
+                            },
+                          }}
+                          isActive={false}
+                          onSelect={() => {}}
+                        />
+                      ))}
+                    >
+                      <div className="space-y-0.5">
+                        {sessions.map((session) => {
+                          const isSessionActive =
+                            session.id === activeWorktreeId;
+                          const isSessionWorking =
+                            session.threads.some(
+                              (thread) => thread.runtime.status === "streaming",
+                            ) ||
+                            (isSessionActive && Boolean(isPromptExecuting));
+
+                          return (
+                            <SessionRow
+                              key={session.id}
+                              session={session}
+                              isActive={isSessionActive}
+                              isWorking={isSessionWorking}
+                              onSelect={onSelectWorktree}
+                              onArchive={onArchiveSession}
+                            />
+                          );
+                        })}
+                      </div>
+                    </Skeleton>
                   </div>
-                );
-              })}
-            </ThreadCategorySection>
-          </div>
+                ) : null}
+              </div>
+            );
+          })}
         </div>
+
+        {/* Global Archived Section */}
+        {(() => {
+          const archivedItems = getGlobalArchivedItems(repositories);
+          if (archivedItems.length === 0) return null;
+
+          return (
+            <div className="mt-4 border-t border-white/[0.06] pt-4">
+              <div className="px-3 mb-2">
+                <div className="flex items-center gap-2 text-[13px] text-white/40">
+                  <Archive className="size-3.5" />
+                  <span className="font-medium uppercase tracking-wider">
+                    Archived
+                  </span>
+                </div>
+              </div>
+              <div className="px-2 space-y-0.5">
+                {archivedItems.map((item) => {
+                  if (item.type === "session") {
+                    const session = item.session!;
+                    const isDeleteConfirmationOpen =
+                      pendingDeleteWorktreeId === session.id;
+                    const isDeletingWorktree = pendingDeleteWorktreeIds.has(
+                      session.id,
+                    );
+
+                    return (
+                      <div
+                        key={session.id}
+                        data-testid="archived-session-row"
+                        className={cn(
+                          "group/archived-session flex w-full items-center gap-1 rounded-sm px-2 py-1 text-[13px] transition-colors",
+                          "text-white/30 hover:bg-white/[0.04] hover:text-white/50",
+                        )}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPendingDeleteWorktreeId(null);
+                            onSelectWorktree(session.id);
+                          }}
+                          className="flex min-w-0 flex-1 items-center gap-2 rounded-sm px-0 py-1 text-left"
+                        >
+                          <Archive className="size-2.5 shrink-0 text-white/20" />
+                          <span className="truncate flex-1">
+                            {session.label}
+                          </span>
+                        </button>
+                        {onDeleteWorktree ? (
+                          <Popover
+                            open={isDeleteConfirmationOpen}
+                            onOpenChange={(open) =>
+                              setPendingDeleteWorktreeId(
+                                open ? session.id : null,
+                              )
+                            }
+                          >
+                            <PopoverTrigger asChild>
+                              <button
+                                type="button"
+                                data-testid="archived-worktree-delete-button"
+                                disabled={isDeletingWorktree}
+                                title="Delete archived session"
+                                className={cn(
+                                  "ml-auto flex size-5 shrink-0 items-center justify-center rounded text-white/35 opacity-0 transition-all duration-[var(--duration-fast)]",
+                                  "hover:bg-white/[0.08] hover:text-white/80",
+                                  "group-hover/archived-session:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100",
+                                )}
+                                aria-label="Delete archived session"
+                              >
+                                <Trash className="size-2.5" />
+                              </button>
+                            </PopoverTrigger>
+                            <PopoverContent
+                              align="end"
+                              side="bottom"
+                              className="w-auto min-w-[260px] rounded-md border border-white/[0.06] bg-[var(--color-bg-tertiary)] p-2 shadow-lg backdrop-blur-md"
+                            >
+                              <div className="space-y-2">
+                                <p className="text-[13px] text-white/70">
+                                  Permanently delete this worktree and all its
+                                  data from disk?
+                                </p>
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <button
+                                    type="button"
+                                    disabled={isDeletingWorktree}
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      setPendingDeleteWorktreeId(null);
+                                    }}
+                                    className="rounded px-2 py-1 text-[13px] text-white/55 transition-colors hover:bg-white/[0.06] hover:text-white/80"
+                                  >
+                                    Cancel
+                                  </button>
+                                  <button
+                                    type="button"
+                                    data-testid="archived-worktree-delete-confirm"
+                                    disabled={isDeletingWorktree}
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      setPendingDeleteWorktreeId(null);
+                                      void handleDeleteArchivedWorktree(
+                                        session.id,
+                                      );
+                                    }}
+                                    className="rounded bg-white/[0.08] px-2 py-1 text-[13px] text-white/85 transition-colors hover:bg-white/[0.14]"
+                                  >
+                                    {isDeletingWorktree
+                                      ? "Deleting..."
+                                      : "Delete"}
+                                  </button>
+                                </div>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        ) : null}
+                      </div>
+                    );
+                  }
+
+                  // Thread item
+                  const thread = item.thread!;
+                  const isDeleteConfirmationOpen =
+                    pendingDeleteThreadId === thread.id;
+                  const isDeletingThread = pendingDeleteThreadIds.has(
+                    thread.id,
+                  );
+
+                  return (
+                    <div
+                      key={thread.id}
+                      className={cn(
+                        "group/archived flex w-full items-center gap-1 rounded-sm px-2 py-1 text-[13px] transition-colors",
+                        "text-white/30 hover:bg-white/[0.04] hover:text-white/50",
+                      )}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPendingDeleteThreadId(null);
+                          onSelectThread(thread.id);
+                        }}
+                        className="flex min-w-0 flex-1 items-center gap-2 rounded-sm px-0 py-1 text-left"
+                      >
+                        <Archive className="size-2.5 shrink-0 text-white/20" />
+                        <span className="truncate flex-1">
+                          {thread.title || DEFAULT_UNTITLED_THREAD_TITLE}
+                        </span>
+                      </button>
+                      {onDeleteThread ? (
+                        <Popover
+                          open={isDeleteConfirmationOpen}
+                          onOpenChange={(open) =>
+                            setPendingDeleteThreadId(open ? thread.id : null)
+                          }
+                        >
+                          <PopoverTrigger asChild>
+                            <button
+                              type="button"
+                              data-testid="archived-thread-delete-button"
+                              disabled={isDeletingThread}
+                              title="Delete archived thread"
+                              className={cn(
+                                "ml-auto flex size-5 shrink-0 items-center justify-center rounded text-white/35 opacity-0 transition-all duration-[var(--duration-fast)]",
+                                "hover:bg-white/[0.08] hover:text-white/80",
+                                "group-hover/archived:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100",
+                              )}
+                              aria-label="Delete archived thread"
+                            >
+                              <Trash className="size-2.5" />
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent
+                            align="end"
+                            side="bottom"
+                            className="w-auto min-w-[220px] rounded-md border border-white/[0.06] bg-[var(--color-bg-tertiary)] p-2 shadow-lg backdrop-blur-md"
+                          >
+                            <div className="space-y-2">
+                              <p className="text-[13px] text-white/70">
+                                Permanently delete this archived thread?
+                              </p>
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  type="button"
+                                  data-testid="archived-thread-delete-cancel"
+                                  disabled={isDeletingThread}
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    setPendingDeleteThreadId(null);
+                                  }}
+                                  className="rounded px-2 py-1 text-[13px] text-white/55 transition-colors hover:bg-white/[0.06] hover:text-white/80"
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  type="button"
+                                  data-testid="archived-thread-delete-confirm"
+                                  disabled={isDeletingThread}
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    setPendingDeleteThreadId(null);
+                                    void handleDeleteArchivedThread(thread.id);
+                                  }}
+                                  className="rounded bg-white/[0.08] px-2 py-1 text-[13px] text-white/85 transition-colors hover:bg-white/[0.14]"
+                                >
+                                  {isDeletingThread ? "Deleting..." : "Delete"}
+                                </button>
+                              </div>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {/* Resize handle */}

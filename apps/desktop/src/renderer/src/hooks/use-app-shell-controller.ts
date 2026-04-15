@@ -4,6 +4,7 @@ import type {
   OAuthProviderSnapshot,
   SlashSuggestion,
   ThreadSnapshot,
+  WorktreeSnapshot,
 } from "@pi-desktop/shared";
 import {
   getActiveRepository,
@@ -34,6 +35,7 @@ import {
   updateFileDraftForWorktree,
 } from "../stores/workspace-session-runtime";
 import { selectThreadConversationByWorktree } from "../stores/workspace-session-selectors";
+import type { ThreadConversationState } from "../stores/workspace-session-store";
 import {
   parseModelSelectionValue,
   resolveCurrentModelValue,
@@ -48,8 +50,6 @@ function getErrorDescription(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
 }
 const PENDING_SURFACE_PREFIX = "__pending_surface__";
-const WORKSPACE_SWITCH_STATE_KEY = "pi-desktop.workspace-switch-state";
-
 type PromptMode = "build" | "plan";
 
 const PROMPT_MODE_TO_PREFIX = {
@@ -93,9 +93,48 @@ function getInitialContextSurface(
   return null;
 }
 
+export function shouldPersistThreadConversation(
+  conversation: ThreadConversationState,
+): boolean {
+  return !(
+    conversation.status === "starting" &&
+    conversation.messages.length === 0 &&
+    conversation.lastError === null
+  );
+}
+
+export function isPromptExecutionVisible({
+  activeThreadId,
+  pendingPromptThreadId,
+  conversation,
+}: {
+  activeThreadId: string | null;
+  pendingPromptThreadId: string | null;
+  conversation: ThreadConversationState | undefined;
+}): boolean {
+  return (
+    conversation?.status === "streaming" ||
+    (activeThreadId !== null && pendingPromptThreadId === activeThreadId)
+  );
+}
+
+export function getSessionArchiveThreadIds(
+  worktree: Pick<WorktreeSnapshot, "threads">,
+  activeThreadId: string | null,
+): string[] {
+  const openThreads = worktree.threads.filter((thread) => !thread.isArchived);
+  const inactiveThreadIds = openThreads
+    .filter((thread) => thread.id !== activeThreadId)
+    .map((thread) => thread.id);
+  const activeThreadIds = openThreads
+    .filter((thread) => thread.id === activeThreadId)
+    .map((thread) => thread.id);
+
+  return [...inactiveThreadIds, ...activeThreadIds];
+}
+
 export interface AppShellController {
   workspaceShellProps: WorkspaceShellProps;
-  workspaceSwitchingRepositoryName: string | null;
   oauthDialogState: {
     open: boolean;
     mode: "providers" | "login" | "logout";
@@ -234,6 +273,9 @@ export function useAppShellController(): AppShellController {
   const [promptMode, setPromptMode] = React.useState<PromptMode>(() =>
     detectPromptMode(draft),
   );
+  const [pendingPromptThreadId, setPendingPromptThreadId] = React.useState<
+    string | null
+  >(null);
   const [activeGitRepositoryStatus, setActiveGitRepositoryStatus] =
     React.useState<GitRepositoryStatus | null>(null);
   const [gitCommitMessage, setGitCommitMessage] = React.useState("");
@@ -247,11 +289,6 @@ export function useAppShellController(): AppShellController {
   const [oauthRequestedProviderId, setOAuthRequestedProviderId] =
     React.useState<string | null>(null);
   const [isOAuthBusy, setIsOAuthBusy] = React.useState(false);
-  const [
-    workspaceSwitchingRepositoryName,
-    setWorkspaceSwitchingRepositoryName,
-  ] = React.useState<string | null>(null);
-
   const loadOAuthProviders = React.useCallback(async () => {
     const providers = await window.piDesktop.agent.getOAuthProviders();
     setOAuthProviders(providers);
@@ -369,15 +406,21 @@ export function useAppShellController(): AppShellController {
   }, [draft]);
 
   React.useEffect(() => {
+    const conversation = {
+      messages: agent.messages,
+      status: agent.status,
+      lastError: agent.lastError,
+    } satisfies ThreadConversationState;
+
+    if (!shouldPersistThreadConversation(conversation)) {
+      return;
+    }
+
     syncActiveThreadConversation({
       sessionStore: workspaceSessionStore,
       worktreeId: activeWorktreeId,
       threadId: activeThreadId,
-      conversation: {
-        messages: agent.messages,
-        status: agent.status,
-        lastError: agent.lastError,
-      },
+      conversation,
     });
   }, [
     activeWorktreeId,
@@ -385,6 +428,27 @@ export function useAppShellController(): AppShellController {
     agent.lastError,
     agent.messages,
     agent.status,
+  ]);
+
+  React.useEffect(() => {
+    if (!pendingPromptThreadId) {
+      return;
+    }
+
+    if (pendingPromptThreadId !== activeThreadId) {
+      setPendingPromptThreadId(null);
+      return;
+    }
+
+    const activeStatus = activeThreadConversation?.status ?? agent.status;
+    if (activeStatus !== "starting" && activeStatus !== "streaming") {
+      setPendingPromptThreadId(null);
+    }
+  }, [
+    activeThreadConversation?.status,
+    activeThreadId,
+    agent.status,
+    pendingPromptThreadId,
   ]);
 
   React.useEffect(() => {
@@ -402,9 +466,11 @@ export function useAppShellController(): AppShellController {
     activeThreadId !== null &&
     agent.status !== "starting" &&
     agent.status !== "streaming";
-  const isPromptExecuting =
-    activeThreadConversation?.status === "starting" ||
-    activeThreadConversation?.status === "streaming";
+  const isPromptExecuting = isPromptExecutionVisible({
+    activeThreadId,
+    pendingPromptThreadId,
+    conversation: activeThreadConversation,
+  });
   const isPromptVisible = activeThreadId !== null;
 
   const handleFileClick = React.useCallback(
@@ -735,6 +801,9 @@ export function useAppShellController(): AppShellController {
     if (!paths || paths.length === 0) {
       return;
     }
+
+    let addedCount = 0;
+
     for (const repositoryPath of paths) {
       const repositoryName =
         repositoryPath
@@ -751,11 +820,9 @@ export function useAppShellController(): AppShellController {
         return;
       }
 
-      setWorkspaceSwitchingRepositoryName(repositoryName);
-
       try {
         await window.piDesktop.repositories.add(repositoryPath);
-        return;
+        addedCount += 1;
       } catch (error) {
         toast.error("Invalid repository", {
           description:
@@ -763,10 +830,30 @@ export function useAppShellController(): AppShellController {
               ? error.message
               : "The selected directory is not a valid git repository",
         });
-        return;
       }
     }
+
+    if (addedCount > 1) {
+      toast.success("Workspaces added", {
+        description: `${addedCount} projects are now available in the rail`,
+      });
+    }
   }, [setInitGitRepoOpen]);
+
+  const handleSelectRepository = React.useCallback(
+    async (repositoryId: string) => {
+      const repository = repositories.find(
+        (entry) => entry.id === repositoryId,
+      );
+      if (!repository) {
+        return;
+      }
+
+      setSelectedContextSurface(null);
+      await window.piDesktop.repositories.select(repositoryId);
+    },
+    [repositories],
+  );
 
   const handleRemoveRepository = React.useCallback(
     async (repositoryId: string) => {
@@ -834,18 +921,9 @@ export function useAppShellController(): AppShellController {
     }
   }, [activeRepositoryId, newWorktreeBranch, setCreateWorktreeOpen]);
 
-  const handleSelectWorktree = React.useCallback(
-    async (worktreeId: string) => {
-      const repositoryName =
-        activeRepository?.customName?.trim() ||
-        activeRepository?.name ||
-        "Workspace";
-
-      setWorkspaceSwitchingRepositoryName(repositoryName);
-      await window.piDesktop.worktrees.select(worktreeId);
-    },
-    [activeRepository?.customName, activeRepository?.name],
-  );
+  const handleSelectWorktree = React.useCallback(async (worktreeId: string) => {
+    await window.piDesktop.worktrees.select(worktreeId);
+  }, []);
 
   const handleCreateSession = React.useCallback(() => {
     setCreateWorktreeOpen(true);
@@ -856,6 +934,35 @@ export function useAppShellController(): AppShellController {
     setSelectedContextSurface(null);
     return threadId;
   }, []);
+
+  const handleArchiveSession = React.useCallback(
+    async (worktreeId: string) => {
+      const repository = repositories.find(
+        (item) => item.id === activeRepositoryId,
+      );
+      const worktree = repository?.worktrees.find(
+        (item) => item.id === worktreeId,
+      );
+
+      if (!worktree) {
+        return;
+      }
+
+      const threadIds = getSessionArchiveThreadIds(worktree, activeThreadId);
+      if (threadIds.length === 0) {
+        return;
+      }
+
+      if (activeWorktreeId === worktreeId) {
+        setSelectedContextSurface(null);
+      }
+
+      for (const threadId of threadIds) {
+        await window.piDesktop.threads.archive(threadId);
+      }
+    },
+    [activeRepositoryId, activeThreadId, activeWorktreeId, repositories],
+  );
 
   const submitRemoveRepository = React.useCallback(async () => {
     if (!confirmRemoveRepositoryId) {
@@ -884,7 +991,6 @@ export function useAppShellController(): AppShellController {
 
     try {
       await window.piDesktop.git.init(initGitRepoPath);
-      setWorkspaceSwitchingRepositoryName(initGitRepoName);
       await window.piDesktop.repositories.add(initGitRepoPath);
       setInitGitRepoOpen(false);
       toast.success("Git repository initialized");
@@ -893,7 +999,7 @@ export function useAppShellController(): AppShellController {
         description: error instanceof Error ? error.message : "Unknown error",
       });
     }
-  }, [initGitRepoPath, initGitRepoName, setInitGitRepoOpen]);
+  }, [initGitRepoName, initGitRepoPath, setInitGitRepoOpen]);
 
   const skipInitGitRepo = React.useCallback(async () => {
     if (!initGitRepoPath) {
@@ -901,23 +1007,29 @@ export function useAppShellController(): AppShellController {
       return;
     }
 
-    setWorkspaceSwitchingRepositoryName(initGitRepoName ?? initGitRepoPath);
     try {
       await window.piDesktop.repositories.add(initGitRepoPath);
     } catch {
       // non-repo folder handled by main process
     }
     setInitGitRepoOpen(false);
-  }, [initGitRepoPath, initGitRepoName, setInitGitRepoOpen]);
+  }, [initGitRepoPath, setInitGitRepoOpen]);
 
   const handleCloseThread = React.useCallback(
     async (threadId: string) => {
-      await window.piDesktop.threads.archive(threadId);
       if (activeThreadId === threadId) {
-        setSelectedContextSurface(null);
+        const otherThreads = activeWorktree?.threads.filter(
+          (t) => t.id !== threadId && !t.isArchived,
+        );
+        if (otherThreads && otherThreads.length > 0 && otherThreads[0]) {
+          await window.piDesktop.threads.select(otherThreads[0].id);
+        } else {
+          setSelectedContextSurface(null);
+        }
       }
+      await window.piDesktop.threads.archive(threadId);
     },
-    [activeThreadId],
+    [activeThreadId, activeWorktree],
   );
 
   const handleDeleteThread = React.useCallback(
@@ -930,47 +1042,20 @@ export function useAppShellController(): AppShellController {
     [activeThreadId],
   );
 
+  const handleDeleteWorktree = React.useCallback(
+    async (worktreeId: string) => {
+      await window.piDesktop.worktrees.remove(worktreeId);
+      if (activeWorktreeId === worktreeId) {
+        setSelectedContextSurface(null);
+      }
+    },
+    [activeWorktreeId],
+  );
+
   const handleSelectThread = React.useCallback(async (threadId: string) => {
     setSelectedContextSurface(null);
     await window.piDesktop.threads.select(threadId);
   }, []);
-
-  React.useEffect(() => {
-    if (!workspaceSwitchingRepositoryName) {
-      return;
-    }
-
-    sessionStorage.setItem(
-      WORKSPACE_SWITCH_STATE_KEY,
-      JSON.stringify({
-        repositoryName: workspaceSwitchingRepositoryName,
-        startedAt: Date.now(),
-      }),
-    );
-  }, [workspaceSwitchingRepositoryName]);
-
-  React.useEffect(() => {
-    if (!workspaceSwitchingRepositoryName) {
-      return;
-    }
-
-    const nextRepositoryName =
-      activeRepository?.customName?.trim() || activeRepository?.name || null;
-
-    if (!nextRepositoryName) {
-      return;
-    }
-
-    if (nextRepositoryName !== workspaceSwitchingRepositoryName) {
-      return;
-    }
-
-    setWorkspaceSwitchingRepositoryName(null);
-  }, [
-    activeRepository?.customName,
-    activeRepository?.name,
-    workspaceSwitchingRepositoryName,
-  ]);
 
   const autocompleteMatch = React.useMemo(
     () => getPromptAutocompleteMatch(draft),
@@ -1150,6 +1235,7 @@ export function useAppShellController(): AppShellController {
       return;
     }
 
+    setPendingPromptThreadId(activeThreadId);
     void sendPrompt();
   }, [activeThreadId, canSend, draft, openOAuthDialog, sendPrompt, setDraft]);
 
@@ -1166,6 +1252,7 @@ export function useAppShellController(): AppShellController {
   );
 
   const handleCancelPrompt = React.useCallback(async () => {
+    setPendingPromptThreadId(null);
     await cancelPrompt();
   }, [cancelPrompt]);
 
@@ -1303,6 +1390,7 @@ export function useAppShellController(): AppShellController {
     onLeftRailResize: handleLeftRailResize,
     onModelMenuOpenChange: handleModelMenuOpenChange,
     onAddRepository: handleAddRepository,
+    onSelectRepository: handleSelectRepository,
     onRemoveRepository: handleRemoveRepository,
     onCopyRepositoryPath: handleCopyRepositoryPath,
     onOpenInFinder: handleOpenInFinder,
@@ -1310,8 +1398,10 @@ export function useAppShellController(): AppShellController {
     onSelectWorktree: handleSelectWorktree,
     onSelectThread: handleSelectThread,
     onCreateThread: handleCreateThread,
+    onArchiveSession: handleArchiveSession,
     onCloseThread: handleCloseThread,
     onDeleteThread: handleDeleteThread,
+    onDeleteWorktree: handleDeleteWorktree,
     onCloseFileTree: closeFileTreeOverlay,
     onOpenGit: handleOpenGit,
     onOpenTerminal: handleOpenTerminal,
@@ -1344,7 +1434,6 @@ export function useAppShellController(): AppShellController {
 
   return {
     workspaceShellProps,
-    workspaceSwitchingRepositoryName,
     oauthDialogState: {
       open: oauthDialogOpen,
       mode: oauthDialogMode,

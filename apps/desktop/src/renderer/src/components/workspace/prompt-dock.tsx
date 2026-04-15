@@ -13,7 +13,6 @@ import * as React from "react";
 import {
   ArrowUp,
   CaretDown,
-  ICON_SIZE_MD,
   ICON_SIZE_XS,
   Paperclip,
   Plus,
@@ -312,7 +311,7 @@ export function PromptDock({
           value={draft}
           onValueChange={onDraftChange}
           onSubmit={handleSubmit}
-          className={cn("px-6 pb-4 pt-4")}
+          className={cn("px-4 pb-3 pt-3")}
         >
           <FileUpload
             files={uploadedFiles}
@@ -347,8 +346,8 @@ export function PromptDock({
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             className={cn(
-              "min-h-[36px] resize-none border-0 bg-transparent px-0 py-0",
-              "text-[16px] leading-normal text-[var(--color-text-primary)]",
+              "min-h-[28px] resize-none border-0 bg-transparent px-0 py-0",
+              "text-[12px] leading-normal text-[var(--color-text-primary)]",
               "placeholder:text-[var(--color-text-tertiary)]",
               "focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none",
               "disabled:opacity-50",
@@ -356,8 +355,8 @@ export function PromptDock({
             )}
           />
 
-          <PromptInputActions className="mt-3 flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
+          <PromptInputActions className="mt-1.5 flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
               <PromptInputAction tooltip="Attach files">
                 <Button
                   type="button"
@@ -366,9 +365,9 @@ export function PromptDock({
                   disabled={!hasActiveThread}
                   onClick={() => void handlePickFiles()}
                   aria-label="Attach files"
-                  className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-hover)]"
+                  className="size-5 text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-hover)]"
                 >
-                  <Paperclip className={ICON_SIZE_MD} />
+                  <Paperclip className={ICON_SIZE_XS} />
                 </Button>
               </PromptInputAction>
 
@@ -383,14 +382,14 @@ export function PromptDock({
                       providerSnapshots.length === 0
                     }
                     className={cn(
-                      "flex items-center gap-1.5 rounded-sm px-2 py-1 text-[14px] text-white/60",
+                      "flex items-center gap-1 rounded-sm px-1 py-0.5 text-[11px] text-white/60",
                       "transition-all duration-[var(--duration-fast)]",
                       "hover:text-white/90 hover:bg-white/[0.04]",
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]",
                       "disabled:opacity-50",
                     )}
                   >
-                    <span className="max-w-[140px] truncate text-[14px]">
+                    <span className="max-w-[140px] truncate text-[11px]">
                       {currentModelDisplay}
                     </span>
                     <CaretDown
@@ -572,7 +571,7 @@ export function PromptDock({
                   }
                 >
                   <div className="flex items-center gap-1.5 cursor-default">
-                    <div className="relative flex items-center justify-center size-5">
+                    <div className="relative flex items-center justify-center size-4">
                       <svg
                         className="size-full -rotate-90 transform"
                         viewBox="0 0 24 24"
@@ -607,7 +606,7 @@ export function PromptDock({
                         />
                       </svg>
                     </div>
-                    <span className="tabular-nums text-[14px] font-medium text-[var(--color-text-tertiary)]">
+                    <span className="tabular-nums text-[11px] font-medium text-[var(--color-text-tertiary)]">
                       {currentContextPercentage}%
                     </span>
                   </div>
@@ -621,21 +620,23 @@ export function PromptDock({
                   data-testid="chat-send"
                   variant={isPromptExecuting ? "destructive" : "default"}
                   size="icon"
-                  disabled={isPromptExecuting ? false : !canSend}
+                  disabled={
+                    isPromptExecuting ? false : !canSend || !draft.trim()
+                  }
                   onClick={handleSubmit}
                   className={cn(
-                    "size-8 rounded-full p-0",
-                    !isPromptExecuting &&
-                      "bg-white/80 text-black hover:bg-white",
-                    !isPromptExecuting && !canSend && "opacity-20",
-                    isPromptExecuting &&
-                      "bg-[var(--color-error)] hover:bg-[var(--color-error)]/90",
+                    "size-6 rounded-[8px] p-0",
+                    !isPromptExecuting && (!canSend || !draft.trim())
+                      ? "bg-white/15 text-white/30"
+                      : !isPromptExecuting
+                        ? "bg-white/80 text-black hover:bg-white"
+                        : "bg-[var(--color-error)] hover:bg-[var(--color-error)]/90",
                   )}
                 >
                   {isPromptExecuting ? (
-                    <Square className={`${ICON_SIZE_XS} fill-current`} />
+                    <Square className={ICON_SIZE_XS} fill="currentColor" />
                   ) : (
-                    <ArrowUp className="size-5" weight="bold" />
+                    <ArrowUp className="size-3" weight="bold" />
                   )}
                 </Button>
               </PromptInputAction>
