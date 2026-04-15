@@ -1,5 +1,5 @@
 import type * as React from "react";
-import { Info, Sparkles, Warning } from "@/components/ui/icons";
+import { Info, Sparkle, Warning } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 type SystemMessageTone = "info" | "success" | "warning" | "error";
@@ -13,7 +13,7 @@ const toneMap: Record<
     className: "border-white/[0.05] bg-white/[0.02] text-white/50",
   },
   success: {
-    icon: Sparkles,
+    icon: Sparkle,
     className:
       "border-emerald-500/20 bg-emerald-500/[0.04] text-emerald-400/80",
   },

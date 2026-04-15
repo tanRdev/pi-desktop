@@ -1027,7 +1027,7 @@ export function useAppShellController(): AppShellController {
           setSelectedContextSurface(null);
         }
       }
-      await window.piDesktop.threads.archive(threadId);
+      await window.piDesktop.threads.delete(threadId);
     },
     [activeThreadId, activeWorktree],
   );

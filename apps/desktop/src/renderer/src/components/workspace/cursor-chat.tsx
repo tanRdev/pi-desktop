@@ -1,5 +1,5 @@
 // Cursor Glass Chat - Complete redesign to match Cursor exactly
-import { At, Paperclip, Plus, Star } from "@/components/ui/icons";
+import { At, Paperclip, Plus, Sparkle } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 interface CursorChatProps {
@@ -135,7 +135,7 @@ export function CursorChat({ className }: CursorChatProps) {
                 type="button"
                 className="flex h-7 items-center gap-1.5 rounded-md bg-white text-black px-3 text-[14px] font-medium hover:bg-white/90 transition-colors"
               >
-                <Star className="size-5" weight="fill" />
+                <Sparkle className="size-5" weight="fill" />
                 Chat
               </button>
             </div>

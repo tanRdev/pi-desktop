@@ -16,6 +16,8 @@ import { IPC_CHANNELS } from "@pi-desktop/shared";
 import { app, BrowserWindow, dialog, ipcMain, Menu, shell } from "electron";
 import {
   createThreadTitle,
+  DEFAULT_UNTITLED_THREAD_TITLE,
+  generateThreadTitleFromMessage,
   getDefaultThreadTitle,
 } from "../thread-title-defaults";
 import { createAgentHostClient } from "./agent-host-client";
@@ -691,14 +693,9 @@ async function bootstrapDesktop() {
     worktreeId: string,
   ): Promise<SelectedThreadContext> {
     const inspection = inspectWorktreeOrThrow(worktreeId);
-    const usedTitles = new Set(
-      threadCatalog
-        .listByWorktree(inspection.currentWorktreePath)
-        .map((thread) => thread.title),
-    );
     const thread = threadCatalog.create({
       worktreeId: inspection.currentWorktreePath,
-      title: createThreadTitle(Math.random, usedTitles),
+      title: getDefaultThreadTitle(),
     });
     const repositoryEntry = repositoryCatalog.upsert({
       rootPath: inspection.rootPath,
@@ -1127,7 +1124,19 @@ async function bootstrapDesktop() {
       getProviders: () => currentHost.getProviders(),
       getSettings: () => currentHost.getSettings(),
       getSnapshot: () => currentHost.getSnapshot(),
-      prompt: (text) => currentHost.prompt(text),
+      prompt: async (text) => {
+        const currentThread = currentContext?.thread;
+        if (currentThread) {
+          // Check if thread still has default "Pi" title
+          const threadEntry = threadCatalog.get(currentThread.id);
+          if (threadEntry?.title === DEFAULT_UNTITLED_THREAD_TITLE) {
+            const newTitle = generateThreadTitleFromMessage(text);
+            threadCatalog.rename(currentThread.id, newTitle);
+            notifySessionChanged();
+          }
+        }
+        await currentHost.prompt(text);
+      },
       cancelPrompt: () => currentHost.cancelPrompt(),
       reset: () => currentHost.reset(),
       addRepository: async (targetPath) => {
@@ -1298,14 +1307,7 @@ async function bootstrapDesktop() {
               worktreePath: normalizedWorktreeId,
               thread: threadCatalog.create({
                 worktreeId: normalizedWorktreeId,
-                title: createThreadTitle(
-                  Math.random,
-                  new Set(
-                    threadCatalog
-                      .listByWorktree(normalizedWorktreeId)
-                      .map((entry) => entry.title),
-                  ),
-                ),
+                title: getDefaultThreadTitle(),
               }),
             })
           : await createThreadContext(normalizedWorktreeId);

@@ -78,12 +78,12 @@ export function ThreadListItem({
                   "hover:bg-white/[0.1] hover:text-white/80",
                   "group-hover:opacity-100 focus-visible:opacity-100",
                 )}
-                aria-label="Close thread"
+                aria-label="Close chat"
               >
                 <X className={ICON_SIZE_XS} />
               </button>
             </TooltipTrigger>
-            <TooltipContent side="top">Close thread</TooltipContent>
+            <TooltipContent side="top">Close chat</TooltipContent>
           </Tooltip>
         )}
       </TooltipProvider>

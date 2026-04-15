@@ -9,11 +9,11 @@ import {
 } from "@/components/ui/collapsible";
 import {
   CheckCircle,
-  ChevronDown,
-  Loader2,
-  Settings,
+  CaretDown,
+  CircleNotch,
+  Gear,
   XCircle,
-} from "@/components/ui/icons";
+} from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 export type ToolPart = {
@@ -44,7 +44,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
     switch (state) {
       case "input-streaming":
         return (
-          <Loader2
+          <CircleNotch
             className={cn(
               "h-3.5 w-3.5 animate-spin text-blue-400/60",
               "transition-all duration-[var(--duration-fast)] ease-out",
@@ -53,7 +53,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
         );
       case "input-available":
         return (
-          <Settings
+          <Gear
             className={cn(
               "h-3.5 w-3.5 text-amber-400/60",
               "transition-all duration-[var(--duration-fast)] ease-out",
@@ -80,7 +80,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
         );
       default:
         return (
-          <Settings
+          <Gear
             className={cn(
               "h-3.5 w-3.5 text-white/20",
               "transition-all duration-[var(--duration-fast)] ease-out",
@@ -150,21 +150,22 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
   return (
     <div
       className={cn(
-        "mt-3 overflow-hidden rounded-md border border-white/[0.04] bg-white/[0.02] select-none",
-        "transition-all duration-[var(--duration-normal)] ease-out",
-        "hover:border-white/[0.08]",
-        state === "output-error" && "border-red-500/20",
+        "select-none",
+        // Flat design - no card styling
+        "border-b border-white/[0.04]",
+        state === "output-error" && "border-red-500/10",
         className,
       )}
     >
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CollapsibleTrigger asChild>
           <Button
+            type="button"
             variant="ghost"
             className={cn(
-              "h-auto w-full justify-between rounded-md px-3 py-2 font-normal select-none",
+              "h-auto w-full justify-between rounded-none px-0 py-2 font-normal select-none",
               "transition-all duration-[var(--duration-fast)] ease-out",
-              "hover:bg-white/[0.03]",
+              "hover:bg-white/[0.02]",
               "active:scale-[0.99]",
             )}
           >
@@ -175,7 +176,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
               </span>
               {getStateBadge()}
             </div>
-            <ChevronDown
+            <CaretDown
               className={cn(
                 "h-3.5 w-3.5 text-white/20 transition-transform duration-[var(--duration-normal)] ease-out",
                 isOpen && "rotate-180",
@@ -185,11 +186,11 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
         </CollapsibleTrigger>
         <CollapsibleContent
           className={cn(
-            "border-t border-white/[0.04]",
-            "data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down overflow-hidden",
+            "overflow-hidden",
+            "data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down",
           )}
         >
-          <div className="space-y-3 p-3">
+          <div className="space-y-3 pb-3 pl-6">
             {input && Object.keys(input).length > 0 && (
               <div>
                 <h4 className="mb-2 text-xs font-medium text-white/30">

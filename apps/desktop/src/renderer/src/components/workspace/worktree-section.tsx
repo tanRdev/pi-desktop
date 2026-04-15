@@ -148,11 +148,11 @@ export function WorktreeSection({
               ))}
             </div>
 
-            {/* New thread button - connected to tree */}
+            {/* New chat button - connected to tree */}
             <button
               type="button"
               data-testid="create-thread-button"
-              aria-label="Create thread"
+              aria-label="Start new chat"
               disabled={isCreatingThread}
               className={cn(
                 "relative mt-1 flex h-7 w-full items-center gap-1.5 rounded px-1.5 py-1 text-[14px]",
@@ -172,7 +172,7 @@ export function WorktreeSection({
               ) : (
                 <Plus className="size-3" weight="bold" />
               )}
-              <span>{isCreatingThread ? "Creating…" : "New thread"}</span>
+              <span>{isCreatingThread ? "Creating…" : "New chat"}</span>
             </button>
           </div>
         </div>

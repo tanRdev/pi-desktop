@@ -11,6 +11,7 @@ import {
   CaretRight,
   Copy,
   Folder,
+  FolderPlus,
   GitBranch,
   GitMerge,
   GitPullRequest,
@@ -264,7 +265,6 @@ export function SessionRow({
         onClick={() => onSelect(session.id)}
         className={cn(
           "group relative flex w-full items-center gap-2 rounded-sm px-2 py-2 text-left text-[13px] transition-colors",
-          onArchive ? "pr-8" : undefined,
           isActive
             ? "bg-transparent text-white/80"
             : "text-white/40 hover:bg-white/[0.04] hover:text-white/70",
@@ -282,19 +282,14 @@ export function SessionRow({
         <span className="truncate flex-1">{session.label}</span>
         <span
           className={cn(
-            "text-[10px] text-white/30 whitespace-nowrap",
-            onArchive ? "pr-6" : "pr-2",
+            "flex size-5 items-center justify-center text-[10px] text-white/30 whitespace-nowrap",
+            onArchive && "group-hover/session:opacity-0",
           )}
         >
           {formatTimePassed(startedAt)}
         </span>
         {isActive && (
-          <span
-            className={cn(
-              "absolute top-1/2 h-[60%] w-[2px] -translate-y-1/2 rounded-full bg-white/80",
-              onArchive ? "left-0" : "left-0",
-            )}
-          />
+          <span className="absolute top-1/2 left-0 h-[60%] w-[2px] -translate-y-1/2 rounded-full bg-white/80" />
         )}
       </button>
       {onArchive ? (
@@ -312,12 +307,12 @@ export function SessionRow({
                 "hover:bg-white/[0.08] hover:text-white/80",
                 "group-hover/session:opacity-100 focus-visible:opacity-100",
               )}
-              aria-label={`Archive session ${session.label}`}
+              aria-label={`Archive branch ${session.label}`}
             >
               <Archive className="size-2.5" />
             </button>
           </TooltipTrigger>
-          <TooltipContent side="top">Archive session</TooltipContent>
+          <TooltipContent side="top">Archive branch</TooltipContent>
         </Tooltip>
       ) : null}
     </div>
@@ -329,14 +324,12 @@ function WorkspaceRow({
   isActive,
   isExpanded,
   onSelect,
-  onCreateSession,
   onContextMenu,
 }: {
   repository: RepositorySnapshot;
   isActive: boolean;
   isExpanded: boolean;
   onSelect: (id: string) => void;
-  onCreateSession?: () => void;
   onContextMenu?: (event: React.MouseEvent<HTMLButtonElement>) => void;
 }) {
   return (
@@ -367,22 +360,6 @@ function WorkspaceRow({
           )}
         </span>
       </button>
-      {onCreateSession ? (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              type="button"
-              data-testid="create-session-button"
-              onClick={onCreateSession}
-              className="flex size-5 shrink-0 items-center justify-center rounded text-white/35 opacity-0 transition-all duration-[var(--duration-fast)] hover:bg-white/[0.08] hover:text-white/80 group-hover:opacity-100 focus-visible:opacity-100"
-              aria-label="Create session"
-            >
-              <Plus className="size-2.5" />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent side="right">Create session</TooltipContent>
-        </Tooltip>
-      ) : null}
     </div>
   );
 }
@@ -641,9 +618,10 @@ export function LeftRail({
 
       {/* Repository List */}
       <div className="min-h-0 flex-1 overflow-y-auto py-2">
+        {/* Projects header with clear action */}
         <div className="px-3 py-2 flex items-center justify-between group">
           <div className="text-[13px] text-white/40 font-semibold uppercase tracking-wider truncate mr-2">
-            Pi Desktop
+            Projects
           </div>
           <div className="flex gap-1 shrink-0">
             <RepositorySwitcher
@@ -657,13 +635,13 @@ export function LeftRail({
                 <button
                   type="button"
                   onClick={onAddRepository}
-                  aria-label="New workspace"
+                  aria-label="Open project folder"
                   className="flex size-8 items-center justify-center rounded-sm text-white/40 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/80"
                 >
-                  <Folder className="size-5" />
+                  <FolderPlus className="size-5" />
                 </button>
               </TooltipTrigger>
-              <TooltipContent side="right">New workspace</TooltipContent>
+              <TooltipContent side="right">Open project folder</TooltipContent>
             </Tooltip>
           </div>
         </div>
@@ -681,13 +659,6 @@ export function LeftRail({
                   isActive={isActiveRepository}
                   isExpanded={isExpanded}
                   onSelect={handleSelectWorkspace}
-                  onCreateSession={
-                    isActiveRepository
-                      ? () => {
-                          void handleCreateSession();
-                        }
-                      : undefined
-                  }
                   onContextMenu={(event) =>
                     handleContextMenu(event, repository)
                   }
@@ -749,6 +720,25 @@ export function LeftRail({
                         })}
                       </div>
                     </Skeleton>
+                    {isActiveRepository ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            data-testid="create-session-button"
+                            onClick={handleCreateSession}
+                            className="flex w-full items-center gap-2 rounded-sm px-2 py-2 text-[13px] text-white/30 transition-colors hover:bg-white/[0.04] hover:text-white/60"
+                            aria-label="Create new branch"
+                          >
+                            <Plus className="size-2.5" />
+                            <span>New branch</span>
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">
+                          Create new branch
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : null}
                   </div>
                 ) : null}
               </div>
@@ -767,7 +757,7 @@ export function LeftRail({
                 <div className="flex items-center gap-2 text-[13px] text-white/40">
                   <Archive className="size-3.5" />
                   <span className="font-medium uppercase tracking-wider">
-                    Archived
+                    Archived branches
                   </span>
                 </div>
               </div>
@@ -835,8 +825,7 @@ export function LeftRail({
                             >
                               <div className="space-y-2">
                                 <p className="text-[13px] text-white/70">
-                                  Permanently delete this worktree and all its
-                                  data from disk?
+                                  Delete this branch and all its chat history?
                                 </p>
                                 <div className="flex items-center justify-end gap-1.5">
                                   <button
@@ -1030,7 +1019,7 @@ export function LeftRail({
             )}
           >
             <Copy className="size-2.5" />
-            <span>Copy path</span>
+            <span>Copy project path</span>
           </button>
           <button
             type="button"
@@ -1044,7 +1033,7 @@ export function LeftRail({
             )}
           >
             <Folder className="size-2.5" />
-            <span>Open in Finder</span>
+            <span>Show in Finder</span>
           </button>
           <div className="my-1 h-px bg-[var(--color-border)]" />
           <button
@@ -1061,7 +1050,7 @@ export function LeftRail({
             )}
           >
             <Trash className="size-2.5" />
-            <span>Remove</span>
+            <span>Remove from Pi</span>
           </button>
         </div>
       ) : null}

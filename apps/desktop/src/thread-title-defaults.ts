@@ -1,4 +1,4 @@
-export const DEFAULT_UNTITLED_THREAD_TITLE = "Signal";
+export const DEFAULT_UNTITLED_THREAD_TITLE = "Pi";
 
 export const FALLBACK_THREAD_TITLES = [
   "Signal",
@@ -118,4 +118,30 @@ export function createThreadTitle(
 
   const index = Math.floor(random() * availableTitles.length);
   return availableTitles[index] ?? DEFAULT_UNTITLED_THREAD_TITLE;
+}
+
+/**
+ * Generates a thread title based on the first user message.
+ * Uses the first few words of the message, capped at a reasonable length.
+ */
+export function generateThreadTitleFromMessage(messageText: string): string {
+  const MAX_TITLE_LENGTH = 30;
+  const WORDS_TO_INCLUDE = 5;
+
+  const trimmed = messageText.trim();
+  if (!trimmed) {
+    return DEFAULT_UNTITLED_THREAD_TITLE;
+  }
+
+  // Take first N words and join them
+  const words = trimmed.split(/\s+/).slice(0, WORDS_TO_INCLUDE);
+  let title = words.join(" ");
+
+  // If the title is too long, truncate it and add ellipsis
+  if (title.length > MAX_TITLE_LENGTH) {
+    title = title.slice(0, MAX_TITLE_LENGTH - 3).trimEnd() + "...";
+  }
+
+  // Capitalize the first letter
+  return title.charAt(0).toUpperCase() + title.slice(1);
 }

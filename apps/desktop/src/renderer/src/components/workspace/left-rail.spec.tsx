@@ -198,14 +198,16 @@ describe("LeftRail", () => {
     expect(screen.getByText("Alpha Workspace")).toBeInTheDocument();
     expect(screen.getByText("main")).toBeInTheDocument();
     expect(screen.getByText("feature/session-tabs")).toBeInTheDocument();
-    expect(screen.getByText("Archived")).toBeInTheDocument();
+    expect(screen.getByText("Archived branches")).toBeInTheDocument();
     expect(screen.queryByText("Sessions")).not.toBeInTheDocument();
     expect(screen.getAllByTestId("session-row")).toHaveLength(2);
     expect(screen.queryByText("Active thread")).not.toBeInTheDocument();
 
     await user.click(screen.getByText("feature/session-tabs"));
     await user.click(screen.getByTestId("create-session-button"));
-    await user.click(screen.getByRole("button", { name: "New workspace" }));
+    await user.click(
+      screen.getByRole("button", { name: "Open project folder" }),
+    );
     await user.click(screen.getByText("Archived thread"));
 
     expect(onSelectWorktree).toHaveBeenCalledWith("worktree-2");
@@ -230,7 +232,7 @@ describe("LeftRail", () => {
     await user.hover(mainSessionRow);
 
     const archiveButton = within(mainSessionRow).getByRole("button", {
-      name: "Archive session main",
+      name: "Archive branch main",
     });
 
     await user.click(archiveButton);
