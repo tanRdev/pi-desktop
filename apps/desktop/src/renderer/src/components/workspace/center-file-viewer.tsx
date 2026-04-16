@@ -1,4 +1,5 @@
 import { useStore } from "zustand";
+import { useShallow } from "zustand/react/shallow";
 import { getWorkspaceSessionStore } from "../../hooks/use-window-store";
 import { selectFileWindowStateByWorktree } from "../../stores/workspace-session-selectors";
 import { WorkspaceFileContent } from "./workspace-file-content";
@@ -22,8 +23,11 @@ export function CenterFileViewer({
   onContentChange,
   onFileSave,
 }: CenterFileViewerProps) {
-  const fileState = useStore(getWorkspaceSessionStore(), (storeState) =>
-    selectFileWindowStateByWorktree(storeState, activeWorktreeId, windowId),
+  const fileState = useStore(
+    getWorkspaceSessionStore(),
+    useShallow((storeState) =>
+      selectFileWindowStateByWorktree(storeState, activeWorktreeId, windowId),
+    ),
   );
 
   return (
