@@ -99,14 +99,22 @@ export function createAgentHostCommandHandler(runtime: CommandHandlerRuntime) {
             },
           };
         default: {
-          const unknownRequest = request as { type: string; requestId: string };
-          const _exhaustiveCheck: never = request;
+          // Runtime invariant: AgentHostRequest is a closed discriminated
+          // union and all members are handled above. Reaching this branch
+          // means a caller sent a malformed envelope.
+          const _exhaustive: never = request;
+          void _exhaustive;
+          const malformed: { type?: unknown; requestId?: unknown } = request;
+          const type =
+            typeof malformed.type === "string" ? malformed.type : "<unknown>";
+          const requestId =
+            typeof malformed.requestId === "string" ? malformed.requestId : "";
           return {
             type: "response",
             response: {
-              requestId: unknownRequest.requestId,
+              requestId,
               kind: "error",
-              message: `Unknown request type: ${unknownRequest.type}`,
+              message: `Unknown request type: ${type}`,
             },
           };
         }

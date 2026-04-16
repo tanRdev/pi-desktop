@@ -211,4 +211,87 @@ describe("wireAgentHostParentPort", () => {
       },
     });
   });
+
+  test("forwards getProviders requests and posts a providers response", async () => {
+    const providers = [
+      {
+        id: "google",
+        name: "Google",
+        models: [],
+        isConfigured: true,
+      },
+    ];
+    const parentPort = new FakeParentPort();
+    const runtime = {
+      bootstrap: vi.fn(async () => {}),
+      getProviders: vi.fn(async () => providers),
+      getSettings: vi.fn(async () => ({})),
+      getSnapshot: vi.fn(() => ({
+        sessionId: "mock-session",
+        status: "ready" as const,
+        messages: [],
+        lastError: null,
+      })),
+      switchModel: vi.fn(async () => {}),
+      prompt: vi.fn(async () => {}),
+      cancelPrompt: vi.fn(async () => {}),
+      reset: vi.fn(async () => {}),
+      subscribe: vi.fn(() => () => {}),
+    };
+
+    wireAgentHostParentPort({ parentPort, runtime });
+    parentPort.emit({ requestId: "11", type: "getProviders" });
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(runtime.getProviders).toHaveBeenCalledOnce();
+    expect(parentPort.postMessage).toHaveBeenCalledWith({
+      type: "response",
+      response: {
+        requestId: "11",
+        kind: "providers",
+        providers,
+      },
+    });
+  });
+
+  test("forwards getSettings requests and posts a settings response", async () => {
+    const settings = {
+      currentProviderId: "google",
+      currentModelId: "gemini-2.5-flash",
+      thinkingLevel: "medium" as const,
+    };
+    const parentPort = new FakeParentPort();
+    const runtime = {
+      bootstrap: vi.fn(async () => {}),
+      getProviders: vi.fn(async () => []),
+      getSettings: vi.fn(async () => settings),
+      getSnapshot: vi.fn(() => ({
+        sessionId: "mock-session",
+        status: "ready" as const,
+        messages: [],
+        lastError: null,
+      })),
+      switchModel: vi.fn(async () => {}),
+      prompt: vi.fn(async () => {}),
+      cancelPrompt: vi.fn(async () => {}),
+      reset: vi.fn(async () => {}),
+      subscribe: vi.fn(() => () => {}),
+    };
+
+    wireAgentHostParentPort({ parentPort, runtime });
+    parentPort.emit({ requestId: "12", type: "getSettings" });
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(runtime.getSettings).toHaveBeenCalledOnce();
+    expect(parentPort.postMessage).toHaveBeenCalledWith({
+      type: "response",
+      response: {
+        requestId: "12",
+        kind: "settings",
+        settings,
+      },
+    });
+  });
 });
