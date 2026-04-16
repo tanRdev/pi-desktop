@@ -152,9 +152,10 @@ function SessionRowImpl({
     isWorking,
   );
 
-  let Icon = GitBranch;
-  if (session.git.prStatus === "merged") Icon = GitMerge;
-  else if (session.git.prStatus === "open") Icon = GitPullRequest;
+  // Calculate diff stats for display
+  const additions = session.git.ahead ?? 0;
+  const deletions = session.git.behind ?? 0;
+  const hasChanges = additions > 0 || deletions > 0;
 
   // Use createdAt or fall back to earliest thread creation time
   let startedAt: number | undefined = session.createdAt;
@@ -175,26 +176,29 @@ function SessionRowImpl({
         type="button"
         onClick={() => onSelect(session.id)}
         className={cn(
-          "group relative flex w-full items-center gap-2 px-2 py-2 text-left text-[10.5px] transition-colors",
+          "group relative flex w-full items-center gap-2 px-2 py-2 text-left text-[11.5px] transition-colors",
           isActive ? "text-white/90" : "text-white/40 hover:text-white/70",
         )}
       >
-        <span className="flex size-5 shrink-0 items-center justify-center">
-          {isWorking ? (
-            <span className="text-[10.5px] leading-none text-[color:var(--color-accent)] font-mono whitespace-nowrap">
-              {spinnerFrame}
-            </span>
-          ) : (
-            <Icon
-              className={cn(
-                "size-3.5",
-                isActive ? "text-white/90" : "text-white/40",
-              )}
-            />
-          )}
-        </span>
-        <span className="truncate flex-1">{session.label}</span>
-        <span className="flex size-5 items-center justify-center text-[10px] text-[color:var(--text-dim-4)] whitespace-nowrap">
+        {/* Working indicator - subtle dot when active */}
+        {isWorking && (
+          <span className="flex size-1.5 shrink-0 rounded-full bg-white/60 animate-pulse" />
+        )}
+        <span className="truncate flex-1 font-medium">{session.label}</span>
+
+        {/* Diff stats badge */}
+        {hasChanges && (
+          <span className="flex items-center gap-1 text-[10px] tabular-nums">
+            {additions > 0 && (
+              <span className="text-emerald-400">+{additions}</span>
+            )}
+            {deletions > 0 && (
+              <span className="text-rose-400">−{deletions}</span>
+            )}
+          </span>
+        )}
+
+        <span className="flex size-5 items-center justify-center text-[10px] text-white/20 whitespace-nowrap">
           {formatTimePassed(startedAt)}
         </span>
       </button>
@@ -238,7 +242,7 @@ function WorkspaceRowImpl({
         onClick={() => onSelect(repository.id)}
         onContextMenu={handleContextMenu}
         className={cn(
-          "group/row relative flex min-w-0 flex-1 items-center gap-2 px-2 py-2 text-left text-[10.5px] transition-colors",
+          "group/row relative flex min-w-0 flex-1 items-center gap-2 px-2 py-2 text-left text-[11.5px] transition-colors",
           isActive ? "text-white/90" : "text-white/40 hover:text-white/70",
         )}
       >
