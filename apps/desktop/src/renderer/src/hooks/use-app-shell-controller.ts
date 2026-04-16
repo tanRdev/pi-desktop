@@ -1576,7 +1576,6 @@ export function useAppShellController(): AppShellController {
       handleDeleteWorktree,
       handleOpenGit,
       handleOpenTerminal,
-      setGitCommitMessage,
       refreshGitRepositoryStatus,
       commitGitChanges,
       commitAndPushGitChanges,

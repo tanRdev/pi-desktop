@@ -97,7 +97,7 @@ describe("readLegacySettingsStorage", () => {
       configurable: true,
       value: {
         getItem: (key: string) =>
-          Object.prototype.hasOwnProperty.call(store, key) ? store[key] : null,
+          Object.hasOwn(store, key) ? store[key] : null,
         setItem: (key: string, value: string) => {
           store[key] = value;
         },

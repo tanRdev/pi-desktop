@@ -44,6 +44,7 @@ import { createSanitizingHandle } from "./ipc/sanitize-ipc-error";
 import { registerIpcHandlers } from "./ipc-router";
 import { LocalThreadRuntimeManager } from "./local-thread-runtime-manager";
 import { PackagesServiceImpl } from "./packages/packages-service-impl";
+import { flushAllPersistentJsonFiles } from "./persistent-json-file";
 import {
   getOAuthProvidersForAgentDir,
   loginWithOAuthForAgentDir,
@@ -53,7 +54,6 @@ import {
   discoverPiResources,
   getPiSlashSuggestions,
 } from "./pi-resource-discovery";
-import { flushAllPersistentJsonFiles } from "./persistent-json-file";
 import { RepositoryCatalog } from "./repository-catalog";
 import { RepositoryPreferencesCatalog } from "./repository-preferences-catalog";
 import { SelectionState } from "./selection-state";

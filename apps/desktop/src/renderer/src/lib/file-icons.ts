@@ -12,7 +12,7 @@
  * palette tokens at ~50% opacity so they read as subtle highlights on the
  * dark sidebar surface.
  */
-import type * as React from "react";
+
 import {
   BookOpen,
   File,
@@ -34,12 +34,13 @@ import {
   FileZip,
   Gear,
   GitBranch,
-  Image,
   type IconProps,
+  Image,
   Lock,
   Package,
   Scales,
 } from "@phosphor-icons/react";
+import type * as React from "react";
 
 export type FileIconComponent = React.ComponentType<IconProps>;
 

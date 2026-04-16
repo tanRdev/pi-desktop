@@ -1,7 +1,7 @@
 "use client";
 
 import { Brain, CaretDown } from "@phosphor-icons/react";
-import * as React from "react";
+import type * as React from "react";
 import { useState } from "react";
 import {
   Collapsible,
@@ -20,9 +20,8 @@ export interface StreamingPlaceholderProps {
 
 export function StreamingPlaceholder({ className }: StreamingPlaceholderProps) {
   return (
-    <div
+    <output
       className={cn("flex items-center gap-1 py-2", className)}
-      role="status"
       aria-live="polite"
       aria-label="Generating response"
     >
@@ -35,7 +34,7 @@ export function StreamingPlaceholder({ className }: StreamingPlaceholderProps) {
           }}
         />
       ))}
-    </div>
+    </output>
   );
 }
 

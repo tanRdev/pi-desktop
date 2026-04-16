@@ -104,9 +104,12 @@ test("creates a thread inline instead of opening a naming dialog", async () => {
   try {
     await waitForShell(page);
     await addAndSelectRepository(page, repositoryPath);
-    await expect(page.getByTestId("left-sidebar")).toContainText("EmptyProject", {
-      timeout: 15_000,
-    });
+    await expect(page.getByTestId("left-sidebar")).toContainText(
+      "EmptyProject",
+      {
+        timeout: 15_000,
+      },
+    );
     await expect(
       page.getByRole("dialog", { name: "Name your new thread" }),
     ).toHaveCount(0);

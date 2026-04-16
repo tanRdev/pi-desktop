@@ -1,4 +1,3 @@
-import { describe, expect, it } from "vitest";
 import {
   File,
   FileCode,
@@ -11,6 +10,7 @@ import {
   Package,
   Scales,
 } from "@phosphor-icons/react";
+import { describe, expect, it } from "vitest";
 import { getFileIconByExtension } from "./file-icons";
 
 describe("getFileIconByExtension", () => {

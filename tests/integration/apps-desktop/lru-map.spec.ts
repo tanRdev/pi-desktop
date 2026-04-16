@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { LruMap } from "../../../apps/desktop/src/main/lru-map";
 
 describe("LruMap", () => {

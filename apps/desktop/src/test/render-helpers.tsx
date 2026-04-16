@@ -1,7 +1,7 @@
 import {
-  render,
   type RenderOptions,
   type RenderResult,
+  render,
 } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { TooltipProvider } from "../renderer/src/components/ui/tooltip";

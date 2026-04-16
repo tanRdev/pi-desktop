@@ -342,7 +342,7 @@ export function createWorkspaceSessionStore({
 
       const previous = get();
       const nextVersion = previous.activeWorktreeVersion + 1;
-      const alreadyHadSession = Object.prototype.hasOwnProperty.call(
+      const alreadyHadSession = Object.hasOwn(
         previous.sessionsByWorktreeId,
         worktreeId,
       );

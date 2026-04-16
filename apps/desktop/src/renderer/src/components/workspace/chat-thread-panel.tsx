@@ -6,8 +6,8 @@ import {
 } from "@pi-desktop/ui";
 import { Skeleton } from "boneyard-js/react";
 import * as React from "react";
-import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast";
+import { cn } from "@/lib/utils";
 import type { ActivityIndicatorProps } from "../ui/activity-indicator";
 import { StreamingIndicator } from "../ui/activity-indicator";
 import { EnhancedMessage } from "../ui/enhanced-message";
@@ -321,16 +321,15 @@ export function ChatThreadPanel({
   );
 
   const streamingIndicator = isStreaming ? (
-    <div
+    <output
       className="mx-auto flex w-full max-w-3xl px-6 py-2"
-      role="status"
       aria-live="polite"
     >
       <StreamingIndicator
         message="Pi is responding"
         activities={streamingActivities}
       />
-    </div>
+    </output>
   ) : null;
 
   const hasConversationState =
