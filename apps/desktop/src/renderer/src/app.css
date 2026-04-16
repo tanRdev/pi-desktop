@@ -1,8 +1,7 @@
 @import "tailwindcss";
 @import "@pi-desktop/ui/styles/pi-desktop-shell.css";
-@import "@fontsource-variable/saira";
-@import "@fontsource/ubuntu";
-@import "@fontsource/ibm-plex-mono";
+@import "@fontsource-variable/dm-sans";
+@import "@fontsource-variable/ibm-plex-mono";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -665,10 +664,10 @@ code:not(.shiki code):not(pre code) {
   --radius-4xl: 0px;
   --radius-full: 9999px;
 
-  /* Fonts — Protocol trio (Saira + Ubuntu + IBM Plex Mono) */
-  --font-heading: var(--font-saira);
-  --font-body: var(--font-ubuntu);
-  --font-mono: var(--font-ibm-plex-mono);
+  /* Fonts — DM Sans body, IBM Plex Mono */
+  --font-heading: "DM Sans Variable", "DM Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-body: "DM Sans Variable", "DM Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "IBM Plex Mono Variable", "IBM Plex Mono", monospace;
 
   /* shadcn color variable bridge */
   --color-background: var(--background);
@@ -690,9 +689,7 @@ code:not(.shiki code):not(pre code) {
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --font-saira: Saira Variable;
-  --font-ubuntu: Ubuntu;
-  --font-ibm-plex-mono: IBM Plex Mono;
+
 }
 
 @layer base {

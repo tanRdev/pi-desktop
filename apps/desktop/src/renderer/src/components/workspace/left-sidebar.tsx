@@ -177,7 +177,7 @@ function SessionRowImpl({
         className={cn(
           "group relative flex w-full items-center gap-2 px-2 py-2 text-left text-[10.5px] transition-colors",
           isActive
-            ? "bg-[var(--color-accent-subtle)] text-[color:var(--text-dim-1)]"
+            ? "bg-white/[0.06] text-white"
             : "text-[color:var(--text-dim-3)] hover:bg-white/[0.04] hover:text-[color:var(--text-dim-1)]",
         )}
       >
@@ -190,9 +190,7 @@ function SessionRowImpl({
             <Icon
               className={cn(
                 "size-3.5",
-                isActive
-                  ? "text-[color:var(--color-accent)]"
-                  : "text-[color:var(--text-dim-3)]",
+                isActive ? "text-white" : "text-[color:var(--text-dim-3)]",
               )}
             />
           )}
@@ -201,9 +199,6 @@ function SessionRowImpl({
         <span className="flex size-5 items-center justify-center text-[10px] text-[color:var(--text-dim-4)] whitespace-nowrap">
           {formatTimePassed(startedAt)}
         </span>
-        {isActive && (
-          <span className="absolute top-1/2 left-0 h-[60%] w-[2px] -translate-y-1/2 rounded-full bg-[var(--color-accent)]" />
-        )}
       </button>
     </div>
   );
@@ -247,23 +242,15 @@ function WorkspaceRowImpl({
         className={cn(
           "group/row relative flex min-w-0 flex-1 items-center gap-2 px-2 py-2 text-left text-[10.5px] transition-colors",
           isActive
-            ? "bg-[var(--color-accent-subtle)] text-[color:var(--text-dim-1)]"
+            ? "bg-white/[0.06] text-white"
             : "text-[color:var(--text-dim-2)] hover:bg-white/[0.04] hover:text-[color:var(--text-dim-1)]",
         )}
       >
-        {isActive && (
-          <span
-            aria-hidden="true"
-            className="absolute top-1/2 left-0 h-[70%] w-[2px] -translate-y-1/2 rounded-full bg-[var(--color-accent)]"
-          />
-        )}
         <span className="flex size-5 shrink-0 items-center justify-center">
           <Folder
             className={cn(
               "size-3.5",
-              isActive
-                ? "text-[color:var(--color-accent)]"
-                : "text-[color:var(--text-dim-3)]",
+              isActive ? "text-white" : "text-[color:var(--text-dim-3)]",
             )}
           />
         </span>
