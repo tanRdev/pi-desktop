@@ -58,7 +58,6 @@ function getStoredAiPreferences(
 
 export interface AppShellStoreState {
   shellModel: ReturnType<typeof createShellModel>;
-  shellState: ShellModelState;
   providerSnapshots: ProviderSnapshot[];
   settingsSnapshot: SettingsSnapshot;
   appPreferences: AppPreferences;
@@ -184,7 +183,6 @@ export function createAppShellStore(api: PiDesktopApi) {
 
   const store = createStore<AppShellStoreState>()((set, get) => ({
     shellModel,
-    shellState: shellModel.getState(),
     providerSnapshots: [],
     settingsSnapshot: {},
     appPreferences: {},
@@ -273,8 +271,8 @@ export function createAppShellStore(api: PiDesktopApi) {
     },
     async switchModel(request) {
       if (
-        get().shellState.agent.status === "starting" ||
-        get().shellState.agent.status === "streaming"
+        get().shellModel.getState().agent.status === "starting" ||
+        get().shellModel.getState().agent.status === "streaming"
       ) {
         throw new Error("Cannot switch models while Pi is responding");
       }
@@ -350,8 +348,9 @@ export function createAppShellStore(api: PiDesktopApi) {
     },
   }));
 
+  let lastShellState = shellModel.getState();
   shellModel.subscribe((shellState) => {
-    const previousShellState = store.getState().shellState;
+    const previousShellState = lastShellState;
     const previousSelection = previousShellState.shell.catalog.selection;
     const nextSelection = shellState.shell.catalog.selection;
     const nextRuntimeContextKey = createRuntimeContextKey(shellState);
@@ -376,7 +375,7 @@ export function createAppShellStore(api: PiDesktopApi) {
     }
 
     lastRuntimeContextKey = nextRuntimeContextKey;
-    store.setState({ shellState });
+    lastShellState = shellState;
 
     if (shouldRefreshRuntimeMetadata) {
       pendingRuntimeMetadataRefresh = false;

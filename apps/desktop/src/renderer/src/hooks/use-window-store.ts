@@ -5,6 +5,7 @@
 
 import type { WindowLayoutState, WorkspaceWindow } from "@pi-desktop/shared";
 import { getActiveWorktree } from "@pi-desktop/shared";
+import type { ShellModelState } from "@pi-desktop/shell-model";
 import { useSyncExternalStore } from "react";
 import {
   type AppShellStoreState,
@@ -107,7 +108,7 @@ function getLayoutState(
 ): WindowStoreState {
   const activeWorktreeId =
     sessionState.activeWorktreeId ??
-    getActiveWorktree(shellState.shellState.shell)?.id ??
+    getActiveWorktree(shellState.shellModel.getState().shell)?.id ??
     null;
   const layout =
     activeWorktreeId === sessionState.activeWorktreeId
@@ -125,14 +126,11 @@ function getLayoutState(
   });
 }
 
-function hasRelevantWindowStoreChange(
-  shellState: AppShellStoreState,
-  prevShellState: AppShellStoreState | undefined,
+function hasRelevantShellModelChange(
+  shellState: ShellModelState,
+  prevShellState: ShellModelState,
 ): boolean {
-  return (
-    shellState.shellState !== prevShellState?.shellState ||
-    shellState.isShellReady !== prevShellState?.isShellReady
-  );
+  return shellState !== prevShellState;
 }
 
 function hasRelevantWorkspaceSessionChange(
@@ -163,13 +161,17 @@ function hasRelevantWorkspaceSessionChange(
 
 function subscribe(listener: () => void): () => void {
   const workspaceSessionStore = getWorkspaceSessionStore();
+  const appShellStore = getAppShellStore();
+  const shellModel = appShellStore.getState().shellModel;
+  let previousShell: ShellModelState = shellModel.getState();
   const unsubscribers = [
-    getAppShellStore().subscribe((shellState, prevShellState) => {
-      const nextWorktreeId =
-        getActiveWorktree(shellState.shellState.shell)?.id ?? null;
-      const prevWorktreeId = prevShellState
-        ? (getActiveWorktree(prevShellState.shellState.shell)?.id ?? null)
-        : null;
+    shellModel.subscribe((shellState) => {
+      const prevShellState = previousShell;
+      previousShell = shellState;
+
+      const nextWorktreeId = getActiveWorktree(shellState.shell)?.id ?? null;
+      const prevWorktreeId =
+        getActiveWorktree(prevShellState.shell)?.id ?? null;
 
       if (nextWorktreeId !== prevWorktreeId) {
         void syncActiveWorktreeSession({
@@ -183,9 +185,9 @@ function subscribe(listener: () => void): () => void {
       }
 
       const nextCatalogSessions =
-        shellState.shellState.shell.catalog.reconciledWorkspaceSessions;
+        shellState.shell.catalog.reconciledWorkspaceSessions;
       const previousCatalogSessions =
-        prevShellState?.shellState.shell.catalog.reconciledWorkspaceSessions;
+        prevShellState.shell.catalog.reconciledWorkspaceSessions;
 
       if (
         nextCatalogSessions &&
@@ -196,7 +198,12 @@ function subscribe(listener: () => void): () => void {
           .hydrateCatalogSessions(nextCatalogSessions);
       }
 
-      if (hasRelevantWindowStoreChange(shellState, prevShellState)) {
+      if (hasRelevantShellModelChange(shellState, prevShellState)) {
+        listener();
+      }
+    }),
+    appShellStore.subscribe((state, prevState) => {
+      if (state.isShellReady !== prevState.isShellReady) {
         listener();
       }
     }),
@@ -222,8 +229,7 @@ function subscribe(listener: () => void): () => void {
       void workspaceSessionStore
         .getState()
         .setActiveWorktree(
-          getActiveWorktree(getAppShellStore().getState().shellState.shell)
-            ?.id ?? null,
+          getActiveWorktree(shellModel.getState().shell)?.id ?? null,
         );
     });
   }

@@ -862,9 +862,9 @@ describe("app-shell-store", () => {
       expect(api.agent.getSnapshot).toHaveBeenCalledTimes(2);
     });
     await vi.waitFor(() => {
-      expect(store.getState().shellState.shell.catalog.selection.threadId).toBe(
-        "thread-2",
-      );
+      expect(
+        store.getState().shellModel.getState().shell.catalog.selection.threadId,
+      ).toBe("thread-2");
     });
 
     expect(api.agent.getProviders).toHaveBeenCalledTimes(1);
@@ -1340,10 +1340,12 @@ describe("app-shell-store", () => {
 
     eventListener?.({ type: "session_changed" });
     await vi.waitFor(() => {
-      expect(store.getState().shellState.agent.status).toBe("starting");
-      expect(store.getState().shellState.shell.catalog.selection.threadId).toBe(
-        "thread-2",
+      expect(store.getState().shellModel.getState().agent.status).toBe(
+        "starting",
       );
+      expect(
+        store.getState().shellModel.getState().shell.catalog.selection.threadId,
+      ).toBe("thread-2");
     });
 
     expect(api.agent.getProviders).toHaveBeenCalledTimes(1);
@@ -1446,7 +1448,7 @@ describe("app-shell-store", () => {
     );
     expect(getSnapshot).toHaveBeenCalledTimes(2);
     expect(
-      store.getState().shellState.shell.catalog.repositories[0],
+      store.getState().shellModel.getState().shell.catalog.repositories[0],
     ).toMatchObject({
       name: "Mission Control",
       customName: "Mission Control",
