@@ -9,6 +9,13 @@ import {
   rmSync,
   writeSync,
 } from "node:fs";
+import {
+  mkdir,
+  open as openAsync,
+  rename as renameAsync,
+  rm as rmAsync,
+  stat as statAsync,
+} from "node:fs/promises";
 import path from "node:path";
 
 export interface PersistentJsonFileOptions<T> {
@@ -19,15 +26,30 @@ export interface PersistentJsonFileOptions<T> {
    * is treated as corrupt and we fall through to the backup / defaults chain.
    */
   validate?: (raw: unknown) => raw is T;
+  /**
+   * Debounce window (ms) before a coalesced write is flushed to disk.
+   * Defaults to 50ms. Set to 0 to write synchronously on every `set`.
+   */
+  debounceMs?: number;
 }
+
+const DEFAULT_DEBOUNCE_MS = 50;
 
 function clone<T>(value: T): T {
   return structuredClone(value);
 }
 
-function tryRemove(filePath: string): void {
+function tryRemoveSync(filePath: string): void {
   try {
     rmSync(filePath, { force: true });
+  } catch {
+    // best-effort cleanup
+  }
+}
+
+async function tryRemoveAsync(filePath: string): Promise<void> {
+  try {
+    await rmAsync(filePath, { force: true });
   } catch {
     // best-effort cleanup
   }
@@ -52,6 +74,13 @@ function tryReadJson<T>(
   }
 }
 
+// Module-level registry so shutdown hooks can flush every live instance.
+const LIVE_INSTANCES = new Set<PersistentJsonFile<unknown>>();
+
+export async function flushAllPersistentJsonFiles(): Promise<void> {
+  await Promise.all(Array.from(LIVE_INSTANCES).map((i) => i.flush()));
+}
+
 /**
  * Small file-backed JSON store with durability guarantees:
  *   - writes go to `<path>.tmp`, are fsynced, then renamed over the target
@@ -59,13 +88,21 @@ function tryReadJson<T>(
  *   - corrupted primary content transparently falls back to the backup,
  *     then to the caller-supplied `defaultValue`
  *   - an `.tmp` left over from a crash is removed at next open
+ *   - writes are coalesced: rapid `set` calls debounce to a single async
+ *     write, serialized per-instance, with `flush()` to force completion
  */
 export class PersistentJsonFile<T> {
   private value: T;
+  private readonly debounceMs: number;
+  private pendingValue: T | undefined;
+  private pendingTimer: NodeJS.Timeout | undefined;
+  private writeChain: Promise<void> = Promise.resolve();
 
   constructor(private readonly options: PersistentJsonFileOptions<T>) {
+    this.debounceMs = options.debounceMs ?? DEFAULT_DEBOUNCE_MS;
     this.cleanupStrayTemp();
     this.value = this.load();
+    LIVE_INSTANCES.add(this as PersistentJsonFile<unknown>);
   }
 
   get(): T {
@@ -74,13 +111,55 @@ export class PersistentJsonFile<T> {
 
   set(nextValue: T): T {
     const cloned = clone(nextValue);
-    this.save(cloned);
     this.value = cloned;
+    this.scheduleWrite(cloned);
     return this.get();
   }
 
   update(updater: (value: T) => T): T {
     return this.set(updater(this.get()));
+  }
+
+  /**
+   * Flush any pending coalesced write and wait for the disk write to finish.
+   */
+  async flush(): Promise<void> {
+    if (this.pendingTimer !== undefined) {
+      clearTimeout(this.pendingTimer);
+      this.pendingTimer = undefined;
+      const toWrite = this.pendingValue;
+      this.pendingValue = undefined;
+      if (toWrite !== undefined) {
+        this.enqueueWrite(toWrite);
+      }
+    }
+    await this.writeChain;
+  }
+
+  private scheduleWrite(nextValue: T): void {
+    this.pendingValue = nextValue;
+    if (this.debounceMs <= 0) {
+      this.pendingValue = undefined;
+      this.enqueueWrite(nextValue);
+      return;
+    }
+    if (this.pendingTimer !== undefined) {
+      return;
+    }
+    this.pendingTimer = setTimeout(() => {
+      this.pendingTimer = undefined;
+      const toWrite = this.pendingValue;
+      this.pendingValue = undefined;
+      if (toWrite !== undefined) {
+        this.enqueueWrite(toWrite);
+      }
+    }, this.debounceMs);
+  }
+
+  private enqueueWrite(nextValue: T): void {
+    this.writeChain = this.writeChain
+      .catch(() => undefined)
+      .then(() => this.saveAsync(nextValue));
   }
 
   private tempPath(): string {
@@ -93,7 +172,7 @@ export class PersistentJsonFile<T> {
 
   private cleanupStrayTemp(): void {
     if (existsSync(this.tempPath())) {
-      tryRemove(this.tempPath());
+      tryRemoveSync(this.tempPath());
     }
   }
 
@@ -114,13 +193,59 @@ export class PersistentJsonFile<T> {
     return clone(this.options.defaultValue);
   }
 
-  private save(nextValue: T): void {
-    mkdirSync(path.dirname(this.options.filePath), { recursive: true });
+  private async saveAsync(nextValue: T): Promise<void> {
+    await mkdir(path.dirname(this.options.filePath), { recursive: true });
     const tempPath = this.tempPath();
     const serialized = `${JSON.stringify(nextValue, null, 2)}\n`;
 
     // Write to a temp file with an fsync so the payload is durable before we
     // expose it via rename.
+    const handle = await openAsync(tempPath, "w");
+    try {
+      await handle.writeFile(serialized);
+      try {
+        await handle.sync();
+      } catch {
+        // fsync may not be supported on some filesystems; proceed anyway.
+      }
+    } finally {
+      await handle.close();
+    }
+
+    // Preserve the previous successful write as a sidecar backup before
+    // atomically replacing the primary file.
+    let primaryExists = true;
+    try {
+      await statAsync(this.options.filePath);
+    } catch {
+      primaryExists = false;
+    }
+    if (primaryExists) {
+      try {
+        await renameAsync(this.options.filePath, this.backupPath());
+      } catch {
+        // If we can't move it aside, keep going; the rename below is still
+        // atomic and won't produce partial data.
+      }
+    }
+
+    try {
+      await renameAsync(tempPath, this.options.filePath);
+    } catch (error) {
+      await tryRemoveAsync(tempPath);
+      throw error;
+    }
+  }
+
+  /**
+   * Synchronous save kept for emergency/shutdown paths where a sync write is
+   * required. Not used by the normal coalesced path.
+   */
+  private saveSync(nextValue: T): void {
+    mkdirSync(path.dirname(this.options.filePath), { recursive: true });
+    const tempPath = this.tempPath();
+    const serialized = `${JSON.stringify(nextValue, null, 2)}\n`;
+
     const fd = openSync(tempPath, "w");
     try {
       writeSync(fd, serialized);
@@ -133,21 +258,18 @@ export class PersistentJsonFile<T> {
       closeSync(fd);
     }
 
-    // Preserve the previous successful write as a sidecar backup before
-    // atomically replacing the primary file.
     if (existsSync(this.options.filePath)) {
       try {
         renameSync(this.options.filePath, this.backupPath());
       } catch {
-        // If we can't move it aside, keep going; the rename below is still
-        // atomic and won't produce partial data.
+        // best-effort
       }
     }
 
     try {
       renameSync(tempPath, this.options.filePath);
     } catch (error) {
-      tryRemove(tempPath);
+      tryRemoveSync(tempPath);
       throw error;
     }
   }

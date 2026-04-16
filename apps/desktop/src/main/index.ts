@@ -53,6 +53,7 @@ import {
   discoverPiResources,
   getPiSlashSuggestions,
 } from "./pi-resource-discovery";
+import { flushAllPersistentJsonFiles } from "./persistent-json-file";
 import { RepositoryCatalog } from "./repository-catalog";
 import { RepositoryPreferencesCatalog } from "./repository-preferences-catalog";
 import { SelectionState } from "./selection-state";
@@ -1389,10 +1390,12 @@ async function bootstrapDesktop() {
     unsubscribe();
     currentTransport?.close();
     event.preventDefault();
-    terminalManager
-      .destroyAllAsync()
+    Promise.allSettled([
+      terminalManager.destroyAllAsync(),
+      flushAllPersistentJsonFiles(),
+    ])
       .catch((err) => {
-        console.error("Error destroying terminals on quit:", err);
+        console.error("Error during shutdown:", err);
       })
       .finally(() => {
         app.exit(0);
