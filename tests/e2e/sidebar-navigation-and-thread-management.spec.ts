@@ -1,7 +1,7 @@
 import { expect, type Locator, test } from "@playwright/test";
 import {
   closeDesktopApp,
-  createThreadFromRail,
+  createThreadFromSidebar,
   ensureWorkspaceMode,
   focusChatThread,
   launchDesktopApp,
@@ -11,7 +11,7 @@ import {
 async function createAutoNamedThread(
   page: import("@playwright/test").Page,
 ): Promise<Locator> {
-  await createThreadFromRail(page);
+  await createThreadFromSidebar(page);
   const threadTabs = page.getByTestId("thread-tabs");
   const createdThread = threadTabs.getByTestId("thread-tab-select").last();
   await expect(createdThread).toBeVisible({ timeout: 15_000 });
@@ -58,7 +58,7 @@ test("keeps the shell to sessions rail, chat, and sidecar only", async () => {
     await waitForAppReady(page);
     await ensureWorkspaceMode(page);
 
-    await expect(page.getByTestId("left-rail")).toBeVisible();
+    await expect(page.getByTestId("left-sidebar")).toBeVisible();
     await expect(page.getByTestId("chat-first-layout")).toBeVisible();
     await expect(page.getByTestId("chat-transcript")).toBeVisible();
     await expect(page.getByTestId("left-sidebar")).toHaveCount(0);

@@ -11,15 +11,15 @@ describe("TitleBar", () => {
   it("renders the terminal and side-panel controls for the workspace shell", async () => {
     const user = userEvent.setup();
     const onOpenTerminal = vi.fn();
-    const onToggleSidePanel = vi.fn();
+    const onToggleRightSidebar = vi.fn();
 
     const { container } = render(
       <TitleBar
         platform="darwin"
         isTerminalActive={false}
-        isSidePanelVisible={false}
+        isRightSidebarVisible={false}
         onOpenTerminal={onOpenTerminal}
-        onToggleSidePanel={onToggleSidePanel}
+        onToggleRightSidebar={onToggleRightSidebar}
       />,
     );
 
@@ -35,7 +35,7 @@ describe("TitleBar", () => {
     await user.click(screen.getByRole("button", { name: "Toggle side panel" }));
 
     expect(onOpenTerminal).toHaveBeenCalledTimes(1);
-    expect(onToggleSidePanel).toHaveBeenCalledTimes(1);
+    expect(onToggleRightSidebar).toHaveBeenCalledTimes(1);
   });
 
   it("keeps drag-region shell chrome styling", () => {
@@ -43,9 +43,9 @@ describe("TitleBar", () => {
       <TitleBar
         platform="darwin"
         isTerminalActive={false}
-        isSidePanelVisible
+        isRightSidebarVisible
         onOpenTerminal={vi.fn()}
-        onToggleSidePanel={vi.fn()}
+        onToggleRightSidebar={vi.fn()}
       />,
     );
 

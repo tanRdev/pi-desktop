@@ -247,7 +247,7 @@ export function useAppShellController(): AppShellController {
   );
   const [selectedContextSurface, setSelectedContextSurface] =
     React.useState<WorkspaceShellProps["selectedContextSurface"]>(null);
-  const [leftRailWidth, setLeftRailWidth] = React.useState(260);
+  const [leftSidebarWidth, setLeftSidebarWidth] = React.useState(260);
   const [promptMode, setPromptMode] = React.useState<PromptMode>(() =>
     detectPromptMode(draft),
   );
@@ -1350,8 +1350,8 @@ export function useAppShellController(): AppShellController {
     [contextWindows, selectedContextSurface, windowStore],
   );
 
-  const handleLeftRailResize = React.useCallback((width: number) => {
-    setLeftRailWidth(width);
+  const handleLeftSidebarResize = React.useCallback((width: number) => {
+    setLeftSidebarWidth(width);
   }, []);
 
   const handleFileTreeFileSelect = React.useCallback(
@@ -1464,10 +1464,10 @@ export function useAppShellController(): AppShellController {
     liveFeed: live,
     contextWindows,
     selectedContextSurface,
-    leftRailWidth,
+    leftSidebarWidth,
     onSelectContextSurface: handleSelectContextSurface,
     onCloseFileWindow: handleCloseFileWindow,
-    onLeftRailResize: handleLeftRailResize,
+    onLeftSidebarResize: handleLeftSidebarResize,
     onModelMenuOpenChange: handleModelMenuOpenChange,
     onAddRepository: handleAddRepository,
     onSelectRepository: handleSelectRepository,

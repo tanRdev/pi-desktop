@@ -1,7 +1,7 @@
 import { GitBranch, TreeStructure } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
-export interface RightPanelTabsProps {
+export interface RightSidebarTabsProps {
   activeTab: "git" | "files";
   onTabChange: (tab: "git" | "files") => void;
 }
@@ -11,10 +11,10 @@ const tabs = [
   { key: "files" as const, label: "Files", icon: TreeStructure },
 ];
 
-export function RightPanelTabs({
+export function RightSidebarTabs({
   activeTab,
   onTabChange,
-}: RightPanelTabsProps) {
+}: RightSidebarTabsProps) {
   return (
     <div className="flex h-11 items-center border-b border-white/[0.03] bg-[var(--shell-main-bg)] select-none">
       {tabs.map((tab) => {

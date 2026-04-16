@@ -11,9 +11,9 @@ import { getTrafficLightInset } from "../../lib/title-bar-layout";
 export interface TitleBarProps {
   platform: string | null;
   isTerminalActive: boolean;
-  isSidePanelVisible: boolean;
+  isRightSidebarVisible: boolean;
   onOpenTerminal: () => void;
-  onToggleSidePanel: () => void;
+  onToggleRightSidebar: () => void;
 }
 
 interface TitleBarControlButton {
@@ -26,9 +26,9 @@ interface TitleBarControlButton {
 export function TitleBar({
   platform,
   isTerminalActive,
-  isSidePanelVisible,
+  isRightSidebarVisible,
   onOpenTerminal,
-  onToggleSidePanel,
+  onToggleRightSidebar,
 }: TitleBarProps) {
   const controlButtons: TitleBarControlButton[] = [
     {
@@ -80,11 +80,11 @@ export function TitleBar({
               <TooltipTrigger asChild>
                 <button
                   type="button"
-                  onClick={onToggleSidePanel}
+                  onClick={onToggleRightSidebar}
                   aria-label="Toggle side panel"
                   className={cn(
                     "flex size-8 items-center justify-center text-white/40 outline-none ring-0 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/80 focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0",
-                    isSidePanelVisible && "bg-white/[0.04] text-white/80",
+                    isRightSidebarVisible && "bg-white/[0.04] text-white/80",
                   )}
                 >
                   <SidebarSimple className="size-4 -scale-x-100" />

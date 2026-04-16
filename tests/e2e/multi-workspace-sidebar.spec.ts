@@ -88,14 +88,14 @@ test("keeps sessions and threads isolated per workspace and recovers empty works
       )
       .toEqual(expect.arrayContaining(["AlphaWorkspace", "BetaWorkspace"]));
 
-    await expect(page.getByTestId("left-rail")).toContainText("AlphaWorkspace");
-    await expect(page.getByTestId("left-rail")).toContainText("BetaWorkspace");
+    await expect(page.getByTestId("left-sidebar")).toContainText("AlphaWorkspace");
+    await expect(page.getByTestId("left-sidebar")).toContainText("BetaWorkspace");
 
     await workspaceRow(page, "AlphaWorkspace").click();
 
     await expect(page.getByTestId("workspace-switch-loader")).toHaveCount(0);
 
-    await expect(page.getByTestId("left-rail")).toContainText("AlphaWorkspace");
+    await expect(page.getByTestId("left-sidebar")).toContainText("AlphaWorkspace");
     await expect(page.getByTestId("thread-tab-select")).toHaveCount(1);
 
     await page.getByTestId("create-thread-button").click();
@@ -112,7 +112,7 @@ test("keeps sessions and threads isolated per workspace and recovers empty works
 
     await expect(page.getByTestId("workspace-switch-loader")).toHaveCount(0);
 
-    await expect(page.getByTestId("left-rail")).toContainText("BetaWorkspace");
+    await expect(page.getByTestId("left-sidebar")).toContainText("BetaWorkspace");
     await expect(page.getByTestId("thread-tab-select")).toHaveCount(1);
 
     await workspaceRow(page, "AlphaWorkspace").click();

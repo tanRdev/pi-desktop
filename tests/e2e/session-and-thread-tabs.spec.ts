@@ -12,7 +12,7 @@ import {
   waitForAppReady,
 } from "./helpers/desktop-app";
 
-test("creates a session from the rail and keeps tabs in sync per session", async () => {
+test("creates a session from the sidebar and keeps tabs in sync per session", async () => {
   test.setTimeout(90_000);
 
   const homeDir = fs.mkdtempSync(
@@ -80,7 +80,7 @@ test("creates a session from the rail and keeps tabs in sync per session", async
       .getByTestId("session-row")
       .filter({ hasText: defaultBranchName });
 
-    await expect(page.getByTestId("left-rail")).toContainText(branchName);
+    await expect(page.getByTestId("left-sidebar")).toContainText(branchName);
     await expect(page.getByTestId("thread-tab-select")).toHaveCount(1);
 
     await page.getByTestId("create-thread-button").click();

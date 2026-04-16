@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import {
   closeDesktopApp,
-  createThreadFromRail,
+  createThreadFromSidebar,
   focusChatThread,
   launchDesktopApp,
   waitForAppReady,
@@ -17,11 +17,11 @@ test("launches the shell and streams a mock agent reply", async () => {
   try {
     await waitForAppReady(page);
 
-    await expect(page.getByTestId("left-rail")).toBeVisible();
+    await expect(page.getByTestId("left-sidebar")).toBeVisible();
     const tabButtonsBefore = await page
       .getByTestId("thread-tab-select")
       .count();
-    await createThreadFromRail(page);
+    await createThreadFromSidebar(page);
     await expect(page.getByTestId("thread-tab-select")).toHaveCount(
       tabButtonsBefore + 1,
     );

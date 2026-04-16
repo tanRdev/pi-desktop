@@ -20,9 +20,9 @@ import { CenterFileViewer } from "./center-file-viewer";
 import { ChatThreadPanel } from "./chat-thread-panel";
 import { FileTreePanel } from "./file-tree-panel";
 import { GitPanel } from "./git-panel";
-import { LeftRail, SIDEBAR_WIDTH } from "./left-rail";
+import { LeftSidebar, SIDEBAR_WIDTH } from "./left-sidebar";
 import { PromptDock } from "./prompt-dock";
-import { RightPanelTabs } from "./right-panel-tabs";
+import { RightSidebarTabs } from "./right-sidebar-tabs";
 import { ThreadTabs } from "./thread-tabs";
 import { TitleBar } from "./title-bar";
 import { WorkspaceActivityPanel } from "./workspace-activity-panel";
@@ -56,10 +56,10 @@ export interface WorkspaceShellProps {
   liveFeed: AgentLiveFeed;
   contextWindows: ContextWindow[];
   selectedContextSurface: ContextSurfaceKey | null;
-  leftRailWidth: number;
+  leftSidebarWidth: number;
   onSelectContextSurface: (surfaceKey: ContextSurfaceKey) => void;
   onCloseFileWindow: (windowId: string) => void;
-  onLeftRailResize: (width: number) => void;
+  onLeftSidebarResize: (width: number) => void;
   onModelMenuOpenChange: (open: boolean) => void | Promise<void>;
   onAddRepository: () => void | Promise<void>;
   onSelectRepository: (repositoryId: string) => void | Promise<void>;
@@ -146,10 +146,10 @@ export function WorkspaceShell({
   liveFeed,
   contextWindows,
   selectedContextSurface,
-  leftRailWidth,
+  leftSidebarWidth,
   onSelectContextSurface: _onSelectContextSurface,
   onCloseFileWindow,
-  onLeftRailResize,
+  onLeftSidebarResize,
   onModelMenuOpenChange,
   onAddRepository,
   onSelectRepository,
@@ -197,9 +197,9 @@ export function WorkspaceShell({
   onFileTreeRenameFile,
   onFileTreeMoveFile,
 }: WorkspaceShellProps) {
-  const [isLeftRailVisible, setIsLeftRailVisible] = React.useState(true);
-  const [isRightPanelVisible, setIsRightPanelVisible] = React.useState(true);
-  const [rightPanelTab, setRightPanelTab] = React.useState<"git" | "files">(
+  const [isLeftSidebarVisible, setIsLeftSidebarVisible] = React.useState(true);
+  const [isRightSidebarVisible, setIsRightSidebarVisible] = React.useState(true);
+  const [rightSidebarTab, setRightSidebarTab] = React.useState<"git" | "files">(
     "git",
   );
 
@@ -234,7 +234,7 @@ export function WorkspaceShell({
   const activeWorktreeLabel = activeWorktree?.label ?? null;
 
   const hasActiveThread = activeThreadId !== null;
-  const leftRailTargetWidth = Math.max(leftRailWidth, SIDEBAR_WIDTH);
+  const leftSidebarTargetWidth = Math.max(leftSidebarWidth, SIDEBAR_WIDTH);
   const mainPaneState = React.useMemo(
     () =>
       getMainPaneState({
@@ -305,15 +305,15 @@ export function WorkspaceShell({
 
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden select-none">
-      {/* Item 2: TitleBar removed — drag region is in LeftRail */}
+      {/* Item 2: TitleBar removed — drag region is in LeftSidebar */}
 
       {/* Item 22: Main Layout — always-visible three-column layout */}
       <div className="relative flex min-h-0 flex-1 select-none">
-        {!isLeftRailVisible ? (
+        {!isLeftSidebarVisible ? (
           <div
             aria-hidden="true"
             data-no-drag="true"
-            onMouseEnter={() => setIsLeftRailVisible(true)}
+            onMouseEnter={() => setIsLeftSidebarVisible(true)}
             className="absolute inset-y-0 left-0 z-30 w-2"
           />
         ) : null}
@@ -323,25 +323,25 @@ export function WorkspaceShell({
           className={cn(
             "min-h-0 shrink-0 overflow-hidden",
             "transition-all duration-[var(--duration-normal)] ease-[var(--ease-out)]",
-            isLeftRailVisible ? "opacity-100" : "pointer-events-none opacity-0",
+            isLeftSidebarVisible ? "opacity-100" : "pointer-events-none opacity-0",
           )}
-          style={{ width: isLeftRailVisible ? leftRailTargetWidth : 0 }}
+          style={{ width: isLeftSidebarVisible ? leftSidebarTargetWidth : 0 }}
         >
           <div
             className={cn(
               "h-full transition-opacity duration-[var(--duration-normal)] ease-[var(--ease-out)]",
-              isLeftRailVisible ? "opacity-100" : "opacity-0",
+              isLeftSidebarVisible ? "opacity-100" : "opacity-0",
             )}
-            style={{ width: leftRailTargetWidth }}
+            style={{ width: leftSidebarTargetWidth }}
           >
-            <LeftRail
+            <LeftSidebar
               repositories={repositories}
               activeRepositoryId={activeRepositoryId}
               activeWorktreeId={activeWorktreeId}
               activeThreadId={activeThreadId}
               isPromptExecuting={isPromptExecuting}
-              width={leftRailTargetWidth}
-              onResize={onLeftRailResize}
+              width={leftSidebarTargetWidth}
+              onResize={onLeftSidebarResize}
               onSelectRepository={onSelectRepository}
               onRemoveRepository={onRemoveRepository}
               onCopyRepositoryPath={onCopyRepositoryPath}
@@ -352,7 +352,7 @@ export function WorkspaceShell({
               onDeleteWorktree={onDeleteWorktree}
               onDeleteThread={onDeleteThread}
               onAddRepository={onAddRepository}
-              onToggleVisible={() => setIsLeftRailVisible(false)}
+              onToggleVisible={() => setIsLeftSidebarVisible(false)}
             />
           </div>
         </div>
@@ -368,13 +368,13 @@ export function WorkspaceShell({
           <TitleBar
             platform={platform}
             isTerminalActive={isTerminalActive}
-            isSidePanelVisible={isRightPanelVisible}
+            isRightSidebarVisible={isRightSidebarVisible}
             onOpenTerminal={() => {
-              setIsRightPanelVisible(true);
+              setIsRightSidebarVisible(true);
               onOpenTerminal();
             }}
-            onToggleSidePanel={() =>
-              setIsRightPanelVisible(!isRightPanelVisible)
+            onToggleRightSidebar={() =>
+              setIsRightSidebarVisible(!isRightSidebarVisible)
             }
           />
           <div className="flex min-h-0 flex-1 overflow-hidden select-none">
@@ -476,7 +476,7 @@ export function WorkspaceShell({
               className={cn(
                 "min-h-0 shrink-0 overflow-hidden border-l border-white/[0.06] bg-[var(--color-bg-primary)]",
                 "transition-[width,opacity] duration-[var(--duration-normal)] ease-[var(--ease-out)]",
-                isRightPanelVisible
+                isRightSidebarVisible
                   ? "w-[300px] xl:w-[400px] opacity-100"
                   : "w-0 opacity-0",
               )}
@@ -485,7 +485,7 @@ export function WorkspaceShell({
                 className={cn(
                   "flex h-full min-w-[300px] flex-col xl:min-w-[400px]",
                   "transition-opacity duration-[var(--duration-normal)] ease-[var(--ease-out)]",
-                  isRightPanelVisible ? "opacity-100" : "opacity-0",
+                  isRightSidebarVisible ? "opacity-100" : "opacity-0",
                 )}
               >
                 {mainPaneState.sideSurfaceKey === "activity" ? (
@@ -507,12 +507,12 @@ export function WorkspaceShell({
                   />
                 ) : (
                   <>
-                    <RightPanelTabs
-                      activeTab={rightPanelTab}
-                      onTabChange={setRightPanelTab}
+                    <RightSidebarTabs
+                      activeTab={rightSidebarTab}
+                      onTabChange={setRightSidebarTab}
                     />
                     <div className="min-h-0 flex-1 overflow-y-auto">
-                      {rightPanelTab === "git" ? (
+                      {rightSidebarTab === "git" ? (
                         gitPanel
                       ) : (
                         <FileTreePanel

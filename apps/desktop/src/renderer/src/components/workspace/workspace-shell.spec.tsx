@@ -20,12 +20,12 @@ vi.mock("./git-panel", () => ({
   },
 }));
 
-vi.mock("./left-rail", () => ({
+vi.mock("./left-sidebar", () => ({
   SIDEBAR_WIDTH: 240,
-  LeftRail(props: { onSelectRepository?: unknown }) {
+  LeftSidebar(props: { onSelectRepository?: unknown }) {
     return (
       <div
-        data-testid="mock-left-rail"
+        data-testid="mock-left-sidebar"
         data-has-select-repository={String(
           typeof props.onSelectRepository === "function",
         )}
@@ -156,10 +156,10 @@ function createWorkspaceShellProps(
     },
     contextWindows: [],
     selectedContextSurface: null,
-    leftRailWidth: 240,
+    leftSidebarWidth: 240,
     onSelectContextSurface: vi.fn(),
     onCloseFileWindow: vi.fn(),
-    onLeftRailResize: vi.fn(),
+    onLeftSidebarResize: vi.fn(),
     onModelMenuOpenChange: vi.fn(),
     onAddRepository: vi.fn(),
     onSelectRepository: vi.fn(),
@@ -297,7 +297,7 @@ describe("WorkspaceShell", () => {
       />,
     );
 
-    expect(screen.getByTestId("mock-left-rail")).toHaveAttribute(
+    expect(screen.getByTestId("mock-left-sidebar")).toHaveAttribute(
       "data-has-select-repository",
       "true",
     );

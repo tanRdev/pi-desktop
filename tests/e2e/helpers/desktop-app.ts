@@ -276,11 +276,11 @@ export async function waitForAppReady(page: Page): Promise<void> {
 
   await expect(page.getByTestId("app-ready")).toBeVisible();
   await expect(page.getByTestId("chat-first-layout")).toBeVisible();
-  await expect(page.getByTestId("left-rail")).toBeVisible();
+  await expect(page.getByTestId("left-sidebar")).toBeVisible();
 }
 
 export async function ensureWorkspaceMode(page: Page): Promise<void> {
-  await expect(page.getByTestId("left-rail")).toBeVisible();
+  await expect(page.getByTestId("left-sidebar")).toBeVisible();
 }
 
 export async function focusChatThread(page: Page): Promise<void> {
@@ -289,7 +289,7 @@ export async function focusChatThread(page: Page): Promise<void> {
   await expect(page.getByTestId("chat-input")).toBeVisible();
 }
 
-export async function createThreadFromRail(page: Page): Promise<void> {
+export async function createThreadFromSidebar(page: Page): Promise<void> {
   await ensureWorkspaceMode(page);
 
   await expect(page.getByTestId("thread-tabs")).toBeVisible();

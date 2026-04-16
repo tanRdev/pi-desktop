@@ -40,7 +40,7 @@ export default function App() {
         <div
           data-testid="app-ready"
           className={cn(
-            // Cursor Glass: solid near-black root, no glass effect
+            // Solid near-black root, no glass effect
             "relative flex h-screen flex-col overflow-hidden",
 
             "bg-[var(--color-bg-primary)]",
@@ -239,7 +239,7 @@ export default function App() {
           >
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
-                <DialogTitle>Remove project from rail?</DialogTitle>
+                <DialogTitle>Remove project from sidebar?</DialogTitle>
                 <DialogDescription>
                   {controller.confirmRemoveRepositoryName
                     ? `This removes ${controller.confirmRemoveRepositoryName} from Pi only. The folder stays on disk.`

@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import type { ComponentProps } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { TooltipProvider } from "../ui/tooltip";
-import { LeftRail } from "./left-rail";
+import { LeftSidebar } from "./left-sidebar";
 
 function createRepository(): RepositorySnapshot {
   return {
@@ -124,12 +124,12 @@ function createRepositoryTwo(): RepositorySnapshot {
   };
 }
 
-function renderLeftRail(
-  overrides: Partial<ComponentProps<typeof LeftRail>> = {},
+function renderLeftSidebar(
+  overrides: Partial<ComponentProps<typeof LeftSidebar>> = {},
 ) {
   return render(
     <TooltipProvider>
-      <LeftRail
+      <LeftSidebar
         repositories={[createRepository()]}
         activeRepositoryId="repo-1"
         activeWorktreeId="worktree-1"
@@ -152,7 +152,7 @@ afterEach(() => {
   cleanup();
 });
 
-describe("LeftRail", () => {
+describe("LeftSidebar", () => {
   it("renders session groups and forwards primary rail actions", async () => {
     const user = userEvent.setup();
     const onSelectWorktree = vi.fn();
@@ -160,14 +160,14 @@ describe("LeftRail", () => {
     const onCreateSession = vi.fn();
     const onAddRepository = vi.fn();
 
-    renderLeftRail({
+    renderLeftSidebar({
       onSelectWorktree,
       onSelectThread,
       onCreateSession,
       onAddRepository,
     });
 
-    expect(screen.getByTestId("left-rail")).toHaveAttribute(
+    expect(screen.getByTestId("left-sidebar")).toHaveAttribute(
       "data-mode",
       "workspace",
     );
@@ -188,9 +188,9 @@ describe("LeftRail", () => {
   });
 
   it("keeps current rail chrome classes for shell surface", () => {
-    renderLeftRail();
+    renderLeftSidebar();
 
-    const rail = screen.getByTestId("left-rail");
+    const rail = screen.getByTestId("left-sidebar");
     expect(rail).toHaveClass("bg-[var(--color-bg-primary)]");
     expect(rail).toHaveClass("border-r");
     expect(rail).toHaveClass("border-white/[0.06]");
@@ -199,7 +199,7 @@ describe("LeftRail", () => {
   it("toggles the active workspace open state when the workspace row is clicked", async () => {
     const user = userEvent.setup();
 
-    renderLeftRail();
+    renderLeftSidebar();
 
     const workspaceRow = screen.getByRole("button", {
       name: /Alpha Workspace/i,
@@ -218,7 +218,7 @@ describe("LeftRail", () => {
     const user = userEvent.setup();
     const onSelectRepository = vi.fn();
 
-    const view = renderLeftRail({
+    const view = renderLeftSidebar({
       repositories: [createRepository(), createRepositoryTwo()],
       activeRepositoryId: "repo-2",
       activeWorktreeId: "beta-worktree-1",
@@ -237,7 +237,7 @@ describe("LeftRail", () => {
 
     view.rerender(
       <TooltipProvider>
-        <LeftRail
+        <LeftSidebar
           repositories={[createRepository(), createRepositoryTwo()]}
           activeRepositoryId="repo-1"
           activeWorktreeId="worktree-1"

@@ -43,7 +43,7 @@ function getRepositoryName(repository: RepositorySnapshot): string {
   return repository.customName?.trim() || repository.name;
 }
 
-export interface LeftRailProps {
+export interface LeftSidebarProps {
   repositories: RepositorySnapshot[];
   activeRepositoryId: string | null;
   activeWorktreeId: string | null;
@@ -245,7 +245,7 @@ function WorkspaceRow({
   );
 }
 
-export function LeftRail({
+export function LeftSidebar({
   repositories,
   activeRepositoryId,
   activeWorktreeId,
@@ -257,7 +257,7 @@ export function LeftRail({
   onSelectRepository,
   onSelectWorktree,
   // Thread/worktree delete wiring was removed during the shell refactor but the
-  // prop contract is still part of the public LeftRail API (callers + specs).
+  // prop contract is still part of the public LeftSidebar API (callers + specs).
   // Rename to _-prefixed locals so biome treats them as intentionally unused
   // without breaking the component's prop surface.
   onSelectThread: _onSelectThread,
@@ -269,7 +269,7 @@ export function LeftRail({
   onCreateSession,
   onAddRepository,
   onToggleVisible,
-}: LeftRailProps) {
+}: LeftSidebarProps) {
   const [isResizing, setIsResizing] = React.useState(false);
 
   // Context menu state
@@ -422,7 +422,7 @@ export function LeftRail({
 
   return (
     <aside
-      data-testid="left-rail"
+      data-testid="left-sidebar"
       data-mode="workspace"
       className={cn(
         "relative z-20 flex h-full shrink-0 select-none flex-col",
