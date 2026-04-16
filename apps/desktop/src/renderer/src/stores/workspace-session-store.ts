@@ -282,25 +282,7 @@ export function createWorkspaceSessionStore({
     if (!worktreeId) {
       return;
     }
-
-    store.setState((state) => {
-      if (!state.sessionsByWorktreeId[worktreeId]) {
-        return state;
-      }
-
-      return {
-        ...state,
-        sessionsByWorktreeId: updateSessionRecord(
-          state.sessionsByWorktreeId,
-          worktreeId,
-          updater,
-        ),
-      };
-    });
-
-    if (options?.persist !== false) {
-      schedulePersist(worktreeId);
-    }
+    withSession(worktreeId, updater, options);
   }
 
   function withSession(
