@@ -1,6 +1,5 @@
-import { realpathSync as realpathSyncDefault } from "node:fs";
-import { isAbsolute, relative, resolve } from "node:path";
 import { IPC_CHANNELS } from "@pi-desktop/shared";
+import { isPathWithinAny } from "../fs/path-guards";
 import type { GitWorktreeService } from "../git-worktree-service";
 import type { IpcRegistrar } from "../ipc-router";
 import { getStringArrayField, getStringField } from "./payload-parsers";
@@ -9,23 +8,6 @@ interface RegisterGitHandlersDependencies {
   handle: IpcRegistrar["handle"];
   gitService: GitWorktreeService;
   getAllowedRepositoryRoots: () => readonly string[];
-}
-
-function canonicalize(targetPath: string): string {
-  try {
-    const realpathSync = realpathSyncDefault.native ?? realpathSyncDefault;
-    return realpathSync(targetPath);
-  } catch {
-    return targetPath;
-  }
-}
-
-function isPathInside(child: string, parent: string): boolean {
-  if (child === parent) {
-    return true;
-  }
-  const rel = relative(parent, child);
-  return rel !== "" && !rel.startsWith("..") && !isAbsolute(rel);
 }
 
 function requireAllowedRepositoryPath(
@@ -38,29 +20,16 @@ function requireAllowedRepositoryPath(
   }
 
   const allowedRoots = getAllowedRepositoryRoots();
-  if (allowedRoots.length === 0) {
+  if (
+    allowedRoots.length === 0 ||
+    !isPathWithinAny(allowedRoots, repositoryPath)
+  ) {
     throw new Error(
       `repositoryPath is not an allowed repository: ${repositoryPath}`,
     );
   }
 
-  const resolvedTarget = resolve(repositoryPath);
-  const canonicalTarget = canonicalize(resolvedTarget);
-
-  for (const root of allowedRoots) {
-    const resolvedRoot = resolve(root);
-    const canonicalRoot = canonicalize(resolvedRoot);
-    if (
-      isPathInside(resolvedTarget, resolvedRoot) ||
-      isPathInside(canonicalTarget, canonicalRoot)
-    ) {
-      return repositoryPath;
-    }
-  }
-
-  throw new Error(
-    `repositoryPath is not an allowed repository: ${repositoryPath}`,
-  );
+  return repositoryPath;
 }
 
 function requireFilePath(payload: unknown): string {

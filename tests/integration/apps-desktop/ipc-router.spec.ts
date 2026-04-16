@@ -321,6 +321,7 @@ function createTerminalManagerMock(
     destroyAll?: TerminalManager["destroyAll"];
     get?: TerminalManager["get"];
     getSessions?: TerminalManager["getSessions"];
+    isOwnedBy?: TerminalManager["isOwnedBy"];
   } = {},
 ): TerminalManager {
   const manager = new TerminalManager();
@@ -355,6 +356,9 @@ function createTerminalManagerMock(
   );
   vi.spyOn(manager, "getSessions").mockImplementation(
     overrides.getSessions ?? (() => []),
+  );
+  vi.spyOn(manager, "isOwnedBy").mockImplementation(
+    overrides.isOwnedBy ?? (() => true),
   );
 
   return manager;
@@ -634,7 +638,11 @@ describe("registerIpcHandlers", () => {
     await expect(
       harness.handlers.get(IPC_CHANNELS.terminal.getSessions)?.(),
     ).resolves.toEqual([fakeSession]);
-    expect(tmMock.create).toHaveBeenCalledWith("term-1", createPayload);
+    expect(tmMock.create).toHaveBeenCalledWith(
+      "term-1",
+      createPayload,
+      "__no_sender__",
+    );
   });
 
   it("terminal.create rejects cwd outside allowed repository roots", async () => {
