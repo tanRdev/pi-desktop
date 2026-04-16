@@ -4,7 +4,7 @@ import * as React from "react";
 import { File, Image as ImageIcon, Save } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
-import { MonacoFileEditor } from "./monaco-file-editor";
+import { MonacoFileEditor } from "./monaco-file-editor.lazy";
 
 function getFileName(filePath: string): string {
   return filePath.split(/[/\\]/).pop() ?? filePath;

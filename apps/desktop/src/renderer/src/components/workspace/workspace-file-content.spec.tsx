@@ -15,7 +15,7 @@ vi.mock("@/components/ui/icons", () => {
   };
 });
 
-vi.mock("./monaco-file-editor", () => ({
+vi.mock("./monaco-file-editor.lazy", () => ({
   MonacoFileEditor({
     language,
     path,
