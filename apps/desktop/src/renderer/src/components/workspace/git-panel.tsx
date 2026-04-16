@@ -5,6 +5,7 @@ import type {
 } from "@pi-desktop/shared";
 import { Skeleton } from "boneyard-js/react";
 import * as React from "react";
+import { Virtuoso } from "react-virtuoso";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { ArrowClockwise, CaretDown, Check, Trash } from "../ui/icons";
@@ -39,6 +40,84 @@ export interface GitPanelProps {
   onUnstageAllFiles: (filePaths: string[]) => void | Promise<void>;
   onDiscardFile: (filePath: string) => void | Promise<void>;
 }
+
+interface GitChangeRowProps {
+  path: string;
+  isStaged: boolean;
+  status: string;
+  onStage: (filePath: string) => void | Promise<void>;
+  onUnstage: (filePath: string) => void | Promise<void>;
+  onDiscard: (filePath: string) => void | Promise<void>;
+}
+
+const GitChangeRow = React.memo(function GitChangeRow({
+  path,
+  isStaged,
+  status,
+  onStage,
+  onUnstage,
+  onDiscard,
+}: GitChangeRowProps) {
+  return (
+    <div className="group flex w-full items-center gap-1.5 px-2 py-1 text-left text-[10px] transition-colors text-white/40 hover:bg-white/[0.04] hover:text-white/70 border-b border-white/[0.06]">
+      <button
+        type="button"
+        onClick={() => (isStaged ? void onUnstage(path) : void onStage(path))}
+        aria-label={isStaged ? `Unstage ${path}` : `Stage ${path}`}
+        className={cn(
+          "flex size-4 shrink-0 items-center justify-center border transition-all duration-200",
+          isStaged
+            ? "bg-[var(--color-accent)]/20 border-[var(--color-accent)]/50 text-[var(--color-accent)]"
+            : "border-white/10 text-transparent hover:border-white/30",
+        )}
+      >
+        <Check className="size-2" />
+      </button>
+      <div className="min-w-0 flex-1">
+        <div className="truncate group-hover:text-white/80">{path}</div>
+      </div>
+      <div className="flex shrink-0 items-center gap-2">
+        <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+          <button
+            type="button"
+            onClick={() => void onDiscard(path)}
+            title="Discard changes"
+            className={cn(
+              "flex size-4 items-center justify-center text-white/35 transition-colors duration-150",
+              "hover:bg-red-500/20 hover:text-red-400",
+            )}
+          >
+            <Trash className="size-2" />
+          </button>
+        </div>
+        <div
+          className={cn(
+            "w-3 text-center text-[10px] font-bold select-none font-mono",
+            status === "added" || status === "untracked"
+              ? "text-[var(--color-accent)]"
+              : status === "deleted"
+                ? "text-rose-400"
+                : status === "modified"
+                  ? "text-amber-400"
+                  : status === "renamed"
+                    ? "text-sky-400"
+                    : "text-white/30",
+          )}
+        >
+          {status === "added" || status === "untracked"
+            ? "+"
+            : status === "deleted"
+              ? "-"
+              : status === "modified"
+                ? "M"
+                : status === "renamed"
+                  ? "R"
+                  : "•"}
+        </div>
+      </div>
+    </div>
+  );
+});
 
 function CombinedChangeList({
   repositoryStatus,
@@ -153,81 +232,50 @@ function CombinedChangeList({
             )}
         </div>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
-        <div className="divide-y divide-white/[0.06]">
-          {allPaths.map((path) => {
-            const staged = stagedByPath.get(path);
-            const unstaged = unstagedByPath.get(path);
-            const status = (unstaged || staged)?.status ?? "unknown";
-
-            return (
-              <div
-                key={path}
-                className="group flex w-full items-center gap-1.5 px-2 py-1 text-left text-[10px] transition-colors text-white/40 hover:bg-white/[0.04] hover:text-white/70"
-              >
-                <button
-                  type="button"
-                  onClick={() =>
-                    staged ? void onUnstage(path) : void onStage(path)
-                  }
-                  aria-label={staged ? `Unstage ${path}` : `Stage ${path}`}
-                  className={cn(
-                    "flex size-4 shrink-0 items-center justify-center border transition-all duration-200",
-                    staged
-                      ? "bg-[var(--color-accent)]/20 border-[var(--color-accent)]/50 text-[var(--color-accent)]"
-                      : "border-white/10 text-transparent hover:border-white/30",
-                  )}
-                >
-                  <Check className="size-2" />
-                </button>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate group-hover:text-white/80">
-                    {path}
-                  </div>
-                </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                    <button
-                      type="button"
-                      onClick={() => void onDiscard(path)}
-                      title="Discard changes"
-                      className={cn(
-                        "flex size-4 items-center justify-center text-white/35 transition-colors duration-150",
-                        "hover:bg-red-500/20 hover:text-red-400",
-                      )}
-                    >
-                      <Trash className="size-2" />
-                    </button>
-                  </div>
-                  <div
-                    className={cn(
-                      "w-3 text-center text-[10px] font-bold select-none font-mono",
-                      status === "added" || status === "untracked"
-                        ? "text-[var(--color-accent)]"
-                        : status === "deleted"
-                          ? "text-rose-400"
-                          : status === "modified"
-                            ? "text-amber-400"
-                            : status === "renamed"
-                              ? "text-sky-400"
-                              : "text-white/30",
-                    )}
-                  >
-                    {status === "added" || status === "untracked"
-                      ? "+"
-                      : status === "deleted"
-                        ? "-"
-                        : status === "modified"
-                          ? "M"
-                          : status === "renamed"
-                            ? "R"
-                            : "•"}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+      <div
+        className="min-h-0 flex-1 overflow-hidden"
+        style={{ height: Math.min(allPaths.length * 28, 400) }}
+      >
+        {allPaths.length > 50 ? (
+          <Virtuoso
+            data={allPaths}
+            className="custom-scrollbar"
+            itemContent={(_index, path) => {
+              const staged = stagedByPath.get(path);
+              const unstaged = unstagedByPath.get(path);
+              const status = (unstaged || staged)?.status ?? "unknown";
+              return (
+                <GitChangeRow
+                  path={path}
+                  isStaged={Boolean(staged)}
+                  status={status}
+                  onStage={onStage}
+                  onUnstage={onUnstage}
+                  onDiscard={onDiscard}
+                />
+              );
+            }}
+          />
+        ) : (
+          <div className="custom-scrollbar h-full overflow-auto">
+            {allPaths.map((path) => {
+              const staged = stagedByPath.get(path);
+              const unstaged = unstagedByPath.get(path);
+              const status = (unstaged || staged)?.status ?? "unknown";
+              return (
+                <GitChangeRow
+                  key={path}
+                  path={path}
+                  isStaged={Boolean(staged)}
+                  status={status}
+                  onStage={onStage}
+                  onUnstage={onUnstage}
+                  onDiscard={onDiscard}
+                />
+              );
+            })}
+          </div>
+        )}
       </div>
     </section>
   );
