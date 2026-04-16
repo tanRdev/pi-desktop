@@ -118,7 +118,7 @@ export interface WorkspaceShellProps {
   onToggleFavorite?: (modelValue: string) => void;
 }
 
-export function WorkspaceShell({
+function WorkspaceShellImpl({
   platform,
   repositories,
   activeRepository,
@@ -198,7 +198,8 @@ export function WorkspaceShell({
   onFileTreeMoveFile,
 }: WorkspaceShellProps) {
   const [isLeftSidebarVisible, setIsLeftSidebarVisible] = React.useState(true);
-  const [isRightSidebarVisible, setIsRightSidebarVisible] = React.useState(true);
+  const [isRightSidebarVisible, setIsRightSidebarVisible] =
+    React.useState(true);
   const [rightSidebarTab, setRightSidebarTab] = React.useState<"git" | "files">(
     "git",
   );
@@ -323,7 +324,9 @@ export function WorkspaceShell({
           className={cn(
             "min-h-0 shrink-0 overflow-hidden",
             "transition-all duration-[var(--duration-normal)] ease-[var(--ease-out)]",
-            isLeftSidebarVisible ? "opacity-100" : "pointer-events-none opacity-0",
+            isLeftSidebarVisible
+              ? "opacity-100"
+              : "pointer-events-none opacity-0",
           )}
           style={{ width: isLeftSidebarVisible ? leftSidebarTargetWidth : 0 }}
         >
@@ -534,3 +537,5 @@ export function WorkspaceShell({
     </div>
   );
 }
+
+export const WorkspaceShell = React.memo(WorkspaceShellImpl);

@@ -134,17 +134,19 @@ function _ThreadCategorySection({
   );
 }
 
-export function SessionRow({
-  session,
-  isActive,
-  isWorking = false,
-  onSelect,
-}: {
+interface SessionRowProps {
   session: WorktreeSnapshot;
   isActive: boolean;
   isWorking?: boolean;
   onSelect: (id: string) => void;
-}) {
+}
+
+function SessionRowImpl({
+  session,
+  isActive,
+  isWorking = false,
+  onSelect,
+}: SessionRowProps) {
   const spinnerFrame = useUnicodeSpinner(
     { frames: ["⡇", "⠏", "⠹", "⠼", "⡸", "⣇"], interval: 150 },
     isWorking,
@@ -207,19 +209,32 @@ export function SessionRow({
   );
 }
 
-function WorkspaceRow({
+export const SessionRow = React.memo(SessionRowImpl);
+
+interface WorkspaceRowProps {
+  repository: RepositorySnapshot;
+  isActive: boolean;
+  isExpanded: boolean;
+  onSelect: (id: string) => void;
+  onContextMenu: (
+    event: React.MouseEvent<HTMLButtonElement>,
+    repository: RepositorySnapshot,
+  ) => void;
+}
+
+function WorkspaceRowImpl({
   repository,
   isActive,
   isExpanded,
   onSelect,
   onContextMenu,
-}: {
-  repository: RepositorySnapshot;
-  isActive: boolean;
-  isExpanded: boolean;
-  onSelect: (id: string) => void;
-  onContextMenu?: (event: React.MouseEvent<HTMLButtonElement>) => void;
-}) {
+}: WorkspaceRowProps) {
+  const handleContextMenu = React.useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      onContextMenu(event, repository);
+    },
+    [onContextMenu, repository],
+  );
   return (
     <div
       data-testid="workspace-row"
@@ -228,7 +243,7 @@ function WorkspaceRow({
       <button
         type="button"
         onClick={() => onSelect(repository.id)}
-        onContextMenu={onContextMenu}
+        onContextMenu={handleContextMenu}
         className={cn(
           "group/row relative flex min-w-0 flex-1 items-center gap-2 px-2 py-2 text-left text-[10.5px] transition-colors",
           isActive
@@ -265,7 +280,9 @@ function WorkspaceRow({
   );
 }
 
-export function LeftSidebar({
+const WorkspaceRow = React.memo(WorkspaceRowImpl);
+
+export function LeftSidebarImpl({
   repositories,
   activeRepositoryId,
   activeWorktreeId,
@@ -504,9 +521,7 @@ export function LeftSidebar({
                   isActive={isActiveRepository}
                   isExpanded={isExpanded}
                   onSelect={handleSelectWorkspace}
-                  onContextMenu={(event) =>
-                    handleContextMenu(event, repository)
-                  }
+                  onContextMenu={handleContextMenu}
                 />
 
                 {isExpanded ? (
@@ -682,3 +697,5 @@ export function LeftSidebar({
     </aside>
   );
 }
+
+export const LeftSidebar = React.memo(LeftSidebarImpl);
