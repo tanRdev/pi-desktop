@@ -45,15 +45,3 @@ export function SendButton({
     </PromptInputAction>
   );
 }
-
-export function KeyboardHint() {
-  return (
-    <span
-      aria-hidden="true"
-      className="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-mono uppercase tracking-wider text-white/25"
-    >
-      <kbd className="text-white/35">⌘⏎</kbd>
-      <span>to send</span>
-    </span>
-  );
-}

@@ -385,7 +385,7 @@ export function ChatThreadPanel({
                             )
                           }
                           className={cn(
-                            "inline-flex items-center rounded-full px-2.5 py-1",
+                            "inline-flex items-center rounded-none px-2.5 py-1",
                             "text-[10.5px] text-white/40",
                             "border border-white/[0.06] bg-white/[0.01]",
                             "transition-colors duration-[var(--duration-fast)]",

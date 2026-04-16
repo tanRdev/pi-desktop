@@ -21,7 +21,7 @@ import {
   getContextPercentage,
 } from "./prompt-dock/context-gauge";
 import { getCurrentModelName, ModelPicker } from "./prompt-dock/model-picker";
-import { KeyboardHint, SendButton } from "./prompt-dock/send-button";
+import { SendButton } from "./prompt-dock/send-button";
 
 export type PromptMode = "build" | "plan";
 
@@ -217,9 +217,7 @@ export function PromptDock({
 
             <div className="flex items-center gap-[var(--space-3)]">
               {isSwitchingModel ? <Loader label="Switching" /> : null}
-              {draft.trim().length === 0 && hasActiveThread ? (
-                <KeyboardHint />
-              ) : null}
+
               {currentContextWindow != null &&
               currentContextPercentage !== null ? (
                 <ContextGauge
