@@ -174,7 +174,7 @@ export function EnhancedMessage({
               {isStreaming && !content ? (
                 <StreamingPlaceholder />
               ) : isMarkdown ? (
-                <Markdown className="max-w-none leading-6 [&_blockquote]:my-3 [&_li]:my-0.5 [&_ol]:my-2 [&_p]:my-2 [&_pre]:my-3 [&_ul]:my-2]">
+                <Markdown className="max-w-none leading-6 [&_blockquote]:my-3 [&_li]:my-0.5 [&_ol]:my-2 [&_p]:my-2 [&_pre]:my-3 [&_ul]:my-2">
                   {content}
                 </Markdown>
               ) : (
