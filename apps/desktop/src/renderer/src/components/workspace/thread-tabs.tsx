@@ -41,7 +41,7 @@ export function ThreadTabs({
             <div
               key={thread.id}
               className={cn(
-                "group flex h-full min-w-0 max-w-[220px] flex-1 items-center gap-2 border-b px-3 text-left text-[10.5px] transition-colors duration-150",
+                "group flex h-full min-w-0 max-w-[220px] flex-1 items-center gap-2 border-b px-3 text-left text-[10.5px] transition-[color,border-color] duration-[var(--duration-normal)] ease-[var(--ease-emphasized-decel)]",
                 isActive
                   ? "border-white/20 text-white/80"
                   : "border-transparent text-white/40 hover:border-white/10 hover:text-white/70",
@@ -98,7 +98,7 @@ export function ThreadTabs({
             <div
               key={file.id}
               className={cn(
-                "group flex h-full min-w-0 max-w-[220px] flex-1 items-center gap-2 border-b px-3 text-left text-[10.5px] transition-colors duration-150",
+                "group flex h-full min-w-0 max-w-[220px] flex-1 items-center gap-2 border-b px-3 text-left text-[10.5px] transition-[color,border-color] duration-[var(--duration-normal)] ease-[var(--ease-emphasized-decel)]",
                 isActive
                   ? "border-white/20 text-white/80"
                   : "border-transparent text-white/40 hover:border-white/10 hover:text-white/70",

@@ -432,15 +432,20 @@ function WorkspaceShellImpl({
                     onFileSave={onFileSave}
                   />
                 ) : hasActiveThread ? (
-                  <ChatThreadPanel
-                    threadTitle={
-                      activeThreadTitle ?? DEFAULT_UNTITLED_THREAD_TITLE
-                    }
-                    messages={threadMessages}
-                    isStreaming={isPromptExecuting}
-                    lastError={threadLastError}
-                    className="h-full"
-                  />
+                  <div
+                    key={activeThreadId ?? "thread"}
+                    className="tab-content-enter h-full"
+                  >
+                    <ChatThreadPanel
+                      threadTitle={
+                        activeThreadTitle ?? DEFAULT_UNTITLED_THREAD_TITLE
+                      }
+                      messages={threadMessages}
+                      isStreaming={isPromptExecuting}
+                      lastError={threadLastError}
+                      className="h-full"
+                    />
+                  </div>
                 ) : null}
               </div>
 
