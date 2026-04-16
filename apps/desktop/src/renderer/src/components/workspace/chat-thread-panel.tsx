@@ -8,15 +8,11 @@ import { Skeleton } from "boneyard-js/react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import type { ActivityIndicatorProps } from "../ui/activity-indicator";
-import {
-  ActivityIndicator,
-  StreamingIndicator,
-} from "../ui/activity-indicator";
+import { StreamingIndicator } from "../ui/activity-indicator";
 import { EnhancedMessage } from "../ui/enhanced-message";
 import type { FeedbackValue } from "../ui/feedback-bar";
 import { ScrollButton } from "../ui/scroll-button";
 import { SystemMessage } from "../ui/system-message";
-import { Tool } from "../ui/tool";
 
 type ChatMessageRowProps = {
   message: AgentMessageSnapshot;
@@ -50,89 +46,6 @@ function buildToolPart(message: AgentMessageSnapshot) {
   } as const;
 }
 
-function extractActivitiesFromMessage(message: AgentMessageSnapshot): Array<{
-  id: string;
-  type: ActivityIndicatorProps["type"];
-  label: string;
-  status: "pending" | "running" | "complete" | "error";
-}> {
-  const activities: Array<{
-    id: string;
-    type: ActivityIndicatorProps["type"];
-    label: string;
-    status: "pending" | "running" | "complete" | "error";
-  }> = [];
-
-  if (message.role === "tool") {
-    const toolNameMatch = /^tool:([^:]+):/.exec(message.id);
-    const toolName = toolNameMatch?.[1] ?? "tool";
-    activities.push({
-      id: `tool-${message.id}`,
-      type: "tool",
-      label: toolName,
-      status:
-        message.status === "streaming"
-          ? "running"
-          : message.status === "error"
-            ? "error"
-            : "complete",
-    });
-  }
-
-  if (
-    message.text?.includes("search") ||
-    message.text?.includes("Search") ||
-    message.id.includes("search")
-  ) {
-    activities.push({
-      id: `search-${message.id}`,
-      type: "search",
-      label: "Search",
-      status: message.status === "streaming" ? "running" : "complete",
-    });
-  }
-
-  if (
-    message.text?.includes("http") ||
-    message.text?.includes("url") ||
-    message.text?.includes("fetch")
-  ) {
-    activities.push({
-      id: `web-${message.id}`,
-      type: "web",
-      label: "Web",
-      status: message.status === "streaming" ? "running" : "complete",
-    });
-  }
-
-  if (
-    message.text?.includes("```") ||
-    message.text?.includes("code") ||
-    message.id.includes("code")
-  ) {
-    activities.push({
-      id: `code-${message.id}`,
-      type: "code",
-      label: "Code",
-      status: message.status === "streaming" ? "running" : "complete",
-    });
-  }
-
-  return activities;
-}
-
-function renderSlashCommandPart(part: string, index: number) {
-  if (part.startsWith("/")) {
-    return (
-      <span key={`${part}-${index}`} className="text-amber-400/90 font-mono">
-        {part}
-      </span>
-    );
-  }
-
-  return <React.Fragment key={`${part}-${index}`}>{part}</React.Fragment>;
-}
-
 interface ChatMessageBodyProps {
   message: AgentMessageSnapshot;
   feedback: FeedbackValue | null;
@@ -148,31 +61,38 @@ function ChatMessageBody({
   onCopy,
   index,
 }: ChatMessageBodyProps) {
-  const activities = extractActivitiesFromMessage(message);
-
   switch (message.role) {
     case "system":
       return (
-        <SystemMessage
-          tone={message.status === "error" ? "error" : "info"}
-          title="System"
-        >
-          {message.text}
-        </SystemMessage>
+        <EnhancedMessage
+          id={message.id}
+          messageRole="system"
+          content={message.text}
+          status={message.status}
+          error={message.status === "error" ? message.text : undefined}
+          animationIndex={index}
+        />
       );
     case "tool":
       return (
-        <div className="w-full">
-          <Tool toolPart={buildToolPart(message)} defaultOpen={false} />
-        </div>
+        <EnhancedMessage
+          id={message.id}
+          messageRole="tool"
+          content={message.text}
+          status={message.status}
+          toolPart={buildToolPart(message)}
+          animationIndex={index}
+        />
       );
     case "user":
       return (
-        <div className="w-full space-y-1">
-          <div className="max-w-none text-sm leading-6 text-white/70">
-            <SlashCommandHighlighter text={message.text || " "} />
-          </div>
-        </div>
+        <EnhancedMessage
+          id={message.id}
+          messageRole="user"
+          content={message.text || " "}
+          status={message.status}
+          animationIndex={index}
+        />
       );
     default:
       if (message.status === "error") {
@@ -184,37 +104,17 @@ function ChatMessageBody({
       }
 
       return (
-        <div className="w-full space-y-2">
-          {activities.length > 0 && (
-            <div className="flex flex-col gap-1.5 pb-1">
-              {activities.map((activity) => (
-                <ActivityIndicator
-                  key={activity.id}
-                  type={activity.type}
-                  label={activity.label}
-                  status={
-                    activity.status === "running" ? "running" : "complete"
-                  }
-                />
-              ))}
-            </div>
-          )}
-
-          <EnhancedMessage
-            id={message.id}
-            messageRole="assistant"
-            content={message.text || " "}
-            isMarkdown={true}
-            status={message.status}
-            activities={activities.filter(
-              (a) => a.status === "running" || a.status === "complete",
-            )}
-            feedback={feedback}
-            onFeedbackChange={onFeedbackChange}
-            onCopy={onCopy}
-            animationIndex={index}
-          />
-        </div>
+        <EnhancedMessage
+          id={message.id}
+          messageRole="assistant"
+          content={message.text || " "}
+          isMarkdown={true}
+          status={message.status}
+          feedback={feedback}
+          onFeedbackChange={onFeedbackChange}
+          onCopy={onCopy}
+          animationIndex={index}
+        />
       );
   }
 }
@@ -272,15 +172,6 @@ const ChatMessageRow = React.memo(function ChatMessageRow({
     </div>
   );
 });
-
-interface SlashCommandHighlighterProps {
-  text: string;
-}
-
-function SlashCommandHighlighter({ text }: SlashCommandHighlighterProps) {
-  const parts = text.split(/(\/[a-zA-Z0-9_-]+)/g);
-  return <>{parts.map(renderSlashCommandPart)}</>;
-}
 
 function getLastErrorTitle(lastError: string): string {
   const normalized = lastError.toLowerCase();
@@ -421,7 +312,11 @@ export function ChatThreadPanel({
   );
 
   const streamingIndicator = isStreaming ? (
-    <div className="mx-auto flex w-full max-w-3xl px-6 py-2">
+    <div
+      className="mx-auto flex w-full max-w-3xl px-6 py-2"
+      role="status"
+      aria-live="polite"
+    >
       <StreamingIndicator
         message="Pi is responding"
         activities={streamingActivities}

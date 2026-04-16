@@ -217,7 +217,7 @@ function StreamingPlaceholder() {
   );
 }
 
-function SlashCommandHighlighter({ text }: { text: string }) {
+export function SlashCommandHighlighter({ text }: { text: string }) {
   const parts = text.split(/(\/[a-zA-Z0-9_-]+)/g);
 
   return (
