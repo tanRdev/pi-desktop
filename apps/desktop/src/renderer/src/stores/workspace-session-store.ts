@@ -90,6 +90,7 @@ export interface WorkspaceSessionStoreState {
     windowId: string,
     updates: WindowUpdates,
   ): void;
+  removeWorktreeSession(worktreeId: string): void;
 }
 
 function isLegacySearchWindow(
@@ -441,14 +442,112 @@ export function createWorkspaceSessionStore({
       return createdWindow;
     },
     closeWindow(windowId) {
-      withActiveSession((session) =>
-        applyLayout(session, (windowState) =>
+      withActiveSession((session) => {
+        const closingWindow = session.layout.windows.find(
+          (w) => w.id === windowId,
+        );
+        const nextSession = applyLayout(session, (windowState) =>
           windowReducer(windowState, {
             type: "CLOSE_WINDOW",
             payload: { windowId },
           }),
-        ),
-      );
+        );
+
+        if (!closingWindow) {
+          return nextSession;
+        }
+
+        const remainingWindows = nextSession.layout.windows;
+
+        // Prune fileContents and noteContents keyed by windowId — they
+        // are scoped to the window that is going away, so always drop.
+        let fileContents = nextSession.fileContents;
+        if (fileContents.has(windowId)) {
+          fileContents = new Map(fileContents);
+          fileContents.delete(windowId);
+        }
+
+        let noteContents = nextSession.noteContents;
+        const noteIdForWindow =
+          closingWindow.kind === "note" ? closingWindow.noteId : null;
+        if (noteContents.has(windowId)) {
+          noteContents = new Map(noteContents);
+          noteContents.delete(windowId);
+        }
+        if (noteIdForWindow && noteIdForWindow !== windowId) {
+          const otherReferences = remainingWindows.some(
+            (w) => w.kind === "note" && w.noteId === noteIdForWindow,
+          );
+          if (!otherReferences && noteContents.has(noteIdForWindow)) {
+            if (noteContents === nextSession.noteContents) {
+              noteContents = new Map(noteContents);
+            }
+            noteContents.delete(noteIdForWindow);
+          }
+        }
+
+        // Prune threadConversations keyed by threadId only if no other
+        // chat window in the same session references it.
+        let threadConversations = nextSession.threadConversations;
+        if (closingWindow.kind === "chat") {
+          const closingThreadId = closingWindow.threadId;
+          const otherChatReferences = remainingWindows.some(
+            (w) => w.kind === "chat" && w.threadId === closingThreadId,
+          );
+          if (
+            !otherChatReferences &&
+            threadConversations.has(closingThreadId)
+          ) {
+            threadConversations = new Map(threadConversations);
+            threadConversations.delete(closingThreadId);
+          }
+        }
+
+        // Prune notes persistent record too when no other note window
+        // shares the same noteId (keeps persisted state in sync).
+        let notes = nextSession.notes;
+        if (noteIdForWindow) {
+          const otherReferences = remainingWindows.some(
+            (w) => w.kind === "note" && w.noteId === noteIdForWindow,
+          );
+          if (!otherReferences && windowId in notes) {
+            notes = { ...notes };
+            delete notes[windowId];
+          }
+        }
+
+        return {
+          ...nextSession,
+          fileContents,
+          noteContents,
+          threadConversations,
+          notes,
+        };
+      });
+    },
+    removeWorktreeSession(worktreeId) {
+      const persistTimer = persistTimers.get(worktreeId);
+      if (persistTimer) {
+        clearTimeout(persistTimer);
+        persistTimers.delete(worktreeId);
+      }
+      set((state) => {
+        if (!state.sessionsByWorktreeId[worktreeId]) {
+          return state;
+        }
+        const { [worktreeId]: _removed, ...remaining } =
+          state.sessionsByWorktreeId;
+        return {
+          ...state,
+          sessionsByWorktreeId: remaining,
+          ...(state.activeWorktreeId === worktreeId
+            ? {
+                activeWorktreeId: null,
+                activeWorktreeVersion: state.activeWorktreeVersion + 1,
+              }
+            : {}),
+        };
+      });
     },
     focusWindow(windowId) {
       withActiveSession((session) =>

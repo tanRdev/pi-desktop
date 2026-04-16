@@ -369,4 +369,124 @@ describe("workspace-session-store", () => {
     expect(store.getState().activeWorktreeId).toBe("/tmp/repo-b");
     expect(store.getState().activeWorktreeVersion).toBe(2);
   });
+
+  it("prunes runtime maps when a window is closed with no other references", async () => {
+    const store = createWorkspaceSessionStore({
+      getWorkspaceSession: vi.fn(async () => null),
+      saveWorkspaceSession: vi.fn(async (session) => session),
+      persistDelayMs: 5,
+    });
+
+    await store.getState().setActiveWorktree("/tmp/repo-a");
+
+    const noteWindow = store.getState().createWindow({ kind: "note" });
+    store.getState().setNoteContent(noteWindow.id, "draft text");
+
+    const chatWindow = store.getState().createWindow({
+      kind: "chat",
+      threadId: "thread-xyz",
+    });
+    store.getState().setThreadConversation("thread-xyz", {
+      messages: [],
+      status: "ready",
+      lastError: null,
+    });
+
+    const fileWindow = store.getState().createWindow({
+      kind: "file",
+      filePath: "/tmp/repo-a/src/a.ts",
+    });
+    store.getState().setFileContent(fileWindow.id, {
+      content: null,
+      isLoading: false,
+      error: null,
+    });
+
+    // Sanity: all maps populated.
+    const before = store.getState().sessionsByWorktreeId["/tmp/repo-a"];
+    expect(before?.noteContents.has(noteWindow.id)).toBe(true);
+    expect(before?.threadConversations.has("thread-xyz")).toBe(true);
+    expect(before?.fileContents.has(fileWindow.id)).toBe(true);
+    expect(before?.notes[noteWindow.id]).toBeDefined();
+
+    store.getState().closeWindow(noteWindow.id);
+    store.getState().closeWindow(chatWindow.id);
+    store.getState().closeWindow(fileWindow.id);
+
+    const after = store.getState().sessionsByWorktreeId["/tmp/repo-a"];
+    expect(after?.noteContents.has(noteWindow.id)).toBe(false);
+    expect(after?.notes[noteWindow.id]).toBeUndefined();
+    expect(after?.threadConversations.has("thread-xyz")).toBe(false);
+    expect(after?.fileContents.has(fileWindow.id)).toBe(false);
+  });
+
+  it("keeps thread conversation when another chat window still references the same thread", async () => {
+    const store = createWorkspaceSessionStore({
+      getWorkspaceSession: vi.fn(async () => null),
+      saveWorkspaceSession: vi.fn(async (session) => session),
+      persistDelayMs: 5,
+    });
+
+    await store.getState().setActiveWorktree("/tmp/repo-a");
+
+    const chatA = store
+      .getState()
+      .createWindow({ kind: "chat", threadId: "shared-thread" });
+    const chatB = store
+      .getState()
+      .createWindow({ kind: "chat", threadId: "shared-thread" });
+
+    store.getState().setThreadConversation("shared-thread", {
+      messages: [],
+      status: "ready",
+      lastError: null,
+    });
+
+    store.getState().closeWindow(chatA.id);
+
+    expect(
+      store
+        .getState()
+        .sessionsByWorktreeId["/tmp/repo-a"]?.threadConversations.has(
+          "shared-thread",
+        ),
+    ).toBe(true);
+
+    store.getState().closeWindow(chatB.id);
+
+    expect(
+      store
+        .getState()
+        .sessionsByWorktreeId["/tmp/repo-a"]?.threadConversations.has(
+          "shared-thread",
+        ),
+    ).toBe(false);
+  });
+
+  it("removes the entire session when removeWorktreeSession is invoked", async () => {
+    const store = createWorkspaceSessionStore({
+      getWorkspaceSession: vi.fn(async () => null),
+      saveWorkspaceSession: vi.fn(async (session) => session),
+      persistDelayMs: 5,
+    });
+
+    store
+      .getState()
+      .hydrateCatalogSessions([
+        createEmptyWorkspaceSession("/tmp/repo-a"),
+        createEmptyWorkspaceSession("/tmp/repo-b"),
+      ]);
+
+    await store.getState().setActiveWorktree("/tmp/repo-a");
+    store.getState().createWindow({ kind: "note" });
+    expect(store.getState().sessionsByWorktreeId["/tmp/repo-a"]).toBeDefined();
+
+    store.getState().removeWorktreeSession("/tmp/repo-a");
+
+    expect(
+      store.getState().sessionsByWorktreeId["/tmp/repo-a"],
+    ).toBeUndefined();
+    expect(store.getState().sessionsByWorktreeId["/tmp/repo-b"]).toBeDefined();
+    expect(store.getState().activeWorktreeId).toBeNull();
+  });
 });
