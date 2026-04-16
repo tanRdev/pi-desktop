@@ -5,41 +5,41 @@
    This file provides:
      - Semantic color variables (shadcn compat)
      - Global border-color reset
-     - html/body/root base styles (no fonts, no bg overrides)
+     - html/body/root base styles
      - Utility classes (.glass, .interactive, .panel, etc.)
      - .prose styles
    ============================================ */
 
 @layer base {
   :root {
-    --background: #141414;
+    --background: #0C0D0F;
     --foreground: #e7e7e7;
-    --surface-1: #141414;
-    --surface-2: #181818;
-    --surface-3: #1c1c1c;
-    --surface-4: #222222;
-    --card: #181818;
+    --surface-1: #0C0D0F;
+    --surface-2: #101114;
+    --surface-3: #14161A;
+    --surface-4: #1A1C21;
+    --card: #101114;
     --card-foreground: #e7e7e7;
-    --popover: #1c1c1c;
+    --popover: #14161A;
     --popover-foreground: #e7e7e7;
     --primary: #ffffff;
-    --primary-foreground: #141414;
-    --secondary: #8a8a8a;
-    --secondary-foreground: #141414;
-    --muted: #1c1c1c;
-    --muted-foreground: #6a6a6a;
-    --accent: #3b82f6;
-    --accent-foreground: #ffffff;
+    --primary-foreground: #0C0D0F;
+    --secondary: #9CA3AF;
+    --secondary-foreground: #0C0D0F;
+    --muted: #14161A;
+    --muted-foreground: #6B7280;
+    --accent: #00E559;
+    --accent-foreground: #0C0D0F;
     --destructive: #ef4444;
     --destructive-foreground: #ffffff;
-    --border: #222222;
-    --border-subtle: #1c1c1c;
-    --border-hover: #3f3f46;
-    --input: #1c1c1c;
-    --ring: #3b82f6;
-    --glass-blur: 12px;
-    --glass-bg: rgba(20, 20, 20, 0.7);
-    --glass-bg-solid: rgba(20, 20, 20, 0.95);
+    --border: #1A1C21;
+    --border-subtle: #14161A;
+    --border-hover: #2E3038;
+    --input: #14161A;
+    --ring: #00E559;
+    --glass-blur: 24px;
+    --glass-bg: rgba(12, 13, 15, 0.7);
+    --glass-bg-solid: rgba(12, 13, 15, 0.95);
     --glass-border: rgba(255, 255, 255, 0.04);
     --glass-border-strong: rgba(255, 255, 255, 0.08);
     --app-font-sans: var(--font-body, sans-serif);
@@ -57,13 +57,13 @@
   }
 
   html {
-    font-size: 16px;
+    font-size: 10.5px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   body {
-    line-height: 1.5;
+    line-height: 1.625;
     font-weight: 400;
   }
 
@@ -72,7 +72,7 @@
   }
 
   .text-small {
-    font-size: 14px;
+    font-size: 10.5px;
   }
 
   code,
@@ -89,12 +89,12 @@
 
 .prose {
   color: var(--foreground);
-  line-height: 1.6;
+  line-height: 1.625;
+  font-size: 10.5px;
 }
 
 .prose code {
   background: var(--surface-3);
-  border-radius: var(--radius-md);
   padding: 0.15em 0.4em;
   font-size: 0.9em;
   font-family: var(--app-font-mono);
@@ -103,8 +103,7 @@
 .prose pre {
   background: var(--surface-2);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 1rem;
+  padding: 14px;
   overflow-x: auto;
 }
 
@@ -153,9 +152,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: var(--radius-md);
-    padding: 0.5rem 0.75rem;
-    font-size: 0.875rem;
+    padding: 7px 10.5px;
+    font-size: 10.5px;
     font-weight: 500;
     transition: all var(--duration-fast) var(--ease-out);
   }
@@ -167,15 +165,13 @@
   .panel {
     background: var(--surface-2);
     border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
   }
 
   .input-minimal {
     background: var(--surface-2);
     border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 0.5rem 0.75rem;
-    font-size: 0.875rem;
+    padding: 7px 10.5px;
+    font-size: 10.5px;
     transition: border-color var(--duration-fast) var(--ease-out);
   }
 
@@ -189,10 +185,10 @@
   }
 
   .text-sm {
-    font-size: 0.8125rem;
+    font-size: 10.5px;
   }
 
   .text-xs {
-    font-size: 0.75rem;
+    font-size: 9px;
   }
 }

@@ -131,17 +131,17 @@ function CombinedChangeList({
         </div>
         <div className="flex items-center gap-1 font-mono text-[10px] font-bold">
           {added > 0 && (
-            <span className="flex items-center justify-center rounded bg-emerald-500/10 px-1 py-px text-emerald-400 text-[10px]">
+            <span className="flex items-center justify-center bg-[#00E559]/10 px-1 py-px text-[#00E559] text-[10px]">
               +{added}
             </span>
           )}
           {modified > 0 && (
-            <span className="flex items-center justify-center rounded bg-amber-500/10 px-1 py-px text-amber-400 text-[10px]">
+            <span className="flex items-center justify-center bg-amber-500/10 px-1 py-px text-amber-400 text-[10px]">
               ~{modified}
             </span>
           )}
           {deleted > 0 && (
-            <span className="flex items-center justify-center rounded bg-rose-500/10 px-1 py-px text-rose-400 text-[10px]">
+            <span className="flex items-center justify-center bg-rose-500/10 px-1 py-px text-rose-400 text-[10px]">
               -{deleted}
             </span>
           )}
@@ -149,7 +149,7 @@ function CombinedChangeList({
             modified === 0 &&
             deleted === 0 &&
             allPaths.length > 0 && (
-              <span className="flex items-center justify-center rounded bg-white/5 px-1 py-px text-white/40 text-[10px]">
+              <span className="flex items-center justify-center bg-white/5 px-1 py-px text-white/40 text-[10px]">
                 {allPaths.length}
               </span>
             )}
@@ -178,9 +178,9 @@ function CombinedChangeList({
                   }
                   aria-label={staged ? `Unstage ${path}` : `Stage ${path}`}
                   className={cn(
-                    "flex size-4 shrink-0 items-center justify-center rounded border transition-all duration-200",
+                    "flex size-4 shrink-0 items-center justify-center border transition-all duration-200",
                     staged
-                      ? "bg-emerald-500/20 border-emerald-500/50 text-emerald-400"
+                      ? "bg-[#00E559]/20 border-[#00E559]/50 text-[#00E559]"
                       : "border-white/10 text-transparent hover:border-white/30",
                   )}
                 >
@@ -198,7 +198,7 @@ function CombinedChangeList({
                       onClick={() => void onDiscard(path)}
                       title="Discard changes"
                       className={cn(
-                        "flex size-4 items-center justify-center rounded text-white/35 transition-colors duration-150",
+                        "flex size-4 items-center justify-center text-white/35 transition-colors duration-150",
                         "hover:bg-red-500/20 hover:text-red-400",
                       )}
                     >
@@ -209,7 +209,7 @@ function CombinedChangeList({
                     className={cn(
                       "w-3 text-center text-[10px] font-bold select-none font-mono",
                       status === "added" || status === "untracked"
-                        ? "text-emerald-400"
+                        ? "text-[#00E559]"
                         : status === "deleted"
                           ? "text-rose-400"
                           : status === "modified"
@@ -243,16 +243,16 @@ function GitPanelSkeleton() {
   return (
     <div className="space-y-6">
       <section className="space-y-3">
-        <div className="h-8 w-full rounded bg-white/5" />
+        <div className="h-8 w-full bg-white/5" />
         <div className="flex gap-2">
-          <div className="h-7 w-16 rounded bg-white/5" />
-          <div className="h-7 w-7 rounded bg-white/5" />
+          <div className="h-7 w-16 bg-white/5" />
+          <div className="h-7 w-7 bg-white/5" />
         </div>
       </section>
       <div className="space-y-2">
-        <div className="h-4 w-20 rounded bg-white/5" />
-        <div className="h-8 w-full rounded bg-white/5" />
-        <div className="h-8 w-full rounded bg-white/5" />
+        <div className="h-4 w-20 bg-white/5" />
+        <div className="h-8 w-full bg-white/5" />
+        <div className="h-8 w-full bg-white/5" />
       </div>
     </div>
   );
@@ -318,7 +318,7 @@ export function GitPanel({
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-2 min-w-0">
-                <span className="truncate text-[12px] font-medium text-white/50">
+                <span className="truncate text-[10.5px] font-normal text-white/50">
                   {viewModel.branchLabel}
                 </span>
               </div>
@@ -327,7 +327,7 @@ export function GitPanel({
                   type="button"
                   onClick={() => void onRefresh()}
                   disabled={!canRefresh || isRefreshing}
-                  className="flex size-8 items-center justify-center rounded-sm text-white/40 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/80 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex size-8 items-center justify-center text-white/40 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/80 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <ArrowClockwise
                     className={cn("size-4", isRefreshing && "animate-spin")}
@@ -335,8 +335,8 @@ export function GitPanel({
                 </button>
               </div>
             </div>
-            <div className="flex items-center gap-2 text-[12px] tabular-nums tracking-wide text-white/40">
-              <span className="truncate font-medium">{viewModel.summary}</span>
+            <div className="flex items-center gap-2 text-[10.5px] tabular-nums tracking-wide text-white/40">
+              <span className="truncate font-normal">{viewModel.summary}</span>
               <span className="text-white/20 select-none">·</span>
               <span className="truncate">{viewModel.syncLabel}</span>
             </div>
@@ -352,7 +352,7 @@ export function GitPanel({
                 placeholder="Commit message..."
                 rows={2}
                 disabled={!repositoryPath || isLoading}
-                className="w-full resize-none bg-transparent px-0 py-2 text-[12px] leading-relaxed text-white/90 placeholder:text-white/20 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full resize-none bg-transparent px-0 py-2 text-[10.5px] leading-relaxed text-white/90 placeholder:text-white/20 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               />
               <div className="flex items-center justify-end gap-1.5 pt-1">
                 <Popover>
@@ -382,7 +382,7 @@ export function GitPanel({
                           !canCommit || !commitMessage.trim() || isLoading
                         }
                         onClick={() => void onCommit()}
-                        className="justify-start px-2 py-1.5 text-[12px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
+                        className="justify-start px-2 py-1.5 text-[10.5px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
                       >
                         Commit
                       </Button>
@@ -395,7 +395,7 @@ export function GitPanel({
                           isLoading
                         }
                         onClick={() => void onCommitAndPush()}
-                        className="justify-start px-2 py-1.5 text-[12px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
+                        className="justify-start px-2 py-1.5 text-[10.5px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
                       >
                         Commit & Push
                       </Button>
@@ -405,7 +405,7 @@ export function GitPanel({
                         size="sm"
                         disabled={!canPush || isLoading}
                         onClick={() => void onPush()}
-                        className="justify-start px-2 py-1.5 text-[12px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
+                        className="justify-start px-2 py-1.5 text-[10.5px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
                       >
                         Push
                       </Button>
@@ -414,7 +414,7 @@ export function GitPanel({
                         size="sm"
                         disabled={!canPull || isLoading}
                         onClick={() => void onPull()}
-                        className="justify-start px-2 py-1.5 text-[12px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
+                        className="justify-start px-2 py-1.5 text-[10.5px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
                       >
                         Pull
                       </Button>
@@ -423,7 +423,7 @@ export function GitPanel({
                         size="sm"
                         disabled={!canFetch || isLoading}
                         onClick={() => void onFetch()}
-                        className="justify-start px-2 py-1.5 text-[12px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
+                        className="justify-start px-2 py-1.5 text-[10.5px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
                       >
                         Fetch
                       </Button>

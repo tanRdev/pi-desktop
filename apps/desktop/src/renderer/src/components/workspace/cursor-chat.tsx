@@ -17,9 +17,9 @@ export function CursorChat({ className }: CursorChatProps) {
       {/* Header - Context bar */}
       <div className="flex h-10 items-center border-b border-white/[0.03] px-4 select-none">
         <div className="flex items-center gap-2 text-white/50">
-          <span className="text-[16px]">tan/dev/pi-desktop</span>
+          <span className="text-[10.5px]">tan/dev/pi-desktop</span>
           <span className="text-white/20">›</span>
-          <span className="text-[16px] text-white/70">frontend-design</span>
+          <span className="text-[10.5px] text-white/70">frontend-design</span>
         </div>
       </div>
 
@@ -28,10 +28,10 @@ export function CursorChat({ className }: CursorChatProps) {
         {/* Message from user */}
         <div className="mb-4 flex gap-3">
           <div className="flex size-6 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500 shrink-0">
-            <span className="text-[14px] font-medium text-white">T</span>
+            <span className="text-[10.5px] font-normal text-white">T</span>
           </div>
           <div className="flex-1">
-            <div className="text-[16px] text-white/90 leading-relaxed font-regular">
+            <div className="text-[10.5px] text-white/90 leading-relaxed font-regular">
               this is the textbox to interact with the llm. notice how skills
               and slash commands are highlighted and can be invoked with /
             </div>
@@ -40,9 +40,9 @@ export function CursorChat({ className }: CursorChatProps) {
 
         {/* Skills Dropdown - Cursor style */}
         <div className="mb-4 ml-9">
-          <div className="overflow-hidden rounded-lg border border-white/[0.06] bg-[#141414]/95 shadow-xl">
+          <div className="overflow-hidden border border-white/[0.06] bg-[#0C0D0F]/95 shadow-xl">
             <div className="border-b border-white/[0.04] px-3 py-2">
-              <span className="text-[14px] font-medium text-white/40 uppercase tracking-wider">
+              <span className="text-[10.5px] font-normal text-white/40 uppercase tracking-wider">
                 Skills
               </span>
             </div>
@@ -87,19 +87,19 @@ export function CursorChat({ className }: CursorChatProps) {
       <div className="p-4 select-none">
         <div
           className={cn(
-            "relative overflow-hidden rounded-xl select-none",
-            "border border-white/[0.06] bg-[#141414]/95",
+            "relative overflow-hidden select-none",
+            "border border-white/[0.06] bg-[#0C0D0F]/95",
             "transition-all duration-150",
-            "focus-within:border-white/[0.12] focus-within:shadow-[0_0_0_1px_rgba(59,130,246,0.2)]",
+            "focus-within:border-white/[0.12] focus-within:shadow-[0_0_0_1px_rgba(0,229,89,0.2)]",
           )}
         >
           {/* Slash command hint */}
           <div className="px-4 pt-3 pb-2 select-text">
-            <span className="text-[16px] text-white/30 font-mono">/</span>
-            <span className="text-[16px] text-amber-400/90">
+            <span className="text-[10.5px] text-white/30 font-mono">/</span>
+            <span className="text-[10.5px] text-amber-400/90">
               frontend-design
             </span>
-            <span className="text-[16px] text-white/60 ml-1">
+            <span className="text-[10.5px] text-white/60 ml-1">
               this is the textbox to interact with the llm. notice how skills
               and slash commands are highlighted and can be invoked with /
             </span>
@@ -110,30 +110,30 @@ export function CursorChat({ className }: CursorChatProps) {
             <div className="flex items-center gap-1">
               <button
                 type="button"
-                className="flex h-7 w-7 items-center justify-center rounded-md text-white/30 hover:text-white/60 hover:bg-white/[0.05] transition-colors"
+                className="flex h-7 w-7 items-center justify-center text-white/30 hover:text-white/60 hover:bg-white/[0.05] transition-colors"
               >
                 <Plus weight="bold" className="size-5" />
               </button>
               <div className="h-4 w-px bg-white/[0.06] mx-1" />
               <button
                 type="button"
-                className="flex h-7 w-7 items-center justify-center rounded-md text-white/30 hover:text-white/60 hover:bg-white/[0.05] transition-colors"
+                className="flex h-7 w-7 items-center justify-center text-white/30 hover:text-white/60 hover:bg-white/[0.05] transition-colors"
               >
                 <Paperclip className="size-5" />
               </button>
               <button
                 type="button"
-                className="flex h-7 w-7 items-center justify-center rounded-md text-white/30 hover:text-white/60 hover:bg-white/[0.05] transition-colors"
+                className="flex h-7 w-7 items-center justify-center text-white/30 hover:text-white/60 hover:bg-white/[0.05] transition-colors"
               >
                 <At className="size-5" />
               </button>
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-[14px] text-white/30">Plan: N...</span>
+              <span className="text-[10.5px] text-white/30">Plan: N...</span>
               <button
                 type="button"
-                className="flex h-7 items-center gap-1.5 rounded-md bg-white text-black px-3 text-[14px] font-medium hover:bg-white/90 transition-colors"
+                className="flex h-7 items-center gap-1.5 bg-white text-black px-3 text-[10.5px] font-normal hover:bg-white/90 transition-colors"
               >
                 <Sparkle className="size-5" weight="fill" />
                 Chat
@@ -164,14 +164,18 @@ function SkillItem({
         active ? "bg-white/[0.06]" : "hover:bg-white/[0.03]",
       )}
     >
-      <div className="flex size-5 items-center justify-center rounded text-white/50">
-        <span className="text-[14px]">✦</span>
+      <div className="flex size-5 items-center justify-center text-white/50">
+        <span className="text-[10.5px]">✦</span>
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="text-[16px] font-medium text-white/90">{name}</span>
+          <span className="text-[10.5px] font-normal text-white/90">
+            {name}
+          </span>
         </div>
-        <div className="text-[14px] text-white/40 truncate">{description}</div>
+        <div className="text-[10.5px] text-white/40 truncate">
+          {description}
+        </div>
       </div>
     </div>
   );

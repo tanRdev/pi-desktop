@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@mariozechner/pi-coding-agent": "0.57.1",
-    "@pi-desktop/shared": "workspace:*"
+    "@pi-desktop/shared": "workspace:*",
+    "effect": "^3.21.0"
   }
 }

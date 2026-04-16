@@ -42,7 +42,7 @@ export default function App() {
           className={cn(
             // Cursor Glass: solid near-black root, no glass effect
             "relative flex h-screen flex-col overflow-hidden",
-            "rounded-[var(--window-radius)]",
+
             "bg-[var(--color-bg-primary)]",
             // App-level page transition animations
             "motion-safe:[&>*]:animate-in motion-safe:[&>*]:fade-in-0",
@@ -85,14 +85,14 @@ export default function App() {
                   }}
                   placeholder="feature/my-task"
                   className={cn(
-                    "w-full rounded border border-white/[0.06] bg-[#141414] px-3 py-2 text-[16px] text-white/80 outline-none",
+                    "w-full border border-white/[0.06] bg-[#0C0D0F] px-3 py-2 text-[10.5px] text-white/80 outline-none",
                     "transition-all duration-[var(--duration-fast)]",
                     "focus:border-white/[0.12] focus:ring-1 focus:ring-white/[0.06]",
                     "placeholder:text-white/30",
                   )}
                 />
                 {controller.worktreeCreateError && (
-                  <p className="text-[14px] text-destructive animate-pulse">
+                  <p className="text-[10.5px] text-destructive animate-pulse">
                     {controller.worktreeCreateError}
                   </p>
                 )}
@@ -130,14 +130,14 @@ export default function App() {
           >
             <DialogContent className="sm:max-w-[440px]">
               <DialogHeader className="border-b-0 pb-2">
-                <DialogTitle className="text-base font-semibold tracking-tight">
+                <DialogTitle className="text-base font-normal tracking-tight">
                   {controller.oauthDialogState.mode === "providers"
                     ? "Authentication"
                     : controller.oauthDialogState.mode === "logout"
                       ? "Sign out"
                       : "Sign in"}
                 </DialogTitle>
-                <DialogDescription className="text-[13px] text-white/40">
+                <DialogDescription className="text-[10.5px] text-white/40">
                   {controller.oauthDialogState.mode === "providers"
                     ? "Choose a provider to connect your account."
                     : "Select a provider to continue this action."}
@@ -146,10 +146,10 @@ export default function App() {
               <div className="flex flex-col px-6 py-2">
                 {controller.oauthDialogState.providers.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-12 text-center">
-                    <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-white/[0.02] border border-white/[0.04]">
+                    <div className="mb-4 flex size-12 items-center justify-center bg-white/[0.02] border border-white/[0.04]">
                       <Globe className="size-6 text-white/20" />
                     </div>
-                    <p className="text-[14px] text-white/40">
+                    <p className="text-[10.5px] text-white/40">
                       No OAuth providers available.
                     </p>
                   </div>
@@ -171,13 +171,13 @@ export default function App() {
                             "active:bg-white/[0.04] disabled:opacity-50",
                           )}
                         >
-                          <Avatar className="size-9 shrink-0 rounded-sm border-white/[0.08] bg-white/[0.03]">
-                            <AvatarFallback className="bg-transparent text-[14px] text-white/20">
+                          <Avatar className="size-9 shrink-0 border-white/[0.08] bg-white/[0.03]">
+                            <AvatarFallback className="bg-transparent text-[10.5px] text-white/20">
                               {provider.name[0]}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex flex-1 flex-col min-w-0">
-                            <span className="truncate text-[14px] font-medium text-white/90 group-hover:text-white">
+                            <span className="truncate text-[10.5px] font-normal text-white/90 group-hover:text-white">
                               {provider.name}
                             </span>
                             <span className="text-[11px] text-white/30">
@@ -188,12 +188,12 @@ export default function App() {
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
                             {provider.isAuthenticated ? (
-                              <div className="flex items-center gap-2 text-[12px] text-[var(--color-success)] font-medium">
+                              <div className="flex items-center gap-2 text-[10.5px] text-[var(--color-success)] font-normal">
                                 <div className="size-1.5 rounded-full bg-[var(--color-success)] shadow-[0_0_8px_rgba(34,197,94,0.4)]" />
                                 Connected
                               </div>
                             ) : (
-                              <div className="text-[12px] text-white/40 group-hover:text-white/60 transition-colors">
+                              <div className="text-[10.5px] text-white/40 group-hover:text-white/60 transition-colors">
                                 Connect
                               </div>
                             )}
@@ -206,10 +206,10 @@ export default function App() {
 
                 {controller.oauthDialogState.requestedProviderId && (
                   <div className="mt-2 border-t border-white/[0.06] -mx-6 px-6 py-4 bg-white/[0.01]">
-                    <div className="flex items-start gap-3 text-[12px] text-white/40">
+                    <div className="flex items-start gap-3 text-[10.5px] text-white/40">
                       <Info className="size-4 shrink-0 mt-0.5 text-white/20" />
                       <div className="flex flex-col gap-1">
-                        <span className="font-medium text-white/50">
+                        <span className="font-normal text-white/50">
                           Provider requested
                         </span>
                         <code className="text-white/40 font-mono break-all">
@@ -248,7 +248,7 @@ export default function App() {
               </DialogHeader>
               {controller.removeRepositoryError ? (
                 <div className="space-y-3 px-6 py-4 bg-[var(--color-bg-secondary)]">
-                  <p className="text-[14px] text-destructive">
+                  <p className="text-[10.5px] text-destructive">
                     {controller.removeRepositoryError}
                   </p>
                 </div>

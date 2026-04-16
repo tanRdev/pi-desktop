@@ -47,11 +47,11 @@ function TerminalSkeleton() {
     <div className="flex h-full w-full flex-col bg-[var(--color-bg-primary)]">
       <div className="flex min-h-0 flex-1 flex-col bg-[var(--color-bg-primary)] p-4">
         <div className="space-y-2">
-          <div className="h-3 w-full rounded bg-white/5" />
-          <div className="h-3 w-4/5 rounded bg-white/5" />
-          <div className="h-3 w-3/4 rounded bg-white/5" />
-          <div className="h-3 w-full rounded bg-white/5" />
-          <div className="h-3 w-1/2 rounded bg-white/5" />
+          <div className="h-3 w-full bg-white/5" />
+          <div className="h-3 w-4/5 bg-white/5" />
+          <div className="h-3 w-3/4 bg-white/5" />
+          <div className="h-3 w-full bg-white/5" />
+          <div className="h-3 w-1/2 bg-white/5" />
         </div>
       </div>
     </div>
@@ -209,7 +209,7 @@ export function Terminal({
               Run{" "}
               <code
                 className={cn(
-                  "rounded bg-white/[0.08] px-1.5 py-0.5 text-white/60",
+                  "bg-white/[0.08] px-1.5 py-0.5 text-white/60",
                   "transition-all duration-150",
                   "hover:bg-white/[0.12]",
                 )}

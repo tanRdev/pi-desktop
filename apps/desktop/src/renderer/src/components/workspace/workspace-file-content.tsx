@@ -31,17 +31,17 @@ function FileContentSkeleton() {
   return (
     <div className="flex h-full flex-col">
       <div className="flex h-11 shrink-0 items-center justify-between border-b border-white/[0.04] bg-transparent px-5">
-        <div className="h-4 w-32 rounded bg-white/5" />
+        <div className="h-4 w-32 bg-white/5" />
       </div>
       <div className="min-h-0 flex-1 space-y-3 p-5">
-        <div className="h-3 w-full rounded bg-white/5" />
-        <div className="h-3 w-5/6 rounded bg-white/5" />
-        <div className="h-3 w-4/5 rounded bg-white/5" />
-        <div className="h-3 w-full rounded bg-white/5" />
-        <div className="h-3 w-3/4 rounded bg-white/5" />
-        <div className="h-3 w-full rounded bg-white/5" />
-        <div className="h-3 w-2/3 rounded bg-white/5" />
-        <div className="h-3 w-full rounded bg-white/5" />
+        <div className="h-3 w-full bg-white/5" />
+        <div className="h-3 w-5/6 bg-white/5" />
+        <div className="h-3 w-4/5 bg-white/5" />
+        <div className="h-3 w-full bg-white/5" />
+        <div className="h-3 w-3/4 bg-white/5" />
+        <div className="h-3 w-full bg-white/5" />
+        <div className="h-3 w-2/3 bg-white/5" />
+        <div className="h-3 w-full bg-white/5" />
       </div>
     </div>
   );
@@ -79,7 +79,7 @@ function TextContent({
       <ScrollArea className="min-h-0 flex-1">
         <pre
           className={cn(
-            "min-h-full p-5 font-mono text-[13px] leading-relaxed text-white/70",
+            "min-h-full p-5 font-mono text-[10.5px] leading-relaxed text-white/70",
             "whitespace-pre-wrap break-all",
           )}
         >
@@ -120,7 +120,7 @@ export function WorkspaceFileContent({
 
   const toolbar = onSave ? (
     <div className="flex h-11 shrink-0 items-center justify-between border-b border-white/[0.04] bg-transparent px-5">
-      <div className="text-[14px] font-semibold uppercase tracking-wider text-white/30">
+      <div className="text-[10.5px] font-normal uppercase tracking-wider text-white/30">
         {fileName}
       </div>
       <Button
@@ -129,7 +129,7 @@ export function WorkspaceFileContent({
         size="xs"
         onClick={onSave}
         disabled={isReadOnly || !isDirty}
-        className="h-6 gap-1.5 px-2 text-[14px] uppercase tracking-wider text-white/40"
+        className="h-6 gap-1.5 px-2 text-[10.5px] uppercase tracking-wider text-white/40"
       >
         <Save className="size-3" />
         Save

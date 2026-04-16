@@ -95,7 +95,7 @@ function ThreadCategorySection({
     <div className="relative space-y-0.5">
       <div
         className={cn(
-          "flex w-full items-center justify-between rounded px-2 py-2 text-[13px] text-white/50",
+          "flex w-full items-center justify-between px-2 py-2 text-[10.5px] text-white/50",
           "group/item",
         )}
       >
@@ -116,7 +116,7 @@ function ThreadCategorySection({
                     onAction();
                   }}
                   data-testid={actionTestId}
-                  className="hidden group-hover/item:flex size-5 items-center justify-center rounded hover:bg-white/10 hover:text-white/80 transition-colors text-white/40"
+                  className="hidden group-hover/item:flex size-5 items-center justify-center hover:bg-white/10 hover:text-white/80 transition-colors text-white/40"
                   aria-label={actionLabel}
                 >
                   <Plus className="size-5" />
@@ -174,7 +174,7 @@ export function SessionRow({
         type="button"
         onClick={() => onSelect(session.id)}
         className={cn(
-          "group relative flex w-full items-center gap-2 rounded-sm px-2 py-2 text-left text-[13px] transition-colors",
+          "group relative flex w-full items-center gap-2 px-2 py-2 text-left text-[10.5px] transition-colors",
           isActive
             ? "bg-transparent text-white/80"
             : "text-white/40 hover:bg-white/[0.04] hover:text-white/70",
@@ -182,7 +182,7 @@ export function SessionRow({
       >
         <span className="flex size-5 shrink-0 items-center justify-center">
           {isWorking ? (
-            <span className="text-[14px] leading-none text-white font-mono whitespace-nowrap">
+            <span className="text-[10.5px] leading-none text-white font-mono whitespace-nowrap">
               {spinnerFrame}
             </span>
           ) : (
@@ -224,7 +224,7 @@ function WorkspaceRow({
         onClick={() => onSelect(repository.id)}
         onContextMenu={onContextMenu}
         className={cn(
-          "group/row relative flex min-w-0 flex-1 items-center gap-2 rounded-sm px-2 py-2 text-left text-[13px] transition-colors",
+          "group/row relative flex min-w-0 flex-1 items-center gap-2 px-2 py-2 text-left text-[10.5px] transition-colors",
           isActive
             ? "bg-transparent text-white/80"
             : "text-white/40 hover:bg-white/[0.04] hover:text-white/70",
@@ -438,7 +438,7 @@ export function LeftRail({
           type="button"
           onClick={onToggleVisible}
           data-no-drag="true"
-          className="flex size-8 items-center justify-center rounded-sm text-white/30 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/60"
+          className="flex size-8 items-center justify-center text-white/30 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/60"
         >
           <SidebarSimple className="size-5" />
         </button>
@@ -448,7 +448,7 @@ export function LeftRail({
       <div className="min-h-0 flex-1 overflow-y-auto py-2">
         {/* Projects header with clear action */}
         <div className="px-3 py-2 flex items-center justify-between group">
-          <div className="text-[13px] text-white/40 font-semibold uppercase tracking-wider truncate mr-2">
+          <div className="text-[10.5px] text-white/40 font-normal uppercase tracking-wider truncate mr-2">
             Projects
           </div>
           <div className="flex gap-1 shrink-0">
@@ -464,7 +464,7 @@ export function LeftRail({
                   type="button"
                   onClick={onAddRepository}
                   aria-label="Open project folder"
-                  className="flex size-8 items-center justify-center rounded-sm text-white/40 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/80"
+                  className="flex size-8 items-center justify-center text-white/40 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/80"
                 >
                   <FolderPlus className="size-5" />
                 </button>
@@ -554,7 +554,7 @@ export function LeftRail({
                             type="button"
                             data-testid="create-session-button"
                             onClick={handleCreateSession}
-                            className="flex w-full items-center gap-2 rounded-sm px-2 py-2 text-[13px] text-white/30 transition-colors hover:bg-white/[0.04] hover:text-white/60"
+                            className="flex w-full items-center gap-2 px-2 py-2 text-[10.5px] text-white/30 transition-colors hover:bg-white/[0.04] hover:text-white/60"
                             aria-label="Create new branch"
                           >
                             <Plus className="size-2.5" />
@@ -599,7 +599,7 @@ export function LeftRail({
         <div
           ref={contextMenuRef}
           className={cn(
-            "fixed z-[100] min-w-[160px] rounded-md border border-white/[0.06] bg-[var(--color-bg-primary)] p-1 backdrop-blur-md",
+            "fixed z-[100] min-w-[160px] border border-white/[0.06] bg-[var(--color-bg-primary)] p-1 backdrop-blur-md",
             "shadow-[var(--shadow-hover)]",
             "animate-in fade-in-0 zoom-in-[0.98] duration-150 ease-out",
           )}
@@ -609,7 +609,7 @@ export function LeftRail({
           }}
         >
           <div className="px-2 py-1.5">
-            <span className="block truncate text-[13px] text-[var(--color-text-secondary)]">
+            <span className="block truncate text-[10.5px] text-[var(--color-text-secondary)]">
               {contextMenu.repositoryName}
             </span>
           </div>
@@ -621,7 +621,7 @@ export function LeftRail({
               )
             }
             className={cn(
-              "flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[13px] text-[var(--color-text-primary)]",
+              "flex w-full items-center gap-2 px-2 py-1.5 text-left text-[10.5px] text-[var(--color-text-primary)]",
               "transition-colors duration-100",
               "hover:bg-[var(--color-surface-secondary)]",
             )}
@@ -635,7 +635,7 @@ export function LeftRail({
               handleMenuAction(() => onOpenInFinder?.(contextMenuRepositoryId))
             }
             className={cn(
-              "flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[13px] text-[var(--color-text-primary)]",
+              "flex w-full items-center gap-2 px-2 py-1.5 text-left text-[10.5px] text-[var(--color-text-primary)]",
               "transition-colors duration-100",
               "hover:bg-[var(--color-surface-secondary)]",
             )}
@@ -652,7 +652,7 @@ export function LeftRail({
               )
             }
             className={cn(
-              "flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[13px] text-[var(--accent-pale-red-text)]",
+              "flex w-full items-center gap-2 px-2 py-1.5 text-left text-[10.5px] text-[var(--accent-pale-red-text)]",
               "transition-colors duration-100",
               "hover:bg-[var(--accent-pale-red-bg)]",
             )}

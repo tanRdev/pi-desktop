@@ -38,7 +38,7 @@ export function FileUpload({
               ) : (
                 <Paperclip className={`${ICON_SIZE_SM} text-white/70`} />
               )}
-              <span className="max-w-[12rem] truncate font-mono text-[14px] uppercase tracking-[0.16em] text-white/70">
+              <span className="max-w-[12rem] truncate font-mono text-[10.5px] uppercase tracking-[0.16em] text-white/70">
                 {file.name}
               </span>
               <button

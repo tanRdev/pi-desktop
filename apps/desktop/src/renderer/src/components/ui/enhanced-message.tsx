@@ -277,20 +277,20 @@ export function StreamingIndicator({
       {/* Responding indicator */}
       <div
         className={cn(
-          "flex items-center gap-3 rounded-lg border border-white/[0.06]",
+          "flex items-center gap-3 border border-white/[0.06]",
           "bg-white/[0.02] px-4 py-3",
         )}
       >
         <div className="relative">
-          <div className="size-2 rounded-full bg-emerald-400/60" />
-          <div className="absolute inset-0 size-2 animate-ping rounded-full bg-emerald-400/30" />
+          <div className="size-2 rounded-full bg-[#00E559]/60" />
+          <div className="absolute inset-0 size-2 animate-ping rounded-full bg-[#00E559]/30" />
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="text-[13px] font-medium text-white/70">
+          <span className="text-[10.5px] font-normal text-white/70">
             {message}
           </span>
           <div className="flex items-center gap-1">
-            <span className="text-[12px] text-white/40">Generating</span>
+            <span className="text-[10.5px] text-white/40">Generating</span>
             <span className="flex gap-0.5">
               {[0, 1, 2].map((i) => (
                 <span

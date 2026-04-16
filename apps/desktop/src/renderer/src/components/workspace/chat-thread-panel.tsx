@@ -335,8 +335,8 @@ function MessageSkeleton() {
     <div className="flex w-full flex-col px-0 py-2 justify-start items-start">
       <div className="min-w-0 flex flex-col gap-1 w-full max-w-3xl mx-auto px-6">
         <div className="space-y-2 w-full">
-          <div className="h-4 w-3/4 rounded bg-white/5" />
-          <div className="h-4 w-1/2 rounded bg-white/5" />
+          <div className="h-4 w-3/4 bg-white/5" />
+          <div className="h-4 w-1/2 bg-white/5" />
         </div>
       </div>
     </div>
@@ -460,7 +460,7 @@ export function ChatThreadPanel({
                 data-testid="chat-empty-state"
                 className="flex min-h-full w-full flex-1 items-center justify-center px-6"
               >
-                <div className="max-w-md text-center font-mono text-[14px] uppercase tracking-[0.08em] text-white/25">
+                <div className="max-w-md text-center font-mono text-[10.5px] uppercase tracking-[0.08em] text-white/25">
                   Start a conversation with Pi.
                 </div>
               </div>

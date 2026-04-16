@@ -23,7 +23,7 @@ export function TextShimmer({
   return (
     <Component
       className={cn(
-        "bg-size-[200%_auto] bg-clip-text font-medium text-transparent",
+        "bg-size-[200%_auto] bg-clip-text font-normal text-transparent",
         "animate-[shimmer_4s_infinite_linear]",
         "transition-all duration-150 ease-out",
         className,

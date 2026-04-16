@@ -31,7 +31,7 @@ export function ThreadTabs({
             <div
               key={thread.id}
               className={cn(
-                "group flex h-full min-w-0 max-w-[220px] flex-1 items-center gap-2 border-b px-3 text-left text-[14px] transition-colors duration-150",
+                "group flex h-full min-w-0 max-w-[220px] flex-1 items-center gap-2 border-b px-3 text-left text-[10.5px] transition-colors duration-150",
                 isActive
                   ? "border-white/20 text-white/80"
                   : "border-transparent text-white/40 hover:border-white/10 hover:text-white/70",
@@ -48,13 +48,13 @@ export function ThreadTabs({
                   className={cn(
                     "h-1.5 w-1.5 shrink-0 rounded-full transition-all duration-300",
                     isRunning
-                      ? "animate-pulse bg-emerald-400/70 shadow-[0_0_4px_rgba(16,185,129,0.4)]"
+                      ? "animate-pulse bg-[var(--color-accent)]/70 shadow-[0_0_4px_rgba(0,229,89,0.4)]"
                       : isActive
                         ? "bg-white/25"
                         : "bg-white/12",
                   )}
                 />
-                <span className="flex-1 truncate font-medium">
+                <span className="flex-1 truncate font-normal">
                   {thread.title || "Untitled thread"}
                 </span>
               </button>
@@ -68,7 +68,7 @@ export function ThreadTabs({
                   onCloseThread(thread.id);
                 }}
                 className={cn(
-                  "flex size-5 shrink-0 items-center justify-center rounded-sm transition-colors duration-150",
+                  "flex size-5 shrink-0 items-center justify-center transition-colors duration-150",
                   isActive
                     ? "text-white/35 hover:bg-white/[0.04] hover:text-white/70"
                     : "text-white/25 hover:bg-white/[0.04] hover:text-white/60",

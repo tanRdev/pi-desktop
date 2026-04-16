@@ -17,7 +17,7 @@ export function ScrollButton({
     <button
       type="button"
       className={cn(
-        "inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-[#1a1a1a] px-3 py-2 font-mono text-[14px] uppercase tracking-[0.18em] text-white/70 shadow-[0_8px_24px_rgba(0,0,0,0.3)]",
+        "inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-[#0C0D0F] px-3 py-2 font-mono text-[10.5px] uppercase tracking-[0.18em] text-white/70 shadow-[0_8px_24px_rgba(0,0,0,0.3)]",
         "transition-[transform,border-color,background-color] duration-150 ease-out",
         "hover:border-white/[0.14] hover:bg-[#1e1e1e] active:scale-[0.98]",
         className,

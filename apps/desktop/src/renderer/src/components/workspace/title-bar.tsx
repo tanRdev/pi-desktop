@@ -64,7 +64,7 @@ export function TitleBar({
                     onClick={onClick}
                     aria-label={label}
                     className={cn(
-                      "flex size-8 items-center justify-center rounded-sm text-white/40 outline-none ring-0 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/80 focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0",
+                      "flex size-8 items-center justify-center text-white/40 outline-none ring-0 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/80 focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0",
                       isActive && "bg-white/[0.04] text-white/80",
                     )}
                   >
@@ -83,7 +83,7 @@ export function TitleBar({
                   onClick={onToggleSidePanel}
                   aria-label="Toggle side panel"
                   className={cn(
-                    "flex size-8 items-center justify-center rounded-sm text-white/40 outline-none ring-0 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/80 focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0",
+                    "flex size-8 items-center justify-center text-white/40 outline-none ring-0 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/80 focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0",
                     isSidePanelVisible && "bg-white/[0.04] text-white/80",
                   )}
                 >

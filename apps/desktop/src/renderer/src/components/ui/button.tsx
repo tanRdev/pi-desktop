@@ -5,12 +5,12 @@ import type * as React from "react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-sm transition-all duration-[var(--duration-fast)] outline-none disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 font-medium",
+  "inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap transition-all duration-[var(--duration-fast)] outline-none disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 font-normal",
   {
     variants: {
       variant: {
         default:
-          "bg-white/[0.75] text-[var(--color-bg-secondary)] hover:bg-white/[0.85] active:bg-white/60 border-none font-medium",
+          "bg-white/[0.75] text-[var(--color-bg-secondary)] hover:bg-white/[0.85] active:bg-white/60 border-none font-normal",
         destructive:
           "bg-red-500/80 text-white hover:bg-red-500 active:bg-red-600 border-none",
         outline:
@@ -22,10 +22,10 @@ const buttonVariants = cva(
         link: "text-white underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-8 px-4 py-2 text-[16px]",
-        xs: "h-4 gap-1 px-1 text-[14px] [&_svg]:size-3",
-        sm: "h-6 gap-1 px-2 text-[14px]",
-        lg: "h-12 px-8 text-[16px]",
+        default: "h-8 px-4 py-2 text-[10.5px]",
+        xs: "h-4 gap-1 px-1 text-[10.5px] [&_svg]:size-3",
+        sm: "h-6 gap-1 px-2 text-[10.5px]",
+        lg: "h-12 px-8 text-[10.5px]",
         icon: "size-8",
         "icon-xs": "size-5 [&_svg]:size-3",
         "icon-sm": "size-6",

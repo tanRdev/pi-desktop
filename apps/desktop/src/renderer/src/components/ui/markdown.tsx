@@ -46,7 +46,7 @@ const INITIAL_COMPONENTS: Partial<Components> = {
   h1: function H1Component({ children, ...props }) {
     return (
       <h1
-        className="mt-8 mb-4 text-2xl font-sans font-semibold tracking-tight text-white/90"
+        className="mt-8 mb-4 text-2xl font-sans font-normal tracking-tight text-white/90"
         {...props}
       >
         {children}
@@ -56,7 +56,7 @@ const INITIAL_COMPONENTS: Partial<Components> = {
   h2: function H2Component({ children, ...props }) {
     return (
       <h2
-        className="mt-8 mb-4 text-xl font-sans font-semibold tracking-tight text-white/90"
+        className="mt-8 mb-4 text-xl font-sans font-normal tracking-tight text-white/90"
         {...props}
       >
         {children}
@@ -66,7 +66,7 @@ const INITIAL_COMPONENTS: Partial<Components> = {
   h3: function H3Component({ children, ...props }) {
     return (
       <h3
-        className="mt-6 mb-3 text-lg font-sans font-semibold tracking-tight text-white/90"
+        className="mt-6 mb-3 text-lg font-sans font-normal tracking-tight text-white/90"
         {...props}
       >
         {children}
@@ -76,7 +76,7 @@ const INITIAL_COMPONENTS: Partial<Components> = {
   h4: function H4Component({ children, ...props }) {
     return (
       <h4
-        className="mt-6 mb-2 text-base font-sans font-semibold tracking-tight text-white/90"
+        className="mt-6 mb-2 text-base font-sans font-normal tracking-tight text-white/90"
         {...props}
       >
         {children}
@@ -86,7 +86,7 @@ const INITIAL_COMPONENTS: Partial<Components> = {
   h5: function H5Component({ children, ...props }) {
     return (
       <h5
-        className="mt-4 mb-2 text-sm font-semibold uppercase tracking-wide text-white/50"
+        className="mt-4 mb-2 text-sm font-normal uppercase tracking-wide text-white/50"
         {...props}
       >
         {children}
@@ -96,7 +96,7 @@ const INITIAL_COMPONENTS: Partial<Components> = {
   h6: function H6Component({ children, ...props }) {
     return (
       <h6
-        className="mt-4 mb-2 text-xs font-semibold uppercase tracking-wide text-white/50"
+        className="mt-4 mb-2 text-xs font-normal uppercase tracking-wide text-white/50"
         {...props}
       >
         {children}
@@ -123,9 +123,9 @@ const INITIAL_COMPONENTS: Partial<Components> = {
           void window.piDesktop.dialog.openExternal(href);
         }}
         className={cn(
-          "text-sm text-blue-400/80 underline underline-offset-4 decoration-blue-400/30",
+          "text-sm text-[#00E559]/80 underline underline-offset-4 decoration-[#00E559]/30",
           "transition-all duration-150 ease-out",
-          "hover:decoration-blue-400/60 hover:text-blue-400",
+          "hover:decoration-[#00E559]/60 hover:text-[#00E559]",
         )}
         {...props}
       >
@@ -135,7 +135,7 @@ const INITIAL_COMPONENTS: Partial<Components> = {
   },
   strong: function StrongComponent({ children, ...props }) {
     return (
-      <strong className="font-semibold text-white/80" {...props}>
+      <strong className="font-normal text-white/80" {...props}>
         {children}
       </strong>
     );
@@ -218,7 +218,7 @@ const INITIAL_COMPONENTS: Partial<Components> = {
       return (
         <code
           className={cn(
-            "rounded-sm bg-white/[0.06] px-1.5 py-0.5 font-mono text-xs",
+            "bg-white/[0.06] px-1.5 py-0.5 font-mono text-xs",
             "text-white/80",
             "transition-all duration-150 ease-out",
             "hover:bg-white/[0.09]",
@@ -286,7 +286,7 @@ const INITIAL_COMPONENTS: Partial<Components> = {
   th: function ThComponent({ children, ...props }) {
     return (
       <th
-        className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-white/40"
+        className="px-3 py-2 text-left text-xs font-normal uppercase tracking-wide text-white/40"
         {...props}
       >
         {children}
@@ -306,7 +306,7 @@ const INITIAL_COMPONENTS: Partial<Components> = {
         src={src}
         alt={alt}
         className={cn(
-          "my-6 rounded-md border border-white/[0.06] max-w-full",
+          "my-6 border border-white/[0.06] max-w-full",
           "transition-all duration-200 ease-out",
         )}
         {...props}

@@ -46,7 +46,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
         return (
           <CircleNotch
             className={cn(
-              "h-3.5 w-3.5 animate-spin text-blue-400/60",
+              "h-3.5 w-3.5 animate-spin text-[#00E559]/60",
               "transition-all duration-[var(--duration-fast)] ease-out",
             )}
           />
@@ -92,7 +92,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
 
   const getStateBadge = () => {
     const baseClasses = cn(
-      "px-1.5 py-0.5 rounded text-[14px] font-medium",
+      "px-1.5 py-0.5 text-[10.5px] font-normal",
       "transition-all duration-[var(--duration-fast)] ease-out",
     );
     switch (state) {
@@ -101,7 +101,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
           <span
             className={cn(
               baseClasses,
-              "bg-blue-500/10 text-blue-400/60",
+              "bg-[#00E559]/10 text-[#00E559]/60",
               "animate-pulse",
             )}
           >
@@ -171,7 +171,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
           >
             <div className="flex items-center gap-2">
               {getStateIcon()}
-              <span className="font-mono text-sm font-medium text-white/60">
+              <span className="font-mono text-sm font-normal text-white/60">
                 {toolPart.type}
               </span>
               {getStateBadge()}
@@ -193,10 +193,10 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
           <div className="space-y-3 pb-3 pl-6">
             {input && Object.keys(input).length > 0 && (
               <div>
-                <h4 className="mb-2 text-xs font-medium text-white/30">
+                <h4 className="mb-2 text-xs font-normal text-white/30">
                   Input
                 </h4>
-                <div className="rounded-sm border border-white/[0.04] bg-white/[0.02] p-2 font-mono text-sm text-white/60">
+                <div className="border border-white/[0.04] bg-white/[0.02] p-2 font-mono text-sm text-white/60">
                   {Object.entries(input).map(([key, value]) => (
                     <div key={key} className="mb-1">
                       <span className="text-white/30">{key}:</span>{" "}
@@ -209,10 +209,10 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
 
             {output && (
               <div>
-                <h4 className="mb-2 text-xs font-medium text-white/30">
+                <h4 className="mb-2 text-xs font-normal text-white/30">
                   Output
                 </h4>
-                <div className="max-h-60 overflow-auto rounded-sm border border-white/[0.04] bg-white/[0.02] p-2 font-mono text-sm text-white/60">
+                <div className="max-h-60 overflow-auto border border-white/[0.04] bg-white/[0.02] p-2 font-mono text-sm text-white/60">
                   <pre className="whitespace-pre-wrap">
                     {formatValue(output)}
                   </pre>
@@ -225,7 +225,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
                 <h4 className="mb-2 text-xs font-medium text-red-400/80">
                   Error
                 </h4>
-                <div className="rounded-sm border border-red-500/20 bg-red-500/[0.04] p-2 text-sm text-red-400/80">
+                <div className="border border-red-500/20 bg-red-500/[0.04] p-2 text-sm text-red-400/80">
                   {toolPart.errorText}
                 </div>
               </div>

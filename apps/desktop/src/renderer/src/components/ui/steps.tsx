@@ -44,11 +44,11 @@ export function StepItem({
         <StepIcon state={state} />
       </div>
       <div className="min-w-0">
-        <div className="font-mono text-[14px] uppercase tracking-[0.18em] text-white/80">
+        <div className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-white/80">
           {title}
         </div>
         {detail ? (
-          <div className="mt-1 text-[14px] leading-normal text-white/40">
+          <div className="mt-1 text-[10.5px] leading-normal text-white/40">
             {detail}
           </div>
         ) : null}

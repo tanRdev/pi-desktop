@@ -157,7 +157,7 @@ export function PromptAutocomplete({
       tabIndex={0}
       onKeyDown={onKeyDown}
       className={cn(
-        "z-50 w-72 overflow-hidden rounded-md border border-white/[0.06] bg-[var(--color-bg-secondary)] p-1 text-white/80 shadow-[0_8px_32px_rgba(0,0,0,0.5)]",
+        "z-50 w-72 overflow-hidden border border-white/[0.06] bg-[var(--color-bg-secondary)] p-1 text-white/80 shadow-[0_8px_32px_rgba(0,0,0,0.5)]",
         "origin-top",
         "animate-in fade-in-0 zoom-in-95 duration-200 ease-[var(--ease-out)]",
         "motion-reduce:animate-none motion-reduce:opacity-100",
@@ -179,7 +179,7 @@ export function PromptAutocomplete({
             return (
               <div key={group.kind}>
                 {/* Section header */}
-                <div className="px-3 pb-1 pt-2 text-[14px] font-semibold uppercase tracking-[0.12em] text-white/25 select-none">
+                <div className="px-3 pb-1 pt-2 text-[10.5px] font-normal uppercase tracking-[0.12em] text-white/25 select-none">
                   {label}
                 </div>
 
@@ -245,7 +245,7 @@ export function PromptAutocomplete({
                   <button
                     type="button"
                     onClick={() => toggleExpand(group.kind)}
-                    className="w-full px-3 py-1.5 text-left text-[14px] text-white/30 transition-colors duration-150 hover:text-white/50"
+                    className="w-full px-3 py-1.5 text-left text-[10.5px] text-white/30 transition-colors duration-150 hover:text-white/50"
                   >
                     {isExpanded ? "Show less" : `Show ${hiddenCount} more`}
                   </button>

@@ -348,7 +348,7 @@ export function PromptDock({
             onBlur={() => setIsFocused(false)}
             className={cn(
               "min-h-[28px] resize-none border-0 bg-transparent px-0 py-0",
-              "text-[12px] leading-normal text-[var(--color-text-primary)]",
+              "text-[10.5px] leading-normal text-[var(--color-text-primary)]",
               "placeholder:text-[var(--color-text-tertiary)]",
               "focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none",
               "disabled:opacity-50",
@@ -383,7 +383,7 @@ export function PromptDock({
                       providerSnapshots.length === 0
                     }
                     className={cn(
-                      "flex items-center gap-1 rounded-sm px-1 py-0.5 text-[11px] text-white/60",
+                      "flex items-center gap-1 px-1 py-0.5 text-[11px] text-white/60",
                       "transition-all duration-[var(--duration-fast)]",
                       "hover:text-white/90 hover:bg-white/[0.04]",
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]",
@@ -405,7 +405,7 @@ export function PromptDock({
                   align="start"
                   side="top"
                   sideOffset={8}
-                  className="w-64 rounded-md border border-white/[0.06] bg-[#141414] p-2 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-md"
+                  className="w-64 border border-white/[0.06] bg-[#0C0D0F] p-2 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-md"
                 >
                   <div className="max-h-72 overflow-y-auto">
                     <Skeleton
@@ -428,7 +428,7 @@ export function PromptDock({
                           setModelOpen(false);
                         }}
                         className={cn(
-                          "flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-[14px] transition-colors",
+                          "flex w-full items-center gap-2.5 px-2.5 py-2 text-left text-[10.5px] transition-colors",
                           "text-white/50 hover:bg-white/[0.04] hover:text-white/90",
                         )}
                       >
@@ -438,7 +438,7 @@ export function PromptDock({
                       <div className="my-1 h-px bg-white/[0.04]" />
                       {favoriteModelsList.length > 0 && (
                         <>
-                          <div className="px-2 py-1.5 text-[11px] font-medium uppercase tracking-wider text-white/30">
+                          <div className="px-2 py-1.5 text-[11px] font-light uppercase tracking-wider text-white/30">
                             Favorites
                           </div>
                           {favoriteModelsList.map((fav) => {
@@ -451,7 +451,7 @@ export function PromptDock({
                                 data-testid={`model-option-${fav.providerId}-${fav.modelId}`}
                                 onClick={() => handleModelSelect(fav.value)}
                                 className={cn(
-                                  "flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-[14px] transition-colors",
+                                  "flex w-full items-center gap-2.5 px-2.5 py-2 text-left text-[10.5px] transition-colors",
                                   isSelected
                                     ? "bg-white/[0.08] text-white"
                                     : "text-white/70 hover:bg-white/[0.04] hover:text-white",
@@ -506,7 +506,7 @@ export function PromptDock({
 
                         return (
                           <div key={provider.id}>
-                            <div className="flex items-center gap-2 px-2 py-1.5 text-[11px] font-medium uppercase tracking-wider text-white/30">
+                            <div className="flex items-center gap-2 px-2 py-1.5 text-[11px] font-light uppercase tracking-wider text-white/30">
                               <ProviderIcon
                                 providerId={provider.id}
                                 className="shrink-0"
@@ -524,7 +524,7 @@ export function PromptDock({
                                   data-testid={`model-option-${provider.id}-${model.id}`}
                                   onClick={() => handleModelSelect(value)}
                                   className={cn(
-                                    "flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-[14px] transition-colors",
+                                    "flex w-full items-center gap-2.5 px-2.5 py-2 text-left text-[10.5px] transition-colors",
                                     isSelected
                                       ? "bg-white/[0.08] text-white"
                                       : "text-white/70 hover:bg-white/[0.04] hover:text-white",
@@ -580,10 +580,10 @@ export function PromptDock({
                 <PromptInputAction
                   tooltip={
                     <div className="flex flex-col gap-1 px-1 py-0.5">
-                      <div className="text-[14px] font-medium text-white">
+                      <div className="text-[10.5px] font-normal text-white">
                         {currentModelDisplay}
                       </div>
-                      <div className="text-[14px] text-white/50">
+                      <div className="text-[10.5px] text-white/50">
                         Context: {formatTokenCount(currentContextTokens ?? 0)} /{" "}
                         {formatTokenCount(currentContextWindow)} tokens
                       </div>
@@ -626,7 +626,7 @@ export function PromptDock({
                         />
                       </svg>
                     </div>
-                    <span className="tabular-nums text-[11px] font-medium text-[var(--color-text-tertiary)]">
+                    <span className="tabular-nums text-[11px] font-light text-[var(--color-text-tertiary)]">
                       {currentContextPercentage}%
                     </span>
                   </div>
@@ -645,7 +645,7 @@ export function PromptDock({
                   }
                   onClick={handleSubmit}
                   className={cn(
-                    "size-6 rounded-[8px] p-0",
+                    "size-6 p-0",
                     !isPromptExecuting && (!canSend || !draft.trim())
                       ? "bg-white/15 text-white/30"
                       : !isPromptExecuting

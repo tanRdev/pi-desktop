@@ -46,7 +46,7 @@ export function ThinkingBar({
                 className="animate-[word-pulse_2s_infinite_ease-in-out] will-change-transform"
                 style={{ animationDelay: `${i * 0.15}s` }}
               >
-                <TextShimmer className="font-medium">{word}</TextShimmer>
+                <TextShimmer className="font-normal">{word}</TextShimmer>
               </span>
             ))}
           </div>
@@ -60,7 +60,7 @@ export function ThinkingBar({
               className="animate-[word-pulse_2s_infinite_ease-in-out] will-change-transform"
               style={{ animationDelay: `${i * 0.15}s` }}
             >
-              <TextShimmer className="cursor-default font-medium">
+              <TextShimmer className="cursor-default font-normal">
                 {word}
               </TextShimmer>
             </span>

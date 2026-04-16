@@ -37,7 +37,7 @@ export function ThreadStatusIcon({
         <span
           role="img"
           className={cn(
-            "inline-flex items-center justify-center text-[14px] leading-none text-white font-mono whitespace-nowrap",
+            "inline-flex items-center justify-center text-[10.5px] leading-none text-white font-mono whitespace-nowrap",
             className,
           )}
           aria-label="Agent working"

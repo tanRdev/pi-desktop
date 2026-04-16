@@ -1,108 +1,114 @@
 @import "tailwindcss";
 @import "@pi-desktop/ui/styles/pi-desktop-shell.css";
 @import "@fontsource-variable/source-code-pro";
-@import "@fontsource-variable/geist";
+@import "@fontsource-variable/inter";
 
 @custom-variant dark (&:is(.dark *));
 
 /* ============================================
    DESIGN SYSTEM - Semantic Variables
+   Squared-off, green-accent, Inter body, glass grid
    ============================================ */
 
 :root {
-  /* Color System - Semantic Names - Darkest floor #141414 */
-  --color-bg-primary: #141414;
-  --color-bg-secondary: #181818;
-  --color-bg-tertiary: #1c1c1c;
-  --color-bg-quaternary: #222222;
-  --color-bg-hover: #222222;
-  --color-bg-active: #2a2a2a;
+  /* Color System — near-black floor #0C0D0F */
+  --color-bg-primary: #0C0D0F;
+  --color-bg-secondary: #101114;
+  --color-bg-tertiary: #14161A;
+  --color-bg-quaternary: #1A1C21;
+  --color-bg-hover: #1A1C21;
+  --color-bg-active: #22242A;
 
-  /* Glass Morphism System - Cursor IDE Style */
-  --glass-bg-primary: rgba(20, 20, 20, 0.95);
-  --glass-bg-secondary: rgba(24, 24, 24, 0.90);
-  --glass-bg-tertiary: rgba(28, 28, 28, 0.85);
-  --glass-bg-solid: rgba(20, 20, 20, 1);
-  --shell-sidebar-bg: #141414;
-  --shell-main-bg: #141414;
-  --shell-overlay-bg: #161616;
+  /* Glass Morphism System — squared, green-glow */
+  --glass-bg-primary: rgba(12, 13, 15, 0.95);
+  --glass-bg-secondary: rgba(16, 17, 20, 0.90);
+  --glass-bg-tertiary: rgba(20, 22, 26, 0.85);
+  --glass-bg-solid: rgba(12, 13, 15, 1);
+  --shell-sidebar-bg: #0C0D0F;
+  --shell-main-bg: #0C0D0F;
+  --shell-overlay-bg: #101114;
 
-  --glass-border-subtle: rgba(255, 255, 255, 0.04);
+  --glass-border-subtle: rgba(255, 255, 255, 0.03);
   --glass-border-default: rgba(255, 255, 255, 0.06);
   --glass-border-strong: rgba(255, 255, 255, 0.10);
-  --glass-border-glow: rgba(59, 130, 246, 0.25);
+  --glass-border-glow: rgba(0, 229, 89, 0.25);
 
-  --glass-blur-sm: blur(8px);
-  --glass-blur-md: blur(16px);
+  --glass-blur-sm: blur(12px);
+  --glass-blur-md: blur(24px);
   --glass-blur-lg: blur(24px);
   --glass-blur-xl: blur(40px);
 
-  --glass-highlight-top: rgba(255, 255, 255, 0.03);
-  --glass-highlight-bottom: rgba(0, 0, 0, 0.2);
-  --glass-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  --glass-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03);
-  --glass-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  --glass-highlight-top: rgba(255, 255, 255, 0.02);
+  --glass-highlight-bottom: rgba(0, 0, 0, 0.3);
+  --glass-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  --glass-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  --glass-shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 
-  --color-border-subtle: #222222;
-  --color-border-default: #262626;
-  --color-border-strong: #2a2a2a;
-  --color-border-hover: #3a3a3a;
+  --color-border-subtle: #14161A;
+  --color-border-default: #1A1C21;
+  --color-border-strong: #22242A;
+  --color-border-hover: #2E3038;
 
   --color-text-primary: #e7e7e7;
-  --color-text-secondary: #a0a0a0;
-  --color-text-tertiary: #6a6a6a;
-  --color-text-quaternary: #525252;
-  --color-text-inverse: #141414;
+  --color-text-secondary: #9CA3AF;
+  --color-text-tertiary: #6B7280;
+  --color-text-quaternary: #4B5563;
+  --color-text-inverse: #0C0D0F;
 
-  /* Surface aliases (for component-level semantics) */
-  --color-surface: #141414;
-  --color-surface-secondary: #1c1c1c;
-  --color-surface-tertiary: #181818;
-  --color-text-muted: #6a6a6a;
-  --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.4);
+  /* Surface aliases */
+  --color-surface: #0C0D0F;
+  --color-surface-secondary: #14161A;
+  --color-surface-tertiary: #101114;
+  --color-text-muted: #6B7280;
+  --shadow-hover: 0 4px 24px rgba(0, 0, 0, 0.5);
   --accent-pale-red-text: #f87171;
   --accent-pale-red-bg: rgba(239, 68, 68, 0.08);
 
-  --color-accent: #3b82f6;
-  --color-accent-hover: #60a5fa;
+  /* Accent palette — green primary, sky secondary, violet tertiary */
+  --color-accent: #00E559;
+  --color-accent-hover: #33EB7A;
+  --color-accent-muted: rgba(0, 229, 89, 0.15);
+  --color-secondary-accent: #38BDF8;
+  --color-tertiary-accent: #8B5CF6;
   --color-error: #ef4444;
-  --color-success: #22c55e;
+  --color-success: #00E559;
   --color-warning: #f59e0b;
 
-  /* Spacing Scale - 4px Rule */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --space-10: 40px;
+  /* Spacing Scale — 4px base, tight */
+  --space-0: 1.75px;
+  --space-1: 3.5px;
+  --space-2: 7px;
+  --space-3: 10.5px;
+  --space-4: 14px;
+  --space-5: 17.5px;
+  --space-6: 21px;
+  --space-8: 28px;
+  --space-10: 42px;
 
-  /* Animation - Custom Easing Curves */
-  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
-  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  /* Animation — expressive, focused on interface transitions */
+  --ease-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
-  /* Animation - Durations */
+  /* Animation — Durations */
   --duration-instant: 80ms;
-  --duration-fast: 120ms;
-  --duration-normal: 180ms;
-  --duration-slow: 250ms;
-  --duration-slower: 350ms;
+  --duration-fast: 150ms;
+  --duration-normal: 150ms;
+  --duration-slow: 500ms;
+  --duration-slower: 700ms;
 
-  /* Border Radius - 8px to 40px Range */
-  --radius-xs: 4px; /* For very small elements if needed */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
-  --radius-2xl: 40px;
+  /* Border Radius — 0px everywhere (squared off) */
+  --radius-xs: 0px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
 
-  /* Window Chrome */
-  --window-radius: 12px;
-  --titlebar-height: 44px;
+  /* Window Chrome — squared */
+  --window-radius: 0px;
+  --titlebar-height: 42px;
 }
 
 @keyframes word-pulse {
@@ -111,11 +117,11 @@
 }
 
 /* ============================================
-   GLASS MORPHISM UTILITIES - Tailwind v4
+   GLASS MORPHISM UTILITIES — Tailwind v4
    ============================================ */
 
 @layer utilities {
-  /* Glass panel - main chrome effect */
+  /* Glass panel — main chrome effect */
   .glass-panel {
     background: var(--glass-bg-primary);
     backdrop-filter: var(--glass-blur-md);
@@ -141,17 +147,33 @@
     box-shadow: var(--glass-shadow-lg);
   }
 
-  /* Glass with glow effect */
+  /* Glass with green glow effect */
   .glass-glow {
     border-color: var(--glass-border-glow);
     box-shadow:
-      0 0 20px rgba(59, 130, 246, 0.1),
+      0 0 8px rgba(0, 229, 89, 0.15),
       var(--glass-shadow-md);
+  }
+
+  /* Gradient border shell — premium depth edge treatment */
+  .gradient-border-shell {
+    padding: 1px;
+    background: repeating-linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.03) 0px,
+      rgba(255, 255, 255, 0.03) 1px,
+      transparent 1px,
+      transparent 16px
+    );
+  }
+
+  .gradient-border-shell > * {
+    background: var(--glass-bg-primary);
   }
 
   /* Window chrome title bar */
   .glass-titlebar {
-    background: rgba(13, 13, 13, 0.95);
+    background: rgba(10, 11, 13, 0.95);
     backdrop-filter: var(--glass-blur-md);
     -webkit-backdrop-filter: var(--glass-blur-md);
     border-bottom: 1px solid rgba(255, 255, 255, 0.04);
@@ -168,11 +190,10 @@
   /* Floating elements */
   .glass-floating {
     background: var(--shell-overlay-bg);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
     border: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.34);
-    border-radius: var(--radius-md);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   }
 
   /* Light mode glass adjustment */
@@ -194,15 +215,17 @@ html {
 
 body {
   -webkit-app-region: drag;
-  font-family: var(--app-font-sans);
+  font-family: "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background: transparent !important;
   color: var(--color-text-primary);
   overflow: hidden;
+  font-size: 10.5px;
+  font-weight: 400;
+  line-height: 1.625;
 }
 
 #root {
   background: transparent !important;
-  border-radius: var(--window-radius);
   overflow: hidden;
 }
 
@@ -219,7 +242,7 @@ body {
 }
 
 /* ============================================
-   MICRO-INTERACTIONS - Button Press Feedback
+   MICRO-INTERACTIONS — Button Press Feedback
    ============================================ */
 
 button:not(:disabled):active,
@@ -271,7 +294,7 @@ button,
 .stagger-item:nth-child(8) { animation-delay: 210ms; }
 
 /* ============================================
-   POPOVER ANIMATIONS - Origin Aware
+   POPOVER ANIMATIONS — Origin Aware
    ============================================ */
 
 @keyframes popover-enter {
@@ -285,9 +308,7 @@ button,
   }
 }
 
-/* Ensure Radix popper overlays (Select, Combobox, etc.) stack above dialogs.
-   The wrapper div is position:fixed with no z-index by default, which loses
-   to any dialog at z-50. */
+/* Ensure Radix popper overlays stack above dialogs */
 [data-radix-popper-content-wrapper] {
   z-index: 200;
 }
@@ -368,7 +389,7 @@ button,
 }
 
 /* ============================================
-   HOVER STATES - Touch Device Protection
+   HOVER STATES — Touch Device Protection
    ============================================ */
 
 @media (hover: hover) and (pointer: fine) {
@@ -382,7 +403,7 @@ button,
 }
 
 /* ============================================
-   REDUCED MOTION - Accessibility
+   REDUCED MOTION — Accessibility
    ============================================ */
 
 @media (prefers-reduced-motion: reduce) {
@@ -413,7 +434,7 @@ button,
 .shiki code {
   background: transparent !important;
   font-family: var(--app-font-mono);
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.6;
 }
 
@@ -430,7 +451,6 @@ button,
 /* Inline code styling */
 code:not(.shiki code):not(pre code) {
   background: var(--color-bg-quaternary);
-  border-radius: var(--radius-md);
   padding: 0.15em 0.4em;
   font-family: var(--app-font-mono);
   font-size: 0.9em;
@@ -438,16 +458,16 @@ code:not(.shiki code):not(pre code) {
 }
 
 .shiki ::selection {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 229, 89, 0.2);
 }
 
 /* ============================================
-   SCROLLBAR - Minimal
+   SCROLLBAR — Minimal
    ============================================ */
 
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 3px;
+  height: 3px;
 }
 
 ::-webkit-scrollbar-track {
@@ -455,33 +475,43 @@ code:not(.shiki code):not(pre code) {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 /* ============================================
-   SELECTION
+   SELECTION — green accent
    ============================================ */
 
 ::selection {
-  background: rgba(59, 130, 246, 0.3);
+  background: rgba(0, 229, 89, 0.25);
   color: var(--color-text-primary);
 }
 
 @theme inline {
-  /* Spacing - 4px Rule */
+  /* Spacing — 4px base */
   --spacing: 4px;
 
+  /* Border Radius — all squared off */
+  --radius-xs: 0px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+  --radius-4xl: 0px;
+  --radius-full: 9999px;
+
   /* Fonts */
-  --font-heading: Geist Variable;
-  --font-body: Geist Variable;
-  --font-mono: Source Code Pro Variable;
-  --font-source-code-pro: Source Code Pro Variable;
-  --font-geist: Geist Variable;
+  --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-body: "Inter Variable", "Inter", sans-serif;
+  --font-mono: "Source Code Pro Variable", monospace;
+  --font-source-code-pro: "Source Code Pro Variable", monospace;
+  --font-inter: "Inter Variable", "Inter", sans-serif;
 
   /* shadcn color variable bridge */
   --color-background: var(--background);
@@ -508,21 +538,21 @@ code:not(.shiki code):not(pre code) {
 @layer base {
   h1 {
     font-family: var(--font-heading);
-    font-size: 2.25rem;
+    font-size: 1.75rem;
     line-height: 1.15;
-    letter-spacing: -0.03em;
-    font-weight: 600; /* Medium */
+    letter-spacing: -0.025em;
+    font-weight: 600;
   }
   h2 {
     font-family: var(--font-heading);
-    font-size: 1.875rem;
+    font-size: 1.5rem;
     line-height: 1.2;
     letter-spacing: -0.025em;
     font-weight: 600;
   }
   h3 {
     font-family: var(--font-heading);
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     line-height: 1.25;
     letter-spacing: -0.02em;
     font-weight: 600;
@@ -534,37 +564,48 @@ code:not(.shiki code):not(pre code) {
   }
   body, p {
     font-family: var(--font-body);
-    font-size: 16px; /* Geist 16px for body */
-    line-height: 1.5;
-    font-weight: 400; /* Regular */
+    font-size: 10.5px;
+    line-height: 1.625;
+    font-weight: 400;
   }
   
   .text-secondary-body {
-    font-size: 14px; /* Geist 14px for body */
-    font-weight: 500; /* Medium */
+    font-size: 12.25px;
+    font-weight: 400;
+    letter-spacing: -0.025em;
+    text-transform: uppercase;
   }
 
   code, pre {
     font-family: var(--font-mono);
   }
 
-  /* Global Icon Styling: 20px, stroke 1.5px */
+  /* Global Icon Styling: 18px, stroke 1.5px */
   svg[class*="ph-"], 
   .phosphor-icon {
-    width: 20px !important;
-    height: 20px !important;
+    width: 18px !important;
+    height: 18px !important;
     stroke-width: 1.5px !important;
   }
 }
 
 @layer utilities {
-  /* Icon Bounding Box: 32px */
+  /* Icon Bounding Box: 28px */
   .icon-bound {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+  }
+
+  /* Eyebrow label — uppercase, tracked, small */
+  .eyebrow {
+    font-size: 10.5px;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-text-tertiary);
   }
 }

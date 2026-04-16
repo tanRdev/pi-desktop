@@ -31,7 +31,7 @@ export function ThinkingBlock({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-md border",
+        "overflow-hidden border",
         "border-cyan-500/10 bg-cyan-500/[0.02]",
         className,
       )}
@@ -50,7 +50,7 @@ export function ThinkingBlock({
             <div className="flex items-center gap-2.5">
               <div
                 className={cn(
-                  "flex h-5 w-5 items-center justify-center rounded-sm",
+                  "flex h-5 w-5 items-center justify-center",
                   "bg-cyan-400/10",
                 )}
               >
@@ -64,7 +64,7 @@ export function ThinkingBlock({
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="text-[13px] font-medium text-cyan-400/80">
+                <span className="text-[10.5px] font-normal text-cyan-400/80">
                   {isThinking ? "Thinking" : "Thought process"}
                 </span>
 
@@ -109,13 +109,13 @@ export function ThinkingBlock({
           <div className="p-3">
             <div
               className={cn(
-                "max-h-80 overflow-auto rounded-sm border border-cyan-500/[0.06]",
+                "max-h-80 overflow-auto border border-cyan-500/[0.06]",
                 "bg-cyan-500/[0.02] p-3",
               )}
             >
               <pre
                 className={cn(
-                  "whitespace-pre-wrap break-words font-mono text-[12px] leading-relaxed",
+                  "whitespace-pre-wrap break-words font-mono text-[10.5px] leading-relaxed",
                   "text-cyan-100/50",
                 )}
               >
@@ -212,7 +212,7 @@ function ReasoningStep({ step, isLast }: ReasoningStepProps) {
       <div className="flex min-w-0 flex-1 items-center gap-2 pb-3">
         <span
           className={cn(
-            "text-[12px]",
+            "text-[10.5px]",
             step.status === "running" ? "text-cyan-100/70" : "text-cyan-100/40",
           )}
         >

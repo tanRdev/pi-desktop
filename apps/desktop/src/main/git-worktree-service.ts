@@ -520,18 +520,35 @@ export class GitWorktreeService {
       "--verify",
       `refs/heads/${branchName}`,
     ]);
+    let startRef: string | undefined;
+
+    if (branchExists.status === 0) {
+      startRef = undefined;
+    } else if (options.baseBranch) {
+      const localRef = this.runGit(repositoryRoot, [
+        "show-ref",
+        "--verify",
+        `refs/heads/${options.baseBranch}`,
+      ]);
+      if (localRef.status === 0) {
+        startRef = options.baseBranch;
+      } else {
+        const remoteRef = this.runGit(repositoryRoot, [
+          "show-ref",
+          "--verify",
+          `refs/remotes/origin/${options.baseBranch}`,
+        ]);
+        if (remoteRef.status === 0) {
+          startRef = `origin/${options.baseBranch}`;
+        }
+      }
+    }
+
     const args =
       branchExists.status === 0
         ? ["worktree", "add", worktreePath, branchName]
-        : options.baseBranch
-          ? [
-              "worktree",
-              "add",
-              "-b",
-              branchName,
-              worktreePath,
-              options.baseBranch,
-            ]
+        : startRef
+          ? ["worktree", "add", "-b", branchName, worktreePath, startRef]
           : ["worktree", "add", "-b", branchName, worktreePath];
 
     const result = this.runGit(repositoryRoot, args);

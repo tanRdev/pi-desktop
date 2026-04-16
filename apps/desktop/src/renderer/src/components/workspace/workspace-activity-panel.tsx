@@ -61,8 +61,8 @@ function ActivityPanelSkeleton() {
       <div className="border-b border-white/[0.04] px-5 py-3 select-none">
         <div className="flex items-center justify-between gap-4">
           <div className="min-w-0 space-y-0.5">
-            <div className="h-4 w-24 rounded bg-white/5" />
-            <div className="h-3 w-16 rounded bg-white/5" />
+            <div className="h-4 w-24 bg-white/5" />
+            <div className="h-3 w-16 bg-white/5" />
           </div>
           <div className="h-5 w-16 rounded-full bg-white/5" />
         </div>
@@ -72,15 +72,15 @@ function ActivityPanelSkeleton() {
           <div className="flex items-center justify-between gap-4 px-1">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="space-y-0.5">
-                <div className="h-3 w-12 rounded bg-white/5" />
-                <div className="h-4 w-8 rounded bg-white/5" />
+                <div className="h-3 w-12 bg-white/5" />
+                <div className="h-4 w-8 bg-white/5" />
               </div>
             ))}
           </div>
           <div className="space-y-4">
             <div className="flex items-center justify-between px-1">
-              <div className="h-3 w-16 rounded bg-white/5" />
-              <div className="h-3 w-12 rounded bg-white/5" />
+              <div className="h-3 w-16 bg-white/5" />
+              <div className="h-3 w-12 bg-white/5" />
             </div>
             {[1, 2, 3, 4, 5].map((i) => (
               <div
@@ -88,9 +88,9 @@ function ActivityPanelSkeleton() {
                 className="flex items-start justify-between gap-3 px-1.5"
               >
                 <div className="min-w-0">
-                  <div className="h-3 w-28 rounded bg-white/5" />
+                  <div className="h-3 w-28 bg-white/5" />
                 </div>
-                <div className="h-3 w-10 rounded bg-white/5" />
+                <div className="h-3 w-10 bg-white/5" />
               </div>
             ))}
           </div>
@@ -140,10 +140,10 @@ export function WorkspaceActivityPanel({
         <div className="border-b border-white/[0.04] px-5 py-3 select-none">
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0 space-y-0.5">
-              <h2 className="truncate text-[16px] font-semibold text-white/90">
+              <h2 className="truncate text-[10.5px] font-normal text-white/90">
                 {threadTitle?.trim() || "Thread"}
               </h2>
-              <div className="flex items-center gap-1.5 text-[14px] uppercase tracking-wider text-white/30">
+              <div className="flex items-center gap-1.5 text-[10.5px] uppercase tracking-wider text-white/30">
                 <span className="truncate">
                   {worktreeLabel ?? "No worktree"}
                 </span>
@@ -165,10 +165,10 @@ export function WorkspaceActivityPanel({
                 { label: "Active", value: runningTools },
               ].map((metric) => (
                 <div key={metric.label} className="space-y-0.5">
-                  <div className="text-[14px] font-semibold uppercase tracking-wider text-white/15">
+                  <div className="text-[10.5px] font-normal uppercase tracking-wider text-white/15">
                     {metric.label}
                   </div>
-                  <div className="text-[16px] font-medium text-white/60 tabular-nums">
+                  <div className="text-[10.5px] font-normal text-white/60 tabular-nums">
                     {metric.value}
                   </div>
                 </div>
@@ -177,10 +177,10 @@ export function WorkspaceActivityPanel({
 
             <section className="space-y-4">
               <div className="flex items-center justify-between px-1">
-                <h3 className="text-[14px] font-semibold uppercase tracking-wider text-white/30">
+                <h3 className="text-[10.5px] font-normal uppercase tracking-wider text-white/30">
                   Timeline
                 </h3>
-                <span className="font-mono text-[14px] uppercase tracking-wider text-white/15">
+                <span className="font-mono text-[10.5px] uppercase tracking-wider text-white/15">
                   {formatTimestamp(liveFeed.lastEventTimestamp)}
                 </span>
               </div>
@@ -200,19 +200,19 @@ export function WorkspaceActivityPanel({
                             <div
                               className={cn(
                                 "size-1.5 rounded-full",
-                                isRunning ? "bg-emerald-500/50" : "bg-white/10",
+                                isRunning ? "bg-[#00E559]/50" : "bg-white/10",
                               )}
                             />
-                            <div className="truncate text-[16px] text-white/50 group-hover:text-white/80">
+                            <div className="truncate text-[10.5px] text-white/50 group-hover:text-white/80">
                               {formatActivityLabel(entry.type)}
                             </div>
                           </div>
-                          <div className="ml-3.5 mt-0.5 font-mono text-[14px] uppercase tracking-wider text-white/15">
+                          <div className="ml-3.5 mt-0.5 font-mono text-[10.5px] uppercase tracking-wider text-white/15">
                             {entry.turnId ?? "global"}
                             {entry.toolCallId ? ` / ${entry.toolCallId}` : ""}
                           </div>
                         </div>
-                        <span className="shrink-0 font-mono text-[14px] uppercase tracking-wider text-white/10">
+                        <span className="shrink-0 font-mono text-[10.5px] uppercase tracking-wider text-white/10">
                           {formatTimestamp(entry.timestamp)}
                         </span>
                       </div>
@@ -220,7 +220,7 @@ export function WorkspaceActivityPanel({
                   })}
                 </div>
               ) : (
-                <div className="px-1 py-2 text-[14px] text-white/25 italic">
+                <div className="px-1 py-2 text-[10.5px] text-white/25 italic">
                   No activity yet.
                 </div>
               )}

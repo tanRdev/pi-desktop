@@ -55,14 +55,14 @@ const activityConfig: Record<
   },
   search: {
     icon: MagnifyingGlass,
-    color: "text-blue-400/70",
-    bgColor: "bg-blue-400/10",
+    color: "text-[#00E559]/70",
+    bgColor: "bg-[#00E559]/10",
     label: "Search",
   },
   mcp: {
     icon: Cpu,
-    color: "text-emerald-400/70",
-    bgColor: "bg-emerald-400/10",
+    color: "text-[#00E559]/70",
+    bgColor: "bg-[#00E559]/10",
     label: "MCP",
   },
   skill: {
@@ -119,7 +119,7 @@ const statusConfig: Record<
   running: {
     pulse: true,
     borderColor: "border-white/[0.08]",
-    dotColor: "bg-emerald-400/60",
+    dotColor: "bg-[#00E559]/60",
   },
   complete: {
     pulse: false,
@@ -150,7 +150,7 @@ export function ActivityIndicator({
   return (
     <div
       className={cn(
-        "flex items-center gap-2 rounded-md border px-2.5 py-1.5",
+        "flex items-center gap-2 border px-2.5 py-1.5",
         "transition-all duration-[var(--duration-fast)] ease-[var(--ease-out)]",
         statusCfg.borderColor,
         "bg-white/[0.02] hover:bg-white/[0.03]",
@@ -160,7 +160,7 @@ export function ActivityIndicator({
     >
       <div
         className={cn(
-          "flex h-5 w-5 items-center justify-center rounded-sm",
+          "flex h-5 w-5 items-center justify-center",
           config.bgColor,
         )}
       >
@@ -168,7 +168,7 @@ export function ActivityIndicator({
       </div>
 
       <div className="flex min-w-0 flex-1 items-center gap-2">
-        <span className="truncate text-[13px] font-medium text-white/70">
+        <span className="truncate text-[10.5px] font-normal text-white/70">
           {label}
         </span>
 
@@ -176,7 +176,7 @@ export function ActivityIndicator({
           <span
             className={cn(
               "flex h-4 min-w-[16px] items-center justify-center rounded-full px-1",
-              "text-[10px] font-semibold tabular-nums",
+              "text-[10px] font-normal tabular-nums",
               config.bgColor,
               config.color,
             )}
@@ -188,7 +188,9 @@ export function ActivityIndicator({
 
       <div className="flex items-center gap-2">
         {details && (
-          <span className="truncate text-[12px] text-white/40">{details}</span>
+          <span className="truncate text-[10.5px] text-white/40">
+            {details}
+          </span>
         )}
 
         {duration && (
@@ -225,7 +227,7 @@ export function ActivityGroup({
     <div className={cn("space-y-2", className)} {...props}>
       {title && (
         <div className="flex items-center gap-2 px-1">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-white/30">
+          <span className="text-[11px] font-normal uppercase tracking-wider text-white/30">
             {title}
           </span>
           <div className="h-px flex-1 bg-white/[0.04]" />
@@ -274,20 +276,20 @@ export function StreamingIndicator({
       {/* Responding indicator */}
       <div
         className={cn(
-          "flex items-center gap-3 rounded-lg border border-white/[0.06]",
+          "flex items-center gap-3 border border-white/[0.06]",
           "bg-white/[0.02] px-4 py-3",
         )}
       >
         <div className="relative">
-          <div className="size-2 rounded-full bg-emerald-400/60" />
-          <div className="absolute inset-0 size-2 animate-ping rounded-full bg-emerald-400/30" />
+          <div className="size-2 rounded-full bg-[#00E559]/60" />
+          <div className="absolute inset-0 size-2 animate-ping rounded-full bg-[#00E559]/30" />
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="text-[13px] font-medium text-white/70">
+          <span className="text-[10.5px] font-normal text-white/70">
             {message}
           </span>
           <div className="flex items-center gap-1">
-            <span className="text-[12px] text-white/40">Generating</span>
+            <span className="text-[10.5px] text-white/40">Generating</span>
             <span className="flex gap-0.5">
               {[0, 1, 2].map((i) => (
                 <span

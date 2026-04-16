@@ -25,7 +25,7 @@ export function PromptSuggestion({
       {...props}
     >
       <div className="flex min-w-0 items-center gap-1.5 truncate">
-        <span className="truncate font-mono text-[14px] uppercase tracking-[0.08em] text-white/80">
+        <span className="truncate font-mono text-[10.5px] uppercase tracking-[0.08em] text-white/80">
           {title}
         </span>
         {description ? (
@@ -33,7 +33,7 @@ export function PromptSuggestion({
             <span aria-hidden="true" className="text-white/30">
               /
             </span>
-            <span className="truncate text-[14px] text-white/40 group-hover:text-white/60">
+            <span className="truncate text-[10.5px] text-white/40 group-hover:text-white/60">
               {description}
             </span>
           </>
