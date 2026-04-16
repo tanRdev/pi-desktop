@@ -558,15 +558,27 @@ body[data-sidebar-resizing="true"] [data-testid="left-sidebar"] {
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-    transform: none !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
   }
 
   .stagger-item {
     opacity: 1;
-    transform: none;
-    animation: none;
+    animation: none !important;
+  }
+
+  /* Disable decorative keyframe animations entirely */
+  [data-sonner-toast],
+  [data-sonner-toast][data-removed="true"],
+  [data-pi-dialog-overlay][data-state],
+  [data-pi-dialog-content][data-state],
+  [data-pi-popover-content][data-state],
+  [data-slot="select-content"][data-state],
+  .tab-content-enter {
+    animation: none !important;
   }
 }
 
