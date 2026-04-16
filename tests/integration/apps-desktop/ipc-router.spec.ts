@@ -1299,3 +1299,271 @@ describe("registerIpcHandlers", () => {
     });
   });
 });
+
+describe("git handlers repositoryPath allowlist", () => {
+  function createGitServiceMock() {
+    return {
+      getRepositoryStatus: vi.fn(() => ({
+        worktreePath: "/allowed/repo",
+        branch: "main",
+        hasChanges: false,
+        ahead: 0,
+        behind: 0,
+        staged: [],
+        modified: [],
+        untracked: [],
+        upstreamBranch: null,
+      })),
+      isRepository: vi.fn(() => true),
+      init: vi.fn(() => undefined),
+      stageFile: vi.fn(() => ({}) as never),
+      stageFiles: vi.fn(() => ({}) as never),
+      unstageFile: vi.fn(() => ({}) as never),
+      unstageFiles: vi.fn(() => ({}) as never),
+      discardFile: vi.fn(() => ({}) as never),
+      commit: vi.fn(() => ({}) as never),
+      pull: vi.fn(() => ({}) as never),
+      push: vi.fn(() => ({}) as never),
+      fetch: vi.fn(() => ({}) as never),
+      inspect: vi.fn(),
+      inspectAsync: vi.fn(),
+    };
+  }
+
+  it("rejects git handlers when repositoryPath is not in the allowed roots and never calls gitService", async () => {
+    const harness = createHandlerHarness();
+    const gitService = createGitServiceMock();
+    const nodeFs = await loadMockedNodeFs();
+    nodeFs.realpathSync.mockImplementation((value) => value.toString());
+
+    registerIpcHandlers({
+      handle: harness.handle,
+      getShellSnapshot: vi.fn(createShellSnapshot),
+      agentHost: createAgentHost(createAgentSnapshot()),
+      mainWindow: null,
+      // biome-ignore lint/suspicious/noExplicitAny: test mock of GitWorktreeService
+      gitService: gitService as any,
+      getAllowedRepositoryRoots: () => ["/allowed/repo"],
+    });
+
+    for (const channel of [
+      IPC_CHANNELS.git.getRepositoryStatus,
+      IPC_CHANNELS.git.isRepository,
+      IPC_CHANNELS.git.init,
+      IPC_CHANNELS.git.stageFile,
+      IPC_CHANNELS.git.stageFiles,
+      IPC_CHANNELS.git.unstageFile,
+      IPC_CHANNELS.git.unstageFiles,
+      IPC_CHANNELS.git.discardFile,
+      IPC_CHANNELS.git.commit,
+      IPC_CHANNELS.git.pull,
+      IPC_CHANNELS.git.push,
+    ]) {
+      await expect(
+        harness.handlers.get(channel)?.(undefined, {
+          repositoryPath: "/etc",
+          filePath: "passwd",
+          filePaths: ["passwd"],
+          message: "evil",
+        }),
+      ).rejects.toThrow(/not an allowed repository/i);
+    }
+
+    expect(gitService.getRepositoryStatus).not.toHaveBeenCalled();
+    expect(gitService.isRepository).not.toHaveBeenCalled();
+    expect(gitService.init).not.toHaveBeenCalled();
+    expect(gitService.stageFile).not.toHaveBeenCalled();
+    expect(gitService.stageFiles).not.toHaveBeenCalled();
+    expect(gitService.unstageFile).not.toHaveBeenCalled();
+    expect(gitService.unstageFiles).not.toHaveBeenCalled();
+    expect(gitService.discardFile).not.toHaveBeenCalled();
+    expect(gitService.commit).not.toHaveBeenCalled();
+    expect(gitService.pull).not.toHaveBeenCalled();
+    expect(gitService.push).not.toHaveBeenCalled();
+  });
+
+  it("accepts git handlers when repositoryPath equals an allowed root", async () => {
+    const harness = createHandlerHarness();
+    const gitService = createGitServiceMock();
+    const nodeFs = await loadMockedNodeFs();
+    nodeFs.realpathSync.mockImplementation((value) => value.toString());
+
+    registerIpcHandlers({
+      handle: harness.handle,
+      getShellSnapshot: vi.fn(createShellSnapshot),
+      agentHost: createAgentHost(createAgentSnapshot()),
+      mainWindow: null,
+      // biome-ignore lint/suspicious/noExplicitAny: test mock of GitWorktreeService
+      gitService: gitService as any,
+      getAllowedRepositoryRoots: () => ["/allowed/repo"],
+    });
+
+    await harness.handlers.get(IPC_CHANNELS.git.isRepository)?.(undefined, {
+      repositoryPath: "/allowed/repo",
+    });
+
+    expect(gitService.isRepository).toHaveBeenCalledWith("/allowed/repo");
+  });
+
+  it("accepts git handlers when repositoryPath is nested inside an allowed root (worktree under repo)", async () => {
+    const harness = createHandlerHarness();
+    const gitService = createGitServiceMock();
+    const nodeFs = await loadMockedNodeFs();
+    nodeFs.realpathSync.mockImplementation((value) => value.toString());
+
+    registerIpcHandlers({
+      handle: harness.handle,
+      getShellSnapshot: vi.fn(createShellSnapshot),
+      agentHost: createAgentHost(createAgentSnapshot()),
+      mainWindow: null,
+      // biome-ignore lint/suspicious/noExplicitAny: test mock of GitWorktreeService
+      gitService: gitService as any,
+      getAllowedRepositoryRoots: () => ["/allowed/repo"],
+    });
+
+    await harness.handlers.get(IPC_CHANNELS.git.isRepository)?.(undefined, {
+      repositoryPath: "/allowed/repo/worktrees/feature",
+    });
+
+    expect(gitService.isRepository).toHaveBeenCalledWith(
+      "/allowed/repo/worktrees/feature",
+    );
+  });
+
+  it("rejects path-traversal attempts that normalize outside the allowed root", async () => {
+    const harness = createHandlerHarness();
+    const gitService = createGitServiceMock();
+    const nodeFs = await loadMockedNodeFs();
+    nodeFs.realpathSync.mockImplementation((value) => value.toString());
+
+    registerIpcHandlers({
+      handle: harness.handle,
+      getShellSnapshot: vi.fn(createShellSnapshot),
+      agentHost: createAgentHost(createAgentSnapshot()),
+      mainWindow: null,
+      // biome-ignore lint/suspicious/noExplicitAny: test mock of GitWorktreeService
+      gitService: gitService as any,
+      getAllowedRepositoryRoots: () => ["/allowed/repo"],
+    });
+
+    await expect(
+      harness.handlers.get(IPC_CHANNELS.git.discardFile)?.(undefined, {
+        repositoryPath: "/allowed/repo/../../etc",
+        filePath: "passwd",
+      }),
+    ).rejects.toThrow(/not an allowed repository/i);
+
+    expect(gitService.discardFile).not.toHaveBeenCalled();
+  });
+});
+
+describe("fs.writeFile size cap", () => {
+  it("rejects payloads larger than 10 MiB before calling writeFile", async () => {
+    const harness = createHandlerHarness();
+    const shellSnapshot = createShellSnapshot();
+    shellSnapshot.workspace.rootPath = "/tmp/pi-desktop";
+
+    registerIpcHandlers({
+      handle: harness.handle,
+      getShellSnapshot: vi.fn(() => shellSnapshot),
+      getWorkspaceRootPath: () => "/tmp/pi-desktop",
+      agentHost: createAgentHost(createAgentSnapshot()),
+      mainWindow: null,
+    });
+
+    const nodeFsPromises = await loadMockedNodeFsPromises();
+    nodeFsPromises.mkdir.mockClear();
+    nodeFsPromises.writeFile.mockClear();
+    nodeFsPromises.mkdir.mockResolvedValue(undefined);
+    nodeFsPromises.writeFile.mockResolvedValue(undefined);
+
+    const oversized = "x".repeat(10 * 1024 * 1024 + 1);
+
+    await expect(
+      harness.handlers.get(IPC_CHANNELS.fs.writeFile)?.(undefined, {
+        path: "notes/huge.md",
+        content: oversized,
+      }),
+    ).rejects.toThrow(/writeFile payload exceeds maximum size/i);
+
+    expect(nodeFsPromises.mkdir).not.toHaveBeenCalled();
+    expect(nodeFsPromises.writeFile).not.toHaveBeenCalled();
+  });
+
+  it("accepts payloads exactly at the 10 MiB boundary", async () => {
+    const harness = createHandlerHarness();
+    const shellSnapshot = createShellSnapshot();
+    shellSnapshot.workspace.rootPath = "/tmp/pi-desktop";
+
+    registerIpcHandlers({
+      handle: harness.handle,
+      getShellSnapshot: vi.fn(() => shellSnapshot),
+      getWorkspaceRootPath: () => "/tmp/pi-desktop",
+      agentHost: createAgentHost(createAgentSnapshot()),
+      mainWindow: null,
+    });
+
+    const nodeFsPromises = await loadMockedNodeFsPromises();
+    nodeFsPromises.mkdir.mockClear();
+    nodeFsPromises.writeFile.mockClear();
+    nodeFsPromises.mkdir.mockResolvedValue(undefined);
+    nodeFsPromises.writeFile.mockResolvedValue(undefined);
+
+    const atLimit = "x".repeat(10 * 1024 * 1024);
+
+    await harness.handlers.get(IPC_CHANNELS.fs.writeFile)?.(undefined, {
+      path: "notes/at-limit.md",
+      content: atLimit,
+    });
+
+    expect(nodeFsPromises.writeFile).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("terminal.write size cap", () => {
+  it("rejects data larger than 64 KiB and never calls terminalManager.write", async () => {
+    const harness = createHandlerHarness();
+    const tmMock = createTerminalManagerMock();
+
+    registerIpcHandlers({
+      handle: harness.handle,
+      getShellSnapshot: vi.fn(createShellSnapshot),
+      agentHost: createAgentHost(createAgentSnapshot()),
+      mainWindow: null,
+      terminalManager: tmMock,
+    });
+
+    const oversized = "a".repeat(64 * 1024 + 1);
+
+    await expect(
+      harness.handlers.get(IPC_CHANNELS.terminal.write)?.(undefined, {
+        id: "sess-1",
+        data: oversized,
+      }),
+    ).rejects.toThrow(/terminal\.write data exceeds maximum size/i);
+
+    expect(tmMock.write).not.toHaveBeenCalled();
+  });
+
+  it("accepts data exactly at the 64 KiB boundary", async () => {
+    const harness = createHandlerHarness();
+    const tmMock = createTerminalManagerMock();
+
+    registerIpcHandlers({
+      handle: harness.handle,
+      getShellSnapshot: vi.fn(createShellSnapshot),
+      agentHost: createAgentHost(createAgentSnapshot()),
+      mainWindow: null,
+      terminalManager: tmMock,
+    });
+
+    const atLimit = "a".repeat(64 * 1024);
+
+    await harness.handlers.get(IPC_CHANNELS.terminal.write)?.(undefined, {
+      id: "sess-1",
+      data: atLimit,
+    });
+
+    expect(tmMock.write).toHaveBeenCalledWith("sess-1", atLimit);
+  });
+});

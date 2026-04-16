@@ -83,6 +83,7 @@ export interface RegisterIpcHandlersDependencies {
   ): Promise<AutocompleteSuggestions>;
   threadCatalog?: ThreadCatalog;
   packagesService?: PackagesService;
+  getAllowedRepositoryRoots?: () => readonly string[];
 }
 
 export function registerIpcHandlers({
@@ -102,6 +103,7 @@ export function registerIpcHandlers({
   getDiscovery,
   getSlashSuggestions,
   packagesService,
+  getAllowedRepositoryRoots,
 }: RegisterIpcHandlersDependencies): void {
   const tm = terminalManagerOverride ?? terminalManager;
 
@@ -115,7 +117,11 @@ export function registerIpcHandlers({
   });
   registerStateHandlers({ handle, stateHost });
   if (gitService) {
-    registerGitHandlers({ handle, gitService });
+    registerGitHandlers({
+      handle,
+      gitService,
+      getAllowedRepositoryRoots: getAllowedRepositoryRoots ?? (() => []),
+    });
   }
 
   handle(IPC_CHANNELS.packages.getManagerStatus, async () => {

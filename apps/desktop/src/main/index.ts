@@ -41,6 +41,7 @@ import {
 import { resolveWorkspaceInspection } from "./bootstrap/workspace-inspection";
 import { createContextSwitchController } from "./context-switch-controller";
 import { GitWorktreeService } from "./git-worktree-service";
+import { createSanitizingHandle } from "./ipc/sanitize-ipc-error";
 import { registerIpcHandlers } from "./ipc-router";
 import { LocalThreadRuntimeManager } from "./local-thread-runtime-manager";
 import { PackagesServiceImpl } from "./packages/packages-service-impl";
@@ -1032,7 +1033,11 @@ async function bootstrapDesktop() {
   }
 
   registerIpcHandlers({
-    handle: ipcMain.handle.bind(ipcMain),
+    handle: createSanitizingHandle(ipcMain.handle.bind(ipcMain), {
+      log: (error) => {
+        console.error("[ipc] handler error:", error);
+      },
+    }),
     getShellSnapshot: async () => {
       let agentSnapshot: AgentSnapshot | null = null;
       try {
@@ -1352,6 +1357,8 @@ async function bootstrapDesktop() {
     getSlashSuggestions: handleGetSlashSuggestions,
     threadCatalog,
     packagesService,
+    getAllowedRepositoryRoots: () =>
+      repositoryCatalog.list().map((entry) => entry.rootPath),
   });
 
   mainWindow = await createMainWindow();

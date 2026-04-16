@@ -51,6 +51,16 @@ export function registerTerminalHandlers({
       throw new Error("terminal.write payload must include id and data");
     }
 
+    const maxTerminalWriteSize = 64 * 1024;
+    if (
+      data.length > maxTerminalWriteSize ||
+      Buffer.byteLength(data, "utf-8") > maxTerminalWriteSize
+    ) {
+      throw new Error(
+        `terminal.write data exceeds maximum size of ${maxTerminalWriteSize} bytes`,
+      );
+    }
+
     terminalManager.write(id, data);
   });
 

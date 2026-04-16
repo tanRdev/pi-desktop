@@ -357,9 +357,16 @@ export function registerFilesystemHandlers({
     const authorizedPath = await authorizeAndResolveWritePath(filePath);
     const { mkdir, writeFile } = await import("node:fs/promises");
     const { dirname } = await import("node:path");
-    const maxWriteSize = 1024 * 1024;
-    if (content.length > maxWriteSize) {
-      console.warn(`Writing large file (${content.length} bytes): ${filePath}`);
+    const maxWriteSize = 10 * 1024 * 1024;
+    // `content` is UTF-16 JS length; a byte-accurate check would require
+    // Buffer.byteLength. Enforce on both to reject cleanly either way.
+    if (
+      content.length > maxWriteSize ||
+      Buffer.byteLength(content, "utf-8") > maxWriteSize
+    ) {
+      throw new Error(
+        `writeFile payload exceeds maximum size of ${maxWriteSize} bytes`,
+      );
     }
     await mkdir(dirname(authorizedPath), { recursive: true });
     await writeFile(authorizedPath, content, "utf-8");
