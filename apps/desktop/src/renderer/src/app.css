@@ -374,6 +374,12 @@ button,
   40% { transform: scaleY(1.5); opacity: 0.6; }
 }
 
+/* Shimmer gradient sweep for text-shimmer.tsx */
+@keyframes shimmer {
+  0% { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+
 /* ============================================
    TOOLTIP ENHANCEMENTS
    ============================================ */

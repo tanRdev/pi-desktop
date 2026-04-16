@@ -277,7 +277,7 @@ export {
 export const ICON_SIZE_XS = "size-3";
 
 /** 14px - Small: buttons, navigation items, chips */
-export const ICON_SIZE_SM = "size-5";
+export const ICON_SIZE_SM = "size-3.5";
 
 /** 20px - Medium: standard UI elements, toolbars (default per cheatsheet) */
 export const ICON_SIZE_MD = "size-5";

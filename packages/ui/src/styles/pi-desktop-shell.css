@@ -183,12 +183,4 @@
   .text-muted {
     color: var(--muted-foreground);
   }
-
-  .text-sm {
-    font-size: 10.5px;
-  }
-
-  .text-xs {
-    font-size: 9px;
-  }
 }
