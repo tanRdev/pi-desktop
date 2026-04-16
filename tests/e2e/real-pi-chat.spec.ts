@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import {
   closeDesktopApp,
-  createThreadFromRail,
+  createThreadFromSidebar,
   focusChatThread,
   launchDesktopApp,
   waitForAppReady,
@@ -26,7 +26,7 @@ test("streams a real Pi CLI reply through the desktop chat", async () => {
 
   try {
     await waitForAppReady(page);
-    await createThreadFromRail(page);
+    await createThreadFromSidebar(page);
     await expect(page.getByTestId("thread-tabs")).toContainText("Echo");
     await focusChatThread(page);
 

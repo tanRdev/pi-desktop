@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import {
   closeDesktopApp,
-  createThreadFromRail,
+  createThreadFromSidebar,
   focusChatThread,
   launchDesktopApp,
   waitForAppReady,
@@ -34,7 +34,7 @@ test("reproduces model selector behavior in cli mode", async () => {
 
   try {
     await waitForAppReady(page);
-    await createThreadFromRail(page);
+    await createThreadFromSidebar(page);
     await focusChatThread(page);
 
     await expect(page.getByTestId("model-selector-trigger")).toBeVisible();
