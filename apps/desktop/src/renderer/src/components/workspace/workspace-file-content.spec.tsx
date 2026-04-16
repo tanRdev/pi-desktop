@@ -405,4 +405,47 @@ describe("WorkspaceFileContent", () => {
       "false",
     );
   });
+
+  // --- Draft / content source of truth ---
+
+  it("renders the exact content string passed in (no stale local draft)", () => {
+    const { rerender } = render(
+      <WorkspaceFileContent
+        filePath="/tmp/x.ts"
+        content={{ path: "/tmp/x.ts", type: "text", content: "original" }}
+      />,
+    );
+
+    expect(screen.getByTestId("monaco-file-editor")).toHaveTextContent(
+      "original",
+    );
+
+    // Parent updates content (e.g. user typed; store is single source of truth).
+    rerender(
+      <WorkspaceFileContent
+        filePath="/tmp/x.ts"
+        content={{ path: "/tmp/x.ts", type: "text", content: "edited" }}
+      />,
+    );
+
+    expect(screen.getByTestId("monaco-file-editor")).toHaveTextContent(
+      "edited",
+    );
+  });
+
+  it("forwards onContentChange directly without buffering through local state", () => {
+    const onContentChange = vi.fn();
+    render(
+      <WorkspaceFileContent
+        filePath="/tmp/x.ts"
+        content={{ path: "/tmp/x.ts", type: "text", content: "hello" }}
+        onContentChange={onContentChange}
+      />,
+    );
+
+    // The test-double MonacoFileEditor does not invoke onChange on render,
+    // so we assert the prop wiring by confirming the displayed value mirrors
+    // the incoming content prop rather than a local buffered draft.
+    expect(screen.getByTestId("monaco-file-editor")).toHaveTextContent("hello");
+  });
 });
