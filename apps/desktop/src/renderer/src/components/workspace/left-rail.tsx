@@ -22,7 +22,6 @@ import {
 } from "@/components/ui/tooltip";
 import { useUnicodeSpinner } from "@/hooks/use-unicode-spinner";
 import { cn } from "@/lib/utils";
-import { RepositorySwitcher } from "./repository-switcher";
 
 // Sidebar width for minimalist layout
 
@@ -83,7 +82,7 @@ interface ThreadCategorySectionProps {
   actionTestId?: string;
 }
 
-function ThreadCategorySection({
+function _ThreadCategorySection({
   label,
   icon: Icon,
   children,
@@ -257,9 +256,13 @@ export function LeftRail({
   onResize,
   onSelectRepository,
   onSelectWorktree,
-  onSelectThread,
-  onDeleteThread,
-  onDeleteWorktree,
+  // Thread/worktree delete wiring was removed during the shell refactor but the
+  // prop contract is still part of the public LeftRail API (callers + specs).
+  // Rename to _-prefixed locals so biome treats them as intentionally unused
+  // without breaking the component's prop surface.
+  onSelectThread: _onSelectThread,
+  onDeleteThread: _onDeleteThread,
+  onDeleteWorktree: _onDeleteWorktree,
   onRemoveRepository,
   onCopyRepositoryPath,
   onOpenInFinder,
@@ -452,12 +455,6 @@ export function LeftRail({
             Projects
           </div>
           <div className="flex gap-1 shrink-0">
-            <RepositorySwitcher
-              repositories={repositories}
-              activeRepositoryId={activeRepositoryId}
-              onSelect={onSelectRepository}
-              onAdd={onAddRepository}
-            />
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
