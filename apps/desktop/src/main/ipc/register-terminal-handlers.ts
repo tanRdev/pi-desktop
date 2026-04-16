@@ -23,6 +23,26 @@ interface RegisterTerminalHandlersDependencies {
   getAllowedTerminalCwds: () => readonly string[];
 }
 
+/**
+ * Extract the WebContents id from an Electron IPC event. Real events expose
+ * `event.sender.id` (number). In unit tests, the event may be a plain object
+ * with an arbitrary `sender` field; in that case we fall back to a stable
+ * string key so ownership checks can still compare equal for the same
+ * synthetic caller.
+ */
+function extractSenderKey(event: unknown): number | string {
+  if (typeof event !== "object" || event === null) {
+    return "__no_sender__";
+  }
+  const sender = (event as { sender?: unknown }).sender;
+  if (typeof sender === "object" && sender !== null) {
+    const id = (sender as { id?: unknown }).id;
+    if (typeof id === "number") return id;
+  }
+  if (typeof sender === "string") return sender;
+  return "__no_sender__";
+}
+
 export function registerTerminalHandlers({
   handle,
   mainWindow,
@@ -63,18 +83,27 @@ export function registerTerminalHandlers({
       );
     }
 
-    return terminalManager.create(options.id ?? "", options);
+    return terminalManager.create(
+      options.id ?? "",
+      options,
+      extractSenderKey(_event),
+    );
   });
 
   handle(IPC_CHANNELS.terminal.getSessions, async () =>
     terminalManager.getSessions(),
   );
 
-  handle(IPC_CHANNELS.terminal.write, async (_event, payload) => {
+  handle(IPC_CHANNELS.terminal.write, async (event, payload) => {
     const id = getStringField(payload, "id");
     const data = getStringField(payload, "data");
     if (!id || data === undefined) {
       throw new Error("terminal.write payload must include id and data");
+    }
+    if (!terminalManager.isOwnedBy(id, extractSenderKey(event))) {
+      throw new Error(
+        `terminal.write rejected: caller does not own terminal ${id}`,
+      );
     }
 
     const maxTerminalWriteSize = 64 * 1024;
@@ -90,21 +119,31 @@ export function registerTerminalHandlers({
     terminalManager.write(id, data);
   });
 
-  handle(IPC_CHANNELS.terminal.resize, async (_event, payload) => {
+  handle(IPC_CHANNELS.terminal.resize, async (event, payload) => {
     const id = getStringField(payload, "id");
     const cols = getNumberField(payload, "cols");
     const rows = getNumberField(payload, "rows");
     if (!id || typeof cols !== "number" || typeof rows !== "number") {
       throw new Error("terminal.resize payload must include id, cols, rows");
     }
+    if (!terminalManager.isOwnedBy(id, extractSenderKey(event))) {
+      throw new Error(
+        `terminal.resize rejected: caller does not own terminal ${id}`,
+      );
+    }
 
     terminalManager.resize(id, cols, rows);
   });
 
-  handle(IPC_CHANNELS.terminal.destroy, async (_event, payload) => {
+  handle(IPC_CHANNELS.terminal.destroy, async (event, payload) => {
     const id = getStringField(payload, "id");
     if (!id) {
       throw new Error("terminal.destroy payload must include id");
+    }
+    if (!terminalManager.isOwnedBy(id, extractSenderKey(event))) {
+      throw new Error(
+        `terminal.destroy rejected: caller does not own terminal ${id}`,
+      );
     }
 
     terminalManager.destroy(id);

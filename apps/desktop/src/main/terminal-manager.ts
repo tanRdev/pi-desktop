@@ -25,6 +25,13 @@ export interface TerminalInstance {
   session: TerminalSession;
   pty?: import("node-pty").IPty | null;
   childProcess?: ReturnType<typeof spawn> | null;
+  /**
+   * Stable key identifying the renderer that created this terminal. In
+   * production this is the Electron WebContents id (number); in tests it
+   * may be a synthetic string. Subsequent write/resize/destroy IPC calls
+   * must originate from the same sender to be accepted.
+   */
+  ownerWebContentsId?: number | string;
 }
 
 export interface TerminalManagerDependencies {
@@ -119,7 +126,11 @@ export class TerminalManager {
     return this.initError;
   }
 
-  create(id: string, opts: TerminalCreateOptions): TerminalSession {
+  create(
+    id: string,
+    opts: TerminalCreateOptions,
+    ownerWebContentsId?: number | string,
+  ): TerminalSession {
     const cols = opts.cols;
     const rows = opts.rows;
     const backend: TerminalBackend =
@@ -147,6 +158,7 @@ export class TerminalManager {
       session,
       pty: null,
       childProcess: null,
+      ownerWebContentsId,
     };
 
     const handleAttachedProcessExit = () => {
@@ -229,6 +241,18 @@ export class TerminalManager {
       this.terminals.delete(id);
       throw error instanceof Error ? error : new Error(String(error));
     }
+  }
+
+  /**
+   * Returns true when the terminal has no recorded owner (e.g. created by
+   * test harness) or when the caller's sender key matches the recorded
+   * owner. Operations from other senders are rejected.
+   */
+  isOwnedBy(id: string, senderKey: number | string): boolean {
+    const instance = this.terminals.get(id);
+    if (!instance) return false;
+    if (instance.ownerWebContentsId === undefined) return true;
+    return instance.ownerWebContentsId === senderKey;
   }
 
   write(id: string, data: string): void {

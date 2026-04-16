@@ -414,4 +414,42 @@ describe("terminalManager", () => {
       harness.manager.resize("missing-terminal", 132, 48),
     ).not.toThrow();
   });
+
+  it("isOwnedBy() returns true when no owner was recorded at create time", async () => {
+    const harness = createTerminalManagerHarness();
+    harness.manager.create("no-owner", {
+      cols: 80,
+      rows: 24,
+      ownerWindowId: "terminal-no-owner",
+      backend: "shell",
+      cwd: "/tmp/no-owner",
+    });
+
+    expect(harness.manager.isOwnedBy("no-owner", 42)).toBe(true);
+    expect(harness.manager.isOwnedBy("no-owner", "anything")).toBe(true);
+  });
+
+  it("isOwnedBy() returns false for unknown terminal ids", async () => {
+    const harness = createTerminalManagerHarness();
+    expect(harness.manager.isOwnedBy("missing", 1)).toBe(false);
+  });
+
+  it("isOwnedBy() enforces the recorded sender key", async () => {
+    const harness = createTerminalManagerHarness();
+    harness.manager.create(
+      "owned",
+      {
+        cols: 80,
+        rows: 24,
+        ownerWindowId: "terminal-owned",
+        backend: "shell",
+        cwd: "/tmp/owned",
+      },
+      7,
+    );
+
+    expect(harness.manager.isOwnedBy("owned", 7)).toBe(true);
+    expect(harness.manager.isOwnedBy("owned", 8)).toBe(false);
+    expect(harness.manager.isOwnedBy("owned", "7")).toBe(false);
+  });
 });
