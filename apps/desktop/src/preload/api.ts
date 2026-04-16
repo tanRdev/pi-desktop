@@ -3,11 +3,7 @@ import {
   type AppPreferences,
   type AutocompleteContext,
   type AutocompleteSuggestions,
-  type CreateWindowAction,
   type GitRepositoryStatus,
-  type ImageMetadata,
-  type ImagePreview,
-  type ImagePreviewOptions,
   IPC_CHANNELS,
   type LegacyPreferencesImport,
   type ModelSwitchRequest,
@@ -32,10 +28,7 @@ import {
   type ShellSnapshot,
   type TerminalCreateOptions,
   type TerminalSession,
-  type WindowLayoutState,
-  type WindowPosition,
   type WorkspaceSession,
-  type WorkspaceWindow,
 } from "@pi-desktop/shared";
 
 const OPEN_EXTERNAL_CHANNEL =
@@ -205,17 +198,6 @@ export function createPiDesktopApi({
         return invoke<void>(IPC_CHANNELS.fs.moveFile, {
           sourcePath,
           destinationPath,
-        });
-      },
-      getImageMetadata(path: string) {
-        return invoke<ImageMetadata>(IPC_CHANNELS.fs.getImageMetadata, {
-          path,
-        });
-      },
-      getImagePreview(path: string, options?: ImagePreviewOptions) {
-        return invoke<ImagePreview>(IPC_CHANNELS.fs.getImagePreview, {
-          path,
-          options,
         });
       },
     },
@@ -423,15 +405,6 @@ export function createPiDesktopApi({
       },
     },
     window: {
-      create(action: CreateWindowAction) {
-        return invoke<WorkspaceWindow>(IPC_CHANNELS.window.create, action);
-      },
-      close(windowId: string) {
-        return invoke<void>(IPC_CHANNELS.window.close, { windowId });
-      },
-      focus(windowId: string) {
-        return invoke<void>(IPC_CHANNELS.window.focus, { windowId });
-      },
       getFullscreenState() {
         return invoke<boolean>(
           IPC_CHANNELS.window.getFullscreenState,
@@ -440,27 +413,6 @@ export function createPiDesktopApi({
       },
       onFullscreenChanged(listener: (isFullscreen: boolean) => void) {
         return on<boolean>(IPC_CHANNELS.window.fullscreenChanged, listener);
-      },
-      move(windowId: string, position: WindowPosition) {
-        return invoke<void>(IPC_CHANNELS.window.move, { windowId, position });
-      },
-      resize(windowId: string, position: WindowPosition) {
-        return invoke<void>(IPC_CHANNELS.window.resize, { windowId, position });
-      },
-      minimize(windowId: string) {
-        return invoke<void>(IPC_CHANNELS.window.minimize, { windowId });
-      },
-      maximize(windowId: string) {
-        return invoke<void>(IPC_CHANNELS.window.maximize, { windowId });
-      },
-      restore(windowId: string) {
-        return invoke<void>(IPC_CHANNELS.window.restore, { windowId });
-      },
-      getLayout() {
-        return invoke<WindowLayoutState>(
-          IPC_CHANNELS.window.getLayout,
-          undefined,
-        );
       },
     },
   };

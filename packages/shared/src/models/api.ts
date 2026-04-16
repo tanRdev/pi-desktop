@@ -8,13 +8,7 @@ import type {
   SettingsSnapshot,
 } from "./agent.js";
 import type { OpenDialogOptions } from "./dialog.js";
-import type {
-  DirectoryListing,
-  FileContent,
-  ImageMetadata,
-  ImagePreview,
-  ImagePreviewOptions,
-} from "./fs.js";
+import type { DirectoryListing, FileContent } from "./fs.js";
 import type { GitRepositoryStatus } from "./git.js";
 import type {
   InstalledPackageSnapshot,
@@ -36,12 +30,6 @@ import type {
 } from "./search.js";
 import type { ShellSnapshot } from "./shell.js";
 import type { TerminalCreateOptions, TerminalSession } from "./terminal.js";
-import type {
-  CreateWindowAction,
-  WindowLayoutState,
-  WindowPosition,
-  WorkspaceWindow,
-} from "./window.js";
 import type {
   AppPreferences,
   LegacyPreferencesImport,
@@ -99,11 +87,6 @@ export interface PiDesktopApi {
     deleteFile(path: string): Promise<void>;
     renameFile(oldPath: string, newPath: string): Promise<void>;
     moveFile(sourcePath: string, destinationPath: string): Promise<void>;
-    getImageMetadata(path: string): Promise<ImageMetadata>;
-    getImagePreview(
-      path: string,
-      options?: ImagePreviewOptions,
-    ): Promise<ImagePreview>;
   };
   git: {
     getRepositoryStatus(repositoryPath: string): Promise<GitRepositoryStatus>;
@@ -189,16 +172,7 @@ export interface PiDesktopApi {
     }>;
   };
   window: {
-    create(action: CreateWindowAction): Promise<WorkspaceWindow>;
-    close(windowId: string): Promise<void>;
-    focus(windowId: string): Promise<void>;
     getFullscreenState(): Promise<boolean>;
     onFullscreenChanged(listener: (isFullscreen: boolean) => void): () => void;
-    move(windowId: string, position: WindowPosition): Promise<void>;
-    resize(windowId: string, position: WindowPosition): Promise<void>;
-    minimize(windowId: string): Promise<void>;
-    maximize(windowId: string): Promise<void>;
-    restore(windowId: string): Promise<void>;
-    getLayout(): Promise<WindowLayoutState>;
   };
 }
