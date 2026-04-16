@@ -7,7 +7,7 @@ import { ActivityGroup, ActivityIndicator } from "./activity-indicator";
 import { FeedbackBar, type FeedbackValue } from "./feedback-bar";
 import { Markdown } from "./markdown";
 import { SystemMessage } from "./system-message";
-import { ThinkingBlock } from "./thinking-block";
+import { StreamingPlaceholder, ThinkingBlock } from "./thinking-indicator";
 import { Tool, type ToolPart } from "./tool";
 
 // ============================================
@@ -197,22 +197,6 @@ export function EnhancedMessage({
           </div>
         )}
       </div>
-    </div>
-  );
-}
-
-function StreamingPlaceholder() {
-  return (
-    <div className="flex items-center gap-1 py-2">
-      {[0, 1, 2].map((i) => (
-        <span
-          key={i}
-          className="size-1.5 rounded-full bg-white/30"
-          style={{
-            animation: `shimmer-bounce 1.4s ease-in-out ${i * 0.15}s infinite`,
-          }}
-        />
-      ))}
     </div>
   );
 }

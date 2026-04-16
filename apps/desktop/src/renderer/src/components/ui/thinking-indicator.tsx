@@ -1,6 +1,7 @@
 "use client";
 
 import { Brain, CaretDown } from "@phosphor-icons/react";
+import * as React from "react";
 import { useState } from "react";
 import {
   Collapsible,
@@ -8,6 +9,39 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
+
+// ============================================
+// StreamingPlaceholder — compact pre-stream dots
+// ============================================
+
+export interface StreamingPlaceholderProps {
+  className?: string;
+}
+
+export function StreamingPlaceholder({ className }: StreamingPlaceholderProps) {
+  return (
+    <div
+      className={cn("flex items-center gap-1 py-2", className)}
+      role="status"
+      aria-live="polite"
+      aria-label="Generating response"
+    >
+      {[0, 1, 2].map((i) => (
+        <span
+          key={i}
+          className="size-1.5 rounded-full bg-white/30"
+          style={{
+            animation: `shimmer-bounce 1.4s ease-in-out ${i * 0.15}s infinite`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// ============================================
+// ThinkingBlock — expandable reasoning output
+// ============================================
 
 export interface ThinkingBlockProps
   extends React.HTMLAttributes<HTMLDivElement> {
@@ -129,6 +163,10 @@ export function ThinkingBlock({
   );
 }
 
+// ============================================
+// ReasoningChain — sequential step list
+// ============================================
+
 export interface ReasoningChainProps
   extends React.HTMLAttributes<HTMLDivElement> {
   steps: Array<{
@@ -226,5 +264,58 @@ function ReasoningStep({ step, isLast }: ReasoningStepProps) {
         )}
       </div>
     </div>
+  );
+}
+
+// ============================================
+// ThinkingIndicator — unified entry point
+// ============================================
+
+export type ThinkingIndicatorMode = "placeholder" | "block" | "chain";
+
+export interface ThinkingIndicatorProps {
+  /** Which variant to render. */
+  mode: ThinkingIndicatorMode;
+  /** Required when mode === "block" */
+  content?: string;
+  /** Required when mode === "block" */
+  status?: "thinking" | "complete";
+  duration?: string;
+  defaultOpen?: boolean;
+  /** Required when mode === "chain" */
+  steps?: ReasoningChainProps["steps"];
+  className?: string;
+}
+
+/**
+ * Canonical chat thinking/streaming indicator. Replaces the former trio of
+ * ThinkingBar, ThinkingBlock, and StreamingPlaceholder. Callers choose a
+ * mode instead of importing three separate components.
+ */
+export function ThinkingIndicator({
+  mode,
+  content = "",
+  status = "thinking",
+  duration,
+  defaultOpen,
+  steps,
+  className,
+}: ThinkingIndicatorProps) {
+  if (mode === "placeholder") {
+    return <StreamingPlaceholder className={className} />;
+  }
+
+  if (mode === "chain") {
+    return <ReasoningChain steps={steps ?? []} className={className} />;
+  }
+
+  return (
+    <ThinkingBlock
+      content={content}
+      status={status}
+      duration={duration}
+      defaultOpen={defaultOpen}
+      className={className}
+    />
   );
 }
