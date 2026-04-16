@@ -1,5 +1,6 @@
 import { FitAddon } from "@xterm/addon-fit";
 import { Terminal as XTerm } from "@xterm/xterm";
+import { Skeleton } from "boneyard-js/react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
@@ -41,6 +42,22 @@ function syncTerminalSurface(container: HTMLDivElement | null) {
   }
 }
 
+function TerminalSkeleton() {
+  return (
+    <div className="flex h-full w-full flex-col bg-[var(--color-bg-primary)]">
+      <div className="flex min-h-0 flex-1 flex-col bg-[var(--color-bg-primary)] p-4">
+        <div className="space-y-2">
+          <div className="h-3 w-full rounded bg-white/5" />
+          <div className="h-3 w-4/5 rounded bg-white/5" />
+          <div className="h-3 w-3/4 rounded bg-white/5" />
+          <div className="h-3 w-full rounded bg-white/5" />
+          <div className="h-3 w-1/2 rounded bg-white/5" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function Terminal({
   id,
   cwd,
@@ -53,7 +70,7 @@ export function Terminal({
   const terminalRef = React.useRef<XTerm | null>(null);
   const fitAddonRef = React.useRef<FitAddon | null>(null);
   const [error, setError] = React.useState<string | null>(null);
-  const [_isInitialized, setIsInitialized] = React.useState(false);
+  const [isInitializing, setIsInitializing] = React.useState(true);
 
   React.useEffect(() => {
     if (!containerRef.current || terminalRef.current) return;
@@ -154,7 +171,7 @@ export function Terminal({
       }
     });
 
-    setIsInitialized(true);
+    setIsInitializing(false);
 
     return () => {
       resizeObserver.disconnect();
@@ -166,58 +183,62 @@ export function Terminal({
     };
   }, [id, cwd, backend, ownerWindowId, onExit]);
 
-  if (error) {
-    return (
-      <div
-        className={cn(
-          "flex h-full w-full flex-col bg-[var(--color-bg-primary)]",
-          className,
-        )}
-      >
+  return (
+    <Skeleton
+      name="terminal"
+      loading={isInitializing}
+      fixture={<TerminalSkeleton />}
+    >
+      {error ? (
         <div
           className={cn(
-            "flex h-full flex-col items-center justify-center gap-3 p-4 text-center",
-            "animate-in fade-in zoom-in-95 duration-200 [transition-timing-function:var(--ease-out)]",
-            "motion-reduce:animate-none",
+            "flex h-full w-full flex-col bg-[var(--color-bg-primary)]",
+            className,
           )}
         >
-          <div className="text-sm text-white/40">Terminal Error</div>
-          <div className="text-xs text-white/40">{error}</div>
-          <div className="text-xs text-white/30">
-            Run{" "}
-            <code
-              className={cn(
-                "rounded bg-white/[0.08] px-1.5 py-0.5 text-white/60",
-                "transition-all duration-150",
-                "hover:bg-white/[0.12]",
-              )}
-            >
-              bun rebuild node-pty
-            </code>{" "}
-            to rebuild native modules.
+          <div
+            className={cn(
+              "flex h-full flex-col items-center justify-center gap-3 p-4 text-center",
+              "animate-in fade-in zoom-in-95 duration-200 [transition-timing-function:var(--ease-out)]",
+              "motion-reduce:animate-none",
+            )}
+          >
+            <div className="text-sm text-white/40">Terminal Error</div>
+            <div className="text-xs text-white/40">{error}</div>
+            <div className="text-xs text-white/30">
+              Run{" "}
+              <code
+                className={cn(
+                  "rounded bg-white/[0.08] px-1.5 py-0.5 text-white/60",
+                  "transition-all duration-150",
+                  "hover:bg-white/[0.12]",
+                )}
+              >
+                bun rebuild node-pty
+              </code>{" "}
+              to rebuild native modules.
+            </div>
           </div>
         </div>
-      </div>
-    );
-  }
-
-  return (
-    <div
-      className={cn(
-        "flex h-full w-full flex-col bg-[var(--color-bg-primary)]",
-        className,
-      )}
-    >
-      <div className="min-h-0 flex-1 overflow-hidden bg-[var(--color-bg-primary)]">
+      ) : (
         <div
-          ref={containerRef}
           className={cn(
-            "h-full w-full bg-[var(--color-bg-primary)]",
-            "animate-in fade-in zoom-in-95 duration-200 [transition-timing-function:var(--ease-out)]",
-            "motion-reduce:animate-none",
+            "flex h-full w-full flex-col bg-[var(--color-bg-primary)]",
+            className,
           )}
-        />
-      </div>
-    </div>
+        >
+          <div className="min-h-0 flex-1 overflow-hidden bg-[var(--color-bg-primary)]">
+            <div
+              ref={containerRef}
+              className={cn(
+                "h-full w-full bg-[var(--color-bg-primary)]",
+                "animate-in fade-in zoom-in-95 duration-200 [transition-timing-function:var(--ease-out)]",
+                "motion-reduce:animate-none",
+              )}
+            />
+          </div>
+        </div>
+      )}
+    </Skeleton>
   );
 }

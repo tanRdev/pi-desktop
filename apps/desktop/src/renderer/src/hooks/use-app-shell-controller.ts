@@ -141,8 +141,6 @@ export interface AppShellController {
   pushGitChanges: () => Promise<void>;
   fetchGitChanges: () => Promise<void>;
   commitAndPushGitChanges: () => Promise<void>;
-  isPackagesOpen: boolean;
-  setPackagesOpen: (isOpen: boolean) => void;
   isCreateWorktreeOpen: boolean;
   setCreateWorktreeOpen: (isOpen: boolean) => void;
   confirmRemoveRepositoryName: string | null;
@@ -213,14 +211,6 @@ export function useAppShellController(): AppShellController {
   const autocompleteSelectedIndex = useStore(
     uiInteractionStore,
     (storeState) => storeState.promptAutocompleteSelectedIndex,
-  );
-  const isFileTreeOpen = useStore(
-    uiInteractionStore,
-    (storeState) => storeState.overlays.fileTree.isOpen,
-  );
-  const isPackagesOpen = useStore(
-    uiInteractionStore,
-    (storeState) => storeState.dialogs.packages,
   );
   const isCreateWorktreeOpen = useStore(
     uiInteractionStore,
@@ -364,9 +354,6 @@ export function useAppShellController(): AppShellController {
   const clearAutocomplete = React.useCallback(() => {
     uiInteractionStore.getState().clearPromptAutocomplete();
   }, []);
-  const setPackagesOpen = React.useCallback((isOpen: boolean) => {
-    uiInteractionStore.getState().setDialogOpen("packages", isOpen);
-  }, []);
   const setCreateWorktreeOpen = React.useCallback((isOpen: boolean) => {
     uiInteractionStore.getState().setDialogOpen("createWorktree", isOpen);
   }, []);
@@ -381,9 +368,6 @@ export function useAppShellController(): AppShellController {
       setInitGitRepoPath(null);
       setInitGitRepoName(null);
     }
-  }, []);
-  const closeFileTreeOverlay = React.useCallback(() => {
-    uiInteractionStore.getState().closeFileTreeOverlay();
   }, []);
 
   React.useEffect(() => {
@@ -457,33 +441,6 @@ export function useAppShellController(): AppShellController {
     conversation: activeThreadConversation,
   });
   const isPromptVisible = activeThreadId !== null;
-
-  const handleFileClick = React.useCallback(
-    async (filePath: string) => {
-      setSelectedContextSurface(`${PENDING_SURFACE_PREFIX}:file`);
-      const createdWindowId = await openFileWindowForWorktree({
-        sessionStore: workspaceSessionStore,
-        windowActions: {
-          createWindow: windowStore.createWindow,
-          focusWindow: windowStore.focusWindow,
-        },
-        windows: windowState.layout.windows,
-        worktreeId: activeWorktreeId,
-        worktreePath: activeWorktreePath,
-        filePath,
-        readFile: (nextFilePath) => window.piDesktop.fs.readFile(nextFilePath),
-      });
-      setSelectedContextSurface(createdWindowId);
-      closeFileTreeOverlay();
-    },
-    [
-      activeWorktreeId,
-      activeWorktreePath,
-      closeFileTreeOverlay,
-      windowState.layout.windows,
-      windowStore,
-    ],
-  );
 
   const handleOpenTerminal = React.useCallback(() => {
     const existingTerminal = windowState.layout.windows.find(
@@ -1330,7 +1287,6 @@ export function useAppShellController(): AppShellController {
     currentModelValue,
     contextUsage: agent.contextUsage,
     isSwitchingModel,
-    isFileTreeOpen,
     isPromptVisible,
     isPromptExecuting,
     activeGitRepositoryStatus,
@@ -1357,7 +1313,6 @@ export function useAppShellController(): AppShellController {
     onCloseThread: handleCloseThread,
     onDeleteThread: handleDeleteThread,
     onDeleteWorktree: handleDeleteWorktree,
-    onCloseFileTree: closeFileTreeOverlay,
     onOpenGit: handleOpenGit,
     onOpenTerminal: handleOpenTerminal,
     onGitCommitMessageChange: setGitCommitMessage,
@@ -1370,7 +1325,6 @@ export function useAppShellController(): AppShellController {
     onStageGitFile: stageGitFile,
     onUnstageGitFile: unstageGitFile,
     onDiscardGitFile: discardGitFile,
-    onFileClick: handleFileClick,
     onFileContentChange: handleFileContentChange,
     onFileSave: handleFileSave,
     onDraftChange: setDraft,
@@ -1410,8 +1364,6 @@ export function useAppShellController(): AppShellController {
     pullGitChanges,
     pushGitChanges,
     fetchGitChanges,
-    isPackagesOpen,
-    setPackagesOpen,
     isCreateWorktreeOpen,
     setCreateWorktreeOpen,
     confirmRemoveRepositoryName,

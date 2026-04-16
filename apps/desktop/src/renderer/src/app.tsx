@@ -3,7 +3,6 @@ import { TooltipProvider } from "@pi-desktop/ui";
 import type * as React from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
-import { PackagesModal } from "./components/packages/packages-modal";
 import { Avatar, AvatarFallback } from "./components/ui/avatar";
 import { Button } from "./components/ui/button";
 import {
@@ -124,11 +123,6 @@ export default function App() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
-
-          <PackagesModal
-            open={controller.isPackagesOpen}
-            onOpenChange={controller.setPackagesOpen}
-          />
 
           <Dialog
             open={controller.oauthDialogState.open}

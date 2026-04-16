@@ -3,6 +3,7 @@ import type {
   ShellGitSnapshot,
   WorktreeSnapshot,
 } from "@pi-desktop/shared";
+import { Skeleton } from "boneyard-js/react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
@@ -195,6 +196,25 @@ function CombinedChangeList({
   );
 }
 
+function GitPanelSkeleton() {
+  return (
+    <div className="space-y-6">
+      <section className="space-y-3">
+        <div className="h-8 w-full rounded bg-white/5" />
+        <div className="flex gap-2">
+          <div className="h-7 w-16 rounded bg-white/5" />
+          <div className="h-7 w-7 rounded bg-white/5" />
+        </div>
+      </section>
+      <div className="space-y-2">
+        <div className="h-4 w-20 rounded bg-white/5" />
+        <div className="h-8 w-full rounded bg-white/5" />
+        <div className="h-8 w-full rounded bg-white/5" />
+      </div>
+    </div>
+  );
+}
+
 export function GitPanel({
   className,
   projectName: _projectName,
@@ -238,134 +258,147 @@ export function GitPanel({
     repositoryPath !== null && viewModel.fetchActionLabel !== null;
 
   return (
-    <div
-      className={cn(
-        "flex h-full min-h-0 flex-col bg-[var(--color-bg-primary)] text-white",
-        className,
-      )}
+    <Skeleton
+      name="git-panel"
+      loading={isLoading}
+      fixture={<GitPanelSkeleton />}
     >
-      <div className="border-b border-white/[0.06] px-4 py-3 select-none">
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="truncate text-[12px] font-medium text-white/50">
-                {viewModel.branchLabel}
-              </span>
+      <div
+        className={cn(
+          "flex h-full min-h-0 flex-col bg-[var(--color-bg-primary)] text-white",
+          className,
+        )}
+      >
+        <div className="border-b border-white/[0.06] px-4 py-3 select-none">
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="truncate text-[12px] font-medium text-white/50">
+                  {viewModel.branchLabel}
+                </span>
+              </div>
+              <div className="flex items-center gap-1 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => void onRefresh()}
+                  disabled={!canRefresh || isRefreshing}
+                  className="flex size-8 items-center justify-center rounded-sm text-white/40 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/80 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ArrowClockwise
+                    className={cn("size-4", isRefreshing && "animate-spin")}
+                  />
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-1 shrink-0">
-              <button
-                type="button"
-                onClick={() => void onRefresh()}
-                disabled={!canRefresh || isRefreshing}
-                className="flex size-8 items-center justify-center rounded-sm text-white/40 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/80 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ArrowClockwise
-                  className={cn("size-4", isRefreshing && "animate-spin")}
-                />
-              </button>
+            <div className="flex items-center gap-2 text-[12px] tabular-nums tracking-wide text-white/40">
+              <span className="truncate font-medium">{viewModel.summary}</span>
+              <span className="text-white/20 select-none">·</span>
+              <span className="truncate">{viewModel.syncLabel}</span>
             </div>
-          </div>
-          <div className="flex items-center gap-2 text-[12px] tabular-nums tracking-wide text-white/40">
-            <span className="truncate font-medium">{viewModel.summary}</span>
-            <span className="text-white/20 select-none">·</span>
-            <span className="truncate">{viewModel.syncLabel}</span>
           </div>
         </div>
-      </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
-        <div className="space-y-6">
-          <section>
-            <textarea
-              value={commitMessage}
-              onChange={(event) => onCommitMessageChange(event.target.value)}
-              placeholder="Commit message..."
-              rows={2}
-              disabled={!repositoryPath || isLoading}
-              className="w-full resize-none bg-transparent px-0 py-2 text-[12px] leading-relaxed text-white/90 placeholder:text-white/20 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-            />
-            <div className="flex items-center gap-1.5 pt-1">
-              <Button
-                type="button"
-                variant="default"
-                size="sm"
-                onClick={() => void onCommit()}
-                disabled={!canCommit || !commitMessage.trim() || isLoading}
-              >
-                Commit
-              </Button>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    disabled={!repositoryPath || isLoading}
-                  >
-                    <CaretDown className="size-2.5" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent
-                  align="start"
-                  side="bottom"
-                  className="w-48 border-white/10 bg-[#161616] p-1 shadow-2xl"
-                >
-                  <div className="flex flex-col gap-0.5">
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+          <div className="space-y-6">
+            <section>
+              <textarea
+                value={commitMessage}
+                onChange={(event) => onCommitMessageChange(event.target.value)}
+                placeholder="Commit message..."
+                rows={2}
+                disabled={!repositoryPath || isLoading}
+                className="w-full resize-none bg-transparent px-0 py-2 text-[12px] leading-relaxed text-white/90 placeholder:text-white/20 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              />
+              <div className="flex items-center justify-end gap-1.5 pt-1">
+                <Popover>
+                  <PopoverTrigger asChild>
                     <Button
-                      variant="ghost"
+                      type="button"
+                      variant="default"
                       size="sm"
                       disabled={
-                        !canCommitAndPush || !commitMessage.trim() || isLoading
+                        !canCommit || !commitMessage.trim() || isLoading
                       }
-                      onClick={() => void onCommitAndPush()}
-                      className="justify-start px-2 py-1.5 text-[12px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
                     >
-                      Commit & Push
+                      <span>Commit</span>
+                      <CaretDown className="size-2.5 ml-1" />
                     </Button>
-                    <div className="my-1 h-px bg-white/5" />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={!canPush || isLoading}
-                      onClick={() => void onPush()}
-                      className="justify-start px-2 py-1.5 text-[12px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
-                    >
-                      Push
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={!canPull || isLoading}
-                      onClick={() => void onPull()}
-                      className="justify-start px-2 py-1.5 text-[12px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
-                    >
-                      Pull
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={!canFetch || isLoading}
-                      onClick={() => void onFetch()}
-                      className="justify-start px-2 py-1.5 text-[12px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
-                    >
-                      Fetch
-                    </Button>
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </div>
-          </section>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    align="end"
+                    side="bottom"
+                    className="w-48 border-white/10 bg-[#161616] p-1 shadow-2xl"
+                  >
+                    <div className="flex flex-col gap-0.5">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={
+                          !canCommit || !commitMessage.trim() || isLoading
+                        }
+                        onClick={() => void onCommit()}
+                        className="justify-start px-2 py-1.5 text-[12px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
+                      >
+                        Commit
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={
+                          !canCommitAndPush ||
+                          !commitMessage.trim() ||
+                          isLoading
+                        }
+                        onClick={() => void onCommitAndPush()}
+                        className="justify-start px-2 py-1.5 text-[12px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
+                      >
+                        Commit & Push
+                      </Button>
+                      <div className="my-1 h-px bg-white/5" />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={!canPush || isLoading}
+                        onClick={() => void onPush()}
+                        className="justify-start px-2 py-1.5 text-[12px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
+                      >
+                        Push
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={!canPull || isLoading}
+                        onClick={() => void onPull()}
+                        className="justify-start px-2 py-1.5 text-[12px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
+                      >
+                        Pull
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={!canFetch || isLoading}
+                        onClick={() => void onFetch()}
+                        className="justify-start px-2 py-1.5 text-[12px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
+                      >
+                        Fetch
+                      </Button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </section>
 
-          <div className="space-y-5">
-            <CombinedChangeList
-              repositoryStatus={repositoryStatus}
-              onStage={onStageFile}
-              onUnstage={onUnstageFile}
-              onDiscard={onDiscardFile}
-            />
+            <div className="space-y-5">
+              <CombinedChangeList
+                repositoryStatus={repositoryStatus}
+                onStage={onStageFile}
+                onUnstage={onUnstageFile}
+                onDiscard={onDiscardFile}
+              />
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </Skeleton>
   );
 }

@@ -45,12 +45,6 @@ vi.mock("./workspace-activity-panel", () => ({
   },
 }));
 
-vi.mock("./workspace-overlays", () => ({
-  FileTreeOverlay() {
-    return <div data-testid="file-tree-overlay">File tree</div>;
-  },
-}));
-
 vi.mock("./workspace-surface-panel", () => ({
   WorkspaceSurfacePanel() {
     return <div data-testid="workspace-surface-panel">Surface Panel</div>;
@@ -135,7 +129,6 @@ function createWorkspaceShellProps(
       percent: 10,
     },
     isSwitchingModel: false,
-    isFileTreeOpen: false,
     isPromptVisible: true,
     isPromptExecuting: false,
     activeGitRepositoryStatus: null,
@@ -169,7 +162,6 @@ function createWorkspaceShellProps(
     onCreateThread: vi.fn(async () => "thread-2"),
     onCloseThread: vi.fn(),
     onDeleteThread: vi.fn(),
-    onCloseFileTree: vi.fn(),
     onOpenGit: vi.fn(),
     onOpenTerminal: vi.fn(),
     onGitCommitMessageChange: vi.fn(),
@@ -182,7 +174,6 @@ function createWorkspaceShellProps(
     onStageGitFile: vi.fn(),
     onUnstageGitFile: vi.fn(),
     onDiscardGitFile: vi.fn(),
-    onFileClick: vi.fn(),
     onFileContentChange: vi.fn(),
     onFileSave: vi.fn(),
     onDraftChange: vi.fn(),

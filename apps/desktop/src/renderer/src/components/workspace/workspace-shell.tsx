@@ -18,7 +18,6 @@ import { PromptDock } from "./prompt-dock";
 import { ThreadTabs } from "./thread-tabs";
 import { TitleBar } from "./title-bar";
 import { WorkspaceActivityPanel } from "./workspace-activity-panel";
-import { FileTreeOverlay } from "./workspace-overlays";
 import { WorkspaceSurfacePanel } from "./workspace-surface-panel";
 
 type ContextSurfaceKey = "activity" | string;
@@ -45,7 +44,6 @@ export interface WorkspaceShellProps {
   currentModelValue: string;
   contextUsage: import("@pi-desktop/shared").AgentSnapshot["contextUsage"];
   isSwitchingModel: boolean;
-  isFileTreeOpen: boolean;
   isPromptVisible: boolean;
   isPromptExecuting: boolean;
   activeGitRepositoryStatus: GitRepositoryStatus | null;
@@ -72,7 +70,6 @@ export interface WorkspaceShellProps {
   onDeleteWorktree?: (worktreeId: string) => void | Promise<void>;
   onCloseThread: (threadId: string) => void | Promise<void>;
   onDeleteThread?: (threadId: string) => void | Promise<void>;
-  onCloseFileTree: () => void;
   onOpenGit: () => void;
   onOpenTerminal: () => void;
   onGitCommitMessageChange: (value: string) => void;
@@ -85,7 +82,6 @@ export interface WorkspaceShellProps {
   onStageGitFile: (filePath: string) => void | Promise<void>;
   onUnstageGitFile: (filePath: string) => void | Promise<void>;
   onDiscardGitFile: (filePath: string) => void | Promise<void>;
-  onFileClick: (filePath: string) => void | Promise<void>;
   onFileContentChange: (windowId: string, content: string) => void;
   onFileSave: (windowId: string, filePath: string) => void | Promise<void>;
   onDraftChange: (draft: string) => void;
@@ -124,7 +120,6 @@ export function WorkspaceShell({
   currentModelValue,
   contextUsage,
   isSwitchingModel,
-  isFileTreeOpen,
   isPromptVisible,
   isPromptExecuting,
   activeGitRepositoryStatus,
@@ -151,7 +146,6 @@ export function WorkspaceShell({
   onDeleteWorktree,
   onCloseThread,
   onDeleteThread,
-  onCloseFileTree,
   onOpenGit: _onOpenGit,
   onOpenTerminal,
   onGitCommitMessageChange,
@@ -164,7 +158,6 @@ export function WorkspaceShell({
   onStageGitFile,
   onUnstageGitFile,
   onDiscardGitFile,
-  onFileClick,
   onFileContentChange,
   onFileSave,
   onDraftChange,
@@ -450,17 +443,6 @@ export function WorkspaceShell({
           </div>
         </main>
       </div>
-
-      {/* Overlays */}
-      {isFileTreeOpen ? (
-        <FileTreeOverlay
-          ariaLabel="File tree overlay"
-          projectName={projectName}
-          activeWorktree={activeWorktree}
-          onClose={onCloseFileTree}
-          onFileClick={onFileClick}
-        />
-      ) : null}
     </div>
   );
 }

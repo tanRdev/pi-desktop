@@ -4,18 +4,19 @@ import {
   ChatContainerRoot,
   ChatContainerScrollAnchor,
 } from "@pi-desktop/ui";
+import { Skeleton } from "boneyard-js/react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { ScrollButton } from "../ui/scroll-button";
-import { SystemMessage } from "../ui/system-message";
-import { Tool } from "../ui/tool";
+import type { ActivityIndicatorProps } from "../ui/activity-indicator";
 import {
   ActivityIndicator,
   StreamingIndicator,
 } from "../ui/activity-indicator";
 import { EnhancedMessage } from "../ui/enhanced-message";
 import type { FeedbackValue } from "../ui/feedback-bar";
-import type { ActivityIndicatorProps } from "../ui/activity-indicator";
+import { ScrollButton } from "../ui/scroll-button";
+import { SystemMessage } from "../ui/system-message";
+import { Tool } from "../ui/tool";
 
 type ChatMessageRowProps = {
   message: AgentMessageSnapshot;
@@ -25,7 +26,6 @@ type ChatMessageRowProps = {
   onCopyMessage: (text: string) => void;
 };
 
-// Parse tool message ID to extract tool name
 type ToolState = "input-streaming" | "output-available" | "output-error";
 
 function getToolState(message: AgentMessageSnapshot): ToolState {
@@ -50,7 +50,6 @@ function buildToolPart(message: AgentMessageSnapshot) {
   } as const;
 }
 
-// Parse activities from message ID patterns
 function extractActivitiesFromMessage(message: AgentMessageSnapshot): Array<{
   id: string;
   type: ActivityIndicatorProps["type"];
@@ -64,7 +63,6 @@ function extractActivitiesFromMessage(message: AgentMessageSnapshot): Array<{
     status: "pending" | "running" | "complete" | "error";
   }> = [];
 
-  // Tool activity
   if (message.role === "tool") {
     const toolNameMatch = /^tool:([^:]+):/.exec(message.id);
     const toolName = toolNameMatch?.[1] ?? "tool";
@@ -81,7 +79,6 @@ function extractActivitiesFromMessage(message: AgentMessageSnapshot): Array<{
     });
   }
 
-  // Search patterns
   if (
     message.text?.includes("search") ||
     message.text?.includes("Search") ||
@@ -95,7 +92,6 @@ function extractActivitiesFromMessage(message: AgentMessageSnapshot): Array<{
     });
   }
 
-  // Web browsing
   if (
     message.text?.includes("http") ||
     message.text?.includes("url") ||
@@ -109,7 +105,6 @@ function extractActivitiesFromMessage(message: AgentMessageSnapshot): Array<{
     });
   }
 
-  // Code execution
   if (
     message.text?.includes("```") ||
     message.text?.includes("code") ||
@@ -190,7 +185,6 @@ function ChatMessageBody({
 
       return (
         <div className="w-full space-y-2">
-          {/* Activities for this message */}
           {activities.length > 0 && (
             <div className="flex flex-col gap-1.5 pb-1">
               {activities.map((activity) => (
@@ -239,7 +233,6 @@ const ChatMessageRow = React.memo(function ChatMessageRow({
   const isAssistant = message.role === "assistant";
   const isUser = message.role === "user";
 
-  // Tighter vertical spacing
   return (
     <div
       className={cn(
@@ -280,7 +273,6 @@ const ChatMessageRow = React.memo(function ChatMessageRow({
   );
 });
 
-// Slash command highlighter component
 interface SlashCommandHighlighterProps {
   text: string;
 }
@@ -304,7 +296,6 @@ function getLastErrorTitle(lastError: string): string {
   return "Error";
 }
 
-// Detect running activities from messages
 function detectRunningActivities(messages: AgentMessageSnapshot[]): Array<{
   id: string;
   type: ActivityIndicatorProps["type"];
@@ -320,7 +311,6 @@ function detectRunningActivities(messages: AgentMessageSnapshot[]): Array<{
     details?: string;
   }> = [];
 
-  // Check for streaming tool messages
   const streamingTools = messages.filter(
     (m) => m.role === "tool" && m.status === "streaming",
   );
@@ -340,10 +330,24 @@ function detectRunningActivities(messages: AgentMessageSnapshot[]): Array<{
   return activities;
 }
 
+function MessageSkeleton() {
+  return (
+    <div className="flex w-full flex-col px-0 py-2 justify-start items-start">
+      <div className="min-w-0 flex flex-col gap-1 w-full max-w-3xl mx-auto px-6">
+        <div className="space-y-2 w-full">
+          <div className="h-4 w-3/4 rounded bg-white/5" />
+          <div className="h-4 w-1/2 rounded bg-white/5" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export interface ChatThreadPanelProps {
   threadTitle: string;
   messages: AgentMessageSnapshot[];
   isStreaming: boolean;
+  isLoading?: boolean;
   lastError: string | null;
   className?: string;
 }
@@ -352,6 +356,7 @@ export function ChatThreadPanel({
   threadTitle: _threadTitle,
   messages,
   isStreaming,
+  isLoading,
   lastError,
   className,
 }: ChatThreadPanelProps) {
@@ -410,13 +415,11 @@ export function ChatThreadPanel({
     void navigator.clipboard.writeText(text);
   }, []);
 
-  // Detect streaming activities
   const streamingActivities = React.useMemo(
     () => detectRunningActivities(messages),
     [messages],
   );
 
-  // Enhanced streaming indicator with shimmer
   const streamingIndicator = isStreaming ? (
     <div className="mx-auto flex w-full max-w-3xl px-6 py-2">
       <StreamingIndicator
@@ -436,7 +439,6 @@ export function ChatThreadPanel({
         className,
       )}
     >
-      {/* Messages area */}
       <ChatContainerRoot
         className="min-h-0 flex-1"
         onScroll={handleTranscriptScroll}
@@ -448,50 +450,57 @@ export function ChatThreadPanel({
             messages.length > 0 && "pb-24",
           )}
         >
-          {!hasConversationState ? (
-            <div
-              data-testid="chat-empty-state"
-              className="flex min-h-full w-full flex-1 items-center justify-center px-6"
-            >
-              <div className="max-w-md text-center font-mono text-[14px] uppercase tracking-[0.08em] text-white/25">
-                Start a conversation with Pi.
+          <Skeleton
+            name="chat-messages"
+            loading={isLoading ?? false}
+            fixture={[1, 2, 3].map((i) => <MessageSkeleton key={i} />)}
+          >
+            {!hasConversationState ? (
+              <div
+                data-testid="chat-empty-state"
+                className="flex min-h-full w-full flex-1 items-center justify-center px-6"
+              >
+                <div className="max-w-md text-center font-mono text-[14px] uppercase tracking-[0.08em] text-white/25">
+                  Start a conversation with Pi.
+                </div>
               </div>
-            </div>
-          ) : null}
+            ) : null}
 
-          {messages.length > 0
-            ? messages.map((message, index) => {
-                const feedbackValue = feedbackByMessageId[message.id] ?? null;
+            {messages.length > 0
+              ? messages.map((message, index) => {
+                  const feedbackValue = feedbackByMessageId[message.id] ?? null;
 
-                return (
-                  <ChatMessageRow
-                    key={message.id}
-                    message={message}
-                    index={index}
-                    feedback={feedbackValue}
-                    onFeedbackChange={handleFeedbackChange}
-                    onCopyMessage={handleCopyMessage}
-                  />
-                );
-              })
-            : null}
+                  return (
+                    <ChatMessageRow
+                      key={message.id}
+                      message={message}
+                      index={index}
+                      feedback={feedbackValue}
+                      onFeedbackChange={handleFeedbackChange}
+                      onCopyMessage={handleCopyMessage}
+                    />
+                  );
+                })
+              : null}
 
-          {streamingIndicator}
+            {streamingIndicator}
 
-          {/* Error message */}
-          {lastError && (
-            <div className="mx-auto w-full max-w-3xl px-6 py-2">
-              <SystemMessage tone="error" title={getLastErrorTitle(lastError)}>
-                {lastError}
-              </SystemMessage>
-            </div>
-          )}
+            {lastError && (
+              <div className="mx-auto w-full max-w-3xl px-6 py-2">
+                <SystemMessage
+                  tone="error"
+                  title={getLastErrorTitle(lastError)}
+                >
+                  {lastError}
+                </SystemMessage>
+              </div>
+            )}
 
-          {hasConversationState ? <ChatContainerScrollAnchor /> : null}
+            {hasConversationState ? <ChatContainerScrollAnchor /> : null}
+          </Skeleton>
         </ChatContainerContent>
       </ChatContainerRoot>
 
-      {/* Scroll button — above input */}
       {showScrollButton && (
         <div className="pointer-events-none absolute bottom-28 right-6 z-10">
           <ScrollButton
