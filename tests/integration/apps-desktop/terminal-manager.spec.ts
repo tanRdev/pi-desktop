@@ -169,7 +169,7 @@ describe("future terminal modules (RED)", () => {
     expect(typeof session.lastActivityAt).toBe("number");
     expect(session.lastActivityAt).toBeGreaterThanOrEqual(before);
 
-    expect(send).toHaveBeenCalledWith(IPC_CHANNELS.terminal.create, {
+    expect(send).toHaveBeenCalledWith(IPC_CHANNELS.terminal.event, {
       type: "data",
       id: "pty-1",
       data: "hello",
@@ -177,7 +177,7 @@ describe("future terminal modules (RED)", () => {
 
     pty.emitExit(5);
     expect(session.status).toBe("exited");
-    expect(send).toHaveBeenCalledWith(IPC_CHANNELS.terminal.create, {
+    expect(send).toHaveBeenCalledWith(IPC_CHANNELS.terminal.event, {
       type: "exit",
       id: "pty-1",
       exitCode: 5,
@@ -199,14 +199,14 @@ describe("future terminal modules (RED)", () => {
     const beforeChild = Date.now();
     child.stdout.emit("data", "out1");
     expect(childSession.lastActivityAt).toBeGreaterThanOrEqual(beforeChild);
-    expect(send).toHaveBeenCalledWith(IPC_CHANNELS.terminal.create, {
+    expect(send).toHaveBeenCalledWith(IPC_CHANNELS.terminal.event, {
       type: "data",
       id: "child-1",
       data: "out1",
     });
 
     child.stderr.emit("data", "err1");
-    expect(send).toHaveBeenCalledWith(IPC_CHANNELS.terminal.create, {
+    expect(send).toHaveBeenCalledWith(IPC_CHANNELS.terminal.event, {
       type: "data",
       id: "child-1",
       data: "err1",
@@ -214,7 +214,7 @@ describe("future terminal modules (RED)", () => {
 
     child.emit("exit", null);
     expect(childSession.status).toBe("exited");
-    expect(send).toHaveBeenCalledWith(IPC_CHANNELS.terminal.create, {
+    expect(send).toHaveBeenCalledWith(IPC_CHANNELS.terminal.event, {
       type: "exit",
       id: "child-1",
       exitCode: 0,
@@ -261,7 +261,7 @@ describe("terminalManager", () => {
     harness.ptyInstances[0]?.emitExit(7);
 
     expect(harness.manager.get("shell-local")).toBeUndefined();
-    expect(harness.send).toHaveBeenCalledWith(IPC_CHANNELS.terminal.create, {
+    expect(harness.send).toHaveBeenCalledWith(IPC_CHANNELS.terminal.event, {
       type: "exit",
       id: "shell-local",
       exitCode: 7,

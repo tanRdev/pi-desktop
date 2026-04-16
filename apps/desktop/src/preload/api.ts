@@ -346,7 +346,7 @@ export function createPiDesktopApi({
           exitCode?: number;
         }) => void,
       ) {
-        return on(IPC_CHANNELS.terminal.create, listener);
+        return on(IPC_CHANNELS.terminal.event, listener);
       },
     },
     search: {

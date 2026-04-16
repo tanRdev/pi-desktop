@@ -50,7 +50,7 @@ function emitTerminalEvent(
     exitCode?: number;
   },
 ): void {
-  mainWindow?.webContents.send(IPC_CHANNELS.terminal.create, payload);
+  mainWindow?.webContents.send(IPC_CHANNELS.terminal.event, payload);
 }
 
 export function bindPtySessionEvents({

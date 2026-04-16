@@ -76,6 +76,7 @@ export const IPC_CHANNELS = {
     resize: "terminal:resize",
     destroy: "terminal:destroy",
     getSessions: "terminal:getSessions",
+    event: "terminal:event",
   },
   search: {
     searchFiles: "search:searchFiles",
