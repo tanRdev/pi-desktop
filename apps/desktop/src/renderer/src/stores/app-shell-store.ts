@@ -238,7 +238,6 @@ export function createAppShellStore(api: PiDesktopApi) {
             providerSnapshots,
             settingsSnapshot,
             appPreferences: finalPreferences,
-            shellState: shellModel.getState(),
             isShellReady: true,
           });
         })();
@@ -262,21 +261,15 @@ export function createAppShellStore(api: PiDesktopApi) {
     async reload() {
       await shellModel.load();
       await refreshRuntimeMetadata();
-      set({
-        shellState: shellModel.getState(),
-      });
     },
     async sendPrompt() {
       await shellModel.sendPrompt();
-      set({ shellState: shellModel.getState() });
     },
     async cancelPrompt() {
       await shellModel.cancelPrompt();
-      set({ shellState: shellModel.getState() });
     },
     setDraft(draft) {
       shellModel.setDraft(draft);
-      set({ shellState: shellModel.getState() });
     },
     async switchModel(request) {
       if (
