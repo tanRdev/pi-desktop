@@ -8,6 +8,7 @@ import type {
 } from "@pi-desktop/shared";
 import { Effect } from "effect";
 import type { BrowserWindow } from "electron";
+import { terminateChildWithEscalation } from "./process-lifecycle";
 import { resolveLocalShellProgram } from "./terminal/terminal-backends";
 import {
   bindChildProcessSessionEvents,
@@ -260,14 +261,34 @@ export class TerminalManager {
     if (!instance) return;
     try {
       if (instance.pty) {
+        // node-pty's kill() already issues SIGHUP then cleans up the PTY fd.
+        // For the non-pty fallback path below we escalate manually.
         runTerminalOperation(() => {
           instance.pty?.kill();
         });
       }
       if (instance.childProcess) {
-        runTerminalOperation(() => {
-          instance.childProcess?.kill();
+        const child = instance.childProcess;
+        void terminateChildWithEscalation(child).catch(() => {
+          /* swallow: best-effort cleanup */
         });
+      }
+    } finally {
+      this.terminals.delete(id);
+    }
+  }
+
+  async destroyAsync(id: string): Promise<void> {
+    const instance = this.terminals.get(id);
+    if (!instance) return;
+    try {
+      if (instance.pty) {
+        runTerminalOperation(() => {
+          instance.pty?.kill();
+        });
+      }
+      if (instance.childProcess) {
+        await terminateChildWithEscalation(instance.childProcess);
       }
     } finally {
       this.terminals.delete(id);
@@ -278,6 +299,12 @@ export class TerminalManager {
     for (const id of Array.from(this.terminals.keys())) {
       this.destroy(id);
     }
+  }
+
+  async destroyAllAsync(): Promise<void> {
+    await Promise.all(
+      Array.from(this.terminals.keys()).map((id) => this.destroyAsync(id)),
+    );
   }
 
   get(id: string): TerminalInstance | undefined {
