@@ -4,6 +4,7 @@
  */
 
 import { stat } from "node:fs/promises";
+import path from "node:path";
 import type {
   ImageMetadata,
   ImagePreview,
@@ -12,6 +13,54 @@ import type {
 
 type SharpInstance = import("sharp").Sharp;
 type SharpMetadata = import("sharp").Metadata;
+
+/**
+ * Guard rails to keep the main process from being weaponised by a crafted
+ * image path or a decompression bomb.
+ *   - PIXEL_LIMIT: sharp bails on inputs above this (default 268M = 16384²).
+ *   - MAX_FILE_BYTES: 64 MiB covers realistic camera RAWs without letting a
+ *     single IPC call pin the process on memory.
+ *   - ALLOWED_EXTENSIONS: extension allowlist, case-insensitive.
+ */
+const PIXEL_LIMIT = 268_435_456;
+const MAX_FILE_BYTES = 64 * 1024 * 1024;
+const ALLOWED_EXTENSIONS = new Set([
+  ".apng",
+  ".avif",
+  ".bmp",
+  ".gif",
+  ".heic",
+  ".heif",
+  ".jpeg",
+  ".jpg",
+  ".png",
+  ".svg",
+  ".tif",
+  ".tiff",
+  ".webp",
+]);
+
+async function assertSafeImagePath(filePath: string): Promise<void> {
+  if (typeof filePath !== "string" || filePath.length === 0) {
+    throw new Error("Image path must be a non-empty string");
+  }
+  if (!path.isAbsolute(filePath)) {
+    throw new Error("Image path must be absolute");
+  }
+  const ext = path.extname(filePath).toLowerCase();
+  if (!ALLOWED_EXTENSIONS.has(ext)) {
+    throw new Error(`Unsupported image extension: ${ext || "<none>"}`);
+  }
+  const stats = await stat(filePath);
+  if (!stats.isFile()) {
+    throw new Error("Image path does not refer to a regular file");
+  }
+  if (stats.size > MAX_FILE_BYTES) {
+    throw new Error(
+      `Image exceeds maximum file size of ${MAX_FILE_BYTES} bytes`,
+    );
+  }
+}
 
 let sharpModule: ((input?: string | Buffer) => SharpInstance) | null = null;
 
@@ -34,9 +83,9 @@ async function getSharp(): Promise<(input?: string | Buffer) => SharpInstance> {
     const sharpFactory = sharpFactoryCandidate;
     sharpModule = (input) => {
       if (typeof input === "string" || Buffer.isBuffer(input)) {
-        return sharpFactory(input);
+        return sharpFactory(input, { limitInputPixels: PIXEL_LIMIT });
       }
-      return sharpFactory();
+      return sharpFactory(undefined, { limitInputPixels: PIXEL_LIMIT });
     };
     return sharpModule;
   } catch {
@@ -81,6 +130,7 @@ export class ImageService implements ImageServiceInterface {
   }
 
   async getMetadata(filePath: string): Promise<ImageMetadata> {
+    await assertSafeImagePath(filePath);
     const sharp = await getSharp();
 
     try {
@@ -110,6 +160,7 @@ export class ImageService implements ImageServiceInterface {
     filePath: string,
     options?: ImagePreviewOptions,
   ): Promise<ImagePreview> {
+    await assertSafeImagePath(filePath);
     const sharp = await getSharp();
 
     const maxWidth = options?.maxWidth ?? 800;
