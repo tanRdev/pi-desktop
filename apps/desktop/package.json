@@ -8,16 +8,7 @@
   "type": "module",
   "build": {
     "appId": "dev.pi.desktop",
-    "productName": "Pi Desktop",
-    "mac": {
-      "icon": "../../build/icon.icns",
-      "category": "public.app-category.developer-tools",
-      "target": [
-        "dir",
-        "dmg",
-        "zip"
-      ]
-    }
+    "productName": "Pi Desktop"
   },
   "main": "out/main/index.js",
   "scripts": {
@@ -50,9 +41,8 @@
     "@xterm/xterm": "^6.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "effect": "^3.14.16",
+    "effect": "^3.21.0",
     "electron-updater": "^6.8.3",
-    "lucide-react": "^1.7.0",
     "marked": "^15.0.7",
     "monaco-editor": "^0.55.1",
     "next-themes": "^0.4.6",
