@@ -483,17 +483,19 @@ function WorkspaceShellImpl({
               data-testid="workspace-side-panel"
               className={cn(
                 "min-h-0 shrink-0 overflow-hidden border-l border-white/[0.06] bg-[var(--color-bg-primary)]",
-                "transition-[width,opacity] duration-[var(--duration-normal)] ease-[var(--ease-out)]",
+                "will-change-[width,transform]",
+                "transition-[width,opacity] duration-[var(--duration-fast)] ease-[var(--ease-standard)]",
                 isRightSidebarVisible
                   ? "w-[300px] xl:w-[400px] opacity-100"
-                  : "w-0 opacity-0",
+                  : "w-0 opacity-0 pointer-events-none",
               )}
             >
               <div
                 className={cn(
-                  "flex h-full min-w-[300px] flex-col xl:min-w-[400px]",
-                  "transition-opacity duration-[var(--duration-normal)] ease-[var(--ease-out)]",
-                  isRightSidebarVisible ? "opacity-100" : "opacity-0",
+                  "flex h-full min-w-[300px] flex-col xl:min-w-[400px] will-change-transform",
+                  isRightSidebarVisible
+                    ? "translate-x-0 opacity-100 transition-[transform,opacity] duration-[var(--duration-enter)] ease-[var(--ease-emphasized-decel)]"
+                    : "translate-x-2 opacity-0 transition-[transform,opacity] duration-[var(--duration-exit)] ease-[var(--ease-emphasized-accel)]",
                 )}
               >
                 {mainPaneState.sideSurfaceKey === "activity" ? (
@@ -520,17 +522,22 @@ function WorkspaceShellImpl({
                       onTabChange={setRightSidebarTab}
                     />
                     <div className="min-h-0 flex-1 overflow-y-auto">
-                      {rightSidebarTab === "git" ? (
-                        gitPanel
-                      ) : (
-                        <FileTreePanel
-                          workspacePath={workspacePath}
-                          onFileSelect={onFileTreeFileSelect}
-                          onDeleteFile={onFileTreeDeleteFile}
-                          onRenameFile={onFileTreeRenameFile}
-                          onMoveFile={onFileTreeMoveFile}
-                        />
-                      )}
+                      <div
+                        key={rightSidebarTab}
+                        className="tab-content-enter h-full"
+                      >
+                        {rightSidebarTab === "git" ? (
+                          gitPanel
+                        ) : (
+                          <FileTreePanel
+                            workspacePath={workspacePath}
+                            onFileSelect={onFileTreeFileSelect}
+                            onDeleteFile={onFileTreeDeleteFile}
+                            onRenameFile={onFileTreeRenameFile}
+                            onMoveFile={onFileTreeMoveFile}
+                          />
+                        )}
+                      </div>
                     </div>
                   </>
                 )}

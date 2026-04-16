@@ -438,6 +438,25 @@ button,
 }
 
 /* ============================================
+   TAB CONTENT SWAP — subtle fade + slight lift
+   ============================================ */
+
+@keyframes tab-content-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tab-content-enter {
+  animation: tab-content-enter var(--duration-fast) var(--ease-emphasized-decel) forwards;
+}
+
+/* ============================================
    SIDEBAR RESIZE — No transition during active drag
    ============================================ */
 
