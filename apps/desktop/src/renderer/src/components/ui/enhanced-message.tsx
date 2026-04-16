@@ -2,14 +2,14 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { Markdown } from "./markdown";
 import type { ActivityIndicatorProps } from "./activity-indicator";
 import { ActivityGroup, ActivityIndicator } from "./activity-indicator";
 import { FeedbackBar, type FeedbackValue } from "./feedback-bar";
+import { Markdown } from "./markdown";
+import { SystemMessage } from "./system-message";
 import type { ThinkingBlockProps } from "./thinking-block";
 import { ThinkingBlock } from "./thinking-block";
 import { Tool, type ToolPart } from "./tool";
-import { SystemMessage } from "./system-message";
 
 // ============================================
 // TYPES
@@ -30,7 +30,7 @@ export interface EnhancedMessageProps {
   /** Message ID */
   id: string;
   /** Message role */
-  role: MessageRole;
+  messageRole: MessageRole;
   /** Message content (text or markdown) */
   content: string;
   /** Whether content is markdown */
@@ -67,7 +67,7 @@ export interface EnhancedMessageProps {
 
 export function EnhancedMessage({
   id,
-  role,
+  messageRole,
   content,
   isMarkdown = false,
   status = "complete",
@@ -81,10 +81,10 @@ export function EnhancedMessage({
   className,
   animationIndex = 0,
 }: EnhancedMessageProps) {
-  const isUser = role === "user";
-  const isAssistant = role === "assistant";
-  const isSystem = role === "system";
-  const isTool = role === "tool";
+  const isUser = messageRole === "user";
+  const isAssistant = messageRole === "assistant";
+  const isSystem = messageRole === "system";
+  const isTool = messageRole === "tool";
   const isStreaming = status === "streaming";
 
   // Calculate animation delay for stagger effect

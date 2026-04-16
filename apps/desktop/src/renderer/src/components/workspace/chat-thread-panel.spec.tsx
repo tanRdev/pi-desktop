@@ -51,14 +51,18 @@ vi.mock("../ui/feedback-bar", () => ({
   },
 }));
 
-vi.mock("../ui/message", () => ({
-  MessageContent({
-    children,
-    className,
-  }: React.PropsWithChildren<{ className?: string }>) {
+vi.mock("../ui/enhanced-message", () => ({
+  EnhancedMessage({ content }: { content: string }) {
     return (
-      <div data-testid="message-content" className={className}>
-        {children}
+      <div className="w-full space-y-3 leading-6">
+        <div className="w-full">
+          <div
+            data-testid="message-content"
+            className="max-w-none leading-6 [&_p]:my-2"
+          >
+            {content}
+          </div>
+        </div>
       </div>
     );
   },

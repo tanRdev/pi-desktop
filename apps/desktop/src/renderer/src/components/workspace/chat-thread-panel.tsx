@@ -202,7 +202,7 @@ function ChatMessageBody({
 
           <EnhancedMessage
             id={message.id}
-            role="assistant"
+            messageRole="assistant"
             content={message.text || " "}
             isMarkdown={true}
             status={message.status}
@@ -236,7 +236,7 @@ const ChatMessageRow = React.memo(function ChatMessageRow({
   return (
     <div
       className={cn(
-        "group flex w-full flex-col px-0 py-2",
+        "group flex w-full flex-col px-0 py-5",
         isUser && "justify-end items-end",
         isAssistant && "justify-start items-start",
         (isSystem || isTool) && "justify-center items-center",
@@ -447,57 +447,64 @@ export function ChatThreadPanel({
           data-testid="chat-transcript"
           className={cn(
             "flex w-full min-h-full flex-1 flex-col px-0 select-text",
-            messages.length > 0 && "pb-24",
+            messages.length > 0 && "pb-32",
           )}
         >
-          <Skeleton
-            name="chat-messages"
-            loading={isLoading ?? false}
-            fixture={[1, 2, 3].map((i) => <MessageSkeleton key={i} />)}
-          >
-            {!hasConversationState ? (
-              <div
-                data-testid="chat-empty-state"
-                className="flex min-h-full w-full flex-1 items-center justify-center px-6"
-              >
-                <div className="max-w-md text-center font-mono text-[10.5px] uppercase tracking-[0.08em] text-white/25">
-                  Start a conversation with Pi.
-                </div>
-              </div>
-            ) : null}
-
-            {messages.length > 0
-              ? messages.map((message, index) => {
-                  const feedbackValue = feedbackByMessageId[message.id] ?? null;
-
-                  return (
-                    <ChatMessageRow
-                      key={message.id}
-                      message={message}
-                      index={index}
-                      feedback={feedbackValue}
-                      onFeedbackChange={handleFeedbackChange}
-                      onCopyMessage={handleCopyMessage}
-                    />
-                  );
-                })
-              : null}
-
-            {streamingIndicator}
-
-            {lastError && (
-              <div className="mx-auto w-full max-w-3xl px-6 py-2">
-                <SystemMessage
-                  tone="error"
-                  title={getLastErrorTitle(lastError)}
+          {isLoading ? (
+            <Skeleton
+              name="chat-messages"
+              loading={true}
+              fixture={[1, 2, 3].map((i) => <MessageSkeleton key={i} />)}
+            >
+              {null}
+            </Skeleton>
+          ) : (
+            <>
+              {!hasConversationState ? (
+                <div
+                  data-testid="chat-empty-state"
+                  className="flex min-h-full w-full flex-1 items-center justify-center px-6"
                 >
-                  {lastError}
-                </SystemMessage>
-              </div>
-            )}
+                  <div className="max-w-md text-center font-mono text-[10.5px] uppercase tracking-[0.08em] text-white/25">
+                    Start a conversation with Pi.
+                  </div>
+                </div>
+              ) : null}
 
-            {hasConversationState ? <ChatContainerScrollAnchor /> : null}
-          </Skeleton>
+              {messages.length > 0
+                ? messages.map((message, index) => {
+                    const feedbackValue =
+                      feedbackByMessageId[message.id] ?? null;
+
+                    return (
+                      <ChatMessageRow
+                        key={message.id}
+                        message={message}
+                        index={index}
+                        feedback={feedbackValue}
+                        onFeedbackChange={handleFeedbackChange}
+                        onCopyMessage={handleCopyMessage}
+                      />
+                    );
+                  })
+                : null}
+
+              {streamingIndicator}
+
+              {lastError && (
+                <div className="mx-auto w-full max-w-3xl px-6 py-2">
+                  <SystemMessage
+                    tone="error"
+                    title={getLastErrorTitle(lastError)}
+                  >
+                    {lastError}
+                  </SystemMessage>
+                </div>
+              )}
+
+              {hasConversationState ? <ChatContainerScrollAnchor /> : null}
+            </>
+          )}
         </ChatContainerContent>
       </ChatContainerRoot>
 

@@ -25,6 +25,7 @@ function isPiDesktopWorktree(worktreePath: string): boolean {
     normalized === normalizedBase
   );
 }
+
 import type { RepositoryCatalogEntry } from "./repository-catalog";
 import type { AppSelectionState } from "./selection-state";
 import type { ThreadCatalogEntry } from "./thread-catalog";
@@ -393,7 +394,10 @@ export async function buildShellCatalog({
       }
 
       const appWorktrees = inspection.worktrees.filter(
-        (worktree) => worktree.isMain || isPiDesktopWorktree(worktree.path),
+        (worktree) =>
+          worktree.isMain ||
+          worktree.isCurrent ||
+          isPiDesktopWorktree(worktree.path),
       );
 
       const worktrees = await Promise.all(
