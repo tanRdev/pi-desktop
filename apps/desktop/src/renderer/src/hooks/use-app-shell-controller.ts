@@ -19,6 +19,7 @@ import {
 } from "../../../thread-title-defaults";
 import type { WorkspaceShellProps } from "../components/workspace/workspace-shell";
 import { loadPromptAutocompleteSuggestions } from "../lib/prompt-autocomplete-loader";
+export { getMainPaneState } from "../lib/workspace-pane-state";
 import {
   buildFileMention,
   buildTerminalMention,
@@ -29,7 +30,6 @@ import {
 import { toast } from "../lib/toast";
 import { uiInteractionStore } from "../stores/ui-interaction-store";
 import {
-  openFileWindowForWorktree,
   saveFileWindowForWorktree,
   syncActiveThreadConversation,
   updateFileDraftForWorktree,
@@ -1227,6 +1227,18 @@ export function useAppShellController(): AppShellController {
       ),
     [windowState.layout.windows],
   );
+  const sideContextWindows = React.useMemo(
+    () =>
+      contextWindows.filter(
+        (
+          window,
+        ): window is Extract<
+          (typeof contextWindows)[number],
+          { kind: "terminal" | "git" }
+        > => window.kind === "terminal" || window.kind === "git",
+      ),
+    [contextWindows],
+  );
 
   React.useEffect(() => {
     const noteWindows = windowState.layout.windows.filter(
@@ -1250,14 +1262,14 @@ export function useAppShellController(): AppShellController {
 
   React.useEffect(() => {
     if (selectedContextSurface === null) {
-      contextWindows.forEach((window) => {
+      sideContextWindows.forEach((window) => {
         windowStore.closeWindow(window.id);
       });
       return;
     }
 
     if (selectedContextSurface === "activity") {
-      contextWindows.forEach((window) => {
+      sideContextWindows.forEach((window) => {
         windowStore.closeWindow(window.id);
       });
       return;
@@ -1267,19 +1279,22 @@ export function useAppShellController(): AppShellController {
       return;
     }
 
-    const hasSelectedWindow = contextWindows.some(
+    const hasSelectedWindow = sideContextWindows.some(
       (window) => window.id === selectedContextSurface,
     );
     if (!hasSelectedWindow) {
+      sideContextWindows.forEach((window) => {
+        windowStore.closeWindow(window.id);
+      });
       return;
     }
 
-    contextWindows.forEach((window) => {
+    sideContextWindows.forEach((window) => {
       if (window.id !== selectedContextSurface) {
         windowStore.closeWindow(window.id);
       }
     });
-  }, [contextWindows, selectedContextSurface, windowStore]);
+  }, [selectedContextSurface, sideContextWindows, windowStore]);
 
   const handleSelectContextSurface = React.useCallback(
     (surfaceKey: WorkspaceShellProps["selectedContextSurface"]) => {
@@ -1295,9 +1310,122 @@ export function useAppShellController(): AppShellController {
     [selectedContextSurface, windowStore],
   );
 
+  const handleCloseFileWindow = React.useCallback(
+    (windowId: string) => {
+      const fileWindows = contextWindows.filter(
+        (
+          window,
+        ): window is Extract<
+          (typeof contextWindows)[number],
+          { kind: "file" }
+        > => window.kind === "file",
+      );
+      const closingIndex = fileWindows.findIndex(
+        (window) => window.id === windowId,
+      );
+      const nextFileWindow =
+        closingIndex >= 0
+          ? (fileWindows[closingIndex + 1] ??
+            fileWindows[closingIndex - 1] ??
+            null)
+          : null;
+
+      windowStore.closeWindow(windowId);
+
+      if (selectedContextSurface !== windowId) {
+        return;
+      }
+
+      setSelectedContextSurface(nextFileWindow?.id ?? null);
+    },
+    [contextWindows, selectedContextSurface, windowStore],
+  );
+
   const handleLeftRailResize = React.useCallback((width: number) => {
     setLeftRailWidth(width);
   }, []);
+
+  const handleFileTreeFileSelect = React.useCallback(
+    (filePath: string) => {
+      if (!activeWorktreeId) return;
+
+      // Check for existing window (sync path)
+      const existingFileWindow = windowState.layout.windows.find(
+        (w): w is Extract<typeof w, { kind: "file" }> =>
+          w.kind === "file" && w.filePath === filePath,
+      );
+
+      if (existingFileWindow) {
+        windowStore.focusWindow(existingFileWindow.id);
+        setSelectedContextSurface(existingFileWindow.id);
+        return;
+      }
+
+      const createdWindow = windowStore.createWindow(
+        { kind: "file", filePath },
+        activeWorktreePath ?? undefined,
+      );
+      setSelectedContextSurface(createdWindow.id);
+
+      // Set loading state and read content async
+      workspaceSessionStore
+        .getState()
+        .setFileContentForWorktree(activeWorktreeId, createdWindow.id, {
+          content: null,
+          isLoading: true,
+          error: null,
+        });
+
+      window.piDesktop.fs.readFile(filePath).then(
+        (result) => {
+          workspaceSessionStore
+            .getState()
+            .setFileContentForWorktree(activeWorktreeId, createdWindow.id, {
+              content: result,
+              isLoading: false,
+              error: null,
+            });
+        },
+        (error) => {
+          workspaceSessionStore
+            .getState()
+            .setFileContentForWorktree(activeWorktreeId, createdWindow.id, {
+              content: null,
+              isLoading: false,
+              error:
+                error instanceof Error ? error.message : "Failed to load file",
+            });
+        },
+      );
+    },
+    [
+      activeWorktreeId,
+      activeWorktreePath,
+      windowStore,
+      windowState.layout.windows,
+    ],
+  );
+
+  const handleFileTreeDeleteFile = React.useCallback(async (path: string) => {
+    await window.piDesktop.fs.deleteFile(path);
+    toast.success("Deleted", { description: path.split("/").pop() });
+  }, []);
+
+  const handleFileTreeRenameFile = React.useCallback(
+    async (oldPath: string, newPath: string) => {
+      await window.piDesktop.fs.renameFile(oldPath, newPath);
+      toast.success("Renamed", { description: newPath.split("/").pop() });
+    },
+    [],
+  );
+
+  const handleFileTreeMoveFile = React.useCallback(
+    async (source: string, destination: string) => {
+      await window.piDesktop.fs.moveFile(source, destination);
+      toast.success("Moved", { description: source.split("/").pop() });
+    },
+    [],
+  );
 
   const workspaceShellProps: WorkspaceShellProps = {
     platform,
@@ -1329,6 +1457,7 @@ export function useAppShellController(): AppShellController {
     selectedContextSurface,
     leftRailWidth,
     onSelectContextSurface: handleSelectContextSurface,
+    onCloseFileWindow: handleCloseFileWindow,
     onLeftRailResize: handleLeftRailResize,
     onModelMenuOpenChange: handleModelMenuOpenChange,
     onAddRepository: handleAddRepository,
@@ -1371,6 +1500,11 @@ export function useAppShellController(): AppShellController {
     onConnectProvider: () => void openOAuthDialog("providers", null),
     favoriteModels,
     onToggleFavorite: handleToggleFavorite,
+    workspacePath: activeWorktreePath,
+    onFileTreeFileSelect: handleFileTreeFileSelect,
+    onFileTreeDeleteFile: handleFileTreeDeleteFile,
+    onFileTreeRenameFile: handleFileTreeRenameFile,
+    onFileTreeMoveFile: handleFileTreeMoveFile,
   };
 
   return {

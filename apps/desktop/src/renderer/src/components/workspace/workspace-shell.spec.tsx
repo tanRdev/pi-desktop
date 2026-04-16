@@ -54,6 +54,12 @@ vi.mock("./workspace-surface-panel", () => ({
   },
 }));
 
+vi.mock("./workspace-file-content", () => ({
+  WorkspaceFileContent({ filePath }: { filePath: string }) {
+    return <div data-testid="workspace-file-content">{filePath}</div>;
+  },
+}));
+
 function createWorkspaceShellProps(
   overrides: Partial<ComponentProps<typeof WorkspaceShell>> = {},
 ): ComponentProps<typeof WorkspaceShell> {
@@ -152,6 +158,7 @@ function createWorkspaceShellProps(
     selectedContextSurface: null,
     leftRailWidth: 240,
     onSelectContextSurface: vi.fn(),
+    onCloseFileWindow: vi.fn(),
     onLeftRailResize: vi.fn(),
     onModelMenuOpenChange: vi.fn(),
     onAddRepository: vi.fn(),
@@ -190,6 +197,11 @@ function createWorkspaceShellProps(
     onModelSelection: vi.fn(),
     promptMode: "build",
     onPromptModeChange: vi.fn(),
+    workspacePath: "/test/workspace",
+    onFileTreeFileSelect: vi.fn(),
+    onFileTreeDeleteFile: vi.fn(),
+    onFileTreeRenameFile: vi.fn(),
+    onFileTreeMoveFile: vi.fn(),
     ...overrides,
   };
 }
@@ -310,5 +322,151 @@ describe("WorkspaceShell", () => {
         onUnstageAllFiles: onUnstageAllGitFiles,
       }),
     );
+  });
+
+  it("renders selected file windows in the center pane instead of the right panel", () => {
+    render(
+      <WorkspaceShell
+        {...createWorkspaceShellProps({
+          contextWindows: [
+            {
+              id: "file-window-1",
+              kind: "file",
+              title: "workspace-shell.tsx",
+              x: 0,
+              y: 0,
+              width: 300,
+              height: 400,
+              zIndex: 1,
+              isFocused: true,
+              state: "normal",
+              filePath: "/tmp/alpha-workspace/workspace-shell.tsx",
+              isDirty: false,
+              encoding: "utf-8",
+              isReadOnly: false,
+            },
+          ],
+          selectedContextSurface: "file-window-1",
+        })}
+      />,
+    );
+
+    expect(screen.getByTestId("workspace-chat-panel")).toContainElement(
+      screen.getByTestId("workspace-file-content"),
+    );
+    expect(screen.getByText("workspace-shell.tsx")).toBeInTheDocument();
+    expect(
+      screen.queryByTestId("workspace-surface-panel"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("renders files and threads inside one shared primary tab bar", () => {
+    render(
+      <WorkspaceShell
+        {...createWorkspaceShellProps({
+          contextWindows: [
+            {
+              id: "file-window-1",
+              kind: "file",
+              title: "workspace-shell.tsx",
+              x: 0,
+              y: 0,
+              width: 300,
+              height: 400,
+              zIndex: 1,
+              isFocused: true,
+              state: "normal",
+              filePath: "/tmp/alpha-workspace/workspace-shell.tsx",
+              isDirty: false,
+              encoding: "utf-8",
+              isReadOnly: false,
+            },
+          ],
+          selectedContextSurface: "file-window-1",
+        })}
+      />,
+    );
+
+    expect(screen.getAllByTestId("thread-tabs")).toHaveLength(1);
+    expect(screen.getByTestId("thread-tabs")).toContainElement(
+      screen.getByText("Signal"),
+    );
+    expect(screen.getByTestId("thread-tabs")).toContainElement(
+      screen.getByText("workspace-shell.tsx"),
+    );
+  });
+
+  it("lets users switch back to chat threads from the shared primary tab bar", async () => {
+    const user = userEvent.setup();
+    const onSelectThread = vi.fn();
+
+    render(
+      <WorkspaceShell
+        {...createWorkspaceShellProps({
+          onSelectThread,
+          contextWindows: [
+            {
+              id: "file-window-1",
+              kind: "file",
+              title: "workspace-shell.tsx",
+              x: 0,
+              y: 0,
+              width: 300,
+              height: 400,
+              zIndex: 1,
+              isFocused: true,
+              state: "normal",
+              filePath: "/tmp/alpha-workspace/workspace-shell.tsx",
+              isDirty: false,
+              encoding: "utf-8",
+              isReadOnly: false,
+            },
+          ],
+          selectedContextSurface: "file-window-1",
+        })}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Signal" }));
+
+    expect(onSelectThread).toHaveBeenCalledWith("thread-1");
+  });
+
+  it("lets users close file tabs from the shared primary tab bar", async () => {
+    const user = userEvent.setup();
+    const onCloseFileWindow = vi.fn();
+
+    render(
+      <WorkspaceShell
+        {...createWorkspaceShellProps({
+          onCloseFileWindow,
+          contextWindows: [
+            {
+              id: "file-window-1",
+              kind: "file",
+              title: "workspace-shell.tsx",
+              x: 0,
+              y: 0,
+              width: 300,
+              height: 400,
+              zIndex: 1,
+              isFocused: true,
+              state: "normal",
+              filePath: "/tmp/alpha-workspace/workspace-shell.tsx",
+              isDirty: true,
+              encoding: "utf-8",
+              isReadOnly: false,
+            },
+          ],
+          selectedContextSurface: "file-window-1",
+        })}
+      />,
+    );
+
+    await user.click(
+      screen.getByRole("button", { name: "Close workspace-shell.tsx" }),
+    );
+
+    expect(onCloseFileWindow).toHaveBeenCalledWith("file-window-1");
   });
 });

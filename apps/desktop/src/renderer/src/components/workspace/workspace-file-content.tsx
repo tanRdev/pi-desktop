@@ -3,16 +3,57 @@ import * as React from "react";
 import { File, Image as ImageIcon, Save } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
-import { Markdown } from "../ui/markdown";
-import { ScrollArea } from "../ui/scroll-area";
 import { Skeleton } from "boneyard-js/react";
+import { MonacoFileEditor } from "./monaco-file-editor";
 
 function getFileName(filePath: string): string {
   return filePath.split(/[/\\]/).pop() ?? filePath;
 }
 
-function isMarkdownFile(filePath: string): boolean {
-  return /\.(md|markdown)$/i.test(filePath);
+function getFileLanguage(filePath: string): string {
+  const extension = filePath.split(".").pop()?.toLowerCase() ?? "";
+
+  switch (extension) {
+    case "cjs":
+    case "cts":
+    case "js":
+    case "jsx":
+    case "mjs":
+    case "mts":
+    case "ts":
+    case "tsx":
+      return "typescript";
+    case "css":
+      return "css";
+    case "go":
+      return "go";
+    case "html":
+      return "html";
+    case "java":
+      return "java";
+    case "json":
+      return "json";
+    case "md":
+    case "markdown":
+      return "markdown";
+    case "py":
+      return "python";
+    case "rb":
+      return "ruby";
+    case "rs":
+      return "rust";
+    case "sh":
+      return "shell";
+    case "sql":
+      return "sql";
+    case "xml":
+      return "xml";
+    case "yaml":
+    case "yml":
+      return "yaml";
+    default:
+      return "plaintext";
+  }
 }
 
 export interface WorkspaceFileContentProps {
@@ -53,6 +94,7 @@ function TextContent({
   draft,
   isReadOnly,
   onContentChange,
+  onSave,
   className,
 }: {
   filePath: string;
@@ -60,32 +102,19 @@ function TextContent({
   draft: string | null;
   isReadOnly: boolean;
   onContentChange?: (content: string) => void;
+  onSave?: () => void;
   className?: string;
 }) {
-  if (isMarkdownFile(filePath)) {
-    return (
-      <div className={cn("flex h-full flex-col", className)}>
-        <ScrollArea className="min-h-0 flex-1">
-          <div className="px-5 py-4">
-            <Markdown>{draft ?? content.content}</Markdown>
-          </div>
-        </ScrollArea>
-      </div>
-    );
-  }
-
   return (
     <div className={cn("flex h-full flex-col", className)}>
-      <ScrollArea className="min-h-0 flex-1">
-        <pre
-          className={cn(
-            "min-h-full p-5 font-mono text-[10.5px] leading-relaxed text-white/70",
-            "whitespace-pre-wrap break-all",
-          )}
-        >
-          {draft ?? content.content}
-        </pre>
-      </ScrollArea>
+      <MonacoFileEditor
+        path={filePath}
+        language={getFileLanguage(filePath)}
+        value={draft ?? content.content}
+        readOnly={isReadOnly}
+        onChange={onContentChange}
+        onSave={onSave}
+      />
     </div>
   );
 }
@@ -104,11 +133,13 @@ export function WorkspaceFileContent({
   const fileName = getFileName(filePath);
   const [draft, setDraft] = React.useState<string | null>(null);
 
+  const contentText = content?.type === "text" ? content.content : null;
+
   React.useEffect(() => {
-    if (content?.type === "text") {
-      setDraft(content.content);
+    if (contentText !== null) {
+      setDraft(contentText);
     }
-  }, [content]);
+  }, [contentText]);
 
   const handleContentChange = React.useCallback(
     (nextValue: string) => {
@@ -117,6 +148,19 @@ export function WorkspaceFileContent({
     },
     [onContentChange],
   );
+
+  React.useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "s") {
+        e.preventDefault();
+        if (isDirty && !isReadOnly && onSave) {
+          onSave();
+        }
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isDirty, isReadOnly, onSave]);
 
   const toolbar = onSave ? (
     <div className="flex h-11 shrink-0 items-center justify-between border-b border-white/[0.04] bg-transparent px-5">
@@ -227,6 +271,7 @@ export function WorkspaceFileContent({
             draft={draft}
             isReadOnly={isReadOnly}
             onContentChange={handleContentChange}
+            onSave={onSave}
             className="min-h-0 flex-1"
           />
         </div>
@@ -248,6 +293,7 @@ export function WorkspaceFileContent({
       name="file-content"
       loading={isLoading ?? false}
       fixture={<FileContentSkeleton />}
+      className={cn("h-full", className)}
     >
       {renderContent()}
     </Skeleton>

@@ -600,6 +600,20 @@ code:not(.shiki code):not(pre code) {
     flex-shrink: 0;
   }
 
+  /* Boneyard skeleton content wrapper — inherit full height for flex chains */
+  [data-boneyard="file-content"] > [data-boneyard-content] {
+    height: 100%;
+  }
+
+  /* Hidden scrollbar — for horizontal tab strips */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
   /* Eyebrow label — uppercase, tracked, small */
   .eyebrow {
     font-size: 10.5px;

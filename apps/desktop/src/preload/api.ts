@@ -195,6 +195,18 @@ export function createPiDesktopApi({
       writeFile(path: string, content: string) {
         return invoke<void>(IPC_CHANNELS.fs.writeFile, { path, content });
       },
+      deleteFile(path: string) {
+        return invoke<void>(IPC_CHANNELS.fs.deleteFile, { path });
+      },
+      renameFile(oldPath: string, newPath: string) {
+        return invoke<void>(IPC_CHANNELS.fs.renameFile, { oldPath, newPath });
+      },
+      moveFile(sourcePath: string, destinationPath: string) {
+        return invoke<void>(IPC_CHANNELS.fs.moveFile, {
+          sourcePath,
+          destinationPath,
+        });
+      },
       getImageMetadata(path: string) {
         return invoke<ImageMetadata>(IPC_CHANNELS.fs.getImageMetadata, {
           path,

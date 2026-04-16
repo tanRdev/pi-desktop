@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  getMainPaneState,
   isPromptExecutionVisible,
   shouldPersistThreadConversation,
 } from "../../../apps/desktop/src/renderer/src/hooks/use-app-shell-controller";
@@ -71,5 +72,62 @@ describe("use-app-shell-controller helpers", () => {
         },
       }),
     ).toBe(true);
+  });
+
+  it("routes file windows to the main pane and keeps side surfaces scoped to terminal and git", () => {
+    expect(
+      getMainPaneState({
+        contextWindows: [
+          {
+            id: "file-window-1",
+            kind: "file",
+            title: "index.ts",
+            x: 0,
+            y: 0,
+            width: 300,
+            height: 400,
+            zIndex: 1,
+            isFocused: true,
+            state: "normal",
+            filePath: "/tmp/repo/index.ts",
+            isDirty: false,
+            encoding: "utf-8",
+            isReadOnly: false,
+          },
+        ],
+        selectedContextSurface: "file-window-1",
+      }),
+    ).toEqual({
+      fileWindows: ["file-window-1"],
+      selectedFileWindowId: "file-window-1",
+      sideSurfaceKey: null,
+    });
+
+    expect(
+      getMainPaneState({
+        contextWindows: [
+          {
+            id: "terminal-window-1",
+            kind: "terminal",
+            title: "Terminal",
+            x: 0,
+            y: 0,
+            width: 300,
+            height: 400,
+            zIndex: 1,
+            isFocused: true,
+            state: "normal",
+            terminalId: "term-1",
+            backend: "shell",
+            cwd: "/tmp/repo",
+          },
+        ],
+        selectedContextSurface: "terminal-window-1",
+      }),
+    ).toEqual({
+      fileWindows: [],
+      selectedFileWindowId: null,
+      sideSurfaceKey: "terminal-window-1",
+    });
   });
 });

@@ -364,4 +364,49 @@ export function registerFilesystemHandlers({
     await mkdir(dirname(authorizedPath), { recursive: true });
     await writeFile(authorizedPath, content, "utf-8");
   });
+
+  handle(IPC_CHANNELS.fs.deleteFile, async (_event, payload) => {
+    const filePath = getStringField(payload, "path");
+    if (!filePath) {
+      throw new Error("deleteFile payload must include path");
+    }
+
+    const authorizedPath = await authorizeAndResolveWritePath(filePath);
+    const { rm } = await import("node:fs/promises");
+    await rm(authorizedPath, { recursive: true, force: true });
+  });
+
+  handle(IPC_CHANNELS.fs.renameFile, async (_event, payload) => {
+    const oldPath = getStringField(payload, "oldPath");
+    const newPath = getStringField(payload, "newPath");
+    if (!oldPath) {
+      throw new Error("renameFile payload must include oldPath");
+    }
+    if (!newPath) {
+      throw new Error("renameFile payload must include newPath");
+    }
+
+    const resolvedOldPath = await authorizeAndResolveWritePath(oldPath);
+    const resolvedNewPath = await authorizeAndResolveWritePath(newPath);
+    const { rename } = await import("node:fs/promises");
+    await rename(resolvedOldPath, resolvedNewPath);
+  });
+
+  handle(IPC_CHANNELS.fs.moveFile, async (_event, payload) => {
+    const sourcePath = getStringField(payload, "sourcePath");
+    const destinationPath = getStringField(payload, "destinationPath");
+    if (!sourcePath) {
+      throw new Error("moveFile payload must include sourcePath");
+    }
+    if (!destinationPath) {
+      throw new Error("moveFile payload must include destinationPath");
+    }
+
+    const resolvedSource = await authorizeAndResolveWritePath(sourcePath);
+    const resolvedDest = await authorizeAndResolveWritePath(destinationPath);
+    const { mkdir, rename } = await import("node:fs/promises");
+    const { dirname } = await import("node:path");
+    await mkdir(dirname(resolvedDest), { recursive: true });
+    await rename(resolvedSource, resolvedDest);
+  });
 }

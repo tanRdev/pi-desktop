@@ -96,6 +96,9 @@ export interface PiDesktopApi {
     readDirectory(path: string): Promise<DirectoryListing>;
     readFile(path: string): Promise<FileContent>;
     writeFile(path: string, content: string): Promise<void>;
+    deleteFile(path: string): Promise<void>;
+    renameFile(oldPath: string, newPath: string): Promise<void>;
+    moveFile(sourcePath: string, destinationPath: string): Promise<void>;
     getImageMetadata(path: string): Promise<ImageMetadata>;
     getImagePreview(
       path: string,
