@@ -76,7 +76,6 @@ describe("createPiDesktopApi", () => {
                   {
                     id: "default-thread",
                     title: "North Star",
-                    isArchived: false,
                     lastActivityAt: null,
                     runtime: {
                       status: "ready",
@@ -407,6 +406,14 @@ describe("createPiDesktopApi", () => {
     await api.git.getRepositoryStatus("/tmp/work/repo-one");
     await api.git.stageFile("/tmp/work/repo-one", "src/app.ts");
     await api.git.unstageFile("/tmp/work/repo-one", "src/app.ts");
+    const stageFiles = Reflect.get(api.git, "stageFiles");
+    const unstageFiles = Reflect.get(api.git, "unstageFiles");
+
+    expect(typeof stageFiles).toBe("function");
+    expect(typeof unstageFiles).toBe("function");
+
+    await stageFiles("/tmp/work/repo-one", ["src/app.ts", "src/lib.ts"]);
+    await unstageFiles("/tmp/work/repo-one", ["src/app.ts", "src/lib.ts"]);
     await api.git.discardFile("/tmp/work/repo-one", "src/app.ts");
     await api.git.commit("/tmp/work/repo-one", "feat: native git panel");
     await api.git.pull("/tmp/work/repo-one");
@@ -467,6 +474,20 @@ describe("createPiDesktopApi", () => {
       [
         IPC_CHANNELS.git.unstageFile,
         { repositoryPath: "/tmp/work/repo-one", filePath: "src/app.ts" },
+      ],
+      [
+        Reflect.get(IPC_CHANNELS.git, "stageFiles"),
+        {
+          repositoryPath: "/tmp/work/repo-one",
+          filePaths: ["src/app.ts", "src/lib.ts"],
+        },
+      ],
+      [
+        Reflect.get(IPC_CHANNELS.git, "unstageFiles"),
+        {
+          repositoryPath: "/tmp/work/repo-one",
+          filePaths: ["src/app.ts", "src/lib.ts"],
+        },
       ],
       [
         IPC_CHANNELS.git.discardFile,

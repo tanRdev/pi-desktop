@@ -5,6 +5,8 @@ import type { ComponentProps } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { WorkspaceShell } from "./workspace-shell";
 
+const gitPanelPropsSpy = vi.fn();
+
 vi.mock("./chat-thread-panel", () => ({
   ChatThreadPanel() {
     return <div data-testid="chat-thread-panel">Chat</div>;
@@ -12,7 +14,8 @@ vi.mock("./chat-thread-panel", () => ({
 }));
 
 vi.mock("./git-panel", () => ({
-  GitPanel() {
+  GitPanel(props: Record<string, unknown>) {
+    gitPanelPropsSpy(props);
     return <div data-testid="git-panel">Git Panel</div>;
   },
 }));
@@ -172,7 +175,9 @@ function createWorkspaceShellProps(
     onPullGit: vi.fn(),
     onPushGit: vi.fn(),
     onStageGitFile: vi.fn(),
+    onStageAllGitFiles: vi.fn(),
     onUnstageGitFile: vi.fn(),
+    onUnstageAllGitFiles: vi.fn(),
     onDiscardGitFile: vi.fn(),
     onFileContentChange: vi.fn(),
     onFileSave: vi.fn(),
@@ -203,6 +208,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  gitPanelPropsSpy.mockReset();
 });
 
 describe("WorkspaceShell", () => {
@@ -282,6 +288,27 @@ describe("WorkspaceShell", () => {
     expect(screen.getByTestId("mock-left-rail")).toHaveAttribute(
       "data-has-select-repository",
       "true",
+    );
+  });
+
+  it("passes bulk git handlers through to the git panel", () => {
+    const onStageAllGitFiles = vi.fn();
+    const onUnstageAllGitFiles = vi.fn();
+
+    render(
+      <WorkspaceShell
+        {...createWorkspaceShellProps({
+          onStageAllGitFiles,
+          onUnstageAllGitFiles,
+        })}
+      />,
+    );
+
+    expect(gitPanelPropsSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        onStageAllFiles: onStageAllGitFiles,
+        onUnstageAllFiles: onUnstageAllGitFiles,
+      }),
     );
   });
 });

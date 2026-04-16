@@ -1,7 +1,7 @@
 import { IPC_CHANNELS } from "@pi-desktop/shared";
 import type { GitWorktreeService } from "../git-worktree-service";
 import type { IpcRegistrar } from "../ipc-router";
-import { getStringField } from "./payload-parsers";
+import { getStringArrayField, getStringField } from "./payload-parsers";
 
 interface RegisterGitHandlersDependencies {
   handle: IpcRegistrar["handle"];
@@ -24,6 +24,15 @@ function requireFilePath(payload: unknown): string {
   }
 
   return filePath;
+}
+
+function requireFilePaths(payload: unknown): string[] {
+  const filePaths = getStringArrayField(payload, "filePaths");
+  if (!filePaths || filePaths.length === 0) {
+    throw new Error("Git payload must include filePaths");
+  }
+
+  return filePaths;
 }
 
 export function registerGitHandlers({
@@ -49,10 +58,24 @@ export function registerGitHandlers({
     ),
   );
 
+  handle(IPC_CHANNELS.git.stageFiles, async (_event, payload) =>
+    gitService.stageFiles(
+      requireRepositoryPath(payload),
+      requireFilePaths(payload),
+    ),
+  );
+
   handle(IPC_CHANNELS.git.unstageFile, async (_event, payload) =>
     gitService.unstageFile(
       requireRepositoryPath(payload),
       requireFilePath(payload),
+    ),
+  );
+
+  handle(IPC_CHANNELS.git.unstageFiles, async (_event, payload) =>
+    gitService.unstageFiles(
+      requireRepositoryPath(payload),
+      requireFilePaths(payload),
     ),
   );
 

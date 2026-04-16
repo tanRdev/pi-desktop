@@ -34,31 +34,45 @@ export interface GitPanelProps {
   onPush: () => void | Promise<void>;
   onFetch: () => void | Promise<void>;
   onStageFile: (filePath: string) => void | Promise<void>;
+  onStageAllFiles: (filePaths: string[]) => void | Promise<void>;
   onUnstageFile: (filePath: string) => void | Promise<void>;
+  onUnstageAllFiles: (filePaths: string[]) => void | Promise<void>;
   onDiscardFile: (filePath: string) => void | Promise<void>;
 }
 
 function CombinedChangeList({
   repositoryStatus,
   onStage,
+  onStageAll,
   onUnstage,
+  onUnstageAll,
   onDiscard,
 }: {
   repositoryStatus: GitRepositoryStatus | null;
   onStage: (filePath: string) => void | Promise<void>;
+  onStageAll: (filePaths: string[]) => void | Promise<void>;
   onUnstage: (filePath: string) => void | Promise<void>;
+  onUnstageAll: (filePaths: string[]) => void | Promise<void>;
   onDiscard: (filePath: string) => void | Promise<void>;
 }) {
+  const stagedPaths = React.useMemo(
+    () => repositoryStatus?.stagedChanges.map((change) => change.path) ?? [],
+    [repositoryStatus],
+  );
+  const unstagedPaths = React.useMemo(
+    () => repositoryStatus?.unstagedChanges.map((change) => change.path) ?? [],
+    [repositoryStatus],
+  );
   const allPaths = React.useMemo(() => {
     const paths = new Set<string>();
-    repositoryStatus?.stagedChanges.forEach((c) => {
-      paths.add(c.path);
+    stagedPaths.forEach((path) => {
+      paths.add(path);
     });
-    repositoryStatus?.unstagedChanges.forEach((c) => {
-      paths.add(c.path);
+    unstagedPaths.forEach((path) => {
+      paths.add(path);
     });
     return Array.from(paths).sort();
-  }, [repositoryStatus]);
+  }, [stagedPaths, unstagedPaths]);
 
   const { added, deleted, modified } = React.useMemo(() => {
     let a = 0;
@@ -83,10 +97,38 @@ function CombinedChangeList({
     return null;
   }
 
+  const handleStageAll = () => {
+    void onStageAll(unstagedPaths);
+  };
+
+  const handleUnstageAll = () => {
+    void onUnstageAll(stagedPaths);
+  };
+
   return (
     <section className="space-y-2">
       <div className="flex items-center justify-between px-1">
-        <h3 className="text-[10px] text-white/50">Changes</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-[10px] text-white/50">Changes</h3>
+          <div className="flex items-center gap-1.5 text-[10px]">
+            <button
+              type="button"
+              onClick={handleStageAll}
+              disabled={unstagedPaths.length === 0}
+              className="text-white/40 transition-colors duration-150 hover:text-white/80 disabled:cursor-not-allowed disabled:text-white/20"
+            >
+              Select all
+            </button>
+            <button
+              type="button"
+              onClick={handleUnstageAll}
+              disabled={stagedPaths.length === 0}
+              className="text-white/40 transition-colors duration-150 hover:text-white/80 disabled:cursor-not-allowed disabled:text-white/20"
+            >
+              Deselect all
+            </button>
+          </div>
+        </div>
         <div className="flex items-center gap-1 font-mono text-[10px] font-bold">
           {added > 0 && (
             <span className="flex items-center justify-center rounded bg-emerald-500/10 px-1 py-px text-emerald-400 text-[10px]">
@@ -134,6 +176,7 @@ function CombinedChangeList({
                   onClick={() =>
                     staged ? void onUnstage(path) : void onStage(path)
                   }
+                  aria-label={staged ? `Unstage ${path}` : `Stage ${path}`}
                   className={cn(
                     "flex size-4 shrink-0 items-center justify-center rounded border transition-all duration-200",
                     staged
@@ -233,7 +276,9 @@ export function GitPanel({
   onPush,
   onFetch,
   onStageFile,
+  onStageAllFiles,
   onUnstageFile,
+  onUnstageAllFiles,
   onDiscardFile,
 }: GitPanelProps) {
   const viewModel = React.useMemo(
@@ -392,7 +437,9 @@ export function GitPanel({
               <CombinedChangeList
                 repositoryStatus={repositoryStatus}
                 onStage={onStageFile}
+                onStageAll={onStageAllFiles}
                 onUnstage={onUnstageFile}
+                onUnstageAll={onUnstageAllFiles}
                 onDiscard={onDiscardFile}
               />
             </div>

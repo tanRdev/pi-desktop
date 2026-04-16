@@ -110,9 +110,17 @@ export interface PiDesktopApi {
       repositoryPath: string,
       filePath: string,
     ): Promise<GitRepositoryStatus>;
+    stageFiles(
+      repositoryPath: string,
+      filePaths: string[],
+    ): Promise<GitRepositoryStatus>;
     unstageFile(
       repositoryPath: string,
       filePath: string,
+    ): Promise<GitRepositoryStatus>;
+    unstageFiles(
+      repositoryPath: string,
+      filePaths: string[],
     ): Promise<GitRepositoryStatus>;
     discardFile(
       repositoryPath: string,

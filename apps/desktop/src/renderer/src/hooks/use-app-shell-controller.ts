@@ -134,7 +134,9 @@ export interface AppShellController {
   setGitCommitMessage: (value: string) => void;
   refreshGitRepositoryStatus: () => Promise<void>;
   stageGitFile: (filePath: string) => Promise<void>;
+  stageAllGitFiles: (filePaths: string[]) => Promise<void>;
   unstageGitFile: (filePath: string) => Promise<void>;
+  unstageAllGitFiles: (filePaths: string[]) => Promise<void>;
   discardGitFile: (filePath: string) => Promise<void>;
   commitGitChanges: () => Promise<void>;
   pullGitChanges: () => Promise<void>;
@@ -588,6 +590,20 @@ export function useAppShellController(): AppShellController {
     [activeWorktreePath, runGitMutation],
   );
 
+  const stageAllGitFiles = React.useCallback(
+    async (filePaths: string[]) => {
+      if (!activeWorktreePath || filePaths.length === 0) {
+        return;
+      }
+
+      await runGitMutation(
+        () => window.piDesktop.git.stageFiles(activeWorktreePath, filePaths),
+        "Files staged",
+      );
+    },
+    [activeWorktreePath, runGitMutation],
+  );
+
   const unstageGitFile = React.useCallback(
     async (filePath: string) => {
       if (!activeWorktreePath) {
@@ -597,6 +613,20 @@ export function useAppShellController(): AppShellController {
       await runGitMutation(
         () => window.piDesktop.git.unstageFile(activeWorktreePath, filePath),
         "File unstaged",
+      );
+    },
+    [activeWorktreePath, runGitMutation],
+  );
+
+  const unstageAllGitFiles = React.useCallback(
+    async (filePaths: string[]) => {
+      if (!activeWorktreePath || filePaths.length === 0) {
+        return;
+      }
+
+      await runGitMutation(
+        () => window.piDesktop.git.unstageFiles(activeWorktreePath, filePaths),
+        "Files unstaged",
       );
     },
     [activeWorktreePath, runGitMutation],
@@ -1323,7 +1353,9 @@ export function useAppShellController(): AppShellController {
     onPushGit: pushGitChanges,
     onFetchGit: fetchGitChanges,
     onStageGitFile: stageGitFile,
+    onStageAllGitFiles: stageAllGitFiles,
     onUnstageGitFile: unstageGitFile,
+    onUnstageAllGitFiles: unstageAllGitFiles,
     onDiscardGitFile: discardGitFile,
     onFileContentChange: handleFileContentChange,
     onFileSave: handleFileSave,
@@ -1357,7 +1389,9 @@ export function useAppShellController(): AppShellController {
     setGitCommitMessage,
     refreshGitRepositoryStatus,
     stageGitFile,
+    stageAllGitFiles,
     unstageGitFile,
+    unstageAllGitFiles,
     discardGitFile,
     commitGitChanges,
     commitAndPushGitChanges,

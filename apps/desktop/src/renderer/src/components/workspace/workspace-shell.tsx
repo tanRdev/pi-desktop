@@ -80,7 +80,9 @@ export interface WorkspaceShellProps {
   onPushGit: () => void | Promise<void>;
   onFetchGit: () => void | Promise<void>;
   onStageGitFile: (filePath: string) => void | Promise<void>;
+  onStageAllGitFiles: (filePaths: string[]) => void | Promise<void>;
   onUnstageGitFile: (filePath: string) => void | Promise<void>;
+  onUnstageAllGitFiles: (filePaths: string[]) => void | Promise<void>;
   onDiscardGitFile: (filePath: string) => void | Promise<void>;
   onFileContentChange: (windowId: string, content: string) => void;
   onFileSave: (windowId: string, filePath: string) => void | Promise<void>;
@@ -156,7 +158,9 @@ export function WorkspaceShell({
   onPushGit,
   onFetchGit,
   onStageGitFile,
+  onStageAllGitFiles,
   onUnstageGitFile,
+  onUnstageAllGitFiles,
   onDiscardGitFile,
   onFileContentChange,
   onFileSave,
@@ -241,7 +245,9 @@ export function WorkspaceShell({
       onPush={onPushGit}
       onFetch={onFetchGit}
       onStageFile={onStageGitFile}
+      onStageAllFiles={onStageAllGitFiles}
       onUnstageFile={onUnstageGitFile}
+      onUnstageAllFiles={onUnstageAllGitFiles}
       onDiscardFile={onDiscardGitFile}
     />
   );

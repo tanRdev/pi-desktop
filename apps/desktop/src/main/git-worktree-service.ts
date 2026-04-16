@@ -650,11 +650,40 @@ export class GitWorktreeService {
     return this.getRepositoryStatus(repositoryPath);
   }
 
+  stageFiles(repositoryPath: string, filePaths: string[]): GitRepositoryStatus {
+    if (filePaths.length === 0) {
+      return this.getRepositoryStatus(repositoryPath);
+    }
+
+    this.runCheckedGit(
+      repositoryPath,
+      ["add", "--", ...filePaths],
+      "stage files",
+    );
+    return this.getRepositoryStatus(repositoryPath);
+  }
+
   unstageFile(repositoryPath: string, filePath: string): GitRepositoryStatus {
     this.runCheckedGit(
       repositoryPath,
       ["restore", "--staged", "--", filePath],
       "unstage file",
+    );
+    return this.getRepositoryStatus(repositoryPath);
+  }
+
+  unstageFiles(
+    repositoryPath: string,
+    filePaths: string[],
+  ): GitRepositoryStatus {
+    if (filePaths.length === 0) {
+      return this.getRepositoryStatus(repositoryPath);
+    }
+
+    this.runCheckedGit(
+      repositoryPath,
+      ["restore", "--staged", "--", ...filePaths],
+      "unstage files",
     );
     return this.getRepositoryStatus(repositoryPath);
   }

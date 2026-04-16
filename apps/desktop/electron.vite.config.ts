@@ -52,33 +52,6 @@ export default defineConfig({
         "@pi-desktop/shell-model": fileURLToPath(
           new URL("../../packages/shell-model/src/index.ts", import.meta.url),
         ),
-        "@tiptap/react": fileURLToPath(
-          new URL("./node_modules/@tiptap/react/src/index.ts", import.meta.url),
-        ),
-        "@tiptap/starter-kit": fileURLToPath(
-          new URL(
-            "./node_modules/@tiptap/starter-kit/src/index.ts",
-            import.meta.url,
-          ),
-        ),
-        "@tiptap/extension-placeholder": fileURLToPath(
-          new URL(
-            "./node_modules/@tiptap/extension-placeholder/src/index.ts",
-            import.meta.url,
-          ),
-        ),
-        "@tiptap/extension-mathematics": fileURLToPath(
-          new URL(
-            "./node_modules/@tiptap/extension-mathematics/src/index.ts",
-            import.meta.url,
-          ),
-        ),
-        "@tiptap/core": fileURLToPath(
-          new URL("./node_modules/@tiptap/core/src/index.ts", import.meta.url),
-        ),
-        "@tiptap/pm": fileURLToPath(
-          new URL("./node_modules/@tiptap/pm", import.meta.url),
-        ),
       },
     },
     build: {

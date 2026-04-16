@@ -20,7 +20,6 @@
     "typecheck": "tsc --project tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@pi-desktop/shared": "workspace:*",
-    "@pi-desktop/agent-host": "workspace:*"
+    "@pi-desktop/shared": "workspace:*"
   }
 }

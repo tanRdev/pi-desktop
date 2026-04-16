@@ -232,10 +232,22 @@ export function createPiDesktopApi({
           filePath,
         });
       },
+      stageFiles(repositoryPath: string, filePaths: string[]) {
+        return invoke<GitRepositoryStatus>(IPC_CHANNELS.git.stageFiles, {
+          repositoryPath,
+          filePaths,
+        });
+      },
       unstageFile(repositoryPath: string, filePath: string) {
         return invoke<GitRepositoryStatus>(IPC_CHANNELS.git.unstageFile, {
           repositoryPath,
           filePath,
+        });
+      },
+      unstageFiles(repositoryPath: string, filePaths: string[]) {
+        return invoke<GitRepositoryStatus>(IPC_CHANNELS.git.unstageFiles, {
+          repositoryPath,
+          filePaths,
         });
       },
       discardFile(repositoryPath: string, filePath: string) {

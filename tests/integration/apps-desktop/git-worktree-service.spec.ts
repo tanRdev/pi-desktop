@@ -2,6 +2,7 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import type { GitRepositoryStatus } from "../../../packages/shared/src";
 import { afterEach, describe, expect, it } from "vitest";
 import { GitWorktreeService } from "../../../apps/desktop/src/main/git-worktree-service";
 
@@ -248,6 +249,55 @@ describe("GitWorktreeService", () => {
     expect(committed.summary.hasChanges).toBe(false);
     expect(runGit(repoRoot, ["log", "-1", "--pretty=%s"])).toBe(
       "feat: native git actions",
+    );
+  });
+
+  it("stages multiple files with one bulk mutation", () => {
+    const { repoRoot } = initRepository("native-stage-many");
+    fs.writeFileSync(path.join(repoRoot, "feature-a.txt"), "alpha\n");
+    fs.writeFileSync(path.join(repoRoot, "feature-b.txt"), "beta\n");
+
+    const service = new GitWorktreeService();
+    const stageFiles = Reflect.get(service, "stageFiles");
+
+    expect(typeof stageFiles).toBe("function");
+
+    const staged = stageFiles.call(service, repoRoot, [
+      "feature-a.txt",
+      "feature-b.txt",
+    ]) as GitRepositoryStatus;
+
+    expect(staged.stagedChanges).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ path: "feature-a.txt", status: "added" }),
+        expect.objectContaining({ path: "feature-b.txt", status: "added" }),
+      ]),
+    );
+    expect(staged.unstagedChanges).toEqual([]);
+  });
+
+  it("unstages multiple files with one bulk mutation", () => {
+    const { repoRoot } = initRepository("native-unstage-many");
+    fs.writeFileSync(path.join(repoRoot, "feature-a.txt"), "alpha\n");
+    fs.writeFileSync(path.join(repoRoot, "feature-b.txt"), "beta\n");
+    runGit(repoRoot, ["add", "feature-a.txt", "feature-b.txt"]);
+
+    const service = new GitWorktreeService();
+    const unstageFiles = Reflect.get(service, "unstageFiles");
+
+    expect(typeof unstageFiles).toBe("function");
+
+    const unstaged = unstageFiles.call(service, repoRoot, [
+      "feature-a.txt",
+      "feature-b.txt",
+    ]) as GitRepositoryStatus;
+
+    expect(unstaged.stagedChanges).toEqual([]);
+    expect(unstaged.unstagedChanges).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ path: "feature-a.txt", status: "untracked" }),
+        expect.objectContaining({ path: "feature-b.txt", status: "untracked" }),
+      ]),
     );
   });
 });
