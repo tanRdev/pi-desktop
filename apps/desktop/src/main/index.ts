@@ -1358,6 +1358,19 @@ async function bootstrapDesktop() {
     packagesService,
     getAllowedRepositoryRoots: () =>
       repositoryCatalog.list().map((entry) => entry.rootPath),
+    getAllowedTerminalCwds: () => {
+      const roots: string[] = [];
+      for (const entry of repositoryCatalog.list()) {
+        roots.push(entry.rootPath);
+        const inspection = gitService.inspect(entry.rootPath);
+        if (inspection.worktrees) {
+          for (const worktree of inspection.worktrees) {
+            roots.push(worktree.path);
+          }
+        }
+      }
+      return roots;
+    },
   });
 
   mainWindow = await createMainWindow();

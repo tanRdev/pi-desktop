@@ -613,6 +613,7 @@ describe("registerIpcHandlers", () => {
       agentHost: createAgentHost(createAgentSnapshot()),
       mainWindow: null,
       terminalManager: tmMock,
+      getAllowedTerminalCwds: () => ["/tmp/allowed-repo"],
     });
 
     const createPayload = {
@@ -621,6 +622,7 @@ describe("registerIpcHandlers", () => {
       rows: 24,
       ownerWindowId: "terminal-term-1",
       backend: "pi",
+      cwd: "/tmp/allowed-repo",
     };
 
     await expect(
@@ -633,6 +635,90 @@ describe("registerIpcHandlers", () => {
       harness.handlers.get(IPC_CHANNELS.terminal.getSessions)?.(),
     ).resolves.toEqual([fakeSession]);
     expect(tmMock.create).toHaveBeenCalledWith("term-1", createPayload);
+  });
+
+  it("terminal.create rejects cwd outside allowed repository roots", async () => {
+    const harness = createHandlerHarness();
+    const tmMock = createTerminalManagerMock({
+      create: vi.fn(() => createTerminalSession()),
+    });
+
+    registerIpcHandlers({
+      handle: harness.handle,
+      getShellSnapshot: vi.fn(createShellSnapshot),
+      agentHost: createAgentHost(createAgentSnapshot()),
+      mainWindow: null,
+      terminalManager: tmMock,
+      getAllowedTerminalCwds: () => ["/tmp/allowed-repo"],
+    });
+
+    await expect(
+      harness.handlers.get(IPC_CHANNELS.terminal.create)?.(undefined, {
+        id: "term-evil",
+        cols: 80,
+        rows: 24,
+        ownerWindowId: "terminal-term-evil",
+        backend: "shell",
+        cwd: "/etc",
+      }),
+    ).rejects.toThrow(/not within any allowed/i);
+    expect(tmMock.create).not.toHaveBeenCalled();
+  });
+
+  it("terminal.create rejects when no cwd is provided", async () => {
+    const harness = createHandlerHarness();
+    const tmMock = createTerminalManagerMock({
+      create: vi.fn(() => createTerminalSession()),
+    });
+
+    registerIpcHandlers({
+      handle: harness.handle,
+      getShellSnapshot: vi.fn(createShellSnapshot),
+      agentHost: createAgentHost(createAgentSnapshot()),
+      mainWindow: null,
+      terminalManager: tmMock,
+      getAllowedTerminalCwds: () => ["/tmp/allowed-repo"],
+    });
+
+    await expect(
+      harness.handlers.get(IPC_CHANNELS.terminal.create)?.(undefined, {
+        id: "term-nocwd",
+        cols: 80,
+        rows: 24,
+        ownerWindowId: "terminal-term-nocwd",
+        backend: "shell",
+      }),
+    ).rejects.toThrow(/cwd/);
+    expect(tmMock.create).not.toHaveBeenCalled();
+  });
+
+  it("terminal.create accepts subdirectories of an allowed root", async () => {
+    const harness = createHandlerHarness();
+    const fakeSession = createTerminalSession();
+    const tmMock = createTerminalManagerMock({
+      create: vi.fn(() => fakeSession),
+    });
+
+    registerIpcHandlers({
+      handle: harness.handle,
+      getShellSnapshot: vi.fn(createShellSnapshot),
+      agentHost: createAgentHost(createAgentSnapshot()),
+      mainWindow: null,
+      terminalManager: tmMock,
+      getAllowedTerminalCwds: () => ["/tmp/allowed-repo"],
+    });
+
+    await expect(
+      harness.handlers.get(IPC_CHANNELS.terminal.create)?.(undefined, {
+        id: "term-sub",
+        cols: 80,
+        rows: 24,
+        ownerWindowId: "terminal-term-sub",
+        backend: "shell",
+        cwd: "/tmp/allowed-repo/src/feature",
+      }),
+    ).resolves.toEqual(fakeSession);
+    expect(tmMock.create).toHaveBeenCalled();
   });
 
   it("binds state persistence handlers", async () => {

@@ -84,6 +84,7 @@ export interface RegisterIpcHandlersDependencies {
   threadCatalog?: ThreadCatalog;
   packagesService?: PackagesService;
   getAllowedRepositoryRoots?: () => readonly string[];
+  getAllowedTerminalCwds?: () => readonly string[];
 }
 
 export function registerIpcHandlers({
@@ -104,10 +105,16 @@ export function registerIpcHandlers({
   getSlashSuggestions,
   packagesService,
   getAllowedRepositoryRoots,
+  getAllowedTerminalCwds,
 }: RegisterIpcHandlersDependencies): void {
   const tm = terminalManagerOverride ?? terminalManager;
 
-  registerTerminalHandlers({ handle, mainWindow, terminalManager: tm });
+  registerTerminalHandlers({
+    handle,
+    mainWindow,
+    terminalManager: tm,
+    getAllowedTerminalCwds: getAllowedTerminalCwds ?? (() => []),
+  });
   registerRepositoryHandlers({ handle, agentHost });
   registerThreadHandlers({ handle, agentHost });
   registerDialogHandlers({ handle });

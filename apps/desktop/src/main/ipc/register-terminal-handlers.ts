@@ -1,5 +1,6 @@
 import { IPC_CHANNELS } from "@pi-desktop/shared";
 import type { BrowserWindow } from "electron";
+import { isPathWithinAny } from "../fs/path-guards";
 import type { IpcRegistrar } from "../ipc-router";
 import {
   getNumberField,
@@ -13,12 +14,20 @@ interface RegisterTerminalHandlersDependencies {
   handle: IpcRegistrar["handle"];
   mainWindow: BrowserWindow | null;
   terminalManager: TerminalManagerLike;
+  /**
+   * Returns the set of directories that terminal sessions are allowed to
+   * spawn inside (repository roots plus their active worktrees). Any
+   * `cwd` requested via `terminal.create` must resolve within one of
+   * these directories or the call is rejected.
+   */
+  getAllowedTerminalCwds: () => readonly string[];
 }
 
 export function registerTerminalHandlers({
   handle,
   mainWindow,
   terminalManager,
+  getAllowedTerminalCwds,
 }: RegisterTerminalHandlersDependencies): void {
   if (mainWindow) {
     terminalManager.setMainWindow(mainWindow);
@@ -35,6 +44,23 @@ export function registerTerminalHandlers({
     if (!terminalManager.isAvailable()) {
       const error = terminalManager.getError();
       throw new Error(error?.message || "Terminal is not available");
+    }
+
+    const requestedCwd = options.cwd;
+    if (!requestedCwd || typeof requestedCwd !== "string") {
+      throw new Error(
+        "terminal.create payload must include cwd (an allowed repository or worktree path)",
+      );
+    }
+
+    const allowedCwds = getAllowedTerminalCwds();
+    if (
+      allowedCwds.length === 0 ||
+      !isPathWithinAny(allowedCwds, requestedCwd)
+    ) {
+      throw new Error(
+        `terminal.create cwd is not within any allowed repository or worktree: ${requestedCwd}`,
+      );
     }
 
     return terminalManager.create(options.id ?? "", options);
