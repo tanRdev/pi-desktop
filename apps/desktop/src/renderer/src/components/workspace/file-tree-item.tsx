@@ -1,5 +1,5 @@
 import type { FileEntry } from "@pi-desktop/shared/models/fs";
-import type * as React from "react";
+import * as React from "react";
 import {
   CaretRight,
   CircleNotch,
@@ -55,6 +55,45 @@ function getFileIcon(entry: FileEntry) {
   if (ext === ".md") return FileText;
   if (IMAGE_EXTENSIONS.has(ext)) return Image;
   return File;
+}
+
+interface RenameInputProps {
+  initialValue: string;
+  onSubmit: (value: string) => void;
+  onCancel: () => void;
+}
+
+function RenameInput({ initialValue, onSubmit, onCancel }: RenameInputProps) {
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    const input = inputRef.current;
+    if (!input) return;
+    input.focus();
+    // Select the basename (without extension) to match common editor UX.
+    const dotIndex = initialValue.lastIndexOf(".");
+    const selectionEnd = dotIndex > 0 ? dotIndex : initialValue.length;
+    input.setSelectionRange(0, selectionEnd);
+  }, [initialValue]);
+
+  return (
+    <input
+      ref={inputRef}
+      type="text"
+      defaultValue={initialValue}
+      onBlur={onCancel}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          onSubmit(e.currentTarget.value);
+        }
+        if (e.key === "Escape") {
+          onCancel();
+        }
+      }}
+      onClick={(e) => e.stopPropagation()}
+      className="bg-white/[0.06] border border-white/[0.12] px-1 py-0 text-[10.5px] text-white/80 outline-none w-full min-w-0"
+    />
+  );
 }
 
 export function FileTreeItem({
@@ -124,21 +163,10 @@ export function FileTreeItem({
           <IconComponent className="w-3.5 h-3.5 text-white/40 shrink-0" />
         )}
         {isRenaming ? (
-          <input
-            ref={(el) => el?.focus()}
-            type="text"
-            defaultValue={entry.name}
-            onBlur={() => onRenameCancel?.()}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                onRenameSubmit?.(entry.path, e.currentTarget.value);
-              }
-              if (e.key === "Escape") {
-                onRenameCancel?.();
-              }
-            }}
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white/[0.06] border border-white/[0.12] px-1 py-0 text-[10.5px] text-white/80 outline-none w-full min-w-0"
+          <RenameInput
+            initialValue={entry.name}
+            onSubmit={(value) => onRenameSubmit?.(entry.path, value)}
+            onCancel={() => onRenameCancel?.()}
           />
         ) : (
           <span className="truncate">{entry.name}</span>
