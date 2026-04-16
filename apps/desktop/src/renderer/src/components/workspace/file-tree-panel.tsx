@@ -1,6 +1,10 @@
 import type { FileEntry } from "@pi-desktop/shared/models/fs";
+import type {
+  GitFileChangeStatus,
+  GitRepositoryStatus,
+} from "@pi-desktop/shared/models/git";
 import { Skeleton } from "boneyard-js/react";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { ArrowClockwise } from "@/components/ui/icons";
 import { useFileTree } from "@/hooks/use-file-tree";
 import { cn } from "@/lib/utils";
@@ -13,6 +17,27 @@ interface FileTreePanelProps {
   onDeleteFile?: (path: string) => void;
   onRenameFile?: (oldPath: string, newPath: string) => void;
   onMoveFile?: (sourcePath: string, destinationPath: string) => void;
+  repositoryStatus?: GitRepositoryStatus | null;
+}
+
+function buildGitStatusMap(
+  repositoryStatus: GitRepositoryStatus | null | undefined,
+  workspacePath: string | null,
+): Map<string, GitFileChangeStatus> | null {
+  if (!repositoryStatus || !workspacePath) return null;
+  const root = repositoryStatus.repositoryPath || workspacePath;
+  const map = new Map<string, GitFileChangeStatus>();
+  // Unstaged takes precedence over staged for the displayed state; merge both.
+  const all = [
+    ...repositoryStatus.stagedChanges,
+    ...repositoryStatus.unstagedChanges,
+  ];
+  for (const change of all) {
+    const absolutePath = `${root}/${change.path}`;
+    // Unstaged should win if both exist — iterate staged first, then unstaged overwrites.
+    map.set(absolutePath, change.status);
+  }
+  return map.size > 0 ? map : null;
 }
 
 function FileTreeSkeleton() {
@@ -38,9 +63,15 @@ export function FileTreePanel({
   onDeleteFile,
   onRenameFile,
   onMoveFile,
+  repositoryStatus,
 }: FileTreePanelProps) {
   const { rootNodes, isRootLoading, expandedPaths, toggleExpand, refreshRoot } =
     useFileTree(workspacePath);
+
+  const gitStatusMap = useMemo(
+    () => buildGitStatusMap(repositoryStatus ?? null, workspacePath),
+    [repositoryStatus, workspacePath],
+  );
 
   const [contextMenu, setContextMenu] = useState<{
     x: number;
@@ -140,6 +171,8 @@ export function FileTreePanel({
                   onRenameCancel={handleRenameCancel}
                   onContextMenu={handleContextMenu}
                   renamingPath={renamingPath}
+                  gitStatus={gitStatusMap?.get(node.entry.path) ?? null}
+                  gitStatusMap={gitStatusMap}
                 />
               ))}
             </div>

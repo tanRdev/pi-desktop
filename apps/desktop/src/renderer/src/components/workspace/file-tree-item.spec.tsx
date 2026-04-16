@@ -152,3 +152,83 @@ describe("FileTreeItem rename input", () => {
     expect(onRenameCancel).toHaveBeenCalled();
   });
 });
+
+describe("FileTreeItem git status badge", () => {
+  it("renders an 'M' badge for modified files", () => {
+    render(
+      <FileTreeItem
+        {...baseProps}
+        entry={{ name: "a.ts", path: "/r/a.ts", type: "file" }}
+        gitStatus="modified"
+      />,
+    );
+    const badge = screen.getByTestId("git-status-badge");
+    expect(badge).toHaveTextContent("M");
+    expect(badge).toHaveAttribute("title", "git modified");
+  });
+
+  it("renders an 'A' badge for added files", () => {
+    render(
+      <FileTreeItem
+        {...baseProps}
+        entry={{ name: "a.ts", path: "/r/a.ts", type: "file" }}
+        gitStatus="added"
+      />,
+    );
+    expect(screen.getByTestId("git-status-badge")).toHaveTextContent("A");
+  });
+
+  it("renders an 'A' badge for untracked files", () => {
+    render(
+      <FileTreeItem
+        {...baseProps}
+        entry={{ name: "a.ts", path: "/r/a.ts", type: "file" }}
+        gitStatus="untracked"
+      />,
+    );
+    expect(screen.getByTestId("git-status-badge")).toHaveTextContent("A");
+  });
+
+  it("renders a 'D' badge for deleted files", () => {
+    render(
+      <FileTreeItem
+        {...baseProps}
+        entry={{ name: "a.ts", path: "/r/a.ts", type: "file" }}
+        gitStatus="deleted"
+      />,
+    );
+    expect(screen.getByTestId("git-status-badge")).toHaveTextContent("D");
+  });
+
+  it("renders an 'R' badge for renamed files", () => {
+    render(
+      <FileTreeItem
+        {...baseProps}
+        entry={{ name: "a.ts", path: "/r/a.ts", type: "file" }}
+        gitStatus="renamed"
+      />,
+    );
+    expect(screen.getByTestId("git-status-badge")).toHaveTextContent("R");
+  });
+
+  it("renders no badge when gitStatus is absent", () => {
+    render(
+      <FileTreeItem
+        {...baseProps}
+        entry={{ name: "a.ts", path: "/r/a.ts", type: "file" }}
+      />,
+    );
+    expect(screen.queryByTestId("git-status-badge")).toBeNull();
+  });
+
+  it("renders no badge for unsupported statuses", () => {
+    render(
+      <FileTreeItem
+        {...baseProps}
+        entry={{ name: "a.ts", path: "/r/a.ts", type: "file" }}
+        gitStatus="unknown"
+      />,
+    );
+    expect(screen.queryByTestId("git-status-badge")).toBeNull();
+  });
+});

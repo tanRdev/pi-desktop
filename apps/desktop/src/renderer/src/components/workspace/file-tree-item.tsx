@@ -1,4 +1,5 @@
 import type { FileEntry } from "@pi-desktop/shared/models/fs";
+import type { GitFileChangeStatus } from "@pi-desktop/shared/models/git";
 import * as React from "react";
 import {
   CaretRight,
@@ -25,6 +26,31 @@ interface FileTreeItemProps {
   onRenameCancel?: () => void;
   onContextMenu?: (e: React.MouseEvent, entry: FileEntry) => void;
   renamingPath?: string | null;
+  /** Per-file git status (for this entry). */
+  gitStatus?: GitFileChangeStatus | null;
+  /** Map of absolute-path → git status, forwarded to rendered descendants. */
+  gitStatusMap?: Map<string, GitFileChangeStatus> | null;
+}
+
+interface GitBadgeSpec {
+  char: string;
+  color: string;
+}
+
+function getGitBadge(status: GitFileChangeStatus): GitBadgeSpec | null {
+  switch (status) {
+    case "modified":
+      return { char: "M", color: "var(--color-warning)" };
+    case "added":
+    case "untracked":
+      return { char: "A", color: "var(--color-success)" };
+    case "deleted":
+      return { char: "D", color: "var(--color-error)" };
+    case "renamed":
+      return { char: "R", color: "var(--color-info)" };
+    default:
+      return null;
+  }
 }
 
 function getFileIcon(entry: FileEntry): FileIcon | null {
@@ -86,10 +112,13 @@ export const FileTreeItem = React.memo(function FileTreeItem({
   onRenameCancel,
   onContextMenu,
   renamingPath,
+  gitStatus,
+  gitStatusMap,
 }: FileTreeItemProps) {
   const isDir = entry.type === "directory";
   const fileIcon = isDir ? null : getFileIcon(entry);
   const DirIcon = isDir ? (isExpanded ? FolderOpen : Folder) : null;
+  const badge = gitStatus ? getGitBadge(gitStatus) : null;
 
   function handleClick() {
     if (isDir) {
@@ -144,7 +173,24 @@ export const FileTreeItem = React.memo(function FileTreeItem({
             onCancel={() => onRenameCancel?.()}
           />
         ) : (
-          <span className="truncate">{entry.name}</span>
+          <>
+            <span
+              className="truncate"
+              style={badge ? { color: badge.color, opacity: 0.9 } : undefined}
+            >
+              {entry.name}
+            </span>
+            {badge && (
+              <span
+                title={`git ${gitStatus}`}
+                data-testid="git-status-badge"
+                className="ml-auto shrink-0 pr-1 text-[9.5px] font-mono font-medium select-none"
+                style={{ color: badge.color, opacity: 0.75 }}
+              >
+                {badge.char}
+              </span>
+            )}
+          </>
         )}
       </button>
       {isDir &&
@@ -165,6 +211,8 @@ export const FileTreeItem = React.memo(function FileTreeItem({
             onRenameCancel={onRenameCancel}
             onContextMenu={onContextMenu}
             renamingPath={renamingPath}
+            gitStatus={gitStatusMap?.get(child.entry.path) ?? null}
+            gitStatusMap={gitStatusMap}
           />
         ))}
     </>

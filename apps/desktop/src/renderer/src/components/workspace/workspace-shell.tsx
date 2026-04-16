@@ -540,6 +540,7 @@ function WorkspaceShellImpl({
                             onDeleteFile={onFileTreeDeleteFile}
                             onRenameFile={onFileTreeRenameFile}
                             onMoveFile={onFileTreeMoveFile}
+                            repositoryStatus={activeGitRepositoryStatus}
                           />
                         )}
                       </div>
