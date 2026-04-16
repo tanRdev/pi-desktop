@@ -55,43 +55,41 @@ function CombinedChangeList({
   onUnstageAll: (filePaths: string[]) => void | Promise<void>;
   onDiscard: (filePath: string) => void | Promise<void>;
 }) {
-  const stagedPaths = React.useMemo(
-    () => repositoryStatus?.stagedChanges.map((change) => change.path) ?? [],
-    [repositoryStatus],
-  );
-  const unstagedPaths = React.useMemo(
-    () => repositoryStatus?.unstagedChanges.map((change) => change.path) ?? [],
-    [repositoryStatus],
-  );
-  const allPaths = React.useMemo(() => {
-    const paths = new Set<string>();
-    stagedPaths.forEach((path) => {
-      paths.add(path);
-    });
-    unstagedPaths.forEach((path) => {
-      paths.add(path);
-    });
-    return Array.from(paths).sort();
-  }, [stagedPaths, unstagedPaths]);
+  const { stagedPaths, unstagedPaths, stagedByPath, unstagedByPath, allPaths } =
+    React.useMemo(() => {
+      const staged = repositoryStatus?.stagedChanges ?? [];
+      const unstaged = repositoryStatus?.unstagedChanges ?? [];
+      const stagedMap = new Map(staged.map((c) => [c.path, c]));
+      const unstagedMap = new Map(unstaged.map((c) => [c.path, c]));
+      const union = new Set<string>();
+      staged.forEach((c) => {
+        union.add(c.path);
+      });
+      unstaged.forEach((c) => {
+        union.add(c.path);
+      });
+      return {
+        stagedPaths: staged.map((c) => c.path),
+        unstagedPaths: unstaged.map((c) => c.path),
+        stagedByPath: stagedMap,
+        unstagedByPath: unstagedMap,
+        allPaths: Array.from(union).sort(),
+      };
+    }, [repositoryStatus]);
 
   const { added, deleted, modified } = React.useMemo(() => {
     let a = 0;
     let d = 0;
     let m = 0;
     allPaths.forEach((path) => {
-      const staged = repositoryStatus?.stagedChanges.find(
-        (c) => c.path === path,
-      );
-      const unstaged = repositoryStatus?.unstagedChanges.find(
-        (c) => c.path === path,
-      );
-      const status = (unstaged || staged)?.status ?? "unknown";
+      const change = unstagedByPath.get(path) ?? stagedByPath.get(path);
+      const status = change?.status ?? "unknown";
       if (status === "added" || status === "untracked") a++;
       else if (status === "deleted") d++;
       else if (status === "modified" || status === "renamed") m++;
     });
     return { added: a, deleted: d, modified: m };
-  }, [allPaths, repositoryStatus]);
+  }, [allPaths, stagedByPath, unstagedByPath]);
 
   if (allPaths.length === 0) {
     return null;
@@ -158,12 +156,8 @@ function CombinedChangeList({
       <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
         <div className="divide-y divide-white/[0.06]">
           {allPaths.map((path) => {
-            const staged = repositoryStatus?.stagedChanges.find(
-              (c) => c.path === path,
-            );
-            const unstaged = repositoryStatus?.unstagedChanges.find(
-              (c) => c.path === path,
-            );
+            const staged = stagedByPath.get(path);
+            const unstaged = unstagedByPath.get(path);
             const status = (unstaged || staged)?.status ?? "unknown";
 
             return (

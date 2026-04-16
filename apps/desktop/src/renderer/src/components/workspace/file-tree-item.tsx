@@ -96,7 +96,7 @@ function RenameInput({ initialValue, onSubmit, onCancel }: RenameInputProps) {
   );
 }
 
-export function FileTreeItem({
+export const FileTreeItem = React.memo(function FileTreeItem({
   entry,
   depth,
   isExpanded,
@@ -194,4 +194,4 @@ export function FileTreeItem({
         ))}
     </>
   );
-}
+});

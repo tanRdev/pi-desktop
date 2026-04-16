@@ -1,6 +1,6 @@
 import type { FileEntry } from "@pi-desktop/shared/models/fs";
 import { Skeleton } from "boneyard-js/react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { ArrowClockwise } from "@/components/ui/icons";
 import { useFileTree } from "@/hooks/use-file-tree";
 import { cn } from "@/lib/utils";
@@ -51,28 +51,38 @@ export function FileTreePanel({
   } | null>(null);
   const [renamingPath, setRenamingPath] = useState<string | null>(null);
 
-  function handleContextMenu(e: React.MouseEvent, entry: FileEntry) {
-    setContextMenu({
-      x: e.clientX,
-      y: e.clientY,
-      path: entry.path,
-      name: entry.name,
-      isDirectory: entry.type === "directory",
-    });
-  }
+  const handleContextMenu = useCallback(
+    (e: React.MouseEvent, entry: FileEntry) => {
+      setContextMenu({
+        x: e.clientX,
+        y: e.clientY,
+        path: entry.path,
+        name: entry.name,
+        isDirectory: entry.type === "directory",
+      });
+    },
+    [],
+  );
 
   function handleRename(path: string) {
     setRenamingPath(path);
     setContextMenu(null);
   }
 
-  function handleRenameSubmit(oldPath: string, newName: string) {
-    const lastSlash = oldPath.lastIndexOf("/");
-    const parentDir = lastSlash >= 0 ? oldPath.substring(0, lastSlash) : "";
-    const newPath = parentDir ? `${parentDir}/${newName}` : newName;
-    onRenameFile?.(oldPath, newPath);
+  const handleRenameSubmit = useCallback(
+    (oldPath: string, newName: string) => {
+      const lastSlash = oldPath.lastIndexOf("/");
+      const parentDir = lastSlash >= 0 ? oldPath.substring(0, lastSlash) : "";
+      const newPath = parentDir ? `${parentDir}/${newName}` : newName;
+      onRenameFile?.(oldPath, newPath);
+      setRenamingPath(null);
+    },
+    [onRenameFile],
+  );
+
+  const handleRenameCancel = useCallback(() => {
     setRenamingPath(null);
-  }
+  }, []);
 
   function handleDelete(path: string) {
     onDeleteFile?.(path);
@@ -127,7 +137,7 @@ export function FileTreePanel({
                   expandedPaths={expandedPaths}
                   isRenaming={renamingPath === node.entry.path}
                   onRenameSubmit={handleRenameSubmit}
-                  onRenameCancel={() => setRenamingPath(null)}
+                  onRenameCancel={handleRenameCancel}
                   onContextMenu={handleContextMenu}
                   renamingPath={renamingPath}
                 />
