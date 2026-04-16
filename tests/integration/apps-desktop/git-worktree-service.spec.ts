@@ -300,4 +300,25 @@ describe("GitWorktreeService", () => {
       ]),
     );
   });
+
+  it("refuses to discard paths that escape the repository root", () => {
+    const { repoRoot } = initRepository("traversal");
+    const outside = createTempDir("pi-desktop-outside-");
+    const victim = path.join(outside, "victim.txt");
+    fs.writeFileSync(victim, "should not be touched");
+
+    const service = new GitWorktreeService();
+
+    expect(() => service.discardFile(repoRoot, "../victim.txt")).toThrow(
+      /outside repository/i,
+    );
+    expect(() =>
+      service.discardFile(repoRoot, `${outside}/victim.txt`),
+    ).toThrow(/relative to the repository root/i);
+    expect(() => service.discardFile(repoRoot, "")).toThrow(
+      /non-empty string/i,
+    );
+    // File outside the repo must still exist untouched.
+    expect(fs.existsSync(victim)).toBe(true);
+  });
 });

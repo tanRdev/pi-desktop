@@ -28,9 +28,28 @@ export function createAgentHostSocketTransport(
           continue;
         }
 
-        const envelope = JSON.parse(message) as AgentHostEnvelope;
+        let envelope: AgentHostEnvelope;
+        try {
+          envelope = JSON.parse(message) as AgentHostEnvelope;
+        } catch (error) {
+          // A malformed frame must not crash the main process. Surface it for
+          // diagnostics and keep draining the socket.
+          console.error(
+            "[agent-host-socket] dropping malformed frame",
+            error instanceof Error ? error.message : error,
+          );
+          continue;
+        }
+
         for (const listener of listeners) {
-          listener(envelope);
+          try {
+            listener(envelope);
+          } catch (error) {
+            console.error(
+              "[agent-host-socket] listener threw",
+              error instanceof Error ? (error.stack ?? error.message) : error,
+            );
+          }
         }
       }
     });

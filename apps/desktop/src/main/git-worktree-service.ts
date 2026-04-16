@@ -68,6 +68,37 @@ function resolveCommandCwd(targetPath: string): string {
   }
 }
 
+/**
+ * Resolve a repo-relative path against a repository root, guaranteeing the
+ * result stays inside the repo tree. Rejects absolute inputs, `..` segments,
+ * and Windows-drive escapes. Returns the resolved absolute path on success.
+ */
+function resolveInsideRepository(
+  repositoryPath: string,
+  relativeFilePath: string,
+): string {
+  if (typeof relativeFilePath !== "string" || relativeFilePath.length === 0) {
+    throw new Error("File path must be a non-empty string");
+  }
+  if (path.isAbsolute(relativeFilePath)) {
+    throw new Error("File path must be relative to the repository root");
+  }
+
+  const repoRoot = path.resolve(repositoryPath);
+  const candidate = path.resolve(repoRoot, relativeFilePath);
+  const relative = path.relative(repoRoot, candidate);
+  if (
+    relative === ".." ||
+    relative.startsWith(`..${path.sep}`) ||
+    path.isAbsolute(relative)
+  ) {
+    throw new Error(
+      `Refusing to operate on path outside repository: ${relativeFilePath}`,
+    );
+  }
+  return candidate;
+}
+
 function parseBranchName(branchRef: string | null): string | null {
   if (!branchRef) {
     return null;
@@ -706,13 +737,15 @@ export class GitWorktreeService {
   }
 
   discardFile(repositoryPath: string, filePath: string): GitRepositoryStatus {
+    // Guard against traversal: only operate on paths resolved inside the repo.
+    const absolutePath = resolveInsideRepository(repositoryPath, filePath);
+
     const status = this.getRepositoryStatus(repositoryPath);
     const isUntracked = status.unstagedChanges.some(
       (change) => change.path === filePath && change.status === "untracked",
     );
 
     if (isUntracked) {
-      const absolutePath = path.join(repositoryPath, filePath);
       fs.rmSync(absolutePath, { force: true, recursive: true });
       this.clearCaches();
       return this.getRepositoryStatus(repositoryPath);
