@@ -1385,10 +1385,18 @@ async function bootstrapDesktop() {
     mainWindow = null;
   });
 
-  app.once("will-quit", () => {
+  app.once("will-quit", (event) => {
     unsubscribe();
     currentTransport?.close();
-    terminalManager.destroyAll();
+    event.preventDefault();
+    terminalManager
+      .destroyAllAsync()
+      .catch((err) => {
+        console.error("Error destroying terminals on quit:", err);
+      })
+      .finally(() => {
+        app.exit(0);
+      });
   });
 
   app.on("activate", async () => {
@@ -1410,4 +1418,7 @@ async function bootstrapDesktop() {
   });
 }
 
-void bootstrapDesktop();
+bootstrapDesktop().catch((err) => {
+  console.error("Fatal error during desktop bootstrap:", err);
+  app.quit();
+});
