@@ -2,7 +2,7 @@ import type { WorkspaceWindow } from "@pi-desktop/shared";
 import type * as React from "react";
 import { useStore } from "zustand";
 import { cn } from "@/lib/utils";
-import { workspaceSessionStore } from "../../hooks/use-window-store";
+import { getWorkspaceSessionStore } from "../../hooks/use-window-store";
 import { selectFileWindowStateByWorktree } from "../../stores/workspace-session-selectors";
 import { Terminal } from "../ui/terminal";
 import { WorkspaceFileContent } from "./workspace-file-content";
@@ -82,7 +82,7 @@ export function WorkspaceSurfacePanel({
 }: WorkspaceSurfacePanelProps) {
   const selectedWindow =
     windows.find((window) => window.id === selectedSurfaceKey) ?? null;
-  const fileData = useStore(workspaceSessionStore, (storeState) =>
+  const fileData = useStore(getWorkspaceSessionStore(), (storeState) =>
     selectedWindow?.kind === "file"
       ? selectFileWindowStateByWorktree(
           storeState,

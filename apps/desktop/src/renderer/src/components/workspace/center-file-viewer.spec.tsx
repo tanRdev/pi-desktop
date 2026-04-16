@@ -17,7 +17,7 @@ vi.mock("./workspace-file-content", () => ({
 }));
 
 vi.mock("../../hooks/use-window-store", () => ({
-  workspaceSessionStore: {},
+  getWorkspaceSessionStore: () => ({}),
 }));
 vi.mock("../../stores/workspace-session-selectors", () => ({
   selectFileWindowStateByWorktree: vi.fn(),

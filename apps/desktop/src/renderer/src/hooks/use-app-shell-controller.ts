@@ -42,7 +42,7 @@ import {
   resolveCurrentModelValue,
   useShellModel,
 } from "./use-shell-model";
-import { useWindowStore, workspaceSessionStore } from "./use-window-store";
+import { getWorkspaceSessionStore, useWindowStore } from "./use-window-store";
 
 const EMPTY_AUTOCOMPLETE_SUGGESTIONS: (SlashSuggestion | MentionSuggestion)[] =
   [];
@@ -193,11 +193,11 @@ export function useAppShellController(): AppShellController {
   const activeWorktreePath = activeWorktree?.path ?? null;
   const activeThreadId = activeThread?.id ?? null;
   const activeThreadConversation = React.useSyncExternalStore(
-    workspaceSessionStore.subscribe,
+    getWorkspaceSessionStore().subscribe,
     () =>
       activeThreadId
         ? selectThreadConversationByWorktree(
-            workspaceSessionStore.getState(),
+            getWorkspaceSessionStore().getState(),
             activeWorktreeId,
             activeThreadId,
           )
@@ -389,7 +389,7 @@ export function useAppShellController(): AppShellController {
     }
 
     syncActiveThreadConversation({
-      sessionStore: workspaceSessionStore,
+      sessionStore: getWorkspaceSessionStore(),
       worktreeId: activeWorktreeId,
       threadId: activeThreadId,
       conversation,
@@ -728,7 +728,7 @@ export function useAppShellController(): AppShellController {
   const handleFileContentChange = React.useCallback(
     (windowId: string, newContent: string) => {
       updateFileDraftForWorktree({
-        sessionStore: workspaceSessionStore,
+        sessionStore: getWorkspaceSessionStore(),
         worktreeId: activeWorktreeId,
         windowId,
         content: newContent,
@@ -741,7 +741,7 @@ export function useAppShellController(): AppShellController {
   const handleFileSave = React.useCallback(
     async (windowId: string, filePath: string) => {
       const didSave = await saveFileWindowForWorktree({
-        sessionStore: workspaceSessionStore,
+        sessionStore: getWorkspaceSessionStore(),
         worktreeId: activeWorktreeId,
         windowId,
         filePath,
@@ -1369,7 +1369,7 @@ export function useAppShellController(): AppShellController {
       setSelectedContextSurface(createdWindow.id);
 
       // Set loading state and read content async
-      workspaceSessionStore
+      getWorkspaceSessionStore()
         .getState()
         .setFileContentForWorktree(activeWorktreeId, createdWindow.id, {
           content: null,
@@ -1379,7 +1379,7 @@ export function useAppShellController(): AppShellController {
 
       window.piDesktop.fs.readFile(filePath).then(
         (result) => {
-          workspaceSessionStore
+          getWorkspaceSessionStore()
             .getState()
             .setFileContentForWorktree(activeWorktreeId, createdWindow.id, {
               content: result,
@@ -1388,7 +1388,7 @@ export function useAppShellController(): AppShellController {
             });
         },
         (error) => {
-          workspaceSessionStore
+          getWorkspaceSessionStore()
             .getState()
             .setFileContentForWorktree(activeWorktreeId, createdWindow.id, {
               content: null,

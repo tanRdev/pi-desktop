@@ -13,9 +13,12 @@ let fileWindowState:
     }
   | undefined;
 
-vi.mock("../../hooks/use-window-store", () => ({
-  workspaceSessionStore: createStore(() => ({})),
-}));
+vi.mock("../../hooks/use-window-store", () => {
+  const store = createStore(() => ({}));
+  return {
+    getWorkspaceSessionStore: () => store,
+  };
+});
 
 vi.mock("../../stores/workspace-session-selectors", () => ({
   selectFileWindowStateByWorktree: () => fileWindowState,

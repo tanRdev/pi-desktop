@@ -1,5 +1,5 @@
 import { useStore } from "zustand";
-import { workspaceSessionStore } from "../../hooks/use-window-store";
+import { getWorkspaceSessionStore } from "../../hooks/use-window-store";
 import { selectFileWindowStateByWorktree } from "../../stores/workspace-session-selectors";
 import { WorkspaceFileContent } from "./workspace-file-content";
 
@@ -22,7 +22,7 @@ export function CenterFileViewer({
   onContentChange,
   onFileSave,
 }: CenterFileViewerProps) {
-  const fileState = useStore(workspaceSessionStore, (storeState) =>
+  const fileState = useStore(getWorkspaceSessionStore(), (storeState) =>
     selectFileWindowStateByWorktree(storeState, activeWorktreeId, windowId),
   );
 
