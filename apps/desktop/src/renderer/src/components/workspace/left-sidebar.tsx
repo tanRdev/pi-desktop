@@ -308,6 +308,11 @@ export function LeftSidebarImpl({
   onToggleVisible,
 }: LeftSidebarProps) {
   const [isResizing, setIsResizing] = React.useState(false);
+  const asideRef = React.useRef<HTMLElement | null>(null);
+  const liveWidthRef = React.useRef<number>(width);
+  React.useEffect(() => {
+    liveWidthRef.current = width;
+  }, [width]);
 
   // Context menu state
   const [contextMenu, setContextMenu] = React.useState<{
@@ -350,13 +355,37 @@ export function LeftSidebarImpl({
   React.useEffect(() => {
     if (!isResizing) return;
 
+    const applyLiveWidth = (w: number) => {
+      liveWidthRef.current = w;
+      const aside = asideRef.current;
+      if (aside) {
+        aside.style.width = `${w}px`;
+      }
+      const wrapper = document.querySelector<HTMLElement>(
+        "[data-left-sidebar-wrapper='true']",
+      );
+      if (wrapper) {
+        wrapper.style.width = `${w}px`;
+      }
+      const inner = document.querySelector<HTMLElement>(
+        "[data-left-sidebar-inner='true']",
+      );
+      if (inner) {
+        inner.style.width = `${w}px`;
+      }
+    };
+
     const handleMouseMove = (e: MouseEvent) => {
       const newWidth = Math.max(180, Math.min(360, e.clientX));
-      onResize(newWidth);
+      applyLiveWidth(newWidth);
     };
 
     const handleMouseUp = () => {
       setIsResizing(false);
+      // Commit the final drag width to React state exactly once. The inline
+      // widths we wrote during the drag will be replaced by the prop-driven
+      // `width` on the next render.
+      onResize(liveWidthRef.current);
     };
 
     document.addEventListener("mousemove", handleMouseMove);
@@ -459,6 +488,7 @@ export function LeftSidebarImpl({
 
   return (
     <aside
+      ref={asideRef}
       data-testid="left-sidebar"
       data-mode="workspace"
       className={cn(

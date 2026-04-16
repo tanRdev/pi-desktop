@@ -321,6 +321,7 @@ function WorkspaceShellImpl({
 
         {/* Item 3: Sidebar width 220, resize 160–320 */}
         <div
+          data-left-sidebar-wrapper="true"
           className={cn(
             "min-h-0 shrink-0 overflow-hidden",
             "transition-all duration-[var(--duration-normal)] ease-[var(--ease-out)]",
@@ -331,6 +332,7 @@ function WorkspaceShellImpl({
           style={{ width: isLeftSidebarVisible ? leftSidebarTargetWidth : 0 }}
         >
           <div
+            data-left-sidebar-inner="true"
             className={cn(
               "h-full transition-opacity duration-[var(--duration-normal)] ease-[var(--ease-out)]",
               isLeftSidebarVisible ? "opacity-100" : "opacity-0",
