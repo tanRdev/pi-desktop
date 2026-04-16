@@ -175,25 +175,32 @@ export function SessionRow({
         className={cn(
           "group relative flex w-full items-center gap-2 px-2 py-2 text-left text-[10.5px] transition-colors",
           isActive
-            ? "bg-transparent text-white/80"
-            : "text-white/40 hover:bg-white/[0.04] hover:text-white/70",
+            ? "bg-[var(--color-accent-subtle)] text-[color:var(--text-dim-1)]"
+            : "text-[color:var(--text-dim-3)] hover:bg-white/[0.04] hover:text-[color:var(--text-dim-1)]",
         )}
       >
         <span className="flex size-5 shrink-0 items-center justify-center">
           {isWorking ? (
-            <span className="text-[10.5px] leading-none text-white font-mono whitespace-nowrap">
+            <span className="text-[10.5px] leading-none text-[color:var(--color-accent)] font-mono whitespace-nowrap">
               {spinnerFrame}
             </span>
           ) : (
-            <Icon className="size-2.5 text-white/40" />
+            <Icon
+              className={cn(
+                "size-3.5",
+                isActive
+                  ? "text-[color:var(--color-accent)]"
+                  : "text-[color:var(--text-dim-3)]",
+              )}
+            />
           )}
         </span>
         <span className="truncate flex-1">{session.label}</span>
-        <span className="flex size-5 items-center justify-center text-[10px] text-white/30 whitespace-nowrap">
+        <span className="flex size-5 items-center justify-center text-[10px] text-[color:var(--text-dim-4)] whitespace-nowrap">
           {formatTimePassed(startedAt)}
         </span>
         {isActive && (
-          <span className="absolute top-1/2 left-0 h-[60%] w-[2px] -translate-y-1/2 rounded-full bg-white/80" />
+          <span className="absolute top-1/2 left-0 h-[60%] w-[2px] -translate-y-1/2 rounded-full bg-[var(--color-accent)]" />
         )}
       </button>
     </div>
@@ -225,19 +232,32 @@ function WorkspaceRow({
         className={cn(
           "group/row relative flex min-w-0 flex-1 items-center gap-2 px-2 py-2 text-left text-[10.5px] transition-colors",
           isActive
-            ? "bg-transparent text-white/80"
-            : "text-white/40 hover:bg-white/[0.04] hover:text-white/70",
+            ? "bg-[var(--color-accent-subtle)] text-[color:var(--text-dim-1)]"
+            : "text-[color:var(--text-dim-2)] hover:bg-white/[0.04] hover:text-[color:var(--text-dim-1)]",
         )}
       >
+        {isActive && (
+          <span
+            aria-hidden="true"
+            className="absolute top-1/2 left-0 h-[70%] w-[2px] -translate-y-1/2 rounded-full bg-[var(--color-accent)]"
+          />
+        )}
         <span className="flex size-5 shrink-0 items-center justify-center">
-          <Folder className="size-2.5 text-white/35" />
+          <Folder
+            className={cn(
+              "size-3.5",
+              isActive
+                ? "text-[color:var(--color-accent)]"
+                : "text-[color:var(--text-dim-3)]",
+            )}
+          />
         </span>
         <span className="truncate flex-1">{getRepositoryName(repository)}</span>
-        <span className="flex size-4 shrink-0 items-center justify-center text-white/25">
+        <span className="flex size-4 shrink-0 items-center justify-center text-[color:var(--text-dim-3)]">
           {isExpanded ? (
-            <CaretDown className="size-2.5" />
+            <CaretDown className="size-3.5" />
           ) : (
-            <CaretRight className="size-2.5" />
+            <CaretRight className="size-3.5" />
           )}
         </span>
       </button>
@@ -551,10 +571,10 @@ export function LeftSidebar({
                             type="button"
                             data-testid="create-session-button"
                             onClick={handleCreateSession}
-                            className="flex w-full items-center gap-2 px-2 py-2 text-[10.5px] text-white/30 transition-colors hover:bg-white/[0.04] hover:text-white/60"
+                            className="flex w-full items-center gap-2 px-2 py-2 text-[10.5px] text-[color:var(--text-dim-3)] transition-colors hover:bg-white/[0.04] hover:text-[color:var(--text-dim-1)]"
                             aria-label="Create new branch"
                           >
-                            <Plus className="size-2.5" />
+                            <Plus className="size-3.5" />
                             <span>New branch</span>
                           </button>
                         </TooltipTrigger>
