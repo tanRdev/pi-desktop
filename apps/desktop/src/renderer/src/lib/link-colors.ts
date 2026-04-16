@@ -10,12 +10,12 @@ const LINK_COLORS: LinkColor[] = [
 ];
 
 const LINK_COLOR_HEX: Record<LinkColor, string> = {
-  blue: "#3b82f6",
-  green: "#22c55e",
-  orange: "#f97316",
-  pink: "#ec4899",
-  purple: "#a855f7",
-  yellow: "#eab308",
+  blue: "#7FB3D9",
+  green: "#5FB87A",
+  orange: "#D9955F",
+  pink: "#D97FA8",
+  purple: "#A88FD9",
+  yellow: "#D9C57F",
 };
 
 export function getLinkColorForId(id: string): LinkColor {

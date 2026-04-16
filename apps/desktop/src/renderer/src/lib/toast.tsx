@@ -25,10 +25,10 @@ function show(message: string, type: ToastType, options: ToastOptions = {}) {
   const { description, duration = 3000 } = options;
 
   const iconColor = {
-    success: "#22c55e",
-    error: "#ef4444",
-    info: "#3b82f6",
-    warning: "#f59e0b",
+    success: "var(--color-success)",
+    error: "var(--color-error)",
+    info: "var(--color-info)",
+    warning: "var(--color-warning)",
   }[type];
 
   const content = (

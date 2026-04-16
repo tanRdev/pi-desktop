@@ -3,14 +3,11 @@ import * as React from "react";
 import {
   CaretRight,
   CircleNotch,
-  File,
-  FileCode,
-  FileText,
   Folder,
   FolderOpen,
-  Image,
 } from "@/components/ui/icons";
 import type { FileTreeNode } from "@/hooks/use-file-tree";
+import { type FileIcon, getFileIconByExtension } from "@/lib/file-icons";
 import { cn } from "@/lib/utils";
 
 interface FileTreeItemProps {
@@ -30,31 +27,9 @@ interface FileTreeItemProps {
   renamingPath?: string | null;
 }
 
-const CODE_EXTENSIONS = new Set([
-  ".ts",
-  ".tsx",
-  ".js",
-  ".jsx",
-  ".json",
-  ".css",
-  ".scss",
-]);
-const IMAGE_EXTENSIONS = new Set([
-  ".png",
-  ".jpg",
-  ".jpeg",
-  ".gif",
-  ".svg",
-  ".webp",
-]);
-
-function getFileIcon(entry: FileEntry) {
+function getFileIcon(entry: FileEntry): FileIcon | null {
   if (entry.type === "directory") return null;
-  const ext = entry.extension ? `.${entry.extension}` : "";
-  if (CODE_EXTENSIONS.has(ext)) return FileCode;
-  if (ext === ".md") return FileText;
-  if (IMAGE_EXTENSIONS.has(ext)) return Image;
-  return File;
+  return getFileIconByExtension(entry.name, entry.extension ?? null);
 }
 
 interface RenameInputProps {
@@ -113,11 +88,8 @@ export const FileTreeItem = React.memo(function FileTreeItem({
   renamingPath,
 }: FileTreeItemProps) {
   const isDir = entry.type === "directory";
-  const IconComponent = isDir
-    ? isExpanded
-      ? FolderOpen
-      : Folder
-    : getFileIcon(entry);
+  const fileIcon = isDir ? null : getFileIcon(entry);
+  const DirIcon = isDir ? (isExpanded ? FolderOpen : Folder) : null;
 
   function handleClick() {
     if (isDir) {
