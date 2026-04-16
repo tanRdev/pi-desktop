@@ -163,4 +163,10 @@ export function registerGitHandlers({
       requireAllowedRepositoryPath(payload, getAllowedRepositoryRoots),
     ),
   );
+
+  handle(IPC_CHANNELS.git.fetch, async (_event, payload) =>
+    gitService.fetch(
+      requireAllowedRepositoryPath(payload, getAllowedRepositoryRoots),
+    ),
+  );
 }

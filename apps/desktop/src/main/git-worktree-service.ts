@@ -783,6 +783,15 @@ export class GitWorktreeService {
     return this.getRepositoryStatus(repositoryPath);
   }
 
+  fetch(repositoryPath: string): GitRepositoryStatus {
+    this.runCheckedGit(
+      repositoryPath,
+      ["fetch", "--all", "--prune"],
+      "fetch changes",
+    );
+    return this.getRepositoryStatus(repositoryPath);
+  }
+
   private inspectWorktree(
     entry: ParsedWorktree,
     currentWorktreeRoot: string,

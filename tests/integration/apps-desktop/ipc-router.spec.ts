@@ -1444,6 +1444,7 @@ describe("git handlers repositoryPath allowlist", () => {
       IPC_CHANNELS.git.commit,
       IPC_CHANNELS.git.pull,
       IPC_CHANNELS.git.push,
+      IPC_CHANNELS.git.fetch,
     ]) {
       await expect(
         harness.handlers.get(channel)?.(undefined, {
@@ -1466,6 +1467,30 @@ describe("git handlers repositoryPath allowlist", () => {
     expect(gitService.commit).not.toHaveBeenCalled();
     expect(gitService.pull).not.toHaveBeenCalled();
     expect(gitService.push).not.toHaveBeenCalled();
+    expect(gitService.fetch).not.toHaveBeenCalled();
+  });
+
+  it("routes git.fetch to gitService.fetch when repositoryPath is an allowed root", async () => {
+    const harness = createHandlerHarness();
+    const gitService = createGitServiceMock();
+    const nodeFs = await loadMockedNodeFs();
+    nodeFs.realpathSync.mockImplementation((value) => value.toString());
+
+    registerIpcHandlers({
+      handle: harness.handle,
+      getShellSnapshot: vi.fn(createShellSnapshot),
+      agentHost: createAgentHost(createAgentSnapshot()),
+      mainWindow: null,
+      // biome-ignore lint/suspicious/noExplicitAny: test mock of GitWorktreeService
+      gitService: gitService as any,
+      getAllowedRepositoryRoots: () => ["/allowed/repo"],
+    });
+
+    await harness.handlers.get(IPC_CHANNELS.git.fetch)?.(undefined, {
+      repositoryPath: "/allowed/repo",
+    });
+
+    expect(gitService.fetch).toHaveBeenCalledWith("/allowed/repo");
   });
 
   it("accepts git handlers when repositoryPath equals an allowed root", async () => {
