@@ -324,7 +324,8 @@ function WorkspaceShellImpl({
           data-left-sidebar-wrapper="true"
           className={cn(
             "min-h-0 shrink-0 overflow-hidden",
-            "transition-all duration-[var(--duration-normal)] ease-[var(--ease-out)]",
+            "will-change-[width,transform]",
+            "transition-[width,opacity] duration-[var(--duration-fast)] ease-[var(--ease-standard)]",
             isLeftSidebarVisible
               ? "opacity-100"
               : "pointer-events-none opacity-0",
@@ -334,8 +335,10 @@ function WorkspaceShellImpl({
           <div
             data-left-sidebar-inner="true"
             className={cn(
-              "h-full transition-opacity duration-[var(--duration-normal)] ease-[var(--ease-out)]",
-              isLeftSidebarVisible ? "opacity-100" : "opacity-0",
+              "h-full will-change-transform",
+              isLeftSidebarVisible
+                ? "translate-x-0 opacity-100 transition-[transform,opacity] duration-[var(--duration-enter)] ease-[var(--ease-emphasized-decel)]"
+                : "-translate-x-2 opacity-0 transition-[transform,opacity] duration-[var(--duration-exit)] ease-[var(--ease-emphasized-accel)]",
             )}
             style={{ width: leftSidebarTargetWidth }}
           >

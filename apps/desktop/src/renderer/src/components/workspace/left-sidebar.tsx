@@ -392,12 +392,14 @@ export function LeftSidebarImpl({
     document.addEventListener("mouseup", handleMouseUp);
     document.body.style.cursor = "col-resize";
     document.body.style.userSelect = "none";
+    document.body.setAttribute("data-sidebar-resizing", "true");
 
     return () => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
+      document.body.removeAttribute("data-sidebar-resizing");
     };
   }, [isResizing, onResize]);
 

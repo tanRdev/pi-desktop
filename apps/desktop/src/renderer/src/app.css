@@ -438,6 +438,16 @@ button,
 }
 
 /* ============================================
+   SIDEBAR RESIZE — No transition during active drag
+   ============================================ */
+
+body[data-sidebar-resizing="true"] [data-left-sidebar-wrapper="true"],
+body[data-sidebar-resizing="true"] [data-left-sidebar-inner="true"],
+body[data-sidebar-resizing="true"] [data-testid="left-sidebar"] {
+  transition: none !important;
+}
+
+/* ============================================
    REDUCED MOTION — Accessibility
    ============================================ */
 
