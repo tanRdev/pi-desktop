@@ -369,7 +369,10 @@ export function WorkspaceShell({
             platform={platform}
             isTerminalActive={isTerminalActive}
             isSidePanelVisible={isRightPanelVisible}
-            onOpenTerminal={onOpenTerminal}
+            onOpenTerminal={() => {
+              setIsRightPanelVisible(true);
+              onOpenTerminal();
+            }}
             onToggleSidePanel={() =>
               setIsRightPanelVisible(!isRightPanelVisible)
             }

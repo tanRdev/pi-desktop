@@ -268,6 +268,68 @@ describe("workspace-session-store", () => {
     expect(refreshed?.fileContents.has("file-window-a")).toBe(true);
   });
 
+  it("seeds the active session synchronously so createWindow succeeds before persisted hydration resolves", async () => {
+    let resolveHydration:
+      | ((
+          session: ReturnType<typeof createEmptyWorkspaceSession> | null,
+        ) => void)
+      | undefined;
+    const getWorkspaceSession = vi.fn(
+      () =>
+        new Promise<ReturnType<typeof createEmptyWorkspaceSession> | null>(
+          (resolve) => {
+            resolveHydration = resolve;
+          },
+        ),
+    );
+
+    const store = createWorkspaceSessionStore({
+      getWorkspaceSession,
+      saveWorkspaceSession: vi.fn(async (session) => session),
+      persistDelayMs: 5,
+    });
+
+    // Kick off activation but do NOT await — this reproduces the
+    // race condition where UI code fires actions immediately after
+    // clicking into a newly activated worktree.
+    const pending = store.getState().setActiveWorktree("/tmp/repo-a");
+
+    // Synchronously, the active worktree id must be set AND the
+    // session row must be populated so `createWindow` can operate.
+    expect(store.getState().activeWorktreeId).toBe("/tmp/repo-a");
+    expect(store.getState().sessionsByWorktreeId["/tmp/repo-a"]).toBeDefined();
+
+    const terminalWindow = store.getState().createWindow({
+      kind: "terminal",
+      backend: "shell",
+      cwd: "/tmp/repo-a",
+    });
+    expect(terminalWindow.kind).toBe("terminal");
+    expect(
+      store
+        .getState()
+        .sessionsByWorktreeId["/tmp/repo-a"]?.layout.windows.some(
+          (window) => window.id === terminalWindow.id,
+        ),
+    ).toBe(true);
+
+    // Now resolve persisted hydration. The previously created
+    // terminal window should survive the merge.
+    if (!resolveHydration) {
+      throw new Error("Expected hydration promise to be pending");
+    }
+    resolveHydration(null);
+    await pending;
+
+    expect(
+      store
+        .getState()
+        .sessionsByWorktreeId["/tmp/repo-a"]?.layout.windows.some(
+          (window) => window.id === terminalWindow.id,
+        ),
+    ).toBe(true);
+  });
+
   it("ignores stale async hydration when worktree switches race", async () => {
     let resolveRepoA:
       | ((

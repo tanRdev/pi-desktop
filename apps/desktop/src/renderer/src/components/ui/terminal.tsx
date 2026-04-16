@@ -75,6 +75,8 @@ export function Terminal({
   React.useEffect(() => {
     if (!containerRef.current || terminalRef.current) return;
 
+    let cancelled = false;
+
     const terminal = new XTerm({
       theme: {
         background: "var(--color-bg-primary)",
@@ -119,22 +121,29 @@ export function Terminal({
     fitAddonRef.current = fitAddon;
 
     const { cols, rows } = terminal;
-    void (async () => {
-      try {
-        const session = await window.piDesktop.terminal.create({
-          id,
-          cols,
-          rows,
-          cwd,
-          ownerWindowId: ownerWindowId ?? `terminal-${id}`,
-          backend,
-        });
+    // Hold a handle to the create promise so cleanup can await it before
+    // destroying. Without this the StrictMode dev double-mount causes:
+    //   create(id) -> cleanup -> destroy(id) -> create resolves (zombie) -> create(id again)
+    const createPromise = window.piDesktop.terminal
+      .create({
+        id,
+        cols,
+        rows,
+        cwd,
+        ownerWindowId: ownerWindowId ?? `terminal-${id}`,
+        backend,
+      })
+      .then((session) => {
+        if (cancelled) return session;
         if (session?.status === "error") {
           const errorMessage = "Failed to create terminal session";
           setError(errorMessage);
           terminal.write(`\x1b[31mError: ${errorMessage}\x1b[0m\r\n`);
         }
-      } catch (err) {
+        return session;
+      })
+      .catch((err) => {
+        if (cancelled) return undefined;
         const errorMessage =
           err instanceof Error ? err.message : "Failed to create terminal";
         setError(errorMessage);
@@ -142,8 +151,8 @@ export function Terminal({
         terminal.write(
           "Terminal functionality may require rebuilding native modules.\r\n",
         );
-      }
-    })();
+        return undefined;
+      });
 
     terminal.onData((data) => {
       window.piDesktop.terminal.write(id, data).catch(console.error);
@@ -174,9 +183,14 @@ export function Terminal({
     setIsInitializing(false);
 
     return () => {
+      cancelled = true;
       resizeObserver.disconnect();
       unsubscribe();
-      window.piDesktop.terminal.destroy(id).catch(console.error);
+      // Await the create before destroying so the backend can't receive
+      // destroy(id) for a session that hasn't registered yet (StrictMode race).
+      void createPromise.finally(() => {
+        window.piDesktop.terminal.destroy(id).catch(console.error);
+      });
       terminal.dispose();
       terminalRef.current = null;
       fitAddonRef.current = null;

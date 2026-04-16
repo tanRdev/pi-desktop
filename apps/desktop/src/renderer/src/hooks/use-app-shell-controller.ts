@@ -464,15 +464,23 @@ export function useAppShellController(): AppShellController {
       return;
     }
 
-    const terminalWindow = windowStore.createWindow(
-      {
-        kind: "terminal",
-        backend: "shell",
-        cwd: activeWorktreePath ?? undefined,
-      },
-      activeWorktreePath ?? undefined,
-    );
-    setSelectedContextSurface(terminalWindow.id);
+    try {
+      const terminalWindow = windowStore.createWindow(
+        {
+          kind: "terminal",
+          backend: "shell",
+          cwd: activeWorktreePath ?? undefined,
+        },
+        activeWorktreePath ?? undefined,
+      );
+      setSelectedContextSurface(terminalWindow.id);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Unable to open terminal. Select a project or worktree first.";
+      toast.error("Couldn't open terminal", { description: message });
+    }
   }, [
     activeWorktreePath,
     selectedContextSurface,

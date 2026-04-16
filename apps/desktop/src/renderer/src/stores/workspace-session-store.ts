@@ -357,28 +357,60 @@ export function createWorkspaceSessionStore({
         return;
       }
 
-      const nextVersion = get().activeWorktreeVersion + 1;
-      set({
+      const previous = get();
+      const nextVersion = previous.activeWorktreeVersion + 1;
+      const alreadyHadSession = Object.prototype.hasOwnProperty.call(
+        previous.sessionsByWorktreeId,
+        worktreeId,
+      );
+
+      // Seed an empty session synchronously so callers that depend on
+      // `sessionsByWorktreeId[activeWorktreeId]` (e.g. `createWindow`,
+      // `withActiveSession`) work immediately after `setActiveWorktree`
+      // is invoked. Previously the store briefly held an
+      // `activeWorktreeId` with no matching session row, causing actions
+      // like "Open Terminal" to silently no-op during the startup window
+      // while the persisted read was in flight.
+      set((state) => ({
+        ...state,
         activeWorktreeId: worktreeId,
         activeWorktreeVersion: nextVersion,
-      });
+        sessionsByWorktreeId: alreadyHadSession
+          ? state.sessionsByWorktreeId
+          : {
+              ...state.sessionsByWorktreeId,
+              [worktreeId]: cloneSession(
+                createEmptyWorkspaceSession(worktreeId),
+              ),
+            },
+      }));
 
-      let session = get().sessionsByWorktreeId[worktreeId];
-      if (!session) {
-        const persisted = await getWorkspaceSession(worktreeId);
-        if (get().activeWorktreeVersion !== nextVersion) {
-          return;
-        }
-        session = cloneSession(
-          persisted ?? createEmptyWorkspaceSession(worktreeId),
-        );
+      // If we already had a hydrated session, we're done — nothing to
+      // load. Runtime maps (thread conversations, file contents, note
+      // drafts) and window layout are preserved across activations.
+      if (alreadyHadSession) {
+        return;
+      }
+
+      // Load the persisted session in the background and merge it into
+      // the seeded empty row. If the active worktree changed while we
+      // were waiting, bail out so we don't clobber a newer activation.
+      const persisted = await getWorkspaceSession(worktreeId);
+      if (get().activeWorktreeVersion !== nextVersion) {
+        return;
+      }
+      if (!persisted) {
+        return;
       }
 
       set((state) => ({
         ...state,
         sessionsByWorktreeId: {
           ...state.sessionsByWorktreeId,
-          [worktreeId]: session,
+          [worktreeId]: mergeSession(
+            state.sessionsByWorktreeId[worktreeId],
+            persisted,
+          ),
         },
       }));
     },
