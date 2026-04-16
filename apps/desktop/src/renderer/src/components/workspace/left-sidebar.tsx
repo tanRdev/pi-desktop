@@ -176,9 +176,7 @@ function SessionRowImpl({
         onClick={() => onSelect(session.id)}
         className={cn(
           "group relative flex w-full items-center gap-2 px-2 py-2 text-left text-[10.5px] transition-colors",
-          isActive
-            ? "bg-white/[0.06] text-white"
-            : "text-[color:var(--text-dim-3)] hover:bg-white/[0.04] hover:text-[color:var(--text-dim-1)]",
+          isActive ? "text-white/90" : "text-white/40 hover:text-white/70",
         )}
       >
         <span className="flex size-5 shrink-0 items-center justify-center">
@@ -190,7 +188,7 @@ function SessionRowImpl({
             <Icon
               className={cn(
                 "size-3.5",
-                isActive ? "text-white" : "text-[color:var(--text-dim-3)]",
+                isActive ? "text-white/90" : "text-white/40",
               )}
             />
           )}
@@ -241,16 +239,14 @@ function WorkspaceRowImpl({
         onContextMenu={handleContextMenu}
         className={cn(
           "group/row relative flex min-w-0 flex-1 items-center gap-2 px-2 py-2 text-left text-[10.5px] transition-colors",
-          isActive
-            ? "bg-white/[0.06] text-white"
-            : "text-[color:var(--text-dim-2)] hover:bg-white/[0.04] hover:text-[color:var(--text-dim-1)]",
+          isActive ? "text-white/90" : "text-white/40 hover:text-white/70",
         )}
       >
         <span className="flex size-5 shrink-0 items-center justify-center">
           <Folder
             className={cn(
               "size-3.5",
-              isActive ? "text-white" : "text-[color:var(--text-dim-3)]",
+              isActive ? "text-white/90" : "text-white/40",
             )}
           />
         </span>
