@@ -5,15 +5,15 @@ import {
   WarningCircle,
   WarningOctagon,
 } from "@phosphor-icons/react";
-import { useTheme } from "next-themes";
 import { Toaster as Sonner, type ToasterProps } from "sonner";
+import { useTheme } from "@/components/theme-provider";
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme();
+  const { theme } = useTheme();
 
   return (
     <Sonner
-      theme={theme as ToasterProps["theme"]}
+      theme={theme}
       className="toaster group"
       icons={{
         success: <CheckCircle className="size-5" weight="fill" />,
@@ -22,14 +22,12 @@ const Toaster = ({ ...props }: ToasterProps) => {
         error: <WarningOctagon className="size-5" weight="fill" />,
         loading: <Spinner className="size-5 animate-spin" />,
       }}
-      style={
-        {
-          "--normal-bg": "var(--popover)",
-          "--normal-text": "var(--popover-foreground)",
-          "--normal-border": "var(--border)",
-          "--border-radius": "var(--radius)",
-        } as React.CSSProperties
-      }
+      style={{
+        "--normal-bg": "var(--popover)",
+        "--normal-text": "var(--popover-foreground)",
+        "--normal-border": "var(--border)",
+        "--border-radius": "var(--radius)",
+      }}
       {...props}
     />
   );
