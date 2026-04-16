@@ -1,6 +1,6 @@
 {
   "name": "@pi-desktop/desktop",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "private": true,
   "productName": "Pi Desktop",
   "description": "Pi Desktop Electron desktop shell",

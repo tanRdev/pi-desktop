@@ -1,4 +1,11 @@
-import { cpSync, existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -8,6 +15,12 @@ const desktopDir = path.join(repoRoot, "apps", "desktop");
 const stageDir = path.join(repoRoot, "dist", "electron-app");
 const outDir = path.join(desktopDir, "out");
 const nodePtyDir = path.join(desktopDir, "node_modules", "node-pty");
+
+// Read version from desktop package.json
+const desktopPackageJson = JSON.parse(
+  readFileSync(path.join(desktopDir, "package.json"), "utf-8"),
+);
+const version = desktopPackageJson.version;
 
 if (!existsSync(outDir)) {
   throw new Error(`Desktop build output not found at ${outDir}`);
@@ -30,7 +43,7 @@ writeFileSync(
   `${JSON.stringify(
     {
       name: "@pi-desktop/desktop-release",
-      version: "0.2.0",
+      version,
       main: "out/main/index.js",
       dependencies: {
         "node-pty": "1.1.0",
