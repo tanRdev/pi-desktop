@@ -7,6 +7,7 @@ import {
 import { Skeleton } from "boneyard-js/react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { toast } from "@/lib/toast";
 import type { ActivityIndicatorProps } from "../ui/activity-indicator";
 import { StreamingIndicator } from "../ui/activity-indicator";
 import { EnhancedMessage } from "../ui/enhanced-message";
@@ -21,6 +22,13 @@ type ChatMessageRowProps = {
   onFeedbackChange: (messageId: string, value: FeedbackValue) => void;
   onCopyMessage: (text: string) => void;
 };
+
+const CHAT_SUGGESTIONS: ReadonlyArray<string> = [
+  "Explain this repo",
+  "What changed recently?",
+  "Add a feature",
+  "Find a bug",
+];
 
 type ToolState = "input-streaming" | "output-available" | "output-error";
 
@@ -304,6 +312,7 @@ export function ChatThreadPanel({
 
   const handleCopyMessage = React.useCallback((text: string) => {
     void navigator.clipboard.writeText(text);
+    toast.success("Copied to clipboard");
   }, []);
 
   const streamingActivities = React.useMemo(
@@ -360,8 +369,35 @@ export function ChatThreadPanel({
                   data-testid="chat-empty-state"
                   className="flex min-h-full w-full flex-1 items-center justify-center px-6"
                 >
-                  <div className="max-w-md text-center font-mono text-[10.5px] uppercase tracking-[0.08em] text-white/25">
-                    Start a conversation with Pi.
+                  <div className="flex max-w-md flex-col items-center gap-6 text-center">
+                    <div className="font-mono text-[10.5px] uppercase tracking-[0.08em] text-white/25">
+                      Start a conversation with Pi.
+                    </div>
+                    <div className="flex flex-wrap items-center justify-center gap-1.5">
+                      {CHAT_SUGGESTIONS.map((suggestion) => (
+                        <button
+                          key={suggestion}
+                          type="button"
+                          onClick={() =>
+                            window.dispatchEvent(
+                              new CustomEvent("pi-chat-suggestion", {
+                                detail: suggestion,
+                              }),
+                            )
+                          }
+                          className={cn(
+                            "inline-flex items-center rounded-full px-2.5 py-1",
+                            "text-[10.5px] text-white/40",
+                            "border border-white/[0.06] bg-white/[0.01]",
+                            "transition-colors duration-[var(--duration-fast)]",
+                            "hover:border-white/[0.12] hover:bg-white/[0.04] hover:text-white/70",
+                            "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-accent-ring)]",
+                          )}
+                        >
+                          {suggestion}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               ) : null}

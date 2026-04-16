@@ -130,6 +130,18 @@ export function PromptDock({
     [favoriteModels],
   );
 
+  // Listen for suggestion chip clicks from the empty chat state.
+  React.useEffect(() => {
+    function handleSuggestion(event: Event) {
+      const custom = event as CustomEvent<string>;
+      if (!hasActiveThread || typeof custom.detail !== "string") return;
+      onDraftChange(custom.detail);
+    }
+    window.addEventListener("pi-chat-suggestion", handleSuggestion);
+    return () =>
+      window.removeEventListener("pi-chat-suggestion", handleSuggestion);
+  }, [hasActiveThread, onDraftChange]);
+
   const favoriteModelsList = React.useMemo(() => {
     const results: {
       providerId: string;
