@@ -4,7 +4,6 @@ import type {
   OAuthProviderSnapshot,
   SlashSuggestion,
   ThreadSnapshot,
-  WorktreeSnapshot,
 } from "@pi-desktop/shared";
 import {
   getActiveRepository,
@@ -19,7 +18,9 @@ import {
 } from "../../../thread-title-defaults";
 import type { WorkspaceShellProps } from "../components/workspace/workspace-shell";
 import { loadPromptAutocompleteSuggestions } from "../lib/prompt-autocomplete-loader";
+
 export { getMainPaneState } from "../lib/workspace-pane-state";
+
 import {
   buildFileMention,
   buildTerminalMention,

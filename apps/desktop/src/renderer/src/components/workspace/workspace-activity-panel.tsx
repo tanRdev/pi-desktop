@@ -1,7 +1,7 @@
 import type { ThreadRuntimeStatus } from "@pi-desktop/shared";
 import type { AgentLiveFeed } from "@pi-desktop/shell-model";
-import * as React from "react";
 import { Skeleton } from "boneyard-js/react";
+import * as React from "react";
 import { cn } from "@/lib/utils";
 import { RuntimeStatusChip } from "./runtime-status-chip";
 

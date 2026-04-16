@@ -1,18 +1,18 @@
 "use client";
 
-import * as React from "react";
 import {
-  Wrench,
-  MagnifyingGlass,
-  Cpu,
-  Sparkle,
   Brain,
+  Cpu,
+  Database,
   FileCode,
   Globe,
-  Database,
-  Lightning,
   type IconProps,
+  Lightning,
+  MagnifyingGlass,
+  Sparkle,
+  Wrench,
 } from "@phosphor-icons/react";
+import type * as React from "react";
 import { cn } from "@/lib/utils";
 
 export type ActivityType =

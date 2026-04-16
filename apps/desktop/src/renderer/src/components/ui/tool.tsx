@@ -1,5 +1,12 @@
 "use client";
 
+import {
+  CaretDown,
+  CheckCircle,
+  CircleNotch,
+  Gear,
+  XCircle,
+} from "@phosphor-icons/react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -7,13 +14,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import {
-  CheckCircle,
-  CaretDown,
-  CircleNotch,
-  Gear,
-  XCircle,
-} from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 export type ToolPart = {

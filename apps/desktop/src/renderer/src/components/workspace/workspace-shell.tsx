@@ -11,20 +11,20 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 import { DEFAULT_UNTITLED_THREAD_TITLE } from "../../../../thread-title-defaults";
 import {
-  getMainPaneState,
   type ContextSurfaceKey,
   type ContextWindow,
+  getMainPaneState,
 } from "../../lib/workspace-pane-state";
 import { uiInteractionStore } from "../../stores/ui-interaction-store";
 import { CenterFileViewer } from "./center-file-viewer";
 import { ChatThreadPanel } from "./chat-thread-panel";
+import { FileTreePanel } from "./file-tree-panel";
 import { GitPanel } from "./git-panel";
-import { RightPanelTabs } from "./right-panel-tabs";
 import { LeftRail, SIDEBAR_WIDTH } from "./left-rail";
 import { PromptDock } from "./prompt-dock";
+import { RightPanelTabs } from "./right-panel-tabs";
 import { ThreadTabs } from "./thread-tabs";
 import { TitleBar } from "./title-bar";
-import { FileTreePanel } from "./file-tree-panel";
 import { WorkspaceActivityPanel } from "./workspace-activity-panel";
 import { WorkspaceSurfacePanel } from "./workspace-surface-panel";
 

@@ -92,7 +92,7 @@ describe("CenterFileViewer", () => {
     renderViewer({ onContentChange });
 
     const passedProps = fileContentPropsSpy.mock.calls[0]?.[0];
-    (passedProps!.onContentChange as (c: string) => void)("new content");
+    (passedProps?.onContentChange as (c: string) => void)("new content");
 
     expect(onContentChange).toHaveBeenCalledWith("win-1", "new content");
   });
@@ -108,7 +108,7 @@ describe("CenterFileViewer", () => {
     renderViewer({ onFileSave });
 
     const passedProps = fileContentPropsSpy.mock.calls[0]?.[0];
-    (passedProps!.onSave as () => void)();
+    (passedProps?.onSave as () => void)();
 
     expect(onFileSave).toHaveBeenCalledWith("win-1", "/foo.ts");
   });

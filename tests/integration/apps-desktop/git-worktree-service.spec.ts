@@ -2,9 +2,9 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import type { GitRepositoryStatus } from "../../../packages/shared/src";
 import { afterEach, describe, expect, it } from "vitest";
 import { GitWorktreeService } from "../../../apps/desktop/src/main/git-worktree-service";
+import type { GitRepositoryStatus } from "../../../packages/shared/src";
 
 const tempDirs: string[] = [];
 

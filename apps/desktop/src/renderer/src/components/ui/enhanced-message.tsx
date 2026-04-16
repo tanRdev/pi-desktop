@@ -7,7 +7,6 @@ import { ActivityGroup, ActivityIndicator } from "./activity-indicator";
 import { FeedbackBar, type FeedbackValue } from "./feedback-bar";
 import { Markdown } from "./markdown";
 import { SystemMessage } from "./system-message";
-import type { ThinkingBlockProps } from "./thinking-block";
 import { ThinkingBlock } from "./thinking-block";
 import { Tool, type ToolPart } from "./tool";
 

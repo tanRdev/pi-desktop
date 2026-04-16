@@ -15,7 +15,6 @@ import type {
 import { IPC_CHANNELS } from "@pi-desktop/shared";
 import { app, BrowserWindow, dialog, ipcMain, Menu, shell } from "electron";
 import {
-  createThreadTitle,
   DEFAULT_UNTITLED_THREAD_TITLE,
   generateThreadTitleFromMessage,
   getDefaultThreadTitle,
