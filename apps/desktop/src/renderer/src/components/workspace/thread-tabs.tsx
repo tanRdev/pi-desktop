@@ -58,7 +58,7 @@ export function ThreadTabs({
                   className={cn(
                     "h-1.5 w-1.5 shrink-0 rounded-full transition-all duration-300",
                     isRunning
-                      ? "animate-pulse bg-[var(--color-accent)]/70 shadow-[0_0_4px_rgba(0,229,89,0.4)]"
+                      ? "animate-pulse bg-[var(--color-accent)]/70 shadow-[0_0_4px_var(--color-accent-ring)]"
                       : isActive
                         ? "bg-white/25"
                         : "bg-white/12",

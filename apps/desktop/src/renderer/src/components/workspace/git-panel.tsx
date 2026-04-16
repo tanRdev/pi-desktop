@@ -129,7 +129,7 @@ function CombinedChangeList({
         </div>
         <div className="flex items-center gap-1 font-mono text-[10px] font-bold">
           {added > 0 && (
-            <span className="flex items-center justify-center bg-[#00E559]/10 px-1 py-px text-[#00E559] text-[10px]">
+            <span className="flex items-center justify-center bg-[var(--color-accent)]/10 px-1 py-px text-[var(--color-accent)] text-[10px]">
               +{added}
             </span>
           )}
@@ -174,7 +174,7 @@ function CombinedChangeList({
                   className={cn(
                     "flex size-4 shrink-0 items-center justify-center border transition-all duration-200",
                     staged
-                      ? "bg-[#00E559]/20 border-[#00E559]/50 text-[#00E559]"
+                      ? "bg-[var(--color-accent)]/20 border-[var(--color-accent)]/50 text-[var(--color-accent)]"
                       : "border-white/10 text-transparent hover:border-white/30",
                   )}
                 >
@@ -203,7 +203,7 @@ function CombinedChangeList({
                     className={cn(
                       "w-3 text-center text-[10px] font-bold select-none font-mono",
                       status === "added" || status === "untracked"
-                        ? "text-[#00E559]"
+                        ? "text-[var(--color-accent)]"
                         : status === "deleted"
                           ? "text-rose-400"
                           : status === "modified"

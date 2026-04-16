@@ -37,7 +37,7 @@ export default defineConfig({
   test: {
     name: "desktop-components",
     environment: "jsdom",
-    include: ["src/**/*.spec.tsx"],
+    include: ["src/**/*.spec.{ts,tsx}"],
     setupFiles: ["./src/test/vitest.setup.ts"],
     css: true,
   },

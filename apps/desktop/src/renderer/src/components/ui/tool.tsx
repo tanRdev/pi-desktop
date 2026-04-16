@@ -46,7 +46,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
         return (
           <CircleNotch
             className={cn(
-              "h-3.5 w-3.5 animate-spin text-[#00E559]/60",
+              "h-3.5 w-3.5 animate-spin text-[var(--color-accent)]/60",
               "transition-all duration-[var(--duration-fast)] ease-out",
             )}
           />
@@ -101,7 +101,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
           <span
             className={cn(
               baseClasses,
-              "bg-[#00E559]/10 text-[#00E559]/60",
+              "bg-[var(--color-accent)]/10 text-[var(--color-accent)]/60",
               "animate-pulse",
             )}
           >

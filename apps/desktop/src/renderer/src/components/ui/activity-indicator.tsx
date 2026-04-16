@@ -55,14 +55,14 @@ const activityConfig: Record<
   },
   search: {
     icon: MagnifyingGlass,
-    color: "text-[#00E559]/70",
-    bgColor: "bg-[#00E559]/10",
+    color: "text-[var(--color-accent)]/70",
+    bgColor: "bg-[var(--color-accent)]/10",
     label: "Search",
   },
   mcp: {
     icon: Cpu,
-    color: "text-[#00E559]/70",
-    bgColor: "bg-[#00E559]/10",
+    color: "text-[var(--color-accent)]/70",
+    bgColor: "bg-[var(--color-accent)]/10",
     label: "MCP",
   },
   skill: {
@@ -119,7 +119,7 @@ const statusConfig: Record<
   running: {
     pulse: true,
     borderColor: "border-white/[0.08]",
-    dotColor: "bg-[#00E559]/60",
+    dotColor: "bg-[var(--color-accent)]/60",
   },
   complete: {
     pulse: false,
@@ -281,8 +281,8 @@ export function StreamingIndicator({
         )}
       >
         <div className="relative">
-          <div className="size-2 rounded-full bg-[#00E559]/60" />
-          <div className="absolute inset-0 size-2 animate-ping rounded-full bg-[#00E559]/30" />
+          <div className="size-2 rounded-full bg-[var(--color-accent)]/60" />
+          <div className="absolute inset-0 size-2 animate-ping rounded-full bg-[var(--color-accent)]/30" />
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="text-[10.5px] font-normal text-white/70">
