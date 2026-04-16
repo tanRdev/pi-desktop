@@ -20,6 +20,18 @@ export default defineConfig({
       "@pi-desktop/ui/*": fileURLToPath(
         new URL("../../packages/ui/src", import.meta.url),
       ),
+      "@pi-desktop/shell-model": fileURLToPath(
+        new URL("../../packages/shell-model/src/index.ts", import.meta.url),
+      ),
+      "@pi-desktop/shell-model/*": fileURLToPath(
+        new URL("../../packages/shell-model/src", import.meta.url),
+      ),
+      "@pi-desktop/agent-host": fileURLToPath(
+        new URL("../../packages/agent-host/src/index.ts", import.meta.url),
+      ),
+      "@pi-desktop/agent-host/*": fileURLToPath(
+        new URL("../../packages/agent-host/src", import.meta.url),
+      ),
     },
   },
   test: {
