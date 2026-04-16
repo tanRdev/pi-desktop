@@ -29,6 +29,7 @@ export function ThreadListItem({
       onClick={onClick}
       className={cn(
         "group flex w-full items-center gap-1.5 px-1.5 py-1.5 text-left transition-all duration-[var(--duration-fast)]",
+        "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-accent-ring)]",
         isActive ? "text-white/90" : "text-white/30 hover:text-white/55",
         "cursor-pointer",
       )}
