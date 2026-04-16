@@ -131,8 +131,11 @@ export const FileTreeItem = React.memo(function FileTreeItem({
         ) : (
           <span className="w-3 h-3" />
         )}
-        {IconComponent && (
-          <IconComponent className="w-3.5 h-3.5 text-white/40 shrink-0" />
+        {DirIcon && <DirIcon className="w-3.5 h-3.5 text-white/40 shrink-0" />}
+        {fileIcon && (
+          <fileIcon.Icon
+            className={cn("w-3.5 h-3.5 shrink-0", fileIcon.colorClassName)}
+          />
         )}
         {isRenaming ? (
           <RenameInput
