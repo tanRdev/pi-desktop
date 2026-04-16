@@ -9,6 +9,7 @@ import type {
   ShellGitSnapshot,
   WorktreeGitSnapshot,
 } from "@pi-desktop/shared";
+import { LruMap } from "./lru-map";
 
 export interface GitWorktreeSummary {
   id: string;
@@ -257,16 +258,18 @@ const execFileAsync = promisify(execFile);
 export class GitWorktreeService {
   private static readonly INSPECTION_CACHE_TTL = 2000;
   private static readonly STATUS_CACHE_TTL = 2000;
+  private static readonly INSPECTION_CACHE_MAX_ENTRIES = 200;
+  private static readonly STATUS_CACHE_MAX_ENTRIES = 200;
 
-  private readonly inspectionCache = new Map<
+  private readonly inspectionCache = new LruMap<
     string,
     { inspection: GitRepositoryInspection; updatedAt: number }
-  >();
+  >(GitWorktreeService.INSPECTION_CACHE_MAX_ENTRIES);
 
-  private readonly repositoryStatusCache = new Map<
+  private readonly repositoryStatusCache = new LruMap<
     string,
     { status: GitRepositoryStatus; updatedAt: number }
-  >();
+  >(GitWorktreeService.STATUS_CACHE_MAX_ENTRIES);
 
   inspect(targetPath: string): GitRepositoryInspection {
     const cacheKey = normalizePathId(resolveCommandCwd(targetPath));
