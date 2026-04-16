@@ -1,5 +1,6 @@
-import "@fontsource-variable/inter";
-import "@fontsource-variable/source-code-pro";
+import "@fontsource-variable/saira";
+import "@fontsource/ubuntu";
+import "@fontsource/ibm-plex-mono";
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 import "./app.css";
