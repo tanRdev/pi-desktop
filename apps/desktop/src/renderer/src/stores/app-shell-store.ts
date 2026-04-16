@@ -192,7 +192,7 @@ export function createAppShellStore(api: PiDesktopApi) {
     isSwitchingModel: false,
     async initialize() {
       if (!initializePromise) {
-        initializePromise = (async () => {
+        const pending = (async () => {
           await shellModel.load();
           let [providerSnapshots, settingsSnapshot, rawAppPreferences] =
             await Promise.all([
@@ -242,6 +242,19 @@ export function createAppShellStore(api: PiDesktopApi) {
             isShellReady: true,
           });
         })();
+
+        // Cache the in-flight promise so concurrent callers share it,
+        // but reset the cache on failure so a later `initialize()` call
+        // can retry. Leaving the rejected promise in place would cause
+        // every subsequent `await initialize()` to re-throw the same
+        // error and deadlock the app-shell startup sequence.
+        const wrapped: Promise<void> = pending.catch((error) => {
+          if (initializePromise === wrapped) {
+            initializePromise = null;
+          }
+          throw error;
+        });
+        initializePromise = wrapped;
       }
 
       await initializePromise;

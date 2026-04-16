@@ -1454,4 +1454,42 @@ describe("app-shell-store", () => {
       accentColor: "slate",
     });
   });
+
+  it("allows initialize() to retry after a failed first attempt", async () => {
+    const getSnapshot = vi
+      .fn<() => Promise<ShellSnapshot>>()
+      .mockRejectedValueOnce(new Error("transient shell failure"))
+      .mockResolvedValue({
+        appName: "PiDesk",
+        appVersion: "0.1.0",
+        chromeVersion: "141.0.0.0",
+        platform: "darwin",
+        mode: "test",
+        catalog: {
+          repositories: [],
+          selection: {
+            repositoryId: null,
+            worktreeId: null,
+            threadId: null,
+          },
+        },
+      });
+
+    const api = createApiFixture({
+      shell: {
+        getSnapshot,
+      },
+    });
+
+    const store = createAppShellStore(api);
+
+    await expect(store.getState().initialize()).rejects.toThrow(
+      "transient shell failure",
+    );
+    expect(store.getState().isShellReady).toBe(false);
+
+    await expect(store.getState().initialize()).resolves.toBeUndefined();
+    expect(store.getState().isShellReady).toBe(true);
+    expect(getSnapshot).toHaveBeenCalledTimes(2);
+  });
 });
