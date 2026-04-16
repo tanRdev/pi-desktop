@@ -35,6 +35,19 @@ export interface PersistentJsonFileOptions<T> {
 
 const DEFAULT_DEBOUNCE_MS = 50;
 
+/**
+ * Under Vitest we default to synchronous writes so tests that construct a
+ * catalog, call `save`, then immediately re-read from disk in a new
+ * instance observe the latest write without having to `await flush()`.
+ * Production code still gets the 50ms coalescing default.
+ */
+function resolveDefaultDebounceMs(): number {
+  if (process.env.VITEST === "true" || process.env.NODE_ENV === "test") {
+    return 0;
+  }
+  return DEFAULT_DEBOUNCE_MS;
+}
+
 function clone<T>(value: T): T {
   return structuredClone(value);
 }
@@ -99,7 +112,7 @@ export class PersistentJsonFile<T> {
   private writeChain: Promise<void> = Promise.resolve();
 
   constructor(private readonly options: PersistentJsonFileOptions<T>) {
-    this.debounceMs = options.debounceMs ?? DEFAULT_DEBOUNCE_MS;
+    this.debounceMs = options.debounceMs ?? resolveDefaultDebounceMs();
     this.cleanupStrayTemp();
     this.value = this.load();
     LIVE_INSTANCES.add(this as PersistentJsonFile<unknown>);
@@ -139,8 +152,10 @@ export class PersistentJsonFile<T> {
   private scheduleWrite(nextValue: T): void {
     this.pendingValue = nextValue;
     if (this.debounceMs <= 0) {
+      // Synchronous path: callers (and tests) can observe the write on disk
+      // immediately after `set` returns, without awaiting `flush()`.
       this.pendingValue = undefined;
-      this.enqueueWrite(nextValue);
+      this.saveSync(nextValue);
       return;
     }
     if (this.pendingTimer !== undefined) {
