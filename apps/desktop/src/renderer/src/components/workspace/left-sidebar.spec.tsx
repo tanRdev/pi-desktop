@@ -167,10 +167,7 @@ describe("LeftSidebar", () => {
       onAddRepository,
     });
 
-    expect(screen.getByTestId("left-sidebar")).toHaveAttribute(
-      "data-mode",
-      "workspace",
-    );
+    expect(screen.getByTestId("left-sidebar")).toBeInTheDocument();
     expect(screen.getByText("Alpha Workspace")).toBeInTheDocument();
     expect(screen.getByText("main")).toBeInTheDocument();
     expect(screen.getByText("feature/session-tabs")).toBeInTheDocument();

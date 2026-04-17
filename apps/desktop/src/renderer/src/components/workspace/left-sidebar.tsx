@@ -2,14 +2,8 @@ import type { RepositorySnapshot, WorktreeSnapshot } from "@pi-desktop/shared";
 import { Skeleton } from "boneyard-js/react";
 import * as React from "react";
 import {
-  CaretDown,
-  CaretRight,
   Copy,
-  Folder,
   FolderPlus,
-  GitBranch,
-  GitMerge,
-  GitPullRequest,
   Plus,
   SidebarSimple,
   Trash,
@@ -20,10 +14,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useUnicodeSpinner } from "@/hooks/use-unicode-spinner";
 import { cn } from "@/lib/utils";
 
 // Sidebar width for minimalist layout
+export const SIDEBAR_WIDTH = 260;
 
 function formatTimePassed(timestamp: number | undefined | null): string {
   if (!timestamp) return "now";
@@ -36,8 +30,6 @@ function formatTimePassed(timestamp: number | undefined | null): string {
   if (days < 1) return `${hours}h`;
   return `${days}d`;
 }
-
-export const SIDEBAR_WIDTH = 240;
 
 function getRepositoryName(repository: RepositorySnapshot): string {
   return repository.customName?.trim() || repository.name;
@@ -55,7 +47,6 @@ export interface LeftSidebarProps {
   onSelectRepository: (repositoryId: string) => void;
   onSelectWorktree: (worktreeId: string) => void;
   onSelectThread: (threadId: string) => void;
-  onCreateSession: () => void | Promise<void>;
   onDeleteWorktree?: (worktreeId: string) => void;
   onDeleteThread?: (threadId: string) => void;
   onAddRepository: () => void;
@@ -65,97 +56,49 @@ export interface LeftSidebarProps {
   onRemoveRepository?: (repositoryId: string) => void;
   onCopyRepositoryPath?: (repositoryId: string) => void;
   onOpenInFinder?: (repositoryId: string) => void;
+  onCreateSession: () => void | Promise<void>;
 }
 
-function getRepositoryActiveSessions(
-  repository: RepositorySnapshot,
-): WorktreeSnapshot[] {
-  return repository.worktrees;
-}
+// Git state colors - using CSS vars for theming
+const GIT_COLORS = {
+  active: "var(--color-accent)",
+  ahead: "var(--color-success)",
+  behind: "var(--color-error)",
+  diverged: "var(--color-warning)",
+  clean: "var(--color-text-tertiary)",
+};
 
-interface ThreadCategorySectionProps {
-  label: string;
-  icon: React.ElementType;
-  children?: React.ReactNode;
-  onAction?: () => void;
-  actionLabel?: string;
-  actionTestId?: string;
-}
-
-function _ThreadCategorySection({
-  label,
-  icon: Icon,
-  children,
-  onAction,
-  actionLabel,
-  actionTestId,
-}: ThreadCategorySectionProps) {
-  return (
-    <div className="relative space-y-0.5">
-      <div
-        className={cn(
-          "flex w-full items-center justify-between px-2 py-2 text-[10.5px] text-white/50",
-          "group/item",
-        )}
-      >
-        <div className="flex min-w-0 flex-1 items-center gap-2 pl-2">
-          <span className="flex size-5 shrink-0 items-center justify-center">
-            <Icon className="size-5 text-white/40" />
-          </span>
-          <span className="truncate">{label}</span>
-        </div>
-        <div className="flex items-center ml-2">
-          {onAction && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onAction();
-                  }}
-                  data-testid={actionTestId}
-                  className="hidden group-hover/item:flex size-5 items-center justify-center hover:bg-white/10 hover:text-white/80 transition-colors text-white/40"
-                  aria-label={actionLabel}
-                >
-                  <Plus className="size-5" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="right">{actionLabel}</TooltipContent>
-            </Tooltip>
-          )}
-        </div>
-      </div>
-
-      <div className="pl-4">
-        <div className="py-1 space-y-0.5">{children}</div>
-      </div>
-    </div>
-  );
-}
-
-interface SessionRowProps {
+interface WorktreeRowProps {
   session: WorktreeSnapshot;
   isActive: boolean;
-  isWorking?: boolean;
+  isWorking: boolean;
   onSelect: (id: string) => void;
 }
 
-function SessionRowImpl({
+function WorktreeRowImpl({
   session,
   isActive,
-  isWorking = false,
+  isWorking,
   onSelect,
-}: SessionRowProps) {
-  const spinnerFrame = useUnicodeSpinner(
-    { frames: ["⡇", "⠏", "⠹", "⠼", "⡸", "⣇"], interval: 150 },
-    isWorking,
-  );
+}: WorktreeRowProps) {
+  const ahead = session.git.ahead ?? 0;
+  const behind = session.git.behind ?? 0;
+  const isDirty = session.git.hasChanges ?? false;
+  const hasChanges = ahead > 0 || behind > 0 || isDirty;
 
-  // Calculate diff stats for display
-  const additions = session.git.ahead ?? 0;
-  const deletions = session.git.behind ?? 0;
-  const hasChanges = additions > 0 || deletions > 0;
+  // Determine state color
+  let stateColor = GIT_COLORS.clean;
+  if (isActive) {
+    stateColor = GIT_COLORS.active;
+  } else if (ahead > 0 && behind > 0) {
+    stateColor = GIT_COLORS.diverged;
+  } else if (ahead > 0) {
+    stateColor = GIT_COLORS.ahead;
+  } else if (behind > 0) {
+    stateColor = GIT_COLORS.behind;
+  } else if (isDirty) {
+    stateColor = GIT_COLORS.ahead;
+  }
 
   // Use createdAt or fall back to earliest thread creation time
   let startedAt: number | undefined = session.createdAt;
@@ -171,34 +114,69 @@ function SessionRowImpl({
   }
 
   return (
-    <div data-testid="session-row" className="group/session relative">
+    <div data-testid="session-row">
       <button
         type="button"
         onClick={() => onSelect(session.id)}
         className={cn(
-          "group relative flex w-full items-center gap-2 px-2 py-2 text-left text-[11.5px] transition-colors",
-          isActive ? "text-white/90" : "text-white/40 hover:text-white/70",
+          "group flex w-full items-center gap-3 px-3 py-2 text-left transition-colors duration-150",
+          isActive
+            ? "bg-white/[0.04] text-white"
+            : "text-white/50 hover:bg-white/[0.02] hover:text-white/70",
         )}
       >
-        {/* Working indicator - subtle dot when active */}
-        {isWorking && (
-          <span className="flex size-1.5 shrink-0 rounded-full bg-white/60 animate-pulse" />
-        )}
-        <span className="truncate flex-1 font-medium">{session.label}</span>
+        {/* Status indicator - simple square with animation for changes */}
+        <div
+          className={cn(
+            "relative flex items-center justify-center transition-all duration-200",
+            hasChanges && !isActive && "animate-pulse",
+          )}
+          style={{
+            width: "6px",
+            height: "6px",
+            backgroundColor: stateColor,
+            opacity: isActive ? 1 : hasChanges ? 0.8 : 0.4,
+          }}
+        >
+          {/* Working indicator */}
+          {isWorking && (
+            <span
+              className="absolute -inset-1 animate-ping"
+              style={{
+                backgroundColor: stateColor,
+                opacity: 0.3,
+              }}
+            />
+          )}
+        </div>
 
-        {/* Diff stats badge */}
+        {/* Branch name */}
+        <span
+          className={cn(
+            "flex-1 truncate text-[13px] transition-colors duration-150",
+            isActive ? "font-medium" : "",
+          )}
+        >
+          {session.label}
+        </span>
+
+        {/* Diff stats inline */}
         {hasChanges && (
-          <span className="flex items-center gap-1 text-[10px] tabular-nums">
-            {additions > 0 && (
-              <span className="text-emerald-400">+{additions}</span>
+          <div className="flex items-center gap-2 text-[10px] font-mono">
+            {ahead > 0 && (
+              <span style={{ color: "var(--color-success)" }}>+{ahead}</span>
             )}
-            {deletions > 0 && (
-              <span className="text-rose-400">−{deletions}</span>
+            {behind > 0 && (
+              <span style={{ color: "var(--color-error)" }}>−{behind}</span>
             )}
-          </span>
+            {isDirty && ahead === 0 && behind === 0 && (
+              <span className="text-white/30">*</span>
+            )}
+          </div>
         )}
 
-        <span className="flex size-5 items-center justify-center text-[10px] text-white/20 whitespace-nowrap">
+        {/* Time indicator */}
+        <span className="text-[10px] text-white/25 whitespace-nowrap">
           {formatTimePassed(startedAt)}
         </span>
       </button>
@@ -206,68 +184,101 @@ function SessionRowImpl({
   );
 }
 
-export const SessionRow = React.memo(SessionRowImpl);
+const WorktreeRow = React.memo(WorktreeRowImpl);
 
-interface WorkspaceRowProps {
+interface ProjectRowProps {
   repository: RepositorySnapshot;
   isActive: boolean;
   isExpanded: boolean;
+  sessionCount: number;
   onSelect: (id: string) => void;
-  onContextMenu: (
-    event: React.MouseEvent<HTMLButtonElement>,
-    repository: RepositorySnapshot,
-  ) => void;
+  onContextMenu: (e: React.MouseEvent, repo: RepositorySnapshot) => void;
 }
 
-function WorkspaceRowImpl({
+function ProjectRowImpl({
   repository,
   isActive,
   isExpanded,
+  sessionCount,
   onSelect,
   onContextMenu,
-}: WorkspaceRowProps) {
-  const handleContextMenu = React.useCallback(
-    (event: React.MouseEvent<HTMLButtonElement>) => {
-      onContextMenu(event, repository);
-    },
-    [onContextMenu, repository],
-  );
+}: ProjectRowProps) {
   return (
-    <div
-      data-testid="workspace-row"
-      className="group relative flex items-center gap-1"
-    >
+    <div data-testid="workspace-row">
       <button
         type="button"
         onClick={() => onSelect(repository.id)}
-        onContextMenu={handleContextMenu}
+        onContextMenu={(e) => onContextMenu(e, repository)}
         className={cn(
-          "group/row relative flex min-w-0 flex-1 items-center gap-2 px-2 py-2 text-left text-[11.5px] transition-colors",
-          isActive ? "text-white/90" : "text-white/40 hover:text-white/70",
+          "group flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors duration-150",
+          isActive
+            ? "bg-white/[0.04] text-white"
+            : "text-white/60 hover:bg-white/[0.02] hover:text-white/80",
         )}
       >
-        <span className="flex size-5 shrink-0 items-center justify-center">
-          <Folder
-            className={cn(
-              "size-3.5",
-              isActive ? "text-white/90" : "text-white/40",
-            )}
-          />
-        </span>
-        <span className="truncate flex-1">{getRepositoryName(repository)}</span>
-        <span className="flex size-4 shrink-0 items-center justify-center text-[color:var(--text-dim-3)]">
-          {isExpanded ? (
-            <CaretDown className="size-3.5" />
-          ) : (
-            <CaretRight className="size-3.5" />
+        {/* Expand chevron - simple square shape */}
+        <div
+          className={cn(
+            "flex items-center justify-center transition-all duration-200",
+            isActive ? "text-white" : "text-white/40 group-hover:text-white/60",
           )}
+          style={{ width: "14px", height: "14px" }}
+        >
+          <svg
+            width="10"
+            height="10"
+            viewBox="0 0 10 10"
+            fill="none"
+            aria-label={isExpanded ? "Collapse" : "Expand"}
+            className={cn(
+              "transition-transform duration-200",
+              isExpanded ? "rotate-90" : "rotate-0",
+            )}
+          >
+            <path
+              d="M3 2L7 5L3 8"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </div>
+
+        {/* Project name */}
+        <span
+          className={cn(
+            "flex-1 truncate text-[13px] transition-colors duration-150",
+            isActive ? "font-medium" : "",
+          )}
+        >
+          {getRepositoryName(repository)}
         </span>
+
+        {/* Session count - simple square badge */}
+        {sessionCount > 0 && (
+          <span
+            className={cn(
+              "flex items-center justify-center px-1.5 text-[10px] font-medium transition-colors duration-150",
+              isActive ? "text-white/60" : "text-white/30",
+            )}
+            style={{
+              backgroundColor: isActive
+                ? "rgba(255, 255, 255, 0.08)"
+                : "rgba(255, 255, 255, 0.04)",
+              minWidth: "18px",
+              height: "18px",
+            }}
+          >
+            {sessionCount}
+          </span>
+        )}
       </button>
     </div>
   );
 }
 
-const WorkspaceRow = React.memo(WorkspaceRowImpl);
+const ProjectRow = React.memo(ProjectRowImpl);
 
 export function LeftSidebarImpl({
   repositories,
@@ -280,10 +291,6 @@ export function LeftSidebarImpl({
   onResize,
   onSelectRepository,
   onSelectWorktree,
-  // Thread/worktree delete wiring was removed during the shell refactor but the
-  // prop contract is still part of the public LeftSidebar API (callers + specs).
-  // Rename to _-prefixed locals so biome treats them as intentionally unused
-  // without breaking the component's prop surface.
   onSelectThread: _onSelectThread,
   onDeleteThread: _onDeleteThread,
   onDeleteWorktree: _onDeleteWorktree,
@@ -297,6 +304,7 @@ export function LeftSidebarImpl({
   const [isResizing, setIsResizing] = React.useState(false);
   const asideRef = React.useRef<HTMLElement | null>(null);
   const liveWidthRef = React.useRef<number>(width);
+
   React.useEffect(() => {
     liveWidthRef.current = width;
   }, [width]);
@@ -348,30 +356,15 @@ export function LeftSidebarImpl({
       if (aside) {
         aside.style.width = `${w}px`;
       }
-      const wrapper = document.querySelector<HTMLElement>(
-        "[data-left-sidebar-wrapper='true']",
-      );
-      if (wrapper) {
-        wrapper.style.width = `${w}px`;
-      }
-      const inner = document.querySelector<HTMLElement>(
-        "[data-left-sidebar-inner='true']",
-      );
-      if (inner) {
-        inner.style.width = `${w}px`;
-      }
     };
 
     const handleMouseMove = (e: MouseEvent) => {
-      const newWidth = Math.max(180, Math.min(360, e.clientX));
+      const newWidth = Math.max(200, Math.min(400, e.clientX));
       applyLiveWidth(newWidth);
     };
 
     const handleMouseUp = () => {
       setIsResizing(false);
-      // Commit the final drag width to React state exactly once. The inline
-      // widths we wrote during the drag will be replaced by the prop-driven
-      // `width` on the next render.
       onResize(liveWidthRef.current);
     };
 
@@ -379,14 +372,12 @@ export function LeftSidebarImpl({
     document.addEventListener("mouseup", handleMouseUp);
     document.body.style.cursor = "col-resize";
     document.body.style.userSelect = "none";
-    document.body.setAttribute("data-sidebar-resizing", "true");
 
     return () => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
-      document.body.removeAttribute("data-sidebar-resizing");
     };
   }, [isResizing, onResize]);
 
@@ -419,10 +410,7 @@ export function LeftSidebarImpl({
   }, [contextMenu.isOpen]);
 
   const handleCreateSession = React.useCallback(async () => {
-    if (isCreatingSession) {
-      return;
-    }
-
+    if (isCreatingSession) return;
     setIsCreatingSession(true);
     try {
       await onCreateSession();
@@ -451,22 +439,21 @@ export function LeftSidebarImpl({
     setContextMenu((prev) => ({ ...prev, isOpen: false }));
   }, []);
 
-  const handleSelectWorkspace = React.useCallback(
+  const handleSelectProject = React.useCallback(
     (repositoryId: string) => {
-      const isActiveRepository = repositoryId === activeRepositoryId;
+      const isActive = repositoryId === activeRepositoryId;
       const isExpanded = expandedRepositoryIds.has(repositoryId);
 
       setExpandedRepositoryIds((current) => {
-        if (isActiveRepository && isExpanded) {
+        if (isActive && isExpanded) {
           const next = new Set(current);
           next.delete(repositoryId);
           return next;
         }
-
         return new Set([repositoryId]);
       });
 
-      if (!isActiveRepository) {
+      if (!isActive) {
         onSelectRepository(repositoryId);
       }
     },
@@ -479,16 +466,10 @@ export function LeftSidebarImpl({
     <aside
       ref={asideRef}
       data-testid="left-sidebar"
-      data-mode="workspace"
-      className={cn(
-        "relative z-20 flex h-full shrink-0 select-none flex-col",
-        // Minimalist: Clean dark surface with subtle border
-        "bg-[var(--color-bg-primary)]",
-        "border-r border-white/[0.06]",
-      )}
+      className="relative z-20 flex h-full shrink-0 select-none flex-col bg-[var(--color-bg-primary)] border-r border-white/[0.06]"
       style={{ width }}
     >
-      {/* Drag region for macOS traffic lights */}
+      {/* Header */}
       <div
         data-drag-region="true"
         className="flex h-11 w-full shrink-0 items-center justify-end px-3"
@@ -505,78 +486,53 @@ export function LeftSidebarImpl({
 
       {/* Repository List */}
       <div className="min-h-0 flex-1 overflow-y-auto py-2">
-        {/* Projects header with clear action */}
-        <div className="px-3 py-2 flex items-center justify-between group">
-          <div className="text-[10.5px] text-white/40 font-normal uppercase tracking-wider truncate mr-2">
+        {/* Projects header */}
+        <div className="px-4 py-2 flex items-center justify-between group">
+          <div className="text-[11px] text-white/40 font-medium uppercase tracking-wider">
             Projects
           </div>
-          <div className="flex gap-1 shrink-0">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  onClick={onAddRepository}
-                  aria-label="Open project folder"
-                  className="flex size-8 items-center justify-center text-white/40 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/80"
-                >
-                  <FolderPlus className="size-5" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="right">Open project folder</TooltipContent>
-            </Tooltip>
-          </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={onAddRepository}
+                className="flex size-8 items-center justify-center text-white/40 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/80"
+              >
+                <FolderPlus className="size-5" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right">Open project folder</TooltipContent>
+          </Tooltip>
         </div>
 
-        <div className="space-y-0.5 px-2">
+        {/* Projects */}
+        <div className="space-y-0.5">
           {repositories.map((repository) => {
-            const isActiveRepository = repository.id === activeRepositoryId;
+            const isActiveRepo = repository.id === activeRepositoryId;
             const isExpanded = expandedRepositoryIds.has(repository.id);
-            const sessions = getRepositoryActiveSessions(repository);
+            const sessions = repository.worktrees;
 
             return (
-              <div key={repository.id} className="space-y-1.5">
-                <WorkspaceRow
+              <div key={repository.id}>
+                <ProjectRow
                   repository={repository}
-                  isActive={isActiveRepository}
+                  isActive={isActiveRepo}
                   isExpanded={isExpanded}
-                  onSelect={handleSelectWorkspace}
+                  sessionCount={sessions.length}
+                  onSelect={handleSelectProject}
                   onContextMenu={handleContextMenu}
                 />
 
-                {isExpanded ? (
-                  <div className="space-y-1.5 pl-4">
+                {isExpanded && (
+                  <div className="border-l border-white/[0.04] ml-5">
                     <Skeleton
                       name="session-list"
-                      loading={Boolean(isLoading && isActiveRepository)}
-                      fixture={[1, 2, 3].map((i) => (
-                        <SessionRow
-                          key={i}
-                          session={{
-                            id: String(i),
-                            label: "Loading session...",
-                            path: "",
-                            isMain: false,
-                            isDetached: false,
-                            threads: [],
-                            git: {
-                              status: "ready",
-                              branch: null,
-                              commit: null,
-                              hasChanges: false,
-                              ahead: null,
-                              behind: null,
-                              stagedCount: 0,
-                              modifiedCount: 0,
-                              untrackedCount: 0,
-                              message: null,
-                            },
-                          }}
-                          isActive={false}
-                          onSelect={() => {}}
-                        />
+                      loading={Boolean(isLoading && isActiveRepo)}
+                      fixture={[1, 2].map((i) => (
+                        <div key={i} className="h-10" />
                       ))}
                     >
-                      <div className="space-y-0.5">
+                      <div>
                         {sessions.map((session) => {
                           const isSessionActive =
                             session.id === activeWorktreeId;
@@ -587,7 +543,7 @@ export function LeftSidebarImpl({
                             (isSessionActive && Boolean(isPromptExecuting));
 
                           return (
-                            <SessionRow
+                            <WorktreeRow
                               key={session.id}
                               session={session}
                               isActive={isSessionActive}
@@ -598,17 +554,19 @@ export function LeftSidebarImpl({
                         })}
                       </div>
                     </Skeleton>
-                    {isActiveRepository ? (
+
+                    {/* New branch button - aligned with worktree rows */}
+                    {isActiveRepo && (
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <button
                             type="button"
-                            data-testid="create-session-button"
                             onClick={handleCreateSession}
-                            className="flex w-full items-center gap-2 px-2 py-2 text-[10.5px] text-[color:var(--text-dim-3)] transition-colors hover:bg-white/[0.04] hover:text-[color:var(--text-dim-1)]"
-                            aria-label="Create new branch"
+                            disabled={isCreatingSession}
+                            className="flex w-full items-center gap-3 px-3 py-2 text-[13px] text-white/30 transition-colors duration-150 hover:text-white/60"
                           >
-                            <Plus className="size-3.5" />
+                            <div className="w-[6px] h-[6px] bg-transparent" />
+                            <Plus className="size-3.5 text-white/40" />
                             <span>New branch</span>
                           </button>
                         </TooltipTrigger>
@@ -616,9 +574,9 @@ export function LeftSidebarImpl({
                           Create new branch
                         </TooltipContent>
                       </Tooltip>
-                    ) : null}
+                    )}
                   </div>
-                ) : null}
+                )}
               </div>
             );
           })}
@@ -630,89 +588,86 @@ export function LeftSidebarImpl({
         <TooltipTrigger asChild>
           <div
             className={cn(
-              "absolute right-0 top-0 bottom-0 w-[2px] cursor-col-resize",
-              "transition-colors duration-[var(--duration-normal)]",
-              "bg-transparent hover:bg-[var(--color-border-strong)]",
-              isResizing && "bg-[var(--color-text-muted)]",
+              "absolute right-0 top-0 bottom-0 w-1 cursor-col-resize transition-colors duration-300",
+              "bg-transparent hover:bg-white/10",
+              isResizing && "bg-white/20",
             )}
             onMouseDown={() => setIsResizing(true)}
-            role="presentation"
-            aria-hidden="true"
           />
         </TooltipTrigger>
-        <TooltipContent side="right" sideOffset={10}>
-          Drag to resize
-        </TooltipContent>
+        <TooltipContent side="right">Drag to resize</TooltipContent>
       </Tooltip>
 
       {/* Context Menu */}
-      {contextMenu.isOpen && contextMenuRepositoryId !== null ? (
+      {contextMenu.isOpen && contextMenuRepositoryId !== null && (
         <div
           ref={contextMenuRef}
-          className={cn(
-            "fixed z-[100] min-w-[160px] border border-white/[0.06] bg-[var(--color-bg-primary)] p-1 backdrop-blur-md",
-            "shadow-[var(--shadow-hover)]",
-            "animate-in fade-in-0 zoom-in-[0.98] duration-150 ease-out",
-          )}
-          style={{
-            left: contextMenu.x,
-            top: contextMenu.y,
-          }}
+          className="fixed z-[100] min-w-[160px] border border-white/[0.06] bg-[var(--color-bg-primary)] p-0 shadow-lg"
+          style={{ left: contextMenu.x, top: contextMenu.y }}
         >
-          <div className="px-2 py-1.5">
-            <span className="block truncate text-[10.5px] text-[var(--color-text-secondary)]">
+          <div className="px-3 py-2 border-b border-white/[0.06]">
+            <span className="block truncate text-[12px] text-white/60">
               {contextMenu.repositoryName}
             </span>
           </div>
-          <button
-            type="button"
-            onClick={() =>
-              handleMenuAction(() =>
-                onCopyRepositoryPath?.(contextMenuRepositoryId),
-              )
-            }
-            className={cn(
-              "flex w-full items-center gap-2 px-2 py-1.5 text-left text-[10.5px] text-[var(--color-text-primary)]",
-              "transition-colors duration-100",
-              "hover:bg-[var(--color-surface-secondary)]",
-            )}
-          >
-            <Copy className="size-2.5" />
-            <span>Copy project path</span>
-          </button>
-          <button
-            type="button"
-            onClick={() =>
-              handleMenuAction(() => onOpenInFinder?.(contextMenuRepositoryId))
-            }
-            className={cn(
-              "flex w-full items-center gap-2 px-2 py-1.5 text-left text-[10.5px] text-[var(--color-text-primary)]",
-              "transition-colors duration-100",
-              "hover:bg-[var(--color-surface-secondary)]",
-            )}
-          >
-            <Folder className="size-2.5" />
-            <span>Show in Finder</span>
-          </button>
-          <div className="my-1 h-px bg-[var(--color-border)]" />
-          <button
-            type="button"
-            onClick={() =>
-              handleMenuAction(() =>
-                onRemoveRepository?.(contextMenuRepositoryId),
-              )
-            }
-            className={cn(
-              "flex w-full items-center gap-2 px-2 py-1.5 text-left text-[10.5px] text-[var(--accent-pale-red-text)]",
-              "transition-colors duration-100",
-              "hover:bg-[var(--accent-pale-red-bg)]",
-            )}
-          >
-            <Trash className="size-2.5" />
-            <span>Remove from Pi</span>
-          </button>
+          {onCopyRepositoryPath && (
+            <button
+              type="button"
+              onClick={() =>
+                handleMenuAction(() =>
+                  onCopyRepositoryPath(contextMenuRepositoryId),
+                )
+              }
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] text-white/70 hover:bg-white/[0.04] transition-colors duration-150"
+            >
+              <Copy className="size-4" />
+              Copy path
+            </button>
+          )}
+          {onOpenInFinder && (
+            <button
+              type="button"
+              onClick={() =>
+                handleMenuAction(() => onOpenInFinder(contextMenuRepositoryId))
+              }
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] text-white/70 hover:bg-white/[0.04] transition-colors duration-150"
+            >
+              <svg
+                className="size-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+              >
+                <title>Open</title>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"
+                />
+              </svg>
+              Open in Finder
+            </button>
+          )}
+          {onRemoveRepository && (
+            <>
+              <div className="my-1 border-t border-white/[0.06]" />
+              <button
+                type="button"
+                onClick={() =>
+                  handleMenuAction(() =>
+                    onRemoveRepository(contextMenuRepositoryId),
+                  )
+                }
+                className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] text-rose-400 hover:bg-rose-500/10 transition-colors duration-150"
+              >
+                <Trash className="size-4" />
+                Remove
+              </button>
+            </>
+          )}
         </div>
-      ) : null}
+      )}
     </aside>
   );
 }
