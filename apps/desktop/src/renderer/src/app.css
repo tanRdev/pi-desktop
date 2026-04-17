@@ -1,7 +1,7 @@
 @import "tailwindcss";
 @import "@pi-desktop/ui/styles/pi-desktop-shell.css";
 @import "@fontsource-variable/dm-sans";
-@import "@fontsource-variable/ibm-plex-mono";
+@import "@fontsource/ibm-plex-mono";
 
 @custom-variant dark (&:is(.dark *));
 

@@ -201,6 +201,8 @@ interface ProjectRowProps {
   sessionCount: number;
   onSelect: (id: string) => void;
   onContextMenu: (e: React.MouseEvent, repo: RepositorySnapshot) => void;
+  onCreateSession?: () => void;
+  isCreatingSession?: boolean;
 }
 
 function ProjectRowImpl({
@@ -210,6 +212,8 @@ function ProjectRowImpl({
   sessionCount,
   onSelect,
   onContextMenu,
+  onCreateSession,
+  isCreatingSession,
 }: ProjectRowProps) {
   return (
     <div data-testid="workspace-row">
@@ -251,6 +255,27 @@ function ProjectRowImpl({
         >
           {getRepositoryName(repository)}
         </span>
+
+        {/* New branch icon - appears when active and expanded */}
+        {isActive && isExpanded && onCreateSession && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCreateSession();
+                }}
+                disabled={isCreatingSession}
+                data-testid="create-session-button"
+                className="flex size-6 items-center justify-center text-white/30 transition-colors duration-150 hover:text-white/60"
+              >
+                <Plus className="size-3.5" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="top">New branch</TooltipContent>
+          </Tooltip>
+        )}
 
         {/* Session count */}
         {sessionCount > 0 && (
@@ -505,6 +530,8 @@ export function LeftSidebarImpl({
                   sessionCount={sessions.length}
                   onSelect={handleSelectProject}
                   onContextMenu={handleContextMenu}
+                  onCreateSession={handleCreateSession}
+                  isCreatingSession={isCreatingSession}
                 />
 
                 {isExpanded && (
@@ -544,28 +571,6 @@ export function LeftSidebarImpl({
                         })}
                       </div>
                     </Skeleton>
-
-                    {/* New branch button */}
-                    {isActiveRepo && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            type="button"
-                            onClick={handleCreateSession}
-                            disabled={isCreatingSession}
-                            data-testid="create-session-button"
-                            className="flex w-full items-center gap-3 px-3 py-2 text-[13px] text-white/30 transition-colors duration-150 hover:text-white/60"
-                          >
-                            <div className="w-1.5" />
-                            <Plus className="size-3.5" />
-                            <span>New branch</span>
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent side="right">
-                          Create new branch
-                        </TooltipContent>
-                      </Tooltip>
-                    )}
                   </div>
                 )}
               </div>
