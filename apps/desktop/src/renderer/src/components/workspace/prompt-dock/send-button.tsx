@@ -1,5 +1,5 @@
 import { PromptInputAction } from "@pi-desktop/ui";
-import { ArrowUp, ICON_SIZE_XS, Square } from "@/components/ui/icons";
+import { ArrowUp, Square } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { Button } from "../../ui/button";
 
@@ -24,20 +24,17 @@ export function SendButton({
         type="button"
         data-testid="chat-send"
         variant={isPromptExecuting ? "destructive" : "default"}
-        size="icon"
+        size="icon-sm"
         disabled={disabled}
         onClick={onSubmit}
         className={cn(
-          "size-6 p-0",
-          !isPromptExecuting && (!canSend || !draft.trim())
-            ? "bg-white/15 text-white/30"
-            : !isPromptExecuting
-              ? "bg-white/80 text-black hover:bg-white"
-              : "bg-[var(--color-error)] hover:bg-[var(--color-error)]/90",
+          !isPromptExecuting &&
+            !disabled &&
+            "bg-white text-[var(--color-bg-secondary)] hover:bg-white/90",
         )}
       >
         {isPromptExecuting ? (
-          <Square className={ICON_SIZE_XS} fill="currentColor" />
+          <Square className="size-2.5" weight="fill" />
         ) : (
           <ArrowUp className="size-3" weight="bold" />
         )}
