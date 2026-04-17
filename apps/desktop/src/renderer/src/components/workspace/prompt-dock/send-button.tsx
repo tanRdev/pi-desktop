@@ -1,6 +1,5 @@
 import { PromptInputAction } from "@pi-desktop/ui";
 import { ArrowUp, Square } from "@/components/ui/icons";
-import { cn } from "@/lib/utils";
 import { Button } from "../../ui/button";
 
 export interface SendButtonProps {
@@ -27,11 +26,6 @@ export function SendButton({
         size="icon-sm"
         disabled={disabled}
         onClick={onSubmit}
-        className={cn(
-          !isPromptExecuting &&
-            !disabled &&
-            "bg-white text-[var(--color-bg-secondary)] hover:bg-white/90",
-        )}
       >
         {isPromptExecuting ? (
           <Square className="size-2.5" weight="fill" />
