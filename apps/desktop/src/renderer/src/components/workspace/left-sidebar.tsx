@@ -34,6 +34,9 @@ const SIDEBAR_TABS: ReadonlyArray<{ id: SidebarTab; label: string }> = [
 ];
 
 export const SIDEBAR_WIDTH = 260;
+export const MIN_SIDEBAR_WIDTH = 160;
+export const MAX_SIDEBAR_WIDTH = 480;
+const COLLAPSE_THRESHOLD = 100;
 
 function getRepositoryName(repository: RepositorySnapshot): string {
   return repository.customName?.trim() || repository.name;
@@ -132,26 +135,59 @@ function SidebarEdgeToggle({
   label,
   side,
   onClick,
+  onResizeDragStart,
 }: {
   label: string;
   side: "left" | "right";
   onClick: () => void;
+  onResizeDragStart?: (e: React.MouseEvent) => void;
 }) {
   const Icon = side === "right" ? CaretLeft : CaretRight;
+  const didDragRef = React.useRef(false);
+
+  const handleMouseDown = React.useCallback(
+    (e: React.MouseEvent) => {
+      if (!onResizeDragStart) return;
+      didDragRef.current = false;
+      const startX = e.clientX;
+
+      const handleMouseMove = (moveEvent: MouseEvent) => {
+        if (Math.abs(moveEvent.clientX - startX) > 3) {
+          didDragRef.current = true;
+        }
+      };
+
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener(
+        "mouseup",
+        () => document.removeEventListener("mousemove", handleMouseMove),
+        { once: true },
+      );
+
+      onResizeDragStart(e);
+    },
+    [onResizeDragStart],
+  );
 
   return (
     <div
       className={cn(
         "group absolute inset-y-0 z-30 flex w-4 items-center justify-center",
         side === "right" ? "right-0 translate-x-1/2" : "left-1",
+        onResizeDragStart && "cursor-ew-resize",
       )}
+      onMouseDown={handleMouseDown}
     >
       <Tooltip>
         <TooltipTrigger asChild>
           <button
             type="button"
             aria-label={label}
-            onClick={onClick}
+            onClick={() => {
+              if (!didDragRef.current) {
+                onClick();
+              }
+            }}
             className={cn(
               "flex h-8 w-3 touch-manipulation items-center justify-center",
               "bg-[var(--color-bg-primary)] text-white/25",
@@ -204,7 +240,7 @@ function ThreadRowImpl({
         type="button"
         onClick={() => onSelect(thread.id)}
         className={cn(
-          "group flex w-full min-w-0 items-center gap-2 px-3 py-1.5 text-left text-[12px]",
+          "group flex w-full min-w-0 items-center gap-2 pl-[11px] pr-2 py-1.5 text-left text-[12px]",
           "transition-colors duration-150",
           isActive
             ? "text-white"
@@ -271,7 +307,7 @@ function WorktreeRowImpl({
         type="button"
         onClick={() => onSelect(session.id)}
         className={cn(
-          "group flex w-full min-w-0 items-center gap-2 px-3 py-2 text-left text-[13px]",
+          "group flex w-full min-w-0 items-center gap-2 pl-[11px] pr-2 py-2 text-left text-[13px]",
           "transition-colors duration-150",
           isActive
             ? "text-white"
@@ -396,7 +432,7 @@ function ProjectRowImpl({
         </span>
       </button>
 
-      <div className="flex shrink-0 items-center gap-1 pr-2">
+      <div className="flex shrink-0 items-center gap-1 pr-[7px]">
         {isActive && isExpanded && onCreateSession && (
           <Tooltip>
             <TooltipTrigger asChild>
@@ -587,6 +623,41 @@ export function LeftSidebarImpl({
     onResize(lastExpandedWidthRef.current);
   }, [onResize]);
 
+  const handleResizeDragStart = React.useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      const startX = e.clientX;
+      const startWidth = width;
+
+      document.body.style.cursor = "ew-resize";
+      document.body.style.userSelect = "none";
+
+      const handleMouseMove = (moveEvent: MouseEvent) => {
+        const delta = moveEvent.clientX - startX;
+        const newWidth = startWidth + delta;
+
+        if (newWidth < COLLAPSE_THRESHOLD) {
+          onResize(0);
+        } else {
+          onResize(
+            Math.max(MIN_SIDEBAR_WIDTH, Math.min(MAX_SIDEBAR_WIDTH, newWidth)),
+          );
+        }
+      };
+
+      const handleMouseUp = () => {
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+      };
+
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+    },
+    [width, onResize],
+  );
+
   return (
     <aside
       data-testid="left-sidebar"
@@ -607,7 +678,7 @@ export function LeftSidebarImpl({
         <>
           {/* Top: Add workspace button - next to traffic lights */}
           {activeTab === "workspaces" && (
-            <div className="shrink-0 border-b border-white/[0.06] h-11 flex items-center justify-end px-2">
+            <div className="shrink-0 h-11 flex items-center justify-end px-2">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
@@ -709,7 +780,7 @@ export function LeftSidebarImpl({
           {/* Bottom: Tabs */}
           <div
             data-no-drag="true"
-            className="flex h-11 w-full shrink-0 items-center gap-0 border-t border-white/[0.06] px-2"
+            className="flex h-11 w-full shrink-0 items-center justify-center gap-0 border-t border-white/[0.06] px-2"
             role="tablist"
             aria-label="Sidebar tabs"
           >
@@ -741,6 +812,7 @@ export function LeftSidebarImpl({
             label="Hide sidebar"
             side="right"
             onClick={handleHideSidebar}
+            onResizeDragStart={handleResizeDragStart}
           />
 
           {/* Context Menu */}
