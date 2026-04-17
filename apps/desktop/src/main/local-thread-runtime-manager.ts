@@ -93,7 +93,11 @@ export class LocalThreadRuntimeManager implements ThreadRuntimeManager {
 
     child.once("error", (error) => {
       descriptor.status = "error";
-      descriptor.lastError = error.message;
+      const isEnoent =
+        "code" in error && (error as { code: string }).code === "ENOENT";
+      descriptor.lastError = isEnoent
+        ? `Could not find '${program}' on PATH. Make sure it is installed and accessible.`
+        : error.message;
     });
 
     child.once("exit", (exitCode, signalCode) => {

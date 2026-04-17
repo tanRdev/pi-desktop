@@ -9,6 +9,7 @@ import type {
 import { Effect } from "effect";
 import type { BrowserWindow } from "electron";
 import { terminateChildWithEscalation } from "./process-lifecycle";
+import { buildEnhancedPath, resolvePiPathOrThrow } from "./resolve-pi-path";
 import { resolveLocalShellProgram } from "./terminal/terminal-backends";
 import {
   bindChildProcessSessionEvents,
@@ -211,7 +212,7 @@ export class TerminalManager {
     try {
       const program =
         backend === "pi"
-          ? "pi"
+          ? resolvePiPathOrThrow()
           : resolveLocalShellProgram({
               platform: this.platform,
               shell: this.env.SHELL,
@@ -225,6 +226,7 @@ export class TerminalManager {
               ...this.env,
               PI_CODING_AGENT_DIR:
                 this.env.PI_CODING_AGENT_DIR ?? path.join(cwd, ".pi", "agent"),
+              PATH: buildEnhancedPath(),
             }
           : this.env;
 

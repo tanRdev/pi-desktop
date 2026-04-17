@@ -4,6 +4,7 @@ import {
   createAgentRuntime,
 } from "@pi-desktop/agent-host";
 import type { AgentSnapshot } from "@pi-desktop/shared";
+import { buildEnhancedPath, resolvePiPath } from "./resolve-pi-path";
 
 type AgentRuntimeEnvironment = Partial<
   Record<
@@ -86,6 +87,8 @@ export function resolveAgentRuntimeLaunchOptions(
       PI_DESKTOP_AGENT_MODE: runtimeOptions.mode,
       PI_DESKTOP_AGENT_CWD: runtimeOptions.cwd,
       PI_DESKTOP_AGENT_DIR: runtimeOptions.agentDir,
+      PI_CLI_PATH: resolvePiPath() ?? undefined,
+      PATH: buildEnhancedPath(),
     },
   };
 }

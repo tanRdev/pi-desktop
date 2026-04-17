@@ -1141,12 +1141,54 @@ async function bootstrapDesktop() {
           (currentContext?.repositoryId ??
             selectionState.get().repositoryId) === repository.id;
 
+        // Clean up all worktrees belonging to this repository
+        const inspection = gitService.inspect(repository.rootPath);
+        const worktrees =
+          inspection.status === "repository" && inspection.worktrees
+            ? inspection.worktrees
+            : [];
+
+        for (const worktree of worktrees) {
+          // Skip the main worktree (it's the repository root itself)
+          if (worktree.path === repository.rootPath) {
+            continue;
+          }
+
+          // Delete threads for this worktree
+          const threads = threadCatalog.listByWorktree(worktree.path);
+          for (const thread of threads) {
+            threadCatalog.delete(thread.id);
+          }
+
+          // Remove workspace session
+          workspaceSessionCatalog.remove(worktree.path);
+
+          // Remove the git worktree from disk
+          try {
+            gitService.removeWorktree({
+              worktreePath: worktree.path,
+              repositoryRoot: repository.rootPath,
+            });
+          } catch {
+            // Best-effort: worktree directory may already be gone
+          }
+        }
+
+        // Clean up threads and session for the main worktree (repository root)
+        const mainThreads = threadCatalog.listByWorktree(repository.rootPath);
+        for (const thread of mainThreads) {
+          threadCatalog.delete(thread.id);
+        }
+        workspaceSessionCatalog.remove(repository.rootPath);
+
+        // Remove from catalogs
         repositoryCatalog.remove(repositoryId);
         repositoryPreferencesCatalog.remove(repositoryId);
 
         const remainingRepositories = repositoryCatalog.list();
         if (remainingRepositories.length === 0) {
           selectionState.clear();
+          notifySessionChanged();
           return;
         }
 
@@ -1155,16 +1197,12 @@ async function bootstrapDesktop() {
           return;
         }
 
-        const nextRepository =
-          remainingRepositories.find((entry) => entry.id !== repository.id) ??
-          remainingRepositories[0] ??
-          null;
-
+        const nextRepository = remainingRepositories[0];
         if (!nextRepository) {
           selectionState.clear();
+          notifySessionChanged();
           return;
         }
-
         await activateWorkspacePath(
           nextRepository.lastSelectedWorktreeId ?? nextRepository.rootPath,
         );

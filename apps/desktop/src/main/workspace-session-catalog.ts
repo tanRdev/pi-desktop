@@ -450,4 +450,24 @@ export class WorkspaceSessionCatalog {
       sessions: normalizedSessions,
     }).sessions;
   }
+
+  remove(worktreeId: string): void {
+    const normalizedWorktreeId = normalizePathId(worktreeId);
+    this.store.update((state) => ({
+      ...state,
+      sessions: state.sessions.filter(
+        (entry) => entry.worktreeId !== normalizedWorktreeId,
+      ),
+    }));
+  }
+
+  removeByWorktreeIds(worktreeIds: readonly string[]): void {
+    const normalizedIds = new Set(worktreeIds.map(normalizePathId));
+    this.store.update((state) => ({
+      ...state,
+      sessions: state.sessions.filter(
+        (entry) => !normalizedIds.has(entry.worktreeId),
+      ),
+    }));
+  }
 }
