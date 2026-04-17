@@ -41,7 +41,7 @@
     --glass-bg: rgba(12, 13, 15, 0.7);
     --glass-bg-solid: rgba(12, 13, 15, 0.95);
     --glass-border: rgba(255, 255, 255, 0.04);
-    --glass-border-strong: rgba(255, 255, 255, 0.08);
+    --glass-border-strong: rgba(255, 255, 255, 0.10);
     --app-font-sans: var(--font-body, sans-serif);
     --app-font-mono: var(--font-mono, monospace);
   }
@@ -182,13 +182,5 @@
 
   .text-muted {
     color: var(--muted-foreground);
-  }
-
-  .text-sm {
-    font-size: 10.5px;
-  }
-
-  .text-xs {
-    font-size: 9px;
   }
 }

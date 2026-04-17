@@ -1,13 +1,13 @@
 @import "tailwindcss";
 @import "@pi-desktop/ui/styles/pi-desktop-shell.css";
-@import "@fontsource-variable/source-code-pro";
-@import "@fontsource-variable/inter";
+@import "@fontsource-variable/dm-sans";
+@import "@fontsource/ibm-plex-mono";
 
 @custom-variant dark (&:is(.dark *));
 
 /* ============================================
    DESIGN SYSTEM - Semantic Variables
-   Squared-off, green-accent, Inter body, glass grid
+   Squared-off, terracotta-accent, DM Sans body, glass grid
    ============================================ */
 
 :root {
@@ -16,10 +16,15 @@
   --color-bg-secondary: #101114;
   --color-bg-tertiary: #14161A;
   --color-bg-quaternary: #1A1C21;
-  --color-bg-hover: #1A1C21;
+  --color-bg-hover: #1E2025;
   --color-bg-active: #22242A;
 
-  /* Glass Morphism System — squared, green-glow */
+  /* Bg hover ladder — layered hover intensities */
+  --bg-hover-1: rgba(255, 255, 255, 0.04);
+  --bg-hover-2: rgba(255, 255, 255, 0.07);
+  --bg-hover-3: rgba(255, 255, 255, 0.10);
+
+  /* Glass Morphism System — squared, accent-glow */
   --glass-bg-primary: rgba(12, 13, 15, 0.95);
   --glass-bg-secondary: rgba(16, 17, 20, 0.90);
   --glass-bg-tertiary: rgba(20, 22, 26, 0.85);
@@ -31,7 +36,13 @@
   --glass-border-subtle: rgba(255, 255, 255, 0.03);
   --glass-border-default: rgba(255, 255, 255, 0.06);
   --glass-border-strong: rgba(255, 255, 255, 0.10);
-  --glass-border-glow: rgba(0, 229, 89, 0.25);
+  --glass-border-glow: rgba(216, 106, 60, 0.25);
+
+  /* Dim ladder — selection-focus text dimming */
+  --text-dim-1: rgba(255, 255, 255, 0.70);
+  --text-dim-2: rgba(255, 255, 255, 0.50);
+  --text-dim-3: rgba(255, 255, 255, 0.35);
+  --text-dim-4: rgba(255, 255, 255, 0.20);
 
   --glass-blur-sm: blur(12px);
   --glass-blur-md: blur(24px);
@@ -55,24 +66,30 @@
   --color-text-quaternary: #4B5563;
   --color-text-inverse: #0C0D0F;
 
-  /* Surface aliases */
+  /* Surface aliases — ordered light → dark to match surface scale */
   --color-surface: #0C0D0F;
-  --color-surface-secondary: #14161A;
-  --color-surface-tertiary: #101114;
-  --color-text-muted: #6B7280;
+  --color-surface-secondary: #101114;
+  --color-surface-tertiary: #14161A;
+  --color-text-muted: #8B94A3;
   --shadow-hover: 0 4px 24px rgba(0, 0, 0, 0.5);
   --accent-pale-red-text: #f87171;
   --accent-pale-red-bg: rgba(239, 68, 68, 0.08);
 
-  /* Accent palette — green primary, sky secondary, violet tertiary */
-  --color-accent: #00E559;
-  --color-accent-hover: #33EB7A;
-  --color-accent-muted: rgba(0, 229, 89, 0.15);
+  /* Accent palette — muted terracotta primary, sky secondary, violet tertiary */
+  --color-accent: #D86A3C;
+  --color-accent-hover: #E67C4F;
+  --color-accent-muted: rgba(216, 106, 60, 0.15);
+  --color-accent-subtle: rgba(216, 106, 60, 0.12);
+  --color-accent-ring: rgba(216, 106, 60, 0.35);
   --color-secondary-accent: #38BDF8;
   --color-tertiary-accent: #8B5CF6;
-  --color-error: #ef4444;
-  --color-success: #00E559;
-  --color-warning: #f59e0b;
+
+  /* Semantic colors — muted/desaturated for dark-first palette */
+  --color-link: #7FB3D9;
+  --color-error: #D97373;
+  --color-warning: #D9A355;
+  --color-info: #7FB3D9;
+  --color-success: #5FB87A;
 
   /* Spacing Scale — 4px base, tight */
   --space-0: 1.75px;
@@ -87,16 +104,27 @@
 
   /* Animation — expressive, focused on interface transitions */
   --ease-out: cubic-bezier(0.4, 0, 0.2, 1);
-  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
+  /* Kowalski motion — emphasized curves for material-grade transitions */
+  --ease-emphasized-decel: cubic-bezier(0.05, 0.7, 0.1, 1.0);
+  --ease-emphasized-accel: cubic-bezier(0.3, 0.0, 0.8, 0.15);
+  --ease-standard: cubic-bezier(0.2, 0.0, 0.0, 1.0);
+
   /* Animation — Durations */
   --duration-instant: 80ms;
-  --duration-fast: 150ms;
-  --duration-normal: 150ms;
-  --duration-slow: 500ms;
-  --duration-slower: 700ms;
+  --duration-fast: 120ms;
+  --duration-normal: 200ms;
+  --duration-slow: 320ms;
+  --duration-slower: 500ms;
+
+  /* Semantic motion durations */
+  --duration-hover: 120ms;
+  --duration-enter: 240ms;
+  --duration-exit: 160ms;
 
   /* Border Radius — 0px everywhere (squared off) */
   --radius-xs: 0px;
@@ -147,11 +175,11 @@
     box-shadow: var(--glass-shadow-lg);
   }
 
-  /* Glass with green glow effect */
+  /* Glass with accent glow effect */
   .glass-glow {
     border-color: var(--glass-border-glow);
     box-shadow:
-      0 0 8px rgba(0, 229, 89, 0.15),
+      0 0 8px rgba(216, 106, 60, 0.15),
       var(--glass-shadow-md);
   }
 
@@ -215,13 +243,13 @@ html {
 
 body {
   -webkit-app-region: drag;
-  font-family: "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--font-body), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background: transparent !important;
   color: var(--color-text-primary);
   overflow: hidden;
-  font-size: 10.5px;
+  font-size: 13px;
   font-weight: 400;
-  line-height: 1.625;
+  line-height: 1.6;
 }
 
 #root {
@@ -300,11 +328,22 @@ button,
 @keyframes popover-enter {
   from {
     opacity: 0;
-    transform: scale(0.95) translateY(2px);
+    transform: scale(0.96) translateY(2px);
   }
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes popover-exit {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.96) translateY(2px);
   }
 }
 
@@ -315,7 +354,19 @@ button,
 
 [data-radix-popper-content-wrapper] > div {
   transform-origin: var(--radix-popover-content-transform-origin, center);
-  animation: popover-enter var(--duration-fast) var(--ease-out) forwards;
+}
+
+/* Popover / Select content — emphasized-decel enter, emphasized-accel exit */
+[data-slot="select-content"][data-state="open"],
+[data-pi-popover-content][data-state="open"] {
+  animation: popover-enter var(--duration-enter) var(--ease-emphasized-decel) forwards;
+  transform-origin: var(--radix-popover-content-transform-origin, var(--radix-select-content-transform-origin, center));
+}
+
+[data-slot="select-content"][data-state="closed"],
+[data-pi-popover-content][data-state="closed"] {
+  animation: popover-exit var(--duration-exit) var(--ease-emphasized-accel) forwards;
+  transform-origin: var(--radix-popover-content-transform-origin, var(--radix-select-content-transform-origin, center));
 }
 
 /* ============================================
@@ -327,23 +378,47 @@ button,
   to { opacity: 1; }
 }
 
+@keyframes modal-backdrop-exit {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
 @keyframes modal-content-enter {
   from {
     opacity: 0;
-    transform: scale(0.95);
+    transform: translate(-50%, -50%) scale(0.96);
   }
   to {
     opacity: 1;
-    transform: scale(1);
+    transform: translate(-50%, -50%) scale(1);
   }
 }
 
-[data-radix-dialog-overlay] {
-  animation: modal-backdrop-enter var(--duration-normal) var(--ease-out) forwards;
+@keyframes modal-content-exit {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.96);
+  }
 }
 
-[data-radix-dialog-content] {
-  animation: modal-content-enter var(--duration-slow) var(--ease-out) forwards;
+[data-pi-dialog-overlay][data-state="open"] {
+  animation: modal-backdrop-enter var(--duration-enter) var(--ease-emphasized-decel) forwards;
+}
+
+[data-pi-dialog-overlay][data-state="closed"] {
+  animation: modal-backdrop-exit var(--duration-exit) var(--ease-emphasized-accel) forwards;
+}
+
+[data-pi-dialog-content][data-state="open"] {
+  animation: modal-content-enter var(--duration-enter) var(--ease-emphasized-decel) forwards;
+}
+
+[data-pi-dialog-content][data-state="closed"] {
+  animation: modal-content-exit var(--duration-exit) var(--ease-emphasized-accel) forwards;
 }
 
 /* ============================================
@@ -353,6 +428,16 @@ button,
 @keyframes pulse-subtle {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
+}
+
+@keyframes indicator-pulse {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0; transform: scale(1.8); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.animate-indicator-pulse {
+  animation: indicator-pulse 2s var(--ease-in-out) infinite;
 }
 
 .streaming-indicator {
@@ -372,6 +457,12 @@ button,
 @keyframes shimmer-bounce {
   0%, 80%, 100% { transform: scaleY(1); opacity: 0.3; }
   40% { transform: scaleY(1.5); opacity: 0.6; }
+}
+
+/* Shimmer gradient sweep for text-shimmer.tsx */
+@keyframes shimmer {
+  0% { background-position: 200% center; }
+  100% { background-position: -200% center; }
 }
 
 /* ============================================
@@ -403,6 +494,71 @@ button,
 }
 
 /* ============================================
+   TAB CONTENT SWAP — subtle fade + slight lift
+   ============================================ */
+
+@keyframes tab-content-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tab-content-enter {
+  animation: tab-content-enter var(--duration-fast) var(--ease-emphasized-decel) forwards;
+}
+
+/* ============================================
+   TOAST (sonner) — Kowalski-style slide + fade
+   Enter: emphasized-decel. Exit: emphasized-accel.
+   ============================================ */
+
+@keyframes toast-enter {
+  from {
+    opacity: 0;
+    transform: translateY(calc(100% + 16px));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes toast-exit {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(calc(100% + 16px));
+  }
+}
+
+[data-sonner-toast] {
+  animation: toast-enter var(--duration-enter) var(--ease-emphasized-decel) forwards;
+  will-change: transform, opacity;
+}
+
+[data-sonner-toast][data-removed="true"] {
+  animation: toast-exit var(--duration-exit) var(--ease-emphasized-accel) forwards;
+}
+
+/* ============================================
+   SIDEBAR RESIZE — No transition during active drag
+   ============================================ */
+
+body[data-sidebar-resizing="true"] [data-left-sidebar-wrapper="true"],
+body[data-sidebar-resizing="true"] [data-left-sidebar-inner="true"],
+body[data-sidebar-resizing="true"] [data-testid="left-sidebar"] {
+  transition: none !important;
+}
+
+/* ============================================
    REDUCED MOTION — Accessibility
    ============================================ */
 
@@ -411,15 +567,27 @@ button,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-    transform: none !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
   }
 
   .stagger-item {
     opacity: 1;
-    transform: none;
-    animation: none;
+    animation: none !important;
+  }
+
+  /* Disable decorative keyframe animations entirely */
+  [data-sonner-toast],
+  [data-sonner-toast][data-removed="true"],
+  [data-pi-dialog-overlay][data-state],
+  [data-pi-dialog-content][data-state],
+  [data-pi-popover-content][data-state],
+  [data-slot="select-content"][data-state],
+  .tab-content-enter {
+    animation: none !important;
   }
 }
 
@@ -506,12 +674,10 @@ code:not(.shiki code):not(pre code) {
   --radius-4xl: 0px;
   --radius-full: 9999px;
 
-  /* Fonts */
-  --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-body: "Inter Variable", "Inter", sans-serif;
-  --font-mono: "Source Code Pro Variable", monospace;
-  --font-source-code-pro: "Source Code Pro Variable", monospace;
-  --font-inter: "Inter Variable", "Inter", sans-serif;
+  /* Fonts — DM Sans body, IBM Plex Mono */
+  --font-heading: "DM Sans Variable", "DM Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-body: "DM Sans Variable", "DM Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "IBM Plex Mono Variable", "IBM Plex Mono", monospace;
 
   /* shadcn color variable bridge */
   --color-background: var(--background);
@@ -533,28 +699,29 @@ code:not(.shiki code):not(pre code) {
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+
 }
 
 @layer base {
   h1 {
     font-family: var(--font-heading);
-    font-size: 1.75rem;
-    line-height: 1.15;
-    letter-spacing: -0.025em;
-    font-weight: 600;
+    font-size: 2.5rem;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    font-weight: 700;
   }
   h2 {
     font-family: var(--font-heading);
-    font-size: 1.5rem;
-    line-height: 1.2;
+    font-size: 2rem;
+    line-height: 1.15;
     letter-spacing: -0.025em;
     font-weight: 600;
   }
   h3 {
     font-family: var(--font-heading);
-    font-size: 1.25rem;
+    font-size: 1.5rem;
     line-height: 1.25;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.015em;
     font-weight: 600;
   }
   h4, h5, h6 {
@@ -565,10 +732,10 @@ code:not(.shiki code):not(pre code) {
   body, p {
     font-family: var(--font-body);
     font-size: 10.5px;
-    line-height: 1.625;
+    line-height: 1.6;
     font-weight: 400;
   }
-  
+
   .text-secondary-body {
     font-size: 12.25px;
     font-weight: 400;

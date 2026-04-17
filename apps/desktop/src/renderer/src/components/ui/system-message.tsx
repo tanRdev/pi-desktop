@@ -1,5 +1,5 @@
-import type * as React from "react";
 import { Info, Sparkle, Warning } from "@phosphor-icons/react";
+import type * as React from "react";
 import { cn } from "@/lib/utils";
 
 type SystemMessageTone = "info" | "success" | "warning" | "error";
@@ -14,7 +14,8 @@ const toneMap: Record<
   },
   success: {
     icon: Sparkle,
-    className: "border-[#00E559]/20 bg-[#00E559]/[0.04] text-[#00E559]/80",
+    className:
+      "border-[var(--color-accent)]/20 bg-[var(--color-accent)]/[0.04] text-[var(--color-accent)]/80",
   },
   warning: {
     icon: Warning,

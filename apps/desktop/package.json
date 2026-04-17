@@ -1,6 +1,6 @@
 {
   "name": "@pi-desktop/desktop",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "private": true,
   "productName": "Pi Desktop",
   "description": "Pi Desktop Electron desktop shell",
@@ -8,16 +8,7 @@
   "type": "module",
   "build": {
     "appId": "dev.pi.desktop",
-    "productName": "Pi Desktop",
-    "mac": {
-      "icon": "../../build/icon.icns",
-      "category": "public.app-category.developer-tools",
-      "target": [
-        "dir",
-        "dmg",
-        "zip"
-      ]
-    }
+    "productName": "Pi Desktop"
   },
   "main": "out/main/index.js",
   "scripts": {
@@ -28,9 +19,11 @@
     "typecheck": "tsc --project tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@fontsource-variable/geist": "^5.2.8",
+    "@fontsource-variable/dm-sans": "^5.2.8",
     "@fontsource-variable/inter": "^5.2.8",
     "@fontsource-variable/source-code-pro": "^5.2.7",
+    "@fontsource/ibm-plex-mono": "^5.2.7",
+    "@fontsource/source-code-pro": "^5.2.7",
     "@mariozechner/pi-coding-agent": "0.57.1",
     "@monaco-editor/react": "^4.7.0",
     "@phosphor-icons/react": "^2.1.10",
@@ -50,18 +43,17 @@
     "@xterm/xterm": "^6.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "effect": "^3.14.16",
+    "effect": "^3.21.0",
     "electron-updater": "^6.8.3",
-    "lucide-react": "^1.7.0",
     "marked": "^15.0.7",
     "monaco-editor": "^0.55.1",
-    "next-themes": "^0.4.6",
     "node-pty": "^1.1.0",
     "radix-ui": "^1.4.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-grab": "^0.1.32",
     "react-markdown": "^9.0.3",
+    "react-virtuoso": "^4.18.5",
     "remark-breaks": "^4.0.0",
     "remark-gfm": "^4.0.1",
     "sharp": "^0.33.5",

@@ -25,7 +25,7 @@ export function Loader({
         {[0, 1, 2].map((index) => (
           <span
             key={index}
-            className="size-1.5 rounded-full bg-current motion-safe:animate-[pulse_900ms_ease-in-out_infinite]"
+            className="size-1.5 bg-current motion-safe:animate-[pulse_900ms_ease-in-out_infinite]"
             style={{ animationDelay: `${index * 120}ms` }}
           />
         ))}

@@ -18,6 +18,31 @@ export interface GitFileChange {
   worktreeStatus: GitFileChangeStatus | null;
 }
 
+export type GitDiffLineType = "add" | "remove" | "context" | "hunk_header";
+
+export interface GitDiffLine {
+  type: GitDiffLineType;
+  content: string;
+  oldLineNumber: number | null;
+  newLineNumber: number | null;
+}
+
+export interface GitDiffHunk {
+  oldStart: number;
+  oldCount: number;
+  newStart: number;
+  newCount: number;
+  lines: GitDiffLine[];
+}
+
+export interface GitFileDiff {
+  filePath: string;
+  oldFilePath: string | null;
+  status: GitFileChangeStatus;
+  hunks: GitDiffHunk[];
+  binary: boolean;
+}
+
 export interface GitRepositoryStatus {
   repositoryPath: string;
   branch: string | null;

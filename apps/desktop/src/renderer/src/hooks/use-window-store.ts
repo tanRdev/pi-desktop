@@ -5,6 +5,7 @@
 
 import type { WindowLayoutState, WorkspaceWindow } from "@pi-desktop/shared";
 import { getActiveWorktree } from "@pi-desktop/shared";
+import type { ShellModelState } from "@pi-desktop/shell-model";
 import { useSyncExternalStore } from "react";
 import {
   type AppShellStoreState,
@@ -29,12 +30,28 @@ const FALLBACK_LAYOUT: WindowLayoutState = {
   panY: 0,
 };
 
-const workspaceSessionStore = createWorkspaceSessionStore({
-  getWorkspaceSession: (worktreeId) =>
-    window.piDesktop.state.getWorkspaceSession(worktreeId),
-  saveWorkspaceSession: (session) =>
-    window.piDesktop.state.saveWorkspaceSession(session),
-});
+let workspaceSessionStoreInstance: WorkspaceSessionStore | null = null;
+let didScheduleInitialWorktreeSync = false;
+let cachedStoreAdapter: WindowStoreAdapter | null = null;
+
+function getWorkspaceSessionStore(): WorkspaceSessionStore {
+  if (workspaceSessionStoreInstance === null) {
+    workspaceSessionStoreInstance = createWorkspaceSessionStore({
+      getWorkspaceSession: (worktreeId) =>
+        window.piDesktop.state.getWorkspaceSession(worktreeId),
+      saveWorkspaceSession: (session) =>
+        window.piDesktop.state.saveWorkspaceSession(session),
+    });
+  }
+  return workspaceSessionStoreInstance;
+}
+
+/** @internal Test-only reset hook. */
+export function __resetWorkspaceSessionStoreForTests(): void {
+  workspaceSessionStoreInstance = null;
+  didScheduleInitialWorktreeSync = false;
+  cachedStoreAdapter = null;
+}
 
 export interface WindowStoreState {
   layout: WindowLayoutState;
@@ -91,7 +108,7 @@ function getLayoutState(
 ): WindowStoreState {
   const activeWorktreeId =
     sessionState.activeWorktreeId ??
-    getActiveWorktree(shellState.shellState.shell)?.id ??
+    getActiveWorktree(shellState.shellModel.getState().shell)?.id ??
     null;
   const layout =
     activeWorktreeId === sessionState.activeWorktreeId
@@ -109,14 +126,11 @@ function getLayoutState(
   });
 }
 
-function hasRelevantWindowStoreChange(
-  shellState: AppShellStoreState,
-  prevShellState: AppShellStoreState | undefined,
+function hasRelevantShellModelChange(
+  shellState: ShellModelState,
+  prevShellState: ShellModelState,
 ): boolean {
-  return (
-    shellState.shellState !== prevShellState?.shellState ||
-    shellState.isShellReady !== prevShellState?.isShellReady
-  );
+  return shellState !== prevShellState;
 }
 
 function hasRelevantWorkspaceSessionChange(
@@ -146,13 +160,18 @@ function hasRelevantWorkspaceSessionChange(
 }
 
 function subscribe(listener: () => void): () => void {
+  const workspaceSessionStore = getWorkspaceSessionStore();
+  const appShellStore = getAppShellStore();
+  const shellModel = appShellStore.getState().shellModel;
+  let previousShell: ShellModelState = shellModel.getState();
   const unsubscribers = [
-    getAppShellStore().subscribe((shellState, prevShellState) => {
-      const nextWorktreeId =
-        getActiveWorktree(shellState.shellState.shell)?.id ?? null;
-      const prevWorktreeId = prevShellState
-        ? (getActiveWorktree(prevShellState.shellState.shell)?.id ?? null)
-        : null;
+    shellModel.subscribe((shellState) => {
+      const prevShellState = previousShell;
+      previousShell = shellState;
+
+      const nextWorktreeId = getActiveWorktree(shellState.shell)?.id ?? null;
+      const prevWorktreeId =
+        getActiveWorktree(prevShellState.shell)?.id ?? null;
 
       if (nextWorktreeId !== prevWorktreeId) {
         void syncActiveWorktreeSession({
@@ -166,9 +185,9 @@ function subscribe(listener: () => void): () => void {
       }
 
       const nextCatalogSessions =
-        shellState.shellState.shell.catalog.reconciledWorkspaceSessions;
+        shellState.shell.catalog.reconciledWorkspaceSessions;
       const previousCatalogSessions =
-        prevShellState?.shellState.shell.catalog.reconciledWorkspaceSessions;
+        prevShellState.shell.catalog.reconciledWorkspaceSessions;
 
       if (
         nextCatalogSessions &&
@@ -179,7 +198,12 @@ function subscribe(listener: () => void): () => void {
           .hydrateCatalogSessions(nextCatalogSessions);
       }
 
-      if (hasRelevantWindowStoreChange(shellState, prevShellState)) {
+      if (hasRelevantShellModelChange(shellState, prevShellState)) {
+        listener();
+      }
+    }),
+    appShellStore.subscribe((state, prevState) => {
+      if (state.isShellReady !== prevState.isShellReady) {
         listener();
       }
     }),
@@ -199,14 +223,16 @@ function subscribe(listener: () => void): () => void {
     }),
   ];
 
-  queueMicrotask(() => {
-    void workspaceSessionStore
-      .getState()
-      .setActiveWorktree(
-        getActiveWorktree(getAppShellStore().getState().shellState.shell)?.id ??
-          null,
-      );
-  });
+  if (!didScheduleInitialWorktreeSync) {
+    didScheduleInitialWorktreeSync = true;
+    queueMicrotask(() => {
+      void workspaceSessionStore
+        .getState()
+        .setActiveWorktree(
+          getActiveWorktree(shellModel.getState().shell)?.id ?? null,
+        );
+    });
+  }
 
   return () => {
     for (const unsubscribe of unsubscribers) {
@@ -218,24 +244,29 @@ function subscribe(listener: () => void): () => void {
 function getSnapshot(): WindowStoreState {
   return getLayoutState(
     getAppShellStore().getState(),
-    workspaceSessionStore.getState(),
+    getWorkspaceSessionStore().getState(),
   );
 }
 
 function getStoreAdapter(): WindowStoreAdapter {
-  return {
-    createWindow: workspaceSessionStore.getState().createWindow,
-    closeWindow: workspaceSessionStore.getState().closeWindow,
-    focusWindow: workspaceSessionStore.getState().focusWindow,
-    moveWindow: workspaceSessionStore.getState().moveWindow,
-    resizeWindow: workspaceSessionStore.getState().resizeWindow,
-    updateWindow: workspaceSessionStore.getState().updateWindow,
-    setDirty: workspaceSessionStore.getState().setDirty,
-    setZoom: workspaceSessionStore.getState().setZoom,
-    zoomIn: workspaceSessionStore.getState().zoomIn,
-    zoomOut: workspaceSessionStore.getState().zoomOut,
-    resetZoom: workspaceSessionStore.getState().resetZoom,
-    setPan: workspaceSessionStore.getState().setPan,
+  if (cachedStoreAdapter !== null) {
+    return cachedStoreAdapter;
+  }
+
+  const store = getWorkspaceSessionStore();
+  cachedStoreAdapter = {
+    createWindow: (...args) => store.getState().createWindow(...args),
+    closeWindow: (...args) => store.getState().closeWindow(...args),
+    focusWindow: (...args) => store.getState().focusWindow(...args),
+    moveWindow: (...args) => store.getState().moveWindow(...args),
+    resizeWindow: (...args) => store.getState().resizeWindow(...args),
+    updateWindow: (...args) => store.getState().updateWindow(...args),
+    setDirty: (...args) => store.getState().setDirty(...args),
+    setZoom: (...args) => store.getState().setZoom(...args),
+    zoomIn: (...args) => store.getState().zoomIn(...args),
+    zoomOut: (...args) => store.getState().zoomOut(...args),
+    resetZoom: (...args) => store.getState().resetZoom(...args),
+    setPan: (...args) => store.getState().setPan(...args),
     setDraggingWindowId(windowId) {
       uiInteractionStore.getState().setDraggingWindowId(windowId);
     },
@@ -245,8 +276,9 @@ function getStoreAdapter(): WindowStoreAdapter {
     setSnapPreview(preview) {
       uiInteractionStore.getState().setSnapPreview(preview);
     },
-    clearAll: workspaceSessionStore.getState().clearAll,
+    clearAll: (...args) => store.getState().clearAll(...args),
   };
+  return cachedStoreAdapter;
 }
 
 export function useWindowStore() {
@@ -299,5 +331,5 @@ export function useFocusedWindow(): WorkspaceWindow | null {
   );
 }
 
-export { workspaceSessionStore };
+export { getWorkspaceSessionStore };
 export type { WorkspaceSessionStore };

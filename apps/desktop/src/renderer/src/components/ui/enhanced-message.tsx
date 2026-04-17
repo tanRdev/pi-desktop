@@ -2,14 +2,13 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { Markdown } from "./markdown";
 import type { ActivityIndicatorProps } from "./activity-indicator";
 import { ActivityGroup, ActivityIndicator } from "./activity-indicator";
-import { FeedbackBar, type FeedbackValue } from "./feedback-bar";
-import type { ThinkingBlockProps } from "./thinking-block";
-import { ThinkingBlock } from "./thinking-block";
-import { Tool, type ToolPart } from "./tool";
+import { FeedbackBar } from "./feedback-bar";
+import { Markdown } from "./markdown";
 import { SystemMessage } from "./system-message";
+import { StreamingPlaceholder, ThinkingBlock } from "./thinking-indicator";
+import { Tool, type ToolPart } from "./tool";
 
 // ============================================
 // TYPES
@@ -30,7 +29,7 @@ export interface EnhancedMessageProps {
   /** Message ID */
   id: string;
   /** Message role */
-  role: MessageRole;
+  messageRole: MessageRole;
   /** Message content (text or markdown) */
   content: string;
   /** Whether content is markdown */
@@ -49,16 +48,33 @@ export interface EnhancedMessageProps {
   toolPart?: ToolPart;
   /** Error message */
   error?: string;
-  /** Feedback state */
-  feedback?: FeedbackValue | null;
-  /** Callback when feedback changes */
-  onFeedbackChange?: (value: FeedbackValue) => void;
   /** Callback when copy is clicked */
   onCopy?: () => void;
   /** Additional className */
   className?: string;
   /** Animation index for stagger effect */
   animationIndex?: number;
+  /** Message timestamp (unix ms). When provided, rendered beneath content. */
+  timestamp?: number;
+  /** User message timestamp for duration calculation */
+  userTimestamp?: number;
+}
+
+function formatDuration(ms: number): string {
+  const seconds = Math.max(0, ms / 1000);
+  if (seconds < 60) {
+    return `${seconds.toFixed(1)}s`;
+  }
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = Math.floor(seconds % 60);
+  return `${minutes}m ${remainingSeconds}s`;
+}
+
+function formatTimestamp(timestamp: number): string {
+  const d = new Date(timestamp);
+  const hours = String(d.getHours()).padStart(2, "0");
+  const mins = String(d.getMinutes()).padStart(2, "0");
+  return `${hours}:${mins}`;
 }
 
 // ============================================
@@ -67,7 +83,7 @@ export interface EnhancedMessageProps {
 
 export function EnhancedMessage({
   id,
-  role,
+  messageRole,
   content,
   isMarkdown = false,
   status = "complete",
@@ -75,16 +91,16 @@ export function EnhancedMessage({
   thinking,
   toolPart,
   error,
-  feedback,
-  onFeedbackChange,
   onCopy,
   className,
   animationIndex = 0,
+  timestamp,
+  userTimestamp,
 }: EnhancedMessageProps) {
-  const isUser = role === "user";
-  const isAssistant = role === "assistant";
-  const isSystem = role === "system";
-  const isTool = role === "tool";
+  const isUser = messageRole === "user";
+  const isAssistant = messageRole === "assistant";
+  const isSystem = messageRole === "system";
+  const isTool = messageRole === "tool";
   const isStreaming = status === "streaming";
 
   // Calculate animation delay for stagger effect
@@ -132,10 +148,15 @@ export function EnhancedMessage({
 
         {/* User messages */}
         {isUser && (
-          <div className="w-full space-y-2">
-            <div className="max-w-none text-sm leading-6 text-white/70">
+          <div className="w-full space-y-1">
+            <div className="max-w-none text-sm leading-6 text-white/70 text-right">
               <SlashCommandHighlighter text={content || " "} />
             </div>
+            {timestamp !== undefined && (
+              <div className="text-right font-mono text-[10px] text-white/30">
+                {formatTimestamp(timestamp)}
+              </div>
+            )}
           </div>
         )}
 
@@ -175,7 +196,7 @@ export function EnhancedMessage({
               {isStreaming && !content ? (
                 <StreamingPlaceholder />
               ) : isMarkdown ? (
-                <Markdown className="max-w-none leading-6 [&_blockquote]:my-3 [&_li]:my-0.5 [&_ol]:my-2 [&_p]:my-2 [&_pre]:my-3 [&_ul]:my-2]">
+                <Markdown className="max-w-none leading-6 [&_blockquote]:my-3 [&_li]:my-0.5 [&_ol]:my-2 [&_p]:my-2 [&_pre]:my-3 [&_ul]:my-2">
                   {content}
                 </Markdown>
               ) : (
@@ -185,13 +206,18 @@ export function EnhancedMessage({
               )}
             </div>
 
-            {/* Feedback bar */}
+            {/* Feedback bar & Metadata */}
             {status === "complete" && (
-              <div className="flex items-center gap-2 pt-0.5 opacity-0 transition-opacity duration-[var(--duration-fast)] ease-[var(--ease-out)] group-hover:opacity-100">
+              <div className="flex items-center gap-2 pt-0.5">
                 <FeedbackBar
-                  value={feedback ?? null}
-                  onValueChange={onFeedbackChange}
                   onCopy={onCopy}
+                  duration={
+                    timestamp && userTimestamp
+                      ? `${formatDuration(timestamp - userTimestamp)} · ${formatTimestamp(timestamp)}`
+                      : timestamp
+                        ? formatTimestamp(timestamp)
+                        : undefined
+                  }
                 />
               </div>
             )}
@@ -202,23 +228,7 @@ export function EnhancedMessage({
   );
 }
 
-function StreamingPlaceholder() {
-  return (
-    <div className="flex items-center gap-1 py-2">
-      {[0, 1, 2].map((i) => (
-        <span
-          key={i}
-          className="size-1.5 rounded-full bg-white/30"
-          style={{
-            animation: `shimmer-bounce 1.4s ease-in-out ${i * 0.15}s infinite`,
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
-function SlashCommandHighlighter({ text }: { text: string }) {
+export function SlashCommandHighlighter({ text }: { text: string }) {
   const parts = text.split(/(\/[a-zA-Z0-9_-]+)/g);
 
   return (
@@ -282,8 +292,8 @@ export function StreamingIndicator({
         )}
       >
         <div className="relative">
-          <div className="size-2 rounded-full bg-[#00E559]/60" />
-          <div className="absolute inset-0 size-2 animate-ping rounded-full bg-[#00E559]/30" />
+          <div className="size-2 bg-[var(--color-accent)]/60" />
+          <div className="absolute inset-0 size-2 animate-ping bg-[var(--color-accent)]/30" />
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="text-[10.5px] font-normal text-white/70">
@@ -295,7 +305,7 @@ export function StreamingIndicator({
               {[0, 1, 2].map((i) => (
                 <span
                   key={i}
-                  className="size-1 rounded-full bg-white/30"
+                  className="size-1 bg-white/30"
                   style={{
                     animation: `shimmer-bounce 1.4s ease-in-out ${i * 0.15}s infinite`,
                   }}

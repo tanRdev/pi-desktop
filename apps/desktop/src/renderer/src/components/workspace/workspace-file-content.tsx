@@ -1,10 +1,10 @@
 import type { FileContent } from "@pi-desktop/shared";
+import { Skeleton } from "boneyard-js/react";
 import * as React from "react";
 import { File, Image as ImageIcon, Save } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
-import { Skeleton } from "boneyard-js/react";
-import { MonacoFileEditor } from "./monaco-file-editor";
+import { MonacoFileEditor } from "./monaco-file-editor.lazy";
 
 function getFileName(filePath: string): string {
   return filePath.split(/[/\\]/).pop() ?? filePath;
@@ -91,7 +91,6 @@ function FileContentSkeleton() {
 function TextContent({
   filePath,
   content,
-  draft,
   isReadOnly,
   onContentChange,
   onSave,
@@ -99,7 +98,6 @@ function TextContent({
 }: {
   filePath: string;
   content: FileContent;
-  draft: string | null;
   isReadOnly: boolean;
   onContentChange?: (content: string) => void;
   onSave?: () => void;
@@ -110,7 +108,7 @@ function TextContent({
       <MonacoFileEditor
         path={filePath}
         language={getFileLanguage(filePath)}
-        value={draft ?? content.content}
+        value={content.content}
         readOnly={isReadOnly}
         onChange={onContentChange}
         onSave={onSave}
@@ -131,23 +129,6 @@ export function WorkspaceFileContent({
   className,
 }: WorkspaceFileContentProps) {
   const fileName = getFileName(filePath);
-  const [draft, setDraft] = React.useState<string | null>(null);
-
-  const contentText = content?.type === "text" ? content.content : null;
-
-  React.useEffect(() => {
-    if (contentText !== null) {
-      setDraft(contentText);
-    }
-  }, [contentText]);
-
-  const handleContentChange = React.useCallback(
-    (nextValue: string) => {
-      setDraft(nextValue);
-      onContentChange?.(nextValue);
-    },
-    [onContentChange],
-  );
 
   React.useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -268,9 +249,8 @@ export function WorkspaceFileContent({
           <TextContent
             filePath={filePath}
             content={content}
-            draft={draft}
             isReadOnly={isReadOnly}
-            onContentChange={handleContentChange}
+            onContentChange={onContentChange}
             onSave={onSave}
             className="min-h-0 flex-1"
           />

@@ -4,7 +4,6 @@ import type {
   OAuthProviderSnapshot,
   SlashSuggestion,
   ThreadSnapshot,
-  WorktreeSnapshot,
 } from "@pi-desktop/shared";
 import {
   getActiveRepository,
@@ -19,7 +18,9 @@ import {
 } from "../../../thread-title-defaults";
 import type { WorkspaceShellProps } from "../components/workspace/workspace-shell";
 import { loadPromptAutocompleteSuggestions } from "../lib/prompt-autocomplete-loader";
+
 export { getMainPaneState } from "../lib/workspace-pane-state";
+
 import {
   buildFileMention,
   buildTerminalMention,
@@ -41,7 +42,7 @@ import {
   resolveCurrentModelValue,
   useShellModel,
 } from "./use-shell-model";
-import { useWindowStore, workspaceSessionStore } from "./use-window-store";
+import { getWorkspaceSessionStore, useWindowStore } from "./use-window-store";
 
 const EMPTY_AUTOCOMPLETE_SUGGESTIONS: (SlashSuggestion | MentionSuggestion)[] =
   [];
@@ -49,7 +50,6 @@ const EMPTY_AUTOCOMPLETE_SUGGESTIONS: (SlashSuggestion | MentionSuggestion)[] =
 function getErrorDescription(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
 }
-const PENDING_SURFACE_PREFIX = "__pending_surface__";
 type PromptMode = "build" | "plan";
 
 const PROMPT_MODE_TO_PREFIX = {
@@ -160,6 +160,7 @@ export interface AppShellController {
   initGitRepoName: string | null;
   submitInitGitRepo: () => Promise<void>;
   skipInitGitRepo: () => Promise<void>;
+  onAgentGitAction: (prompt: string) => void;
 }
 
 export function useAppShellController(): AppShellController {
@@ -176,7 +177,7 @@ export function useAppShellController(): AppShellController {
     appPreferences,
     updateAppPreferences,
   } = useShellModel();
-  const { agent, draft, live, shell } = state;
+  const { agent, draft, shell } = state;
   const { state: windowState, store: windowStore } = useWindowStore();
 
   const activeRepository = React.useMemo(
@@ -192,11 +193,11 @@ export function useAppShellController(): AppShellController {
   const activeWorktreePath = activeWorktree?.path ?? null;
   const activeThreadId = activeThread?.id ?? null;
   const activeThreadConversation = React.useSyncExternalStore(
-    workspaceSessionStore.subscribe,
+    getWorkspaceSessionStore().subscribe,
     () =>
       activeThreadId
         ? selectThreadConversationByWorktree(
-            workspaceSessionStore.getState(),
+            getWorkspaceSessionStore().getState(),
             activeWorktreeId,
             activeThreadId,
           )
@@ -213,6 +214,10 @@ export function useAppShellController(): AppShellController {
   const autocompleteSelectedIndex = useStore(
     uiInteractionStore,
     (storeState) => storeState.promptAutocompleteSelectedIndex,
+  );
+  const threadLastViewedAt = useStore(
+    uiInteractionStore,
+    (storeState) => storeState.threadLastViewedAt,
   );
   const isCreateWorktreeOpen = useStore(
     uiInteractionStore,
@@ -246,7 +251,7 @@ export function useAppShellController(): AppShellController {
   );
   const [selectedContextSurface, setSelectedContextSurface] =
     React.useState<WorkspaceShellProps["selectedContextSurface"]>(null);
-  const [leftRailWidth, setLeftRailWidth] = React.useState(260);
+  const [isTerminalVisible, setIsTerminalVisible] = React.useState(false);
   const [promptMode, setPromptMode] = React.useState<PromptMode>(() =>
     detectPromptMode(draft),
   );
@@ -376,6 +381,17 @@ export function useAppShellController(): AppShellController {
     setPromptMode(detectPromptMode(draft));
   }, [draft]);
 
+  const prevThreadIdRef = React.useRef<string | null>(null);
+  React.useEffect(() => {
+    if (prevThreadIdRef.current && prevThreadIdRef.current !== activeThreadId) {
+      uiInteractionStore.getState().markThreadViewed(prevThreadIdRef.current);
+    }
+    if (activeThreadId) {
+      uiInteractionStore.getState().markThreadViewed(activeThreadId);
+    }
+    prevThreadIdRef.current = activeThreadId;
+  }, [activeThreadId]);
+
   React.useEffect(() => {
     const conversation = {
       messages: agent.messages,
@@ -388,7 +404,7 @@ export function useAppShellController(): AppShellController {
     }
 
     syncActiveThreadConversation({
-      sessionStore: workspaceSessionStore,
+      sessionStore: getWorkspaceSessionStore(),
       worktreeId: activeWorktreeId,
       threadId: activeThreadId,
       conversation,
@@ -444,40 +460,9 @@ export function useAppShellController(): AppShellController {
   });
   const isPromptVisible = activeThreadId !== null;
 
-  const handleOpenTerminal = React.useCallback(() => {
-    const existingTerminal = windowState.layout.windows.find(
-      (
-        window,
-      ): window is Extract<
-        (typeof windowState.layout.windows)[number],
-        { kind: "terminal" }
-      > => window.kind === "terminal" && window.backend === "shell",
-    );
-    if (existingTerminal) {
-      if (existingTerminal.id === selectedContextSurface) {
-        setSelectedContextSurface(null);
-        return;
-      }
-      windowStore.focusWindow(existingTerminal.id);
-      setSelectedContextSurface(existingTerminal.id);
-      return;
-    }
-
-    const terminalWindow = windowStore.createWindow(
-      {
-        kind: "terminal",
-        backend: "shell",
-        cwd: activeWorktreePath ?? undefined,
-      },
-      activeWorktreePath ?? undefined,
-    );
-    setSelectedContextSurface(terminalWindow.id);
-  }, [
-    activeWorktreePath,
-    selectedContextSurface,
-    windowState.layout.windows,
-    windowStore,
-  ]);
+  const handleToggleTerminal = React.useCallback(() => {
+    setIsTerminalVisible((prev) => !prev);
+  }, []);
 
   const handleOpenGit = React.useCallback(() => {
     if (!activeWorktreePath) {
@@ -727,7 +712,7 @@ export function useAppShellController(): AppShellController {
   const handleFileContentChange = React.useCallback(
     (windowId: string, newContent: string) => {
       updateFileDraftForWorktree({
-        sessionStore: workspaceSessionStore,
+        sessionStore: getWorkspaceSessionStore(),
         worktreeId: activeWorktreeId,
         windowId,
         content: newContent,
@@ -740,7 +725,7 @@ export function useAppShellController(): AppShellController {
   const handleFileSave = React.useCallback(
     async (windowId: string, filePath: string) => {
       const didSave = await saveFileWindowForWorktree({
-        sessionStore: workspaceSessionStore,
+        sessionStore: getWorkspaceSessionStore(),
         worktreeId: activeWorktreeId,
         windowId,
         filePath,
@@ -789,7 +774,8 @@ export function useAppShellController(): AppShellController {
         setInitGitRepoPath(repositoryPath);
         setInitGitRepoName(repositoryName);
         setInitGitRepoOpen(true);
-        return;
+        // Don't process remaining paths — resume after user decides on init.
+        break;
       }
 
       try {
@@ -805,12 +791,18 @@ export function useAppShellController(): AppShellController {
       }
     }
 
-    if (addedCount > 1) {
+    if (addedCount > 0) {
+      await reload();
+    }
+
+    if (addedCount === 1) {
+      toast.success("Workspace added");
+    } else if (addedCount > 1) {
       toast.success("Workspaces added", {
         description: `${addedCount} projects are now available in the rail`,
       });
     }
-  }, [setInitGitRepoOpen]);
+  }, [reload, setInitGitRepoOpen]);
 
   const handleSelectRepository = React.useCallback(
     async (repositoryId: string) => {
@@ -885,13 +877,17 @@ export function useAppShellController(): AppShellController {
       setCreateWorktreeOpen(false);
       setNewWorktreeBranchState("");
       setWorktreeCreateError(null);
+      // Explicitly reload to pick up the new worktree in the sidebar.
+      // The main process fires session_changed but a race can cause the
+      // renderer to miss it if the dialog closes first.
+      await reload();
       toast.success("Session created");
     } catch (error) {
       setWorktreeCreateError(
         error instanceof Error ? error.message : "Failed to create worktree",
       );
     }
-  }, [activeRepositoryId, newWorktreeBranch, setCreateWorktreeOpen]);
+  }, [activeRepositoryId, newWorktreeBranch, setCreateWorktreeOpen, reload]);
 
   const handleSelectWorktree = React.useCallback(async (worktreeId: string) => {
     await window.piDesktop.worktrees.select(worktreeId);
@@ -936,13 +932,14 @@ export function useAppShellController(): AppShellController {
       await window.piDesktop.git.init(initGitRepoPath);
       await window.piDesktop.repositories.add(initGitRepoPath);
       setInitGitRepoOpen(false);
+      await reload();
       toast.success("Git repository initialized");
     } catch (error) {
       toast.error("Failed to initialize git repository", {
         description: error instanceof Error ? error.message : "Unknown error",
       });
     }
-  }, [initGitRepoName, initGitRepoPath, setInitGitRepoOpen]);
+  }, [initGitRepoName, initGitRepoPath, reload, setInitGitRepoOpen]);
 
   const skipInitGitRepo = React.useCallback(async () => {
     if (!initGitRepoPath) {
@@ -952,11 +949,12 @@ export function useAppShellController(): AppShellController {
 
     try {
       await window.piDesktop.repositories.add(initGitRepoPath);
+      await reload();
     } catch {
       // non-repo folder handled by main process
     }
     setInitGitRepoOpen(false);
-  }, [initGitRepoPath, setInitGitRepoOpen]);
+  }, [initGitRepoPath, reload, setInitGitRepoOpen]);
 
   const handleCloseThread = React.useCallback(
     async (threadId: string) => {
@@ -1149,6 +1147,7 @@ export function useAppShellController(): AppShellController {
     () => appPreferences.favoriteModels ?? [],
     [appPreferences.favoriteModels],
   );
+  const leftSidebarWidth = appPreferences.leftSidebarWidth ?? 260;
 
   const handleToggleFavorite = React.useCallback(
     (modelValue: string) => {
@@ -1199,6 +1198,22 @@ export function useAppShellController(): AppShellController {
     await cancelPrompt();
   }, [cancelPrompt]);
 
+  const handleAgentGitAction = React.useCallback(
+    (prompt: string) => {
+      if (
+        !activeThreadId ||
+        agent.status === "starting" ||
+        agent.status === "streaming"
+      ) {
+        return;
+      }
+      setDraft(prompt);
+      setPendingPromptThreadId(activeThreadId);
+      void sendPrompt();
+    },
+    [activeThreadId, agent.status, sendPrompt, setDraft],
+  );
+
   const runtimeMode = shell.runtime?.agentMode ?? "unknown";
   const runtimeModeLabel = `${runtimeMode} mode`;
   const displayAgentStatus = agent.status;
@@ -1227,19 +1242,6 @@ export function useAppShellController(): AppShellController {
       ),
     [windowState.layout.windows],
   );
-  const sideContextWindows = React.useMemo(
-    () =>
-      contextWindows.filter(
-        (
-          window,
-        ): window is Extract<
-          (typeof contextWindows)[number],
-          { kind: "terminal" | "git" }
-        > => window.kind === "terminal" || window.kind === "git",
-      ),
-    [contextWindows],
-  );
-
   React.useEffect(() => {
     const noteWindows = windowState.layout.windows.filter(
       (window) => window.kind === "note",
@@ -1260,41 +1262,9 @@ export function useAppShellController(): AppShellController {
     );
   }, [contextWindows]);
 
-  React.useEffect(() => {
-    if (selectedContextSurface === null) {
-      sideContextWindows.forEach((window) => {
-        windowStore.closeWindow(window.id);
-      });
-      return;
-    }
-
-    if (selectedContextSurface === "activity") {
-      sideContextWindows.forEach((window) => {
-        windowStore.closeWindow(window.id);
-      });
-      return;
-    }
-
-    if (selectedContextSurface?.startsWith(PENDING_SURFACE_PREFIX)) {
-      return;
-    }
-
-    const hasSelectedWindow = sideContextWindows.some(
-      (window) => window.id === selectedContextSurface,
-    );
-    if (!hasSelectedWindow) {
-      sideContextWindows.forEach((window) => {
-        windowStore.closeWindow(window.id);
-      });
-      return;
-    }
-
-    sideContextWindows.forEach((window) => {
-      if (window.id !== selectedContextSurface) {
-        windowStore.closeWindow(window.id);
-      }
-    });
-  }, [selectedContextSurface, sideContextWindows, windowStore]);
+  // NOTE: Previously this effect closed all terminal and git windows on every
+  // contextWindows change, which immediately destroyed any terminal or git
+  // window as soon as it was created. Removed to allow these windows to persist.
 
   const handleSelectContextSurface = React.useCallback(
     (surfaceKey: WorkspaceShellProps["selectedContextSurface"]) => {
@@ -1341,9 +1311,12 @@ export function useAppShellController(): AppShellController {
     [contextWindows, selectedContextSurface, windowStore],
   );
 
-  const handleLeftRailResize = React.useCallback((width: number) => {
-    setLeftRailWidth(width);
-  }, []);
+  const handleLeftSidebarResize = React.useCallback(
+    (width: number) => {
+      void updateAppPreferences({ leftSidebarWidth: width });
+    },
+    [updateAppPreferences],
+  );
 
   const handleFileTreeFileSelect = React.useCallback(
     (filePath: string) => {
@@ -1368,7 +1341,7 @@ export function useAppShellController(): AppShellController {
       setSelectedContextSurface(createdWindow.id);
 
       // Set loading state and read content async
-      workspaceSessionStore
+      getWorkspaceSessionStore()
         .getState()
         .setFileContentForWorktree(activeWorktreeId, createdWindow.id, {
           content: null,
@@ -1378,7 +1351,7 @@ export function useAppShellController(): AppShellController {
 
       window.piDesktop.fs.readFile(filePath).then(
         (result) => {
-          workspaceSessionStore
+          getWorkspaceSessionStore()
             .getState()
             .setFileContentForWorktree(activeWorktreeId, createdWindow.id, {
               content: result,
@@ -1387,7 +1360,7 @@ export function useAppShellController(): AppShellController {
             });
         },
         (error) => {
-          workspaceSessionStore
+          getWorkspaceSessionStore()
             .getState()
             .setFileContentForWorktree(activeWorktreeId, createdWindow.id, {
               content: null,
@@ -1427,85 +1400,185 @@ export function useAppShellController(): AppShellController {
     [],
   );
 
-  const workspaceShellProps: WorkspaceShellProps = {
-    platform,
-    repositories,
-    activeRepository,
-    activeRepositoryId,
-    activeWorktreeId,
-    activeThreadId,
-    activeThreadTitle: activeThread ? getThreadWindowTitle(activeThread) : null,
-    draft,
-    canSend,
-    autocompleteSuggestions,
-    autocompleteSelectedIndex,
-    displayAgentStatus,
-    runtimeModeLabel,
-    providerSnapshots,
-    currentModelValue,
-    contextUsage: agent.contextUsage,
-    isSwitchingModel,
-    isPromptVisible,
-    isPromptExecuting,
-    activeGitRepositoryStatus,
-    shellGit: shell.git ?? null,
-    gitCommitMessage,
-    threadMessages: activeThreadConversation?.messages ?? agent.messages,
-    threadLastError: activeThreadConversation?.lastError ?? agent.lastError,
-    liveFeed: live,
-    contextWindows,
-    selectedContextSurface,
-    leftRailWidth,
-    onSelectContextSurface: handleSelectContextSurface,
-    onCloseFileWindow: handleCloseFileWindow,
-    onLeftRailResize: handleLeftRailResize,
-    onModelMenuOpenChange: handleModelMenuOpenChange,
-    onAddRepository: handleAddRepository,
-    onSelectRepository: handleSelectRepository,
-    onRemoveRepository: handleRemoveRepository,
-    onCopyRepositoryPath: handleCopyRepositoryPath,
-    onOpenInFinder: handleOpenInFinder,
-    onCreateSession: handleCreateSession,
-    onSelectWorktree: handleSelectWorktree,
-    onSelectThread: handleSelectThread,
-    onCreateThread: handleCreateThread,
-    onCloseThread: handleCloseThread,
-    onDeleteThread: handleDeleteThread,
-    onDeleteWorktree: handleDeleteWorktree,
-    onOpenGit: handleOpenGit,
-    onOpenTerminal: handleOpenTerminal,
-    onGitCommitMessageChange: setGitCommitMessage,
-    onRefreshGit: refreshGitRepositoryStatus,
-    onCommitGit: commitGitChanges,
-    onCommitAndPushGit: commitAndPushGitChanges,
-    onPullGit: pullGitChanges,
-    onPushGit: pushGitChanges,
-    onFetchGit: fetchGitChanges,
-    onStageGitFile: stageGitFile,
-    onStageAllGitFiles: stageAllGitFiles,
-    onUnstageGitFile: unstageGitFile,
-    onUnstageAllGitFiles: unstageAllGitFiles,
-    onDiscardGitFile: discardGitFile,
-    onFileContentChange: handleFileContentChange,
-    onFileSave: handleFileSave,
-    onDraftChange: setDraft,
-    onSend: handleSend,
-    onCancelPrompt: handleCancelPrompt,
-    onAutocompleteSelect: handleAutocompleteSelect,
-    onAutocompleteHover: setAutocompleteSelectedIndex,
-    onPromptKeyDown: handlePromptKeyDown,
-    onModelSelection: handleModelSelection,
-    promptMode,
-    onPromptModeChange: handlePromptModeChange,
-    onConnectProvider: () => void openOAuthDialog("providers", null),
-    favoriteModels,
-    onToggleFavorite: handleToggleFavorite,
-    workspacePath: activeWorktreePath,
-    onFileTreeFileSelect: handleFileTreeFileSelect,
-    onFileTreeDeleteFile: handleFileTreeDeleteFile,
-    onFileTreeRenameFile: handleFileTreeRenameFile,
-    onFileTreeMoveFile: handleFileTreeMoveFile,
-  };
+  const handleConnectProvider = React.useCallback(() => {
+    void openOAuthDialog("providers", null);
+  }, [openOAuthDialog]);
+
+  const activeThreadTitle = activeThread
+    ? getThreadWindowTitle(activeThread)
+    : null;
+  const threadMessages = activeThreadConversation?.messages ?? agent.messages;
+  const threadLastError =
+    activeThreadConversation?.lastError ?? agent.lastError;
+  const shellGit = shell.git ?? null;
+  const appVersion = shell.appVersion ?? "";
+  const contextUsage = agent.contextUsage;
+
+  const workspaceShellProps: WorkspaceShellProps = React.useMemo(
+    () => ({
+      platform,
+      appVersion,
+      repositories,
+      activeRepository,
+      activeRepositoryId,
+      activeWorktreeId,
+      activeThreadId,
+      activeThreadTitle,
+      draft,
+      canSend,
+      autocompleteSuggestions,
+      autocompleteSelectedIndex,
+      displayAgentStatus,
+      runtimeModeLabel,
+      providerSnapshots,
+      currentModelValue,
+      contextUsage,
+      isSwitchingModel,
+      isPromptVisible,
+      isPromptExecuting,
+      threadLastViewedAt,
+      activeGitRepositoryStatus,
+      shellGit,
+      gitCommitMessage,
+      threadMessages,
+      threadLastError,
+      contextWindows,
+      selectedContextSurface,
+      leftSidebarWidth,
+      onSelectContextSurface: handleSelectContextSurface,
+      onCloseFileWindow: handleCloseFileWindow,
+      onLeftSidebarResize: handleLeftSidebarResize,
+      onModelMenuOpenChange: handleModelMenuOpenChange,
+      onAddRepository: handleAddRepository,
+      onSelectRepository: handleSelectRepository,
+      onRemoveRepository: handleRemoveRepository,
+      onCopyRepositoryPath: handleCopyRepositoryPath,
+      onOpenInFinder: handleOpenInFinder,
+      onCreateSession: handleCreateSession,
+      onSelectWorktree: handleSelectWorktree,
+      onSelectThread: handleSelectThread,
+      onCreateThread: handleCreateThread,
+      onCloseThread: handleCloseThread,
+      onDeleteThread: handleDeleteThread,
+      onDeleteWorktree: handleDeleteWorktree,
+      onOpenGit: handleOpenGit,
+      onToggleTerminal: handleToggleTerminal,
+      isTerminalVisible,
+      onGitCommitMessageChange: setGitCommitMessage,
+      onRefreshGit: refreshGitRepositoryStatus,
+      onCommitGit: commitGitChanges,
+      onCommitAndPushGit: commitAndPushGitChanges,
+      onPullGit: pullGitChanges,
+      onPushGit: pushGitChanges,
+      onFetchGit: fetchGitChanges,
+      onStageGitFile: stageGitFile,
+      onStageAllGitFiles: stageAllGitFiles,
+      onUnstageGitFile: unstageGitFile,
+      onUnstageAllGitFiles: unstageAllGitFiles,
+      onDiscardGitFile: discardGitFile,
+      onFileContentChange: handleFileContentChange,
+      onFileSave: handleFileSave,
+      onDraftChange: setDraft,
+      onSend: handleSend,
+      onCancelPrompt: handleCancelPrompt,
+      onAutocompleteSelect: handleAutocompleteSelect,
+      onAutocompleteHover: setAutocompleteSelectedIndex,
+      onPromptKeyDown: handlePromptKeyDown,
+      onModelSelection: handleModelSelection,
+      promptMode,
+      onPromptModeChange: handlePromptModeChange,
+      onConnectProvider: handleConnectProvider,
+      favoriteModels,
+      onToggleFavorite: handleToggleFavorite,
+      workspacePath: activeWorktreePath,
+      onFileTreeFileSelect: handleFileTreeFileSelect,
+      onFileTreeDeleteFile: handleFileTreeDeleteFile,
+      onFileTreeRenameFile: handleFileTreeRenameFile,
+      onFileTreeMoveFile: handleFileTreeMoveFile,
+      onAgentGitAction: handleAgentGitAction,
+    }),
+    [
+      platform,
+      repositories,
+      activeRepository,
+      activeRepositoryId,
+      activeWorktreeId,
+      activeThreadId,
+      activeThreadTitle,
+      draft,
+      canSend,
+      autocompleteSuggestions,
+      autocompleteSelectedIndex,
+      displayAgentStatus,
+      runtimeModeLabel,
+      providerSnapshots,
+      currentModelValue,
+      contextUsage,
+      isSwitchingModel,
+      isPromptVisible,
+      isPromptExecuting,
+      activeGitRepositoryStatus,
+      threadLastViewedAt,
+      shellGit,
+      gitCommitMessage,
+      threadMessages,
+      threadLastError,
+      contextWindows,
+      selectedContextSurface,
+      leftSidebarWidth,
+      handleSelectContextSurface,
+      handleCloseFileWindow,
+      handleLeftSidebarResize,
+      handleModelMenuOpenChange,
+      handleAddRepository,
+      handleSelectRepository,
+      handleRemoveRepository,
+      handleCopyRepositoryPath,
+      handleOpenInFinder,
+      handleCreateSession,
+      handleSelectWorktree,
+      handleSelectThread,
+      handleCreateThread,
+      handleCloseThread,
+      handleDeleteThread,
+      handleDeleteWorktree,
+      handleOpenGit,
+      handleToggleTerminal,
+      isTerminalVisible,
+      refreshGitRepositoryStatus,
+      commitGitChanges,
+      commitAndPushGitChanges,
+      pullGitChanges,
+      pushGitChanges,
+      fetchGitChanges,
+      stageGitFile,
+      stageAllGitFiles,
+      unstageGitFile,
+      unstageAllGitFiles,
+      discardGitFile,
+      handleFileContentChange,
+      handleFileSave,
+      setDraft,
+      handleSend,
+      handleCancelPrompt,
+      handleAutocompleteSelect,
+      setAutocompleteSelectedIndex,
+      handlePromptKeyDown,
+      handleModelSelection,
+      promptMode,
+      handlePromptModeChange,
+      handleConnectProvider,
+      favoriteModels,
+      handleToggleFavorite,
+      activeWorktreePath,
+      handleFileTreeFileSelect,
+      handleFileTreeDeleteFile,
+      handleFileTreeRenameFile,
+      handleFileTreeMoveFile,
+      handleAgentGitAction,
+      appVersion,
+    ],
+  );
 
   return {
     workspaceShellProps,
@@ -1549,5 +1622,6 @@ export function useAppShellController(): AppShellController {
     initGitRepoName,
     submitInitGitRepo,
     skipInitGitRepo,
+    onAgentGitAction: handleAgentGitAction,
   };
 }

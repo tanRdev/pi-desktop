@@ -97,7 +97,7 @@ export function GitStatusChip({ git, className }: GitStatusChipProps) {
           className,
         )}
       >
-        <ArrowUp className={cn(iconClass, "text-green-400/60")} />
+        <ArrowUp className={cn(iconClass, "text-[var(--color-accent)]/60")} />
       </span>
     );
   }

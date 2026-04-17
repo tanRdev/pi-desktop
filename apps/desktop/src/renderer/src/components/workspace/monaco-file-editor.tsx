@@ -4,46 +4,56 @@ import editorWorker from "monaco-editor/esm/vs/editor/editor.worker.js?worker";
 import htmlWorker from "monaco-editor/esm/vs/language/html/html.worker.js?worker";
 import jsonWorker from "monaco-editor/esm/vs/language/json/json.worker.js?worker";
 import tsWorker from "monaco-editor/esm/vs/language/typescript/ts.worker.js?worker";
+import * as React from "react";
 
-loader.config({ monaco });
+let monacoInitialized = false;
 
-Object.defineProperty(globalThis, "MonacoEnvironment", {
-  configurable: true,
-  value: {
-    getWorker(_: string, label: string) {
-      if (label === "json") {
-        return new jsonWorker();
-      }
+function initializeMonacoOnce() {
+  if (monacoInitialized) {
+    return;
+  }
+  monacoInitialized = true;
 
-      if (label === "typescript" || label === "javascript") {
-        return new tsWorker();
-      }
+  loader.config({ monaco });
 
-      if (label === "html" || label === "handlebars" || label === "razor") {
-        return new htmlWorker();
-      }
+  Object.defineProperty(globalThis, "MonacoEnvironment", {
+    configurable: true,
+    value: {
+      getWorker(_: string, label: string) {
+        if (label === "json") {
+          return new jsonWorker();
+        }
 
-      return new editorWorker();
+        if (label === "typescript" || label === "javascript") {
+          return new tsWorker();
+        }
+
+        if (label === "html" || label === "handlebars" || label === "razor") {
+          return new htmlWorker();
+        }
+
+        return new editorWorker();
+      },
     },
-  },
-});
+  });
 
-monaco.editor.defineTheme("pi-dark", {
-  base: "vs-dark",
-  inherit: true,
-  rules: [],
-  colors: {
-    "editor.background": "#0b0d10",
-    "editorLineNumber.foreground": "#46505c",
-    "editorLineNumber.activeForeground": "#c7d0da",
-    "editorCursor.foreground": "#f5f7fa",
-    "editor.selectionBackground": "#ffffff14",
-    "editor.inactiveSelectionBackground": "#ffffff0d",
-    "editor.lineHighlightBackground": "#ffffff08",
-    "editorIndentGuide.background1": "#ffffff12",
-    "editorIndentGuide.activeBackground1": "#ffffff26",
-  },
-});
+  monaco.editor.defineTheme("pi-dark", {
+    base: "vs-dark",
+    inherit: true,
+    rules: [],
+    colors: {
+      "editor.background": "#0b0d10",
+      "editorLineNumber.foreground": "#46505c",
+      "editorLineNumber.activeForeground": "#c7d0da",
+      "editorCursor.foreground": "#f5f7fa",
+      "editor.selectionBackground": "#ffffff14",
+      "editor.inactiveSelectionBackground": "#ffffff0d",
+      "editor.lineHighlightBackground": "#ffffff08",
+      "editorIndentGuide.background1": "#ffffff12",
+      "editorIndentGuide.activeBackground1": "#ffffff26",
+    },
+  });
+}
 
 export interface MonacoFileEditorProps {
   path: string;
@@ -62,6 +72,12 @@ export function MonacoFileEditor({
   onChange,
   onSave,
 }: MonacoFileEditorProps) {
+  // Idempotent; only performs work on the first MonacoFileEditor mount in the
+  // renderer session. Running here (not at module scope) keeps the Monaco
+  // runtime, worker registration, and theme definition out of the critical
+  // path for routes that never open the editor.
+  React.useMemo(() => initializeMonacoOnce(), []);
+
   return (
     <div className="h-full" data-testid="monaco-file-editor-shell">
       <Editor

@@ -13,7 +13,7 @@ export function WorkspaceSwitchLoader({
       data-testid="workspace-switch-loader"
       className={cn(
         "absolute inset-0 z-[100] flex items-center justify-center",
-        "bg-[#050505] text-white",
+        "bg-[var(--color-bg-primary)] text-white",
       )}
     >
       <div className="flex flex-col items-center gap-5 text-center">

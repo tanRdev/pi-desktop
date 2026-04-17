@@ -1,6 +1,10 @@
 import type { FileEntry } from "@pi-desktop/shared/models/fs";
+import type {
+  GitFileChangeStatus,
+  GitRepositoryStatus,
+} from "@pi-desktop/shared/models/git";
 import { Skeleton } from "boneyard-js/react";
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { ArrowClockwise } from "@/components/ui/icons";
 import { useFileTree } from "@/hooks/use-file-tree";
 import { cn } from "@/lib/utils";
@@ -13,6 +17,27 @@ interface FileTreePanelProps {
   onDeleteFile?: (path: string) => void;
   onRenameFile?: (oldPath: string, newPath: string) => void;
   onMoveFile?: (sourcePath: string, destinationPath: string) => void;
+  repositoryStatus?: GitRepositoryStatus | null;
+}
+
+function buildGitStatusMap(
+  repositoryStatus: GitRepositoryStatus | null | undefined,
+  workspacePath: string | null,
+): Map<string, GitFileChangeStatus> | null {
+  if (!repositoryStatus || !workspacePath) return null;
+  const root = repositoryStatus.repositoryPath || workspacePath;
+  const map = new Map<string, GitFileChangeStatus>();
+  // Unstaged takes precedence over staged for the displayed state; merge both.
+  const all = [
+    ...repositoryStatus.stagedChanges,
+    ...repositoryStatus.unstagedChanges,
+  ];
+  for (const change of all) {
+    const absolutePath = `${root}/${change.path}`;
+    // Unstaged should win if both exist — iterate staged first, then unstaged overwrites.
+    map.set(absolutePath, change.status);
+  }
+  return map.size > 0 ? map : null;
 }
 
 function FileTreeSkeleton() {
@@ -38,9 +63,15 @@ export function FileTreePanel({
   onDeleteFile,
   onRenameFile,
   onMoveFile,
+  repositoryStatus,
 }: FileTreePanelProps) {
   const { rootNodes, isRootLoading, expandedPaths, toggleExpand, refreshRoot } =
     useFileTree(workspacePath);
+
+  const gitStatusMap = useMemo(
+    () => buildGitStatusMap(repositoryStatus ?? null, workspacePath),
+    [repositoryStatus, workspacePath],
+  );
 
   const [contextMenu, setContextMenu] = useState<{
     x: number;
@@ -51,28 +82,38 @@ export function FileTreePanel({
   } | null>(null);
   const [renamingPath, setRenamingPath] = useState<string | null>(null);
 
-  function handleContextMenu(e: React.MouseEvent, entry: FileEntry) {
-    setContextMenu({
-      x: e.clientX,
-      y: e.clientY,
-      path: entry.path,
-      name: entry.name,
-      isDirectory: entry.type === "directory",
-    });
-  }
+  const handleContextMenu = useCallback(
+    (e: React.MouseEvent, entry: FileEntry) => {
+      setContextMenu({
+        x: e.clientX,
+        y: e.clientY,
+        path: entry.path,
+        name: entry.name,
+        isDirectory: entry.type === "directory",
+      });
+    },
+    [],
+  );
 
   function handleRename(path: string) {
     setRenamingPath(path);
     setContextMenu(null);
   }
 
-  function handleRenameSubmit(oldPath: string, newName: string) {
-    const lastSlash = oldPath.lastIndexOf("/");
-    const parentDir = lastSlash >= 0 ? oldPath.substring(0, lastSlash) : "";
-    const newPath = parentDir ? `${parentDir}/${newName}` : newName;
-    onRenameFile?.(oldPath, newPath);
+  const handleRenameSubmit = useCallback(
+    (oldPath: string, newName: string) => {
+      const lastSlash = oldPath.lastIndexOf("/");
+      const parentDir = lastSlash >= 0 ? oldPath.substring(0, lastSlash) : "";
+      const newPath = parentDir ? `${parentDir}/${newName}` : newName;
+      onRenameFile?.(oldPath, newPath);
+      setRenamingPath(null);
+    },
+    [onRenameFile],
+  );
+
+  const handleRenameCancel = useCallback(() => {
     setRenamingPath(null);
-  }
+  }, []);
 
   function handleDelete(path: string) {
     onDeleteFile?.(path);
@@ -127,9 +168,11 @@ export function FileTreePanel({
                   expandedPaths={expandedPaths}
                   isRenaming={renamingPath === node.entry.path}
                   onRenameSubmit={handleRenameSubmit}
-                  onRenameCancel={() => setRenamingPath(null)}
+                  onRenameCancel={handleRenameCancel}
                   onContextMenu={handleContextMenu}
                   renamingPath={renamingPath}
+                  gitStatus={gitStatusMap?.get(node.entry.path) ?? null}
+                  gitStatusMap={gitStatusMap}
                 />
               ))}
             </div>

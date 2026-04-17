@@ -12,6 +12,12 @@ export function useShellModel() {
     store.getState,
     store.getState,
   );
+  const shellModel = snapshot.shellModel;
+  const shellState = useSyncExternalStore(
+    shellModel.subscribe,
+    shellModel.getState,
+    shellModel.getState,
+  );
 
   useEffect(() => {
     void store.getState().initialize();
@@ -73,7 +79,7 @@ export function useShellModel() {
   }, [store]);
 
   return {
-    state: snapshot.shellState,
+    state: shellState,
     providerSnapshots: snapshot.providerSnapshots,
     settingsSnapshot: snapshot.settingsSnapshot,
     appPreferences: snapshot.appPreferences,

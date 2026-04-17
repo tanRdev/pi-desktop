@@ -1,4 +1,5 @@
 import { IPC_CHANNELS } from "@pi-desktop/shared";
+import { isPathWithinAny } from "../fs/path-guards";
 import type { GitWorktreeService } from "../git-worktree-service";
 import type { IpcRegistrar } from "../ipc-router";
 import { getStringArrayField, getStringField } from "./payload-parsers";
@@ -6,12 +7,26 @@ import { getStringArrayField, getStringField } from "./payload-parsers";
 interface RegisterGitHandlersDependencies {
   handle: IpcRegistrar["handle"];
   gitService: GitWorktreeService;
+  getAllowedRepositoryRoots: () => readonly string[];
 }
 
-function requireRepositoryPath(payload: unknown): string {
+function requireAllowedRepositoryPath(
+  payload: unknown,
+  getAllowedRepositoryRoots: () => readonly string[],
+): string {
   const repositoryPath = getStringField(payload, "repositoryPath");
   if (!repositoryPath) {
     throw new Error("Git payload must include repositoryPath");
+  }
+
+  const allowedRoots = getAllowedRepositoryRoots();
+  if (
+    allowedRoots.length === 0 ||
+    !isPathWithinAny(allowedRoots, repositoryPath)
+  ) {
+    throw new Error(
+      `repositoryPath is not an allowed repository: ${repositoryPath}`,
+    );
   }
 
   return repositoryPath;
@@ -35,59 +50,74 @@ function requireFilePaths(payload: unknown): string[] {
   return filePaths;
 }
 
+function requireStaged(payload: unknown): boolean {
+  const staged = (payload as Record<string, unknown>)?.staged;
+  return typeof staged === "boolean" ? staged : false;
+}
+
 export function registerGitHandlers({
   handle,
   gitService,
+  getAllowedRepositoryRoots,
 }: RegisterGitHandlersDependencies): void {
   handle(IPC_CHANNELS.git.getRepositoryStatus, async (_event, payload) =>
-    gitService.getRepositoryStatus(requireRepositoryPath(payload)),
+    gitService.getRepositoryStatus(
+      requireAllowedRepositoryPath(payload, getAllowedRepositoryRoots),
+    ),
   );
 
   handle(IPC_CHANNELS.git.isRepository, async (_event, payload) =>
-    gitService.isRepository(requireRepositoryPath(payload)),
+    gitService.isRepository(
+      requireAllowedRepositoryPath(payload, getAllowedRepositoryRoots),
+    ),
   );
 
   handle(IPC_CHANNELS.git.init, async (_event, payload) => {
-    gitService.init(requireRepositoryPath(payload));
+    gitService.init(
+      requireAllowedRepositoryPath(payload, getAllowedRepositoryRoots),
+    );
   });
 
   handle(IPC_CHANNELS.git.stageFile, async (_event, payload) =>
     gitService.stageFile(
-      requireRepositoryPath(payload),
+      requireAllowedRepositoryPath(payload, getAllowedRepositoryRoots),
       requireFilePath(payload),
     ),
   );
 
   handle(IPC_CHANNELS.git.stageFiles, async (_event, payload) =>
     gitService.stageFiles(
-      requireRepositoryPath(payload),
+      requireAllowedRepositoryPath(payload, getAllowedRepositoryRoots),
       requireFilePaths(payload),
     ),
   );
 
   handle(IPC_CHANNELS.git.unstageFile, async (_event, payload) =>
     gitService.unstageFile(
-      requireRepositoryPath(payload),
+      requireAllowedRepositoryPath(payload, getAllowedRepositoryRoots),
       requireFilePath(payload),
     ),
   );
 
   handle(IPC_CHANNELS.git.unstageFiles, async (_event, payload) =>
     gitService.unstageFiles(
-      requireRepositoryPath(payload),
+      requireAllowedRepositoryPath(payload, getAllowedRepositoryRoots),
       requireFilePaths(payload),
     ),
   );
 
   handle(IPC_CHANNELS.git.discardFile, async (_event, payload) =>
     gitService.discardFile(
-      requireRepositoryPath(payload),
+      requireAllowedRepositoryPath(payload, getAllowedRepositoryRoots),
       requireFilePath(payload),
     ),
   );
 
   handle(IPC_CHANNELS.git.commit, async (_event, payload) => {
-    const repositoryPath = requireRepositoryPath(payload);
+    const repositoryPath = requireAllowedRepositoryPath(
+      payload,
+      getAllowedRepositoryRoots,
+    );
     const message = getStringField(payload, "message");
     if (!message) {
       throw new Error("Git commit payload must include message");
@@ -97,10 +127,28 @@ export function registerGitHandlers({
   });
 
   handle(IPC_CHANNELS.git.pull, async (_event, payload) =>
-    gitService.pull(requireRepositoryPath(payload)),
+    gitService.pull(
+      requireAllowedRepositoryPath(payload, getAllowedRepositoryRoots),
+    ),
   );
 
   handle(IPC_CHANNELS.git.push, async (_event, payload) =>
-    gitService.push(requireRepositoryPath(payload)),
+    gitService.push(
+      requireAllowedRepositoryPath(payload, getAllowedRepositoryRoots),
+    ),
+  );
+
+  handle(IPC_CHANNELS.git.fetch, async (_event, payload) =>
+    gitService.fetch(
+      requireAllowedRepositoryPath(payload, getAllowedRepositoryRoots),
+    ),
+  );
+
+  handle(IPC_CHANNELS.git.diffFile, async (_event, payload) =>
+    gitService.diffFile(
+      requireAllowedRepositoryPath(payload, getAllowedRepositoryRoots),
+      requireFilePath(payload),
+      requireStaged(payload),
+    ),
   );
 }

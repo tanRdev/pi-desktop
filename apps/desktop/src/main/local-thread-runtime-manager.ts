@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import path from "node:path";
+import { terminateChildWithEscalation } from "./process-lifecycle";
 import { reconcileThreadRuntimeStates } from "./runtime-reconcile";
 import type {
   ThreadRuntimeDescriptor,
@@ -150,7 +151,7 @@ export class LocalThreadRuntimeManager implements ThreadRuntimeManager {
     }
 
     if (isChildRunning(runtime.child)) {
-      runtime.child.kill();
+      await terminateChildWithEscalation(runtime.child);
     }
 
     runtime.descriptor.status = "exited";

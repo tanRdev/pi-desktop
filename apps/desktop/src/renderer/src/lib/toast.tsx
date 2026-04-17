@@ -4,7 +4,7 @@ import { toast as sonnerToast } from "sonner";
 // Matches the Pi Desktop design system
 
 const TOAST_STYLE = {
-  background: "#141414",
+  background: "var(--color-bg-secondary)",
   border: "1px solid rgba(255, 255, 255, 0.06)",
   borderRadius: "6px",
   color: "rgba(255, 255, 255, 0.85)",
@@ -25,16 +25,16 @@ function show(message: string, type: ToastType, options: ToastOptions = {}) {
   const { description, duration = 3000 } = options;
 
   const iconColor = {
-    success: "#22c55e",
-    error: "#ef4444",
-    info: "#3b82f6",
-    warning: "#f59e0b",
+    success: "var(--color-success)",
+    error: "var(--color-error)",
+    info: "var(--color-info)",
+    warning: "var(--color-warning)",
   }[type];
 
   const content = (
     <div className="flex items-start gap-3">
       <span
-        className="mt-[1px] block size-2 rounded-full shrink-0"
+        className="mt-[1px] block size-2 shrink-0"
         style={{ backgroundColor: iconColor }}
       />
       <div className="flex flex-col gap-0.5">

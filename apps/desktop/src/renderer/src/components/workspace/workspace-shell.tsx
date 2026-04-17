@@ -6,27 +6,25 @@ import type {
   ShellGitSnapshot,
   SlashSuggestion,
 } from "@pi-desktop/shared";
-import type { AgentLiveFeed } from "@pi-desktop/shell-model";
 import * as React from "react";
+
+import { X } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
+import { Terminal } from "../ui/terminal";
 import { DEFAULT_UNTITLED_THREAD_TITLE } from "../../../../thread-title-defaults";
 import {
-  getMainPaneState,
   type ContextSurfaceKey,
   type ContextWindow,
+  getMainPaneState,
 } from "../../lib/workspace-pane-state";
 import { uiInteractionStore } from "../../stores/ui-interaction-store";
 import { CenterFileViewer } from "./center-file-viewer";
 import { ChatThreadPanel } from "./chat-thread-panel";
-import { GitPanel } from "./git-panel";
-import { RightPanelTabs } from "./right-panel-tabs";
-import { LeftRail, SIDEBAR_WIDTH } from "./left-rail";
-import { PromptDock } from "./prompt-dock";
-import { ThreadTabs } from "./thread-tabs";
-import { TitleBar } from "./title-bar";
 import { FileTreePanel } from "./file-tree-panel";
-import { WorkspaceActivityPanel } from "./workspace-activity-panel";
-import { WorkspaceSurfacePanel } from "./workspace-surface-panel";
+import { GitPanel } from "./git-panel";
+import { LeftSidebar, SIDEBAR_WIDTH } from "./left-sidebar";
+import { PromptDock } from "./prompt-dock";
+import { TitleBar } from "./title-bar";
 
 export interface WorkspaceShellProps {
   platform: string | null;
@@ -48,18 +46,19 @@ export interface WorkspaceShellProps {
   isSwitchingModel: boolean;
   isPromptVisible: boolean;
   isPromptExecuting: boolean;
+  threadLastViewedAt: Record<string, number>;
   activeGitRepositoryStatus: GitRepositoryStatus | null;
   shellGit: ShellGitSnapshot | null;
+  appVersion?: string;
   gitCommitMessage: string;
   threadMessages: import("@pi-desktop/shared").AgentMessageSnapshot[];
   threadLastError: string | null;
-  liveFeed: AgentLiveFeed;
   contextWindows: ContextWindow[];
   selectedContextSurface: ContextSurfaceKey | null;
-  leftRailWidth: number;
+  leftSidebarWidth: number;
   onSelectContextSurface: (surfaceKey: ContextSurfaceKey) => void;
   onCloseFileWindow: (windowId: string) => void;
-  onLeftRailResize: (width: number) => void;
+  onLeftSidebarResize: (width: number) => void;
   onModelMenuOpenChange: (open: boolean) => void | Promise<void>;
   onAddRepository: () => void | Promise<void>;
   onSelectRepository: (repositoryId: string) => void | Promise<void>;
@@ -74,7 +73,8 @@ export interface WorkspaceShellProps {
   onCloseThread: (threadId: string) => void | Promise<void>;
   onDeleteThread?: (threadId: string) => void | Promise<void>;
   onOpenGit: () => void;
-  onOpenTerminal: () => void;
+  onToggleTerminal: () => void;
+  isTerminalVisible: boolean;
   onGitCommitMessageChange: (value: string) => void;
   onRefreshGit: () => void | Promise<void>;
   onCommitGit: () => void | Promise<void>;
@@ -116,9 +116,10 @@ export interface WorkspaceShellProps {
   onConnectProvider?: () => void;
   favoriteModels?: string[];
   onToggleFavorite?: (modelValue: string) => void;
+  onAgentGitAction?: (prompt: string) => void;
 }
 
-export function WorkspaceShell({
+function WorkspaceShellImpl({
   platform,
   repositories,
   activeRepository,
@@ -138,18 +139,19 @@ export function WorkspaceShell({
   isSwitchingModel,
   isPromptVisible,
   isPromptExecuting,
+  threadLastViewedAt,
   activeGitRepositoryStatus,
   shellGit,
+  appVersion,
   gitCommitMessage,
   threadMessages,
   threadLastError,
-  liveFeed,
   contextWindows,
   selectedContextSurface,
-  leftRailWidth,
+  leftSidebarWidth,
   onSelectContextSurface: _onSelectContextSurface,
   onCloseFileWindow,
-  onLeftRailResize,
+  onLeftSidebarResize,
   onModelMenuOpenChange,
   onAddRepository,
   onSelectRepository,
@@ -164,7 +166,8 @@ export function WorkspaceShell({
   onCloseThread,
   onDeleteThread,
   onOpenGit: _onOpenGit,
-  onOpenTerminal,
+  onToggleTerminal,
+  isTerminalVisible,
   onGitCommitMessageChange,
   onRefreshGit,
   onCommitGit,
@@ -196,11 +199,19 @@ export function WorkspaceShell({
   onFileTreeDeleteFile,
   onFileTreeRenameFile,
   onFileTreeMoveFile,
+  onAgentGitAction,
 }: WorkspaceShellProps) {
-  const [isLeftRailVisible, setIsLeftRailVisible] = React.useState(true);
-  const [isRightPanelVisible, setIsRightPanelVisible] = React.useState(true);
-  const [rightPanelTab, setRightPanelTab] = React.useState<"git" | "files">(
-    "git",
+  const hasChangesToCommit =
+    (activeGitRepositoryStatus?.stagedChanges.length ?? 0) +
+      (activeGitRepositoryStatus?.unstagedChanges.length ?? 0) >
+    0;
+  const hasCommitsToPush = (shellGit?.ahead ?? 0) > 0;
+
+  const [activeSidebarSection, setActiveSidebarSection] = React.useState<
+    "workspaces" | "files"
+  >("workspaces");
+  const lastExpandedSidebarWidthRef = React.useRef(
+    leftSidebarWidth > 0 ? leftSidebarWidth : SIDEBAR_WIDTH,
   );
 
   React.useEffect(() => {
@@ -231,10 +242,15 @@ export function WorkspaceShell({
     activeRepository?.worktrees.find(
       (worktree) => worktree.id === activeWorktreeId,
     ) ?? null;
-  const activeWorktreeLabel = activeWorktree?.label ?? null;
 
   const hasActiveThread = activeThreadId !== null;
-  const leftRailTargetWidth = Math.max(leftRailWidth, SIDEBAR_WIDTH);
+
+  React.useEffect(() => {
+    if (leftSidebarWidth > 0) {
+      lastExpandedSidebarWidthRef.current = leftSidebarWidth;
+    }
+  }, [leftSidebarWidth]);
+
   const mainPaneState = React.useMemo(
     () =>
       getMainPaneState({
@@ -260,24 +276,7 @@ export function WorkspaceShell({
           ) ?? null),
     [mainPaneState.selectedFileWindowId, openFileWindows],
   );
-  const sideContextWindows = React.useMemo(
-    () =>
-      contextWindows.filter(
-        (
-          window,
-        ): window is Extract<ContextWindow, { kind: "terminal" | "git" }> =>
-          window.kind === "terminal" || window.kind === "git",
-      ),
-    [contextWindows],
-  );
-  const isTerminalActive =
-    mainPaneState.sideSurfaceKey !== null &&
-    mainPaneState.sideSurfaceKey !== "activity" &&
-    sideContextWindows.some(
-      (window) =>
-        window.id === mainPaneState.sideSurfaceKey &&
-        window.kind === "terminal",
-    );
+
   const gitPanel = (
     <GitPanel
       projectName={projectName}
@@ -303,61 +302,57 @@ export function WorkspaceShell({
     />
   );
 
+  const filesPanel = (
+    <FileTreePanel
+      workspacePath={workspacePath}
+      onFileSelect={onFileTreeFileSelect}
+      onDeleteFile={onFileTreeDeleteFile}
+      onRenameFile={onFileTreeRenameFile}
+      onMoveFile={onFileTreeMoveFile}
+      repositoryStatus={activeGitRepositoryStatus}
+    />
+  );
+
+  const selectSidebarSection = React.useCallback(
+    (section: "workspaces" | "files") => {
+      setActiveSidebarSection(section);
+
+      if (leftSidebarWidth <= 0) {
+        onLeftSidebarResize(lastExpandedSidebarWidthRef.current);
+      }
+    },
+    [leftSidebarWidth, onLeftSidebarResize],
+  );
+
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden select-none">
-      {/* Item 2: TitleBar removed — drag region is in LeftRail */}
-
-      {/* Item 22: Main Layout — always-visible three-column layout */}
       <div className="relative flex min-h-0 flex-1 select-none">
-        {!isLeftRailVisible ? (
-          <div
-            aria-hidden="true"
-            data-no-drag="true"
-            onMouseEnter={() => setIsLeftRailVisible(true)}
-            className="absolute inset-y-0 left-0 z-30 w-2"
-          />
-        ) : null}
+        <LeftSidebar
+          platform={platform}
+          appVersion={appVersion}
+          repositories={repositories}
+          activeRepositoryId={activeRepositoryId}
+          activeWorktreeId={activeWorktreeId}
+          activeThreadId={activeThreadId}
+          activeTabOverride={activeSidebarSection}
+          isPromptExecuting={isPromptExecuting}
+          threadLastViewedAt={threadLastViewedAt}
+          width={leftSidebarWidth}
+          onResize={onLeftSidebarResize}
+          onSelectRepository={onSelectRepository}
+          onRemoveRepository={onRemoveRepository}
+          onCopyRepositoryPath={onCopyRepositoryPath}
+          onOpenInFinder={onOpenInFinder}
+          onCreateSession={onCreateSession}
+          onSelectWorktree={onSelectWorktree}
+          onSelectThread={onSelectThread}
+          onDeleteWorktree={onDeleteWorktree}
+          onDeleteThread={onDeleteThread}
+          onAddRepository={onAddRepository}
+          gitPanel={gitPanel}
+          filesPanel={filesPanel}
+        />
 
-        {/* Item 3: Sidebar width 220, resize 160–320 */}
-        <div
-          className={cn(
-            "min-h-0 shrink-0 overflow-hidden",
-            "transition-all duration-[var(--duration-normal)] ease-[var(--ease-out)]",
-            isLeftRailVisible ? "opacity-100" : "pointer-events-none opacity-0",
-          )}
-          style={{ width: isLeftRailVisible ? leftRailTargetWidth : 0 }}
-        >
-          <div
-            className={cn(
-              "h-full transition-opacity duration-[var(--duration-normal)] ease-[var(--ease-out)]",
-              isLeftRailVisible ? "opacity-100" : "opacity-0",
-            )}
-            style={{ width: leftRailTargetWidth }}
-          >
-            <LeftRail
-              repositories={repositories}
-              activeRepositoryId={activeRepositoryId}
-              activeWorktreeId={activeWorktreeId}
-              activeThreadId={activeThreadId}
-              isPromptExecuting={isPromptExecuting}
-              width={leftRailTargetWidth}
-              onResize={onLeftRailResize}
-              onSelectRepository={onSelectRepository}
-              onRemoveRepository={onRemoveRepository}
-              onCopyRepositoryPath={onCopyRepositoryPath}
-              onOpenInFinder={onOpenInFinder}
-              onCreateSession={onCreateSession}
-              onSelectWorktree={onSelectWorktree}
-              onSelectThread={onSelectThread}
-              onDeleteWorktree={onDeleteWorktree}
-              onDeleteThread={onDeleteThread}
-              onAddRepository={onAddRepository}
-              onToggleVisible={() => setIsLeftRailVisible(false)}
-            />
-          </div>
-        </div>
-
-        {/* Item 18: Main area bg var(--color-bg-secondary) */}
         <main
           data-testid="chat-first-layout"
           className={cn(
@@ -367,48 +362,22 @@ export function WorkspaceShell({
         >
           <TitleBar
             platform={platform}
-            isTerminalActive={isTerminalActive}
-            isSidePanelVisible={isRightPanelVisible}
-            onOpenTerminal={onOpenTerminal}
-            onToggleSidePanel={() =>
-              setIsRightPanelVisible(!isRightPanelVisible)
-            }
+            onAgentGitAction={onAgentGitAction}
+            hasActiveThread={hasActiveThread}
+            hasChangesToCommit={hasChangesToCommit}
+            hasCommitsToPush={hasCommitsToPush}
+            isPromptExecuting={isPromptExecuting}
+            onToggleTerminal={onToggleTerminal}
+            isTerminalVisible={isTerminalVisible}
+            onAddWorkspace={onAddRepository}
           />
           <div className="flex min-h-0 flex-1 overflow-hidden select-none">
-            {/* Chat panel - takes remaining space */}
             <div
               data-testid="workspace-chat-panel"
               className={cn(
                 "relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden select-none",
-                "border-r border-white/[0.06]",
               )}
             >
-              {activeWorktree ? (
-                <ThreadTabs
-                  threads={activeWorktree.threads}
-                  fileTabs={openFileWindows}
-                  activeThreadId={activeThreadId}
-                  activeFileId={mainPaneState.selectedFileWindowId}
-                  onSelectThread={(threadId) => {
-                    void onSelectThread(threadId);
-                  }}
-                  onCloseThread={(threadId) => {
-                    void onCloseThread(threadId);
-                  }}
-                  onSelectFile={(windowId) => {
-                    _onSelectContextSurface(windowId);
-                  }}
-                  onCloseFile={(windowId) => {
-                    onCloseFileWindow(windowId);
-                  }}
-                  onCreateThread={() => {
-                    if (!activeWorktreeId) {
-                      return;
-                    }
-                    void onCreateThread(activeWorktreeId);
-                  }}
-                />
-              ) : null}
               <div className="relative min-h-0 flex-1 overflow-hidden">
                 {selectedFileWindow ? (
                   <CenterFileViewer
@@ -421,15 +390,20 @@ export function WorkspaceShell({
                     onFileSave={onFileSave}
                   />
                 ) : hasActiveThread ? (
-                  <ChatThreadPanel
-                    threadTitle={
-                      activeThreadTitle ?? DEFAULT_UNTITLED_THREAD_TITLE
-                    }
-                    messages={threadMessages}
-                    isStreaming={isPromptExecuting}
-                    lastError={threadLastError}
-                    className="h-full"
-                  />
+                  <div
+                    key={activeThreadId ?? "thread"}
+                    className="tab-content-enter h-full"
+                  >
+                    <ChatThreadPanel
+                      threadTitle={
+                        activeThreadTitle ?? DEFAULT_UNTITLED_THREAD_TITLE
+                      }
+                      messages={threadMessages}
+                      isStreaming={isPromptExecuting}
+                      lastError={threadLastError}
+                      className="h-full"
+                    />
+                  </div>
                 ) : null}
               </div>
 
@@ -466,68 +440,40 @@ export function WorkspaceShell({
                 ) : null}
               </div>
             </div>
-
-            {/* Right panel - 3 column design with animation */}
-            <div
-              data-testid="workspace-side-panel"
-              className={cn(
-                "min-h-0 shrink-0 overflow-hidden border-l border-white/[0.06] bg-[var(--color-bg-primary)]",
-                "transition-[width,opacity] duration-[var(--duration-normal)] ease-[var(--ease-out)]",
-                isRightPanelVisible
-                  ? "w-[300px] xl:w-[400px] opacity-100"
-                  : "w-0 opacity-0",
-              )}
-            >
-              <div
-                className={cn(
-                  "flex h-full min-w-[300px] flex-col xl:min-w-[400px]",
-                  "transition-opacity duration-[var(--duration-normal)] ease-[var(--ease-out)]",
-                  isRightPanelVisible ? "opacity-100" : "opacity-0",
-                )}
-              >
-                {mainPaneState.sideSurfaceKey === "activity" ? (
-                  <WorkspaceActivityPanel
-                    threadTitle={activeThreadTitle}
-                    worktreeLabel={activeWorktreeLabel}
-                    displayAgentStatus={displayAgentStatus}
-                    liveFeed={liveFeed}
-                    className="h-full"
-                  />
-                ) : mainPaneState.sideSurfaceKey !== null ? (
-                  <WorkspaceSurfacePanel
-                    activeWorktreeId={activeWorktreeId}
-                    selectedSurfaceKey={mainPaneState.sideSurfaceKey}
-                    windows={sideContextWindows}
-                    onFileContentChange={onFileContentChange}
-                    onFileSave={onFileSave}
-                    activityContent={gitPanel}
-                  />
-                ) : (
-                  <>
-                    <RightPanelTabs
-                      activeTab={rightPanelTab}
-                      onTabChange={setRightPanelTab}
-                    />
-                    <div className="min-h-0 flex-1 overflow-y-auto">
-                      {rightPanelTab === "git" ? (
-                        gitPanel
-                      ) : (
-                        <FileTreePanel
-                          workspacePath={workspacePath}
-                          onFileSelect={onFileTreeFileSelect}
-                          onDeleteFile={onFileTreeDeleteFile}
-                          onRenameFile={onFileTreeRenameFile}
-                          onMoveFile={onFileTreeMoveFile}
-                        />
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
           </div>
         </main>
+
+        {isTerminalVisible && (
+          <aside
+            className={cn(
+              "flex h-full w-[420px] shrink-0 flex-col border-l border-white/[0.06] bg-[var(--color-bg-primary)]",
+              "animate-in slide-in-from-right duration-[var(--duration-normal)] [transition-timing-function:var(--ease-emphasized-decel)]",
+            )}
+          >
+            <div className="flex h-11 shrink-0 items-center justify-between border-b border-white/[0.06] px-3">
+              <span className="text-[10px] uppercase tracking-wider text-white/40 font-medium">
+                Terminal
+              </span>
+              <button
+                type="button"
+                onClick={onToggleTerminal}
+                className="flex size-6 items-center justify-center text-white/30 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/70"
+                aria-label="Close terminal"
+              >
+                <X className="size-3.5" />
+              </button>
+            </div>
+            <div className="min-h-0 flex-1">
+              <Terminal
+                id="sidebar-terminal"
+                cwd={workspacePath ?? undefined}
+              />
+            </div>
+          </aside>
+        )}
       </div>
     </div>
   );
 }
+
+export const WorkspaceShell = React.memo(WorkspaceShellImpl);

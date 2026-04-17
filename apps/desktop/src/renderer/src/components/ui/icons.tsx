@@ -14,8 +14,8 @@ import {
   ArrowUp,
   ArrowUpRight,
   At,
-  Brain,
   BracketsAngle,
+  Brain,
   Calendar,
   CaretDown,
   CaretLeft,
@@ -59,6 +59,7 @@ import {
   GitMerge,
   GitPullRequest,
   Globe,
+  type IconProps,
   Image,
   Info,
   Keyboard,
@@ -74,13 +75,12 @@ import {
   NavigationArrow,
   Package,
   PaintBrush,
-  SquaresFour,
   Paperclip,
   PencilSimple,
   Phone,
+  PlayCircle,
   Plus,
   PlusCircle,
-  PlayCircle,
   Pulse,
   Queue,
   Robot,
@@ -90,6 +90,7 @@ import {
   Sparkle,
   Spinner,
   Square,
+  SquaresFour,
   Stack,
   Star,
   Stop,
@@ -110,7 +111,6 @@ import {
   Wrench,
   X,
   XCircle,
-  type IconProps,
 } from "@phosphor-icons/react";
 
 // ============================================
@@ -277,7 +277,7 @@ export {
 export const ICON_SIZE_XS = "size-3";
 
 /** 14px - Small: buttons, navigation items, chips */
-export const ICON_SIZE_SM = "size-5";
+export const ICON_SIZE_SM = "size-3.5";
 
 /** 20px - Medium: standard UI elements, toolbars (default per cheatsheet) */
 export const ICON_SIZE_MD = "size-5";

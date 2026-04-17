@@ -58,7 +58,6 @@ function getStoredAiPreferences(
 
 export interface AppShellStoreState {
   shellModel: ReturnType<typeof createShellModel>;
-  shellState: ShellModelState;
   providerSnapshots: ProviderSnapshot[];
   settingsSnapshot: SettingsSnapshot;
   appPreferences: AppPreferences;
@@ -184,7 +183,6 @@ export function createAppShellStore(api: PiDesktopApi) {
 
   const store = createStore<AppShellStoreState>()((set, get) => ({
     shellModel,
-    shellState: shellModel.getState(),
     providerSnapshots: [],
     settingsSnapshot: {},
     appPreferences: {},
@@ -192,7 +190,7 @@ export function createAppShellStore(api: PiDesktopApi) {
     isSwitchingModel: false,
     async initialize() {
       if (!initializePromise) {
-        initializePromise = (async () => {
+        const pending = (async () => {
           await shellModel.load();
           let [providerSnapshots, settingsSnapshot, rawAppPreferences] =
             await Promise.all([
@@ -238,10 +236,22 @@ export function createAppShellStore(api: PiDesktopApi) {
             providerSnapshots,
             settingsSnapshot,
             appPreferences: finalPreferences,
-            shellState: shellModel.getState(),
             isShellReady: true,
           });
         })();
+
+        // Cache the in-flight promise so concurrent callers share it,
+        // but reset the cache on failure so a later `initialize()` call
+        // can retry. Leaving the rejected promise in place would cause
+        // every subsequent `await initialize()` to re-throw the same
+        // error and deadlock the app-shell startup sequence.
+        const wrapped: Promise<void> = pending.catch((error) => {
+          if (initializePromise === wrapped) {
+            initializePromise = null;
+          }
+          throw error;
+        });
+        initializePromise = wrapped;
       }
 
       await initializePromise;
@@ -249,26 +259,20 @@ export function createAppShellStore(api: PiDesktopApi) {
     async reload() {
       await shellModel.load();
       await refreshRuntimeMetadata();
-      set({
-        shellState: shellModel.getState(),
-      });
     },
     async sendPrompt() {
       await shellModel.sendPrompt();
-      set({ shellState: shellModel.getState() });
     },
     async cancelPrompt() {
       await shellModel.cancelPrompt();
-      set({ shellState: shellModel.getState() });
     },
     setDraft(draft) {
       shellModel.setDraft(draft);
-      set({ shellState: shellModel.getState() });
     },
     async switchModel(request) {
       if (
-        get().shellState.agent.status === "starting" ||
-        get().shellState.agent.status === "streaming"
+        get().shellModel.getState().agent.status === "starting" ||
+        get().shellModel.getState().agent.status === "streaming"
       ) {
         throw new Error("Cannot switch models while Pi is responding");
       }
@@ -344,8 +348,9 @@ export function createAppShellStore(api: PiDesktopApi) {
     },
   }));
 
+  let lastShellState = shellModel.getState();
   shellModel.subscribe((shellState) => {
-    const previousShellState = store.getState().shellState;
+    const previousShellState = lastShellState;
     const previousSelection = previousShellState.shell.catalog.selection;
     const nextSelection = shellState.shell.catalog.selection;
     const nextRuntimeContextKey = createRuntimeContextKey(shellState);
@@ -370,7 +375,7 @@ export function createAppShellStore(api: PiDesktopApi) {
     }
 
     lastRuntimeContextKey = nextRuntimeContextKey;
-    store.setState({ shellState });
+    lastShellState = shellState;
 
     if (shouldRefreshRuntimeMetadata) {
       pendingRuntimeMetadataRefresh = false;

@@ -2,9 +2,9 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import type { GitRepositoryStatus } from "../../../packages/shared/src";
 import { afterEach, describe, expect, it } from "vitest";
 import { GitWorktreeService } from "../../../apps/desktop/src/main/git-worktree-service";
+import type { GitRepositoryStatus } from "../../../packages/shared/src";
 
 const tempDirs: string[] = [];
 
@@ -299,5 +299,26 @@ describe("GitWorktreeService", () => {
         expect.objectContaining({ path: "feature-b.txt", status: "untracked" }),
       ]),
     );
+  });
+
+  it("refuses to discard paths that escape the repository root", () => {
+    const { repoRoot } = initRepository("traversal");
+    const outside = createTempDir("pi-desktop-outside-");
+    const victim = path.join(outside, "victim.txt");
+    fs.writeFileSync(victim, "should not be touched");
+
+    const service = new GitWorktreeService();
+
+    expect(() => service.discardFile(repoRoot, "../victim.txt")).toThrow(
+      /outside repository/i,
+    );
+    expect(() =>
+      service.discardFile(repoRoot, `${outside}/victim.txt`),
+    ).toThrow(/relative to the repository root/i);
+    expect(() => service.discardFile(repoRoot, "")).toThrow(
+      /non-empty string/i,
+    );
+    // File outside the repo must still exist untouched.
+    expect(fs.existsSync(victim)).toBe(true);
   });
 });

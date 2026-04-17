@@ -5,7 +5,7 @@ import path from "node:path";
 import { expect, test } from "@playwright/test";
 import {
   closeDesktopApp,
-  createThreadFromRail,
+  createThreadFromSidebar,
   launchDesktopApp,
 } from "./helpers/desktop-app";
 
@@ -25,7 +25,7 @@ async function waitForShell(page: import("@playwright/test").Page) {
     )
     .toBeGreaterThan(0);
   await expect(page.getByTestId("app-ready")).toBeVisible();
-  await expect(page.getByTestId("left-rail")).toBeVisible();
+  await expect(page.getByTestId("left-sidebar")).toBeVisible();
 }
 
 async function addAndSelectRepository(
@@ -104,14 +104,17 @@ test("creates a thread inline instead of opening a naming dialog", async () => {
   try {
     await waitForShell(page);
     await addAndSelectRepository(page, repositoryPath);
-    await expect(page.getByTestId("left-rail")).toContainText("EmptyProject", {
-      timeout: 15_000,
-    });
+    await expect(page.getByTestId("left-sidebar")).toContainText(
+      "EmptyProject",
+      {
+        timeout: 15_000,
+      },
+    );
     await expect(
       page.getByRole("dialog", { name: "Name your new thread" }),
     ).toHaveCount(0);
 
-    await createThreadFromRail(page);
+    await createThreadFromSidebar(page);
     await expect(page.getByTestId("thread-inline-input")).toHaveCount(0);
     await expect(page.getByTestId("thread-tabs")).toBeVisible({
       timeout: 15_000,
@@ -178,7 +181,7 @@ test("opening a plain folder from the workspace button makes it the active proje
         gitStatus: "not_repo",
       });
 
-    await expect(page.getByTestId("left-rail")).toContainText(
+    await expect(page.getByTestId("left-sidebar")).toContainText(
       "PlainWorkspace",
       {
         timeout: 15_000,

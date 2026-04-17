@@ -6,25 +6,96 @@ import {
 } from "@pi-desktop/ui";
 import { Skeleton } from "boneyard-js/react";
 import * as React from "react";
+import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import type { ActivityIndicatorProps } from "../ui/activity-indicator";
-import {
-  ActivityIndicator,
-  StreamingIndicator,
-} from "../ui/activity-indicator";
+import { StreamingIndicator } from "../ui/activity-indicator";
 import { EnhancedMessage } from "../ui/enhanced-message";
-import type { FeedbackValue } from "../ui/feedback-bar";
 import { ScrollButton } from "../ui/scroll-button";
 import { SystemMessage } from "../ui/system-message";
-import { Tool } from "../ui/tool";
+import { Tool, type ToolPart } from "@/components/ui/tool";
+import { FileChangeSummary } from "./chat/file-change-summary";
+import { ResponseDivider } from "./chat/response-divider";
 
 type ChatMessageRowProps = {
   message: AgentMessageSnapshot;
   index: number;
-  feedback: FeedbackValue | null;
-  onFeedbackChange: (messageId: string, value: FeedbackValue) => void;
   onCopyMessage: (text: string) => void;
+  userTimestamp?: number;
 };
+
+interface ChatTurn {
+  id: string;
+  userMessage: AgentMessageSnapshot | null;
+  messages: AgentMessageSnapshot[];
+  lastAssistantTimestamp: number | null;
+  isStreaming: boolean;
+}
+
+function buildTurns(messages: AgentMessageSnapshot[]): ChatTurn[] {
+  const turns: ChatTurn[] = [];
+  let current: ChatTurn | null = null;
+
+  for (const m of messages) {
+    if (m.role === "user") {
+      if (current) turns.push(current);
+      current = {
+        id: m.id,
+        userMessage: m,
+        messages: [],
+        lastAssistantTimestamp: null,
+        isStreaming: false,
+      };
+      continue;
+    }
+
+    if (!current) {
+      current = {
+        id: `pre-turn-${m.id}`,
+        userMessage: null,
+        messages: [],
+        lastAssistantTimestamp: null,
+        isStreaming: false,
+      };
+    }
+
+    current.messages.push(m);
+    if (m.status === "streaming") {
+      current.isStreaming = true;
+    } else if (m.role === "assistant") {
+      current.lastAssistantTimestamp = m.timestamp;
+    }
+  }
+  if (current) turns.push(current);
+  return turns;
+}
+
+const FILE_MUTATION_PREFIXES = ["write", "edit", "create", "delete"];
+
+function isFileMutationTool(toolMsg: AgentMessageSnapshot): boolean {
+  const match = /^tool:([^:]+):/.exec(toolMsg.id);
+  const name = (match?.[1] ?? "").toLowerCase();
+  if (!name) return false;
+  if (FILE_MUTATION_PREFIXES.some((p) => name.startsWith(p))) return true;
+  return name.includes("file");
+}
+
+function extractFilePath(toolMsg: AgentMessageSnapshot): string | null {
+  // id format: tool:<name>:<rest>
+  const rest = toolMsg.id.split(":").slice(2).join(":");
+  if (!rest) return null;
+  // Heuristic: look for something that looks like a path.
+  const pathMatch = rest.match(/([\w./\-@]+\.[a-zA-Z0-9]+)/);
+  if (pathMatch?.[1]) return pathMatch[1];
+  return null;
+}
+
+const CHAT_SUGGESTIONS: ReadonlyArray<string> = [
+  "Explain this repo",
+  "What changed recently?",
+  "Add a feature",
+  "Find a bug",
+];
 
 type ToolState = "input-streaming" | "output-available" | "output-error";
 
@@ -39,140 +110,66 @@ function getToolState(message: AgentMessageSnapshot): ToolState {
   }
 }
 
-function buildToolPart(message: AgentMessageSnapshot) {
+function buildToolPart(message: AgentMessageSnapshot): ToolPart {
   const toolNameMatch = /^tool:([^:]+):/.exec(message.id);
+  const hasContent = message.text && message.text.trim().length > 0;
 
   return {
     type: toolNameMatch?.[1] ?? "workspace.tool",
     state: getToolState(message),
-    output: { transcript: message.text || "No tool output yet." },
+    output: hasContent ? { transcript: message.text } : undefined,
     errorText: message.status === "error" ? message.text : undefined,
-  } as const;
-}
-
-function extractActivitiesFromMessage(message: AgentMessageSnapshot): Array<{
-  id: string;
-  type: ActivityIndicatorProps["type"];
-  label: string;
-  status: "pending" | "running" | "complete" | "error";
-}> {
-  const activities: Array<{
-    id: string;
-    type: ActivityIndicatorProps["type"];
-    label: string;
-    status: "pending" | "running" | "complete" | "error";
-  }> = [];
-
-  if (message.role === "tool") {
-    const toolNameMatch = /^tool:([^:]+):/.exec(message.id);
-    const toolName = toolNameMatch?.[1] ?? "tool";
-    activities.push({
-      id: `tool-${message.id}`,
-      type: "tool",
-      label: toolName,
-      status:
-        message.status === "streaming"
-          ? "running"
-          : message.status === "error"
-            ? "error"
-            : "complete",
-    });
-  }
-
-  if (
-    message.text?.includes("search") ||
-    message.text?.includes("Search") ||
-    message.id.includes("search")
-  ) {
-    activities.push({
-      id: `search-${message.id}`,
-      type: "search",
-      label: "Search",
-      status: message.status === "streaming" ? "running" : "complete",
-    });
-  }
-
-  if (
-    message.text?.includes("http") ||
-    message.text?.includes("url") ||
-    message.text?.includes("fetch")
-  ) {
-    activities.push({
-      id: `web-${message.id}`,
-      type: "web",
-      label: "Web",
-      status: message.status === "streaming" ? "running" : "complete",
-    });
-  }
-
-  if (
-    message.text?.includes("```") ||
-    message.text?.includes("code") ||
-    message.id.includes("code")
-  ) {
-    activities.push({
-      id: `code-${message.id}`,
-      type: "code",
-      label: "Code",
-      status: message.status === "streaming" ? "running" : "complete",
-    });
-  }
-
-  return activities;
-}
-
-function renderSlashCommandPart(part: string, index: number) {
-  if (part.startsWith("/")) {
-    return (
-      <span key={`${part}-${index}`} className="text-amber-400/90 font-mono">
-        {part}
-      </span>
-    );
-  }
-
-  return <React.Fragment key={`${part}-${index}`}>{part}</React.Fragment>;
+  };
 }
 
 interface ChatMessageBodyProps {
   message: AgentMessageSnapshot;
-  feedback: FeedbackValue | null;
-  onFeedbackChange: (value: FeedbackValue) => void;
   onCopy: () => void;
   index: number;
+  userTimestamp?: number;
 }
 
 function ChatMessageBody({
   message,
-  feedback,
-  onFeedbackChange,
   onCopy,
   index,
+  userTimestamp,
 }: ChatMessageBodyProps) {
-  const activities = extractActivitiesFromMessage(message);
-
   switch (message.role) {
     case "system":
       return (
-        <SystemMessage
-          tone={message.status === "error" ? "error" : "info"}
-          title="System"
-        >
-          {message.text}
-        </SystemMessage>
+        <EnhancedMessage
+          id={message.id}
+          messageRole="system"
+          content={message.text}
+          status={message.status}
+          error={message.status === "error" ? message.text : undefined}
+          animationIndex={index}
+        />
       );
     case "tool":
       return (
-        <div className="w-full">
-          <Tool toolPart={buildToolPart(message)} defaultOpen={false} />
-        </div>
+        <EnhancedMessage
+          id={message.id}
+          messageRole="tool"
+          content={message.text}
+          status={message.status}
+          toolPart={buildToolPart(message)}
+          animationIndex={index}
+        />
       );
     case "user":
+      // Skip empty user messages entirely — they produce blank bubbles
+      if (!message.text?.trim()) return null;
       return (
-        <div className="w-full space-y-1">
-          <div className="max-w-none text-sm leading-6 text-white/70">
-            <SlashCommandHighlighter text={message.text || " "} />
-          </div>
-        </div>
+        <EnhancedMessage
+          id={message.id}
+          messageRole="user"
+          content={message.text}
+          status={message.status}
+          animationIndex={index}
+          timestamp={message.timestamp}
+        />
       );
     default:
       if (message.status === "error") {
@@ -183,38 +180,21 @@ function ChatMessageBody({
         );
       }
 
+      // Skip empty assistant messages — they produce blank bubbles.
+      // Allow streaming messages through (text may arrive momentarily).
+      if (!message.text?.trim() && message.status !== "streaming") return null;
       return (
-        <div className="w-full space-y-2">
-          {activities.length > 0 && (
-            <div className="flex flex-col gap-1.5 pb-1">
-              {activities.map((activity) => (
-                <ActivityIndicator
-                  key={activity.id}
-                  type={activity.type}
-                  label={activity.label}
-                  status={
-                    activity.status === "running" ? "running" : "complete"
-                  }
-                />
-              ))}
-            </div>
-          )}
-
-          <EnhancedMessage
-            id={message.id}
-            role="assistant"
-            content={message.text || " "}
-            isMarkdown={true}
-            status={message.status}
-            activities={activities.filter(
-              (a) => a.status === "running" || a.status === "complete",
-            )}
-            feedback={feedback}
-            onFeedbackChange={onFeedbackChange}
-            onCopy={onCopy}
-            animationIndex={index}
-          />
-        </div>
+        <EnhancedMessage
+          id={message.id}
+          messageRole="assistant"
+          content={message.text || ""}
+          isMarkdown={true}
+          status={message.status}
+          onCopy={onCopy}
+          animationIndex={index}
+          timestamp={message.timestamp}
+          userTimestamp={userTimestamp}
+        />
       );
   }
 }
@@ -224,9 +204,8 @@ const MemoizedChatMessageBody = React.memo(ChatMessageBody);
 const ChatMessageRow = React.memo(function ChatMessageRow({
   message,
   index,
-  feedback,
-  onFeedbackChange,
   onCopyMessage,
+  userTimestamp,
 }: ChatMessageRowProps) {
   const isSystem = message.role === "system";
   const isTool = message.role === "tool";
@@ -236,7 +215,7 @@ const ChatMessageRow = React.memo(function ChatMessageRow({
   return (
     <div
       className={cn(
-        "group flex w-full flex-col px-0 py-2",
+        "group flex w-full flex-col px-0 py-5",
         isUser && "justify-end items-end",
         isAssistant && "justify-start items-start",
         (isSystem || isTool) && "justify-center items-center",
@@ -262,25 +241,15 @@ const ChatMessageRow = React.memo(function ChatMessageRow({
         >
           <MemoizedChatMessageBody
             message={message}
-            feedback={feedback}
-            onFeedbackChange={(value) => onFeedbackChange(message.id, value)}
             onCopy={() => onCopyMessage(message.text)}
             index={index}
+            userTimestamp={userTimestamp}
           />
         </div>
       </div>
     </div>
   );
 });
-
-interface SlashCommandHighlighterProps {
-  text: string;
-}
-
-function SlashCommandHighlighter({ text }: SlashCommandHighlighterProps) {
-  const parts = text.split(/(\/[a-zA-Z0-9_-]+)/g);
-  return <>{parts.map(renderSlashCommandPart)}</>;
-}
 
 function getLastErrorTitle(lastError: string): string {
   const normalized = lastError.toLowerCase();
@@ -360,9 +329,6 @@ export function ChatThreadPanel({
   lastError,
   className,
 }: ChatThreadPanelProps) {
-  const [feedbackByMessageId, setFeedbackByMessageId] = React.useState<
-    Record<string, FeedbackValue>
-  >({});
   const [showScrollButton, setShowScrollButton] = React.useState(false);
   const [queuedMessageCount, setQueuedMessageCount] = React.useState(0);
   const scrollViewportRef = React.useRef<HTMLDivElement | null>(null);
@@ -401,18 +367,9 @@ export function ChatThreadPanel({
     setQueuedMessageCount(0);
   }, []);
 
-  const handleFeedbackChange = React.useCallback(
-    (messageId: string, value: FeedbackValue) => {
-      setFeedbackByMessageId((currentState) => ({
-        ...currentState,
-        [messageId]: value,
-      }));
-    },
-    [],
-  );
-
   const handleCopyMessage = React.useCallback((text: string) => {
     void navigator.clipboard.writeText(text);
+    toast.success("Copied to clipboard");
   }, []);
 
   const streamingActivities = React.useMemo(
@@ -420,13 +377,30 @@ export function ChatThreadPanel({
     [messages],
   );
 
+  const turns = React.useMemo(() => buildTurns(messages), [messages]);
+
+  const lastTurn = turns.length > 0 ? turns[turns.length - 1] : undefined;
+  const lastTurnDividerWorking =
+    lastTurn !== undefined &&
+    (lastTurn.isStreaming ||
+      (isStreaming && lastTurn.lastAssistantTimestamp === null));
+  const lastTurnShowDivider =
+    lastTurn !== undefined &&
+    lastTurn.userMessage !== null &&
+    (lastTurn.messages.some((m) => m.role === "assistant") ||
+      lastTurn.isStreaming ||
+      isStreaming);
+
   const streamingIndicator = isStreaming ? (
-    <div className="mx-auto flex w-full max-w-3xl px-6 py-2">
+    <output
+      className="mx-auto flex w-full max-w-3xl px-6 py-2"
+      aria-live="polite"
+    >
       <StreamingIndicator
         message="Pi is responding"
         activities={streamingActivities}
       />
-    </div>
+    </output>
   ) : null;
 
   const hasConversationState =
@@ -447,59 +421,157 @@ export function ChatThreadPanel({
           data-testid="chat-transcript"
           className={cn(
             "flex w-full min-h-full flex-1 flex-col px-0 select-text",
-            messages.length > 0 && "pb-24",
+            messages.length > 0 && "pb-32",
           )}
         >
-          <Skeleton
-            name="chat-messages"
-            loading={isLoading ?? false}
-            fixture={[1, 2, 3].map((i) => <MessageSkeleton key={i} />)}
-          >
-            {!hasConversationState ? (
-              <div
-                data-testid="chat-empty-state"
-                className="flex min-h-full w-full flex-1 items-center justify-center px-6"
-              >
-                <div className="max-w-md text-center font-mono text-[10.5px] uppercase tracking-[0.08em] text-white/25">
-                  Start a conversation with Pi.
-                </div>
-              </div>
-            ) : null}
-
-            {messages.length > 0
-              ? messages.map((message, index) => {
-                  const feedbackValue = feedbackByMessageId[message.id] ?? null;
-
-                  return (
-                    <ChatMessageRow
-                      key={message.id}
-                      message={message}
-                      index={index}
-                      feedback={feedbackValue}
-                      onFeedbackChange={handleFeedbackChange}
-                      onCopyMessage={handleCopyMessage}
-                    />
-                  );
-                })
-              : null}
-
-            {streamingIndicator}
-
-            {lastError && (
-              <div className="mx-auto w-full max-w-3xl px-6 py-2">
-                <SystemMessage
-                  tone="error"
-                  title={getLastErrorTitle(lastError)}
+          {isLoading ? (
+            <Skeleton
+              name="chat-messages"
+              loading={true}
+              fixture={[1, 2, 3].map((i) => <MessageSkeleton key={i} />)}
+            >
+              {null}
+            </Skeleton>
+          ) : (
+            <>
+              {!hasConversationState ? (
+                <div
+                  data-testid="chat-empty-state"
+                  className="flex min-h-full w-full flex-1 items-center justify-center px-6"
                 >
-                  {lastError}
-                </SystemMessage>
-              </div>
-            )}
+                  <div className="flex max-w-md flex-col items-center gap-6 text-center">
+                    <div className="font-mono text-[10.5px] uppercase tracking-[0.08em] text-white/25">
+                      Start a conversation with Pi.
+                    </div>
+                    <div className="flex flex-wrap items-center justify-center gap-1.5">
+                      {CHAT_SUGGESTIONS.map((suggestion) => (
+                        <button
+                          key={suggestion}
+                          type="button"
+                          onClick={() =>
+                            window.dispatchEvent(
+                              new CustomEvent("pi-chat-suggestion", {
+                                detail: suggestion,
+                              }),
+                            )
+                          }
+                          className={cn(
+                            "inline-flex items-center rounded-none px-2.5 py-1",
+                            "text-[10.5px] text-white/40",
+                            "border border-white/[0.06] bg-white/[0.01]",
+                            "transition-colors duration-[var(--duration-fast)]",
+                            "hover:border-white/[0.12] hover:bg-white/[0.04] hover:text-white/70",
+                            "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-accent-ring)]",
+                          )}
+                        >
+                          {suggestion}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : null}
 
-            {hasConversationState ? <ChatContainerScrollAnchor /> : null}
-          </Skeleton>
+              {turns.length > 0
+                ? turns.map((turn) => {
+                    const toolMessages = turn.messages.filter(
+                      (m) => m.role === "tool",
+                    );
+                    const mutationTools =
+                      toolMessages.filter(isFileMutationTool);
+                    const filePaths = Array.from(
+                      new Set(
+                        mutationTools
+                          .map(extractFilePath)
+                          .filter((p): p is string => p !== null),
+                      ),
+                    );
+
+                    let runningIndex = 0;
+                    const renderMessage = (m: AgentMessageSnapshot) => {
+                      const idx = runningIndex++;
+                      return (
+                        <ChatMessageRow
+                          key={m.id}
+                          message={m}
+                          index={idx}
+                          onCopyMessage={handleCopyMessage}
+                          userTimestamp={turn.userMessage?.timestamp}
+                        />
+                      );
+                    };
+
+                    return (
+                      <React.Fragment key={turn.id}>
+                        {turn.userMessage
+                          ? renderMessage(turn.userMessage)
+                          : null}
+
+                        {turn.messages.map((m) => {
+                          if (m.role === "tool") {
+                            return (
+                              <div
+                                key={m.id}
+                                className="mx-auto w-full max-w-3xl px-6"
+                              >
+                                <Tool
+                                  toolPart={buildToolPart(m)}
+                                  defaultOpen={m.status !== "complete"}
+                                />
+                              </div>
+                            );
+                          }
+                          return renderMessage(m);
+                        })}
+
+                        {mutationTools.length > 0 &&
+                          !turn.isStreaming &&
+                          turn.lastAssistantTimestamp !== null && (
+                            <FileChangeSummary
+                              filePaths={filePaths}
+                              count={mutationTools.length}
+                            />
+                          )}
+                      </React.Fragment>
+                    );
+                  })
+                : null}
+
+              {lastError && (
+                <div className="mx-auto w-full max-w-3xl px-6 py-2">
+                  <SystemMessage
+                    tone="error"
+                    title={getLastErrorTitle(lastError)}
+                  >
+                    {lastError}
+                  </SystemMessage>
+                </div>
+              )}
+
+              {lastTurnShowDivider && (
+                <div className="mt-auto">
+                  <ResponseDivider
+                    userTimestamp={
+                      lastTurn.userMessage?.timestamp ?? Date.now()
+                    }
+                    assistantCompletedAt={lastTurn.lastAssistantTimestamp}
+                    isWorking={lastTurnDividerWorking}
+                  />
+                </div>
+              )}
+
+              {hasConversationState ? <ChatContainerScrollAnchor /> : null}
+            </>
+          )}
         </ChatContainerContent>
       </ChatContainerRoot>
+
+      {/* Streaming indicator pinned above prompt dock, outside scroll area */}
+      {streamingIndicator && (
+        <div className="shrink-0 border-t border-white/[0.04] bg-[var(--shell-main-bg)]">
+          {streamingIndicator}
+        </div>
+      )}
 
       {showScrollButton && (
         <div className="pointer-events-none absolute bottom-28 right-6 z-10">

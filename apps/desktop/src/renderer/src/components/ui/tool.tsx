@@ -1,5 +1,12 @@
 "use client";
 
+import {
+  CaretDown,
+  CheckCircle,
+  CircleNotch,
+  Gear,
+  XCircle,
+} from "@phosphor-icons/react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -7,13 +14,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import {
-  CheckCircle,
-  CaretDown,
-  CircleNotch,
-  Gear,
-  XCircle,
-} from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 export type ToolPart = {
@@ -46,7 +46,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
         return (
           <CircleNotch
             className={cn(
-              "h-3.5 w-3.5 animate-spin text-[#00E559]/60",
+              "h-3.5 w-3.5 animate-spin text-[var(--color-accent)]/60",
               "transition-all duration-[var(--duration-fast)] ease-out",
             )}
           />
@@ -101,7 +101,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
           <span
             className={cn(
               baseClasses,
-              "bg-[#00E559]/10 text-[#00E559]/60",
+              "bg-[var(--color-accent)]/10 text-[var(--color-accent)]/60",
               "animate-pulse",
             )}
           >
@@ -219,6 +219,19 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
                 </div>
               </div>
             )}
+
+            {!output &&
+              state !== "input-streaming" &&
+              state !== "output-error" && (
+                <div>
+                  <h4 className="mb-2 text-xs font-normal text-white/30">
+                    Output
+                  </h4>
+                  <div className="text-sm text-white/40 italic">
+                    No output available
+                  </div>
+                </div>
+              )}
 
             {state === "output-error" && toolPart.errorText && (
               <div>

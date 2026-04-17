@@ -84,6 +84,34 @@ export function wireAgentHostParentPort({
           },
         });
         return;
+      case "getProviders":
+        void Promise.resolve(runtime.getProviders())
+          .then((providers) => {
+            parentPort.postMessage({
+              type: "response",
+              response: {
+                requestId: request.requestId,
+                kind: "providers",
+                providers,
+              },
+            });
+          })
+          .catch(respondWithError);
+        return;
+      case "getSettings":
+        void Promise.resolve(runtime.getSettings())
+          .then((settings) => {
+            parentPort.postMessage({
+              type: "response",
+              response: {
+                requestId: request.requestId,
+                kind: "settings",
+                settings,
+              },
+            });
+          })
+          .catch(respondWithError);
+        return;
       case "prompt":
         void Promise.resolve(runtime.prompt(request.text))
           .then(() => {
@@ -123,6 +151,11 @@ export function wireAgentHostParentPort({
           })
           .catch(respondWithError);
         return;
+      default: {
+        const _exhaustive: never = request;
+        void _exhaustive;
+        return;
+      }
     }
   });
 

@@ -45,11 +45,11 @@ function ThreadRowSkeleton() {
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <div className="size-5 rounded bg-white/5" />
-            <div className="h-4 w-28 rounded bg-white/5" />
+            <div className="size-5 bg-white/5" />
+            <div className="h-4 w-28 bg-white/5" />
           </div>
           <div className="mt-1 flex items-center gap-2 pl-7">
-            <div className="h-3 w-14 rounded bg-white/5" />
+            <div className="h-3 w-14 bg-white/5" />
           </div>
         </div>
       </div>

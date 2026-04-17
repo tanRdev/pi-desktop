@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import {
   closeDesktopApp,
-  createThreadFromRail,
+  createThreadFromSidebar,
   focusChatThread,
   launchDesktopApp,
   waitForAppReady,
@@ -30,8 +30,8 @@ test("stress-tests thread tabs in cli mode without surfacing socket attach error
 
     await expect(threadTabs.getByTestId("thread-tab-select")).toHaveCount(1);
 
-    await createThreadFromRail(page);
-    await createThreadFromRail(page);
+    await createThreadFromSidebar(page);
+    await createThreadFromSidebar(page);
     await expect(threadTabs.getByTestId("thread-tab-select")).toHaveCount(3);
 
     const tabButtons = threadTabs.getByTestId("thread-tab-select");

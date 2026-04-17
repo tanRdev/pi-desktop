@@ -45,13 +45,12 @@ export const IPC_CHANNELS = {
     deleteFile: "fs:deleteFile",
     renameFile: "fs:renameFile",
     moveFile: "fs:moveFile",
-    getImageMetadata: "fs:getImageMetadata",
-    getImagePreview: "fs:getImagePreview",
   },
   git: {
     getRepositoryStatus: "git:getRepositoryStatus",
     isRepository: "git:isRepository",
     init: "git:init",
+    diffFile: "git:diffFile",
     stageFile: "git:stageFile",
     stageFiles: "git:stageFiles",
     unstageFile: "git:unstageFile",
@@ -78,6 +77,7 @@ export const IPC_CHANNELS = {
     resize: "terminal:resize",
     destroy: "terminal:destroy",
     getSessions: "terminal:getSessions",
+    event: "terminal:event",
   },
   search: {
     searchFiles: "search:searchFiles",
@@ -92,17 +92,8 @@ export const IPC_CHANNELS = {
     importLegacyPreferences: "state:importLegacyPreferences",
   },
   window: {
-    create: "window:create",
-    close: "window:close",
-    focus: "window:focus",
     fullscreenChanged: "window:fullscreenChanged",
     getFullscreenState: "window:getFullscreenState",
-    move: "window:move",
-    resize: "window:resize",
-    minimize: "window:minimize",
-    maximize: "window:maximize",
-    restore: "window:restore",
-    getLayout: "window:getLayout",
   },
 } as const;
 

@@ -15,7 +15,6 @@ import type {
 import { IPC_CHANNELS } from "@pi-desktop/shared";
 import { app, BrowserWindow, dialog, ipcMain, Menu, shell } from "electron";
 import {
-  createThreadTitle,
   DEFAULT_UNTITLED_THREAD_TITLE,
   generateThreadTitleFromMessage,
   getDefaultThreadTitle,
@@ -41,9 +40,11 @@ import {
 import { resolveWorkspaceInspection } from "./bootstrap/workspace-inspection";
 import { createContextSwitchController } from "./context-switch-controller";
 import { GitWorktreeService } from "./git-worktree-service";
+import { createSanitizingHandle } from "./ipc/sanitize-ipc-error";
 import { registerIpcHandlers } from "./ipc-router";
 import { LocalThreadRuntimeManager } from "./local-thread-runtime-manager";
 import { PackagesServiceImpl } from "./packages/packages-service-impl";
+import { flushAllPersistentJsonFiles } from "./persistent-json-file";
 import {
   getOAuthProvidersForAgentDir,
   loginWithOAuthForAgentDir,
@@ -1032,7 +1033,11 @@ async function bootstrapDesktop() {
   }
 
   registerIpcHandlers({
-    handle: ipcMain.handle.bind(ipcMain),
+    handle: createSanitizingHandle(ipcMain.handle.bind(ipcMain), {
+      log: (error) => {
+        console.error("[ipc] handler error:", error);
+      },
+    }),
     getShellSnapshot: async () => {
       let agentSnapshot: AgentSnapshot | null = null;
       try {
@@ -1352,6 +1357,21 @@ async function bootstrapDesktop() {
     getSlashSuggestions: handleGetSlashSuggestions,
     threadCatalog,
     packagesService,
+    getAllowedRepositoryRoots: () =>
+      repositoryCatalog.list().map((entry) => entry.rootPath),
+    getAllowedTerminalCwds: () => {
+      const roots: string[] = [];
+      for (const entry of repositoryCatalog.list()) {
+        roots.push(entry.rootPath);
+        const inspection = gitService.inspect(entry.rootPath);
+        if (inspection.worktrees) {
+          for (const worktree of inspection.worktrees) {
+            roots.push(worktree.path);
+          }
+        }
+      }
+      return roots;
+    },
   });
 
   mainWindow = await createMainWindow();
@@ -1366,10 +1386,20 @@ async function bootstrapDesktop() {
     mainWindow = null;
   });
 
-  app.once("will-quit", () => {
+  app.once("will-quit", (event) => {
     unsubscribe();
     currentTransport?.close();
-    terminalManager.destroyAll();
+    event.preventDefault();
+    Promise.allSettled([
+      terminalManager.destroyAllAsync(),
+      flushAllPersistentJsonFiles(),
+    ])
+      .catch((err) => {
+        console.error("Error during shutdown:", err);
+      })
+      .finally(() => {
+        app.exit(0);
+      });
   });
 
   app.on("activate", async () => {
@@ -1391,4 +1421,7 @@ async function bootstrapDesktop() {
   });
 }
 
-void bootstrapDesktop();
+bootstrapDesktop().catch((err) => {
+  console.error("Fatal error during desktop bootstrap:", err);
+  app.quit();
+});

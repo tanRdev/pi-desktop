@@ -139,7 +139,7 @@ export function generateThreadTitleFromMessage(messageText: string): string {
 
   // If the title is too long, truncate it and add ellipsis
   if (title.length > MAX_TITLE_LENGTH) {
-    title = title.slice(0, MAX_TITLE_LENGTH - 3).trimEnd() + "...";
+    title = `${title.slice(0, MAX_TITLE_LENGTH - 3).trimEnd()}...`;
   }
 
   // Capitalize the first letter

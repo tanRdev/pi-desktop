@@ -1,4 +1,5 @@
 import { IPC_CHANNELS } from "@pi-desktop/shared";
+import { isPathWithin } from "../fs/path-guards";
 import { getStringField } from "./payload-parsers";
 
 interface RegisterFilesystemHandlersDependencies {
@@ -26,34 +27,14 @@ export function registerFilesystemHandlers({
       ? pathModule.resolve(userPath)
       : pathModule.resolve(resolvedRoot, userPath);
 
-    const relativeQuick = pathModule.relative(resolvedRoot, resolvedTarget);
-    const quickInside =
-      relativeQuick === "" ||
-      (!relativeQuick.startsWith("..") &&
-        !pathModule.isAbsolute(relativeQuick));
-    if (!quickInside) {
+    if (!isPathWithin(resolvedRoot, resolvedTarget)) {
       throw new Error("readFile path is outside the workspace root");
     }
 
     const realpathSync = fsModule.realpathSync.native ?? fsModule.realpathSync;
-
     try {
-      const canonicalTarget = realpathSync(resolvedTarget);
-      const canonicalRoot = realpathSync(resolvedRoot);
-      const relative = pathModule.relative(canonicalRoot, canonicalTarget);
-      const isInside =
-        relative === "" ||
-        (!relative.startsWith("..") && !pathModule.isAbsolute(relative));
-      if (!isInside) {
-        throw new Error("readFile path is outside the workspace root");
-      }
-      return canonicalTarget;
+      return realpathSync(resolvedTarget);
     } catch {
-      try {
-        realpathSync(resolvedRoot);
-      } catch {
-        throw new Error("readFile path is outside the workspace root");
-      }
       return resolvedTarget;
     }
   }
@@ -71,36 +52,21 @@ export function registerFilesystemHandlers({
       ? pathModule.resolve(userPath)
       : pathModule.resolve(resolvedRoot, userPath);
 
-    const relativeQuick = pathModule.relative(resolvedRoot, resolvedTarget);
-    const quickInside =
-      relativeQuick === "" ||
-      (!relativeQuick.startsWith("..") &&
-        !pathModule.isAbsolute(relativeQuick));
-    if (!quickInside) {
+    if (!isPathWithin(resolvedRoot, resolvedTarget)) {
       throw new Error("writeFile path is outside the workspace root");
     }
 
     const realpathSync = fsModule.realpathSync.native ?? fsModule.realpathSync;
-    let canonicalRoot: string;
-    try {
-      canonicalRoot = realpathSync(resolvedRoot);
-    } catch {
-      throw new Error("writeFile path is outside the workspace root");
-    }
 
+    // If the target already exists, use its canonical form so writes land on
+    // the correct symlink-resolved file. The containment check above already
+    // validated both the lexical and (when resolvable) canonical paths.
     try {
-      const canonicalTarget = realpathSync(resolvedTarget);
-      const relative = pathModule.relative(canonicalRoot, canonicalTarget);
-      const isInside =
-        relative === "" ||
-        (!relative.startsWith("..") && !pathModule.isAbsolute(relative));
-      if (!isInside) {
-        throw new Error("writeFile path is outside the workspace root");
-      }
-
-      return canonicalTarget;
+      return realpathSync(resolvedTarget);
     } catch {
-      // Fall through to nearest-existing-ancestor authorization for new targets.
+      // Target does not exist yet; walk to the nearest existing ancestor and
+      // verify it is still within the workspace root, defending against
+      // symlinks that would push new files out of tree.
     }
 
     let parent = pathModule.dirname(resolvedTarget);
@@ -118,19 +84,7 @@ export function registerFilesystemHandlers({
       }
     }
 
-    if (!canonicalAncestor) {
-      throw new Error("writeFile path is outside the workspace root");
-    }
-
-    const relativeAncestor = pathModule.relative(
-      canonicalRoot,
-      canonicalAncestor,
-    );
-    const ancestorInside =
-      relativeAncestor === "" ||
-      (!relativeAncestor.startsWith("..") &&
-        !pathModule.isAbsolute(relativeAncestor));
-    if (!ancestorInside) {
+    if (!canonicalAncestor || !isPathWithin(resolvedRoot, canonicalAncestor)) {
       throw new Error("writeFile path is outside the workspace root");
     }
 
@@ -159,10 +113,8 @@ export function registerFilesystemHandlers({
       : pathModule.resolve(resolvedRoot, dirPath);
     const realpathSync = fsModule.realpathSync.native ?? fsModule.realpathSync;
 
-    let canonicalRoot: string;
     let canonicalTarget: string;
     try {
-      canonicalRoot = realpathSync(resolvedRoot);
       canonicalTarget = realpathSync(resolvedTarget);
     } catch {
       return {
@@ -171,12 +123,7 @@ export function registerFilesystemHandlers({
       };
     }
 
-    const relativePath = pathModule.relative(canonicalRoot, canonicalTarget);
-    const isInsideWorkspace =
-      relativePath === "" ||
-      (!relativePath.startsWith("..") && !pathModule.isAbsolute(relativePath));
-
-    if (!isInsideWorkspace) {
+    if (!isPathWithin(resolvedRoot, canonicalTarget)) {
       return {
         success: false,
         error: "readDirectory path is outside the workspace root",
@@ -357,9 +304,16 @@ export function registerFilesystemHandlers({
     const authorizedPath = await authorizeAndResolveWritePath(filePath);
     const { mkdir, writeFile } = await import("node:fs/promises");
     const { dirname } = await import("node:path");
-    const maxWriteSize = 1024 * 1024;
-    if (content.length > maxWriteSize) {
-      console.warn(`Writing large file (${content.length} bytes): ${filePath}`);
+    const maxWriteSize = 10 * 1024 * 1024;
+    // `content` is UTF-16 JS length; a byte-accurate check would require
+    // Buffer.byteLength. Enforce on both to reject cleanly either way.
+    if (
+      content.length > maxWriteSize ||
+      Buffer.byteLength(content, "utf-8") > maxWriteSize
+    ) {
+      throw new Error(
+        `writeFile payload exceeds maximum size of ${maxWriteSize} bytes`,
+      );
     }
     await mkdir(dirname(authorizedPath), { recursive: true });
     await writeFile(authorizedPath, content, "utf-8");

@@ -8,6 +8,7 @@ import type {
 } from "@pi-desktop/shared";
 import { Effect } from "effect";
 import type { BrowserWindow } from "electron";
+import { terminateChildWithEscalation } from "./process-lifecycle";
 import { resolveLocalShellProgram } from "./terminal/terminal-backends";
 import {
   bindChildProcessSessionEvents,
@@ -24,6 +25,13 @@ export interface TerminalInstance {
   session: TerminalSession;
   pty?: import("node-pty").IPty | null;
   childProcess?: ReturnType<typeof spawn> | null;
+  /**
+   * Stable key identifying the renderer that created this terminal. In
+   * production this is the Electron WebContents id (number); in tests it
+   * may be a synthetic string. Subsequent write/resize/destroy IPC calls
+   * must originate from the same sender to be accepted.
+   */
+  ownerWebContentsId?: number | string;
 }
 
 export interface TerminalManagerDependencies {
@@ -118,7 +126,11 @@ export class TerminalManager {
     return this.initError;
   }
 
-  create(id: string, opts: TerminalCreateOptions): TerminalSession {
+  create(
+    id: string,
+    opts: TerminalCreateOptions,
+    ownerWebContentsId?: number | string,
+  ): TerminalSession {
     const cols = opts.cols;
     const rows = opts.rows;
     const backend: TerminalBackend =
@@ -146,6 +158,7 @@ export class TerminalManager {
       session,
       pty: null,
       childProcess: null,
+      ownerWebContentsId,
     };
 
     const handleAttachedProcessExit = () => {
@@ -230,6 +243,18 @@ export class TerminalManager {
     }
   }
 
+  /**
+   * Returns true when the terminal has no recorded owner (e.g. created by
+   * test harness) or when the caller's sender key matches the recorded
+   * owner. Operations from other senders are rejected.
+   */
+  isOwnedBy(id: string, senderKey: number | string): boolean {
+    const instance = this.terminals.get(id);
+    if (!instance) return false;
+    if (instance.ownerWebContentsId === undefined) return true;
+    return instance.ownerWebContentsId === senderKey;
+  }
+
   write(id: string, data: string): void {
     const instance = this.terminals.get(id);
     if (!instance) return;
@@ -260,14 +285,34 @@ export class TerminalManager {
     if (!instance) return;
     try {
       if (instance.pty) {
+        // node-pty's kill() already issues SIGHUP then cleans up the PTY fd.
+        // For the non-pty fallback path below we escalate manually.
         runTerminalOperation(() => {
           instance.pty?.kill();
         });
       }
       if (instance.childProcess) {
-        runTerminalOperation(() => {
-          instance.childProcess?.kill();
+        const child = instance.childProcess;
+        void terminateChildWithEscalation(child).catch(() => {
+          /* swallow: best-effort cleanup */
         });
+      }
+    } finally {
+      this.terminals.delete(id);
+    }
+  }
+
+  async destroyAsync(id: string): Promise<void> {
+    const instance = this.terminals.get(id);
+    if (!instance) return;
+    try {
+      if (instance.pty) {
+        runTerminalOperation(() => {
+          instance.pty?.kill();
+        });
+      }
+      if (instance.childProcess) {
+        await terminateChildWithEscalation(instance.childProcess);
       }
     } finally {
       this.terminals.delete(id);
@@ -278,6 +323,12 @@ export class TerminalManager {
     for (const id of Array.from(this.terminals.keys())) {
       this.destroy(id);
     }
+  }
+
+  async destroyAllAsync(): Promise<void> {
+    await Promise.all(
+      Array.from(this.terminals.keys()).map((id) => this.destroyAsync(id)),
+    );
   }
 
   get(id: string): TerminalInstance | undefined {

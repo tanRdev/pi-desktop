@@ -90,6 +90,7 @@ export interface WorkspaceSessionStoreState {
     windowId: string,
     updates: WindowUpdates,
   ): void;
+  removeWorktreeSession(worktreeId: string): void;
 }
 
 function isLegacySearchWindow(
@@ -281,25 +282,7 @@ export function createWorkspaceSessionStore({
     if (!worktreeId) {
       return;
     }
-
-    store.setState((state) => {
-      if (!state.sessionsByWorktreeId[worktreeId]) {
-        return state;
-      }
-
-      return {
-        ...state,
-        sessionsByWorktreeId: updateSessionRecord(
-          state.sessionsByWorktreeId,
-          worktreeId,
-          updater,
-        ),
-      };
-    });
-
-    if (options?.persist !== false) {
-      schedulePersist(worktreeId);
-    }
+    withSession(worktreeId, updater, options);
   }
 
   function withSession(
@@ -357,28 +340,60 @@ export function createWorkspaceSessionStore({
         return;
       }
 
-      const nextVersion = get().activeWorktreeVersion + 1;
-      set({
+      const previous = get();
+      const nextVersion = previous.activeWorktreeVersion + 1;
+      const alreadyHadSession = Object.hasOwn(
+        previous.sessionsByWorktreeId,
+        worktreeId,
+      );
+
+      // Seed an empty session synchronously so callers that depend on
+      // `sessionsByWorktreeId[activeWorktreeId]` (e.g. `createWindow`,
+      // `withActiveSession`) work immediately after `setActiveWorktree`
+      // is invoked. Previously the store briefly held an
+      // `activeWorktreeId` with no matching session row, causing actions
+      // like "Open Terminal" to silently no-op during the startup window
+      // while the persisted read was in flight.
+      set((state) => ({
+        ...state,
         activeWorktreeId: worktreeId,
         activeWorktreeVersion: nextVersion,
-      });
+        sessionsByWorktreeId: alreadyHadSession
+          ? state.sessionsByWorktreeId
+          : {
+              ...state.sessionsByWorktreeId,
+              [worktreeId]: cloneSession(
+                createEmptyWorkspaceSession(worktreeId),
+              ),
+            },
+      }));
 
-      let session = get().sessionsByWorktreeId[worktreeId];
-      if (!session) {
-        const persisted = await getWorkspaceSession(worktreeId);
-        if (get().activeWorktreeVersion !== nextVersion) {
-          return;
-        }
-        session = cloneSession(
-          persisted ?? createEmptyWorkspaceSession(worktreeId),
-        );
+      // If we already had a hydrated session, we're done — nothing to
+      // load. Runtime maps (thread conversations, file contents, note
+      // drafts) and window layout are preserved across activations.
+      if (alreadyHadSession) {
+        return;
+      }
+
+      // Load the persisted session in the background and merge it into
+      // the seeded empty row. If the active worktree changed while we
+      // were waiting, bail out so we don't clobber a newer activation.
+      const persisted = await getWorkspaceSession(worktreeId);
+      if (get().activeWorktreeVersion !== nextVersion) {
+        return;
+      }
+      if (!persisted) {
+        return;
       }
 
       set((state) => ({
         ...state,
         sessionsByWorktreeId: {
           ...state.sessionsByWorktreeId,
-          [worktreeId]: session,
+          [worktreeId]: mergeSession(
+            state.sessionsByWorktreeId[worktreeId],
+            persisted,
+          ),
         },
       }));
     },
@@ -409,14 +424,112 @@ export function createWorkspaceSessionStore({
       return createdWindow;
     },
     closeWindow(windowId) {
-      withActiveSession((session) =>
-        applyLayout(session, (windowState) =>
+      withActiveSession((session) => {
+        const closingWindow = session.layout.windows.find(
+          (w) => w.id === windowId,
+        );
+        const nextSession = applyLayout(session, (windowState) =>
           windowReducer(windowState, {
             type: "CLOSE_WINDOW",
             payload: { windowId },
           }),
-        ),
-      );
+        );
+
+        if (!closingWindow) {
+          return nextSession;
+        }
+
+        const remainingWindows = nextSession.layout.windows;
+
+        // Prune fileContents and noteContents keyed by windowId — they
+        // are scoped to the window that is going away, so always drop.
+        let fileContents = nextSession.fileContents;
+        if (fileContents.has(windowId)) {
+          fileContents = new Map(fileContents);
+          fileContents.delete(windowId);
+        }
+
+        let noteContents = nextSession.noteContents;
+        const noteIdForWindow =
+          closingWindow.kind === "note" ? closingWindow.noteId : null;
+        if (noteContents.has(windowId)) {
+          noteContents = new Map(noteContents);
+          noteContents.delete(windowId);
+        }
+        if (noteIdForWindow && noteIdForWindow !== windowId) {
+          const otherReferences = remainingWindows.some(
+            (w) => w.kind === "note" && w.noteId === noteIdForWindow,
+          );
+          if (!otherReferences && noteContents.has(noteIdForWindow)) {
+            if (noteContents === nextSession.noteContents) {
+              noteContents = new Map(noteContents);
+            }
+            noteContents.delete(noteIdForWindow);
+          }
+        }
+
+        // Prune threadConversations keyed by threadId only if no other
+        // chat window in the same session references it.
+        let threadConversations = nextSession.threadConversations;
+        if (closingWindow.kind === "chat") {
+          const closingThreadId = closingWindow.threadId;
+          const otherChatReferences = remainingWindows.some(
+            (w) => w.kind === "chat" && w.threadId === closingThreadId,
+          );
+          if (
+            !otherChatReferences &&
+            threadConversations.has(closingThreadId)
+          ) {
+            threadConversations = new Map(threadConversations);
+            threadConversations.delete(closingThreadId);
+          }
+        }
+
+        // Prune notes persistent record too when no other note window
+        // shares the same noteId (keeps persisted state in sync).
+        let notes = nextSession.notes;
+        if (noteIdForWindow) {
+          const otherReferences = remainingWindows.some(
+            (w) => w.kind === "note" && w.noteId === noteIdForWindow,
+          );
+          if (!otherReferences && windowId in notes) {
+            notes = { ...notes };
+            delete notes[windowId];
+          }
+        }
+
+        return {
+          ...nextSession,
+          fileContents,
+          noteContents,
+          threadConversations,
+          notes,
+        };
+      });
+    },
+    removeWorktreeSession(worktreeId) {
+      const persistTimer = persistTimers.get(worktreeId);
+      if (persistTimer) {
+        clearTimeout(persistTimer);
+        persistTimers.delete(worktreeId);
+      }
+      set((state) => {
+        if (!state.sessionsByWorktreeId[worktreeId]) {
+          return state;
+        }
+        const { [worktreeId]: _removed, ...remaining } =
+          state.sessionsByWorktreeId;
+        return {
+          ...state,
+          sessionsByWorktreeId: remaining,
+          ...(state.activeWorktreeId === worktreeId
+            ? {
+                activeWorktreeId: null,
+                activeWorktreeVersion: state.activeWorktreeVersion + 1,
+              }
+            : {}),
+        };
+      });
     },
     focusWindow(windowId) {
       withActiveSession((session) =>

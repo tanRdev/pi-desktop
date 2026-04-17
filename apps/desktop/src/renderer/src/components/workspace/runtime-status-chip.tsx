@@ -9,7 +9,8 @@ export interface RuntimeStatusChipProps {
 
 const STATUS_STYLES: Record<ThreadRuntimeStatus, string> = {
   starting: "border-sky-400/20 bg-sky-400/[0.06] text-sky-300/70",
-  ready: "border-[#00E559]/20 bg-[#00E559]/[0.06] text-[#00E559]/70",
+  ready:
+    "border-[var(--color-accent)]/20 bg-[var(--color-accent)]/[0.06] text-[var(--color-accent)]/70",
   streaming: "border-violet-400/20 bg-violet-400/[0.06] text-violet-300/70",
   disconnected: "border-amber-400/20 bg-amber-400/[0.06] text-amber-300/70",
   exited: "border-white/[0.06] bg-white/[0.03] text-white/30",

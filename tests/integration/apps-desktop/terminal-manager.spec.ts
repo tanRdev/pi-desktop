@@ -169,7 +169,7 @@ describe("future terminal modules (RED)", () => {
     expect(typeof session.lastActivityAt).toBe("number");
     expect(session.lastActivityAt).toBeGreaterThanOrEqual(before);
 
-    expect(send).toHaveBeenCalledWith(IPC_CHANNELS.terminal.create, {
+    expect(send).toHaveBeenCalledWith(IPC_CHANNELS.terminal.event, {
       type: "data",
       id: "pty-1",
       data: "hello",
@@ -177,7 +177,7 @@ describe("future terminal modules (RED)", () => {
 
     pty.emitExit(5);
     expect(session.status).toBe("exited");
-    expect(send).toHaveBeenCalledWith(IPC_CHANNELS.terminal.create, {
+    expect(send).toHaveBeenCalledWith(IPC_CHANNELS.terminal.event, {
       type: "exit",
       id: "pty-1",
       exitCode: 5,
@@ -199,14 +199,14 @@ describe("future terminal modules (RED)", () => {
     const beforeChild = Date.now();
     child.stdout.emit("data", "out1");
     expect(childSession.lastActivityAt).toBeGreaterThanOrEqual(beforeChild);
-    expect(send).toHaveBeenCalledWith(IPC_CHANNELS.terminal.create, {
+    expect(send).toHaveBeenCalledWith(IPC_CHANNELS.terminal.event, {
       type: "data",
       id: "child-1",
       data: "out1",
     });
 
     child.stderr.emit("data", "err1");
-    expect(send).toHaveBeenCalledWith(IPC_CHANNELS.terminal.create, {
+    expect(send).toHaveBeenCalledWith(IPC_CHANNELS.terminal.event, {
       type: "data",
       id: "child-1",
       data: "err1",
@@ -214,7 +214,7 @@ describe("future terminal modules (RED)", () => {
 
     child.emit("exit", null);
     expect(childSession.status).toBe("exited");
-    expect(send).toHaveBeenCalledWith(IPC_CHANNELS.terminal.create, {
+    expect(send).toHaveBeenCalledWith(IPC_CHANNELS.terminal.event, {
       type: "exit",
       id: "child-1",
       exitCode: 0,
@@ -261,7 +261,7 @@ describe("terminalManager", () => {
     harness.ptyInstances[0]?.emitExit(7);
 
     expect(harness.manager.get("shell-local")).toBeUndefined();
-    expect(harness.send).toHaveBeenCalledWith(IPC_CHANNELS.terminal.create, {
+    expect(harness.send).toHaveBeenCalledWith(IPC_CHANNELS.terminal.event, {
       type: "exit",
       id: "shell-local",
       exitCode: 7,
@@ -413,5 +413,43 @@ describe("terminalManager", () => {
     expect(() =>
       harness.manager.resize("missing-terminal", 132, 48),
     ).not.toThrow();
+  });
+
+  it("isOwnedBy() returns true when no owner was recorded at create time", async () => {
+    const harness = createTerminalManagerHarness();
+    harness.manager.create("no-owner", {
+      cols: 80,
+      rows: 24,
+      ownerWindowId: "terminal-no-owner",
+      backend: "shell",
+      cwd: "/tmp/no-owner",
+    });
+
+    expect(harness.manager.isOwnedBy("no-owner", 42)).toBe(true);
+    expect(harness.manager.isOwnedBy("no-owner", "anything")).toBe(true);
+  });
+
+  it("isOwnedBy() returns false for unknown terminal ids", async () => {
+    const harness = createTerminalManagerHarness();
+    expect(harness.manager.isOwnedBy("missing", 1)).toBe(false);
+  });
+
+  it("isOwnedBy() enforces the recorded sender key", async () => {
+    const harness = createTerminalManagerHarness();
+    harness.manager.create(
+      "owned",
+      {
+        cols: 80,
+        rows: 24,
+        ownerWindowId: "terminal-owned",
+        backend: "shell",
+        cwd: "/tmp/owned",
+      },
+      7,
+    );
+
+    expect(harness.manager.isOwnedBy("owned", 7)).toBe(true);
+    expect(harness.manager.isOwnedBy("owned", 8)).toBe(false);
+    expect(harness.manager.isOwnedBy("owned", "7")).toBe(false);
   });
 });
