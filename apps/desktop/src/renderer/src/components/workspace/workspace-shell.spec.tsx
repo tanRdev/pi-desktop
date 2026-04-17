@@ -150,6 +150,7 @@ function createWorkspaceShellProps(
     isSwitchingModel: false,
     isPromptVisible: true,
     isPromptExecuting: false,
+    threadLastViewedAt: {},
     activeGitRepositoryStatus: null,
     shellGit: null,
     gitCommitMessage: "",

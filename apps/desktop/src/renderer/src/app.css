@@ -430,6 +430,16 @@ button,
   50% { opacity: 0.5; }
 }
 
+@keyframes indicator-pulse {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0; transform: scale(1.8); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.animate-indicator-pulse {
+  animation: indicator-pulse 2s var(--ease-in-out) infinite;
+}
+
 .streaming-indicator {
   animation: pulse-subtle 2s var(--ease-in-out) infinite;
 }

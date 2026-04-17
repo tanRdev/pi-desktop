@@ -52,6 +52,8 @@ export interface UiInteractionState {
   snapPreview: { windowId: string; position: WindowPosition } | null;
   promptAutocompleteSuggestions: (SlashSuggestion | MentionSuggestion)[];
   promptAutocompleteSelectedIndex: number;
+  threadLastViewedAt: Record<string, number>;
+  markThreadViewed(threadId: string): void;
   setDraggingWindowId(windowId: string | null): void;
   setResizingWindowId(windowId: string | null): void;
   setHoveredItem(item: UiHoverTarget | null): void;
@@ -105,6 +107,15 @@ export function createUiInteractionStore() {
     snapPreview: null,
     promptAutocompleteSuggestions: [],
     promptAutocompleteSelectedIndex: -1,
+    threadLastViewedAt: {},
+    markThreadViewed(threadId) {
+      set((state) => ({
+        threadLastViewedAt: {
+          ...state.threadLastViewedAt,
+          [threadId]: Date.now(),
+        },
+      }));
+    },
     setDraggingWindowId(windowId) {
       set({ draggingWindowId: windowId });
     },

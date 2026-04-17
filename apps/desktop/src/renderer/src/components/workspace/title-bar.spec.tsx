@@ -10,7 +10,12 @@ afterEach(() => {
 describe("TitleBar", () => {
   it("renders with correct traffic-light spacing on macOS", () => {
     const { container } = render(
-      <TitleBar platform="darwin" hasActiveThread onAgentGitAction={vi.fn()} />,
+      <TitleBar
+        platform="darwin"
+        hasActiveThread
+        hasChangesToCommit
+        onAgentGitAction={vi.fn()}
+      />,
     );
 
     expect(container.firstElementChild).toHaveStyle({ paddingLeft: "16px" });
@@ -23,7 +28,7 @@ describe("TitleBar", () => {
     ).toBeVisible();
   });
 
-  it("invokes onAgentGitAction when clicking Commit & Push", async () => {
+  it("invokes onAgentGitAction when clicking Commit & Push with changes", async () => {
     const user = userEvent.setup();
     const onAgentGitAction = vi.fn();
 
@@ -31,6 +36,7 @@ describe("TitleBar", () => {
       <TitleBar
         platform="darwin"
         hasActiveThread
+        hasChangesToCommit
         onAgentGitAction={onAgentGitAction}
       />,
     );
@@ -42,7 +48,22 @@ describe("TitleBar", () => {
     );
   });
 
-  it("disables the git split button when there is no active thread", () => {
+  it("disables the commit button when there are no changes", () => {
+    render(
+      <TitleBar
+        platform="darwin"
+        hasActiveThread
+        hasChangesToCommit={false}
+        onAgentGitAction={vi.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByRole("button", { name: /Commit & Push/i }),
+    ).toBeDisabled();
+  });
+
+  it("disables all git buttons when there is no active thread", () => {
     render(
       <TitleBar
         platform="darwin"
