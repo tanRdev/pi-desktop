@@ -8,46 +8,56 @@ afterEach(() => {
 });
 
 describe("TitleBar", () => {
-  it("renders the terminal and side-panel controls for the workspace shell", async () => {
-    const user = userEvent.setup();
-    const onOpenTerminal = vi.fn();
-    const onToggleRightSidebar = vi.fn();
-
+  it("renders the git split button in the workspace shell", () => {
     const { container } = render(
-      <TitleBar
-        platform="darwin"
-        isTerminalActive={false}
-        isRightSidebarVisible={false}
-        onOpenTerminal={onOpenTerminal}
-        onToggleRightSidebar={onToggleRightSidebar}
-      />,
+      <TitleBar platform="darwin" hasActiveThread onAgentGitAction={vi.fn()} />,
     );
 
     expect(container.firstElementChild).toHaveStyle({ paddingLeft: "16px" });
     expect(screen.getByTestId("titlebar-project-name")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Open terminal" })).toBeVisible();
     expect(
-      screen.getByRole("button", { name: "Toggle side panel" }),
+      screen.getByRole("button", { name: /Commit & Push/i }),
     ).toBeVisible();
-    expect(screen.getAllByRole("button")).toHaveLength(2);
+    expect(
+      screen.getByRole("button", { name: "More git actions" }),
+    ).toBeVisible();
+  });
 
-    await user.click(screen.getByRole("button", { name: "Open terminal" }));
-    await user.click(screen.getByRole("button", { name: "Toggle side panel" }));
+  it("invokes onAgentGitAction when clicking Commit & Push", async () => {
+    const user = userEvent.setup();
+    const onAgentGitAction = vi.fn();
 
-    expect(onOpenTerminal).toHaveBeenCalledTimes(1);
-    expect(onToggleRightSidebar).toHaveBeenCalledTimes(1);
+    render(
+      <TitleBar
+        platform="darwin"
+        hasActiveThread
+        onAgentGitAction={onAgentGitAction}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /Commit & Push/i }));
+    expect(onAgentGitAction).toHaveBeenCalledTimes(1);
+    expect(onAgentGitAction).toHaveBeenCalledWith(
+      expect.stringContaining("push to origin"),
+    );
+  });
+
+  it("disables the git split button when there is no active thread", () => {
+    render(
+      <TitleBar
+        platform="darwin"
+        hasActiveThread={false}
+        onAgentGitAction={vi.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByRole("button", { name: /Commit & Push/i }),
+    ).toBeDisabled();
   });
 
   it("keeps drag-region shell chrome styling", () => {
-    const { container } = render(
-      <TitleBar
-        platform="darwin"
-        isTerminalActive={false}
-        isRightSidebarVisible
-        onOpenTerminal={vi.fn()}
-        onToggleRightSidebar={vi.fn()}
-      />,
-    );
+    const { container } = render(<TitleBar platform="darwin" />);
 
     expect(container.firstElementChild).toHaveAttribute(
       "data-drag-region",
@@ -56,8 +66,5 @@ describe("TitleBar", () => {
     expect(container.firstElementChild).toHaveClass("h-11");
     expect(container.firstElementChild).toHaveClass("border-b");
     expect(container.firstElementChild).toHaveClass("border-white/[0.03]");
-    expect(
-      screen.getByRole("button", { name: "Toggle side panel" }),
-    ).toHaveClass("text-white/80");
   });
 });

@@ -1,44 +1,152 @@
-import { SidebarSimple, TerminalWindow } from "@/components/ui/icons";
+import * as React from "react";
+import { CaretDown, GitCommit, Upload } from "@/components/ui/icons";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { getTrafficLightInset } from "../../lib/title-bar-layout";
 
+const COMMIT_PROMPT = "Commit all changes with a conventional-commits message";
+const COMMIT_AND_PUSH_PROMPT =
+  "Commit all changes with a conventional-commits message and push to origin";
+const PUSH_PROMPT = "Push current branch to origin";
+const FETCH_PROMPT = "Fetch from origin";
+
 export interface TitleBarProps {
   platform: string | null;
-  isTerminalActive: boolean;
-  isRightSidebarVisible: boolean;
-  onOpenTerminal: () => void;
-  onToggleRightSidebar: () => void;
+  onAgentGitAction?: (prompt: string) => void;
+  hasActiveThread?: boolean;
 }
 
-interface TitleBarControlButton {
+interface GitSplitButtonProps {
+  onAgentGitAction?: (prompt: string) => void;
+  hasActiveThread: boolean;
+}
+
+function GitSplitButton({
+  onAgentGitAction,
+  hasActiveThread,
+}: GitSplitButtonProps) {
+  const [menuOpen, setMenuOpen] = React.useState(false);
+  const disabled = !hasActiveThread || !onAgentGitAction;
+
+  const send = React.useCallback(
+    (prompt: string) => {
+      if (disabled) return;
+      onAgentGitAction?.(prompt);
+      setMenuOpen(false);
+    },
+    [disabled, onAgentGitAction],
+  );
+
+  const title = disabled ? "No active thread" : undefined;
+
+  return (
+    <div
+      className={cn(
+        "flex h-7 items-stretch border border-white/[0.06]",
+        disabled && "opacity-40",
+      )}
+    >
+      <button
+        type="button"
+        disabled={disabled}
+        title={title}
+        onClick={() => send(COMMIT_AND_PUSH_PROMPT)}
+        className={cn(
+          "flex items-center gap-1.5 px-2 text-[10px] uppercase tracking-wider text-white/70 transition-colors duration-150",
+          "hover:bg-white/[0.04] hover:text-white/90",
+          "disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-white/70",
+          "focus:outline-none focus-visible:outline-none",
+        )}
+      >
+        <GitCommit className="size-3.5" />
+        <span>Commit &amp; Push</span>
+      </button>
+      <div className="w-px bg-white/[0.06]" aria-hidden="true" />
+      <Popover open={menuOpen} onOpenChange={setMenuOpen}>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            disabled={disabled}
+            title={title}
+            aria-label="More git actions"
+            className={cn(
+              "flex items-center justify-center px-1.5 text-white/70 transition-colors duration-150",
+              "hover:bg-white/[0.04] hover:text-white/90",
+              "disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-white/70",
+              "focus:outline-none focus-visible:outline-none",
+            )}
+          >
+            <CaretDown className="size-3.5" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent
+          align="end"
+          side="bottom"
+          sideOffset={6}
+          className="w-48 border-white/[0.06] bg-[#0C0D0F] p-1 shadow-2xl"
+        >
+          <div className="flex flex-col">
+            <GitMenuItem
+              icon={GitCommit}
+              label="Commit"
+              onClick={() => send(COMMIT_PROMPT)}
+            />
+            <GitMenuItem
+              icon={GitCommit}
+              label="Commit & Push"
+              onClick={() => send(COMMIT_AND_PUSH_PROMPT)}
+            />
+            <div className="my-1 h-px bg-white/[0.06]" />
+            <GitMenuItem
+              icon={Upload}
+              label="Push"
+              onClick={() => send(PUSH_PROMPT)}
+            />
+            <GitMenuItem
+              icon={Upload}
+              label="Fetch"
+              onClick={() => send(FETCH_PROMPT)}
+            />
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
+
+interface GitMenuItemProps {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   onClick: () => void;
-  isActive?: boolean;
+}
+
+function GitMenuItem({ icon: Icon, label, onClick }: GitMenuItemProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex items-center gap-2 px-2 py-1.5 text-left text-[10px] uppercase tracking-wider text-white/70 transition-colors duration-150",
+        "hover:bg-white/[0.04] hover:text-white/90",
+        "focus:outline-none focus-visible:outline-none",
+      )}
+    >
+      <Icon className="size-3.5" />
+      <span>{label}</span>
+    </button>
+  );
 }
 
 export function TitleBar({
   platform,
-  isTerminalActive,
-  isRightSidebarVisible,
-  onOpenTerminal,
-  onToggleRightSidebar,
+  onAgentGitAction,
+  hasActiveThread = false,
 }: TitleBarProps) {
-  const controlButtons: TitleBarControlButton[] = [
-    {
-      icon: TerminalWindow,
-      label: "Open terminal",
-      onClick: onOpenTerminal,
-      isActive: isTerminalActive,
-    },
-  ];
-
   return (
     <div
       data-drag-region="true"
@@ -52,49 +160,13 @@ export function TitleBar({
       <div
         data-slot="titlebar-controls"
         data-no-drag="true"
-        className="flex items-center gap-1.5"
+        className="flex items-center gap-2"
       >
         <TooltipProvider>
-          <div className="flex items-center gap-1.5">
-            {controlButtons.map(({ icon: Icon, label, onClick, isActive }) => (
-              <Tooltip key={label}>
-                <TooltipTrigger asChild>
-                  <button
-                    type="button"
-                    onClick={onClick}
-                    aria-label={label}
-                    className={cn(
-                      "flex size-8 items-center justify-center text-white/40 outline-none ring-0 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/80 focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0",
-                      isActive && "bg-white/[0.04] text-white/80",
-                    )}
-                  >
-                    <Icon className="size-4" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" sideOffset={8}>
-                  {label}
-                </TooltipContent>
-              </Tooltip>
-            ))}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  onClick={onToggleRightSidebar}
-                  aria-label="Toggle side panel"
-                  className={cn(
-                    "flex size-8 items-center justify-center text-white/40 outline-none ring-0 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/80 focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0",
-                    isRightSidebarVisible && "bg-white/[0.04] text-white/80",
-                  )}
-                >
-                  <SidebarSimple className="size-4 -scale-x-100" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" sideOffset={8}>
-                Toggle side panel
-              </TooltipContent>
-            </Tooltip>
-          </div>
+          <GitSplitButton
+            onAgentGitAction={onAgentGitAction}
+            hasActiveThread={hasActiveThread}
+          />
         </TooltipProvider>
       </div>
     </div>

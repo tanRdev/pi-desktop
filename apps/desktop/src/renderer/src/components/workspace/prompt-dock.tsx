@@ -20,6 +20,7 @@ import {
   ContextGauge,
   getContextPercentage,
 } from "./prompt-dock/context-gauge";
+import { ContextUsageMeter } from "./prompt-dock/context-usage-meter";
 import { getCurrentModelName, ModelPicker } from "./prompt-dock/model-picker";
 import { SendButton } from "./prompt-dock/send-button";
 
@@ -225,6 +226,15 @@ export function PromptDock({
                   contextWindow={currentContextWindow}
                   percent={currentContextPercentage}
                   modelDisplayName={currentModelDisplay}
+                />
+              ) : null}
+
+              {currentContextWindow != null &&
+              currentContextPercentage !== null ? (
+                <ContextUsageMeter
+                  tokens={currentContextTokens}
+                  contextWindow={currentContextWindow}
+                  percent={currentContextPercentage}
                 />
               ) : null}
 

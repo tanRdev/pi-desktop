@@ -58,6 +58,15 @@ export interface EnhancedMessageProps {
   className?: string;
   /** Animation index for stagger effect */
   animationIndex?: number;
+  /** Message timestamp (unix ms). When provided, rendered beneath content. */
+  timestamp?: number;
+}
+
+function formatTimestamp(timestamp: number): string {
+  const d = new Date(timestamp);
+  const hours = String(d.getHours()).padStart(2, "0");
+  const mins = String(d.getMinutes()).padStart(2, "0");
+  return `${hours}:${mins}`;
 }
 
 // ============================================
@@ -79,6 +88,7 @@ export function EnhancedMessage({
   onCopy,
   className,
   animationIndex = 0,
+  timestamp,
 }: EnhancedMessageProps) {
   const isUser = messageRole === "user";
   const isAssistant = messageRole === "assistant";
@@ -131,10 +141,15 @@ export function EnhancedMessage({
 
         {/* User messages */}
         {isUser && (
-          <div className="w-full space-y-2">
-            <div className="max-w-none text-sm leading-6 text-white/70">
+          <div className="w-full space-y-1">
+            <div className="max-w-none text-sm leading-6 text-white/70 text-right">
               <SlashCommandHighlighter text={content || " "} />
             </div>
+            {timestamp !== undefined && (
+              <div className="text-right font-mono text-[10px] text-white/30">
+                {formatTimestamp(timestamp)}
+              </div>
+            )}
           </div>
         )}
 
@@ -192,6 +207,12 @@ export function EnhancedMessage({
                   onValueChange={onFeedbackChange}
                   onCopy={onCopy}
                 />
+              </div>
+            )}
+
+            {timestamp !== undefined && status !== "streaming" && (
+              <div className="font-mono text-[10px] text-white/30">
+                {formatTimestamp(timestamp)}
               </div>
             )}
           </div>

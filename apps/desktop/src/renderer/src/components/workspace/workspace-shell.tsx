@@ -8,6 +8,7 @@ import type {
 } from "@pi-desktop/shared";
 import type { AgentLiveFeed } from "@pi-desktop/shell-model";
 import * as React from "react";
+import { TerminalWindow } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { DEFAULT_UNTITLED_THREAD_TITLE } from "../../../../thread-title-defaults";
 import {
@@ -22,7 +23,6 @@ import { FileTreePanel } from "./file-tree-panel";
 import { GitPanel } from "./git-panel";
 import { LeftSidebar, SIDEBAR_WIDTH } from "./left-sidebar";
 import { PromptDock } from "./prompt-dock";
-import { RightSidebarTabs } from "./right-sidebar-tabs";
 import { ThreadTabs } from "./thread-tabs";
 import { TitleBar } from "./title-bar";
 import { WorkspaceActivityPanel } from "./workspace-activity-panel";
@@ -116,6 +116,28 @@ export interface WorkspaceShellProps {
   onConnectProvider?: () => void;
   favoriteModels?: string[];
   onToggleFavorite?: (modelValue: string) => void;
+  onAgentGitAction?: (prompt: string) => void;
+}
+
+function TerminalTabBody({ onOpenTerminal }: { onOpenTerminal: () => void }) {
+  return (
+    <div className="flex h-full flex-col items-start gap-3 p-4">
+      <p className="text-[10px] uppercase tracking-wider text-white/40">
+        Terminal
+      </p>
+      <button
+        type="button"
+        onClick={onOpenTerminal}
+        className="flex items-center gap-2 border border-white/[0.06] px-3 py-2 text-[12px] text-white/70 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/90"
+      >
+        <TerminalWindow className="size-3.5" />
+        <span>Open terminal</span>
+      </button>
+      <p className="text-[11px] leading-relaxed text-white/40">
+        The terminal opens as a surface pane next to the chat.
+      </p>
+    </div>
+  );
 }
 
 function WorkspaceShellImpl({
@@ -196,13 +218,9 @@ function WorkspaceShellImpl({
   onFileTreeDeleteFile,
   onFileTreeRenameFile,
   onFileTreeMoveFile,
+  onAgentGitAction,
 }: WorkspaceShellProps) {
   const [isLeftSidebarVisible, setIsLeftSidebarVisible] = React.useState(true);
-  const [isRightSidebarVisible, setIsRightSidebarVisible] =
-    React.useState(true);
-  const [rightSidebarTab, setRightSidebarTab] = React.useState<"git" | "files">(
-    "git",
-  );
 
   React.useEffect(() => {
     let disposed = false;
@@ -271,14 +289,7 @@ function WorkspaceShellImpl({
       ),
     [contextWindows],
   );
-  const isTerminalActive =
-    mainPaneState.sideSurfaceKey !== null &&
-    mainPaneState.sideSurfaceKey !== "activity" &&
-    sideContextWindows.some(
-      (window) =>
-        window.id === mainPaneState.sideSurfaceKey &&
-        window.kind === "terminal",
-    );
+
   const gitPanel = (
     <GitPanel
       projectName={projectName}
@@ -304,11 +315,23 @@ function WorkspaceShellImpl({
     />
   );
 
+  const filesPanel = (
+    <FileTreePanel
+      workspacePath={workspacePath}
+      onFileSelect={onFileTreeFileSelect}
+      onDeleteFile={onFileTreeDeleteFile}
+      onRenameFile={onFileTreeRenameFile}
+      onMoveFile={onFileTreeMoveFile}
+      repositoryStatus={activeGitRepositoryStatus}
+    />
+  );
+
+  const terminalPanel = <TerminalTabBody onOpenTerminal={onOpenTerminal} />;
+
+  const hasSideSurface = mainPaneState.sideSurfaceKey !== null;
+
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden select-none">
-      {/* Item 2: TitleBar removed — drag region is in LeftSidebar */}
-
-      {/* Item 22: Main Layout — always-visible three-column layout */}
       <div className="relative flex min-h-0 flex-1 select-none">
         {!isLeftSidebarVisible ? (
           <div
@@ -319,7 +342,6 @@ function WorkspaceShellImpl({
           />
         ) : null}
 
-        {/* Item 3: Sidebar width 220, resize 160–320 */}
         <div
           data-left-sidebar-wrapper="true"
           className={cn(
@@ -361,11 +383,13 @@ function WorkspaceShellImpl({
               onDeleteThread={onDeleteThread}
               onAddRepository={onAddRepository}
               onToggleVisible={() => setIsLeftSidebarVisible(false)}
+              gitPanel={gitPanel}
+              filesPanel={filesPanel}
+              terminalPanel={terminalPanel}
             />
           </div>
         </div>
 
-        {/* Item 18: Main area bg var(--color-bg-secondary) */}
         <main
           data-testid="chat-first-layout"
           className={cn(
@@ -375,23 +399,15 @@ function WorkspaceShellImpl({
         >
           <TitleBar
             platform={platform}
-            isTerminalActive={isTerminalActive}
-            isRightSidebarVisible={isRightSidebarVisible}
-            onOpenTerminal={() => {
-              setIsRightSidebarVisible(true);
-              onOpenTerminal();
-            }}
-            onToggleRightSidebar={() =>
-              setIsRightSidebarVisible(!isRightSidebarVisible)
-            }
+            onAgentGitAction={onAgentGitAction}
+            hasActiveThread={hasActiveThread}
           />
           <div className="flex min-h-0 flex-1 overflow-hidden select-none">
-            {/* Chat panel - takes remaining space */}
             <div
               data-testid="workspace-chat-panel"
               className={cn(
                 "relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden select-none",
-                "border-r border-white/[0.06]",
+                hasSideSurface && "border-r border-white/[0.06]",
               )}
             >
               {activeWorktree ? (
@@ -483,72 +499,36 @@ function WorkspaceShellImpl({
               </div>
             </div>
 
-            {/* Right panel - 3 column design with animation */}
-            <div
-              data-testid="workspace-side-panel"
-              className={cn(
-                "min-h-0 shrink-0 overflow-hidden border-l border-white/[0.06] bg-[var(--color-bg-primary)]",
-                "will-change-[width,transform]",
-                "transition-[width,opacity] duration-[var(--duration-fast)] ease-[var(--ease-standard)]",
-                isRightSidebarVisible
-                  ? "w-[300px] xl:w-[400px] opacity-100"
-                  : "w-0 opacity-0 pointer-events-none",
-              )}
-            >
+            {/* Transient surface region: only appears when a file/terminal/activity surface is opened. */}
+            {hasSideSurface ? (
               <div
+                data-testid="workspace-side-panel"
                 className={cn(
-                  "flex h-full min-w-[300px] flex-col xl:min-w-[400px] will-change-transform",
-                  isRightSidebarVisible
-                    ? "translate-x-0 opacity-100 transition-[transform,opacity] duration-[var(--duration-enter)] ease-[var(--ease-emphasized-decel)]"
-                    : "translate-x-2 opacity-0 transition-[transform,opacity] duration-[var(--duration-exit)] ease-[var(--ease-emphasized-accel)]",
+                  "min-h-0 w-[360px] shrink-0 overflow-hidden border-l border-white/[0.06] bg-[var(--color-bg-primary)] xl:w-[420px]",
                 )}
               >
-                {mainPaneState.sideSurfaceKey === "activity" ? (
-                  <WorkspaceActivityPanel
-                    threadTitle={activeThreadTitle}
-                    worktreeLabel={activeWorktreeLabel}
-                    displayAgentStatus={displayAgentStatus}
-                    liveFeed={liveFeed}
-                    className="h-full"
-                  />
-                ) : mainPaneState.sideSurfaceKey !== null ? (
-                  <WorkspaceSurfacePanel
-                    activeWorktreeId={activeWorktreeId}
-                    selectedSurfaceKey={mainPaneState.sideSurfaceKey}
-                    windows={sideContextWindows}
-                    onFileContentChange={onFileContentChange}
-                    onFileSave={onFileSave}
-                    activityContent={gitPanel}
-                  />
-                ) : (
-                  <>
-                    <RightSidebarTabs
-                      activeTab={rightSidebarTab}
-                      onTabChange={setRightSidebarTab}
+                <div className="flex h-full min-w-[360px] flex-col xl:min-w-[420px]">
+                  {mainPaneState.sideSurfaceKey === "activity" ? (
+                    <WorkspaceActivityPanel
+                      threadTitle={activeThreadTitle}
+                      worktreeLabel={activeWorktreeLabel}
+                      displayAgentStatus={displayAgentStatus}
+                      liveFeed={liveFeed}
+                      className="h-full"
                     />
-                    <div className="min-h-0 flex-1 overflow-y-auto">
-                      <div
-                        key={rightSidebarTab}
-                        className="tab-content-enter h-full"
-                      >
-                        {rightSidebarTab === "git" ? (
-                          gitPanel
-                        ) : (
-                          <FileTreePanel
-                            workspacePath={workspacePath}
-                            onFileSelect={onFileTreeFileSelect}
-                            onDeleteFile={onFileTreeDeleteFile}
-                            onRenameFile={onFileTreeRenameFile}
-                            onMoveFile={onFileTreeMoveFile}
-                            repositoryStatus={activeGitRepositoryStatus}
-                          />
-                        )}
-                      </div>
-                    </div>
-                  </>
-                )}
+                  ) : mainPaneState.sideSurfaceKey !== null ? (
+                    <WorkspaceSurfacePanel
+                      activeWorktreeId={activeWorktreeId}
+                      selectedSurfaceKey={mainPaneState.sideSurfaceKey}
+                      windows={sideContextWindows}
+                      onFileContentChange={onFileContentChange}
+                      onFileSave={onFileSave}
+                      activityContent={gitPanel}
+                    />
+                  ) : null}
+                </div>
               </div>
-            </div>
+            ) : null}
           </div>
         </main>
       </div>

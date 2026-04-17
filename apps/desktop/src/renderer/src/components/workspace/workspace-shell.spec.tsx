@@ -224,38 +224,6 @@ afterEach(() => {
 });
 
 describe("WorkspaceShell", () => {
-  it("keeps the right panel visible by default and lets the title bar collapse it", async () => {
-    const user = userEvent.setup();
-
-    render(<WorkspaceShell {...createWorkspaceShellProps()} />);
-
-    const sidePanel = screen.getByTestId("workspace-side-panel");
-    expect(sidePanel).toHaveClass("w-[300px]");
-
-    await user.click(screen.getByRole("button", { name: "Toggle side panel" }));
-    expect(sidePanel).toHaveClass("w-0");
-
-    await user.click(screen.getByRole("button", { name: "Toggle side panel" }));
-    expect(sidePanel).toHaveClass("w-[300px]");
-  });
-
-  it("forwards terminal launches from the title bar", async () => {
-    const user = userEvent.setup();
-    const onOpenTerminal = vi.fn();
-
-    render(
-      <WorkspaceShell
-        {...createWorkspaceShellProps({
-          onOpenTerminal,
-        })}
-      />,
-    );
-
-    await user.click(screen.getByRole("button", { name: "Open terminal" }));
-
-    expect(onOpenTerminal).toHaveBeenCalledTimes(1);
-  });
-
   it("renders thread tabs above message area and creates threads inside active session", async () => {
     const user = userEvent.setup();
     const onCreateThread = vi.fn(async () => "thread-3");

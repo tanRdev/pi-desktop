@@ -1,9 +1,16 @@
+import { ArrowsLeftRight } from "@phosphor-icons/react";
 import type { RepositorySnapshot, WorktreeSnapshot } from "@pi-desktop/shared";
 import { Skeleton } from "boneyard-js/react";
 import * as React from "react";
 import {
+  ArrowDown,
+  ArrowUp,
+  Check,
   Copy,
   FolderPlus,
+  GitBranch,
+  GitMerge,
+  GitPullRequest,
   Plus,
   SidebarSimple,
   Trash,
@@ -15,6 +22,18 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { PlaceholderTab } from "./sidebar/placeholder-tab";
+
+export { PlaceholderTab } from "./sidebar/placeholder-tab";
+
+type SidebarTab = "workspaces" | "git" | "files" | "terminal";
+
+const SIDEBAR_TABS: ReadonlyArray<{ id: SidebarTab; label: string }> = [
+  { id: "workspaces", label: "Workspaces" },
+  { id: "git", label: "Git" },
+  { id: "files", label: "Files" },
+  { id: "terminal", label: "Terminal" },
+];
 
 export const SIDEBAR_WIDTH = 260;
 
@@ -44,6 +63,9 @@ export interface LeftSidebarProps {
   onCopyRepositoryPath?: (repositoryId: string) => void;
   onOpenInFinder?: (repositoryId: string) => void;
   onCreateSession: () => void | Promise<void>;
+  gitPanel?: React.ReactNode;
+  filesPanel?: React.ReactNode;
+  terminalPanel?: React.ReactNode;
 }
 
 // Branch connector SVG that connects project to worktree status indicators
@@ -128,7 +150,30 @@ function WorktreeRowImpl({
   const ahead = session.git.ahead ?? 0;
   const behind = session.git.behind ?? 0;
   const isDirty = session.git.hasChanges ?? false;
-  const hasChanges = ahead > 0 || behind > 0 || isDirty;
+  const prStatus = session.git.prStatus ?? null;
+
+  // Pick the most salient git state icon.
+  const gitStateIcon = (() => {
+    if (prStatus === "merged") {
+      return <GitMerge className="size-3.5 text-[var(--color-accent)]" />;
+    }
+    if (prStatus === "open") {
+      return <GitPullRequest className="size-3.5 text-sky-400" />;
+    }
+    if (ahead > 0 && behind > 0) {
+      return <ArrowsLeftRight className="size-3.5 text-white/40" />;
+    }
+    if (ahead > 0) {
+      return <ArrowUp className="size-3.5 text-[var(--color-accent)]" />;
+    }
+    if (behind > 0) {
+      return <ArrowDown className="size-3.5 text-white/40" />;
+    }
+    if (isDirty) {
+      return <GitBranch className="size-3.5 text-white/40" />;
+    }
+    return <Check className="size-3.5 text-white/30" />;
+  })();
 
   return (
     <div data-testid="session-row">
@@ -136,20 +181,19 @@ function WorktreeRowImpl({
         type="button"
         onClick={() => onSelect(session.id)}
         className={cn(
-          "group flex w-full items-center gap-3 px-3 py-2 text-left text-[13px]",
+          "group flex w-full items-center gap-2 px-3 py-2 text-left text-[13px]",
           "transition-colors duration-150",
           isActive
             ? "text-white"
-            : "text-white/50 hover:text-white/70 hover:bg-white/[0.01]",
+            : "text-white/50 hover:text-white/70 hover:bg-white/[0.04]",
         )}
       >
-        {/* Status indicator - connected by branch line */}
+        {/* Active/working indicator */}
         <div
           className={cn(
-            "w-1.5 h-1.5 flex-shrink-0 transition-all duration-200",
+            "w-1 h-1 flex-shrink-0 transition-all duration-200",
             isActive && "bg-[var(--color-accent)] scale-110",
-            !isActive && hasChanges && "bg-white/40",
-            !isActive && !hasChanges && "bg-white/20",
+            !isActive && "bg-white/20",
           )}
         >
           {isWorking && (
@@ -157,35 +201,22 @@ function WorktreeRowImpl({
           )}
         </div>
 
+        {/* Git state icon */}
+        <span className="flex shrink-0 items-center justify-center">
+          {gitStateIcon}
+        </span>
+
         {/* Branch name */}
         <span className="flex-1 truncate font-mono">{session.label}</span>
 
-        {/* Diff stats - connected square pill */}
+        {/* Compact diff counts */}
         {(ahead > 0 || behind > 0) && (
-          <div
-            className="flex text-[10px] font-mono"
-            style={{
-              backgroundColor: "rgba(0, 0, 0, 0.3)",
-              border: "1px solid rgba(255, 255, 255, 0.06)",
-            }}
-          >
+          <span className="flex items-center gap-1 text-[10px] font-mono text-white/40">
             {ahead > 0 && (
-              <span
-                className="px-1.5 py-0.5 border-r border-white/[0.06]"
-                style={{ color: "#5fb87a" }}
-              >
-                +{ahead}
-              </span>
+              <span className="text-[var(--color-accent)]">+{ahead}</span>
             )}
-            {behind > 0 && (
-              <span className="px-1.5 py-0.5" style={{ color: "#d95f5f" }}>
-                −{behind}
-              </span>
-            )}
-          </div>
-        )}
-        {isDirty && ahead === 0 && behind === 0 && (
-          <span className="text-[10px] text-white/30 font-mono">*</span>
+            {behind > 0 && <span className="text-white/40">−{behind}</span>}
+          </span>
         )}
       </button>
     </div>
@@ -310,6 +341,9 @@ export function LeftSidebarImpl({
   onCreateSession,
   onAddRepository,
   onToggleVisible,
+  gitPanel,
+  filesPanel,
+  terminalPanel,
 }: LeftSidebarProps) {
   const [isResizing, setIsResizing] = React.useState(false);
   const asideRef = React.useRef<HTMLElement | null>(null);
@@ -470,6 +504,8 @@ export function LeftSidebarImpl({
 
   const contextMenuRepositoryId = contextMenu.repositoryId;
 
+  const [activeTab, setActiveTab] = React.useState<SidebarTab>("workspaces");
+
   return (
     <aside
       ref={asideRef}
@@ -477,11 +513,48 @@ export function LeftSidebarImpl({
       className="relative z-20 flex h-full shrink-0 select-none flex-col bg-[var(--color-bg-primary)] border-r border-white/[0.06]"
       style={{ width }}
     >
-      {/* Header */}
+      {/* macOS traffic-light spacer — matches title-bar height */}
       <div
         data-drag-region="true"
-        className="flex h-11 w-full shrink-0 items-center justify-end px-3"
+        className="w-full shrink-0"
+        style={{ height: "var(--titlebar-height)" }}
+        aria-hidden="true"
+      />
+
+      {/* Header + tab bar */}
+      <div
+        data-drag-region="true"
+        className="flex h-11 w-full shrink-0 items-center justify-between gap-2 pl-2 pr-1"
       >
+        <div
+          data-no-drag="true"
+          className="flex items-center gap-0"
+          role="tablist"
+          aria-label="Sidebar tabs"
+        >
+          {SIDEBAR_TABS.map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                data-testid={`sidebar-tab-${tab.id}`}
+                onClick={() => setActiveTab(tab.id)}
+                className={cn(
+                  "h-8 px-2 text-[10px] uppercase tracking-wider font-medium",
+                  "transition-colors duration-150 border-b border-transparent",
+                  isActive
+                    ? "text-white/90 border-[var(--color-accent)]"
+                    : "text-white/40 hover:text-white/70",
+                )}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
         <button
           type="button"
           onClick={onToggleVisible}
@@ -492,92 +565,99 @@ export function LeftSidebarImpl({
         </button>
       </div>
 
-      {/* Repository List */}
-      <div className="min-h-0 flex-1 overflow-y-auto py-2">
-        {/* Projects header */}
-        <div className="px-4 py-2 flex items-center justify-between">
-          <div className="text-[11px] text-white/40 font-medium uppercase tracking-wider">
-            Projects
-          </div>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                onClick={onAddRepository}
-                aria-label="Open project folder"
-                className="flex size-8 items-center justify-center text-white/40 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/80"
-              >
-                <FolderPlus className="size-5" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="right">Open project folder</TooltipContent>
-          </Tooltip>
-        </div>
+      {/* Tab body */}
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        {activeTab === "workspaces" ? (
+          <div className="py-2">
+            {/* Projects */}
+            <div className="space-y-0.5">
+              {repositories.map((repository) => {
+                const isActiveRepo = repository.id === activeRepositoryId;
+                const isExpanded = expandedRepositoryIds.has(repository.id);
+                const sessions = repository.worktrees;
 
-        {/* Projects */}
-        <div className="space-y-0.5">
-          {repositories.map((repository) => {
-            const isActiveRepo = repository.id === activeRepositoryId;
-            const isExpanded = expandedRepositoryIds.has(repository.id);
-            const sessions = repository.worktrees;
-
-            return (
-              <div key={repository.id}>
-                <ProjectRow
-                  repository={repository}
-                  isActive={isActiveRepo}
-                  isExpanded={isExpanded}
-                  sessionCount={sessions.length}
-                  onSelect={handleSelectProject}
-                  onContextMenu={handleContextMenu}
-                  onCreateSession={handleCreateSession}
-                  isCreatingSession={isCreatingSession}
-                />
-
-                {isExpanded && (
-                  <div className="relative ml-5 pl-5">
-                    {/* Branch connector that connects to status indicators */}
-                    <BranchConnector
-                      count={sessions.length}
+                return (
+                  <div key={repository.id}>
+                    <ProjectRow
+                      repository={repository}
+                      isActive={isActiveRepo}
                       isExpanded={isExpanded}
+                      sessionCount={sessions.length}
+                      onSelect={handleSelectProject}
+                      onContextMenu={handleContextMenu}
+                      onCreateSession={handleCreateSession}
+                      isCreatingSession={isCreatingSession}
                     />
 
-                    <Skeleton
-                      name="session-list"
-                      loading={Boolean(isLoading && isActiveRepo)}
-                      fixture={[1, 2].map((i) => (
-                        <div key={i} className="h-10" />
-                      ))}
-                    >
-                      <div>
-                        {sessions.map((session) => {
-                          const isSessionActive =
-                            session.id === activeWorktreeId;
-                          const isSessionWorking =
-                            session.threads.some(
-                              (thread) => thread.runtime.status === "streaming",
-                            ) ||
-                            (isSessionActive && Boolean(isPromptExecuting));
+                    {isExpanded && (
+                      <div className="relative ml-5 pl-5">
+                        {/* Branch connector that connects to status indicators */}
+                        <BranchConnector
+                          count={sessions.length}
+                          isExpanded={isExpanded}
+                        />
 
-                          return (
-                            <WorktreeRow
-                              key={session.id}
-                              session={session}
-                              isActive={isSessionActive}
-                              isWorking={isSessionWorking}
-                              onSelect={onSelectWorktree}
-                            />
-                          );
-                        })}
+                        <Skeleton
+                          name="session-list"
+                          loading={Boolean(isLoading && isActiveRepo)}
+                          fixture={[1, 2].map((i) => (
+                            <div key={i} className="h-10" />
+                          ))}
+                        >
+                          <div>
+                            {sessions.map((session) => {
+                              const isSessionActive =
+                                session.id === activeWorktreeId;
+                              const isSessionWorking =
+                                session.threads.some(
+                                  (thread) =>
+                                    thread.runtime.status === "streaming",
+                                ) ||
+                                (isSessionActive && Boolean(isPromptExecuting));
+
+                              return (
+                                <WorktreeRow
+                                  key={session.id}
+                                  session={session}
+                                  isActive={isSessionActive}
+                                  isWorking={isSessionWorking}
+                                  onSelect={onSelectWorktree}
+                                />
+                              );
+                            })}
+                          </div>
+                        </Skeleton>
                       </div>
-                    </Skeleton>
+                    )}
                   </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : activeTab === "git" ? (
+          (gitPanel ?? <PlaceholderTab name="git" />)
+        ) : activeTab === "files" ? (
+          (filesPanel ?? <PlaceholderTab name="files" />)
+        ) : (
+          (terminalPanel ?? <PlaceholderTab name="terminal" />)
+        )}
       </div>
+
+      {/* Bottom: Add workspace */}
+      {activeTab === "workspaces" && (
+        <div className="shrink-0 border-t border-white/[0.06]">
+          <button
+            type="button"
+            onClick={onAddRepository}
+            aria-label="Add workspace"
+            data-testid="add-workspace-button"
+            className="flex h-9 w-full items-center gap-2 px-3 text-left text-[12px] text-white/50 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/70"
+          >
+            <FolderPlus className="size-3.5" />
+            <span>Add workspace</span>
+          </button>
+        </div>
+      )}
 
       {/* Resize handle */}
       <Tooltip>

@@ -14,6 +14,9 @@ import { EnhancedMessage } from "../ui/enhanced-message";
 import type { FeedbackValue } from "../ui/feedback-bar";
 import { ScrollButton } from "../ui/scroll-button";
 import { SystemMessage } from "../ui/system-message";
+import { FileChangeSummary } from "./chat/file-change-summary";
+import { ResponseDivider } from "./chat/response-divider";
+import { ToolCallRollup } from "./chat/tool-call-rollup";
 
 type ChatMessageRowProps = {
   message: AgentMessageSnapshot;
@@ -22,6 +25,86 @@ type ChatMessageRowProps = {
   onFeedbackChange: (messageId: string, value: FeedbackValue) => void;
   onCopyMessage: (text: string) => void;
 };
+
+interface ChatTurn {
+  id: string;
+  userMessage: AgentMessageSnapshot | null;
+  toolMessages: AgentMessageSnapshot[];
+  assistantMessages: AgentMessageSnapshot[];
+  otherMessages: AgentMessageSnapshot[];
+  lastAssistantTimestamp: number | null;
+  isStreaming: boolean;
+}
+
+function buildTurns(messages: AgentMessageSnapshot[]): ChatTurn[] {
+  const turns: ChatTurn[] = [];
+  let current: ChatTurn | null = null;
+
+  for (const m of messages) {
+    if (m.role === "user") {
+      if (current) turns.push(current);
+      current = {
+        id: m.id,
+        userMessage: m,
+        toolMessages: [],
+        assistantMessages: [],
+        otherMessages: [],
+        lastAssistantTimestamp: null,
+        isStreaming: false,
+      };
+      continue;
+    }
+
+    if (!current) {
+      // Orphan messages before any user turn.
+      current = {
+        id: `pre-turn-${m.id}`,
+        userMessage: null,
+        toolMessages: [],
+        assistantMessages: [],
+        otherMessages: [],
+        lastAssistantTimestamp: null,
+        isStreaming: false,
+      };
+    }
+
+    if (m.role === "tool") {
+      current.toolMessages.push(m);
+      if (m.status === "streaming") current.isStreaming = true;
+    } else if (m.role === "assistant") {
+      current.assistantMessages.push(m);
+      if (m.status === "streaming") {
+        current.isStreaming = true;
+      } else {
+        current.lastAssistantTimestamp = m.timestamp;
+      }
+    } else {
+      current.otherMessages.push(m);
+    }
+  }
+  if (current) turns.push(current);
+  return turns;
+}
+
+const FILE_MUTATION_PREFIXES = ["write", "edit", "create", "delete"];
+
+function isFileMutationTool(toolMsg: AgentMessageSnapshot): boolean {
+  const match = /^tool:([^:]+):/.exec(toolMsg.id);
+  const name = (match?.[1] ?? "").toLowerCase();
+  if (!name) return false;
+  if (FILE_MUTATION_PREFIXES.some((p) => name.startsWith(p))) return true;
+  return name.includes("file");
+}
+
+function extractFilePath(toolMsg: AgentMessageSnapshot): string | null {
+  // id format: tool:<name>:<rest>
+  const rest = toolMsg.id.split(":").slice(2).join(":");
+  if (!rest) return null;
+  // Heuristic: look for something that looks like a path.
+  const pathMatch = rest.match(/([\w./\-@]+\.[a-zA-Z0-9]+)/);
+  if (pathMatch?.[1]) return pathMatch[1];
+  return null;
+}
 
 const CHAT_SUGGESTIONS: ReadonlyArray<string> = [
   "Explain this repo",
@@ -100,6 +183,7 @@ function ChatMessageBody({
           content={message.text || " "}
           status={message.status}
           animationIndex={index}
+          timestamp={message.timestamp}
         />
       );
     default:
@@ -122,6 +206,7 @@ function ChatMessageBody({
           onFeedbackChange={onFeedbackChange}
           onCopy={onCopy}
           animationIndex={index}
+          timestamp={message.timestamp}
         />
       );
   }
@@ -320,6 +405,8 @@ export function ChatThreadPanel({
     [messages],
   );
 
+  const turns = React.useMemo(() => buildTurns(messages), [messages]);
+
   const streamingIndicator = isStreaming ? (
     <output
       className="mx-auto flex w-full max-w-3xl px-6 py-2"
@@ -401,20 +488,83 @@ export function ChatThreadPanel({
                 </div>
               ) : null}
 
-              {messages.length > 0
-                ? messages.map((message, index) => {
-                    const feedbackValue =
-                      feedbackByMessageId[message.id] ?? null;
+              {turns.length > 0
+                ? turns.map((turn, turnIdx) => {
+                    const isLastTurn = turnIdx === turns.length - 1;
+                    const mutationTools =
+                      turn.toolMessages.filter(isFileMutationTool);
+                    const filePaths = Array.from(
+                      new Set(
+                        mutationTools
+                          .map(extractFilePath)
+                          .filter((p): p is string => p !== null),
+                      ),
+                    );
+                    const showDivider =
+                      turn.userMessage !== null &&
+                      (turn.assistantMessages.length > 0 ||
+                        turn.toolMessages.length > 0 ||
+                        turn.isStreaming ||
+                        (isLastTurn && isStreaming));
+                    const working =
+                      turn.isStreaming ||
+                      (isLastTurn &&
+                        isStreaming &&
+                        turn.lastAssistantTimestamp === null);
+
+                    let runningIndex = 0;
+                    const renderMessage = (m: AgentMessageSnapshot) => {
+                      const idx = runningIndex++;
+                      const feedbackValue = feedbackByMessageId[m.id] ?? null;
+                      return (
+                        <ChatMessageRow
+                          key={m.id}
+                          message={m}
+                          index={idx}
+                          feedback={feedbackValue}
+                          onFeedbackChange={handleFeedbackChange}
+                          onCopyMessage={handleCopyMessage}
+                        />
+                      );
+                    };
 
                     return (
-                      <ChatMessageRow
-                        key={message.id}
-                        message={message}
-                        index={index}
-                        feedback={feedbackValue}
-                        onFeedbackChange={handleFeedbackChange}
-                        onCopyMessage={handleCopyMessage}
-                      />
+                      <React.Fragment key={turn.id}>
+                        {turn.userMessage
+                          ? renderMessage(turn.userMessage)
+                          : null}
+
+                        {showDivider && (
+                          <ResponseDivider
+                            userTimestamp={
+                              turn.userMessage?.timestamp ?? Date.now()
+                            }
+                            assistantCompletedAt={turn.lastAssistantTimestamp}
+                            isWorking={working}
+                          />
+                        )}
+
+                        {turn.toolMessages.length > 0 && (
+                          <div className="mx-auto w-full max-w-3xl px-6">
+                            <ToolCallRollup
+                              tools={turn.toolMessages}
+                              turnId={turn.id}
+                            />
+                          </div>
+                        )}
+
+                        {turn.assistantMessages.map(renderMessage)}
+                        {turn.otherMessages.map(renderMessage)}
+
+                        {mutationTools.length > 0 &&
+                          !turn.isStreaming &&
+                          turn.lastAssistantTimestamp !== null && (
+                            <FileChangeSummary
+                              filePaths={filePaths}
+                              count={mutationTools.length}
+                            />
+                          )}
+                      </React.Fragment>
                     );
                   })
                 : null}

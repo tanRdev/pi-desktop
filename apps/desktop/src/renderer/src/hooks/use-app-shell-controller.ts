@@ -161,6 +161,7 @@ export interface AppShellController {
   initGitRepoName: string | null;
   submitInitGitRepo: () => Promise<void>;
   skipInitGitRepo: () => Promise<void>;
+  onAgentGitAction: (prompt: string) => void;
 }
 
 export function useAppShellController(): AppShellController {
@@ -1217,6 +1218,22 @@ export function useAppShellController(): AppShellController {
     await cancelPrompt();
   }, [cancelPrompt]);
 
+  const handleAgentGitAction = React.useCallback(
+    (prompt: string) => {
+      if (
+        !activeThreadId ||
+        agent.status === "starting" ||
+        agent.status === "streaming"
+      ) {
+        return;
+      }
+      setDraft(prompt);
+      setPendingPromptThreadId(activeThreadId);
+      void sendPrompt();
+    },
+    [activeThreadId, agent.status, sendPrompt, setDraft],
+  );
+
   const runtimeMode = shell.runtime?.agentMode ?? "unknown";
   const runtimeModeLabel = `${runtimeMode} mode`;
   const displayAgentStatus = agent.status;
@@ -1537,6 +1554,7 @@ export function useAppShellController(): AppShellController {
       onFileTreeDeleteFile: handleFileTreeDeleteFile,
       onFileTreeRenameFile: handleFileTreeRenameFile,
       onFileTreeMoveFile: handleFileTreeMoveFile,
+      onAgentGitAction: handleAgentGitAction,
     }),
     [
       platform,
@@ -1615,6 +1633,7 @@ export function useAppShellController(): AppShellController {
       handleFileTreeDeleteFile,
       handleFileTreeRenameFile,
       handleFileTreeMoveFile,
+      handleAgentGitAction,
     ],
   );
 
@@ -1660,5 +1679,6 @@ export function useAppShellController(): AppShellController {
     initGitRepoName,
     submitInitGitRepo,
     skipInitGitRepo,
+    onAgentGitAction: handleAgentGitAction,
   };
 }
