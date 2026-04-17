@@ -105,7 +105,7 @@ const INITIAL_COMPONENTS: Partial<Components> = {
   },
   p: function PComponent({ children, ...props }) {
     return (
-      <p className="my-4 text-sm leading-7 text-white/70" {...props}>
+      <p className="my-4 text-[13px] leading-7 text-white/70" {...props}>
         {children}
       </p>
     );

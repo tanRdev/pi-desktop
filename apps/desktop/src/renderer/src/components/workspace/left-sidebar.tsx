@@ -289,7 +289,9 @@ function ThreadRowImpl({
         <StatusIndicator
           state={isActive ? indicatorState : idleUnlessUnread(indicatorState)}
         />
-        <span className="min-w-0 flex-1 truncate">{threadTitle}</span>
+        <span className="min-w-0 flex-1 truncate" title={threadTitle}>
+          {threadTitle}
+        </span>
       </button>
     </div>
   );
@@ -721,12 +723,19 @@ export function LeftSidebarImpl({
         <>
           {/* Top header row — branding aligned to the traffic-light lane */}
           <div
-            className="shrink-0 h-11 flex items-center border-b border-white/[0.03]"
-            style={{ paddingLeft: getTrafficLightInset(platform ?? null) + 56 }}
+            className="shrink-0 h-11"
+            style={{
+              display: "grid",
+              gridTemplateColumns:
+                platform === "darwin"
+                  ? `${getTrafficLightInset(platform) + 64}px 1fr`
+                  : "1fr",
+            }}
           >
-            <span className="text-[10px] text-white/30 uppercase tracking-wider select-none">
-              pi desktop{appVersion ? ` v${appVersion}` : ""}
-            </span>
+            <div
+              className="flex h-full items-center justify-center"
+              style={{ gridColumn: platform === "darwin" ? "2" : "1" }}
+            ></div>
           </div>
 
           <div
@@ -852,6 +861,30 @@ export function LeftSidebarImpl({
             ) : (
               (filesPanel ?? <PlaceholderTab name="files" />)
             )}
+          </div>
+
+          {/* Add Workspace Button */}
+          <div className="shrink-0 border-t border-white/[0.06] px-3 py-3">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={onAddRepository}
+                  className={cn(
+                    "flex w-full items-center justify-center gap-2 rounded-sm",
+                    "px-3 py-2 text-[11px] font-medium uppercase tracking-wider",
+                    "border border-white/[0.06] bg-white/[0.02] text-white/50",
+                    "transition-all duration-150",
+                    "hover:border-white/[0.12] hover:bg-white/[0.04] hover:text-white/70",
+                    "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20",
+                  )}
+                >
+                  <Plus aria-hidden="true" className="size-3.5" />
+                  Add Workspace
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="top">Add a new workspace</TooltipContent>
+            </Tooltip>
           </div>
 
           <SidebarEdgeToggle
