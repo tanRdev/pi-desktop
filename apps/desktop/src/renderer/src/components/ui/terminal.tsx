@@ -1,6 +1,5 @@
 import type { FitAddon as FitAddonType } from "@xterm/addon-fit";
 import type { Terminal as XTermType } from "@xterm/xterm";
-import { Skeleton } from "boneyard-js/react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
@@ -62,6 +61,23 @@ function syncTerminalSurface(container: HTMLDivElement | null) {
   }
 }
 
+/**
+ * Resolve a CSS custom property to its computed hex value.
+ * xterm.js renders to a canvas and cannot parse CSS variable strings like
+ * `var(--color-bg-primary)`. We read the computed value from :root so the
+ * theme stays in sync with the app's CSS.
+ */
+function resolveCssVar(varName: string, fallback: string): string {
+  try {
+    const value = getComputedStyle(document.documentElement)
+      .getPropertyValue(varName)
+      .trim();
+    return value || fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 function TerminalSkeleton() {
   return (
     <div className="flex h-full w-full flex-col bg-[var(--color-bg-primary)]">
@@ -92,12 +108,29 @@ export function Terminal({
   const [error, setError] = React.useState<string | null>(null);
   const [isInitializing, setIsInitializing] = React.useState(true);
 
+  // Monotonic counter so each mount gets a unique PTY session id.
+  // Prevents React StrictMode double-mount from causing the first
+  // mount's async cleanup to destroy the second mount's session.
+  const mountCounterRef = React.useRef(0);
+
+  // When no workspace is active the main-process terminal handler rejects
+  // requests whose cwd is outside the repository allowlist, so we cannot
+  // just fall back to a home directory.  Show a hint instead of a blank pane.
+  const noCwd = !cwd;
+
   React.useEffect(() => {
-    // Fall back to user home directory when no workspace cwd is available,
-    // so the terminal always initializes instead of showing skeleton forever.
-    const effectiveCwd =
-      cwd || (typeof process !== "undefined" ? process.env.HOME : undefined);
-    if (!effectiveCwd || !containerRef.current || terminalRef.current) return;
+    if (!cwd || !containerRef.current) return;
+
+    // Dispose any leftover xterm instance from a stale mount (handles
+    // the case where StrictMode cleanup hasn't resolved yet).
+    if (terminalRef.current) {
+      terminalRef.current.dispose();
+      terminalRef.current = null;
+      fitAddonRef.current = null;
+    }
+
+    const mountNum = ++mountCounterRef.current;
+    const sessionId = mountNum === 1 ? id : `${id}--${mountNum}`;
 
     let cancelled = false;
     let terminal: XTermType | null = null;
@@ -108,14 +141,18 @@ export function Terminal({
     const initPromise = loadXtermModule().then(({ XTerm, FitAddon }) => {
       if (cancelled || !containerRef.current) return;
 
+      // Resolve CSS variables to actual hex values so the xterm.js canvas
+      // renderer can use them. Canvas context cannot parse `var(...)` strings.
+      const bgColor = resolveCssVar("--color-bg-primary", "#0C0D0F");
+
       terminal = new XTerm({
         theme: {
-          background: "var(--color-bg-primary)",
+          background: bgColor,
           foreground: "#d4d4d4",
           cursor: "#d4d4d4",
-          cursorAccent: "var(--color-bg-primary)",
+          cursorAccent: bgColor,
           selectionBackground: "rgba(255,255,255,0.1)",
-          black: "var(--color-bg-primary)",
+          black: bgColor,
           red: "#ef4444",
           green: "#22c55e",
           yellow: "#eab308",
@@ -153,16 +190,13 @@ export function Terminal({
 
       const { cols, rows } = terminal;
       const localTerminal = terminal;
-      // Hold a handle to the create promise so cleanup can await it before
-      // destroying. Without this the StrictMode dev double-mount causes:
-      //   create(id) -> cleanup -> destroy(id) -> create resolves (zombie) -> create(id again)
       createPromise = window.piDesktop.terminal
         .create({
-          id,
+          id: sessionId,
           cols,
           rows,
-          cwd: effectiveCwd,
-          ownerWindowId: ownerWindowId ?? `terminal-${id}`,
+          cwd,
+          ownerWindowId: ownerWindowId ?? `terminal-${sessionId}`,
           backend,
         })
         .then((session) => {
@@ -187,7 +221,7 @@ export function Terminal({
         });
 
       terminal.onData((data: string) => {
-        window.piDesktop.terminal.write(id, data).catch(console.error);
+        window.piDesktop.terminal.write(sessionId, data).catch(console.error);
       });
 
       const handleResize = () => {
@@ -195,7 +229,9 @@ export function Terminal({
           syncTerminalSurface(containerRef.current);
           fitAddonRef.current.fit();
           const { cols, rows } = terminalRef.current;
-          window.piDesktop.terminal.resize(id, cols, rows).catch(console.error);
+          window.piDesktop.terminal
+            .resize(sessionId, cols, rows)
+            .catch(console.error);
         }
       };
 
@@ -203,7 +239,7 @@ export function Terminal({
       resizeObserver.observe(containerRef.current);
 
       unsubscribe = window.piDesktop.terminal.onEvent((event) => {
-        if (event.id !== id) return;
+        if (event.id !== sessionId) return;
 
         if (event.type === "data" && event.data) {
           terminalRef.current?.write(event.data);
@@ -217,28 +253,40 @@ export function Terminal({
 
     return () => {
       cancelled = true;
-      // Await both the dynamic module load and the backend create before
-      // disposing, to preserve the StrictMode race protection.
+      // Clear refs SYNCHRONOUSLY so a StrictMode remount can proceed
+      // without the stale guard check blocking re-initialization.
+      terminalRef.current = null;
+      fitAddonRef.current = null;
+
+      // Async cleanup: disconnect observers, dispose xterm DOM, destroy
+      // the backend PTY session.  Using the mount-specific `sessionId`
+      // ensures this cleanup only destroys *this* mount's session.
       void initPromise.then(() => {
         resizeObserver?.disconnect();
         unsubscribe?.();
-        void createPromise.finally(() => {
-          window.piDesktop.terminal.destroy(id).catch(console.error);
-        });
         terminal?.dispose();
-        terminalRef.current = null;
-        fitAddonRef.current = null;
+        void createPromise.finally(() => {
+          window.piDesktop.terminal.destroy(sessionId).catch(console.error);
+        });
       });
     };
   }, [id, cwd, backend, ownerWindowId, onExit]);
 
   return (
-    <Skeleton
-      name="terminal"
-      loading={isInitializing}
-      fixture={<TerminalSkeleton />}
-    >
-      {error ? (
+    <>
+      {noCwd ? (
+        <div
+          className={cn(
+            "flex h-full w-full flex-col items-center justify-center bg-[var(--color-bg-primary)] p-4 text-center",
+            className,
+          )}
+        >
+          <div className="text-sm text-white/30">No workspace selected</div>
+          <div className="mt-1 text-xs text-white/20">
+            Select a workspace to open a terminal session.
+          </div>
+        </div>
+      ) : error ? (
         <div
           className={cn(
             "flex h-full w-full flex-col bg-[var(--color-bg-primary)]",
@@ -272,22 +320,26 @@ export function Terminal({
       ) : (
         <div
           className={cn(
-            "flex h-full w-full flex-col bg-[var(--color-bg-primary)]",
+            "relative h-full w-full bg-[var(--color-bg-primary)]",
             className,
           )}
         >
-          <div className="min-h-0 flex-1 overflow-hidden bg-[var(--color-bg-primary)]">
-            <div
-              ref={containerRef}
-              className={cn(
-                "h-full w-full bg-[var(--color-bg-primary)]",
-                "animate-in fade-in zoom-in-95 duration-200 [transition-timing-function:var(--ease-out)]",
-                "motion-reduce:animate-none",
-              )}
-            />
+          {/* Loading overlay — disappears once xterm.js initializes */}
+          {isInitializing && (
+            <div className="absolute inset-0 z-10">
+              <TerminalSkeleton />
+            </div>
+          )}
+          <div className="flex h-full w-full flex-col">
+            <div className="min-h-0 flex-1 overflow-hidden bg-[var(--color-bg-primary)]">
+              <div
+                ref={containerRef}
+                className="h-full w-full bg-[var(--color-bg-primary)]"
+              />
+            </div>
           </div>
         </div>
       )}
-    </Skeleton>
+    </>
   );
 }

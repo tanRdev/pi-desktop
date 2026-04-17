@@ -985,9 +985,13 @@ export function useAppShellController(): AppShellController {
 
   const handleDeleteWorktree = React.useCallback(
     async (worktreeId: string) => {
-      await window.piDesktop.worktrees.remove(worktreeId);
-      if (activeWorktreeId === worktreeId) {
-        setSelectedContextSurface(null);
+      try {
+        await window.piDesktop.worktrees.remove(worktreeId);
+        if (activeWorktreeId === worktreeId) {
+          setSelectedContextSurface(null);
+        }
+      } catch (error) {
+        console.error("Failed to remove worktree:", error);
       }
     },
     [activeWorktreeId],

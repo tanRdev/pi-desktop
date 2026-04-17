@@ -228,6 +228,18 @@ export class PiCliRpcAgentRuntime {
     this.env = env;
   }
 
+  /**
+   * Resolve the `pi` binary command. Checks `PI_CLI_PATH` env var first,
+   * then falls back to bare `"pi"` (PATH lookup).
+   */
+  private resolvePiCommand(): string {
+    const explicit = this.env.PI_CLI_PATH;
+    if (explicit && typeof explicit === "string" && explicit.length > 0) {
+      return explicit;
+    }
+    return "pi";
+  }
+
   async bootstrap(): Promise<void> {
     if (this.childProcess) {
       return;
@@ -361,14 +373,19 @@ export class PiCliRpcAgentRuntime {
   }
 
   private async startProcess(): Promise<void> {
-    const child = this.spawnProcess("pi", ["--mode", "rpc", "--continue"], {
-      cwd: this.cwd,
-      env: {
-        ...this.env,
-        PI_CODING_AGENT_DIR: this.agentDir,
+    const piCommand = this.resolvePiCommand();
+    const child = this.spawnProcess(
+      piCommand,
+      ["--mode", "rpc", "--continue"],
+      {
+        cwd: this.cwd,
+        env: {
+          ...this.env,
+          PI_CODING_AGENT_DIR: this.agentDir,
+        },
+        stdio: ["pipe", "pipe", "pipe"],
       },
-      stdio: ["pipe", "pipe", "pipe"],
-    }) as ChildProcessLike;
+    ) as ChildProcessLike;
 
     this.childProcess = child;
     child.stdout?.setEncoding?.("utf8");
@@ -390,6 +407,19 @@ export class PiCliRpcAgentRuntime {
     });
 
     child.on("error", (error) => {
+      const isEnoent =
+        error &&
+        "code" in error &&
+        (error as { code: string }).code === "ENOENT";
+      if (isEnoent) {
+        this.handleProcessFailure(
+          new Error(
+            `Could not find the 'pi' CLI (tried: ${piCommand}). ` +
+              "Make sure 'pi' is installed and accessible, or set the PI_CLI_PATH environment variable.",
+          ),
+        );
+        return;
+      }
       this.handleProcessFailure(error);
     });
 
