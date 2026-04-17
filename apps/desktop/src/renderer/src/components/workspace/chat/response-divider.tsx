@@ -40,7 +40,7 @@ export function ResponseDivider({
       : `Response · Worked for ${formatDuration(now - userTimestamp)}`;
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl items-center gap-3 px-6 py-3 select-none">
+    <div className="mx-auto flex w-full max-w-3xl items-center gap-3 px-6 pt-1 pb-3 select-none">
       <div className="h-px flex-1 bg-white/[0.06]" />
       <div
         className={cn(

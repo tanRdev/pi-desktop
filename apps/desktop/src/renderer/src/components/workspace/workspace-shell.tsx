@@ -72,6 +72,8 @@ export interface WorkspaceShellProps {
   onDeleteWorktree?: (worktreeId: string) => void | Promise<void>;
   onCloseThread: (threadId: string) => void | Promise<void>;
   onDeleteThread?: (threadId: string) => void | Promise<void>;
+  onArchiveWorktree?: (worktreeId: string) => void;
+  onArchiveThread?: (threadId: string) => void;
   onOpenGit: () => void;
   onToggleTerminal: () => void;
   isTerminalVisible: boolean;
@@ -165,6 +167,8 @@ function WorkspaceShellImpl({
   onDeleteWorktree,
   onCloseThread,
   onDeleteThread,
+  onArchiveWorktree,
+  onArchiveThread,
   onOpenGit: _onOpenGit,
   onToggleTerminal,
   isTerminalVisible,
@@ -348,6 +352,8 @@ function WorkspaceShellImpl({
           onSelectThread={onSelectThread}
           onDeleteWorktree={onDeleteWorktree}
           onDeleteThread={onDeleteThread}
+          onArchiveWorktree={onArchiveWorktree}
+          onArchiveThread={onArchiveThread}
           onAddRepository={onAddRepository}
           gitPanel={gitPanel}
           filesPanel={filesPanel}

@@ -6,6 +6,7 @@ import {
   ArrowDown,
   ArrowUp,
   Check,
+  Archive,
   Copy,
   Folder,
   GitBranch,
@@ -95,6 +96,8 @@ export interface LeftSidebarProps {
   onSelectThread: (threadId: string) => void;
   onDeleteWorktree?: (worktreeId: string) => void;
   onDeleteThread?: (threadId: string) => void;
+  onArchiveWorktree?: (worktreeId: string) => void;
+  onArchiveThread?: (threadId: string) => void;
   onAddRepository: () => void;
   onOpenFilter?: () => void;
   onNewAgent?: () => void;
@@ -256,6 +259,16 @@ interface WorktreeRowProps {
   threadLastViewedAt?: Record<string, number>;
   onSelect: (id: string) => void;
   onSelectThread: (threadId: string) => void;
+  onContextMenu?: (
+    e: React.MouseEvent,
+    worktreeId: string,
+    worktreeLabel: string,
+  ) => void;
+  onThreadContextMenu?: (
+    e: React.MouseEvent,
+    threadId: string,
+    threadTitle: string,
+  ) => void;
 }
 
 interface ThreadRowProps {
@@ -263,6 +276,11 @@ interface ThreadRowProps {
   isActive: boolean;
   indicatorState: IndicatorState;
   onSelect: (id: string) => void;
+  onContextMenu?: (
+    e: React.MouseEvent,
+    threadId: string,
+    threadTitle: string,
+  ) => void;
 }
 
 function ThreadRowImpl({
@@ -270,6 +288,7 @@ function ThreadRowImpl({
   isActive,
   indicatorState,
   onSelect,
+  onContextMenu,
 }: ThreadRowProps) {
   const threadTitle = thread.title.trim() || "Untitled thread";
 
@@ -278,6 +297,11 @@ function ThreadRowImpl({
       <button
         type="button"
         onClick={() => onSelect(thread.id)}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onContextMenu?.(e, thread.id, threadTitle);
+        }}
         className={cn(
           "group flex w-full min-w-0 items-center gap-2 pl-[11px] pr-2 py-1.5 text-left text-[12px]",
           "transition-colors duration-150",
@@ -306,6 +330,8 @@ function WorktreeRowImpl({
   threadLastViewedAt,
   onSelect,
   onSelectThread,
+  onContextMenu,
+  onThreadContextMenu,
 }: WorktreeRowProps) {
   const ahead = session.git.ahead ?? 0;
   const behind = session.git.behind ?? 0;
@@ -340,6 +366,11 @@ function WorktreeRowImpl({
       <button
         type="button"
         onClick={() => onSelect(session.id)}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onContextMenu?.(e, session.id, session.label);
+        }}
         className={cn(
           "group flex w-full min-w-0 items-center gap-2 pl-[22px] pr-2 py-2 text-left text-[13px]",
           "transition-colors duration-150",
@@ -404,6 +435,7 @@ function WorktreeRowImpl({
                   isActive={isThreadActive}
                   indicatorState={threadIndicatorState}
                   onSelect={onSelectThread}
+                  onContextMenu={onThreadContextMenu}
                 />
               );
             })}
@@ -515,8 +547,10 @@ export function LeftSidebarImpl({
   onSelectRepository,
   onSelectWorktree,
   onSelectThread,
-  onDeleteThread: _onDeleteThread,
-  onDeleteWorktree: _onDeleteWorktree,
+  onDeleteThread,
+  onDeleteWorktree,
+  onArchiveThread,
+  onArchiveWorktree,
   onRemoveRepository,
   onCopyRepositoryPath,
   onOpenInFinder,
@@ -550,6 +584,27 @@ export function LeftSidebarImpl({
 
   const contextMenuRef = React.useRef<HTMLDivElement>(null);
   const [isCreatingSession, setIsCreatingSession] = React.useState(false);
+
+  // Item context menu for threads/worktrees
+  const [itemMenu, setItemMenu] = React.useState<{
+    isOpen: boolean;
+    x: number;
+    y: number;
+    type: "thread" | "worktree";
+    id: string;
+    label: string;
+    confirming: "archive" | "delete" | null;
+  }>({
+    isOpen: false,
+    x: 0,
+    y: 0,
+    type: "thread",
+    id: "",
+    label: "",
+    confirming: null,
+  });
+
+  const itemMenuRef = React.useRef<HTMLDivElement>(null);
 
   const [expandedRepositoryIds, setExpandedRepositoryIds] = React.useState<
     Set<string>
@@ -597,6 +652,108 @@ export function LeftSidebarImpl({
       document.removeEventListener("keydown", handleEscape);
     };
   }, [contextMenu.isOpen]);
+
+  React.useEffect(() => {
+    if (!itemMenu.isOpen) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        itemMenuRef.current &&
+        !itemMenuRef.current.contains(e.target as Node)
+      ) {
+        setItemMenu((prev) => ({ ...prev, isOpen: false, confirming: null }));
+      }
+    };
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setItemMenu((prev) => ({ ...prev, isOpen: false, confirming: null }));
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [itemMenu.isOpen]);
+
+  const closeItemMenu = React.useCallback(() => {
+    setItemMenu((prev) => ({ ...prev, isOpen: false, confirming: null }));
+  }, []);
+
+  const handleItemContextMenu = React.useCallback(
+    (
+      e: React.MouseEvent,
+      type: "thread" | "worktree",
+      id: string,
+      label: string,
+    ) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setItemMenu({
+        isOpen: true,
+        x: e.clientX,
+        y: e.clientY,
+        type,
+        id,
+        label,
+        confirming: null,
+      });
+    },
+    [],
+  );
+
+  const handleThreadContextMenu = React.useCallback(
+    (e: React.MouseEvent, threadId: string, threadTitle: string) => {
+      handleItemContextMenu(e, "thread", threadId, threadTitle);
+    },
+    [handleItemContextMenu],
+  );
+
+  const handleWorktreeContextMenu = React.useCallback(
+    (e: React.MouseEvent, worktreeId: string, worktreeLabel: string) => {
+      handleItemContextMenu(e, "worktree", worktreeId, worktreeLabel);
+    },
+    [handleItemContextMenu],
+  );
+
+  const handleItemMenuConfirmAction = React.useCallback(
+    (action: "archive" | "delete") => {
+      if (itemMenu.confirming === action) {
+        // Second click — execute
+        if (action === "delete") {
+          if (itemMenu.type === "thread") {
+            onDeleteThread?.(itemMenu.id);
+          } else {
+            onDeleteWorktree?.(itemMenu.id);
+          }
+        } else {
+          if (itemMenu.type === "thread") {
+            onArchiveThread?.(itemMenu.id);
+          } else {
+            onArchiveWorktree?.(itemMenu.id);
+          }
+        }
+        closeItemMenu();
+      } else {
+        // First click — enter confirming state
+        setItemMenu((prev) => ({ ...prev, confirming: action }));
+      }
+    },
+    [
+      itemMenu.confirming,
+      itemMenu.type,
+      itemMenu.id,
+      onDeleteThread,
+      onDeleteWorktree,
+      onArchiveThread,
+      onArchiveWorktree,
+      closeItemMenu,
+    ],
+  );
 
   const handleCreateSession = React.useCallback(async () => {
     if (isCreatingSession) return;
@@ -844,6 +1001,10 @@ export function LeftSidebarImpl({
                                       threadLastViewedAt={threadLastViewedAt}
                                       onSelect={onSelectWorktree}
                                       onSelectThread={onSelectThread}
+                                      onContextMenu={handleWorktreeContextMenu}
+                                      onThreadContextMenu={
+                                        handleThreadContextMenu
+                                      }
                                     />
                                   );
                                 })}
@@ -961,6 +1122,94 @@ export function LeftSidebarImpl({
                   >
                     <Trash className="size-4" />
                     Remove
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Thread / Worktree Context Menu */}
+          {itemMenu.isOpen && (
+            <div
+              ref={itemMenuRef}
+              className="fixed z-[100] min-w-[180px] border border-white/[0.06] bg-[var(--color-bg-primary)] p-0 shadow-lg"
+              style={{ left: itemMenu.x, top: itemMenu.y }}
+            >
+              <div className="px-3 py-2 border-b border-white/[0.06]">
+                <span className="block truncate text-[12px] text-white/60">
+                  {itemMenu.label}
+                </span>
+                <span className="text-[10px] text-white/30">
+                  {itemMenu.type === "thread" ? "Thread" : "Worktree"}
+                </span>
+              </div>
+
+              {itemMenu.confirming === "archive" ? (
+                <div className="px-3 py-2 space-y-1.5">
+                  <p className="text-[11px] text-white/50">
+                    Archive this {itemMenu.type}?
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleItemMenuConfirmAction("archive")}
+                      className="flex-1 py-1 text-[11px] text-amber-400 hover:bg-amber-500/10 transition-colors duration-150"
+                    >
+                      Archive
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setItemMenu((prev) => ({ ...prev, confirming: null }))
+                      }
+                      className="flex-1 py-1 text-[11px] text-white/40 hover:bg-white/[0.04] transition-colors duration-150"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : itemMenu.confirming === "delete" ? (
+                <div className="px-3 py-2 space-y-1.5">
+                  <p className="text-[11px] text-white/50">
+                    Delete this {itemMenu.type}? This cannot be undone.
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleItemMenuConfirmAction("delete")}
+                      className="flex-1 py-1 text-[11px] text-rose-400 hover:bg-rose-500/10 transition-colors duration-150"
+                    >
+                      Delete
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setItemMenu((prev) => ({ ...prev, confirming: null }))
+                      }
+                      className="flex-1 py-1 text-[11px] text-white/40 hover:bg-white/[0.04] transition-colors duration-150"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => handleItemMenuConfirmAction("archive")}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] text-white/70 hover:bg-white/[0.04] transition-colors duration-150"
+                  >
+                    <Archive className="size-4" />
+                    Archive
+                  </button>
+                  <div className="my-0.5 border-t border-white/[0.06]" />
+                  <button
+                    type="button"
+                    onClick={() => handleItemMenuConfirmAction("delete")}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] text-rose-400 hover:bg-rose-500/10 transition-colors duration-150"
+                  >
+                    <Trash className="size-4" />
+                    Delete
                   </button>
                 </>
               )}
