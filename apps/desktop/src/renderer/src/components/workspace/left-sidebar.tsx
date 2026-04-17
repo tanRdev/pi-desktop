@@ -16,20 +16,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
-// Sidebar width for minimalist layout
 export const SIDEBAR_WIDTH = 260;
-
-function formatTimePassed(timestamp: number | undefined | null): string {
-  if (!timestamp) return "now";
-  const diff = Math.max(0, Date.now() - timestamp);
-  const minutes = Math.floor(diff / 60000);
-  if (minutes < 1) return "now";
-  const hours = Math.floor(minutes / 60);
-  if (hours < 1) return `${minutes}m`;
-  const days = Math.floor(hours / 24);
-  if (days < 1) return `${hours}h`;
-  return `${days}d`;
-}
 
 function getRepositoryName(repository: RepositorySnapshot): string {
   return repository.customName?.trim() || repository.name;
@@ -59,14 +46,71 @@ export interface LeftSidebarProps {
   onCreateSession: () => void | Promise<void>;
 }
 
-// Git state colors - using CSS vars for theming
-const GIT_COLORS = {
-  active: "var(--color-accent)",
-  ahead: "var(--color-success)",
-  behind: "var(--color-error)",
-  diverged: "var(--color-warning)",
-  clean: "var(--color-text-tertiary)",
-};
+// Branch connector SVG that connects project to worktree status indicators
+function BranchConnector({
+  count,
+  isExpanded,
+}: {
+  count: number;
+  isExpanded: boolean;
+}) {
+  if (count === 0 || !isExpanded) return null;
+
+  const rowHeight = 36; // Approximate height of each worktree row
+  const startY = 18; // Center of first row
+  const indent = 20; // Horizontal indent from project
+
+  return (
+    <svg
+      className="absolute pointer-events-none"
+      aria-hidden="true"
+      style={{
+        left: 0,
+        top: 0,
+        width: indent + 6,
+        height: count * rowHeight,
+        overflow: "visible",
+      }}
+    >
+      {/* Vertical stem from project */}
+      <line
+        x1={0}
+        y1={0}
+        x2={0}
+        y2={count * rowHeight - startY}
+        stroke="rgba(255, 255, 255, 0.06)"
+        strokeWidth={1}
+      />
+
+      {/* Horizontal branches to each worktree indicator */}
+      {Array.from({ length: count }).map((_, i) => {
+        const y = startY + i * rowHeight;
+        return (
+          <g key={i}>
+            {/* Horizontal line to status indicator */}
+            <line
+              x1={0}
+              y1={y}
+              x2={indent - 2}
+              y2={y}
+              stroke="rgba(255, 255, 255, 0.06)"
+              strokeWidth={1}
+            />
+            {/* Small vertical connector at the end */}
+            <line
+              x1={indent - 2}
+              y1={y}
+              x2={indent + 4}
+              y2={y}
+              stroke="rgba(255, 255, 255, 0.04)"
+              strokeWidth={1}
+            />
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
 
 interface WorktreeRowProps {
   session: WorktreeSnapshot;
@@ -86,99 +130,63 @@ function WorktreeRowImpl({
   const isDirty = session.git.hasChanges ?? false;
   const hasChanges = ahead > 0 || behind > 0 || isDirty;
 
-  // Determine state color
-  let stateColor = GIT_COLORS.clean;
-  if (isActive) {
-    stateColor = GIT_COLORS.active;
-  } else if (ahead > 0 && behind > 0) {
-    stateColor = GIT_COLORS.diverged;
-  } else if (ahead > 0) {
-    stateColor = GIT_COLORS.ahead;
-  } else if (behind > 0) {
-    stateColor = GIT_COLORS.behind;
-  } else if (isDirty) {
-    stateColor = GIT_COLORS.ahead;
-  }
-
-  // Use createdAt or fall back to earliest thread creation time
-  let startedAt: number | undefined = session.createdAt;
-  if (!startedAt && session.threads.length > 0) {
-    startedAt = session.threads.reduce(
-      (oldest, t) => {
-        if (!oldest) return t.createdAt ?? undefined;
-        if (!t.createdAt) return oldest;
-        return Math.min(oldest, t.createdAt);
-      },
-      undefined as number | undefined,
-    );
-  }
-
   return (
     <div data-testid="session-row">
       <button
         type="button"
         onClick={() => onSelect(session.id)}
         className={cn(
-          "group flex w-full items-center gap-3 px-3 py-2 text-left transition-colors duration-150",
+          "group flex w-full items-center gap-3 px-3 py-2 text-left text-[13px]",
+          "transition-colors duration-150",
           isActive
-            ? "bg-white/[0.04] text-white"
-            : "text-white/50 hover:bg-white/[0.02] hover:text-white/70",
+            ? "text-white"
+            : "text-white/50 hover:text-white/70 hover:bg-white/[0.01]",
         )}
       >
-        {/* Status indicator - simple square with animation for changes */}
+        {/* Status indicator - connected by branch line */}
         <div
           className={cn(
-            "relative flex items-center justify-center transition-all duration-200",
-            hasChanges && !isActive && "animate-pulse",
+            "w-1.5 h-1.5 flex-shrink-0 transition-all duration-200",
+            isActive && "bg-[var(--color-accent)] scale-110",
+            !isActive && hasChanges && "bg-white/40",
+            !isActive && !hasChanges && "bg-white/20",
           )}
-          style={{
-            width: "6px",
-            height: "6px",
-            backgroundColor: stateColor,
-            opacity: isActive ? 1 : hasChanges ? 0.8 : 0.4,
-          }}
         >
-          {/* Working indicator */}
           {isWorking && (
-            <span
-              className="absolute -inset-1 animate-ping"
-              style={{
-                backgroundColor: stateColor,
-                opacity: 0.3,
-              }}
-            />
+            <span className="block w-full h-full bg-white/60 animate-pulse" />
           )}
         </div>
 
         {/* Branch name */}
-        <span
-          className={cn(
-            "flex-1 truncate text-[13px] transition-colors duration-150",
-            isActive ? "font-medium" : "",
-          )}
-        >
-          {session.label}
-        </span>
+        <span className="flex-1 truncate font-mono">{session.label}</span>
 
-        {/* Diff stats inline */}
-        {hasChanges && (
-          <div className="flex items-center gap-2 text-[10px] font-mono">
+        {/* Diff stats - connected square pill */}
+        {(ahead > 0 || behind > 0) && (
+          <div
+            className="flex text-[10px] font-mono"
+            style={{
+              backgroundColor: "rgba(0, 0, 0, 0.3)",
+              border: "1px solid rgba(255, 255, 255, 0.06)",
+            }}
+          >
             {ahead > 0 && (
-              <span style={{ color: "var(--color-success)" }}>+{ahead}</span>
+              <span
+                className="px-1.5 py-0.5 border-r border-white/[0.06]"
+                style={{ color: "#5fb87a" }}
+              >
+                +{ahead}
+              </span>
             )}
             {behind > 0 && (
-              <span style={{ color: "var(--color-error)" }}>−{behind}</span>
-            )}
-            {isDirty && ahead === 0 && behind === 0 && (
-              <span className="text-white/30">*</span>
+              <span className="px-1.5 py-0.5" style={{ color: "#d95f5f" }}>
+                −{behind}
+              </span>
             )}
           </div>
         )}
-
-        {/* Time indicator */}
-        <span className="text-[10px] text-white/25 whitespace-nowrap">
-          {formatTimePassed(startedAt)}
-        </span>
+        {isDirty && ahead === 0 && behind === 0 && (
+          <span className="text-[10px] text-white/30 font-mono">*</span>
+        )}
       </button>
     </div>
   );
@@ -210,66 +218,43 @@ function ProjectRowImpl({
         onClick={() => onSelect(repository.id)}
         onContextMenu={(e) => onContextMenu(e, repository)}
         className={cn(
-          "group flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors duration-150",
+          "group flex w-full items-center gap-3 px-3 py-2.5 text-left",
+          "transition-colors duration-150",
           isActive
-            ? "bg-white/[0.04] text-white"
-            : "text-white/60 hover:bg-white/[0.02] hover:text-white/80",
+            ? "text-white"
+            : "text-white/60 hover:text-white/80 hover:bg-white/[0.01]",
         )}
       >
-        {/* Expand chevron - simple square shape */}
+        {/* Expand indicator - minimal square */}
         <div
           className={cn(
-            "flex items-center justify-center transition-all duration-200",
-            isActive ? "text-white" : "text-white/40 group-hover:text-white/60",
+            "flex items-center justify-center text-white/30",
+            "transition-all duration-150",
+            isExpanded && "text-white/50",
           )}
           style={{ width: "14px", height: "14px" }}
         >
-          <svg
-            width="10"
-            height="10"
-            viewBox="0 0 10 10"
-            fill="none"
-            aria-label={isExpanded ? "Collapse" : "Expand"}
+          <div
             className={cn(
-              "transition-transform duration-200",
-              isExpanded ? "rotate-90" : "rotate-0",
+              "w-2 h-2 transition-all duration-150",
+              isExpanded ? "bg-white/50 rotate-0" : "bg-white/30 rotate-0",
             )}
-          >
-            <path
-              d="M3 2L7 5L3 8"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          />
         </div>
 
         {/* Project name */}
         <span
           className={cn(
-            "flex-1 truncate text-[13px] transition-colors duration-150",
-            isActive ? "font-medium" : "",
+            "flex-1 truncate text-[13px] font-medium",
+            isActive && "text-white",
           )}
         >
           {getRepositoryName(repository)}
         </span>
 
-        {/* Session count - simple square badge */}
+        {/* Session count */}
         {sessionCount > 0 && (
-          <span
-            className={cn(
-              "flex items-center justify-center px-1.5 text-[10px] font-medium transition-colors duration-150",
-              isActive ? "text-white/60" : "text-white/30",
-            )}
-            style={{
-              backgroundColor: isActive
-                ? "rgba(255, 255, 255, 0.08)"
-                : "rgba(255, 255, 255, 0.04)",
-              minWidth: "18px",
-              height: "18px",
-            }}
-          >
+          <span className="text-[10px] text-white/30 font-mono">
             {sessionCount}
           </span>
         )}
@@ -309,7 +294,6 @@ export function LeftSidebarImpl({
     liveWidthRef.current = width;
   }, [width]);
 
-  // Context menu state
   const [contextMenu, setContextMenu] = React.useState<{
     isOpen: boolean;
     x: number;
@@ -381,7 +365,6 @@ export function LeftSidebarImpl({
     };
   }, [isResizing, onResize]);
 
-  // Close context menu on click outside
   React.useEffect(() => {
     if (!contextMenu.isOpen) return;
 
@@ -487,7 +470,7 @@ export function LeftSidebarImpl({
       {/* Repository List */}
       <div className="min-h-0 flex-1 overflow-y-auto py-2">
         {/* Projects header */}
-        <div className="px-4 py-2 flex items-center justify-between group">
+        <div className="px-4 py-2 flex items-center justify-between">
           <div className="text-[11px] text-white/40 font-medium uppercase tracking-wider">
             Projects
           </div>
@@ -496,6 +479,7 @@ export function LeftSidebarImpl({
               <button
                 type="button"
                 onClick={onAddRepository}
+                aria-label="Open project folder"
                 className="flex size-8 items-center justify-center text-white/40 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/80"
               >
                 <FolderPlus className="size-5" />
@@ -524,7 +508,13 @@ export function LeftSidebarImpl({
                 />
 
                 {isExpanded && (
-                  <div className="border-l border-white/[0.04] ml-5">
+                  <div className="relative ml-5 pl-5">
+                    {/* Branch connector that connects to status indicators */}
+                    <BranchConnector
+                      count={sessions.length}
+                      isExpanded={isExpanded}
+                    />
+
                     <Skeleton
                       name="session-list"
                       loading={Boolean(isLoading && isActiveRepo)}
@@ -555,7 +545,7 @@ export function LeftSidebarImpl({
                       </div>
                     </Skeleton>
 
-                    {/* New branch button - aligned with worktree rows */}
+                    {/* New branch button */}
                     {isActiveRepo && (
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -563,10 +553,11 @@ export function LeftSidebarImpl({
                             type="button"
                             onClick={handleCreateSession}
                             disabled={isCreatingSession}
+                            data-testid="create-session-button"
                             className="flex w-full items-center gap-3 px-3 py-2 text-[13px] text-white/30 transition-colors duration-150 hover:text-white/60"
                           >
-                            <div className="w-[6px] h-[6px] bg-transparent" />
-                            <Plus className="size-3.5 text-white/40" />
+                            <div className="w-1.5" />
+                            <Plus className="size-3.5" />
                             <span>New branch</span>
                           </button>
                         </TooltipTrigger>
