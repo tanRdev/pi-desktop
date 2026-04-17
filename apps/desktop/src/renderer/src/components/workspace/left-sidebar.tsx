@@ -1,4 +1,4 @@
-import { ArrowsLeftRight } from "@phosphor-icons/react";
+import { ArrowsLeftRight, CaretLeft, CaretRight } from "@phosphor-icons/react";
 import type { RepositorySnapshot, WorktreeSnapshot } from "@pi-desktop/shared";
 import { Skeleton } from "boneyard-js/react";
 import * as React from "react";
@@ -136,30 +136,39 @@ function SidebarEdgeToggle({
   side: "left" | "right";
   onClick: () => void;
 }) {
+  const Icon = side === "right" ? CaretLeft : CaretRight;
+
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <button
-          type="button"
-          aria-label={label}
-          onClick={onClick}
-          className={cn(
-            "absolute top-1/2 z-30 flex h-14 w-5 -translate-y-1/2 touch-manipulation items-center justify-center",
-            "border border-white/[0.08] bg-[var(--color-bg-primary)] text-white/30",
-            "transition-colors duration-150 hover:border-white/[0.16] hover:text-white/75",
-            "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/30",
-            side === "right"
-              ? "right-0 translate-x-1/2 rounded-l-full border-r-0"
-              : "left-0 rounded-r-full border-l-0",
-          )}
-        >
-          <ArrowsLeftRight aria-hidden="true" className="size-3.5" />
-        </button>
-      </TooltipTrigger>
-      <TooltipContent side={side === "right" ? "left" : "right"}>
-        {label}
-      </TooltipContent>
-    </Tooltip>
+    <div
+      className={cn(
+        "group absolute inset-y-0 z-30 flex w-4 items-center justify-center",
+        side === "right" ? "right-0 translate-x-1/2" : "left-1",
+      )}
+    >
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            aria-label={label}
+            onClick={onClick}
+            className={cn(
+              "flex h-8 w-3 touch-manipulation items-center justify-center",
+              "bg-[var(--color-bg-primary)] text-white/25",
+              "border border-white/[0.10]",
+              "opacity-0 group-hover:opacity-100",
+              "transition-all duration-150 hover:text-white hover:border-white/30 hover:shadow-[0_0_8px_2px_rgba(255,255,255,0.08)]",
+              "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20",
+              side === "right" ? "rounded-r-md" : "rounded-l-md",
+            )}
+          >
+            <Icon aria-hidden="true" className="size-2" weight="bold" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side={side === "right" ? "left" : "right"}>
+          {label}
+        </TooltipContent>
+      </Tooltip>
+    </div>
   );
 }
 
