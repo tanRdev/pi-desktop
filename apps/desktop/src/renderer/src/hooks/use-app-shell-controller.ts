@@ -877,13 +877,17 @@ export function useAppShellController(): AppShellController {
       setCreateWorktreeOpen(false);
       setNewWorktreeBranchState("");
       setWorktreeCreateError(null);
+      // Explicitly reload to pick up the new worktree in the sidebar.
+      // The main process fires session_changed but a race can cause the
+      // renderer to miss it if the dialog closes first.
+      await reload();
       toast.success("Session created");
     } catch (error) {
       setWorktreeCreateError(
         error instanceof Error ? error.message : "Failed to create worktree",
       );
     }
-  }, [activeRepositoryId, newWorktreeBranch, setCreateWorktreeOpen]);
+  }, [activeRepositoryId, newWorktreeBranch, setCreateWorktreeOpen, reload]);
 
   const handleSelectWorktree = React.useCallback(async (worktreeId: string) => {
     await window.piDesktop.worktrees.select(worktreeId);
@@ -1258,14 +1262,9 @@ export function useAppShellController(): AppShellController {
     );
   }, [contextWindows]);
 
-  React.useEffect(() => {
-    const terminalAndGitWindows = contextWindows.filter(
-      (window) => window.kind === "terminal" || window.kind === "git",
-    );
-    terminalAndGitWindows.forEach((window) => {
-      windowStore.closeWindow(window.id);
-    });
-  }, [contextWindows, windowStore]);
+  // NOTE: Previously this effect closed all terminal and git windows on every
+  // contextWindows change, which immediately destroyed any terminal or git
+  // window as soon as it was created. Removed to allow these windows to persist.
 
   const handleSelectContextSurface = React.useCallback(
     (surfaceKey: WorkspaceShellProps["selectedContextSurface"]) => {

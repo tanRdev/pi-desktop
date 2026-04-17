@@ -13,9 +13,9 @@ import { StreamingIndicator } from "../ui/activity-indicator";
 import { EnhancedMessage } from "../ui/enhanced-message";
 import { ScrollButton } from "../ui/scroll-button";
 import { SystemMessage } from "../ui/system-message";
+import { Tool, type ToolPart } from "@/components/ui/tool";
 import { FileChangeSummary } from "./chat/file-change-summary";
 import { ResponseDivider } from "./chat/response-divider";
-import { ToolCallRollup } from "./chat/tool-call-rollup";
 
 type ChatMessageRowProps = {
   message: AgentMessageSnapshot;
@@ -27,9 +27,7 @@ type ChatMessageRowProps = {
 interface ChatTurn {
   id: string;
   userMessage: AgentMessageSnapshot | null;
-  toolMessages: AgentMessageSnapshot[];
-  assistantMessages: AgentMessageSnapshot[];
-  otherMessages: AgentMessageSnapshot[];
+  messages: AgentMessageSnapshot[];
   lastAssistantTimestamp: number | null;
   isStreaming: boolean;
 }
@@ -44,9 +42,7 @@ function buildTurns(messages: AgentMessageSnapshot[]): ChatTurn[] {
       current = {
         id: m.id,
         userMessage: m,
-        toolMessages: [],
-        assistantMessages: [],
-        otherMessages: [],
+        messages: [],
         lastAssistantTimestamp: null,
         isStreaming: false,
       };
@@ -54,30 +50,20 @@ function buildTurns(messages: AgentMessageSnapshot[]): ChatTurn[] {
     }
 
     if (!current) {
-      // Orphan messages before any user turn.
       current = {
         id: `pre-turn-${m.id}`,
         userMessage: null,
-        toolMessages: [],
-        assistantMessages: [],
-        otherMessages: [],
+        messages: [],
         lastAssistantTimestamp: null,
         isStreaming: false,
       };
     }
 
-    if (m.role === "tool") {
-      current.toolMessages.push(m);
-      if (m.status === "streaming") current.isStreaming = true;
+    current.messages.push(m);
+    if (m.status === "streaming") {
+      current.isStreaming = true;
     } else if (m.role === "assistant") {
-      current.assistantMessages.push(m);
-      if (m.status === "streaming") {
-        current.isStreaming = true;
-      } else {
-        current.lastAssistantTimestamp = m.timestamp;
-      }
-    } else {
-      current.otherMessages.push(m);
+      current.lastAssistantTimestamp = m.timestamp;
     }
   }
   if (current) turns.push(current);
@@ -124,7 +110,7 @@ function getToolState(message: AgentMessageSnapshot): ToolState {
   }
 }
 
-function buildToolPart(message: AgentMessageSnapshot) {
+function buildToolPart(message: AgentMessageSnapshot): ToolPart {
   const toolNameMatch = /^tool:([^:]+):/.exec(message.id);
   const hasContent = message.text && message.text.trim().length > 0;
 
@@ -133,7 +119,7 @@ function buildToolPart(message: AgentMessageSnapshot) {
     state: getToolState(message),
     output: hasContent ? { transcript: message.text } : undefined,
     errorText: message.status === "error" ? message.text : undefined,
-  } as const;
+  };
 }
 
 interface ChatMessageBodyProps {
@@ -173,11 +159,13 @@ function ChatMessageBody({
         />
       );
     case "user":
+      // Skip empty user messages entirely — they produce blank bubbles
+      if (!message.text?.trim()) return null;
       return (
         <EnhancedMessage
           id={message.id}
           messageRole="user"
-          content={message.text || " "}
+          content={message.text}
           status={message.status}
           animationIndex={index}
           timestamp={message.timestamp}
@@ -192,11 +180,14 @@ function ChatMessageBody({
         );
       }
 
+      // Skip empty assistant messages — they produce blank bubbles.
+      // Allow streaming messages through (text may arrive momentarily).
+      if (!message.text?.trim() && message.status !== "streaming") return null;
       return (
         <EnhancedMessage
           id={message.id}
           messageRole="assistant"
-          content={message.text || " "}
+          content={message.text || ""}
           isMarkdown={true}
           status={message.status}
           onCopy={onCopy}
@@ -388,6 +379,18 @@ export function ChatThreadPanel({
 
   const turns = React.useMemo(() => buildTurns(messages), [messages]);
 
+  const lastTurn = turns.length > 0 ? turns[turns.length - 1] : undefined;
+  const lastTurnDividerWorking =
+    lastTurn !== undefined &&
+    (lastTurn.isStreaming ||
+      (isStreaming && lastTurn.lastAssistantTimestamp === null));
+  const lastTurnShowDivider =
+    lastTurn !== undefined &&
+    lastTurn.userMessage !== null &&
+    (lastTurn.messages.some((m) => m.role === "assistant") ||
+      lastTurn.isStreaming ||
+      isStreaming);
+
   const streamingIndicator = isStreaming ? (
     <output
       className="mx-auto flex w-full max-w-3xl px-6 py-2"
@@ -470,10 +473,12 @@ export function ChatThreadPanel({
               ) : null}
 
               {turns.length > 0
-                ? turns.map((turn, turnIdx) => {
-                    const isLastTurn = turnIdx === turns.length - 1;
+                ? turns.map((turn) => {
+                    const toolMessages = turn.messages.filter(
+                      (m) => m.role === "tool",
+                    );
                     const mutationTools =
-                      turn.toolMessages.filter(isFileMutationTool);
+                      toolMessages.filter(isFileMutationTool);
                     const filePaths = Array.from(
                       new Set(
                         mutationTools
@@ -481,16 +486,6 @@ export function ChatThreadPanel({
                           .filter((p): p is string => p !== null),
                       ),
                     );
-                    const showDivider =
-                      turn.userMessage !== null &&
-                      (turn.assistantMessages.length > 0 ||
-                        turn.isStreaming ||
-                        (isLastTurn && isStreaming));
-                    const working =
-                      turn.isStreaming ||
-                      (isLastTurn &&
-                        isStreaming &&
-                        turn.lastAssistantTimestamp === null);
 
                     let runningIndex = 0;
                     const renderMessage = (m: AgentMessageSnapshot) => {
@@ -512,27 +507,22 @@ export function ChatThreadPanel({
                           ? renderMessage(turn.userMessage)
                           : null}
 
-                        {showDivider && (
-                          <ResponseDivider
-                            userTimestamp={
-                              turn.userMessage?.timestamp ?? Date.now()
-                            }
-                            assistantCompletedAt={turn.lastAssistantTimestamp}
-                            isWorking={working}
-                          />
-                        )}
-
-                        {turn.toolMessages.length > 0 && (
-                          <div className="mx-auto w-full max-w-3xl px-6">
-                            <ToolCallRollup
-                              tools={turn.toolMessages}
-                              turnId={turn.id}
-                            />
-                          </div>
-                        )}
-
-                        {turn.assistantMessages.map(renderMessage)}
-                        {turn.otherMessages.map(renderMessage)}
+                        {turn.messages.map((m) => {
+                          if (m.role === "tool") {
+                            return (
+                              <div
+                                key={m.id}
+                                className="mx-auto w-full max-w-3xl px-6"
+                              >
+                                <Tool
+                                  toolPart={buildToolPart(m)}
+                                  defaultOpen={m.status !== "complete"}
+                                />
+                              </div>
+                            );
+                          }
+                          return renderMessage(m);
+                        })}
 
                         {mutationTools.length > 0 &&
                           !turn.isStreaming &&
@@ -547,8 +537,6 @@ export function ChatThreadPanel({
                   })
                 : null}
 
-              {streamingIndicator}
-
               {lastError && (
                 <div className="mx-auto w-full max-w-3xl px-6 py-2">
                   <SystemMessage
@@ -560,11 +548,30 @@ export function ChatThreadPanel({
                 </div>
               )}
 
+              {lastTurnShowDivider && (
+                <div className="mt-auto">
+                  <ResponseDivider
+                    userTimestamp={
+                      lastTurn.userMessage?.timestamp ?? Date.now()
+                    }
+                    assistantCompletedAt={lastTurn.lastAssistantTimestamp}
+                    isWorking={lastTurnDividerWorking}
+                  />
+                </div>
+              )}
+
               {hasConversationState ? <ChatContainerScrollAnchor /> : null}
             </>
           )}
         </ChatContainerContent>
       </ChatContainerRoot>
+
+      {/* Streaming indicator pinned above prompt dock, outside scroll area */}
+      {streamingIndicator && (
+        <div className="shrink-0 border-t border-white/[0.04] bg-[var(--shell-main-bg)]">
+          {streamingIndicator}
+        </div>
+      )}
 
       {showScrollButton && (
         <div className="pointer-events-none absolute bottom-28 right-6 z-10">
