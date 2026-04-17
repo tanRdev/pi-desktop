@@ -130,7 +130,7 @@ export function PromptDock({
     <div
       aria-hidden={!isVisible}
       className={cn(
-        "relative w-full overflow-visible border-t border-white/[0.08] bg-[var(--color-bg-primary)] select-none",
+        "relative mx-auto w-full max-w-[680px] overflow-visible border-t border-l border-r border-white/[0.08] bg-[var(--color-bg-primary)] select-none -mb-1",
         "transition-[max-height,opacity] duration-[var(--duration-slow)] ease-out",
         isVisible ? "max-h-[42rem]" : "max-h-0 overflow-hidden opacity-0",
       )}
