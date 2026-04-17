@@ -85,7 +85,7 @@ export default function App() {
                   }}
                   placeholder="feature/my-task"
                   className={cn(
-                    "w-full border border-white/[0.06] bg-[#0C0D0F] px-3 py-2 text-[10.5px] text-white/80 outline-none",
+                    "w-full border border-white/[0.06] bg-[var(--color-bg-primary)] px-3 py-2 text-[10.5px] text-white/80 outline-none",
                     "transition-all duration-[var(--duration-fast)]",
                     "focus:border-white/[0.12] focus:ring-1 focus:ring-white/[0.06]",
                     "placeholder:text-white/30",
@@ -189,7 +189,7 @@ export default function App() {
                           <div className="flex items-center gap-2 shrink-0">
                             {provider.isAuthenticated ? (
                               <div className="flex items-center gap-2 text-[10.5px] text-[var(--color-success)] font-normal">
-                                <div className="size-1.5 rounded-full bg-[var(--color-success)] shadow-[0_0_8px_rgba(34,197,94,0.4)]" />
+                                <div className="size-1.5 bg-[var(--color-success)] shadow-[0_0_8px_rgba(95,184,122,0.3)]" />
                                 Connected
                               </div>
                             ) : (

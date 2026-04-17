@@ -22,7 +22,7 @@ const PopoverContent = React.forwardRef<
       sideOffset={sideOffset}
       data-pi-popover-content="true"
       className={cn(
-        "z-50 w-72 border border-white/[0.06] bg-[#0C0D0F] p-3 text-foreground outline-none shadow-[0_8px_32px_rgba(0,0,0,0.5)]",
+        "z-50 w-72 border border-white/[0.06] bg-[var(--color-bg-primary)] p-3 text-foreground outline-none shadow-[0_8px_32px_rgba(0,0,0,0.5)]",
         "origin-[var(--radix-popover-content-transform-origin)]",
         "motion-reduce:animate-none",
         className,

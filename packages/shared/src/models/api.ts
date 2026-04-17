@@ -9,7 +9,7 @@ import type {
 } from "./agent.js";
 import type { OpenDialogOptions } from "./dialog.js";
 import type { DirectoryListing, FileContent } from "./fs.js";
-import type { GitRepositoryStatus } from "./git.js";
+import type { GitFileDiff, GitRepositoryStatus } from "./git.js";
 import type {
   InstalledPackageSnapshot,
   PackageCatalogDetail,
@@ -92,6 +92,11 @@ export interface PiDesktopApi {
     getRepositoryStatus(repositoryPath: string): Promise<GitRepositoryStatus>;
     isRepository(targetPath: string): Promise<boolean>;
     init(targetPath: string): Promise<void>;
+    diffFile(
+      repositoryPath: string,
+      filePath: string,
+      staged: boolean,
+    ): Promise<GitFileDiff>;
     stageFile(
       repositoryPath: string,
       filePath: string,

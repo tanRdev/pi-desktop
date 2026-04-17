@@ -49,10 +49,7 @@ export function ThreadStatusIcon({
       return (
         <span
           role="img"
-          className={cn(
-            "inline-block size-1.5 rounded-full bg-white/15",
-            className,
-          )}
+          className={cn("inline-block size-1.5 bg-white/15", className)}
           aria-label="Archived"
         />
       );
@@ -60,10 +57,7 @@ export function ThreadStatusIcon({
       return (
         <span
           role="img"
-          className={cn(
-            "inline-block size-1.5 rounded-full bg-white/15",
-            className,
-          )}
+          className={cn("inline-block size-1.5 bg-white/15", className)}
           aria-label="Idle"
         />
       );

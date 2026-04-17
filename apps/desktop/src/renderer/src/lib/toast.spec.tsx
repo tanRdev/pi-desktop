@@ -25,7 +25,7 @@ describe("toast", () => {
     const { options } = getLastCallArgs();
     expect(options).toMatchObject({ duration: 3000 });
     expect(options.style).toMatchObject({
-      background: "#141414",
+      background: "var(--color-bg-secondary)",
       borderRadius: "6px",
     });
   });

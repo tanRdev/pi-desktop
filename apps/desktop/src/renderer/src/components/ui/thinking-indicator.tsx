@@ -28,7 +28,7 @@ export function StreamingPlaceholder({ className }: StreamingPlaceholderProps) {
       {[0, 1, 2].map((i) => (
         <span
           key={i}
-          className="size-1.5 rounded-full bg-white/30"
+          className="size-1.5 bg-white/30"
           style={{
             animation: `shimmer-bounce 1.4s ease-in-out ${i * 0.15}s infinite`,
           }}
@@ -106,7 +106,7 @@ export function ThinkingBlock({
                     {[0, 1, 2].map((i) => (
                       <span
                         key={i}
-                        className="size-1 rounded-full bg-cyan-400/40"
+                        className="size-1 bg-cyan-400/40"
                         style={{
                           animation: `shimmer-bounce 1.4s ease-in-out ${i * 0.15}s infinite`,
                         }}
@@ -216,11 +216,9 @@ function ReasoningStep({ step, isLast }: ReasoningStepProps) {
 
   const statusIcon = {
     pending: null,
-    running: (
-      <div className="size-1.5 rounded-full bg-cyan-400/60 animate-pulse" />
-    ),
-    complete: <div className="size-1.5 rounded-full bg-cyan-400/40" />,
-    error: <div className="size-1.5 rounded-full bg-red-400/60" />,
+    running: <div className="size-1.5 bg-cyan-400/60 animate-pulse" />,
+    complete: <div className="size-1.5 bg-cyan-400/40" />,
+    error: <div className="size-1.5 bg-red-400/60" />,
   };
 
   return (
@@ -228,7 +226,7 @@ function ReasoningStep({ step, isLast }: ReasoningStepProps) {
       <div className="flex flex-col items-center">
         <div
           className={cn(
-            "flex h-4 w-4 items-center justify-center rounded-full border",
+            "flex h-4 w-4 items-center justify-center border",
             "border-cyan-400/20",
             step.status === "running" ? "bg-cyan-400/10" : "bg-cyan-400/[0.04]",
           )}

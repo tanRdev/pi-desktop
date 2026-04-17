@@ -1,7 +1,7 @@
 import type { RepositorySnapshot } from "@pi-desktop/shared";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { ComponentProps } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { WorkspaceShell } from "./workspace-shell";
 
@@ -22,7 +22,7 @@ vi.mock("./git-panel", () => ({
 
 vi.mock("./left-sidebar", () => ({
   SIDEBAR_WIDTH: 240,
-  LeftSidebar(props: { onSelectRepository?: unknown }) {
+  LeftSidebar(props: { onSelectRepository?: unknown; gitPanel?: ReactNode }) {
     return (
       <div
         data-testid="mock-left-sidebar"
@@ -31,6 +31,7 @@ vi.mock("./left-sidebar", () => ({
         )}
       >
         Left rail
+        {props.gitPanel}
       </div>
     );
   },
@@ -39,18 +40,6 @@ vi.mock("./left-sidebar", () => ({
 vi.mock("./prompt-dock", () => ({
   PromptDock() {
     return <div data-testid="prompt-dock">Prompt Dock</div>;
-  },
-}));
-
-vi.mock("./workspace-activity-panel", () => ({
-  WorkspaceActivityPanel() {
-    return <div data-testid="workspace-activity-panel">Activity</div>;
-  },
-}));
-
-vi.mock("./workspace-surface-panel", () => ({
-  WorkspaceSurfacePanel() {
-    return <div data-testid="workspace-surface-panel">Surface Panel</div>;
   },
 }));
 
@@ -145,15 +134,6 @@ function createWorkspaceShellProps(
     gitCommitMessage: "",
     threadMessages: [],
     threadLastError: null,
-    liveFeed: {
-      currentTurnId: null,
-      turns: [],
-      toolsById: {},
-      activity: [],
-      lastEventSequence: 0,
-      lastEventTimestamp: null,
-      snapshotLoadedAt: null,
-    },
     contextWindows: [],
     selectedContextSurface: null,
     leftSidebarWidth: 240,
@@ -173,7 +153,8 @@ function createWorkspaceShellProps(
     onCloseThread: vi.fn(),
     onDeleteThread: vi.fn(),
     onOpenGit: vi.fn(),
-    onOpenTerminal: vi.fn(),
+    onToggleTerminal: vi.fn(),
+    isTerminalVisible: false,
     onGitCommitMessageChange: vi.fn(),
     onRefreshGit: vi.fn(),
     onCommitGit: vi.fn(),
@@ -323,9 +304,6 @@ describe("WorkspaceShell", () => {
       screen.getByTestId("workspace-file-content"),
     );
     expect(screen.getByText("workspace-shell.tsx")).toBeInTheDocument();
-    expect(
-      screen.queryByTestId("workspace-surface-panel"),
-    ).not.toBeInTheDocument();
   });
 
   it("renders files and threads inside one shared primary tab bar", () => {

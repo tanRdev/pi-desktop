@@ -175,9 +175,7 @@ describe("LeftSidebar", () => {
 
     await user.click(screen.getByText("feature/session-tabs"));
     await user.click(screen.getByTestId("create-session-button"));
-    await user.click(
-      screen.getByRole("button", { name: "Open project folder" }),
-    );
+    await user.click(screen.getByRole("button", { name: "Add workspace" }));
 
     expect(onSelectWorktree).toHaveBeenCalledWith("worktree-2");
     expect(onCreateSession).toHaveBeenCalledTimes(1);

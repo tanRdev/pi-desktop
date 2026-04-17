@@ -50,6 +50,7 @@ export const IPC_CHANNELS = {
     getRepositoryStatus: "git:getRepositoryStatus",
     isRepository: "git:isRepository",
     init: "git:init",
+    diffFile: "git:diffFile",
     stageFile: "git:stageFile",
     stageFiles: "git:stageFiles",
     unstageFile: "git:unstageFile",

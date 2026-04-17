@@ -7,7 +7,7 @@
 
 /* ============================================
    DESIGN SYSTEM - Semantic Variables
-   Squared-off, green-accent, Inter body, glass grid
+   Squared-off, terracotta-accent, DM Sans body, glass grid
    ============================================ */
 
 :root {
@@ -24,7 +24,7 @@
   --bg-hover-2: rgba(255, 255, 255, 0.07);
   --bg-hover-3: rgba(255, 255, 255, 0.10);
 
-  /* Glass Morphism System — squared, green-glow */
+  /* Glass Morphism System — squared, accent-glow */
   --glass-bg-primary: rgba(12, 13, 15, 0.95);
   --glass-bg-secondary: rgba(16, 17, 20, 0.90);
   --glass-bg-tertiary: rgba(20, 22, 26, 0.85);
@@ -36,7 +36,7 @@
   --glass-border-subtle: rgba(255, 255, 255, 0.03);
   --glass-border-default: rgba(255, 255, 255, 0.06);
   --glass-border-strong: rgba(255, 255, 255, 0.10);
-  --glass-border-glow: rgba(0, 229, 89, 0.25);
+  --glass-border-glow: rgba(216, 106, 60, 0.25);
 
   /* Dim ladder — selection-focus text dimming */
   --text-dim-1: rgba(255, 255, 255, 0.70);
@@ -75,12 +75,12 @@
   --accent-pale-red-text: #f87171;
   --accent-pale-red-bg: rgba(239, 68, 68, 0.08);
 
-  /* Accent palette — green primary, sky secondary, violet tertiary */
-  --color-accent: #00E559;
-  --color-accent-hover: #33EB7A;
-  --color-accent-muted: rgba(0, 229, 89, 0.15);
-  --color-accent-subtle: rgba(0, 229, 89, 0.12);
-  --color-accent-ring: rgba(0, 229, 89, 0.35);
+  /* Accent palette — muted terracotta primary, sky secondary, violet tertiary */
+  --color-accent: #D86A3C;
+  --color-accent-hover: #E67C4F;
+  --color-accent-muted: rgba(216, 106, 60, 0.15);
+  --color-accent-subtle: rgba(216, 106, 60, 0.12);
+  --color-accent-ring: rgba(216, 106, 60, 0.35);
   --color-secondary-accent: #38BDF8;
   --color-tertiary-accent: #8B5CF6;
 
@@ -175,11 +175,11 @@
     box-shadow: var(--glass-shadow-lg);
   }
 
-  /* Glass with green glow effect */
+  /* Glass with accent glow effect */
   .glass-glow {
     border-color: var(--glass-border-glow);
     box-shadow:
-      0 0 8px rgba(0, 229, 89, 0.15),
+      0 0 8px rgba(216, 106, 60, 0.15),
       var(--glass-shadow-md);
   }
 

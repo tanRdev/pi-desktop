@@ -49,21 +49,21 @@ export class ErrorBoundary extends Component<Props, State> {
             The desktop renderer hit an unexpected error. You can try to
             continue, or reload the window to start fresh.
           </p>
-          <pre className="overflow-auto rounded border border-border bg-muted p-3 font-mono text-xs">
+          <pre className="overflow-auto border border-border bg-muted p-3 font-mono text-xs">
             {error.message}
           </pre>
           <div className="flex gap-2">
             <button
               type="button"
               onClick={this.reset}
-              className="rounded border border-border px-3 py-1.5 hover:bg-muted"
+              className="border border-border px-3 py-1.5 hover:bg-muted"
             >
               Try again
             </button>
             <button
               type="button"
               onClick={this.reload}
-              className="rounded bg-primary px-3 py-1.5 text-primary-foreground hover:opacity-90"
+              className="bg-primary px-3 py-1.5 text-primary-foreground hover:opacity-90"
             >
               Reload window
             </button>

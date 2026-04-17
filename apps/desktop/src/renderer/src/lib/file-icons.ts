@@ -132,7 +132,7 @@ const EXTENSION_MAP: Record<string, FileIcon> = {
 
   ".svg": { Icon: FileSvg, colorClassName: "text-amber-400/60" },
 
-  ".py": { Icon: FilePy, colorClassName: "text-emerald-400/60" },
+  ".py": { Icon: FilePy, colorClassName: "text-sky-400/60" },
   ".rs": { Icon: FileRs, colorClassName: "text-orange-400/60" },
 
   ".lock": { Icon: FileLock, colorClassName: "text-amber-400/60" },
@@ -174,11 +174,11 @@ const EXTENSION_MAP: Record<string, FileIcon> = {
   ".cc": { Icon: FileCode, colorClassName: "text-sky-400/60" },
   ".h": { Icon: FileCode, colorClassName: "text-sky-400/60" },
   ".hpp": { Icon: FileCode, colorClassName: "text-sky-400/60" },
-  ".sh": { Icon: FileCode, colorClassName: "text-emerald-400/60" },
-  ".bash": { Icon: FileCode, colorClassName: "text-emerald-400/60" },
-  ".zsh": { Icon: FileCode, colorClassName: "text-emerald-400/60" },
-  ".fish": { Icon: FileCode, colorClassName: "text-emerald-400/60" },
-  ".vue": { Icon: FileCode, colorClassName: "text-emerald-400/60" },
+  ".sh": { Icon: FileCode, colorClassName: "text-cyan-400/60" },
+  ".bash": { Icon: FileCode, colorClassName: "text-cyan-400/60" },
+  ".zsh": { Icon: FileCode, colorClassName: "text-cyan-400/60" },
+  ".fish": { Icon: FileCode, colorClassName: "text-cyan-400/60" },
+  ".vue": { Icon: FileCode, colorClassName: "text-teal-400/60" },
 
   // Images handled as a group (Phosphor `Image`).
   ".png": { Icon: Image, colorClassName: "text-violet-400/60" },

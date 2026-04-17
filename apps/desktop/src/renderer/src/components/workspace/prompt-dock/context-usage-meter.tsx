@@ -27,9 +27,9 @@ export function ContextUsageMeter({
 
   const barColor =
     clamped >= 95
-      ? "#ef4444"
+      ? "var(--color-error)"
       : clamped >= 80
-        ? "#f59e0b"
+        ? "var(--color-warning)"
         : "var(--color-accent)";
 
   const tokensLabel = tokens != null ? formatTokens(tokens) : "—";

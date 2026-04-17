@@ -220,6 +220,19 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
               </div>
             )}
 
+            {!output &&
+              state !== "input-streaming" &&
+              state !== "output-error" && (
+                <div>
+                  <h4 className="mb-2 text-xs font-normal text-white/30">
+                    Output
+                  </h4>
+                  <div className="text-sm text-white/40 italic">
+                    No output available
+                  </div>
+                </div>
+              )}
+
             {state === "output-error" && toolPart.errorText && (
               <div>
                 <h4 className="mb-2 text-xs font-medium text-red-400/80">

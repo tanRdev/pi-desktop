@@ -4,7 +4,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 import type { ActivityIndicatorProps } from "./activity-indicator";
 import { ActivityGroup, ActivityIndicator } from "./activity-indicator";
-import { FeedbackBar, type FeedbackValue } from "./feedback-bar";
+import { FeedbackBar } from "./feedback-bar";
 import { Markdown } from "./markdown";
 import { SystemMessage } from "./system-message";
 import { StreamingPlaceholder, ThinkingBlock } from "./thinking-indicator";
@@ -48,10 +48,6 @@ export interface EnhancedMessageProps {
   toolPart?: ToolPart;
   /** Error message */
   error?: string;
-  /** Feedback state */
-  feedback?: FeedbackValue | null;
-  /** Callback when feedback changes */
-  onFeedbackChange?: (value: FeedbackValue) => void;
   /** Callback when copy is clicked */
   onCopy?: () => void;
   /** Additional className */
@@ -83,8 +79,6 @@ export function EnhancedMessage({
   thinking,
   toolPart,
   error,
-  feedback,
-  onFeedbackChange,
   onCopy,
   className,
   animationIndex = 0,
@@ -202,11 +196,7 @@ export function EnhancedMessage({
             {/* Feedback bar */}
             {status === "complete" && (
               <div className="flex items-center gap-2 pt-0.5 opacity-0 transition-opacity duration-[var(--duration-fast)] ease-[var(--ease-out)] group-hover:opacity-100">
-                <FeedbackBar
-                  value={feedback ?? null}
-                  onValueChange={onFeedbackChange}
-                  onCopy={onCopy}
-                />
+                <FeedbackBar onCopy={onCopy} />
               </div>
             )}
 
@@ -286,8 +276,8 @@ export function StreamingIndicator({
         )}
       >
         <div className="relative">
-          <div className="size-2 rounded-full bg-[var(--color-accent)]/60" />
-          <div className="absolute inset-0 size-2 animate-ping rounded-full bg-[var(--color-accent)]/30" />
+          <div className="size-2 bg-[var(--color-accent)]/60" />
+          <div className="absolute inset-0 size-2 animate-ping bg-[var(--color-accent)]/30" />
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="text-[10.5px] font-normal text-white/70">
@@ -299,7 +289,7 @@ export function StreamingIndicator({
               {[0, 1, 2].map((i) => (
                 <span
                   key={i}
-                  className="size-1 rounded-full bg-white/30"
+                  className="size-1 bg-white/30"
                   style={{
                     animation: `shimmer-bounce 1.4s ease-in-out ${i * 0.15}s infinite`,
                   }}

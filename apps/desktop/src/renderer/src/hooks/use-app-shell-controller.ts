@@ -50,7 +50,6 @@ const EMPTY_AUTOCOMPLETE_SUGGESTIONS: (SlashSuggestion | MentionSuggestion)[] =
 function getErrorDescription(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
 }
-const PENDING_SURFACE_PREFIX = "__pending_surface__";
 type PromptMode = "build" | "plan";
 
 const PROMPT_MODE_TO_PREFIX = {
@@ -178,7 +177,7 @@ export function useAppShellController(): AppShellController {
     appPreferences,
     updateAppPreferences,
   } = useShellModel();
-  const { agent, draft, live, shell } = state;
+  const { agent, draft, shell } = state;
   const { state: windowState, store: windowStore } = useWindowStore();
 
   const activeRepository = React.useMemo(
@@ -249,6 +248,7 @@ export function useAppShellController(): AppShellController {
   const [selectedContextSurface, setSelectedContextSurface] =
     React.useState<WorkspaceShellProps["selectedContextSurface"]>(null);
   const [leftSidebarWidth, setLeftSidebarWidth] = React.useState(260);
+  const [isTerminalVisible, setIsTerminalVisible] = React.useState(false);
   const [promptMode, setPromptMode] = React.useState<PromptMode>(() =>
     detectPromptMode(draft),
   );
@@ -446,48 +446,9 @@ export function useAppShellController(): AppShellController {
   });
   const isPromptVisible = activeThreadId !== null;
 
-  const handleOpenTerminal = React.useCallback(() => {
-    const existingTerminal = windowState.layout.windows.find(
-      (
-        window,
-      ): window is Extract<
-        (typeof windowState.layout.windows)[number],
-        { kind: "terminal" }
-      > => window.kind === "terminal" && window.backend === "shell",
-    );
-    if (existingTerminal) {
-      if (existingTerminal.id === selectedContextSurface) {
-        setSelectedContextSurface(null);
-        return;
-      }
-      windowStore.focusWindow(existingTerminal.id);
-      setSelectedContextSurface(existingTerminal.id);
-      return;
-    }
-
-    try {
-      const terminalWindow = windowStore.createWindow(
-        {
-          kind: "terminal",
-          backend: "shell",
-          cwd: activeWorktreePath ?? undefined,
-        },
-        activeWorktreePath ?? undefined,
-      );
-      setSelectedContextSurface(terminalWindow.id);
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Unable to open terminal. Select a project or worktree first.";
-      toast.error("Couldn't open terminal", { description: message });
-    }
-  }, [
-    activeWorktreePath,
-    selectedContextSurface,
-    windowState.layout.windows,
-    windowStore,
-  ]);
+  const handleToggleTerminal = React.useCallback(() => {
+    setIsTerminalVisible((prev) => !prev);
+  }, []);
 
   const handleOpenGit = React.useCallback(() => {
     if (!activeWorktreePath) {
@@ -1262,19 +1223,6 @@ export function useAppShellController(): AppShellController {
       ),
     [windowState.layout.windows],
   );
-  const sideContextWindows = React.useMemo(
-    () =>
-      contextWindows.filter(
-        (
-          window,
-        ): window is Extract<
-          (typeof contextWindows)[number],
-          { kind: "terminal" | "git" }
-        > => window.kind === "terminal" || window.kind === "git",
-      ),
-    [contextWindows],
-  );
-
   React.useEffect(() => {
     const noteWindows = windowState.layout.windows.filter(
       (window) => window.kind === "note",
@@ -1296,40 +1244,13 @@ export function useAppShellController(): AppShellController {
   }, [contextWindows]);
 
   React.useEffect(() => {
-    if (selectedContextSurface === null) {
-      sideContextWindows.forEach((window) => {
-        windowStore.closeWindow(window.id);
-      });
-      return;
-    }
-
-    if (selectedContextSurface === "activity") {
-      sideContextWindows.forEach((window) => {
-        windowStore.closeWindow(window.id);
-      });
-      return;
-    }
-
-    if (selectedContextSurface?.startsWith(PENDING_SURFACE_PREFIX)) {
-      return;
-    }
-
-    const hasSelectedWindow = sideContextWindows.some(
-      (window) => window.id === selectedContextSurface,
+    const terminalAndGitWindows = contextWindows.filter(
+      (window) => window.kind === "terminal" || window.kind === "git",
     );
-    if (!hasSelectedWindow) {
-      sideContextWindows.forEach((window) => {
-        windowStore.closeWindow(window.id);
-      });
-      return;
-    }
-
-    sideContextWindows.forEach((window) => {
-      if (window.id !== selectedContextSurface) {
-        windowStore.closeWindow(window.id);
-      }
+    terminalAndGitWindows.forEach((window) => {
+      windowStore.closeWindow(window.id);
     });
-  }, [selectedContextSurface, sideContextWindows, windowStore]);
+  }, [contextWindows, windowStore]);
 
   const handleSelectContextSurface = React.useCallback(
     (surfaceKey: WorkspaceShellProps["selectedContextSurface"]) => {
@@ -1501,7 +1422,6 @@ export function useAppShellController(): AppShellController {
       gitCommitMessage,
       threadMessages,
       threadLastError,
-      liveFeed: live,
       contextWindows,
       selectedContextSurface,
       leftSidebarWidth,
@@ -1522,7 +1442,8 @@ export function useAppShellController(): AppShellController {
       onDeleteThread: handleDeleteThread,
       onDeleteWorktree: handleDeleteWorktree,
       onOpenGit: handleOpenGit,
-      onOpenTerminal: handleOpenTerminal,
+      onToggleTerminal: handleToggleTerminal,
+      isTerminalVisible,
       onGitCommitMessageChange: setGitCommitMessage,
       onRefreshGit: refreshGitRepositoryStatus,
       onCommitGit: commitGitChanges,
@@ -1581,7 +1502,6 @@ export function useAppShellController(): AppShellController {
       gitCommitMessage,
       threadMessages,
       threadLastError,
-      live,
       contextWindows,
       selectedContextSurface,
       leftSidebarWidth,
@@ -1602,7 +1522,8 @@ export function useAppShellController(): AppShellController {
       handleDeleteThread,
       handleDeleteWorktree,
       handleOpenGit,
-      handleOpenTerminal,
+      handleToggleTerminal,
+      isTerminalVisible,
       refreshGitRepositoryStatus,
       commitGitChanges,
       commitAndPushGitChanges,

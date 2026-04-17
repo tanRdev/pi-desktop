@@ -140,7 +140,7 @@ export function ModelPicker({
         align="start"
         side="top"
         sideOffset={8}
-        className="w-64 border border-white/[0.06] bg-[#0C0D0F] p-2 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-md"
+        className="w-64 border border-white/[0.06] bg-[var(--color-bg-primary)] p-2 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-md"
       >
         <div className="max-h-72 overflow-y-auto">
           <Skeleton
@@ -148,11 +148,11 @@ export function ModelPicker({
             loading={isSwitchingModel}
             fixture={
               <div className="space-y-1">
-                <div className="h-8 w-full rounded bg-white/5" />
+                <div className="h-8 w-full bg-white/5" />
                 <div className="my-1 h-px bg-white/[0.04]" />
-                <div className="h-8 w-full rounded bg-white/5" />
-                <div className="h-8 w-full rounded bg-white/5" />
-                <div className="h-8 w-full rounded bg-white/5" />
+                <div className="h-8 w-full bg-white/5" />
+                <div className="h-8 w-full bg-white/5" />
+                <div className="h-8 w-full bg-white/5" />
               </div>
             }
           >

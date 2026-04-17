@@ -1,11 +1,21 @@
 import * as React from "react";
-import { CaretDown, GitCommit, Upload } from "@/components/ui/icons";
+import {
+  CaretDown,
+  GitCommit,
+  TerminalWindow,
+  Upload,
+} from "@/components/ui/icons";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { getTrafficLightInset } from "../../lib/title-bar-layout";
 
@@ -19,6 +29,8 @@ export interface TitleBarProps {
   platform: string | null;
   onAgentGitAction?: (prompt: string) => void;
   hasActiveThread?: boolean;
+  onToggleTerminal?: () => void;
+  isTerminalVisible?: boolean;
 }
 
 interface GitSplitButtonProps {
@@ -88,7 +100,7 @@ function GitSplitButton({
           align="end"
           side="bottom"
           sideOffset={6}
-          className="w-48 border-white/[0.06] bg-[#0C0D0F] p-1 shadow-2xl"
+          className="w-48 border-white/[0.06] bg-[var(--color-bg-primary)] p-1 shadow-2xl"
         >
           <div className="flex flex-col">
             <GitMenuItem
@@ -146,6 +158,8 @@ export function TitleBar({
   platform,
   onAgentGitAction,
   hasActiveThread = false,
+  onToggleTerminal,
+  isTerminalVisible = false,
 }: TitleBarProps) {
   return (
     <div
@@ -167,6 +181,29 @@ export function TitleBar({
             onAgentGitAction={onAgentGitAction}
             hasActiveThread={hasActiveThread}
           />
+          {onToggleTerminal && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={onToggleTerminal}
+                  className={cn(
+                    "flex size-7 items-center justify-center",
+                    "border border-white/[0.06] transition-colors duration-150",
+                    isTerminalVisible
+                      ? "bg-white/[0.06] text-white/80"
+                      : "text-white/40 hover:bg-white/[0.04] hover:text-white/70",
+                  )}
+                  aria-label={
+                    isTerminalVisible ? "Close terminal" : "Open terminal"
+                  }
+                >
+                  <TerminalWindow className="size-3.5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Terminal</TooltipContent>
+            </Tooltip>
+          )}
         </TooltipProvider>
       </div>
     </div>

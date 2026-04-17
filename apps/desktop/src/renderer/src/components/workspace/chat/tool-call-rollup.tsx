@@ -18,10 +18,11 @@ function toolStateFromMessage(m: AgentMessageSnapshot): ToolState {
 
 function buildToolPart(message: AgentMessageSnapshot): ToolPart {
   const toolNameMatch = /^tool:([^:]+):/.exec(message.id);
+  const hasContent = message.text && message.text.trim().length > 0;
   return {
     type: toolNameMatch?.[1] ?? "workspace.tool",
     state: toolStateFromMessage(message),
-    output: { transcript: message.text || "No tool output yet." },
+    output: hasContent ? { transcript: message.text } : undefined,
     errorText: message.status === "error" ? message.text : undefined,
   };
 }

@@ -20,18 +20,18 @@ export function SourceItem({
       className={cn(
         "flex items-center gap-2 border border-[#474747]/20 bg-[var(--color-bg-tertiary)] px-2.5 py-1.5 text-left",
         "transition-[transform,border-color,background-color,color] duration-150 ease-out",
-        "hover:border-white/35 hover:bg-[#171717] hover:text-white active:scale-[0.99]",
+        "hover:border-white/35 hover:bg-[var(--color-bg-tertiary)] hover:text-white active:scale-[0.99]",
         className,
       )}
       {...props}
     >
-      <ArrowSquareOut className="size-5 shrink-0 text-[#7a7a7a]" />
+      <ArrowSquareOut className="size-5 shrink-0 text-white/45" />
       <span className="min-w-0">
         <span className="block truncate font-mono text-[10.5px] uppercase tracking-[0.16em] text-white/82">
           {label}
         </span>
         {detail ? (
-          <span className="block truncate text-[10.5px] text-[#7c7c7c]">
+          <span className="block truncate text-[10.5px] text-white/45">
             {detail}
           </span>
         ) : null}

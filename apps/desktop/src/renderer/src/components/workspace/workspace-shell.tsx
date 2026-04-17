@@ -6,10 +6,16 @@ import type {
   ShellGitSnapshot,
   SlashSuggestion,
 } from "@pi-desktop/shared";
-import type { AgentLiveFeed } from "@pi-desktop/shell-model";
 import * as React from "react";
-import { TerminalWindow } from "@/components/ui/icons";
+
+import { SidebarSimple, TerminalWindow, X } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Terminal } from "../ui/terminal";
 import { DEFAULT_UNTITLED_THREAD_TITLE } from "../../../../thread-title-defaults";
 import {
   type ContextSurfaceKey,
@@ -25,8 +31,6 @@ import { LeftSidebar, SIDEBAR_WIDTH } from "./left-sidebar";
 import { PromptDock } from "./prompt-dock";
 import { ThreadTabs } from "./thread-tabs";
 import { TitleBar } from "./title-bar";
-import { WorkspaceActivityPanel } from "./workspace-activity-panel";
-import { WorkspaceSurfacePanel } from "./workspace-surface-panel";
 
 export interface WorkspaceShellProps {
   platform: string | null;
@@ -53,7 +57,6 @@ export interface WorkspaceShellProps {
   gitCommitMessage: string;
   threadMessages: import("@pi-desktop/shared").AgentMessageSnapshot[];
   threadLastError: string | null;
-  liveFeed: AgentLiveFeed;
   contextWindows: ContextWindow[];
   selectedContextSurface: ContextSurfaceKey | null;
   leftSidebarWidth: number;
@@ -74,7 +77,8 @@ export interface WorkspaceShellProps {
   onCloseThread: (threadId: string) => void | Promise<void>;
   onDeleteThread?: (threadId: string) => void | Promise<void>;
   onOpenGit: () => void;
-  onOpenTerminal: () => void;
+  onToggleTerminal: () => void;
+  isTerminalVisible: boolean;
   onGitCommitMessageChange: (value: string) => void;
   onRefreshGit: () => void | Promise<void>;
   onCommitGit: () => void | Promise<void>;
@@ -119,27 +123,6 @@ export interface WorkspaceShellProps {
   onAgentGitAction?: (prompt: string) => void;
 }
 
-function TerminalTabBody({ onOpenTerminal }: { onOpenTerminal: () => void }) {
-  return (
-    <div className="flex h-full flex-col items-start gap-3 p-4">
-      <p className="text-[10px] uppercase tracking-wider text-white/40">
-        Terminal
-      </p>
-      <button
-        type="button"
-        onClick={onOpenTerminal}
-        className="flex items-center gap-2 border border-white/[0.06] px-3 py-2 text-[12px] text-white/70 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/90"
-      >
-        <TerminalWindow className="size-3.5" />
-        <span>Open terminal</span>
-      </button>
-      <p className="text-[11px] leading-relaxed text-white/40">
-        The terminal opens as a surface pane next to the chat.
-      </p>
-    </div>
-  );
-}
-
 function WorkspaceShellImpl({
   platform,
   repositories,
@@ -165,7 +148,6 @@ function WorkspaceShellImpl({
   gitCommitMessage,
   threadMessages,
   threadLastError,
-  liveFeed,
   contextWindows,
   selectedContextSurface,
   leftSidebarWidth,
@@ -186,7 +168,8 @@ function WorkspaceShellImpl({
   onCloseThread,
   onDeleteThread,
   onOpenGit: _onOpenGit,
-  onOpenTerminal,
+  onToggleTerminal,
+  isTerminalVisible,
   onGitCommitMessageChange,
   onRefreshGit,
   onCommitGit,
@@ -221,6 +204,7 @@ function WorkspaceShellImpl({
   onAgentGitAction,
 }: WorkspaceShellProps) {
   const [isLeftSidebarVisible, setIsLeftSidebarVisible] = React.useState(true);
+  const collapseTimestampRef = React.useRef(0);
 
   React.useEffect(() => {
     let disposed = false;
@@ -250,7 +234,6 @@ function WorkspaceShellImpl({
     activeRepository?.worktrees.find(
       (worktree) => worktree.id === activeWorktreeId,
     ) ?? null;
-  const activeWorktreeLabel = activeWorktree?.label ?? null;
 
   const hasActiveThread = activeThreadId !== null;
   const leftSidebarTargetWidth = Math.max(leftSidebarWidth, SIDEBAR_WIDTH);
@@ -278,16 +261,6 @@ function WorkspaceShellImpl({
             (window) => window.id === mainPaneState.selectedFileWindowId,
           ) ?? null),
     [mainPaneState.selectedFileWindowId, openFileWindows],
-  );
-  const sideContextWindows = React.useMemo(
-    () =>
-      contextWindows.filter(
-        (
-          window,
-        ): window is Extract<ContextWindow, { kind: "terminal" | "git" }> =>
-          window.kind === "terminal" || window.kind === "git",
-      ),
-    [contextWindows],
   );
 
   const gitPanel = (
@@ -326,21 +299,48 @@ function WorkspaceShellImpl({
     />
   );
 
-  const terminalPanel = <TerminalTabBody onOpenTerminal={onOpenTerminal} />;
-
-  const hasSideSurface = mainPaneState.sideSurfaceKey !== null;
-
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden select-none">
       <div className="relative flex min-h-0 flex-1 select-none">
-        {!isLeftSidebarVisible ? (
+        {!isLeftSidebarVisible && (
           <div
             aria-hidden="true"
             data-no-drag="true"
-            onMouseEnter={() => setIsLeftSidebarVisible(true)}
+            onMouseEnter={() => {
+              if (Date.now() - collapseTimestampRef.current > 400) {
+                setIsLeftSidebarVisible(true);
+              }
+            }}
             className="absolute inset-y-0 left-0 z-30 w-2"
           />
-        ) : null}
+        )}
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              data-no-drag="true"
+              onClick={() => {
+                if (isLeftSidebarVisible) {
+                  collapseTimestampRef.current = Date.now();
+                  setIsLeftSidebarVisible(false);
+                } else {
+                  setIsLeftSidebarVisible(true);
+                }
+              }}
+              className={cn(
+                "absolute z-30 flex size-8 items-center justify-center text-white/30 transition-all duration-150 hover:bg-white/[0.04] hover:text-white/60",
+                isLeftSidebarVisible ? "left-1" : "left-2",
+              )}
+              style={{ top: "calc(var(--titlebar-height) + 44px)" }}
+            >
+              <SidebarSimple className="size-5" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="right">
+            {isLeftSidebarVisible ? "Hide sidebar" : "Show sidebar"}
+          </TooltipContent>
+        </Tooltip>
 
         <div
           data-left-sidebar-wrapper="true"
@@ -382,10 +382,8 @@ function WorkspaceShellImpl({
               onDeleteWorktree={onDeleteWorktree}
               onDeleteThread={onDeleteThread}
               onAddRepository={onAddRepository}
-              onToggleVisible={() => setIsLeftSidebarVisible(false)}
               gitPanel={gitPanel}
               filesPanel={filesPanel}
-              terminalPanel={terminalPanel}
             />
           </div>
         </div>
@@ -401,13 +399,14 @@ function WorkspaceShellImpl({
             platform={platform}
             onAgentGitAction={onAgentGitAction}
             hasActiveThread={hasActiveThread}
+            onToggleTerminal={onToggleTerminal}
+            isTerminalVisible={isTerminalVisible}
           />
           <div className="flex min-h-0 flex-1 overflow-hidden select-none">
             <div
               data-testid="workspace-chat-panel"
               className={cn(
                 "relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden select-none",
-                hasSideSurface && "border-r border-white/[0.06]",
               )}
             >
               {activeWorktree ? (
@@ -498,39 +497,37 @@ function WorkspaceShellImpl({
                 ) : null}
               </div>
             </div>
-
-            {/* Transient surface region: only appears when a file/terminal/activity surface is opened. */}
-            {hasSideSurface ? (
-              <div
-                data-testid="workspace-side-panel"
-                className={cn(
-                  "min-h-0 w-[360px] shrink-0 overflow-hidden border-l border-white/[0.06] bg-[var(--color-bg-primary)] xl:w-[420px]",
-                )}
-              >
-                <div className="flex h-full min-w-[360px] flex-col xl:min-w-[420px]">
-                  {mainPaneState.sideSurfaceKey === "activity" ? (
-                    <WorkspaceActivityPanel
-                      threadTitle={activeThreadTitle}
-                      worktreeLabel={activeWorktreeLabel}
-                      displayAgentStatus={displayAgentStatus}
-                      liveFeed={liveFeed}
-                      className="h-full"
-                    />
-                  ) : mainPaneState.sideSurfaceKey !== null ? (
-                    <WorkspaceSurfacePanel
-                      activeWorktreeId={activeWorktreeId}
-                      selectedSurfaceKey={mainPaneState.sideSurfaceKey}
-                      windows={sideContextWindows}
-                      onFileContentChange={onFileContentChange}
-                      onFileSave={onFileSave}
-                      activityContent={gitPanel}
-                    />
-                  ) : null}
-                </div>
-              </div>
-            ) : null}
           </div>
         </main>
+
+        {isTerminalVisible && (
+          <aside
+            className={cn(
+              "flex h-full w-[420px] shrink-0 flex-col border-l border-white/[0.06] bg-[var(--color-bg-primary)]",
+              "animate-in slide-in-from-right duration-[var(--duration-normal)] [transition-timing-function:var(--ease-emphasized-decel)]",
+            )}
+          >
+            <div className="flex h-11 shrink-0 items-center justify-between border-b border-white/[0.06] px-3">
+              <span className="text-[10px] uppercase tracking-wider text-white/40 font-medium">
+                Terminal
+              </span>
+              <button
+                type="button"
+                onClick={onToggleTerminal}
+                className="flex size-6 items-center justify-center text-white/30 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/70"
+                aria-label="Close terminal"
+              >
+                <X className="size-3.5" />
+              </button>
+            </div>
+            <div className="min-h-0 flex-1">
+              <Terminal
+                id="sidebar-terminal"
+                cwd={workspacePath ?? undefined}
+              />
+            </div>
+          </aside>
+        )}
       </div>
     </div>
   );

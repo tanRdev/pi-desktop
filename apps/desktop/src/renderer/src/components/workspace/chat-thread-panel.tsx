@@ -11,7 +11,6 @@ import { cn } from "@/lib/utils";
 import type { ActivityIndicatorProps } from "../ui/activity-indicator";
 import { StreamingIndicator } from "../ui/activity-indicator";
 import { EnhancedMessage } from "../ui/enhanced-message";
-import type { FeedbackValue } from "../ui/feedback-bar";
 import { ScrollButton } from "../ui/scroll-button";
 import { SystemMessage } from "../ui/system-message";
 import { FileChangeSummary } from "./chat/file-change-summary";
@@ -21,8 +20,6 @@ import { ToolCallRollup } from "./chat/tool-call-rollup";
 type ChatMessageRowProps = {
   message: AgentMessageSnapshot;
   index: number;
-  feedback: FeedbackValue | null;
-  onFeedbackChange: (messageId: string, value: FeedbackValue) => void;
   onCopyMessage: (text: string) => void;
 };
 
@@ -128,30 +125,23 @@ function getToolState(message: AgentMessageSnapshot): ToolState {
 
 function buildToolPart(message: AgentMessageSnapshot) {
   const toolNameMatch = /^tool:([^:]+):/.exec(message.id);
+  const hasContent = message.text && message.text.trim().length > 0;
 
   return {
     type: toolNameMatch?.[1] ?? "workspace.tool",
     state: getToolState(message),
-    output: { transcript: message.text || "No tool output yet." },
+    output: hasContent ? { transcript: message.text } : undefined,
     errorText: message.status === "error" ? message.text : undefined,
   } as const;
 }
 
 interface ChatMessageBodyProps {
   message: AgentMessageSnapshot;
-  feedback: FeedbackValue | null;
-  onFeedbackChange: (value: FeedbackValue) => void;
   onCopy: () => void;
   index: number;
 }
 
-function ChatMessageBody({
-  message,
-  feedback,
-  onFeedbackChange,
-  onCopy,
-  index,
-}: ChatMessageBodyProps) {
+function ChatMessageBody({ message, onCopy, index }: ChatMessageBodyProps) {
   switch (message.role) {
     case "system":
       return (
@@ -202,8 +192,6 @@ function ChatMessageBody({
           content={message.text || " "}
           isMarkdown={true}
           status={message.status}
-          feedback={feedback}
-          onFeedbackChange={onFeedbackChange}
           onCopy={onCopy}
           animationIndex={index}
           timestamp={message.timestamp}
@@ -217,8 +205,6 @@ const MemoizedChatMessageBody = React.memo(ChatMessageBody);
 const ChatMessageRow = React.memo(function ChatMessageRow({
   message,
   index,
-  feedback,
-  onFeedbackChange,
   onCopyMessage,
 }: ChatMessageRowProps) {
   const isSystem = message.role === "system";
@@ -255,8 +241,6 @@ const ChatMessageRow = React.memo(function ChatMessageRow({
         >
           <MemoizedChatMessageBody
             message={message}
-            feedback={feedback}
-            onFeedbackChange={(value) => onFeedbackChange(message.id, value)}
             onCopy={() => onCopyMessage(message.text)}
             index={index}
           />
@@ -344,9 +328,6 @@ export function ChatThreadPanel({
   lastError,
   className,
 }: ChatThreadPanelProps) {
-  const [feedbackByMessageId, setFeedbackByMessageId] = React.useState<
-    Record<string, FeedbackValue>
-  >({});
   const [showScrollButton, setShowScrollButton] = React.useState(false);
   const [queuedMessageCount, setQueuedMessageCount] = React.useState(0);
   const scrollViewportRef = React.useRef<HTMLDivElement | null>(null);
@@ -384,16 +365,6 @@ export function ChatThreadPanel({
     setShowScrollButton(false);
     setQueuedMessageCount(0);
   }, []);
-
-  const handleFeedbackChange = React.useCallback(
-    (messageId: string, value: FeedbackValue) => {
-      setFeedbackByMessageId((currentState) => ({
-        ...currentState,
-        [messageId]: value,
-      }));
-    },
-    [],
-  );
 
   const handleCopyMessage = React.useCallback((text: string) => {
     void navigator.clipboard.writeText(text);
@@ -503,7 +474,6 @@ export function ChatThreadPanel({
                     const showDivider =
                       turn.userMessage !== null &&
                       (turn.assistantMessages.length > 0 ||
-                        turn.toolMessages.length > 0 ||
                         turn.isStreaming ||
                         (isLastTurn && isStreaming));
                     const working =
@@ -515,14 +485,11 @@ export function ChatThreadPanel({
                     let runningIndex = 0;
                     const renderMessage = (m: AgentMessageSnapshot) => {
                       const idx = runningIndex++;
-                      const feedbackValue = feedbackByMessageId[m.id] ?? null;
                       return (
                         <ChatMessageRow
                           key={m.id}
                           message={m}
                           index={idx}
-                          feedback={feedbackValue}
-                          onFeedbackChange={handleFeedbackChange}
                           onCopyMessage={handleCopyMessage}
                         />
                       );

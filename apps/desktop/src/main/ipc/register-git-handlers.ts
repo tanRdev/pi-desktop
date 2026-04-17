@@ -50,6 +50,11 @@ function requireFilePaths(payload: unknown): string[] {
   return filePaths;
 }
 
+function requireStaged(payload: unknown): boolean {
+  const staged = (payload as Record<string, unknown>)?.staged;
+  return typeof staged === "boolean" ? staged : false;
+}
+
 export function registerGitHandlers({
   handle,
   gitService,
@@ -136,6 +141,14 @@ export function registerGitHandlers({
   handle(IPC_CHANNELS.git.fetch, async (_event, payload) =>
     gitService.fetch(
       requireAllowedRepositoryPath(payload, getAllowedRepositoryRoots),
+    ),
+  );
+
+  handle(IPC_CHANNELS.git.diffFile, async (_event, payload) =>
+    gitService.diffFile(
+      requireAllowedRepositoryPath(payload, getAllowedRepositoryRoots),
+      requireFilePath(payload),
+      requireStaged(payload),
     ),
   );
 }

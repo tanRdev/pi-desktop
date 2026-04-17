@@ -3,6 +3,7 @@ import {
   type AppPreferences,
   type AutocompleteContext,
   type AutocompleteSuggestions,
+  type GitFileDiff,
   type GitRepositoryStatus,
   IPC_CHANNELS,
   type LegacyPreferencesImport,
@@ -14,8 +15,6 @@ import {
   type PackageRemoveRequest,
   type PackageSearchRequest,
   type PackageSearchResponse,
-  type PackagesEvent,
-  type PackageUpdateRequest,
   type PiDesktopAgentEvent,
   type PiDesktopApi,
   type PiDiscoveryResult,
@@ -218,6 +217,13 @@ export function createPiDesktopApi({
       init(targetPath: string) {
         return invoke<void>(IPC_CHANNELS.git.init, {
           repositoryPath: targetPath,
+        });
+      },
+      diffFile(repositoryPath: string, filePath: string, staged: boolean) {
+        return invoke<GitFileDiff>(IPC_CHANNELS.git.diffFile, {
+          repositoryPath,
+          filePath,
+          staged,
         });
       },
       stageFile(repositoryPath: string, filePath: string) {

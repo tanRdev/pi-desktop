@@ -1,4 +1,5 @@
 import type {
+  GitFileDiff,
   GitRepositoryStatus,
   ShellGitSnapshot,
   WorktreeSnapshot,
@@ -11,6 +12,7 @@ import { Button } from "../ui/button";
 import { ArrowClockwise, CaretDown, Check, Trash } from "../ui/icons";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { buildGitPanelViewModel } from "./git-panel-model";
+import { GitDiffViewer } from "./git-diff-viewer";
 
 export {
   buildGitPanelViewModel,
@@ -39,6 +41,7 @@ export interface GitPanelProps {
   onUnstageFile: (filePath: string) => void | Promise<void>;
   onUnstageAllFiles: (filePaths: string[]) => void | Promise<void>;
   onDiscardFile: (filePath: string) => void | Promise<void>;
+  onViewDiff?: (filePath: string, staged: boolean) => void;
 }
 
 interface GitChangeRowProps {
@@ -48,6 +51,7 @@ interface GitChangeRowProps {
   onStage: (filePath: string) => void | Promise<void>;
   onUnstage: (filePath: string) => void | Promise<void>;
   onDiscard: (filePath: string) => void | Promise<void>;
+  onSelectFile?: (filePath: string, staged: boolean) => void;
 }
 
 const GitChangeRow = React.memo(function GitChangeRow({
@@ -57,6 +61,7 @@ const GitChangeRow = React.memo(function GitChangeRow({
   onStage,
   onUnstage,
   onDiscard,
+  onSelectFile,
 }: GitChangeRowProps) {
   return (
     <div className="group flex w-full items-center gap-1.5 px-2 py-1 text-left text-[10px] transition-colors text-white/40 hover:bg-white/[0.04] hover:text-white/70 border-b border-white/[0.06]">
@@ -74,7 +79,13 @@ const GitChangeRow = React.memo(function GitChangeRow({
         <Check className="size-2" />
       </button>
       <div className="min-w-0 flex-1">
-        <div className="truncate group-hover:text-white/80">{path}</div>
+        <button
+          type="button"
+          className="truncate group-hover:text-white/80 text-left w-full"
+          onClick={() => onSelectFile?.(path, isStaged)}
+        >
+          {path}
+        </button>
       </div>
       <div className="flex shrink-0 items-center gap-2">
         <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
@@ -126,6 +137,7 @@ function CombinedChangeList({
   onUnstage,
   onUnstageAll,
   onDiscard,
+  onSelectFile,
 }: {
   repositoryStatus: GitRepositoryStatus | null;
   onStage: (filePath: string) => void | Promise<void>;
@@ -133,6 +145,7 @@ function CombinedChangeList({
   onUnstage: (filePath: string) => void | Promise<void>;
   onUnstageAll: (filePaths: string[]) => void | Promise<void>;
   onDiscard: (filePath: string) => void | Promise<void>;
+  onSelectFile?: (filePath: string, staged: boolean) => void;
 }) {
   const { stagedPaths, unstagedPaths, stagedByPath, unstagedByPath, allPaths } =
     React.useMemo(() => {
@@ -252,6 +265,7 @@ function CombinedChangeList({
                   onStage={onStage}
                   onUnstage={onUnstage}
                   onDiscard={onDiscard}
+                  onSelectFile={onSelectFile}
                 />
               );
             }}
@@ -271,6 +285,7 @@ function CombinedChangeList({
                   onStage={onStage}
                   onUnstage={onUnstage}
                   onDiscard={onDiscard}
+                  onSelectFile={onSelectFile}
                 />
               );
             })}
@@ -322,7 +337,40 @@ export function GitPanel({
   onUnstageFile,
   onUnstageAllFiles,
   onDiscardFile,
+  onViewDiff,
 }: GitPanelProps) {
+  const [selectedDiff, setSelectedDiff] = React.useState<GitFileDiff | null>(
+    null,
+  );
+  const [diffLoading, setDiffLoading] = React.useState(false);
+
+  const handleSelectFile = React.useCallback(
+    (filePath: string, staged: boolean) => {
+      if (onViewDiff) {
+        onViewDiff(filePath, staged);
+        return;
+      }
+      if (!repositoryPath) return;
+      setDiffLoading(true);
+      window.piDesktop.git
+        .diffFile(repositoryPath, filePath, staged)
+        .then((diff) => {
+          setSelectedDiff(diff);
+        })
+        .catch(() => {
+          setSelectedDiff(null);
+        })
+        .finally(() => {
+          setDiffLoading(false);
+        });
+    },
+    [repositoryPath, onViewDiff],
+  );
+
+  const handleCloseDiff = React.useCallback(() => {
+    setSelectedDiff(null);
+  }, []);
+
   const viewModel = React.useMemo(
     () =>
       buildGitPanelViewModel({
@@ -385,108 +433,119 @@ export function GitPanel({
           </div>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
-          <div className="space-y-6">
-            <section>
-              <textarea
-                value={commitMessage}
-                onChange={(event) => onCommitMessageChange(event.target.value)}
-                placeholder="Commit message..."
-                rows={2}
-                disabled={!repositoryPath || isLoading}
-                className="w-full resize-none bg-transparent px-0 py-2 text-[10.5px] leading-relaxed text-white/90 placeholder:text-white/20 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-              />
-              <div className="flex items-center justify-end gap-1.5 pt-1">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="default"
-                      size="sm"
-                      disabled={
-                        !canCommit || !commitMessage.trim() || isLoading
-                      }
-                    >
-                      <span>Commit</span>
-                      <CaretDown className="size-2.5 ml-1" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    align="end"
-                    side="bottom"
-                    className="w-48 border-white/10 bg-[#161616] p-1 shadow-2xl"
-                  >
-                    <div className="flex flex-col gap-0.5">
+        {selectedDiff ? (
+          <GitDiffViewer diff={selectedDiff} onClose={handleCloseDiff} />
+        ) : diffLoading ? (
+          <div className="flex h-full items-center justify-center text-[10px] text-white/30">
+            Loading diff...
+          </div>
+        ) : (
+          <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+            <div className="space-y-6">
+              <section>
+                <textarea
+                  value={commitMessage}
+                  onChange={(event) =>
+                    onCommitMessageChange(event.target.value)
+                  }
+                  placeholder="Commit message..."
+                  rows={2}
+                  disabled={!repositoryPath || isLoading}
+                  className="w-full resize-none bg-transparent px-0 py-2 text-[10.5px] leading-relaxed text-white/90 placeholder:text-white/20 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                />
+                <div className="flex items-center justify-end gap-1.5 pt-1">
+                  <Popover>
+                    <PopoverTrigger asChild>
                       <Button
-                        variant="ghost"
+                        type="button"
+                        variant="default"
                         size="sm"
                         disabled={
                           !canCommit || !commitMessage.trim() || isLoading
                         }
-                        onClick={() => void onCommit()}
-                        className="justify-start px-2 py-1.5 text-[10.5px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
                       >
-                        Commit
+                        <span>Commit</span>
+                        <CaretDown className="size-2.5 ml-1" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        disabled={
-                          !canCommitAndPush ||
-                          !commitMessage.trim() ||
-                          isLoading
-                        }
-                        onClick={() => void onCommitAndPush()}
-                        className="justify-start px-2 py-1.5 text-[10.5px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
-                      >
-                        Commit & Push
-                      </Button>
-                      <div className="my-1 h-px bg-white/5" />
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        disabled={!canPush || isLoading}
-                        onClick={() => void onPush()}
-                        className="justify-start px-2 py-1.5 text-[10.5px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
-                      >
-                        Push
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        disabled={!canPull || isLoading}
-                        onClick={() => void onPull()}
-                        className="justify-start px-2 py-1.5 text-[10.5px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
-                      >
-                        Pull
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        disabled={!canFetch || isLoading}
-                        onClick={() => void onFetch()}
-                        className="justify-start px-2 py-1.5 text-[10.5px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
-                      >
-                        Fetch
-                      </Button>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </section>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      align="end"
+                      side="bottom"
+                      className="w-48 border-white/10 bg-[var(--color-bg-tertiary)] p-1 shadow-2xl"
+                    >
+                      <div className="flex flex-col gap-0.5">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={
+                            !canCommit || !commitMessage.trim() || isLoading
+                          }
+                          onClick={() => void onCommit()}
+                          className="justify-start px-2 py-1.5 text-[10.5px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
+                        >
+                          Commit
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={
+                            !canCommitAndPush ||
+                            !commitMessage.trim() ||
+                            isLoading
+                          }
+                          onClick={() => void onCommitAndPush()}
+                          className="justify-start px-2 py-1.5 text-[10.5px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
+                        >
+                          Commit & Push
+                        </Button>
+                        <div className="my-1 h-px bg-white/5" />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={!canPush || isLoading}
+                          onClick={() => void onPush()}
+                          className="justify-start px-2 py-1.5 text-[10.5px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
+                        >
+                          Push
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={!canPull || isLoading}
+                          onClick={() => void onPull()}
+                          className="justify-start px-2 py-1.5 text-[10.5px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
+                        >
+                          Pull
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={!canFetch || isLoading}
+                          onClick={() => void onFetch()}
+                          className="justify-start px-2 py-1.5 text-[10.5px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
+                        >
+                          Fetch
+                        </Button>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </section>
 
-            <div className="space-y-5">
-              <CombinedChangeList
-                repositoryStatus={repositoryStatus}
-                onStage={onStageFile}
-                onStageAll={onStageAllFiles}
-                onUnstage={onUnstageFile}
-                onUnstageAll={onUnstageAllFiles}
-                onDiscard={onDiscardFile}
-              />
+              <div className="space-y-5">
+                <CombinedChangeList
+                  repositoryStatus={repositoryStatus}
+                  onStage={onStageFile}
+                  onStageAll={onStageAllFiles}
+                  onUnstage={onUnstageFile}
+                  onUnstageAll={onUnstageAllFiles}
+                  onDiscard={onDiscardFile}
+                  onSelectFile={handleSelectFile}
+                />
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </Skeleton>
   );

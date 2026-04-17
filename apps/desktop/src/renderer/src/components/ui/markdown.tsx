@@ -123,9 +123,9 @@ const INITIAL_COMPONENTS: Partial<Components> = {
           void window.piDesktop.dialog.openExternal(href);
         }}
         className={cn(
-          "text-sm text-[#00E559]/80 underline underline-offset-4 decoration-[#00E559]/30",
+          "text-sm text-[var(--color-accent)]/80 underline underline-offset-4 decoration-[var(--color-accent)]/30",
           "transition-all duration-150 ease-out",
-          "hover:decoration-[#00E559]/60 hover:text-[#00E559]",
+          "hover:decoration-[var(--color-accent)]/60 hover:text-[var(--color-accent)]",
         )}
         {...props}
       >

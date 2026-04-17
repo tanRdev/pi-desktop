@@ -56,7 +56,7 @@ export function ThreadTabs({
               >
                 <div
                   className={cn(
-                    "h-1.5 w-1.5 shrink-0 rounded-full transition-all duration-300",
+                    "h-1.5 w-1.5 shrink-0 transition-all duration-300",
                     isRunning
                       ? "animate-pulse bg-[var(--color-accent)]/70 shadow-[0_0_4px_var(--color-accent-ring)]"
                       : isActive

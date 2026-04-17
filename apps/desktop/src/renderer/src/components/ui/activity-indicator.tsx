@@ -175,7 +175,7 @@ export function ActivityIndicator({
         {count !== undefined && count > 0 && (
           <span
             className={cn(
-              "flex h-4 min-w-[16px] items-center justify-center rounded-full px-1",
+              "flex h-4 min-w-[16px] items-center justify-center px-1",
               "text-[10px] font-normal tabular-nums",
               config.bgColor,
               config.color,
@@ -201,7 +201,7 @@ export function ActivityIndicator({
 
         <div
           className={cn(
-            "size-1.5 rounded-full",
+            "size-1.5",
             statusCfg.dotColor,
             statusCfg.pulse && "animate-pulse",
           )}
@@ -281,8 +281,8 @@ export function StreamingIndicator({
         )}
       >
         <div className="relative">
-          <div className="size-2 rounded-full bg-[var(--color-accent)]/60" />
-          <div className="absolute inset-0 size-2 animate-ping rounded-full bg-[var(--color-accent)]/30" />
+          <div className="size-2 bg-[var(--color-accent)]/60" />
+          <div className="absolute inset-0 size-2 animate-ping bg-[var(--color-accent)]/30" />
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="text-[10.5px] font-normal text-white/70">
@@ -294,7 +294,7 @@ export function StreamingIndicator({
               {[0, 1, 2].map((i) => (
                 <span
                   key={i}
-                  className="size-1 rounded-full bg-white/30"
+                  className="size-1 bg-white/30"
                   style={{
                     animation: `shimmer-bounce 1.4s ease-in-out ${i * 0.15}s infinite`,
                   }}

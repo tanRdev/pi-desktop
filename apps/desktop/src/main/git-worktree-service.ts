@@ -3,8 +3,11 @@ import fs from "node:fs";
 import path from "node:path";
 import { promisify } from "node:util";
 import type {
+  GitDiffHunk,
+  GitDiffLine,
   GitFileChange,
   GitFileChangeStatus,
+  GitFileDiff,
   GitRepositoryStatus,
   ShellGitSnapshot,
   WorktreeGitSnapshot,
@@ -793,6 +796,198 @@ export class GitWorktreeService {
       "fetch changes",
     );
     return this.getRepositoryStatus(repositoryPath);
+  }
+
+  diffFile(
+    repositoryPath: string,
+    filePath: string,
+    staged: boolean,
+  ): GitFileDiff {
+    const args = staged
+      ? ["diff", "--cached", "--unified=3", "--", filePath]
+      : ["diff", "--unified=3", "--", filePath];
+
+    const result = this.runGit(repositoryPath, args);
+
+    if (result.status !== 0 && !result.stdout) {
+      throw new Error(
+        result.error?.message || result.stderr.trim() || "Failed to get diff",
+      );
+    }
+
+    const status = this.getRepositoryStatus(repositoryPath);
+    const change = [...status.stagedChanges, ...status.unstagedChanges].find(
+      (c) => c.path === filePath,
+    );
+
+    if (!change && result.stdout.trim() === "") {
+      const isUntracked =
+        status.unstagedChanges.some(
+          (c) => c.path === filePath && c.status === "untracked",
+        ) ||
+        status.stagedChanges.some(
+          (c) => c.path === filePath && c.status === "untracked",
+        );
+
+      if (isUntracked) {
+        return this.diffUntrackedFile(repositoryPath, filePath);
+      }
+
+      return {
+        filePath,
+        oldFilePath: null,
+        status: "modified" as GitFileChangeStatus,
+        hunks: [],
+        binary: false,
+      };
+    }
+
+    const fileStatus = change?.status ?? "modified";
+    const oldFilePath = change?.status === "renamed" ? filePath : null;
+
+    if (result.stdout.includes("Binary files")) {
+      return {
+        filePath,
+        oldFilePath,
+        status: fileStatus,
+        hunks: [],
+        binary: true,
+      };
+    }
+
+    const hunks = this.parseUnifiedDiff(result.stdout);
+    return {
+      filePath,
+      oldFilePath,
+      status: fileStatus,
+      hunks,
+      binary: false,
+    };
+  }
+
+  private diffUntrackedFile(
+    repositoryPath: string,
+    filePath: string,
+  ): GitFileDiff {
+    const absolutePath = resolveInsideRepository(repositoryPath, filePath);
+
+    let content: string;
+    try {
+      content = fs.readFileSync(absolutePath, "utf8");
+    } catch {
+      return {
+        filePath,
+        oldFilePath: null,
+        status: "untracked",
+        hunks: [],
+        binary: true,
+      };
+    }
+
+    const lines = content.split(/\r?\n/);
+    const diffLines: GitDiffLine[] = lines.map((line, i) => ({
+      type: "add" as const,
+      content: line,
+      oldLineNumber: null,
+      newLineNumber: i + 1,
+    }));
+
+    return {
+      filePath,
+      oldFilePath: null,
+      status: "untracked",
+      hunks:
+        lines.length > 0
+          ? [
+              {
+                oldStart: 0,
+                oldCount: 0,
+                newStart: 1,
+                newCount: lines.length,
+                lines: diffLines,
+              },
+            ]
+          : [],
+      binary: false,
+    };
+  }
+
+  private parseUnifiedDiff(diffOutput: string): GitDiffHunk[] {
+    const hunks: GitDiffHunk[] = [];
+    const lines = diffOutput.split(/\r?\n/);
+
+    let currentHunk: GitDiffHunk | null = null;
+    let oldLine = 0;
+    let newLine = 0;
+
+    for (const line of lines) {
+      const hunkMatch = line.match(
+        /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/,
+      );
+      if (hunkMatch) {
+        if (currentHunk) {
+          hunks.push(currentHunk);
+        }
+        currentHunk = {
+          oldStart: Number(hunkMatch[1]),
+          oldCount: Number(hunkMatch[2] ?? "1"),
+          newStart: Number(hunkMatch[3]),
+          newCount: Number(hunkMatch[4] ?? "1"),
+          lines: [],
+        };
+        oldLine = Number(hunkMatch[1]);
+        newLine = Number(hunkMatch[3]);
+        continue;
+      }
+
+      if (
+        line.startsWith("--- ") ||
+        line.startsWith("+++ ") ||
+        line.startsWith("diff ")
+      ) {
+        continue;
+      }
+
+      if (!currentHunk) {
+        continue;
+      }
+
+      if (line.startsWith("+")) {
+        currentHunk.lines.push({
+          type: "add",
+          content: line.slice(1),
+          oldLineNumber: null,
+          newLineNumber: newLine++,
+        });
+      } else if (line.startsWith("-")) {
+        currentHunk.lines.push({
+          type: "remove",
+          content: line.slice(1),
+          oldLineNumber: oldLine++,
+          newLineNumber: null,
+        });
+      } else if (line.startsWith(" ")) {
+        currentHunk.lines.push({
+          type: "context",
+          content: line.slice(1),
+          oldLineNumber: oldLine++,
+          newLineNumber: newLine++,
+        });
+      } else if (line.startsWith("\\ ")) {
+        currentHunk.lines.push({
+          type: "context",
+          content: line.slice(2),
+          oldLineNumber: null,
+          newLineNumber: null,
+        });
+      }
+    }
+
+    if (currentHunk) {
+      hunks.push(currentHunk);
+    }
+
+    return hunks;
   }
 
   private inspectWorktree(
