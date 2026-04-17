@@ -1412,11 +1412,13 @@ export function useAppShellController(): AppShellController {
   const threadLastError =
     activeThreadConversation?.lastError ?? agent.lastError;
   const shellGit = shell.git ?? null;
+  const appVersion = shell.appVersion ?? "";
   const contextUsage = agent.contextUsage;
 
   const workspaceShellProps: WorkspaceShellProps = React.useMemo(
     () => ({
       platform,
+      appVersion,
       repositories,
       activeRepository,
       activeRepositoryId,
@@ -1575,6 +1577,7 @@ export function useAppShellController(): AppShellController {
       handleFileTreeRenameFile,
       handleFileTreeMoveFile,
       handleAgentGitAction,
+      appVersion,
     ],
   );
 
