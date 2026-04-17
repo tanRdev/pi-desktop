@@ -46,8 +46,10 @@ export interface WorkspaceShellProps {
   isSwitchingModel: boolean;
   isPromptVisible: boolean;
   isPromptExecuting: boolean;
+  threadLastViewedAt: Record<string, number>;
   activeGitRepositoryStatus: GitRepositoryStatus | null;
   shellGit: ShellGitSnapshot | null;
+  appVersion: string;
   gitCommitMessage: string;
   threadMessages: import("@pi-desktop/shared").AgentMessageSnapshot[];
   threadLastError: string | null;
@@ -137,8 +139,10 @@ function WorkspaceShellImpl({
   isSwitchingModel,
   isPromptVisible,
   isPromptExecuting,
+  threadLastViewedAt,
   activeGitRepositoryStatus,
   shellGit,
+  appVersion,
   gitCommitMessage,
   threadMessages,
   threadLastError,
@@ -197,6 +201,12 @@ function WorkspaceShellImpl({
   onFileTreeMoveFile,
   onAgentGitAction,
 }: WorkspaceShellProps) {
+  const hasChangesToCommit =
+    (activeGitRepositoryStatus?.stagedChanges.length ?? 0) +
+      (activeGitRepositoryStatus?.unstagedChanges.length ?? 0) >
+    0;
+  const hasCommitsToPush = (shellGit?.ahead ?? 0) > 0;
+
   const [activeSidebarSection, setActiveSidebarSection] = React.useState<
     "workspaces" | "files"
   >("workspaces");
@@ -318,12 +328,15 @@ function WorkspaceShellImpl({
     <div className="flex h-screen w-full flex-col overflow-hidden select-none">
       <div className="relative flex min-h-0 flex-1 select-none">
         <LeftSidebar
+          platform={platform}
+          appVersion={appVersion}
           repositories={repositories}
           activeRepositoryId={activeRepositoryId}
           activeWorktreeId={activeWorktreeId}
           activeThreadId={activeThreadId}
           activeTabOverride={activeSidebarSection}
           isPromptExecuting={isPromptExecuting}
+          threadLastViewedAt={threadLastViewedAt}
           width={leftSidebarWidth}
           onResize={onLeftSidebarResize}
           onSelectRepository={onSelectRepository}
@@ -351,6 +364,9 @@ function WorkspaceShellImpl({
             platform={platform}
             onAgentGitAction={onAgentGitAction}
             hasActiveThread={hasActiveThread}
+            hasChangesToCommit={hasChangesToCommit}
+            hasCommitsToPush={hasCommitsToPush}
+            isPromptExecuting={isPromptExecuting}
             onToggleTerminal={onToggleTerminal}
             isTerminalVisible={isTerminalVisible}
             onAddWorkspace={onAddRepository}

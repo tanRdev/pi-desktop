@@ -1,5 +1,6 @@
 import { ArrowsLeftRight, CaretLeft, CaretRight } from "@phosphor-icons/react";
 import type { RepositorySnapshot, WorktreeSnapshot } from "@pi-desktop/shared";
+import { getTrafficLightInset } from "../../lib/title-bar-layout";
 import { Skeleton } from "boneyard-js/react";
 import * as React from "react";
 import {
@@ -7,6 +8,7 @@ import {
   ArrowUp,
   Check,
   Copy,
+  Folder,
   FolderPlus,
   GitBranch,
   GitMerge,
@@ -25,6 +27,8 @@ import { PlaceholderTab } from "./sidebar/placeholder-tab";
 
 export { PlaceholderTab } from "./sidebar/placeholder-tab";
 
+type IndicatorState = "streaming" | "unread" | "idle";
+
 type SidebarTab = "workspaces" | "git" | "files";
 
 const SIDEBAR_TABS: ReadonlyArray<{ id: SidebarTab; label: string }> = [
@@ -42,13 +46,48 @@ function getRepositoryName(repository: RepositorySnapshot): string {
   return repository.customName?.trim() || repository.name;
 }
 
+function StatusIndicator({ state }: { state: IndicatorState }) {
+  if (state === "streaming") {
+    return (
+      <span aria-hidden="true" className="relative size-2 shrink-0">
+        <span className="absolute inset-0 size-full bg-[var(--color-accent)]/70" />
+        <span className="absolute inset-0 size-full bg-[var(--color-accent)]/40 animate-indicator-pulse" />
+      </span>
+    );
+  }
+
+  if (state === "unread") {
+    return (
+      <span
+        aria-hidden="true"
+        className="size-2 shrink-0 bg-[var(--color-secondary-accent)]/80"
+      />
+    );
+  }
+
+  return (
+    <span
+      aria-hidden="true"
+      className="size-2 shrink-0 border border-white/20"
+    />
+  );
+}
+
+function idleUnlessUnread(state: IndicatorState): IndicatorState {
+  if (state === "streaming") return "streaming";
+  return state === "unread" ? "unread" : "idle";
+}
+
 export interface LeftSidebarProps {
+  platform?: string | null;
+  appVersion?: string;
   repositories: RepositorySnapshot[];
   activeRepositoryId: string | null;
   activeWorktreeId: string | null;
   activeThreadId: string | null;
   activeTabOverride?: SidebarTab;
   isPromptExecuting?: boolean;
+  threadLastViewedAt?: Record<string, number>;
   isLoading?: boolean;
   width: number;
   onResize: (width: number) => void;
@@ -212,9 +251,10 @@ function SidebarEdgeToggle({
 interface WorktreeRowProps {
   session: WorktreeSnapshot;
   isActive: boolean;
-  isWorking: boolean;
+  indicatorState: IndicatorState;
   activeThreadId: string | null;
   isPromptExecuting?: boolean;
+  threadLastViewedAt?: Record<string, number>;
   onSelect: (id: string) => void;
   onSelectThread: (threadId: string) => void;
 }
@@ -222,14 +262,14 @@ interface WorktreeRowProps {
 interface ThreadRowProps {
   thread: WorktreeSnapshot["threads"][number];
   isActive: boolean;
-  isWorking: boolean;
+  indicatorState: IndicatorState;
   onSelect: (id: string) => void;
 }
 
 function ThreadRowImpl({
   thread,
   isActive,
-  isWorking,
+  indicatorState,
   onSelect,
 }: ThreadRowProps) {
   const threadTitle = thread.title.trim() || "Untitled thread";
@@ -247,17 +287,9 @@ function ThreadRowImpl({
             : "text-white/40 hover:bg-white/[0.03] hover:text-white/65",
         )}
       >
-        <span
-          aria-hidden="true"
-          className={cn(
-            "size-2 shrink-0 transition-colors duration-150",
-            isActive ? "bg-[var(--color-accent)]" : "bg-white/20",
-          )}
-        >
-          {isWorking && (
-            <span className="block size-full bg-white/60 animate-pulse" />
-          )}
-        </span>
+        <StatusIndicator
+          state={isActive ? indicatorState : idleUnlessUnread(indicatorState)}
+        />
         <span className="min-w-0 flex-1 truncate">{threadTitle}</span>
       </button>
     </div>
@@ -267,9 +299,10 @@ function ThreadRowImpl({
 function WorktreeRowImpl({
   session,
   isActive,
-  isWorking,
+  indicatorState,
   activeThreadId,
   isPromptExecuting,
+  threadLastViewedAt,
   onSelect,
   onSelectThread,
 }: WorktreeRowProps) {
@@ -307,25 +340,16 @@ function WorktreeRowImpl({
         type="button"
         onClick={() => onSelect(session.id)}
         className={cn(
-          "group flex w-full min-w-0 items-center gap-2 pl-[11px] pr-2 py-2 text-left text-[13px]",
+          "group flex w-full min-w-0 items-center gap-2 pl-[22px] pr-2 py-2 text-left text-[13px]",
           "transition-colors duration-150",
           isActive
             ? "text-white"
             : "text-white/50 hover:text-white/70 hover:bg-white/[0.04]",
         )}
       >
-        <div
-          aria-hidden="true"
-          className={cn(
-            "size-2 flex-shrink-0 transition-all duration-200",
-            isActive && "bg-[var(--color-accent)] scale-110",
-            !isActive && "bg-white/20",
-          )}
-        >
-          {isWorking && (
-            <span className="block w-full h-full bg-white/60 animate-pulse" />
-          )}
-        </div>
+        <StatusIndicator
+          state={isActive ? indicatorState : idleUnlessUnread(indicatorState)}
+        />
 
         <span className="min-w-0 flex-1 truncate font-mono">
           {session.label}
@@ -360,16 +384,24 @@ function WorktreeRowImpl({
           <div>
             {session.threads.map((thread) => {
               const isThreadActive = thread.id === activeThreadId;
-              const isThreadWorking =
+              const isThreadStreaming =
                 thread.runtime.status === "streaming" ||
                 (isThreadActive && Boolean(isPromptExecuting));
+              const threadIndicatorState: IndicatorState = isThreadStreaming
+                ? "streaming"
+                : !isThreadActive &&
+                    thread.lastActivityAt !== null &&
+                    thread.lastActivityAt >
+                      (threadLastViewedAt?.[thread.id] ?? 0)
+                  ? "unread"
+                  : "idle";
 
               return (
                 <ThreadRow
                   key={thread.id}
                   thread={thread}
                   isActive={isThreadActive}
-                  isWorking={isThreadWorking}
+                  indicatorState={threadIndicatorState}
                   onSelect={onSelectThread}
                 />
               );
@@ -415,13 +447,20 @@ function ProjectRowImpl({
         type="button"
         onClick={() => onSelect(repository.id)}
         className={cn(
-          "group flex min-w-0 flex-1 items-center px-3 py-2.5 text-left",
+          "group flex min-w-0 flex-1 items-center gap-2 px-3 py-1.5 text-left",
           "transition-colors duration-150",
           isActive
             ? "text-white"
             : "text-white/60 hover:text-white/80 hover:bg-white/[0.01]",
         )}
       >
+        <Folder
+          aria-hidden="true"
+          className={cn(
+            "size-3.5 shrink-0 transition-colors duration-150",
+            isActive ? "text-white/70" : "text-white/35 group-hover:text-white/55",
+          )}
+        />
         <span
           className={cn(
             "min-w-0 flex-1 truncate text-[13px] font-medium",
@@ -458,12 +497,15 @@ function ProjectRowImpl({
 const ProjectRow = React.memo(ProjectRowImpl);
 
 export function LeftSidebarImpl({
+  platform,
+  appVersion,
   repositories,
   activeRepositoryId,
   activeWorktreeId,
   activeThreadId,
   activeTabOverride,
   isPromptExecuting,
+  threadLastViewedAt,
   isLoading,
   width,
   onResize,
@@ -676,9 +718,15 @@ export function LeftSidebarImpl({
         />
       ) : (
         <>
-          {/* Top: Add workspace button - next to traffic lights */}
-          {activeTab === "workspaces" && (
-            <div className="shrink-0 h-11 flex items-center justify-end px-2">
+          {/* Top header row — branding + tab actions */}
+          <div
+            className="shrink-0 h-11 flex items-center justify-between pr-2"
+            style={{ paddingLeft: getTrafficLightInset(platform ?? null) + 60 }}
+          >
+            <span className="text-[10px] text-white/30 uppercase tracking-wider select-none">
+              pi desktop
+            </span>
+            {activeTab === "workspaces" && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
@@ -693,8 +741,38 @@ export function LeftSidebarImpl({
                 </TooltipTrigger>
                 <TooltipContent side="top">Add workspace</TooltipContent>
               </Tooltip>
-            </div>
-          )}
+            )}
+          </div>
+
+          <div
+            data-no-drag="true"
+            className="flex h-11 w-full shrink-0 items-center gap-1 px-3"
+            role="tablist"
+            aria-label="Sidebar tabs"
+          >
+            {SIDEBAR_TABS.map((tab) => {
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  data-testid={`sidebar-tab-${tab.id}`}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={cn(
+                    "flex-1 h-8 px-3 text-[10px] uppercase tracking-wider font-medium text-center",
+                    "transition-colors duration-150 border-b border-transparent",
+                    isActive
+                      ? "text-white/90 border-[var(--color-accent)]"
+                      : "text-white/40 hover:text-white/70",
+                  )}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
 
           {/* Tab body */}
           <div className="min-h-0 flex-1 overflow-y-auto">
@@ -747,15 +825,29 @@ export function LeftSidebarImpl({
                                     ) ||
                                     (isSessionActive &&
                                       Boolean(isPromptExecuting));
+                                  const sessionIndicatorState: IndicatorState =
+                                    isSessionWorking
+                                      ? "streaming"
+                                      : !isSessionActive &&
+                                          session.threads.some(
+                                            (t) =>
+                                              t.lastActivityAt !== null &&
+                                              t.lastActivityAt >
+                                                (threadLastViewedAt?.[t.id] ??
+                                                  0),
+                                          )
+                                        ? "unread"
+                                        : "idle";
 
                                   return (
                                     <WorktreeRow
                                       key={session.id}
                                       session={session}
                                       isActive={isSessionActive}
-                                      isWorking={isSessionWorking}
+                                      indicatorState={sessionIndicatorState}
                                       activeThreadId={activeThreadId}
                                       isPromptExecuting={isPromptExecuting}
+                                      threadLastViewedAt={threadLastViewedAt}
                                       onSelect={onSelectWorktree}
                                       onSelectThread={onSelectThread}
                                     />
@@ -775,37 +867,6 @@ export function LeftSidebarImpl({
             ) : (
               (filesPanel ?? <PlaceholderTab name="files" />)
             )}
-          </div>
-
-          {/* Bottom: Tabs */}
-          <div
-            data-no-drag="true"
-            className="flex h-11 w-full shrink-0 items-center justify-center gap-0 border-t border-white/[0.06] px-2"
-            role="tablist"
-            aria-label="Sidebar tabs"
-          >
-            {SIDEBAR_TABS.map((tab) => {
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={isActive}
-                  data-testid={`sidebar-tab-${tab.id}`}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={cn(
-                    "h-8 px-2 text-[10px] uppercase tracking-wider font-medium",
-                    "transition-colors duration-150 border-b border-transparent",
-                    isActive
-                      ? "text-white/90 border-[var(--color-accent)]"
-                      : "text-white/40 hover:text-white/70",
-                  )}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
           </div>
 
           <SidebarEdgeToggle

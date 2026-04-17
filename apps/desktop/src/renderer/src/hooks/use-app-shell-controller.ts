@@ -215,6 +215,10 @@ export function useAppShellController(): AppShellController {
     uiInteractionStore,
     (storeState) => storeState.promptAutocompleteSelectedIndex,
   );
+  const threadLastViewedAt = useStore(
+    uiInteractionStore,
+    (storeState) => storeState.threadLastViewedAt,
+  );
   const isCreateWorktreeOpen = useStore(
     uiInteractionStore,
     (storeState) => storeState.dialogs.createWorktree,
@@ -376,6 +380,17 @@ export function useAppShellController(): AppShellController {
   React.useEffect(() => {
     setPromptMode(detectPromptMode(draft));
   }, [draft]);
+
+  const prevThreadIdRef = React.useRef<string | null>(null);
+  React.useEffect(() => {
+    if (prevThreadIdRef.current && prevThreadIdRef.current !== activeThreadId) {
+      uiInteractionStore.getState().markThreadViewed(prevThreadIdRef.current);
+    }
+    if (activeThreadId) {
+      uiInteractionStore.getState().markThreadViewed(activeThreadId);
+    }
+    prevThreadIdRef.current = activeThreadId;
+  }, [activeThreadId]);
 
   React.useEffect(() => {
     const conversation = {
@@ -1420,6 +1435,7 @@ export function useAppShellController(): AppShellController {
       isSwitchingModel,
       isPromptVisible,
       isPromptExecuting,
+      threadLastViewedAt,
       activeGitRepositoryStatus,
       shellGit,
       gitCommitMessage,
@@ -1501,6 +1517,7 @@ export function useAppShellController(): AppShellController {
       isPromptVisible,
       isPromptExecuting,
       activeGitRepositoryStatus,
+      threadLastViewedAt,
       shellGit,
       gitCommitMessage,
       threadMessages,
