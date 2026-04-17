@@ -130,7 +130,7 @@ export function PromptDock({
     <div
       aria-hidden={!isVisible}
       className={cn(
-        "relative mx-auto w-full max-w-[680px] overflow-visible border-t border-l border-r border-white/[0.08] bg-[var(--color-bg-primary)] select-none -mb-1",
+        "relative mx-auto w-full max-w-3xl overflow-visible border-t border-l border-r border-white/[0.08] bg-[var(--color-bg-primary)] select-none -mb-1",
         "transition-[max-height,opacity] duration-[var(--duration-slow)] ease-out",
         isVisible ? "max-h-[42rem]" : "max-h-0 overflow-hidden opacity-0",
       )}
@@ -156,7 +156,7 @@ export function PromptDock({
           value={draft}
           onValueChange={onDraftChange}
           onSubmit={handleSubmit}
-          className={cn("px-4 pb-3 pt-3")}
+          className={cn("px-6 pb-3 pt-3")}
         >
           <Attachments
             uploadedFiles={uploadedFiles}
