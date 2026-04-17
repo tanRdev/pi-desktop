@@ -793,10 +793,10 @@ export function LeftSidebarImpl({
                         />
 
                         {isExpanded && (
-                          <div className="relative ml-5 pl-5">
+                          <div className="relative ml-4">
                             <TreeConnector
                               count={sessions.length}
-                              rowHeight={80}
+                              rowHeight={36}
                               startY={18}
                               indent={20}
                             />
