@@ -21,6 +21,7 @@ type ChatMessageRowProps = {
   message: AgentMessageSnapshot;
   index: number;
   onCopyMessage: (text: string) => void;
+  userTimestamp?: number;
 };
 
 interface ChatTurn {
@@ -139,9 +140,15 @@ interface ChatMessageBodyProps {
   message: AgentMessageSnapshot;
   onCopy: () => void;
   index: number;
+  userTimestamp?: number;
 }
 
-function ChatMessageBody({ message, onCopy, index }: ChatMessageBodyProps) {
+function ChatMessageBody({
+  message,
+  onCopy,
+  index,
+  userTimestamp,
+}: ChatMessageBodyProps) {
   switch (message.role) {
     case "system":
       return (
@@ -195,6 +202,7 @@ function ChatMessageBody({ message, onCopy, index }: ChatMessageBodyProps) {
           onCopy={onCopy}
           animationIndex={index}
           timestamp={message.timestamp}
+          userTimestamp={userTimestamp}
         />
       );
   }
@@ -206,6 +214,7 @@ const ChatMessageRow = React.memo(function ChatMessageRow({
   message,
   index,
   onCopyMessage,
+  userTimestamp,
 }: ChatMessageRowProps) {
   const isSystem = message.role === "system";
   const isTool = message.role === "tool";
@@ -243,6 +252,7 @@ const ChatMessageRow = React.memo(function ChatMessageRow({
             message={message}
             onCopy={() => onCopyMessage(message.text)}
             index={index}
+            userTimestamp={userTimestamp}
           />
         </div>
       </div>
@@ -491,6 +501,7 @@ export function ChatThreadPanel({
                           message={m}
                           index={idx}
                           onCopyMessage={handleCopyMessage}
+                          userTimestamp={turn.userMessage?.timestamp}
                         />
                       );
                     };
