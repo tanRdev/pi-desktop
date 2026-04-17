@@ -798,7 +798,8 @@ export function useAppShellController(): AppShellController {
         setInitGitRepoPath(repositoryPath);
         setInitGitRepoName(repositoryName);
         setInitGitRepoOpen(true);
-        return;
+        // Don't process remaining paths — resume after user decides on init.
+        break;
       }
 
       try {
@@ -814,12 +815,18 @@ export function useAppShellController(): AppShellController {
       }
     }
 
-    if (addedCount > 1) {
+    if (addedCount > 0) {
+      await reload();
+    }
+
+    if (addedCount === 1) {
+      toast.success("Workspace added");
+    } else if (addedCount > 1) {
       toast.success("Workspaces added", {
         description: `${addedCount} projects are now available in the rail`,
       });
     }
-  }, [setInitGitRepoOpen]);
+  }, [reload, setInitGitRepoOpen]);
 
   const handleSelectRepository = React.useCallback(
     async (repositoryId: string) => {
@@ -945,13 +952,14 @@ export function useAppShellController(): AppShellController {
       await window.piDesktop.git.init(initGitRepoPath);
       await window.piDesktop.repositories.add(initGitRepoPath);
       setInitGitRepoOpen(false);
+      await reload();
       toast.success("Git repository initialized");
     } catch (error) {
       toast.error("Failed to initialize git repository", {
         description: error instanceof Error ? error.message : "Unknown error",
       });
     }
-  }, [initGitRepoName, initGitRepoPath, setInitGitRepoOpen]);
+  }, [initGitRepoName, initGitRepoPath, reload, setInitGitRepoOpen]);
 
   const skipInitGitRepo = React.useCallback(async () => {
     if (!initGitRepoPath) {
@@ -961,11 +969,12 @@ export function useAppShellController(): AppShellController {
 
     try {
       await window.piDesktop.repositories.add(initGitRepoPath);
+      await reload();
     } catch {
       // non-repo folder handled by main process
     }
     setInitGitRepoOpen(false);
-  }, [initGitRepoPath, setInitGitRepoOpen]);
+  }, [initGitRepoPath, reload, setInitGitRepoOpen]);
 
   const handleCloseThread = React.useCallback(
     async (threadId: string) => {
