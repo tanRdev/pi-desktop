@@ -93,7 +93,11 @@ export function Terminal({
   const [isInitializing, setIsInitializing] = React.useState(true);
 
   React.useEffect(() => {
-    if (!cwd || !containerRef.current || terminalRef.current) return;
+    // Fall back to user home directory when no workspace cwd is available,
+    // so the terminal always initializes instead of showing skeleton forever.
+    const effectiveCwd =
+      cwd || (typeof process !== "undefined" ? process.env.HOME : undefined);
+    if (!effectiveCwd || !containerRef.current || terminalRef.current) return;
 
     let cancelled = false;
     let terminal: XTermType | null = null;
@@ -157,7 +161,7 @@ export function Terminal({
           id,
           cols,
           rows,
-          cwd,
+          cwd: effectiveCwd,
           ownerWindowId: ownerWindowId ?? `terminal-${id}`,
           backend,
         })
