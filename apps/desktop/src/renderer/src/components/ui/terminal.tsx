@@ -93,7 +93,7 @@ export function Terminal({
   const [isInitializing, setIsInitializing] = React.useState(true);
 
   React.useEffect(() => {
-    if (!containerRef.current || terminalRef.current) return;
+    if (!cwd || !containerRef.current || terminalRef.current) return;
 
     let cancelled = false;
     let terminal: XTermType | null = null;

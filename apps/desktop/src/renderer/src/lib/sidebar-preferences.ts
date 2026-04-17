@@ -60,6 +60,7 @@ function getStorage(): Storage | null {
 
 export function clampLeftSidebarWidth(width: number): number {
   if (typeof width !== "number" || Number.isNaN(width)) return DEFAULT_WIDTH;
+  if (width === 0) return 0;
   return Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, Math.floor(width)));
 }
 

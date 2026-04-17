@@ -44,6 +44,7 @@ export interface LeftSidebarProps {
   activeRepositoryId: string | null;
   activeWorktreeId: string | null;
   activeThreadId: string | null;
+  activeTabOverride?: SidebarTab;
   isPromptExecuting?: boolean;
   isLoading?: boolean;
   width: number;
@@ -213,12 +214,12 @@ function ThreadRowImpl({
         <span
           aria-hidden="true"
           className={cn(
-            "size-1.5 shrink-0 rounded-full transition-colors duration-150",
+            "size-2 shrink-0 transition-colors duration-150",
             isActive ? "bg-[var(--color-accent)]" : "bg-white/20",
           )}
         >
           {isWorking && (
-            <span className="block size-full rounded-full bg-white/60 animate-pulse" />
+            <span className="block size-full bg-white/60 animate-pulse" />
           )}
         </span>
         <span className="min-w-0 flex-1 truncate">{threadTitle}</span>
@@ -280,7 +281,7 @@ function WorktreeRowImpl({
         <div
           aria-hidden="true"
           className={cn(
-            "w-1 h-1 flex-shrink-0 transition-all duration-200",
+            "size-2 flex-shrink-0 transition-all duration-200",
             isActive && "bg-[var(--color-accent)] scale-110",
             !isActive && "bg-white/20",
           )}
@@ -413,12 +414,6 @@ function ProjectRowImpl({
             <TooltipContent side="top">New branch</TooltipContent>
           </Tooltip>
         )}
-
-        {sessionCount > 0 && (
-          <span className="text-[10px] text-white/30 font-mono">
-            {sessionCount}
-          </span>
-        )}
       </div>
     </div>
   );
@@ -431,6 +426,7 @@ export function LeftSidebarImpl({
   activeRepositoryId,
   activeWorktreeId,
   activeThreadId,
+  activeTabOverride,
   isPromptExecuting,
   isLoading,
   width,
@@ -576,6 +572,12 @@ export function LeftSidebarImpl({
 
   const [activeTab, setActiveTab] = React.useState<SidebarTab>("workspaces");
 
+  React.useEffect(() => {
+    if (activeTabOverride) {
+      setActiveTab(activeTabOverride);
+    }
+  }, [activeTabOverride]);
+
   const handleHideSidebar = React.useCallback(() => {
     if (isCollapsed) return;
     onResize(0);
@@ -603,49 +605,25 @@ export function LeftSidebarImpl({
         />
       ) : (
         <>
-          {/* macOS traffic-light spacer — matches title-bar height */}
-          <div
-            data-drag-region="true"
-            className="w-full shrink-0"
-            style={{ height: "var(--titlebar-height)" }}
-            aria-hidden="true"
-          />
-
-          {/* Header + tab bar */}
-          <div
-            data-drag-region="true"
-            className="flex h-11 w-full shrink-0 items-center justify-between gap-2 pl-2 pr-1"
-          >
-            <div
-              data-no-drag="true"
-              className="flex items-center gap-0"
-              role="tablist"
-              aria-label="Sidebar tabs"
-            >
-              {SIDEBAR_TABS.map((tab) => {
-                const isActive = activeTab === tab.id;
-                return (
+          {/* Top: Add workspace button - next to traffic lights */}
+          {activeTab === "workspaces" && (
+            <div className="shrink-0 border-b border-white/[0.06] h-11 flex items-center justify-end px-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
                   <button
-                    key={tab.id}
                     type="button"
-                    role="tab"
-                    aria-selected={isActive}
-                    data-testid={`sidebar-tab-${tab.id}`}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={cn(
-                      "h-8 px-2 text-[10px] uppercase tracking-wider font-medium",
-                      "transition-colors duration-150 border-b border-transparent",
-                      isActive
-                        ? "text-white/90 border-[var(--color-accent)]"
-                        : "text-white/40 hover:text-white/70",
-                    )}
+                    onClick={onAddRepository}
+                    aria-label="Add workspace"
+                    data-testid="add-workspace-button"
+                    className="flex h-7 w-7 items-center justify-center text-white/70 transition-colors duration-150 hover:text-white/90"
                   >
-                    {tab.label}
+                    <FolderPlus className="size-3.5" />
                   </button>
-                );
-              })}
+                </TooltipTrigger>
+                <TooltipContent side="top">Add workspace</TooltipContent>
+              </Tooltip>
             </div>
-          </div>
+          )}
 
           {/* Tab body */}
           <div className="min-h-0 flex-1 overflow-y-auto">
@@ -728,21 +706,36 @@ export function LeftSidebarImpl({
             )}
           </div>
 
-          {/* Bottom: Add workspace */}
-          {activeTab === "workspaces" && (
-            <div className="shrink-0 border-t border-white/[0.06]">
-              <button
-                type="button"
-                onClick={onAddRepository}
-                aria-label="Add workspace"
-                data-testid="add-workspace-button"
-                className="flex h-9 w-full items-center gap-2 px-3 text-left text-[10px] font-medium uppercase tracking-wider text-white/40 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/70"
-              >
-                <FolderPlus className="size-3.5" />
-                <span>Add workspace</span>
-              </button>
-            </div>
-          )}
+          {/* Bottom: Tabs */}
+          <div
+            data-no-drag="true"
+            className="flex h-11 w-full shrink-0 items-center gap-0 border-t border-white/[0.06] px-2"
+            role="tablist"
+            aria-label="Sidebar tabs"
+          >
+            {SIDEBAR_TABS.map((tab) => {
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  data-testid={`sidebar-tab-${tab.id}`}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={cn(
+                    "h-8 px-2 text-[10px] uppercase tracking-wider font-medium",
+                    "transition-colors duration-150 border-b border-transparent",
+                    isActive
+                      ? "text-white/90 border-[var(--color-accent)]"
+                      : "text-white/40 hover:text-white/70",
+                  )}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
 
           <SidebarEdgeToggle
             label="Hide sidebar"
