@@ -1,6 +1,5 @@
 import { ArrowsLeftRight, CaretLeft, CaretRight } from "@phosphor-icons/react";
 import type { RepositorySnapshot, WorktreeSnapshot } from "@pi-desktop/shared";
-import { getTrafficLightInset } from "../../lib/title-bar-layout";
 import { Skeleton } from "boneyard-js/react";
 import * as React from "react";
 import {
@@ -9,7 +8,6 @@ import {
   Check,
   Copy,
   Folder,
-  FolderPlus,
   GitBranch,
   GitMerge,
   GitPullRequest,
@@ -23,6 +21,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { getTrafficLightInset } from "../../lib/title-bar-layout";
 import { PlaceholderTab } from "./sidebar/placeholder-tab";
 
 export { PlaceholderTab } from "./sidebar/placeholder-tab";
@@ -458,7 +457,9 @@ function ProjectRowImpl({
           aria-hidden="true"
           className={cn(
             "size-3.5 shrink-0 transition-colors duration-150",
-            isActive ? "text-white/70" : "text-white/35 group-hover:text-white/55",
+            isActive
+              ? "text-white/70"
+              : "text-white/35 group-hover:text-white/55",
           )}
         />
         <span
@@ -718,30 +719,14 @@ export function LeftSidebarImpl({
         />
       ) : (
         <>
-          {/* Top header row — branding + tab actions */}
+          {/* Top header row — branding aligned to the traffic-light lane */}
           <div
-            className="shrink-0 h-11 flex items-center justify-between pr-2"
-            style={{ paddingLeft: getTrafficLightInset(platform ?? null) + 60 }}
+            className="shrink-0 h-11 flex items-center border-b border-white/[0.03]"
+            style={{ paddingLeft: getTrafficLightInset(platform ?? null) + 56 }}
           >
             <span className="text-[10px] text-white/30 uppercase tracking-wider select-none">
-              pi desktop
+              pi desktop{appVersion ? ` v${appVersion}` : ""}
             </span>
-            {activeTab === "workspaces" && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    type="button"
-                    onClick={onAddRepository}
-                    aria-label="Add workspace"
-                    data-testid="add-workspace-button"
-                    className="flex h-7 w-7 items-center justify-center text-white/70 transition-colors duration-150 hover:text-white/90"
-                  >
-                    <FolderPlus className="size-3.5" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent side="top">Add workspace</TooltipContent>
-              </Tooltip>
-            )}
           </div>
 
           <div

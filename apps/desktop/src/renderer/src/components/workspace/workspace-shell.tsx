@@ -49,7 +49,7 @@ export interface WorkspaceShellProps {
   threadLastViewedAt: Record<string, number>;
   activeGitRepositoryStatus: GitRepositoryStatus | null;
   shellGit: ShellGitSnapshot | null;
-  appVersion: string;
+  appVersion?: string;
   gitCommitMessage: string;
   threadMessages: import("@pi-desktop/shared").AgentMessageSnapshot[];
   threadLastError: string | null;
