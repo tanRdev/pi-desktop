@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import type { ComponentProps } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { TooltipProvider } from "../ui/tooltip";
-import { LeftSidebar } from "./left-sidebar";
+import { LeftSidebar, SIDEBAR_WIDTH } from "./left-sidebar";
 
 function createRepository(): RepositorySnapshot {
   return {
@@ -39,6 +39,15 @@ function createRepository(): RepositorySnapshot {
             id: "thread-active",
             title: "Active thread",
             lastActivityAt: 1,
+            runtime: {
+              status: "ready",
+              lastError: null,
+            },
+          },
+          {
+            id: "thread-history",
+            title: "History thread",
+            lastActivityAt: 2,
             runtime: {
               status: "ready",
               lastError: null,
@@ -172,12 +181,18 @@ describe("LeftSidebar", () => {
     expect(screen.getByText("main")).toBeInTheDocument();
     expect(screen.getByText("feature/session-tabs")).toBeInTheDocument();
     expect(screen.getAllByTestId("session-row")).toHaveLength(2);
+    expect(screen.getAllByTestId("thread-row")).toHaveLength(3);
+    expect(screen.getByText("Active thread")).toBeInTheDocument();
+    expect(screen.getByText("History thread")).toBeInTheDocument();
+    expect(screen.getByText("Feature thread")).toBeInTheDocument();
 
     await user.click(screen.getByText("feature/session-tabs"));
+    await user.click(screen.getByText("History thread"));
     await user.click(screen.getByTestId("create-session-button"));
     await user.click(screen.getByRole("button", { name: "Add workspace" }));
 
     expect(onSelectWorktree).toHaveBeenCalledWith("worktree-2");
+    expect(onSelectThread).toHaveBeenCalledWith("thread-history");
     expect(onCreateSession).toHaveBeenCalledTimes(1);
     expect(onAddRepository).toHaveBeenCalledTimes(1);
   });
@@ -189,6 +204,19 @@ describe("LeftSidebar", () => {
     expect(rail).toHaveClass("bg-[var(--color-bg-primary)]");
     expect(rail).toHaveClass("border-r");
     expect(rail).toHaveClass("border-white/[0.06]");
+  });
+
+  it("uses the tab label typography for the Add workspace action", () => {
+    renderLeftSidebar();
+
+    const addWorkspaceButton = screen.getByRole("button", {
+      name: "Add workspace",
+    });
+
+    expect(addWorkspaceButton).toHaveClass("text-[10px]");
+    expect(addWorkspaceButton).toHaveClass("uppercase");
+    expect(addWorkspaceButton).toHaveClass("tracking-wider");
+    expect(addWorkspaceButton).toHaveClass("font-medium");
   });
 
   it("toggles the active workspace open state when the workspace row is clicked", async () => {
@@ -260,5 +288,43 @@ describe("LeftSidebar", () => {
     }
 
     expect(alphaWorkspaceRow).toHaveTextContent("Alpha Workspace");
+  });
+
+  it("replaces the resize divider with hide and show sidebar controls", async () => {
+    const user = userEvent.setup();
+    const onResize = vi.fn();
+    const view = renderLeftSidebar({ onResize });
+
+    await user.click(screen.getByRole("button", { name: "Hide sidebar" }));
+
+    expect(onResize).toHaveBeenCalledWith(0);
+
+    view.rerender(
+      <TooltipProvider>
+        <LeftSidebar
+          repositories={[createRepository()]}
+          activeRepositoryId="repo-1"
+          activeWorktreeId="worktree-1"
+          activeThreadId="thread-active"
+          width={0}
+          onResize={onResize}
+          onSelectRepository={vi.fn()}
+          onSelectWorktree={vi.fn()}
+          onSelectThread={vi.fn()}
+          onCreateSession={vi.fn()}
+          onDeleteThread={vi.fn(async () => undefined)}
+          onAddRepository={vi.fn()}
+        />
+      </TooltipProvider>,
+    );
+
+    expect(
+      screen.queryByRole("button", { name: "Hide sidebar" }),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Show sidebar" }));
+
+    expect(onResize).toHaveBeenLastCalledWith(240);
+    expect(onResize).not.toHaveBeenCalledWith(SIDEBAR_WIDTH);
   });
 });

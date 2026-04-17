@@ -8,7 +8,7 @@ afterEach(() => {
 });
 
 describe("TitleBar", () => {
-  it("renders the git split button in the workspace shell", () => {
+  it("renders with correct traffic-light spacing on macOS", () => {
     const { container } = render(
       <TitleBar platform="darwin" hasActiveThread onAgentGitAction={vi.fn()} />,
     );

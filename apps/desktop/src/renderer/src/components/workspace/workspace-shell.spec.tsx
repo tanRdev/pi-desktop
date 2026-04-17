@@ -22,16 +22,31 @@ vi.mock("./git-panel", () => ({
 
 vi.mock("./left-sidebar", () => ({
   SIDEBAR_WIDTH: 240,
-  LeftSidebar(props: { onSelectRepository?: unknown; gitPanel?: ReactNode }) {
+  LeftSidebar(props: {
+    width?: number;
+    activeTabOverride?: string;
+    onSelectRepository?: unknown;
+    gitPanel?: ReactNode;
+    filesPanel?: ReactNode;
+  }) {
     return (
       <div
         data-testid="mock-left-sidebar"
+        data-sidebar-width={String(props.width ?? "")}
+        data-active-tab={props.activeTabOverride ?? ""}
         data-has-select-repository={String(
           typeof props.onSelectRepository === "function",
         )}
       >
+        <button type="button" data-testid="sidebar-tab-workspaces">
+          Workspaces
+        </button>
+        <button type="button" data-testid="sidebar-tab-files">
+          Files
+        </button>
         Left rail
         {props.gitPanel}
+        {props.filesPanel}
       </div>
     );
   },
@@ -43,9 +58,15 @@ vi.mock("./prompt-dock", () => ({
   },
 }));
 
-vi.mock("./workspace-file-content", () => ({
-  WorkspaceFileContent({ filePath }: { filePath: string }) {
+vi.mock("./center-file-viewer", () => ({
+  CenterFileViewer({ filePath }: { filePath: string }) {
     return <div data-testid="workspace-file-content">{filePath}</div>;
+  },
+}));
+
+vi.mock("./file-tree-panel", () => ({
+  FileTreePanel() {
+    return <div data-testid="file-tree-panel">Files</div>;
   },
 }));
 
@@ -205,34 +226,63 @@ afterEach(() => {
 });
 
 describe("WorkspaceShell", () => {
-  it("renders thread tabs above message area and creates threads inside active session", async () => {
-    const user = userEvent.setup();
-    const onCreateThread = vi.fn(async () => "thread-3");
-    const onSelectThread = vi.fn();
-    const onCloseThread = vi.fn();
+  it("renders workspace tabs in the title bar instead of a thread tab row", () => {
+    render(<WorkspaceShell {...createWorkspaceShellProps()} />);
 
-    render(
+    expect(screen.queryByTestId("thread-tabs")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Hide sidebar" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("tab", { name: "Show workspaces" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Show files" })).toBeInTheDocument();
+    expect(screen.getByTestId("chat-thread-panel")).toBeInTheDocument();
+    expect(screen.getByTestId("prompt-dock")).toBeInTheDocument();
+  });
+
+  it("updates the sidebar section when the title bar Files tab is clicked", async () => {
+    const user = userEvent.setup();
+
+    render(<WorkspaceShell {...createWorkspaceShellProps()} />);
+
+    await user.click(screen.getByRole("tab", { name: "Show files" }));
+
+    expect(screen.getByTestId("mock-left-sidebar")).toHaveAttribute(
+      "data-active-tab",
+      "files",
+    );
+  });
+
+  it("keeps the sidebar mounted at width 0 and restores the last width", async () => {
+    const user = userEvent.setup();
+    const onLeftSidebarResize = vi.fn();
+    const view = render(
       <WorkspaceShell
         {...createWorkspaceShellProps({
-          onCreateThread,
-          onSelectThread,
-          onCloseThread,
+          leftSidebarWidth: 240,
+          onLeftSidebarResize,
         })}
       />,
     );
 
-    expect(screen.getByText("Signal")).toBeInTheDocument();
-    expect(screen.getByText("Echo")).toBeInTheDocument();
+    view.rerender(
+      <WorkspaceShell
+        {...createWorkspaceShellProps({
+          leftSidebarWidth: 0,
+          onLeftSidebarResize,
+        })}
+      />,
+    );
 
-    await user.click(screen.getByRole("button", { name: "Echo" }));
-    await user.click(screen.getByRole("button", { name: "Close Signal" }));
-    await user.click(screen.getByRole("button", { name: "Create thread" }));
+    expect(screen.getByTestId("mock-left-sidebar")).toHaveAttribute(
+      "data-sidebar-width",
+      "0",
+    );
 
-    expect(onSelectThread).toHaveBeenCalledWith("thread-2");
-    expect(onCloseThread).toHaveBeenCalledWith("thread-1");
-    expect(onCreateThread).toHaveBeenCalledWith("worktree-1");
-    expect(screen.getByTestId("chat-thread-panel")).toBeInTheDocument();
-    expect(screen.getByTestId("prompt-dock")).toBeInTheDocument();
+    await user.click(screen.getByRole("tab", { name: "Show files" }));
+
+    expect(onLeftSidebarResize).toHaveBeenCalledWith(240);
   });
 
   it("forwards workspace switching into left rail", () => {
@@ -303,10 +353,12 @@ describe("WorkspaceShell", () => {
     expect(screen.getByTestId("workspace-chat-panel")).toContainElement(
       screen.getByTestId("workspace-file-content"),
     );
-    expect(screen.getByText("workspace-shell.tsx")).toBeInTheDocument();
+    expect(
+      screen.getByText("/tmp/alpha-workspace/workspace-shell.tsx"),
+    ).toBeInTheDocument();
   });
 
-  it("renders files and threads inside one shared primary tab bar", () => {
+  it("keeps file windows in the center pane without rendering the removed thread tab row", () => {
     render(
       <WorkspaceShell
         {...createWorkspaceShellProps({
@@ -333,86 +385,9 @@ describe("WorkspaceShell", () => {
       />,
     );
 
-    expect(screen.getAllByTestId("thread-tabs")).toHaveLength(1);
-    expect(screen.getByTestId("thread-tabs")).toContainElement(
-      screen.getByText("Signal"),
-    );
-    expect(screen.getByTestId("thread-tabs")).toContainElement(
-      screen.getByText("workspace-shell.tsx"),
-    );
-  });
-
-  it("lets users switch back to chat threads from the shared primary tab bar", async () => {
-    const user = userEvent.setup();
-    const onSelectThread = vi.fn();
-
-    render(
-      <WorkspaceShell
-        {...createWorkspaceShellProps({
-          onSelectThread,
-          contextWindows: [
-            {
-              id: "file-window-1",
-              kind: "file",
-              title: "workspace-shell.tsx",
-              x: 0,
-              y: 0,
-              width: 300,
-              height: 400,
-              zIndex: 1,
-              isFocused: true,
-              state: "normal",
-              filePath: "/tmp/alpha-workspace/workspace-shell.tsx",
-              isDirty: false,
-              encoding: "utf-8",
-              isReadOnly: false,
-            },
-          ],
-          selectedContextSurface: "file-window-1",
-        })}
-      />,
-    );
-
-    await user.click(screen.getByRole("button", { name: "Signal" }));
-
-    expect(onSelectThread).toHaveBeenCalledWith("thread-1");
-  });
-
-  it("lets users close file tabs from the shared primary tab bar", async () => {
-    const user = userEvent.setup();
-    const onCloseFileWindow = vi.fn();
-
-    render(
-      <WorkspaceShell
-        {...createWorkspaceShellProps({
-          onCloseFileWindow,
-          contextWindows: [
-            {
-              id: "file-window-1",
-              kind: "file",
-              title: "workspace-shell.tsx",
-              x: 0,
-              y: 0,
-              width: 300,
-              height: 400,
-              zIndex: 1,
-              isFocused: true,
-              state: "normal",
-              filePath: "/tmp/alpha-workspace/workspace-shell.tsx",
-              isDirty: true,
-              encoding: "utf-8",
-              isReadOnly: false,
-            },
-          ],
-          selectedContextSurface: "file-window-1",
-        })}
-      />,
-    );
-
-    await user.click(
-      screen.getByRole("button", { name: "Close workspace-shell.tsx" }),
-    );
-
-    expect(onCloseFileWindow).toHaveBeenCalledWith("file-window-1");
+    expect(screen.queryByTestId("thread-tabs")).not.toBeInTheDocument();
+    expect(
+      screen.getByText("/tmp/alpha-workspace/workspace-shell.tsx"),
+    ).toBeInTheDocument();
   });
 });

@@ -1,6 +1,7 @@
 import * as React from "react";
 import {
   CaretDown,
+  FolderPlus,
   GitCommit,
   TerminalWindow,
   Upload,
@@ -31,6 +32,7 @@ export interface TitleBarProps {
   hasActiveThread?: boolean;
   onToggleTerminal?: () => void;
   isTerminalVisible?: boolean;
+  onAddWorkspace?: () => void;
 }
 
 interface GitSplitButtonProps {
@@ -160,14 +162,20 @@ export function TitleBar({
   hasActiveThread = false,
   onToggleTerminal,
   isTerminalVisible = false,
+  onAddWorkspace,
 }: TitleBarProps) {
+  const trafficLightInset = getTrafficLightInset(platform);
+
   return (
     <div
       data-drag-region="true"
       className="flex h-11 shrink-0 items-center justify-between gap-4 border-b border-white/[0.03] px-4 select-none"
-      style={{ paddingLeft: getTrafficLightInset(platform) }}
+      style={{ paddingLeft: trafficLightInset }}
     >
-      <div data-slot="titlebar-project" className="flex min-w-0 items-center">
+      <div
+        data-slot="titlebar-project"
+        className="flex min-w-0 items-center gap-3"
+      >
         <div data-testid="titlebar-project-name" className="sr-only" />
       </div>
 

@@ -247,7 +247,6 @@ export function useAppShellController(): AppShellController {
   );
   const [selectedContextSurface, setSelectedContextSurface] =
     React.useState<WorkspaceShellProps["selectedContextSurface"]>(null);
-  const [leftSidebarWidth, setLeftSidebarWidth] = React.useState(260);
   const [isTerminalVisible, setIsTerminalVisible] = React.useState(false);
   const [promptMode, setPromptMode] = React.useState<PromptMode>(() =>
     detectPromptMode(draft),
@@ -1129,6 +1128,7 @@ export function useAppShellController(): AppShellController {
     () => appPreferences.favoriteModels ?? [],
     [appPreferences.favoriteModels],
   );
+  const leftSidebarWidth = appPreferences.leftSidebarWidth ?? 260;
 
   const handleToggleFavorite = React.useCallback(
     (modelValue: string) => {
@@ -1297,9 +1297,12 @@ export function useAppShellController(): AppShellController {
     [contextWindows, selectedContextSurface, windowStore],
   );
 
-  const handleLeftSidebarResize = React.useCallback((width: number) => {
-    setLeftSidebarWidth(width);
-  }, []);
+  const handleLeftSidebarResize = React.useCallback(
+    (width: number) => {
+      void updateAppPreferences({ leftSidebarWidth: width });
+    },
+    [updateAppPreferences],
+  );
 
   const handleFileTreeFileSelect = React.useCallback(
     (filePath: string) => {

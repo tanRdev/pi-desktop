@@ -8,13 +8,8 @@ import type {
 } from "@pi-desktop/shared";
 import * as React from "react";
 
-import { SidebarSimple, TerminalWindow, X } from "@/components/ui/icons";
+import { X } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { Terminal } from "../ui/terminal";
 import { DEFAULT_UNTITLED_THREAD_TITLE } from "../../../../thread-title-defaults";
 import {
@@ -29,7 +24,6 @@ import { FileTreePanel } from "./file-tree-panel";
 import { GitPanel } from "./git-panel";
 import { LeftSidebar, SIDEBAR_WIDTH } from "./left-sidebar";
 import { PromptDock } from "./prompt-dock";
-import { ThreadTabs } from "./thread-tabs";
 import { TitleBar } from "./title-bar";
 
 export interface WorkspaceShellProps {
@@ -203,8 +197,12 @@ function WorkspaceShellImpl({
   onFileTreeMoveFile,
   onAgentGitAction,
 }: WorkspaceShellProps) {
-  const [isLeftSidebarVisible, setIsLeftSidebarVisible] = React.useState(true);
-  const collapseTimestampRef = React.useRef(0);
+  const [activeSidebarSection, setActiveSidebarSection] = React.useState<
+    "workspaces" | "files"
+  >("workspaces");
+  const lastExpandedSidebarWidthRef = React.useRef(
+    leftSidebarWidth > 0 ? leftSidebarWidth : SIDEBAR_WIDTH,
+  );
 
   React.useEffect(() => {
     let disposed = false;
@@ -236,7 +234,13 @@ function WorkspaceShellImpl({
     ) ?? null;
 
   const hasActiveThread = activeThreadId !== null;
-  const leftSidebarTargetWidth = Math.max(leftSidebarWidth, SIDEBAR_WIDTH);
+
+  React.useEffect(() => {
+    if (leftSidebarWidth > 0) {
+      lastExpandedSidebarWidthRef.current = leftSidebarWidth;
+    }
+  }, [leftSidebarWidth]);
+
   const mainPaneState = React.useMemo(
     () =>
       getMainPaneState({
@@ -299,94 +303,42 @@ function WorkspaceShellImpl({
     />
   );
 
+  const selectSidebarSection = React.useCallback(
+    (section: "workspaces" | "files") => {
+      setActiveSidebarSection(section);
+
+      if (leftSidebarWidth <= 0) {
+        onLeftSidebarResize(lastExpandedSidebarWidthRef.current);
+      }
+    },
+    [leftSidebarWidth, onLeftSidebarResize],
+  );
+
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden select-none">
       <div className="relative flex min-h-0 flex-1 select-none">
-        {!isLeftSidebarVisible && (
-          <div
-            aria-hidden="true"
-            data-no-drag="true"
-            onMouseEnter={() => {
-              if (Date.now() - collapseTimestampRef.current > 400) {
-                setIsLeftSidebarVisible(true);
-              }
-            }}
-            className="absolute inset-y-0 left-0 z-30 w-2"
-          />
-        )}
-
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              type="button"
-              data-no-drag="true"
-              onClick={() => {
-                if (isLeftSidebarVisible) {
-                  collapseTimestampRef.current = Date.now();
-                  setIsLeftSidebarVisible(false);
-                } else {
-                  setIsLeftSidebarVisible(true);
-                }
-              }}
-              className={cn(
-                "absolute z-30 flex size-8 items-center justify-center text-white/30 transition-all duration-150 hover:bg-white/[0.04] hover:text-white/60",
-                isLeftSidebarVisible ? "left-1" : "left-2",
-              )}
-              style={{ top: "calc(var(--titlebar-height) + 44px)" }}
-            >
-              <SidebarSimple className="size-5" />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent side="right">
-            {isLeftSidebarVisible ? "Hide sidebar" : "Show sidebar"}
-          </TooltipContent>
-        </Tooltip>
-
-        <div
-          data-left-sidebar-wrapper="true"
-          className={cn(
-            "min-h-0 shrink-0 overflow-hidden",
-            "will-change-[width,transform]",
-            "transition-[width,opacity] duration-[var(--duration-fast)] ease-[var(--ease-standard)]",
-            isLeftSidebarVisible
-              ? "opacity-100"
-              : "pointer-events-none opacity-0",
-          )}
-          style={{ width: isLeftSidebarVisible ? leftSidebarTargetWidth : 0 }}
-        >
-          <div
-            data-left-sidebar-inner="true"
-            className={cn(
-              "h-full will-change-transform",
-              isLeftSidebarVisible
-                ? "translate-x-0 opacity-100 transition-[transform,opacity] duration-[var(--duration-enter)] ease-[var(--ease-emphasized-decel)]"
-                : "-translate-x-2 opacity-0 transition-[transform,opacity] duration-[var(--duration-exit)] ease-[var(--ease-emphasized-accel)]",
-            )}
-            style={{ width: leftSidebarTargetWidth }}
-          >
-            <LeftSidebar
-              repositories={repositories}
-              activeRepositoryId={activeRepositoryId}
-              activeWorktreeId={activeWorktreeId}
-              activeThreadId={activeThreadId}
-              isPromptExecuting={isPromptExecuting}
-              width={leftSidebarTargetWidth}
-              onResize={onLeftSidebarResize}
-              onSelectRepository={onSelectRepository}
-              onRemoveRepository={onRemoveRepository}
-              onCopyRepositoryPath={onCopyRepositoryPath}
-              onOpenInFinder={onOpenInFinder}
-              onCreateSession={onCreateSession}
-              onSelectWorktree={onSelectWorktree}
-              onSelectThread={onSelectThread}
-              onDeleteWorktree={onDeleteWorktree}
-              onDeleteThread={onDeleteThread}
-              onAddRepository={onAddRepository}
-              gitPanel={gitPanel}
-              filesPanel={filesPanel}
-            />
-          </div>
-        </div>
+        <LeftSidebar
+          repositories={repositories}
+          activeRepositoryId={activeRepositoryId}
+          activeWorktreeId={activeWorktreeId}
+          activeThreadId={activeThreadId}
+          activeTabOverride={activeSidebarSection}
+          isPromptExecuting={isPromptExecuting}
+          width={leftSidebarWidth}
+          onResize={onLeftSidebarResize}
+          onSelectRepository={onSelectRepository}
+          onRemoveRepository={onRemoveRepository}
+          onCopyRepositoryPath={onCopyRepositoryPath}
+          onOpenInFinder={onOpenInFinder}
+          onCreateSession={onCreateSession}
+          onSelectWorktree={onSelectWorktree}
+          onSelectThread={onSelectThread}
+          onDeleteWorktree={onDeleteWorktree}
+          onDeleteThread={onDeleteThread}
+          onAddRepository={onAddRepository}
+          gitPanel={gitPanel}
+          filesPanel={filesPanel}
+        />
 
         <main
           data-testid="chat-first-layout"
@@ -401,6 +353,7 @@ function WorkspaceShellImpl({
             hasActiveThread={hasActiveThread}
             onToggleTerminal={onToggleTerminal}
             isTerminalVisible={isTerminalVisible}
+            onAddWorkspace={onAddRepository}
           />
           <div className="flex min-h-0 flex-1 overflow-hidden select-none">
             <div
@@ -409,32 +362,6 @@ function WorkspaceShellImpl({
                 "relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden select-none",
               )}
             >
-              {activeWorktree ? (
-                <ThreadTabs
-                  threads={activeWorktree.threads}
-                  fileTabs={openFileWindows}
-                  activeThreadId={activeThreadId}
-                  activeFileId={mainPaneState.selectedFileWindowId}
-                  onSelectThread={(threadId) => {
-                    void onSelectThread(threadId);
-                  }}
-                  onCloseThread={(threadId) => {
-                    void onCloseThread(threadId);
-                  }}
-                  onSelectFile={(windowId) => {
-                    _onSelectContextSurface(windowId);
-                  }}
-                  onCloseFile={(windowId) => {
-                    onCloseFileWindow(windowId);
-                  }}
-                  onCreateThread={() => {
-                    if (!activeWorktreeId) {
-                      return;
-                    }
-                    void onCreateThread(activeWorktreeId);
-                  }}
-                />
-              ) : null}
               <div className="relative min-h-0 flex-1 overflow-hidden">
                 {selectedFileWindow ? (
                   <CenterFileViewer
