@@ -730,7 +730,7 @@ export function LeftSidebarImpl({
 
           {/* Bottom: Add workspace */}
           {activeTab === "workspaces" && (
-            <div className="shrink-0">
+            <div className="shrink-0 border-t border-white/[0.06]">
               <button
                 type="button"
                 onClick={onAddRepository}
