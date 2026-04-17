@@ -56,6 +56,18 @@ export interface EnhancedMessageProps {
   animationIndex?: number;
   /** Message timestamp (unix ms). When provided, rendered beneath content. */
   timestamp?: number;
+  /** User message timestamp for duration calculation */
+  userTimestamp?: number;
+}
+
+function formatDuration(ms: number): string {
+  const seconds = Math.max(0, ms / 1000);
+  if (seconds < 60) {
+    return `${seconds.toFixed(1)}s`;
+  }
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = Math.floor(seconds % 60);
+  return `${minutes}m ${remainingSeconds}s`;
 }
 
 function formatTimestamp(timestamp: number): string {
@@ -83,6 +95,7 @@ export function EnhancedMessage({
   className,
   animationIndex = 0,
   timestamp,
+  userTimestamp,
 }: EnhancedMessageProps) {
   const isUser = messageRole === "user";
   const isAssistant = messageRole === "assistant";
@@ -193,16 +206,19 @@ export function EnhancedMessage({
               )}
             </div>
 
-            {/* Feedback bar */}
+            {/* Feedback bar & Metadata */}
             {status === "complete" && (
-              <div className="flex items-center gap-2 pt-0.5 opacity-0 transition-opacity duration-[var(--duration-fast)] ease-[var(--ease-out)] group-hover:opacity-100">
-                <FeedbackBar onCopy={onCopy} />
-              </div>
-            )}
-
-            {timestamp !== undefined && status !== "streaming" && (
-              <div className="font-mono text-[10px] text-white/30">
-                {formatTimestamp(timestamp)}
+              <div className="flex items-center gap-2 pt-0.5">
+                <FeedbackBar
+                  onCopy={onCopy}
+                  duration={
+                    timestamp && userTimestamp
+                      ? `${formatDuration(timestamp - userTimestamp)} · ${formatTimestamp(timestamp)}`
+                      : timestamp
+                        ? formatTimestamp(timestamp)
+                        : undefined
+                  }
+                />
               </div>
             )}
           </div>

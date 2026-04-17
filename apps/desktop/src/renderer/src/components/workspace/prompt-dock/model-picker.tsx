@@ -3,6 +3,7 @@ import { Skeleton } from "boneyard-js/react";
 import * as React from "react";
 import { CaretDown, Plus, Star } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
+import { Button } from "../../ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover";
 import { getProviderDisplayName, ProviderIcon } from "../../ui/provider-icon";
 
@@ -111,30 +112,29 @@ export function ModelPicker({
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="sm"
           data-testid="model-selector-trigger"
           disabled={
             disabled || isSwitchingModel || providerSnapshots.length === 0
           }
           className={cn(
-            "flex items-center gap-1 px-1 py-0.5 text-[11px] text-white/60",
-            "transition-all duration-[var(--duration-fast)]",
-            "hover:text-white/90 hover:bg-white/[0.04]",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]",
-            "disabled:opacity-50",
+            "h-5 gap-1 px-1.5 py-0 text-[10.5px] font-normal text-white/40",
+            "hover:text-white/80 hover:bg-white/[0.04]",
+            "active:scale-100",
+            open && "text-white/80 bg-white/[0.04]",
           )}
         >
-          <span className="max-w-[140px] truncate text-[11px]">
-            {currentModelDisplay}
-          </span>
+          <span className="max-w-[140px] truncate">{currentModelDisplay}</span>
           <CaretDown
             className={cn(
-              "size-3 transition-transform duration-[var(--duration-fast)] ease-out",
-              open && "rotate-180",
+              "size-2.5 transition-transform duration-[var(--duration-fast)] ease-out text-white/25",
+              open && "rotate-180 text-white/50",
             )}
           />
-        </button>
+        </Button>
       </PopoverTrigger>
       <PopoverContent
         align="start"
