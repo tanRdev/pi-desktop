@@ -1,9 +1,9 @@
 import type { ProviderSnapshot } from "@pi-desktop/shared";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type * as React from "react";
 import type { ComponentProps } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PromptDock } from "./prompt-dock";
 
 type PromptInputProps = React.PropsWithChildren<{
@@ -98,6 +98,14 @@ function renderPromptDock(
 
 afterEach(() => {
   cleanup();
+});
+
+beforeEach(() => {
+  try {
+    window.localStorage.clear();
+  } catch {
+    // noop
+  }
 });
 
 describe("PromptDock", () => {
@@ -225,5 +233,132 @@ describe("PromptDock", () => {
     await user.click(screen.getByTestId("model-selector-trigger"));
 
     expect(screen.queryByText("Favorites")).not.toBeInTheDocument();
+  });
+
+  it("renders the character counter reflecting the current draft", () => {
+    renderPromptDock({ draft: "hello" });
+
+    const counter = screen.getByTestId("prompt-char-counter");
+    expect(counter).toHaveTextContent("5 ch");
+  });
+
+  it("merges built-in slash commands into the autocomplete when draft begins with /", () => {
+    renderPromptDock({ draft: "/" });
+
+    expect(screen.getByRole("listbox")).toBeInTheDocument();
+    // Built-ins visible
+    expect(screen.getByRole("option", { name: /help/i })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: /clear/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("option", { name: /settings/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("dispatches pi:command and clears the draft when a built-in is selected", async () => {
+    const user = userEvent.setup();
+    const onDraftChange = vi.fn();
+    const onAutocompleteSelect = vi.fn();
+    const piCommandEvents: string[] = [];
+    const listener = (event: Event) => {
+      const custom = event instanceof CustomEvent ? event : null;
+      const detail = custom?.detail;
+      if (detail && typeof detail === "object" && "commandId" in detail) {
+        const id = (detail as { commandId: unknown }).commandId;
+        if (typeof id === "string") piCommandEvents.push(id);
+      }
+    };
+    window.addEventListener("pi:command", listener);
+
+    renderPromptDock({
+      draft: "/help",
+      onDraftChange,
+      onAutocompleteSelect,
+    });
+
+    await user.click(screen.getByRole("option", { name: /help/i }));
+
+    expect(piCommandEvents).toContain("help");
+    expect(onDraftChange).toHaveBeenCalledWith("");
+    // Built-ins bypass the parent suggestion handler
+    expect(onAutocompleteSelect).not.toHaveBeenCalled();
+
+    window.removeEventListener("pi:command", listener);
+  });
+
+  it("submits on Cmd+Enter", () => {
+    const onSend = vi.fn();
+
+    renderPromptDock({ draft: "ready", onSend });
+
+    fireEvent.keyDown(screen.getByTestId("chat-input"), {
+      key: "Enter",
+      metaKey: true,
+    });
+
+    expect(onSend).toHaveBeenCalledTimes(1);
+  });
+
+  it("persists the draft per thread in localStorage", () => {
+    renderPromptDock({
+      draft: "work in progress",
+      activeThreadId: "thread-42",
+    });
+
+    expect(window.localStorage.getItem("pi:prompt-draft:thread-42")).toBe(
+      "work in progress",
+    );
+  });
+
+  it("cycles prompt history with ArrowUp / ArrowDown", () => {
+    window.localStorage.setItem(
+      "pi:prompt-history:thread-1",
+      JSON.stringify(["first", "second"]),
+    );
+    const onDraftChange = vi.fn();
+
+    renderPromptDock({ draft: "", onDraftChange });
+
+    const input = screen.getByTestId("chat-input");
+
+    fireEvent.keyDown(input, { key: "ArrowUp" });
+    expect(onDraftChange).toHaveBeenLastCalledWith("second");
+
+    fireEvent.keyDown(input, { key: "ArrowUp" });
+    expect(onDraftChange).toHaveBeenLastCalledWith("first");
+
+    fireEvent.keyDown(input, { key: "ArrowDown" });
+    expect(onDraftChange).toHaveBeenLastCalledWith("second");
+  });
+
+  it("dispatches pi:paste-image when an image is pasted", () => {
+    const events: File[] = [];
+    const listener = (event: Event) => {
+      const custom = event instanceof CustomEvent ? event : null;
+      const detail = custom?.detail;
+      if (detail instanceof File) events.push(detail);
+    };
+    window.addEventListener("pi:paste-image", listener);
+
+    renderPromptDock({ draft: "" });
+
+    const file = new File(["binary"], "shot.png", { type: "image/png" });
+    const input = screen.getByTestId("chat-input");
+
+    fireEvent.paste(input, {
+      clipboardData: {
+        items: [
+          {
+            kind: "file",
+            type: "image/png",
+            getAsFile: () => file,
+          },
+        ],
+      },
+    });
+
+    expect(events).toHaveLength(1);
+    expect(events[0]?.name).toBe("shot.png");
+
+    window.removeEventListener("pi:paste-image", listener);
   });
 });

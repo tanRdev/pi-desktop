@@ -66,4 +66,48 @@ describe("PromptAutocomplete", () => {
       screen.getByRole("button", { name: /show less/i }),
     ).toBeInTheDocument();
   });
+
+  it("renders nothing when visible is false", () => {
+    const { container } = render(
+      <PromptAutocomplete
+        visible={false}
+        suggestions={[
+          {
+            kind: "command",
+            name: "ship",
+            slash: "/ship",
+          },
+        ]}
+      />,
+    );
+
+    expect(container.firstChild).toBeNull();
+  });
+
+  it("shows the empty-state label when visible with no suggestions", () => {
+    render(<PromptAutocomplete visible suggestions={[]} />);
+
+    expect(screen.getByText(/no suggestions/i)).toBeInTheDocument();
+  });
+
+  it("marks the selected suggestion with aria-selected", () => {
+    render(
+      <PromptAutocomplete
+        visible
+        selectedIndex={0}
+        suggestions={[
+          {
+            kind: "command",
+            name: "ship",
+            slash: "/ship",
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByRole("option", { name: /ship/i })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+  });
 });

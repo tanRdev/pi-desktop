@@ -16,13 +16,21 @@ import { Button } from "../ui/button";
 import { Loader } from "../ui/loader";
 import PromptAutocomplete from "../ui/prompt-autocomplete";
 import { Attachments, useAttachments } from "./prompt-dock/attachments";
+import { CharacterCounter } from "./prompt-dock/character-counter";
 import {
   ContextGauge,
   getContextPercentage,
 } from "./prompt-dock/context-gauge";
 import { ContextUsageMeter } from "./prompt-dock/context-usage-meter";
 import { getCurrentModelName, ModelPicker } from "./prompt-dock/model-picker";
+import { usePersistDraft } from "./prompt-dock/prompt-draft";
+import { usePromptHistory } from "./prompt-dock/prompt-history";
 import { SendButton } from "./prompt-dock/send-button";
+import {
+  builtInSlashSuggestions,
+  dispatchPiCommand,
+  findBuiltInBySlash,
+} from "./prompt-dock/slash-commands";
 
 export type PromptMode = "build" | "plan";
 
@@ -97,6 +105,47 @@ export function PromptDock({
   const { uploadedFiles, imageFiles, handlePickFiles, handleRemoveFile } =
     useAttachments(draft, onDraftChange);
 
+  const history = usePromptHistory(activeThreadId);
+  usePersistDraft(activeThreadId, draft);
+
+  // Merge built-in slash commands into suggestions when the user is typing a
+  // slash query. External suggestions (from IPC) take priority; built-ins are
+  // appended and de-duped by slash text.
+  const mergedSuggestions = React.useMemo<
+    (SlashSuggestion | MentionSuggestion)[]
+  >(() => {
+    const trimmed = draft.trimStart();
+    if (!trimmed.startsWith("/")) return autocompleteSuggestions;
+
+    const query = trimmed.slice(1).split(/\s/)[0] ?? "";
+    const builtins = builtInSlashSuggestions(query);
+    if (builtins.length === 0) return autocompleteSuggestions;
+
+    const seen = new Set<string>();
+    for (const s of autocompleteSuggestions) {
+      if (!("id" in s)) seen.add(s.slash);
+    }
+    const extras = builtins.filter((b) => !seen.has(b.slash));
+    return [...autocompleteSuggestions, ...extras];
+  }, [draft, autocompleteSuggestions]);
+
+  const autocompleteVisible = mergedSuggestions.length > 0;
+
+  const handleAutocompleteSelect = React.useCallback(
+    (suggestion: SlashSuggestion | MentionSuggestion) => {
+      if (!("id" in suggestion)) {
+        const builtin = findBuiltInBySlash(suggestion.slash);
+        if (builtin) {
+          dispatchPiCommand(builtin);
+          onDraftChange("");
+          return;
+        }
+      }
+      onAutocompleteSelect(suggestion);
+    },
+    [onAutocompleteSelect, onDraftChange],
+  );
+
   // Listen for suggestion chip clicks from the empty chat state.
   React.useEffect(() => {
     function handleSuggestion(event: Event) {
@@ -123,8 +172,97 @@ export function PromptDock({
       : null);
 
   const handleSubmit = React.useCallback(() => {
+    if (!isPromptExecuting && draft.trim().length > 0) {
+      history.push(draft);
+    }
     void (isPromptExecuting ? onCancelPrompt() : onSend());
-  }, [isPromptExecuting, onCancelPrompt, onSend]);
+  }, [isPromptExecuting, onCancelPrompt, onSend, history, draft]);
+
+  const handlePromptKeyDown = React.useCallback(
+    (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      // Cmd/Ctrl+Enter submit (in addition to plain Enter handled upstream).
+      if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+        event.preventDefault();
+        handleSubmit();
+        onPromptKeyDown(event);
+        return;
+      }
+
+      // Arrow history cycling: only when autocomplete is hidden, nothing
+      // modifier-y is held, and the user has not selected text.
+      if (
+        !autocompleteVisible &&
+        !event.metaKey &&
+        !event.ctrlKey &&
+        !event.altKey &&
+        !event.shiftKey &&
+        (event.key === "ArrowUp" || event.key === "ArrowDown")
+      ) {
+        const target = event.currentTarget;
+        if (event.key === "ArrowUp") {
+          const atStart =
+            target.selectionStart === 0 && target.selectionEnd === 0;
+          if (atStart) {
+            const prev = history.previous(draft);
+            if (prev !== null) {
+              event.preventDefault();
+              onDraftChange(prev);
+              onPromptKeyDown(event);
+              return;
+            }
+          }
+        } else {
+          const atEnd =
+            target.selectionStart === target.value.length &&
+            target.selectionEnd === target.value.length;
+          if (atEnd) {
+            const nxt = history.next();
+            if (nxt !== null) {
+              event.preventDefault();
+              onDraftChange(nxt);
+              onPromptKeyDown(event);
+              return;
+            }
+          }
+        }
+      }
+
+      // Any other typing resets the history cursor.
+      if (event.key.length === 1 || event.key === "Backspace") {
+        history.reset();
+      }
+
+      onPromptKeyDown(event);
+    },
+    [
+      autocompleteVisible,
+      draft,
+      handleSubmit,
+      history,
+      onDraftChange,
+      onPromptKeyDown,
+    ],
+  );
+
+  const handlePaste = React.useCallback(
+    (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
+      const items = event.clipboardData?.items;
+      if (!items) return;
+      for (const item of items) {
+        if (item.kind === "file" && item.type.startsWith("image/")) {
+          const file = item.getAsFile();
+          if (file) {
+            event.preventDefault();
+            window.dispatchEvent(
+              new CustomEvent("pi:paste-image", { detail: file }),
+            );
+            return;
+          }
+        }
+      }
+    },
+    [],
+  );
 
   return (
     <div
@@ -144,10 +282,10 @@ export function PromptDock({
         )}
       >
         <PromptAutocomplete
-          visible={autocompleteSuggestions.length > 0}
-          suggestions={autocompleteSuggestions}
+          visible={autocompleteVisible}
+          suggestions={mergedSuggestions}
           selectedIndex={autocompleteSelectedIndex}
-          onSelect={onAutocompleteSelect}
+          onSelect={handleAutocompleteSelect}
           onHover={onAutocompleteHover}
           className="absolute bottom-full left-0 right-0 z-20 mb-2"
         />
@@ -174,7 +312,8 @@ export function PromptDock({
                 : "Select a thread to start typing…"
             }
             disabled={!hasActiveThread}
-            onKeyDown={onPromptKeyDown}
+            onKeyDown={handlePromptKeyDown}
+            onPaste={handlePaste}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             className={cn(
@@ -218,6 +357,8 @@ export function PromptDock({
 
             <div className="flex items-center gap-[var(--space-3)]">
               {isSwitchingModel ? <Loader label="Switching" /> : null}
+
+              <CharacterCounter value={draft} />
 
               {currentContextWindow != null &&
               currentContextPercentage !== null ? (
