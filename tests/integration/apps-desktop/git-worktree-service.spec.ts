@@ -235,6 +235,26 @@ describe("GitWorktreeService", () => {
     );
   });
 
+  it("bypasses cached repository status when force refresh is requested", () => {
+    const { repoRoot } = initRepository("native-force-refresh");
+    const service = new GitWorktreeService();
+
+    const initialStatus = service.getRepositoryStatus(repoRoot);
+    expect(initialStatus.unstagedChanges).toEqual([]);
+
+    fs.writeFileSync(path.join(repoRoot, "fresh.txt"), "fresh\n");
+
+    const cachedStatus = service.getRepositoryStatus(repoRoot);
+    expect(cachedStatus.unstagedChanges).toEqual([]);
+
+    const refreshedStatus = service.getRepositoryStatus(repoRoot, {
+      force: true,
+    });
+    expect(refreshedStatus.unstagedChanges).toContainEqual(
+      expect.objectContaining({ path: "fresh.txt", status: "untracked" }),
+    );
+  });
+
   it("supports stage and commit mutations for the native git panel", () => {
     const { repoRoot } = initRepository("native-actions");
     fs.writeFileSync(path.join(repoRoot, "feature.txt"), "hello\n");

@@ -32,6 +32,7 @@ interface TerminalProps {
   ownerWindowId?: string;
   className?: string;
   onExit?: () => void;
+  onCommandComplete?: () => void;
   /**
    * When true (default), any text selected via mouse/keyboard is copied
    * to the system clipboard automatically, matching common terminal UX.
@@ -176,6 +177,7 @@ export const Terminal = React.forwardRef<TerminalHandle, TerminalProps>(
       ownerWindowId,
       className,
       onExit,
+      onCommandComplete,
       copyOnSelect = true,
       resizeDebounceMs = 100,
     },
@@ -249,6 +251,24 @@ export const Terminal = React.forwardRef<TerminalHandle, TerminalProps>(
       let unsubscribe: (() => void) | null = null;
       let createPromise: Promise<unknown> = Promise.resolve();
       let resizeTimeout: ReturnType<typeof setTimeout> | null = null;
+      let commandCompleteTimeout: ReturnType<typeof setTimeout> | null = null;
+      let awaitingCommandCompletion = false;
+
+      const scheduleCommandComplete = () => {
+        if (!awaitingCommandCompletion) {
+          return;
+        }
+
+        if (commandCompleteTimeout !== null) {
+          clearTimeout(commandCompleteTimeout);
+        }
+
+        commandCompleteTimeout = setTimeout(() => {
+          commandCompleteTimeout = null;
+          awaitingCommandCompletion = false;
+          onCommandComplete?.();
+        }, 300);
+      };
 
       const initPromise = loadXtermModule().then(({ XTerm, FitAddon }) => {
         if (cancelled || !containerRef.current) return;
@@ -307,6 +327,11 @@ export const Terminal = React.forwardRef<TerminalHandle, TerminalProps>(
           });
 
         terminal.onData((data: string) => {
+          if (data.includes("\r")) {
+            awaitingCommandCompletion = true;
+            scheduleCommandComplete();
+          }
+
           window.piDesktop.terminal.write(sessionId, data).catch(console.error);
         });
 
@@ -353,6 +378,7 @@ export const Terminal = React.forwardRef<TerminalHandle, TerminalProps>(
 
           if (event.type === "data" && event.data) {
             terminalRef.current?.write(event.data);
+            scheduleCommandComplete();
           } else if (event.type === "exit") {
             onExit?.();
           }
@@ -372,6 +398,10 @@ export const Terminal = React.forwardRef<TerminalHandle, TerminalProps>(
         // the backend PTY session.  Using the mount-specific `sessionId`
         // ensures this cleanup only destroys *this* mount's session.
         void initPromise.then(() => {
+          if (commandCompleteTimeout !== null) {
+            clearTimeout(commandCompleteTimeout);
+            commandCompleteTimeout = null;
+          }
           if (resizeTimeout !== null) {
             clearTimeout(resizeTimeout);
             resizeTimeout = null;
@@ -390,6 +420,7 @@ export const Terminal = React.forwardRef<TerminalHandle, TerminalProps>(
       backend,
       ownerWindowId,
       onExit,
+      onCommandComplete,
       copyOnSelect,
       resizeDebounceMs,
     ]);

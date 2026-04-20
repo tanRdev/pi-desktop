@@ -259,11 +259,15 @@ export function createPiDesktopApi({
       },
     },
     git: {
-      getRepositoryStatus(repositoryPath: string) {
+      getRepositoryStatus(
+        repositoryPath: string,
+        options?: { force?: boolean },
+      ) {
         return invoke<GitRepositoryStatus>(
           IPC_CHANNELS.git.getRepositoryStatus,
           {
             repositoryPath,
+            ...(options?.force ? { force: true } : {}),
           },
         );
       },

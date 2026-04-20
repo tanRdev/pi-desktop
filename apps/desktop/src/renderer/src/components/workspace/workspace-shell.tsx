@@ -79,6 +79,7 @@ export interface WorkspaceShellProps {
   onOpenGit: () => void;
   onToggleTerminal: () => void;
   isTerminalVisible: boolean;
+  onTerminalCommandComplete: () => void;
   onGitCommitMessageChange: (value: string) => void;
   onRefreshGit: () => void | Promise<void>;
   onCommitGit: () => void | Promise<void>;
@@ -174,6 +175,7 @@ function WorkspaceShellImpl({
   onOpenGit: _onOpenGit,
   onToggleTerminal,
   isTerminalVisible,
+  onTerminalCommandComplete,
   onGitCommitMessageChange,
   onRefreshGit,
   onCommitGit,
@@ -467,6 +469,7 @@ function WorkspaceShellImpl({
               <Terminal
                 id="sidebar-terminal"
                 cwd={workspacePath ?? undefined}
+                onCommandComplete={onTerminalCommandComplete}
               />
             </div>
           </aside>

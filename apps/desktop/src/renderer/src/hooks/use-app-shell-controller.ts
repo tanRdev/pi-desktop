@@ -529,16 +529,32 @@ export function useAppShellController(): AppShellController {
     windowStore,
   ]);
 
-  const refreshGitRepositoryStatus = React.useCallback(async () => {
-    if (!activeWorktreePath) {
-      setActiveGitRepositoryStatus(null);
-      return;
-    }
+  const loadGitRepositoryStatus = React.useCallback(
+    async (options: { force?: boolean; reloadShell?: boolean } = {}) => {
+      if (!activeWorktreePath) {
+        setActiveGitRepositoryStatus(null);
+        return null;
+      }
 
-    const status =
-      await window.piDesktop.git.getRepositoryStatus(activeWorktreePath);
-    setActiveGitRepositoryStatus(status);
-  }, [activeWorktreePath]);
+      const statusPromise = window.piDesktop.git.getRepositoryStatus(
+        activeWorktreePath,
+        options.force ? { force: true } : undefined,
+      );
+
+      const [status] = await Promise.all([
+        statusPromise,
+        options.reloadShell ? reload() : Promise.resolve(),
+      ]);
+
+      setActiveGitRepositoryStatus(status);
+      return status;
+    },
+    [activeWorktreePath, reload],
+  );
+
+  const refreshGitRepositoryStatus = React.useCallback(async () => {
+    await loadGitRepositoryStatus({ force: true, reloadShell: true });
+  }, [loadGitRepositoryStatus]);
 
   React.useEffect(() => {
     let disposed = false;
@@ -548,12 +564,13 @@ export function useAppShellController(): AppShellController {
       return;
     }
 
-    void window.piDesktop.git
-      .getRepositoryStatus(activeWorktreePath)
+    void loadGitRepositoryStatus()
       .then((status) => {
-        if (!disposed) {
-          setActiveGitRepositoryStatus(status);
+        if (!disposed || status === null) {
+          return;
         }
+
+        setActiveGitRepositoryStatus(status);
       })
       .catch(() => {
         if (!disposed) {
@@ -564,7 +581,11 @@ export function useAppShellController(): AppShellController {
     return () => {
       disposed = true;
     };
-  }, [activeWorktreePath]);
+  }, [activeWorktreePath, loadGitRepositoryStatus]);
+
+  const handleTerminalCommandComplete = React.useCallback(() => {
+    void loadGitRepositoryStatus({ force: true, reloadShell: true });
+  }, [loadGitRepositoryStatus]);
 
   const runGitMutation = React.useCallback(
     async (
@@ -1498,6 +1519,7 @@ export function useAppShellController(): AppShellController {
       onOpenGit: handleOpenGit,
       onToggleTerminal: handleToggleTerminal,
       isTerminalVisible,
+      onTerminalCommandComplete: handleTerminalCommandComplete,
       onGitCommitMessageChange: setGitCommitMessage,
       onRefreshGit: refreshGitRepositoryStatus,
       onCommitGit: commitGitChanges,
@@ -1579,6 +1601,7 @@ export function useAppShellController(): AppShellController {
       handleOpenGit,
       handleToggleTerminal,
       isTerminalVisible,
+      handleTerminalCommandComplete,
       refreshGitRepositoryStatus,
       commitGitChanges,
       commitAndPushGitChanges,

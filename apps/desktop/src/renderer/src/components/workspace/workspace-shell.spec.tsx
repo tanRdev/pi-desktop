@@ -172,6 +172,7 @@ function createWorkspaceShellProps(
     onOpenGit: vi.fn(),
     onToggleTerminal: vi.fn(),
     isTerminalVisible: false,
+    onTerminalCommandComplete: vi.fn(),
     onGitCommitMessageChange: vi.fn(),
     onRefreshGit: vi.fn(),
     onCommitGit: vi.fn(),

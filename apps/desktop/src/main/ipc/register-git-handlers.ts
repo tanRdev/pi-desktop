@@ -72,6 +72,14 @@ function requireStaged(payload: unknown): boolean {
   return typeof staged === "boolean" ? staged : false;
 }
 
+function requireForce(payload: unknown): boolean {
+  if (typeof payload !== "object" || payload === null) {
+    return false;
+  }
+  const force = Reflect.get(payload, "force");
+  return typeof force === "boolean" ? force : false;
+}
+
 export function registerGitHandlers({
   handle,
   gitService,
@@ -80,6 +88,7 @@ export function registerGitHandlers({
   handle(IPC_CHANNELS.git.getRepositoryStatus, async (_event, payload) =>
     gitService.getRepositoryStatus(
       requireAllowedRepositoryPath(payload, getAllowedRepositoryRoots),
+      { force: requireForce(payload) },
     ),
   );
 

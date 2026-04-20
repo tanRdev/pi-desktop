@@ -302,4 +302,67 @@ describe("Terminal", () => {
     handleRef.current?.focus();
     expect(lastMockTerminal.focus).toHaveBeenCalledTimes(1);
   });
+
+  it("signals command completion after submitted input receives terminal data", async () => {
+    const onCommandComplete = vi.fn();
+
+    render(
+      <Terminal
+        id="command-complete"
+        cwd="/tmp/workspace"
+        onCommandComplete={onCommandComplete}
+      />,
+    );
+
+    await vi.dynamicImportSettled();
+    await waitFor(() => expect(lastMockTerminal).not.toBeNull());
+    expect(terminalOnEvent).toHaveBeenCalledTimes(1);
+    if (!lastMockTerminal) return;
+
+    const sendInput = lastMockTerminal.onData.mock.calls[0]?.[0] as
+      | ((data: string) => void)
+      | undefined;
+    const emitTerminalEvent = terminalOnEvent.mock.calls[0]?.[0] as
+      | ((event: { type: string; id: string; data?: string }) => void)
+      | undefined;
+
+    expect(typeof sendInput).toBe("function");
+    expect(typeof emitTerminalEvent).toBe("function");
+    if (!sendInput || !emitTerminalEvent) return;
+
+    vi.useFakeTimers();
+
+    try {
+      act(() => {
+        sendInput("touch fresh.txt");
+        emitTerminalEvent({
+          type: "data",
+          id: "command-complete",
+          data: "$ ",
+        });
+      });
+      expect(onCommandComplete).not.toHaveBeenCalled();
+
+      act(() => {
+        sendInput("\r");
+        emitTerminalEvent({
+          type: "data",
+          id: "command-complete",
+          data: "\r\n$ ",
+        });
+      });
+
+      act(() => {
+        vi.advanceTimersByTime(299);
+      });
+      expect(onCommandComplete).not.toHaveBeenCalled();
+
+      act(() => {
+        vi.advanceTimersByTime(1);
+      });
+      expect(onCommandComplete).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

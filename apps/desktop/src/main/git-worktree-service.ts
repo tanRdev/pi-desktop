@@ -624,7 +624,14 @@ export class GitWorktreeService {
     this.clearCaches();
   }
 
-  getRepositoryStatus(repositoryPath: string): GitRepositoryStatus {
+  getRepositoryStatus(
+    repositoryPath: string,
+    options: { force?: boolean } = {},
+  ): GitRepositoryStatus {
+    if (options.force) {
+      this.clearCachesForPath(repositoryPath);
+    }
+
     const normalizedRepositoryPath = normalizePathId(repositoryPath);
     const cachedStatus = this.repositoryStatusCache.get(
       normalizedRepositoryPath,

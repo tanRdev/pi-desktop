@@ -89,7 +89,10 @@ export interface PiDesktopApi {
     moveFile(sourcePath: string, destinationPath: string): Promise<void>;
   };
   git: {
-    getRepositoryStatus(repositoryPath: string): Promise<GitRepositoryStatus>;
+    getRepositoryStatus(
+      repositoryPath: string,
+      options?: { force?: boolean },
+    ): Promise<GitRepositoryStatus>;
     isRepository(targetPath: string): Promise<boolean>;
     init(targetPath: string): Promise<void>;
     diffFile(
