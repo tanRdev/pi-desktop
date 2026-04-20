@@ -1132,9 +1132,6 @@ export function LeftSidebarImpl({
                 <span className="block truncate text-[12px] text-white/60">
                   {itemMenu.label}
                 </span>
-                <span className="text-[10px] text-white/30">
-                  {itemMenu.type === "thread" ? "Thread" : "Worktree"}
-                </span>
               </div>
 
               {itemMenu.confirming === "archive" ? (

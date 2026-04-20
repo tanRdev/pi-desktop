@@ -842,11 +842,21 @@ export function useAppShellController(): AppShellController {
         (entry) => entry.id === repositoryId,
       );
       if (!repository) {
+        toast.error("Repository not found");
         return;
       }
 
-      await navigator.clipboard.writeText(repository.rootPath);
-      toast.success("Path copied");
+      if (!navigator.clipboard?.writeText) {
+        toast.error("Clipboard unavailable");
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(repository.rootPath);
+        toast.success("Path copied");
+      } catch {
+        toast.error("Failed to copy path");
+      }
     },
     [repositories],
   );
