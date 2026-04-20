@@ -107,37 +107,129 @@ bun run build
 
 ## Architecture
 
+### System Overview
+
+Pi Desktop is built on Electron's multi-process architecture with a strict security boundary between the main process (Node.js) and the renderer process (Chromium). The codebase is organized as a monorepo with clear separation between application code and shared packages.
+
 ```
 pi-desktop/
-├── apps/desktop/         # Electron harness
-│   ├── src/
-│   │   ├── main/         # Main process (windows, IPC, native integrations)
-│   │   ├── preload/      # Secure bridge between main and renderer
-│   │   └── renderer/     # React 19 UI with Tailwind CSS and Radix UI
-│   └── electron-builder.yml
+├── apps/desktop/         # Electron application
+│   ├── src/main/         # Main process: windows, IPC, native integrations
+│   ├── src/preload/      # Preload bridge: secure API exposure
+│   └── src/renderer/     # Renderer: React 19 UI
 ├── packages/
-│   ├── shared/           # IPC contracts, shared types, and models
-│   ├── agent-host/       # Agent runtime implementations (mock, CLI, SDK)
-│   ├── shell-model/
-│   └── ui/               # Shared React components and styles
-├── scripts/              # Build and release automation
-├── tests/                # Playwright end-to-end tests
-└── electron-builder.yml  # Electron Builder configuration
+│   ├── shared/           # IPC contracts, types, models
+│   ├── agent-host/       # Agent runtime abstractions
+│   ├── shell-model/      # State management logic
+│   └── ui/               # Shared React components
+└── tests/                # E2E tests
 ```
 
-### How It Works
+### Process Architecture
 
-Pi Desktop uses a multi-process Electron architecture with strict separation between the main process and renderer:
+**Main Process** (`apps/desktop/src/main/`)
+The main process is the authority for all native operations. It manages:
+- Window lifecycle and native menus
+- File system operations through catalog classes
+- Git operations via `GitWorktreeService`
+- Terminal management via `node-pty`
+- Agent host sessions in isolated processes
+- IPC handler registration and routing
 
-1. **Main Process** (`apps/desktop/src/main/`) manages application windows, native menus, IPC handlers, and agent host sessions. It runs the agent runtime in a controlled environment.
+The main process is written in TypeScript with the `effect` library, which provides typed, composable async operations with explicit error handling.
 
-2. **Preload Bridge** (`apps/desktop/src/preload/`) exposes a minimal, typed API to the renderer via Electron's context bridge. No Node.js APIs leak to the renderer.
+**Preload Bridge** (`apps/desktop/src/preload/`)
+The preload script runs in an isolated context with access to both Node.js and the renderer's DOM. It exposes a minimal, typed API to the renderer through Electron's `contextBridge`. This prevents Node.js APIs from leaking into the renderer while enabling secure communication.
 
-3. **Renderer** (`apps/desktop/src/renderer/`) is a React 19 application with Tailwind CSS 4 and Radix UI primitives. It handles the chat interface, repository browser, worktree manager, terminal views, and package explorer.
+**Renderer Process** (`apps/desktop/src/renderer/`)
+The renderer is a React 19 application built with:
+- **Zustand** for state management
+- **Tailwind CSS** for styling
+- **Radix UI** for accessible primitives
 
-4. **Agent Host** (`packages/agent-host/`) provides three runtime modes: mock (for UI development), CLI (wraps the Pi agent binary), and SDK (direct Pi agent integration). The desktop app selects the mode based on configuration.
+The renderer has no direct access to Node.js APIs; all native operations go through the preload bridge via typed IPC channels.
 
-5. **Shared Contracts** (`packages/shared/`) define IPC message types, database models, and type-safe interfaces consumed by both the main process and renderer.
+### Data Layer
+
+**Catalog Pattern**
+Domain entities are managed through catalog classes that provide:
+- Atomic JSON file persistence via `PersistentJsonFile`
+- Immutable state updates (returns new references, never mutates)
+- Optimistic updates with rollback on failure
+- Versioned schemas for backward compatibility
+
+Key catalogs:
+- `RepositoryCatalog`: Manages repository metadata
+- `ThreadCatalog`: Manages chat threads and sessions
+- `WorkspaceSessionCatalog`: Manages editor/workspace state
+
+**State Flow**
+```
+User Action → Catalog.update() → PersistentJsonFile → Disk
+                    ↓
+              IPC Notification → Renderer Re-render
+```
+
+### Agent Runtime
+
+The agent layer is abstracted to support multiple runtime modes without changing the desktop's calling code.
+
+**Runtime Factory**
+`createAgentRuntime()` instantiates the appropriate implementation:
+- `MockAgentRuntime`: Returns canned responses for UI development
+- `PiCliRpcAgentRuntime`: Spawns the Pi CLI and communicates via RPC
+- `PiSdkAgentRuntime`: Direct SDK integration (in-process)
+
+All implementations conform to the same interface, allowing runtime selection via environment variables.
+
+**Session Lifecycle**
+1. User selects a thread
+2. `ContextSwitchController` initiates the switch
+3. Previous session is torn down (unsubscribed, transport closed)
+4. New agent process spawned (if needed)
+5. Socket connection established
+6. Event subscription begins
+7. UI notified of state change
+
+The controller uses versioned cancellation tokens to handle rapid context switches—if a user clicks three threads in quick succession, only the last one's setup completes.
+
+### IPC Design
+
+All communication between main and renderer uses typed channels defined in `@pi-desktop/shared`:
+
+```typescript
+// IPC_CHANNELS.agent.prompt
+type PromptRequest = { text: string }
+type PromptResponse = void
+
+// IPC_CHANNELS.shell.getSnapshot
+type SnapshotRequest = void
+type SnapshotResponse = ShellSnapshot
+```
+
+Handlers are registered via `registerIpcHandlers()` and organized by domain (terminal, git, state, etc.). Errors are sanitized before crossing the boundary to prevent leaking internal details.
+
+### Error Handling
+
+The main process uses the `effect` library for structured error handling:
+
+```typescript
+Effect.tryPromise({
+  try: () => gitService.createWorktree(options),
+  catch: (error) => GitError.from(error)
+}).pipe(
+  Effect.tap(() => notifySessionChanged()),
+  Effect.catchAll((error) => 
+    Effect.sync(() => showErrorDialog(error))
+  )
+)
+```
+
+Benefits:
+- Errors are typed and must be handled
+- Async operations compose without callback hell
+- Resource cleanup is guaranteed via structured concurrency
+- Stack traces are preserved for debugging
 
 > [!WARNING]
 > The app bundles node-pty with native bindings. After upgrading Electron or Node.js, run `bun install` in `apps/desktop` to rebuild native modules, or use the `postinstall` script.
@@ -227,3 +319,4 @@ Pi Desktop is licensed under the MIT License. See the [`LICENSE`](LICENSE) file 
 ## Getting Help
 
 - [Open an issue](https://github.com/tanRdev/pi-desktop/issues)
+</content>
