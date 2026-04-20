@@ -118,6 +118,25 @@ export function isPromptExecutionVisible({
   );
 }
 
+export function shouldRetryEmptyShellReload(input: {
+  repositoryCount: number;
+  selection: {
+    repositoryId: string | null;
+    worktreeId: string | null;
+    threadId: string | null;
+  };
+}): boolean {
+  if (input.repositoryCount > 0) {
+    return false;
+  }
+
+  return (
+    input.selection.repositoryId !== null ||
+    input.selection.worktreeId !== null ||
+    input.selection.threadId !== null
+  );
+}
+
 export interface AppShellController {
   workspaceShellProps: WorkspaceShellProps;
   oauthDialogState: {
@@ -439,14 +458,20 @@ export function useAppShellController(): AppShellController {
   ]);
 
   React.useEffect(() => {
-    if (shell.catalog.repositories.length > 0) {
+    const selection = shell.catalog.selection;
+    if (
+      !shouldRetryEmptyShellReload({
+        repositoryCount: shell.catalog.repositories.length,
+        selection,
+      })
+    ) {
       return;
     }
     const timer = window.setTimeout(() => {
       void reload();
     }, 250);
     return () => window.clearTimeout(timer);
-  }, [reload, shell.catalog.repositories.length]);
+  }, [reload, shell.catalog.repositories.length, shell.catalog.selection]);
 
   const canSend =
     draft.trim().length > 0 &&

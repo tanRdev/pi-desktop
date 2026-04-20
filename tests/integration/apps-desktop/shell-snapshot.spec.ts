@@ -223,7 +223,6 @@ describe("createShellSnapshot", () => {
                 {
                   id: "thread-1",
                   title: "Thread 1",
-                  isArchived: false,
                   lastActivityAt: null,
                   runtime: {
                     status: "ready",
@@ -311,7 +310,6 @@ describe("createShellSnapshot", () => {
                 {
                   id: "thread-b",
                   title: "Thread B",
-                  isArchived: false,
                   lastActivityAt: null,
                   runtime: {
                     status: "ready",
@@ -353,5 +351,37 @@ describe("createShellSnapshot", () => {
         isActive: true,
       },
     ]);
+  });
+
+  it("does not derive workspace root or git state from cwd when the catalog is empty", () => {
+    const nonRepoDir = createTempDir("pi-desktop-empty-catalog-");
+
+    const snapshot = createShellSnapshot({
+      appName: "Pi Desktop",
+      appVersion: "0.1.0",
+      chromeVersion: "141.0.0.0",
+      electronVersion: "41.0.1",
+      platform: "darwin",
+      env: { NODE_ENV: "test" },
+      isPackaged: false,
+      cwd: null,
+      agentDir: `${nonRepoDir}/.pi-desktop-agent`,
+      agentMode: "mock",
+      catalog: {
+        repositories: [],
+        selection: {
+          repositoryId: null,
+          worktreeId: null,
+          threadId: null,
+        },
+      },
+    });
+
+    expect(snapshot.workspace).toEqual({
+      rootPath: null,
+      agentDirectory: `${nonRepoDir}/.pi-desktop-agent`,
+      projects: [],
+    });
+    expect(snapshot.git).toBeNull();
   });
 });

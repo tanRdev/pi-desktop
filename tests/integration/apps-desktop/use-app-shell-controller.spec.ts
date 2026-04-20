@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   getMainPaneState,
   isPromptExecutionVisible,
+  shouldRetryEmptyShellReload,
   shouldPersistThreadConversation,
 } from "../../../apps/desktop/src/renderer/src/hooks/use-app-shell-controller";
 
@@ -21,7 +22,7 @@ describe("use-app-shell-controller helpers", () => {
           {
             id: "message-1",
             role: "user",
-            content: "hello",
+            text: "hello",
             status: "complete",
             timestamp: 1,
           },
@@ -129,5 +130,40 @@ describe("use-app-shell-controller helpers", () => {
       selectedFileWindowId: null,
       sideSurfaceKey: "terminal-window-1",
     });
+  });
+
+  it("only retries shell reloads for inconsistent empty catalogs", () => {
+    expect(
+      shouldRetryEmptyShellReload({
+        repositoryCount: 0,
+        selection: {
+          repositoryId: null,
+          worktreeId: null,
+          threadId: null,
+        },
+      }),
+    ).toBe(false);
+
+    expect(
+      shouldRetryEmptyShellReload({
+        repositoryCount: 0,
+        selection: {
+          repositoryId: "/tmp/repo",
+          worktreeId: null,
+          threadId: null,
+        },
+      }),
+    ).toBe(true);
+
+    expect(
+      shouldRetryEmptyShellReload({
+        repositoryCount: 1,
+        selection: {
+          repositoryId: null,
+          worktreeId: null,
+          threadId: null,
+        },
+      }),
+    ).toBe(false);
   });
 });

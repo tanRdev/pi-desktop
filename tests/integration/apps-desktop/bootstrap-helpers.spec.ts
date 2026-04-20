@@ -510,4 +510,50 @@ describe("bootstrap helpers (RED)", () => {
       "if (!thread && options.createIfMissing === false)",
     );
   });
+
+  test("resolveInitialWorkspaceTarget keeps a fresh catalog empty instead of seeding process.cwd", async () => {
+    const { resolveInitialWorkspaceTarget } = await import(
+      "../../../apps/desktop/src/main/bootstrap/initial-workspace"
+    );
+
+    expect(
+      resolveInitialWorkspaceTarget({
+        selection: {
+          repositoryId: null,
+          worktreeId: null,
+          threadId: null,
+        },
+        repositories: [],
+      }),
+    ).toEqual({
+      preferredWorkspacePath: null,
+      fallbackWorkspacePath: null,
+      shouldPreserveEmptySelection: false,
+    });
+
+    expect(
+      resolveInitialWorkspaceTarget({
+        selection: {
+          repositoryId: null,
+          worktreeId: null,
+          threadId: null,
+        },
+        repositories: [
+          {
+            id: "/tmp/repo-a",
+            rootPath: "/tmp/repo-a",
+            label: null,
+            order: 0,
+            lastSelectedWorktreeId: "/tmp/repo-a/worktrees/feature",
+            addedAt: 1,
+            updatedAt: 1,
+          },
+        ],
+      }),
+    ).toEqual({
+      preferredWorkspacePath: "/tmp/repo-a/worktrees/feature",
+      fallbackWorkspacePath: null,
+      shouldPreserveEmptySelection: false,
+    });
+  });
 });

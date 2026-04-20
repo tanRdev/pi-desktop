@@ -44,6 +44,7 @@ import {
 import { AppPreferencesCatalog } from "./app-preferences-catalog";
 import { initAutoUpdater } from "./auto-updater";
 import { switchModelForContext } from "./bootstrap/model-switch";
+import { resolveInitialWorkspaceTarget } from "./bootstrap/initial-workspace";
 import {
   buildThreadContext as buildThreadContextFromHelper,
   type ResolvedRepositoryInspection,
@@ -961,48 +962,59 @@ async function bootstrapDesktop() {
   );
 
   const preferredSelection = selectionState.get();
-  const preferredWorkspacePath =
-    preferredSelection.worktreeId ??
-    preferredSelection.repositoryId ??
-    process.cwd();
-  const shouldPreserveEmptySelection =
-    preferredSelection.threadId === null &&
-    (preferredSelection.worktreeId !== null ||
-      preferredSelection.repositoryId !== null);
+  const {
+    preferredWorkspacePath,
+    fallbackWorkspacePath,
+    shouldPreserveEmptySelection,
+  } = resolveInitialWorkspaceTarget({
+    selection: preferredSelection,
+    repositories: repositoryCatalog.list(),
+  });
 
-  await runEffectVoid(
-    Effect.tryPromise({
-      try: () =>
-        activateWorkspacePath(preferredWorkspacePath, {
-          createIfMissing: !shouldPreserveEmptySelection,
+  if (preferredWorkspacePath === null) {
+    currentHost = createBootstrapErrorHost("No workspace selected");
+    unsubscribe();
+    unsubscribe = subscribeToHost(currentHost, null);
+  } else {
+    await runEffectVoid(
+      Effect.tryPromise({
+        try: () =>
+          activateWorkspacePath(preferredWorkspacePath, {
+            createIfMissing: !shouldPreserveEmptySelection,
+          }),
+        catch: (error) => fromUnknownError(error, "activateWorkspacePath"),
+      }).pipe(
+        Effect.catchAll((error) => {
+          if (
+            fallbackWorkspacePath &&
+            preferredWorkspacePath !== fallbackWorkspacePath
+          ) {
+            return Effect.tryPromise({
+              try: () => activateWorkspacePath(fallbackWorkspacePath),
+              catch: (fallbackError) =>
+                fromUnknownError(
+                  fallbackError,
+                  "activateWorkspacePath fallback",
+                ),
+            }).pipe(
+              Effect.catchAll((fallbackError) =>
+                Effect.sync(() => {
+                  currentHost = createBootstrapErrorHost(fallbackError.message);
+                  unsubscribe();
+                  unsubscribe = subscribeToHost(currentHost, null);
+                }),
+              ),
+            );
+          }
+          return Effect.sync(() => {
+            currentHost = createBootstrapErrorHost(error.message);
+            unsubscribe();
+            unsubscribe = subscribeToHost(currentHost, null);
+          });
         }),
-      catch: (error) => fromUnknownError(error, "activateWorkspacePath"),
-    }).pipe(
-      Effect.catchAll((error) => {
-        const fallbackPath = process.cwd();
-        if (preferredWorkspacePath !== fallbackPath) {
-          return Effect.tryPromise({
-            try: () => activateWorkspacePath(fallbackPath),
-            catch: (fallbackError) =>
-              fromUnknownError(fallbackError, "activateWorkspacePath fallback"),
-          }).pipe(
-            Effect.catchAll((fallbackError) =>
-              Effect.sync(() => {
-                currentHost = createBootstrapErrorHost(fallbackError.message);
-                unsubscribe();
-                unsubscribe = subscribeToHost(currentHost, null);
-              }),
-            ),
-          );
-        }
-        return Effect.sync(() => {
-          currentHost = createBootstrapErrorHost(error.message);
-          unsubscribe();
-          unsubscribe = subscribeToHost(currentHost, null);
-        });
-      }),
-    ),
-  );
+      ),
+    );
+  }
 
   function switchContextInBackground(context: SelectedThreadContext): void {
     void contextSwitchController.switchContext(async () => context);
