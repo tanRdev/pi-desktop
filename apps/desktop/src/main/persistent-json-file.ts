@@ -17,6 +17,16 @@ import {
   stat as statAsync,
 } from "node:fs/promises";
 import path from "node:path";
+import { Data, Effect, Scope } from "effect";
+import { runEffect } from "./effect/runtime";
+
+export class PersistentJsonFileError extends Data.TaggedError(
+  "PersistentJsonFileError",
+)<{
+  readonly message: string;
+  readonly path: string;
+  readonly cause?: unknown;
+}> {}
 
 export interface PersistentJsonFileOptions<T> {
   filePath: string;
@@ -35,12 +45,6 @@ export interface PersistentJsonFileOptions<T> {
 
 const DEFAULT_DEBOUNCE_MS = 50;
 
-/**
- * Under Vitest we default to synchronous writes so tests that construct a
- * catalog, call `save`, then immediately re-read from disk in a new
- * instance observe the latest write without having to `await flush()`.
- * Production code still gets the 50ms coalescing default.
- */
 function resolveDefaultDebounceMs(): number {
   if (process.env.VITEST === "true" || process.env.NODE_ENV === "test") {
     return 0;
@@ -60,13 +64,11 @@ function tryRemoveSync(filePath: string): void {
   }
 }
 
-async function tryRemoveAsync(filePath: string): Promise<void> {
-  try {
-    await rmAsync(filePath, { force: true });
-  } catch {
-    // best-effort cleanup
-  }
-}
+const tryRemoveAsyncEffect = (filePath: string): Effect.Effect<void, never> =>
+  Effect.catchAll(
+    Effect.tryPromise(() => rmAsync(filePath, { force: true })),
+    () => Effect.void,
+  );
 
 function tryReadJson<T>(
   filePath: string,
@@ -78,14 +80,130 @@ function tryReadJson<T>(
     if (validate && !validate(parsed)) {
       return undefined;
     }
-    // Without a validator we cannot soundly narrow `unknown` to `T`.
-    // Callers opt into this by not passing a validator; we cast through
-    // `unknown` here as an unavoidable trust boundary for legacy callers.
     return parsed as T;
   } catch {
     return undefined;
   }
 }
+
+const tryReadJsonEffect = <T>(
+  filePath: string,
+  validate?: (raw: unknown) => raw is T,
+): Effect.Effect<T | undefined, never> =>
+  Effect.gen(function* () {
+    const content: string | undefined = yield* Effect.catchAll(
+      Effect.sync(() => readFileSync(filePath, "utf8")),
+      () => Effect.succeed(undefined),
+    );
+    if (content === undefined) return undefined;
+    const parsed: unknown = yield* Effect.catchAll(
+      Effect.sync(() => JSON.parse(content) as unknown),
+      () => Effect.succeed(undefined),
+    );
+    if (parsed === undefined) return undefined;
+    if (validate && !validate(parsed)) return undefined;
+    return parsed as T;
+  });
+
+const fileHandleResource = (
+  tempPath: string,
+  serialized: string,
+): Effect.Effect<void, PersistentJsonFileError, Scope.Scope> =>
+  Effect.gen(function* () {
+    const handle = yield* Effect.acquireRelease(
+      Effect.tryPromise({
+        try: () => openAsync(tempPath, "w"),
+        catch: (e) =>
+          new PersistentJsonFileError({
+            message: "Failed to open temp file",
+            path: tempPath,
+            cause: e,
+          }),
+      }),
+      (handle) =>
+        Effect.catchAll(
+          Effect.tryPromise(() => handle.close()),
+          () => Effect.void,
+        ),
+    );
+    yield* Effect.tryPromise({
+      try: () => handle.writeFile(serialized),
+      catch: (e) =>
+        new PersistentJsonFileError({
+          message: "Failed to write temp file",
+          path: tempPath,
+          cause: e,
+        }),
+    });
+    yield* Effect.catchAll(
+      Effect.tryPromise(() => handle.sync()),
+      () => Effect.void,
+    );
+  });
+
+const backupPrimaryEffect = (
+  filePath: string,
+  backupPath: string,
+): Effect.Effect<void, never> =>
+  Effect.gen(function* () {
+    const exists = yield* Effect.match(
+      Effect.tryPromise(() => statAsync(filePath)),
+      {
+        onFailure: () => false,
+        onSuccess: () => true,
+      },
+    );
+    if (!exists) return;
+    yield* Effect.catchAll(
+      Effect.tryPromise(() => renameAsync(filePath, backupPath)),
+      () => Effect.void,
+    );
+  });
+
+const renamePrimaryEffect = (
+  tempPath: string,
+  filePath: string,
+): Effect.Effect<void, PersistentJsonFileError> =>
+  Effect.gen(function* () {
+    yield* Effect.tryPromise({
+      try: () => renameAsync(tempPath, filePath),
+      catch: (e) =>
+        new PersistentJsonFileError({
+          message: "Failed to rename temp file to primary",
+          path: filePath,
+          cause: e,
+        }),
+    });
+  }).pipe(
+    Effect.catchAll((error) =>
+      Effect.gen(function* () {
+        yield* tryRemoveAsyncEffect(tempPath);
+        yield* Effect.fail(error);
+      }),
+    ),
+  );
+
+const saveAsyncEffect = <T>(
+  filePath: string,
+  backupPath: string,
+  tempPath: string,
+  nextValue: T,
+): Effect.Effect<void, PersistentJsonFileError> =>
+  Effect.gen(function* () {
+    yield* Effect.tryPromise({
+      try: () => mkdir(path.dirname(filePath), { recursive: true }),
+      catch: (e) =>
+        new PersistentJsonFileError({
+          message: "Failed to create directory",
+          path: filePath,
+          cause: e,
+        }),
+    });
+    const serialized = `${JSON.stringify(nextValue, null, 2)}\n`;
+    yield* Effect.scoped(fileHandleResource(tempPath, serialized));
+    yield* backupPrimaryEffect(filePath, backupPath);
+    yield* renamePrimaryEffect(tempPath, filePath);
+  });
 
 // Module-level registry so shutdown hooks can flush every live instance.
 const LIVE_INSTANCES = new Set<PersistentJsonFile<unknown>>();
@@ -133,9 +251,6 @@ export class PersistentJsonFile<T> {
     return this.set(updater(this.get()));
   }
 
-  /**
-   * Flush any pending coalesced write and wait for the disk write to finish.
-   */
   async flush(): Promise<void> {
     if (this.pendingTimer !== undefined) {
       clearTimeout(this.pendingTimer);
@@ -152,8 +267,6 @@ export class PersistentJsonFile<T> {
   private scheduleWrite(nextValue: T): void {
     this.pendingValue = nextValue;
     if (this.debounceMs <= 0) {
-      // Synchronous path: callers (and tests) can observe the write on disk
-      // immediately after `set` returns, without awaiting `flush()`.
       this.pendingValue = undefined;
       this.saveSync(nextValue);
       return;
@@ -209,47 +322,14 @@ export class PersistentJsonFile<T> {
   }
 
   private async saveAsync(nextValue: T): Promise<void> {
-    await mkdir(path.dirname(this.options.filePath), { recursive: true });
-    const tempPath = this.tempPath();
-    const serialized = `${JSON.stringify(nextValue, null, 2)}\n`;
-
-    // Write to a temp file with an fsync so the payload is durable before we
-    // expose it via rename.
-    const handle = await openAsync(tempPath, "w");
-    try {
-      await handle.writeFile(serialized);
-      try {
-        await handle.sync();
-      } catch {
-        // fsync may not be supported on some filesystems; proceed anyway.
-      }
-    } finally {
-      await handle.close();
-    }
-
-    // Preserve the previous successful write as a sidecar backup before
-    // atomically replacing the primary file.
-    let primaryExists = true;
-    try {
-      await statAsync(this.options.filePath);
-    } catch {
-      primaryExists = false;
-    }
-    if (primaryExists) {
-      try {
-        await renameAsync(this.options.filePath, this.backupPath());
-      } catch {
-        // If we can't move it aside, keep going; the rename below is still
-        // atomic and won't produce partial data.
-      }
-    }
-
-    try {
-      await renameAsync(tempPath, this.options.filePath);
-    } catch (error) {
-      await tryRemoveAsync(tempPath);
-      throw error;
-    }
+    await runEffect(
+      saveAsyncEffect(
+        this.options.filePath,
+        this.backupPath(),
+        this.tempPath(),
+        nextValue,
+      ),
+    );
   }
 
   /**

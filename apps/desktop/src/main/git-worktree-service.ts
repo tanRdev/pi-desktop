@@ -12,6 +12,8 @@ import type {
   ShellGitSnapshot,
   WorktreeGitSnapshot,
 } from "@pi-desktop/shared";
+import { Effect } from "effect";
+import { GitError } from "./effect/errors";
 import { LruMap } from "./lru-map";
 
 export interface GitWorktreeSummary {
@@ -1528,5 +1530,207 @@ export class GitWorktreeService {
   private clearCaches(): void {
     this.inspectionCache.clear();
     this.repositoryStatusCache.clear();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Effect-based method variants
+  //
+  // These wrap the synchronous / async public methods in Effect pipelines so
+  // that callers written in the Effect style can compose them without managing
+  // try/catch manually.  The public API (the non-Effect methods above) is
+  // intentionally left untouched — external callers keep their existing
+  // contracts.
+  // ---------------------------------------------------------------------------
+
+  private gitError(message: string, path?: string, cause?: unknown): GitError {
+    return new GitError({ code: "EGIT_FAILED", message, path, cause });
+  }
+
+  inspectEffect(
+    targetPath: string,
+  ): Effect.Effect<GitRepositoryInspection, GitError> {
+    return Effect.try({
+      try: () => this.inspect(targetPath),
+      catch: (e) =>
+        this.gitError(
+          `Failed to inspect repository at ${targetPath}`,
+          targetPath,
+          e,
+        ),
+    });
+  }
+
+  inspectAsyncEffect(
+    targetPath: string,
+  ): Effect.Effect<GitRepositoryInspection, GitError> {
+    return Effect.tryPromise({
+      try: () => this.inspectAsync(targetPath),
+      catch: (e) =>
+        this.gitError(
+          `Failed to inspect repository at ${targetPath}`,
+          targetPath,
+          e,
+        ),
+    });
+  }
+
+  createWorktreeEffect(options: {
+    repositoryRoot: string;
+    branchName: string;
+    worktreePath: string;
+    baseBranch?: string;
+  }): Effect.Effect<string, GitError> {
+    return Effect.try({
+      try: () => this.createWorktree(options),
+      catch: (e) =>
+        this.gitError(
+          `Failed to create worktree for branch ${options.branchName}`,
+          options.repositoryRoot,
+          e,
+        ),
+    });
+  }
+
+  removeWorktreeEffect(options: {
+    worktreePath: string;
+    repositoryRoot: string;
+  }): Effect.Effect<void, GitError> {
+    return Effect.try({
+      try: () => this.removeWorktree(options),
+      catch: (e) =>
+        this.gitError(
+          `Failed to remove worktree at ${options.worktreePath}`,
+          options.worktreePath,
+          e,
+        ),
+    });
+  }
+
+  getRepositoryStatusEffect(
+    repositoryPath: string,
+  ): Effect.Effect<GitRepositoryStatus, GitError> {
+    return Effect.try({
+      try: () => this.getRepositoryStatus(repositoryPath),
+      catch: (e) =>
+        this.gitError(
+          `Failed to get repository status at ${repositoryPath}`,
+          repositoryPath,
+          e,
+        ),
+    });
+  }
+
+  stageFileEffect(
+    repositoryPath: string,
+    filePath: string,
+  ): Effect.Effect<GitRepositoryStatus, GitError> {
+    return Effect.try({
+      try: () => this.stageFile(repositoryPath, filePath),
+      catch: (e) =>
+        this.gitError(`Failed to stage file ${filePath}`, repositoryPath, e),
+    });
+  }
+
+  stageFilesEffect(
+    repositoryPath: string,
+    filePaths: string[],
+  ): Effect.Effect<GitRepositoryStatus, GitError> {
+    return Effect.try({
+      try: () => this.stageFiles(repositoryPath, filePaths),
+      catch: (e) => this.gitError(`Failed to stage files`, repositoryPath, e),
+    });
+  }
+
+  unstageFileEffect(
+    repositoryPath: string,
+    filePath: string,
+  ): Effect.Effect<GitRepositoryStatus, GitError> {
+    return Effect.try({
+      try: () => this.unstageFile(repositoryPath, filePath),
+      catch: (e) =>
+        this.gitError(`Failed to unstage file ${filePath}`, repositoryPath, e),
+    });
+  }
+
+  unstageFilesEffect(
+    repositoryPath: string,
+    filePaths: string[],
+  ): Effect.Effect<GitRepositoryStatus, GitError> {
+    return Effect.try({
+      try: () => this.unstageFiles(repositoryPath, filePaths),
+      catch: (e) => this.gitError(`Failed to unstage files`, repositoryPath, e),
+    });
+  }
+
+  discardFileEffect(
+    repositoryPath: string,
+    filePath: string,
+  ): Effect.Effect<GitRepositoryStatus, GitError> {
+    return Effect.try({
+      try: () => this.discardFile(repositoryPath, filePath),
+      catch: (e) =>
+        this.gitError(`Failed to discard file ${filePath}`, repositoryPath, e),
+    });
+  }
+
+  commitEffect(
+    repositoryPath: string,
+    message: string,
+  ): Effect.Effect<GitRepositoryStatus, GitError> {
+    return Effect.try({
+      try: () => this.commit(repositoryPath, message),
+      catch: (e) =>
+        this.gitError(
+          `Failed to commit at ${repositoryPath}`,
+          repositoryPath,
+          e,
+        ),
+    });
+  }
+
+  pullEffect(
+    repositoryPath: string,
+  ): Effect.Effect<GitRepositoryStatus, GitError> {
+    return Effect.try({
+      try: () => this.pull(repositoryPath),
+      catch: (e) =>
+        this.gitError(`Failed to pull at ${repositoryPath}`, repositoryPath, e),
+    });
+  }
+
+  pushEffect(
+    repositoryPath: string,
+  ): Effect.Effect<GitRepositoryStatus, GitError> {
+    return Effect.try({
+      try: () => this.push(repositoryPath),
+      catch: (e) =>
+        this.gitError(`Failed to push at ${repositoryPath}`, repositoryPath, e),
+    });
+  }
+
+  fetchEffect(
+    repositoryPath: string,
+  ): Effect.Effect<GitRepositoryStatus, GitError> {
+    return Effect.try({
+      try: () => this.fetch(repositoryPath),
+      catch: (e) =>
+        this.gitError(
+          `Failed to fetch at ${repositoryPath}`,
+          repositoryPath,
+          e,
+        ),
+    });
+  }
+
+  diffFileEffect(
+    repositoryPath: string,
+    filePath: string,
+    staged: boolean,
+  ): Effect.Effect<GitFileDiff, GitError> {
+    return Effect.try({
+      try: () => this.diffFile(repositoryPath, filePath, staged),
+      catch: (e) =>
+        this.gitError(`Failed to diff file ${filePath}`, repositoryPath, e),
+    });
   }
 }

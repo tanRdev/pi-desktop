@@ -78,6 +78,20 @@ export class IPCError extends Data.TaggedError("IPCError")<{
   readonly cause?: unknown;
 }> {}
 
+export class GitError extends Data.TaggedError("GitError")<{
+  readonly code?: PiErrorCode;
+  readonly message: string;
+  readonly path?: string;
+  readonly cause?: unknown;
+}> {}
+
+export class TerminalError extends Data.TaggedError("TerminalError")<{
+  readonly code?: PiErrorCode;
+  readonly message: string;
+  readonly terminalId?: string;
+  readonly cause?: unknown;
+}> {}
+
 /** Union of every tagged error raised by main-process effects. */
 export type PiDesktopAnyError =
   | PiError
@@ -85,7 +99,9 @@ export type PiDesktopAnyError =
   | RepositoryError
   | ThreadError
   | FileSystemError
-  | IPCError;
+  | IPCError
+  | GitError
+  | TerminalError;
 
 /** Wrap an arbitrary thrown value into a `PiDesktopError`. */
 export const fromUnknownError = (

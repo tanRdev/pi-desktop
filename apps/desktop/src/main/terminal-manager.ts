@@ -81,15 +81,24 @@ function createDefaultDependencies(): Required<
   };
 }
 
+const log = {
+  info: (msg: string) => {
+    Effect.runFork(logger.info(msg));
+  },
+  warn: (msg: string) => {
+    Effect.runFork(logger.warn(msg));
+  },
+  error: (msg: string, err?: unknown) => {
+    Effect.runFork(logger.error(msg, err));
+  },
+};
+
 function runTerminalOperation(operation: () => void): void {
-  void Effect.runSync(
-    Effect.either(
-      Effect.try({
-        try: operation,
-        catch: () => undefined,
-      }),
-    ),
-  );
+  try {
+    operation();
+  } catch {
+    // Swallow - pty operations may throw after destroy
+  }
 }
 
 export class TerminalManager {
@@ -183,9 +192,7 @@ export class TerminalManager {
     };
 
     const handleAttachedProcessExit = () => {
-      void Effect.runPromise(
-        logger.info(`session ${stripAnsi(id)} exited; cleaning up`),
-      ).catch(() => undefined);
+      log.info(`session ${stripAnsi(id)} exited; cleaning up`);
       const current = this.terminals.get(id);
       if (current) {
         current.pty = null;
@@ -195,11 +202,9 @@ export class TerminalManager {
     };
 
     const handleScrollbackCapReached = (bytesDropped: number) => {
-      void Effect.runPromise(
-        logger.warn(
-          `session ${stripAnsi(id)} exceeded scrollback cap (${bytesDropped} bytes); dropping further output`,
-        ),
-      ).catch(() => undefined);
+      log.warn(
+        `session ${stripAnsi(id)} exceeded scrollback cap (${bytesDropped} bytes); dropping further output`,
+      );
     };
 
     const attachProcess = (attachCmd: {
@@ -277,18 +282,14 @@ export class TerminalManager {
       });
       session.status = "ready";
       session.lastActivityAt = this.now();
-      void Effect.runPromise(
-        logger.info(
-          `created session ${stripAnsi(id)} backend=${backend} cwd=${cwd}`,
-        ),
-      ).catch(() => undefined);
+      log.info(
+        `created session ${stripAnsi(id)} backend=${backend} cwd=${cwd}`,
+      );
       return session;
     } catch (error) {
       session.status = "error";
       this.terminals.delete(id);
-      void Effect.runPromise(
-        logger.error(`failed to create session ${stripAnsi(id)}`, error),
-      ).catch(() => undefined);
+      log.error(`failed to create session ${stripAnsi(id)}`, error);
       throw error instanceof Error ? error : new Error(String(error));
     }
   }
@@ -351,9 +352,7 @@ export class TerminalManager {
       instance.pty = null;
       instance.childProcess = null;
       this.terminals.delete(id);
-      void Effect.runPromise(
-        logger.info(`destroyed session ${stripAnsi(id)}`),
-      ).catch(() => undefined);
+      log.info(`destroyed session ${stripAnsi(id)}`);
     }
   }
 
@@ -373,9 +372,7 @@ export class TerminalManager {
       instance.pty = null;
       instance.childProcess = null;
       this.terminals.delete(id);
-      void Effect.runPromise(
-        logger.info(`destroyed session ${stripAnsi(id)} (async)`),
-      ).catch(() => undefined);
+      log.info(`destroyed session ${stripAnsi(id)} (async)`);
     }
   }
 
