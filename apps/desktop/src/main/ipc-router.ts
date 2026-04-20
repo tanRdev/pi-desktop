@@ -365,6 +365,9 @@ export function registerIpcHandlers({
     if (text === undefined) {
       throw new Error("clipboard:writeText payload must include text");
     }
+    if (!clipboard) {
+      throw new Error("clipboard module is unavailable");
+    }
     clipboard.writeText(text);
   });
 }
