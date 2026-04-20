@@ -846,13 +846,8 @@ export function useAppShellController(): AppShellController {
         return;
       }
 
-      if (!navigator.clipboard?.writeText) {
-        toast.error("Clipboard unavailable");
-        return;
-      }
-
       try {
-        await navigator.clipboard.writeText(repository.rootPath);
+        await window.piDesktop.clipboard.writeText(repository.rootPath);
         toast.success("Path copied");
       } catch {
         toast.error("Failed to copy path");

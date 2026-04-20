@@ -479,6 +479,11 @@ export function createPiDesktopApi({
         return on<boolean>(IPC_CHANNELS.window.fullscreenChanged, listener);
       },
     },
+    clipboard: {
+      writeText(text: string) {
+        return invoke<void>(IPC_CHANNELS.clipboard.writeText, { text });
+      },
+    },
     updates: {
       getState() {
         return invoke<UpdaterState>(UPDATE_IPC_CHANNELS.getState, undefined);

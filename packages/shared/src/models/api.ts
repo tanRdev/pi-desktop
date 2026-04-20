@@ -180,4 +180,7 @@ export interface PiDesktopApi {
     getFullscreenState(): Promise<boolean>;
     onFullscreenChanged(listener: (isFullscreen: boolean) => void): () => void;
   };
+  clipboard: {
+    writeText(text: string): Promise<void>;
+  };
 }
