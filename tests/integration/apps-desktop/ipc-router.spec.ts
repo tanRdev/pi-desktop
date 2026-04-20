@@ -1455,8 +1455,6 @@ describe("git handlers repositoryPath allowlist", () => {
 
     for (const channel of [
       IPC_CHANNELS.git.getRepositoryStatus,
-      IPC_CHANNELS.git.isRepository,
-      IPC_CHANNELS.git.init,
       IPC_CHANNELS.git.stageFile,
       IPC_CHANNELS.git.stageFiles,
       IPC_CHANNELS.git.unstageFile,
@@ -1489,6 +1487,31 @@ describe("git handlers repositoryPath allowlist", () => {
     expect(gitService.pull).not.toHaveBeenCalled();
     expect(gitService.push).not.toHaveBeenCalled();
     expect(gitService.fetch).not.toHaveBeenCalled();
+  });
+
+  it("allows pre-catalog git checks on arbitrary paths", async () => {
+    const harness = createHandlerHarness();
+    const gitService = createGitServiceMock();
+
+    registerIpcHandlers({
+      handle: harness.handle,
+      getShellSnapshot: vi.fn(createShellSnapshot),
+      agentHost: createAgentHost(createAgentSnapshot()),
+      mainWindow: null,
+      // biome-ignore lint/suspicious/noExplicitAny: test mock of GitWorktreeService
+      gitService: gitService as any,
+      getAllowedRepositoryRoots: () => ["/allowed/repo"],
+    });
+
+    await harness.handlers.get(IPC_CHANNELS.git.isRepository)?.(undefined, {
+      repositoryPath: "/etc",
+    });
+    await harness.handlers.get(IPC_CHANNELS.git.init)?.(undefined, {
+      repositoryPath: "/tmp/new-repo",
+    });
+
+    expect(gitService.isRepository).toHaveBeenCalledWith("/etc");
+    expect(gitService.init).toHaveBeenCalledWith("/tmp/new-repo");
   });
 
   it("routes git.fetch to gitService.fetch when repositoryPath is an allowed root", async () => {
@@ -1530,11 +1553,16 @@ describe("git handlers repositoryPath allowlist", () => {
       getAllowedRepositoryRoots: () => ["/allowed/repo"],
     });
 
-    await harness.handlers.get(IPC_CHANNELS.git.isRepository)?.(undefined, {
-      repositoryPath: "/allowed/repo",
-    });
+    await harness.handlers.get(IPC_CHANNELS.git.getRepositoryStatus)?.(
+      undefined,
+      {
+        repositoryPath: "/allowed/repo",
+      },
+    );
 
-    expect(gitService.isRepository).toHaveBeenCalledWith("/allowed/repo");
+    expect(gitService.getRepositoryStatus).toHaveBeenCalledWith(
+      "/allowed/repo",
+    );
   });
 
   it("accepts git handlers when repositoryPath is nested inside an allowed root (worktree under repo)", async () => {
@@ -1553,11 +1581,14 @@ describe("git handlers repositoryPath allowlist", () => {
       getAllowedRepositoryRoots: () => ["/allowed/repo"],
     });
 
-    await harness.handlers.get(IPC_CHANNELS.git.isRepository)?.(undefined, {
-      repositoryPath: "/allowed/repo/worktrees/feature",
-    });
+    await harness.handlers.get(IPC_CHANNELS.git.getRepositoryStatus)?.(
+      undefined,
+      {
+        repositoryPath: "/allowed/repo/worktrees/feature",
+      },
+    );
 
-    expect(gitService.isRepository).toHaveBeenCalledWith(
+    expect(gitService.getRepositoryStatus).toHaveBeenCalledWith(
       "/allowed/repo/worktrees/feature",
     );
   });

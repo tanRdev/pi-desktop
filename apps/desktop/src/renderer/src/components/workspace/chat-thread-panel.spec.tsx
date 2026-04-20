@@ -165,7 +165,8 @@ describe("ChatThreadPanel", () => {
     expect(transcript).toHaveClass("pb-32");
     expect(transcript).toHaveClass("min-h-full");
     expect(transcript).not.toHaveClass("pb-48");
-    expect(messageRow).toHaveClass("py-5");
+    expect(messageRow).toHaveClass("py-2");
+    expect(messageRow).not.toHaveClass("py-5");
     expect(messageRow).not.toHaveClass("py-8");
     expect(messageBody).toHaveClass("leading-6");
     expect(messageBody).not.toHaveClass("leading-7");

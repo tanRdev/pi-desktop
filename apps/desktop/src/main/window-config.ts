@@ -127,7 +127,7 @@ export function classifyWindowOpen(
  * Retained for backwards compatibility with existing tests.
  */
 export function shouldDenyWindowOpen(details: HandlerDetails): boolean {
-  return classifyWindowOpen(details).kind === "deny";
+  return classifyWindowOpen(details).kind !== "allow";
 }
 
 export function hardenMainWindow(window: BrowserWindow): void {
