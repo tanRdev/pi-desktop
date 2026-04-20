@@ -13,6 +13,27 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+function mockPiDesktop(overrides?: Partial<Window["piDesktop"]>): void {
+  Object.defineProperty(window, "piDesktop", {
+    value: {
+      dialog: {
+        showOpenDialog: vi.fn().mockResolvedValue(null),
+        openExternal: vi.fn(),
+      },
+      repositories: {
+        add: vi.fn().mockResolvedValue(undefined),
+        reorder: vi.fn().mockResolvedValue(undefined),
+        select: vi.fn().mockResolvedValue(undefined),
+        remove: vi.fn().mockResolvedValue(undefined),
+        openInFinder: vi.fn().mockResolvedValue(undefined),
+      },
+      ...overrides,
+    },
+    writable: true,
+    configurable: true,
+  });
+}
+
 describe("WelcomeDialog", () => {
   it("shows the welcome step on first launch", () => {
     render(<WelcomeDialog open onComplete={() => {}} />);
@@ -149,5 +170,42 @@ describe("WelcomeDialog", () => {
     await user.click(screen.getByTestId("onboarding-next"));
     expect(screen.getByTestId("step-dot-1")).toHaveClass("bg-white/80");
     expect(screen.getByTestId("step-dot-0")).toHaveClass("bg-white/40");
+  });
+
+  it("adds the selected workspace from the open-folder step", async () => {
+    const user = userEvent.setup();
+    const onComplete = vi.fn();
+    const showOpenDialog = vi.fn().mockResolvedValue(["/tmp/workspaces/alpha"]);
+    const addRepository = vi.fn().mockResolvedValue(undefined);
+
+    mockPiDesktop({
+      dialog: {
+        showOpenDialog,
+        openExternal: vi.fn(),
+      },
+      repositories: {
+        add: addRepository,
+        reorder: vi.fn().mockResolvedValue(undefined),
+        select: vi.fn().mockResolvedValue(undefined),
+        remove: vi.fn().mockResolvedValue(undefined),
+        openInFinder: vi.fn().mockResolvedValue(undefined),
+      },
+    });
+
+    render(<WelcomeDialog open onComplete={onComplete} />);
+
+    await user.click(screen.getByTestId("onboarding-next"));
+    await user.click(screen.getByTestId("onboarding-next"));
+    await user.click(screen.getByTestId("onboarding-open-folder"));
+
+    await waitFor(() => {
+      expect(showOpenDialog).toHaveBeenCalledWith({
+        properties: ["openDirectory"],
+        title: "Choose your first workspace",
+      });
+      expect(addRepository).toHaveBeenCalledWith("/tmp/workspaces/alpha");
+      expect(window.localStorage.getItem(ONBOARDING_KEY)).toBe("true");
+      expect(onComplete).toHaveBeenCalledTimes(1);
+    });
   });
 });

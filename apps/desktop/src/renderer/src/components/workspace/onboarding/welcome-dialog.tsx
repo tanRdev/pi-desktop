@@ -148,12 +148,32 @@ function ShortcutsStep() {
   );
 }
 
-function ChooseWorkspaceStep() {
+function normalizeSelectedPaths(selection: unknown): string[] {
+  if (typeof selection === "string") {
+    return selection ? [selection] : [];
+  }
+
+  if (!Array.isArray(selection)) {
+    return [];
+  }
+
+  return selection.filter(
+    (entry): entry is string => typeof entry === "string" && entry.length > 0,
+  );
+}
+
+function ChooseWorkspaceStep({
+  onWorkspaceSelected,
+}: {
+  onWorkspaceSelected: () => void;
+}) {
   const [busy, setBusy] = React.useState(false);
 
   const handleOpen = React.useCallback(async () => {
     setBusy(true);
     try {
+      let selectedPaths: string[] = [];
+
       if (
         typeof window !== "undefined" &&
         window.piDesktop?.dialog &&
@@ -165,17 +185,27 @@ function ChooseWorkspaceStep() {
             openDirectory?: () => Promise<unknown>;
           }
         ).openDirectory;
-        await openDirectoryFn?.();
+        selectedPaths = normalizeSelectedPaths(await openDirectoryFn?.());
       } else if (typeof window !== "undefined" && window.piDesktop?.dialog) {
-        await window.piDesktop.dialog.showOpenDialog({
-          properties: ["openDirectory"],
-          title: "Choose your first workspace",
-        });
+        selectedPaths = normalizeSelectedPaths(
+          await window.piDesktop.dialog.showOpenDialog({
+            properties: ["openDirectory"],
+            title: "Choose your first workspace",
+          }),
+        );
       }
+
+      const selectedPath = selectedPaths[0];
+      if (!selectedPath) {
+        return;
+      }
+
+      await window.piDesktop.repositories.add(selectedPath);
+      onWorkspaceSelected();
     } finally {
       setBusy(false);
     }
-  }, []);
+  }, [onWorkspaceSelected]);
 
   return (
     <div className="flex flex-col items-center gap-5 px-6 py-8">
@@ -298,7 +328,7 @@ export function WelcomeDialog({
         <div data-step={step}>
           {step === 0 && <WelcomeStep />}
           {step === 1 && <ShortcutsStep />}
-          {step === 2 && <ChooseWorkspaceStep />}
+          {step === 2 && <ChooseWorkspaceStep onWorkspaceSelected={complete} />}
           {step === 3 && <AllSetStep />}
         </div>
 
