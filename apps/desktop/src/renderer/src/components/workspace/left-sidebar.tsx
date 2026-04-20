@@ -19,6 +19,7 @@ import {
 import {
   Tooltip,
   TooltipContent,
+  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -73,9 +74,10 @@ function StatusIndicator({ state }: { state: IndicatorState }) {
   );
 }
 
-function idleUnlessUnread(state: IndicatorState): IndicatorState {
+function passiveIndicatorState(state: IndicatorState): IndicatorState {
   if (state === "streaming") return "streaming";
-  return state === "unread" ? "unread" : "idle";
+  if (state === "unread") return "unread";
+  return "idle";
 }
 
 export interface LeftSidebarProps {
@@ -98,6 +100,7 @@ export interface LeftSidebarProps {
   onDeleteThread?: (threadId: string) => void;
   onArchiveWorktree?: (worktreeId: string) => void;
   onArchiveThread?: (threadId: string) => void;
+  onCreateThread?: (worktreeId: string) => void;
   onAddRepository: () => void;
   onOpenFilter?: () => void;
   onNewAgent?: () => void;
@@ -252,6 +255,7 @@ function SidebarEdgeToggle({
 
 interface WorktreeRowProps {
   session: WorktreeSnapshot;
+  repositoryName: string;
   isActive: boolean;
   indicatorState: IndicatorState;
   activeThreadId: string | null;
@@ -259,6 +263,7 @@ interface WorktreeRowProps {
   threadLastViewedAt?: Record<string, number>;
   onSelect: (id: string) => void;
   onSelectThread: (threadId: string) => void;
+  onCreateThread?: (worktreeId: string) => void;
   onContextMenu?: (
     e: React.MouseEvent,
     worktreeId: string,
@@ -273,6 +278,8 @@ interface WorktreeRowProps {
 
 interface ThreadRowProps {
   thread: WorktreeSnapshot["threads"][number];
+  repositoryName: string;
+  worktreeName: string;
   isActive: boolean;
   indicatorState: IndicatorState;
   onSelect: (id: string) => void;
@@ -285,44 +292,55 @@ interface ThreadRowProps {
 
 function ThreadRowImpl({
   thread,
+  repositoryName,
+  worktreeName,
   isActive,
   indicatorState,
   onSelect,
   onContextMenu,
 }: ThreadRowProps) {
   const threadTitle = thread.title.trim() || "Untitled thread";
+  const tooltipText = `${repositoryName} › ${worktreeName} › ${threadTitle}`;
 
   return (
     <div data-testid="thread-row">
-      <button
-        type="button"
-        onClick={() => onSelect(thread.id)}
-        onContextMenu={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          onContextMenu?.(e, thread.id, threadTitle);
-        }}
-        className={cn(
-          "group flex w-full min-w-0 items-center gap-2 pl-[11px] pr-2 py-1.5 text-left text-[12px]",
-          "transition-colors duration-150",
-          isActive
-            ? "text-white"
-            : "text-white/40 hover:bg-white/[0.03] hover:text-white/65",
-        )}
-      >
-        <StatusIndicator
-          state={isActive ? indicatorState : idleUnlessUnread(indicatorState)}
-        />
-        <span className="min-w-0 flex-1 truncate" title={threadTitle}>
-          {threadTitle}
-        </span>
-      </button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            onClick={() => onSelect(thread.id)}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onContextMenu?.(e, thread.id, threadTitle);
+            }}
+            className={cn(
+              "group flex w-full min-w-0 items-center gap-2 pl-[11px] pr-2 py-1.5 text-left text-[12px]",
+              "transition-colors duration-150",
+              isActive
+                ? "text-white"
+                : "text-white/40 hover:bg-white/[0.03] hover:text-white/65",
+            )}
+          >
+            <StatusIndicator
+              state={
+                isActive
+                  ? indicatorState
+                  : passiveIndicatorState(indicatorState)
+              }
+            />
+            <span className="min-w-0 flex-1 truncate">{threadTitle}</span>
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="right">{tooltipText}</TooltipContent>
+      </Tooltip>
     </div>
   );
 }
 
 function WorktreeRowImpl({
   session,
+  repositoryName,
   isActive,
   indicatorState,
   activeThreadId,
@@ -330,6 +348,7 @@ function WorktreeRowImpl({
   threadLastViewedAt,
   onSelect,
   onSelectThread,
+  onCreateThread,
   onContextMenu,
   onThreadContextMenu,
 }: WorktreeRowProps) {
@@ -337,8 +356,8 @@ function WorktreeRowImpl({
   const behind = session.git.behind ?? 0;
   const isDirty = session.git.hasChanges ?? false;
   const prStatus = session.git.prStatus ?? null;
+  const tooltipText = `${repositoryName} › ${session.label}`;
 
-  // Pick the most salient git state icon.
   const gitStateIcon = (() => {
     if (prStatus === "merged") {
       return <GitMerge className="size-3.5 text-[var(--color-accent)]" />;
@@ -363,46 +382,74 @@ function WorktreeRowImpl({
 
   return (
     <div data-testid="session-row">
-      <button
-        type="button"
-        onClick={() => onSelect(session.id)}
-        onContextMenu={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          onContextMenu?.(e, session.id, session.label);
-        }}
-        className={cn(
-          "group flex w-full min-w-0 items-center gap-2 pl-[22px] pr-2 py-2 text-left text-[13px]",
-          "transition-colors duration-150",
-          isActive
-            ? "text-white"
-            : "text-white/50 hover:text-white/70 hover:bg-white/[0.04]",
+      <div className="flex items-center">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              onClick={() => onSelect(session.id)}
+              onContextMenu={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onContextMenu?.(e, session.id, session.label);
+              }}
+              className={cn(
+                "group flex min-w-0 flex-1 items-center gap-2 pl-[22px] pr-2 py-2 text-left text-[13px]",
+                "transition-colors duration-150",
+                isActive
+                  ? "text-white"
+                  : "text-white/50 hover:text-white/70 hover:bg-white/[0.04]",
+              )}
+            >
+              <StatusIndicator
+                state={
+                  isActive
+                    ? indicatorState
+                    : passiveIndicatorState(indicatorState)
+                }
+              />
+
+              <span className="min-w-0 flex-1 truncate font-mono">
+                {session.label}
+              </span>
+
+              {(ahead > 0 || behind > 0) && (
+                <span className="flex items-center gap-1 text-[10px] font-mono text-white/40">
+                  {ahead > 0 && (
+                    <span className="text-[var(--color-accent)]">+{ahead}</span>
+                  )}
+                  {behind > 0 && (
+                    <span className="text-white/40">−{behind}</span>
+                  )}
+                </span>
+              )}
+
+              <span
+                aria-hidden="true"
+                className="flex shrink-0 items-center justify-center"
+              >
+                {gitStateIcon}
+              </span>
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="right">{tooltipText}</TooltipContent>
+        </Tooltip>
+        {isActive && onCreateThread && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={() => onCreateThread(session.id)}
+                aria-label="New thread"
+                className="flex size-6 shrink-0 items-center justify-center text-white/30 transition-colors duration-150 hover:text-white/60 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/30"
+              >
+                <Plus aria-hidden="true" className="size-3.5" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="top">New thread</TooltipContent>
+          </Tooltip>
         )}
-      >
-        <StatusIndicator
-          state={isActive ? indicatorState : idleUnlessUnread(indicatorState)}
-        />
-
-        <span className="min-w-0 flex-1 truncate font-mono">
-          {session.label}
-        </span>
-
-        {(ahead > 0 || behind > 0) && (
-          <span className="flex items-center gap-1 text-[10px] font-mono text-white/40">
-            {ahead > 0 && (
-              <span className="text-[var(--color-accent)]">+{ahead}</span>
-            )}
-            {behind > 0 && <span className="text-white/40">−{behind}</span>}
-          </span>
-        )}
-
-        <span
-          aria-hidden="true"
-          className="flex shrink-0 items-center justify-center"
-        >
-          {gitStateIcon}
-        </span>
-      </button>
+      </div>
 
       {session.threads.length > 0 && (
         <div className="relative ml-5 pl-4">
@@ -432,6 +479,8 @@ function WorktreeRowImpl({
                 <ThreadRow
                   key={thread.id}
                   thread={thread}
+                  repositoryName={repositoryName}
+                  worktreeName={session.label}
                   isActive={isThreadActive}
                   indicatorState={threadIndicatorState}
                   onSelect={onSelectThread}
@@ -476,35 +525,42 @@ function ProjectRowImpl({
       onContextMenu={(e) => onContextMenu(e, repository)}
       className="flex w-full items-center"
     >
-      <button
-        type="button"
-        onClick={() => onSelect(repository.id)}
-        className={cn(
-          "group flex min-w-0 flex-1 items-center gap-2 px-3 py-1.5 text-left",
-          "transition-colors duration-150",
-          isActive
-            ? "text-white"
-            : "text-white/60 hover:text-white/80 hover:bg-white/[0.01]",
-        )}
-      >
-        <Folder
-          aria-hidden="true"
-          className={cn(
-            "size-3.5 shrink-0 transition-colors duration-150",
-            isActive
-              ? "text-white/70"
-              : "text-white/35 group-hover:text-white/55",
-          )}
-        />
-        <span
-          className={cn(
-            "min-w-0 flex-1 truncate text-[13px] font-medium",
-            isActive && "text-white",
-          )}
-        >
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            onClick={() => onSelect(repository.id)}
+            className={cn(
+              "group flex min-w-0 flex-1 items-center gap-2 px-3 py-1.5 text-left",
+              "transition-colors duration-150",
+              isActive
+                ? "text-white"
+                : "text-white/60 hover:text-white/80 hover:bg-white/[0.01]",
+            )}
+          >
+            <Folder
+              aria-hidden="true"
+              className={cn(
+                "size-3.5 shrink-0 transition-colors duration-150",
+                isActive
+                  ? "text-white/70"
+                  : "text-white/35 group-hover:text-white/55",
+              )}
+            />
+            <span
+              className={cn(
+                "min-w-0 flex-1 truncate text-[13px] font-medium",
+                isActive && "text-white",
+              )}
+            >
+              {getRepositoryName(repository)}
+            </span>
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="right">
           {getRepositoryName(repository)}
-        </span>
-      </button>
+        </TooltipContent>
+      </Tooltip>
 
       <div className="flex shrink-0 items-center gap-1 pr-[7px]">
         {isActive && isExpanded && onCreateSession && (
@@ -551,6 +607,7 @@ export function LeftSidebarImpl({
   onDeleteWorktree,
   onArchiveThread,
   onArchiveWorktree,
+  onCreateThread,
   onRemoveRepository,
   onCopyRepositoryPath,
   onOpenInFinder,
@@ -773,10 +830,13 @@ export function LeftSidebarImpl({
     [],
   );
 
-  const handleMenuAction = React.useCallback((action: () => void) => {
-    action();
-    setContextMenu((prev) => ({ ...prev, isOpen: false }));
-  }, []);
+  const handleMenuAction = React.useCallback(
+    (action: () => void | Promise<void>) => {
+      void action();
+      setContextMenu((prev) => ({ ...prev, isOpen: false }));
+    },
+    [],
+  );
 
   const handleSelectProject = React.useCallback(
     (repositoryId: string) => {
@@ -987,6 +1047,9 @@ export function LeftSidebarImpl({
                                     <WorktreeRow
                                       key={session.id}
                                       session={session}
+                                      repositoryName={getRepositoryName(
+                                        repository,
+                                      )}
                                       isActive={isSessionActive}
                                       indicatorState={sessionIndicatorState}
                                       activeThreadId={activeThreadId}
@@ -994,6 +1057,7 @@ export function LeftSidebarImpl({
                                       threadLastViewedAt={threadLastViewedAt}
                                       onSelect={onSelectWorktree}
                                       onSelectThread={onSelectThread}
+                                      onCreateThread={onCreateThread}
                                       onContextMenu={handleWorktreeContextMenu}
                                       onThreadContextMenu={
                                         handleThreadContextMenu
