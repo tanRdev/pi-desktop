@@ -13,7 +13,15 @@ import type {
   SettingsSnapshot,
 } from "@pi-desktop/shared";
 import { IPC_CHANNELS } from "@pi-desktop/shared";
-import { app, BrowserWindow, dialog, ipcMain, Menu, shell } from "electron";
+import {
+  app,
+  BrowserWindow,
+  dialog,
+  ipcMain,
+  Menu,
+  session,
+  shell,
+} from "electron";
 import {
   DEFAULT_UNTITLED_THREAD_TITLE,
   generateThreadTitleFromMessage,
@@ -56,6 +64,7 @@ import {
 } from "./pi-resource-discovery";
 import { RepositoryCatalog } from "./repository-catalog";
 import { RepositoryPreferencesCatalog } from "./repository-preferences-catalog";
+import { installSecurityHeaders } from "./security/csp";
 import { SelectionState } from "./selection-state";
 import { buildShellCatalog } from "./shell-catalog-builder";
 import { createShellSnapshot } from "./shell-snapshot";
@@ -250,6 +259,11 @@ async function bootstrapDesktop() {
   app.name = "Pi Desktop";
   app.setName("Pi Desktop");
   await app.whenReady();
+
+  installSecurityHeaders({
+    session: session.defaultSession,
+    isDevelopment: process.env.ELECTRON_RENDERER_URL !== undefined,
+  });
 
   const isMac = process.platform === "darwin";
   const template: Electron.MenuItemConstructorOptions[] = [
@@ -1417,6 +1431,20 @@ async function bootstrapDesktop() {
   let unsubscribeFullscreen = subscribeToFullscreenChanges(mainWindow);
 
   if (app.isPackaged) {
+    initAutoUpdater({
+      mainWindow: {
+        getMainWindow: () => mainWindow,
+      },
+      consent: {
+        // TODO(A3/A6): replace with appPreferencesCatalog.get().autoDownloadUpdates
+        // once shared AppPreferences exposes the field. Defaulting to false keeps
+        // downloads gated on explicit user action.
+        shouldAutoDownload: () => false,
+      },
+    });
+  } else {
+    // In dev/unpackaged mode, register stub handlers so the renderer
+    // UpdateBanner doesn't get "No handler registered" IPC errors.
     initAutoUpdater();
   }
   mainWindow.on("closed", () => {

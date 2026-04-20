@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { cleanup, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -23,7 +24,10 @@ vi.mock("@/components/ui/icons", () => {
     FileText: Stub,
     Folder: Stub,
     FolderOpen: Stub,
+    FolderPlus: Stub,
     Image: Stub,
+    MagnifyingGlass: Stub,
+    Plus: Stub,
   };
 });
 
@@ -98,7 +102,7 @@ describe("FileTreePanel", () => {
       expect(screen.getByText("No files")).toBeInTheDocument();
     });
 
-    const refreshBtn = container.querySelector('button[type="button"]');
+    const refreshBtn = container.querySelector('button[aria-label="Refresh"]');
     expect(refreshBtn).toBeInstanceOf(HTMLButtonElement);
     if (!(refreshBtn instanceof HTMLButtonElement)) return;
     await user.click(refreshBtn);
@@ -137,5 +141,71 @@ describe("FileTreePanel", () => {
     );
 
     expect(screen.getByText("No files")).toBeInTheDocument();
+  });
+
+  it("renders the filter input with accessible label", async () => {
+    installMockPiDesktop({
+      fs: {
+        readDirectory: vi.fn((path: string) =>
+          Promise.resolve({ path, entries: [] }),
+        ),
+      },
+    });
+
+    renderWithProviders(
+      <FileTreePanel workspacePath="/root" onFileSelect={() => {}} />,
+    );
+
+    expect(screen.getByLabelText("Filter files")).toBeInTheDocument();
+  });
+
+  it("filters file entries as the user types", async () => {
+    const user = userEvent.setup();
+    installMockPiDesktop({
+      fs: {
+        readDirectory: vi.fn((path: string) =>
+          Promise.resolve({
+            path,
+            entries: [
+              { name: "alpha.ts", path: "/root/alpha.ts", type: "file" },
+              { name: "beta.ts", path: "/root/beta.ts", type: "file" },
+            ],
+          }),
+        ),
+      },
+    });
+
+    renderWithProviders(
+      <FileTreePanel workspacePath="/root" onFileSelect={() => {}} />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("alpha.ts")).toBeInTheDocument();
+      expect(screen.getByText("beta.ts")).toBeInTheDocument();
+    });
+
+    const input = screen.getByLabelText<HTMLInputElement>("Filter files");
+    await user.type(input, "alp");
+
+    await waitFor(() => {
+      expect(screen.getByText("alpha.ts")).toBeInTheDocument();
+      expect(screen.queryByText("beta.ts")).toBeNull();
+    });
+  });
+
+  it("exposes a tree role with aria-label", async () => {
+    installMockPiDesktop({
+      fs: {
+        readDirectory: vi.fn((path: string) =>
+          Promise.resolve({ path, entries: [] }),
+        ),
+      },
+    });
+
+    renderWithProviders(
+      <FileTreePanel workspacePath="/root" onFileSelect={() => {}} />,
+    );
+
+    expect(screen.getByRole("tree")).toHaveAttribute("aria-label", "File tree");
   });
 });

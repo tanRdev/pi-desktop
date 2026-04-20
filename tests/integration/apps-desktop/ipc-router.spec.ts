@@ -151,7 +151,7 @@ it("fs.readFile rejects out-of-workspace absolute paths before touching node:fs.
     harness.handlers.get(IPC_CHANNELS.fs.readFile)?.(undefined, {
       path: "/etc/passwd",
     }),
-  ).rejects.toThrow(/outside the workspace root/);
+  ).rejects.toThrow(/path resolves outside every allowed root/);
 
   expect(nodeFs.readFileSync).not.toHaveBeenCalled();
   expect(nodeFs.statSync).not.toHaveBeenCalled();
@@ -183,7 +183,7 @@ it("fs.writeFile rejects out-of-workspace absolute paths before touching node:fs
       path: "/etc/hosts",
       content: "hello",
     }),
-  ).rejects.toThrow(/outside the workspace root/);
+  ).rejects.toThrow(/path resolves outside every allowed root/);
 
   expect(nodeFsPromises.mkdir).not.toHaveBeenCalled();
   expect(nodeFsPromises.writeFile).not.toHaveBeenCalled();
@@ -1204,10 +1204,13 @@ describe("registerIpcHandlers", () => {
 
     await expect(
       harness.handlers.get(IPC_CHANNELS.fs.readDirectory)?.(undefined, {}),
-    ).resolves.toEqual({
-      success: false,
-      error: expect.stringContaining("path"),
-    });
+    ).resolves.toEqual(
+      expect.objectContaining({
+        success: false,
+        error: expect.stringContaining("path"),
+        code: expect.stringMatching(/^payload\//),
+      }),
+    );
   });
 
   it("fs.readDirectory outside workspace root should not call node:fs and should resolve a typed error", async () => {
@@ -1233,10 +1236,15 @@ describe("registerIpcHandlers", () => {
       harness.handlers.get(IPC_CHANNELS.fs.readDirectory)?.(undefined, {
         path: "/etc",
       }),
-    ).resolves.toEqual({
-      success: false,
-      error: expect.stringContaining("outside the workspace root"),
-    });
+    ).resolves.toEqual(
+      expect.objectContaining({
+        success: false,
+        error: expect.stringMatching(
+          /path resolves outside every allowed root/,
+        ),
+        code: "path/outside-root",
+      }),
+    );
 
     expect(nodeFs.readdirSync).not.toHaveBeenCalled();
   });
@@ -1277,10 +1285,15 @@ describe("registerIpcHandlers", () => {
       harness.handlers.get(IPC_CHANNELS.fs.readDirectory)?.(undefined, {
         path: "/tmp/pi-desktop/link-to-outside",
       }),
-    ).resolves.toEqual({
-      success: false,
-      error: expect.stringContaining("outside the workspace root"),
-    });
+    ).resolves.toEqual(
+      expect.objectContaining({
+        success: false,
+        error: expect.stringMatching(
+          /path resolves \(via symlink\) outside every allowed root/,
+        ),
+        code: "path/symlink-escape",
+      }),
+    );
 
     expect(nodeFs.readdirSync).not.toHaveBeenCalled();
   });
@@ -1461,7 +1474,7 @@ describe("git handlers repositoryPath allowlist", () => {
           filePaths: ["passwd"],
           message: "evil",
         }),
-      ).rejects.toThrow(/not an allowed repository/i);
+      ).rejects.toThrow(/path resolves outside every allowed root/i);
     }
 
     expect(gitService.getRepositoryStatus).not.toHaveBeenCalled();
@@ -1570,7 +1583,7 @@ describe("git handlers repositoryPath allowlist", () => {
         repositoryPath: "/allowed/repo/../../etc",
         filePath: "passwd",
       }),
-    ).rejects.toThrow(/not an allowed repository/i);
+    ).rejects.toThrow(/path resolves outside every allowed root/i);
 
     expect(gitService.discardFile).not.toHaveBeenCalled();
   });

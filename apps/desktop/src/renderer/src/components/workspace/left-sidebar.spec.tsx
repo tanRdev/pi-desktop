@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import type { RepositorySnapshot } from "@pi-desktop/shared";
 import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";

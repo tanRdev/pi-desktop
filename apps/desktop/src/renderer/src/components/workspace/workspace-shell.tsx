@@ -10,20 +10,22 @@ import * as React from "react";
 
 import { X } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
-import { Terminal } from "../ui/terminal";
 import { DEFAULT_UNTITLED_THREAD_TITLE } from "../../../../thread-title-defaults";
+import { useWindowStore } from "../../hooks/use-window-store";
 import {
   type ContextSurfaceKey,
   type ContextWindow,
   getMainPaneState,
 } from "../../lib/workspace-pane-state";
 import { uiInteractionStore } from "../../stores/ui-interaction-store";
+import { Terminal } from "../ui/terminal";
 import { CenterFileViewer } from "./center-file-viewer";
 import { ChatThreadPanel } from "./chat-thread-panel";
 import { FileTreePanel } from "./file-tree-panel";
 import { GitPanel } from "./git-panel";
 import { LeftSidebar, SIDEBAR_WIDTH } from "./left-sidebar";
 import { PromptDock } from "./prompt-dock";
+import { StatusBar } from "./status-bar";
 import { TitleBar } from "./title-bar";
 
 export interface WorkspaceShellProps {
@@ -56,7 +58,7 @@ export interface WorkspaceShellProps {
   contextWindows: ContextWindow[];
   selectedContextSurface: ContextSurfaceKey | null;
   leftSidebarWidth: number;
-  onSelectContextSurface: (surfaceKey: ContextSurfaceKey) => void;
+  onSelectContextSurface: (surfaceKey: ContextSurfaceKey | null) => void;
   onCloseFileWindow: (windowId: string) => void;
   onLeftSidebarResize: (width: number) => void;
   onModelMenuOpenChange: (open: boolean) => void | Promise<void>;
@@ -151,7 +153,7 @@ function WorkspaceShellImpl({
   contextWindows,
   selectedContextSurface,
   leftSidebarWidth,
-  onSelectContextSurface: _onSelectContextSurface,
+  onSelectContextSurface,
   onCloseFileWindow,
   onLeftSidebarResize,
   onModelMenuOpenChange,
@@ -163,9 +165,9 @@ function WorkspaceShellImpl({
   onCreateSession,
   onSelectWorktree,
   onSelectThread,
-  onCreateThread,
+  onCreateThread: _onCreateThread,
   onDeleteWorktree,
-  onCloseThread,
+  onCloseThread: _onCloseThread,
   onDeleteThread,
   onArchiveWorktree,
   onArchiveThread,
@@ -211,9 +213,8 @@ function WorkspaceShellImpl({
     0;
   const hasCommitsToPush = (shellGit?.ahead ?? 0) > 0;
 
-  const [activeSidebarSection, setActiveSidebarSection] = React.useState<
-    "workspaces" | "files"
-  >("workspaces");
+  const { store: windowStore } = useWindowStore();
+
   const lastExpandedSidebarWidthRef = React.useRef(
     leftSidebarWidth > 0 ? leftSidebarWidth : SIDEBAR_WIDTH,
   );
@@ -317,17 +318,6 @@ function WorkspaceShellImpl({
     />
   );
 
-  const selectSidebarSection = React.useCallback(
-    (section: "workspaces" | "files") => {
-      setActiveSidebarSection(section);
-
-      if (leftSidebarWidth <= 0) {
-        onLeftSidebarResize(lastExpandedSidebarWidthRef.current);
-      }
-    },
-    [leftSidebarWidth, onLeftSidebarResize],
-  );
-
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden select-none">
       <div className="relative flex min-h-0 flex-1 select-none">
@@ -338,7 +328,6 @@ function WorkspaceShellImpl({
           activeRepositoryId={activeRepositoryId}
           activeWorktreeId={activeWorktreeId}
           activeThreadId={activeThreadId}
-          activeTabOverride={activeSidebarSection}
           isPromptExecuting={isPromptExecuting}
           threadLastViewedAt={threadLastViewedAt}
           width={leftSidebarWidth}
@@ -375,7 +364,12 @@ function WorkspaceShellImpl({
             isPromptExecuting={isPromptExecuting}
             onToggleTerminal={onToggleTerminal}
             isTerminalVisible={isTerminalVisible}
-            onAddWorkspace={onAddRepository}
+            activeThreadId={activeThreadId}
+            activeThreadTitle={activeThreadTitle}
+            contextWindows={contextWindows}
+            selectedContextSurface={selectedContextSurface}
+            onSelectContextSurface={onSelectContextSurface}
+            onCloseFileWindow={onCloseFileWindow}
           />
           <div className="flex min-h-0 flex-1 overflow-hidden select-none">
             <div
@@ -478,6 +472,11 @@ function WorkspaceShellImpl({
           </aside>
         )}
       </div>
+      <StatusBar
+        gitStatus={activeGitRepositoryStatus}
+        shellGit={shellGit}
+        currentModelValue={currentModelValue}
+      />
     </div>
   );
 }

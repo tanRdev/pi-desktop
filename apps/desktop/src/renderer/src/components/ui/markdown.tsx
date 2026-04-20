@@ -5,6 +5,7 @@ import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
 import { CodeBlockCode } from "./code-block";
+import { markdownTableComponents } from "./markdown-table";
 
 export type MarkdownProps = {
   children: string;
@@ -42,10 +43,86 @@ function extractLanguage(className?: string): string {
   return language ?? "plaintext";
 }
 
+// URL safety: reject javascript:/vbscript:/data: (except image data URIs).
+function sanitizeUrl(url: string | undefined): string | undefined {
+  if (!url) return undefined;
+  const trimmed = url.trim();
+  if (!trimmed) return undefined;
+
+  // Allow fragment/relative/protocol-relative/mailto/https/http implicitly.
+  // Block dangerous schemes.
+  const schemeMatch = trimmed.match(/^([a-zA-Z][a-zA-Z0-9+.-]*):/);
+  if (!schemeMatch) {
+    return trimmed;
+  }
+  const scheme = schemeMatch[1]?.toLowerCase() ?? "";
+  if (scheme === "javascript" || scheme === "vbscript") {
+    return undefined;
+  }
+  if (scheme === "data") {
+    // Only allow image data URIs.
+    if (/^data:image\/[a-zA-Z0-9.+-]+[;,]/.test(trimmed)) {
+      return trimmed;
+    }
+    return undefined;
+  }
+  return trimmed;
+}
+
+// react-markdown urlTransform hook: return empty string to drop unsafe URLs so
+// the resulting attribute is falsy in our component.
+function urlTransform(url: string): string {
+  const safe = sanitizeUrl(url);
+  return safe ?? "";
+}
+
+function isExternalHref(href: string | undefined): boolean {
+  if (!href) return false;
+  if (href.startsWith("#")) return false;
+  if (href.startsWith("/")) return false;
+  return /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(href);
+}
+
+// Deterministic slug from heading children text. Collision-free within a single
+// Markdown render is not guaranteed here; duplicates are acceptable for anchor jumps.
+function slugifyChildren(children: unknown): string {
+  const text = extractText(children);
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\p{Letter}\p{Number}\s-]+/gu, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function extractText(node: unknown): string {
+  if (node === null || node === undefined || typeof node === "boolean") {
+    return "";
+  }
+  if (typeof node === "string" || typeof node === "number") {
+    return String(node);
+  }
+  if (Array.isArray(node)) {
+    return node.map(extractText).join("");
+  }
+  if (typeof node === "object") {
+    const record: Record<string, unknown> = { ...node };
+    const props = record.props;
+    if (props && typeof props === "object") {
+      const propsRecord: Record<string, unknown> = { ...props };
+      return extractText(propsRecord.children);
+    }
+  }
+  return "";
+}
+
 const INITIAL_COMPONENTS: Partial<Components> = {
-  h1: function H1Component({ children, ...props }) {
+  h1: function H1Component({ children, id, ...props }) {
+    const slug = id ?? (slugifyChildren(children) || undefined);
     return (
       <h1
+        id={slug}
         className="mt-8 mb-4 text-2xl font-sans font-normal tracking-tight text-white/90"
         {...props}
       >
@@ -53,9 +130,11 @@ const INITIAL_COMPONENTS: Partial<Components> = {
       </h1>
     );
   },
-  h2: function H2Component({ children, ...props }) {
+  h2: function H2Component({ children, id, ...props }) {
+    const slug = id ?? (slugifyChildren(children) || undefined);
     return (
       <h2
+        id={slug}
         className="mt-8 mb-4 text-xl font-sans font-normal tracking-tight text-white/90"
         {...props}
       >
@@ -63,9 +142,11 @@ const INITIAL_COMPONENTS: Partial<Components> = {
       </h2>
     );
   },
-  h3: function H3Component({ children, ...props }) {
+  h3: function H3Component({ children, id, ...props }) {
+    const slug = id ?? (slugifyChildren(children) || undefined);
     return (
       <h3
+        id={slug}
         className="mt-6 mb-3 text-lg font-sans font-normal tracking-tight text-white/90"
         {...props}
       >
@@ -73,9 +154,11 @@ const INITIAL_COMPONENTS: Partial<Components> = {
       </h3>
     );
   },
-  h4: function H4Component({ children, ...props }) {
+  h4: function H4Component({ children, id, ...props }) {
+    const slug = id ?? (slugifyChildren(children) || undefined);
     return (
       <h4
+        id={slug}
         className="mt-6 mb-2 text-base font-sans font-normal tracking-tight text-white/90"
         {...props}
       >
@@ -83,9 +166,11 @@ const INITIAL_COMPONENTS: Partial<Components> = {
       </h4>
     );
   },
-  h5: function H5Component({ children, ...props }) {
+  h5: function H5Component({ children, id, ...props }) {
+    const slug = id ?? (slugifyChildren(children) || undefined);
     return (
       <h5
+        id={slug}
         className="mt-4 mb-2 text-sm font-normal uppercase tracking-wide text-white/50"
         {...props}
       >
@@ -93,9 +178,11 @@ const INITIAL_COMPONENTS: Partial<Components> = {
       </h5>
     );
   },
-  h6: function H6Component({ children, ...props }) {
+  h6: function H6Component({ children, id, ...props }) {
+    const slug = id ?? (slugifyChildren(children) || undefined);
     return (
       <h6
+        id={slug}
         className="mt-4 mb-2 text-xs font-normal uppercase tracking-wide text-white/50"
         {...props}
       >
@@ -111,16 +198,23 @@ const INITIAL_COMPONENTS: Partial<Components> = {
     );
   },
   a: function AComponent({ children, href, ...props }) {
+    const safeHref = sanitizeUrl(href);
+    const external = isExternalHref(safeHref);
     return (
       <a
-        href={href}
+        href={safeHref}
+        target={external ? "_blank" : undefined}
+        rel={external ? "noopener noreferrer" : undefined}
         onClick={(event) => {
-          if (!href) {
+          if (!safeHref) {
+            event.preventDefault();
             return;
           }
-
+          if (!external) {
+            return;
+          }
           event.preventDefault();
-          void window.piDesktop.dialog.openExternal(href);
+          void window.piDesktop?.dialog?.openExternal?.(safeHref);
         }}
         className={cn(
           "text-sm text-[var(--color-accent)]/80 underline underline-offset-4 decoration-[var(--color-accent)]/30",
@@ -232,79 +326,31 @@ const INITIAL_COMPONENTS: Partial<Components> = {
     }
 
     const language = extractLanguage(className);
+    const codeText = typeof children === "string" ? children : String(children);
 
     return (
-      <CodeBlockCode
-        code={children as string}
-        language={language}
-        className="my-6"
-      />
+      <CodeBlockCode code={codeText} language={language} className="my-6" />
     );
   },
   pre: function PreComponent({ children }) {
     return <>{children}</>;
   },
-  table: function TableComponent({ children, ...props }) {
-    return (
-      <div className="my-6 overflow-x-auto">
-        <table className="w-full border-collapse text-sm" {...props}>
-          {children}
-        </table>
-      </div>
-    );
-  },
-  thead: function TheadComponent({ children, ...props }) {
-    return (
-      <thead
-        className="border-b border-white/[0.06] bg-white/[0.02]"
-        {...props}
-      >
-        {children}
-      </thead>
-    );
-  },
-  tbody: function TbodyComponent({ children, ...props }) {
-    return (
-      <tbody className="divide-y divide-white/[0.04]" {...props}>
-        {children}
-      </tbody>
-    );
-  },
-  tr: function TrComponent({ children, ...props }) {
-    return (
-      <tr
-        className={cn(
-          "transition-all duration-150 ease-out",
-          "hover:bg-white/[0.02]",
-        )}
-        {...props}
-      >
-        {children}
-      </tr>
-    );
-  },
-  th: function ThComponent({ children, ...props }) {
-    return (
-      <th
-        className="px-3 py-2 text-left text-xs font-normal uppercase tracking-wide text-white/40"
-        {...props}
-      >
-        {children}
-      </th>
-    );
-  },
-  td: function TdComponent({ children, ...props }) {
-    return (
-      <td className="px-3 py-2 text-sm text-white/60" {...props}>
-        {children}
-      </td>
-    );
-  },
+  ...markdownTableComponents,
   img: function ImgComponent({ src, alt, ...props }) {
+    const safeSrc = sanitizeUrl(src);
+    if (!safeSrc) {
+      return null;
+    }
     return (
       <img
-        src={src}
-        alt={alt}
+        src={safeSrc}
+        alt={alt ?? ""}
+        loading="lazy"
+        decoding="async"
+        onError={(event) => {
+          const target = event.currentTarget;
+          target.style.display = "none";
+        }}
         className={cn(
           "my-6 border border-white/[0.06] max-w-full",
           "transition-all duration-200 ease-out",
@@ -326,6 +372,7 @@ const MemoizedMarkdownBlock = memo(
     return (
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkBreaks]}
+        urlTransform={urlTransform}
         components={components}
       >
         {content}

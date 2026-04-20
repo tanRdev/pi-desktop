@@ -6,7 +6,7 @@ import {
   WarningOctagon,
 } from "@phosphor-icons/react";
 import { Toaster as Sonner, type ToasterProps } from "sonner";
-import { useTheme } from "@/components/theme-provider";
+import { useTheme } from "@/lib/theme";
 
 const Toaster = ({ ...props }: ToasterProps) => {
   const { theme } = useTheme();

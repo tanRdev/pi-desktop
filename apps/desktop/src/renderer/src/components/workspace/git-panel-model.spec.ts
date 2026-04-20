@@ -4,8 +4,13 @@ import { describe, expect, it } from "vitest";
 import { createWorktree } from "../../../../test/factories";
 
 import {
+  applyCommitTemplate,
+  buildFileStageEntries,
   buildGitPanelViewModel,
+  DEFAULT_COMMIT_TEMPLATES,
   formatGitCountsSummary,
+  nextFocusIndex,
+  resolveFocusedPath,
 } from "./git-panel-model";
 
 const notRepoShellGit: ShellGitSnapshot = { status: "not_repo" };
@@ -229,5 +234,139 @@ describe("buildGitPanelViewModel", () => {
       { label: "Conflicts", value: "0" },
     ]);
     expect(vm.upstreamLabel).toBe("origin/main");
+  });
+});
+
+describe("applyCommitTemplate", () => {
+  const feat = DEFAULT_COMMIT_TEMPLATES.find((t) => t.id === "feat");
+  const fix = DEFAULT_COMMIT_TEMPLATES.find((t) => t.id === "fix");
+
+  it("prepends template prefix to empty messages", () => {
+    if (!feat) throw new Error("missing feat template");
+    expect(applyCommitTemplate("", feat)).toBe("feat: ");
+    expect(applyCommitTemplate("   ", feat)).toBe("feat: ");
+  });
+
+  it("replaces existing conventional-commit prefix", () => {
+    if (!feat || !fix) throw new Error("missing templates");
+    expect(applyCommitTemplate("feat: add thing", fix)).toBe("fix: add thing");
+    expect(applyCommitTemplate("chore(scope): do it", feat)).toBe(
+      "feat: do it",
+    );
+  });
+
+  it("prepends when there is no known prefix", () => {
+    if (!feat) throw new Error("missing template");
+    expect(applyCommitTemplate("just a note", feat)).toBe("feat: just a note");
+  });
+});
+
+describe("buildFileStageEntries", () => {
+  it("returns empty list when status is null", () => {
+    expect(buildFileStageEntries(null)).toEqual([]);
+  });
+
+  it("classifies staged-only, unstaged-only, and partial files", () => {
+    const entries = buildFileStageEntries(
+      makeRepoStatus({
+        stagedChanges: [
+          {
+            path: "a.ts",
+            status: "added",
+            indexStatus: "added",
+            worktreeStatus: null,
+          },
+          {
+            path: "c.ts",
+            status: "modified",
+            indexStatus: "modified",
+            worktreeStatus: null,
+          },
+        ],
+        unstagedChanges: [
+          {
+            path: "b.ts",
+            status: "modified",
+            indexStatus: null,
+            worktreeStatus: "modified",
+          },
+          {
+            path: "c.ts",
+            status: "modified",
+            indexStatus: null,
+            worktreeStatus: "modified",
+          },
+          {
+            path: "d.ts",
+            status: "untracked",
+            indexStatus: null,
+            worktreeStatus: "untracked",
+          },
+        ],
+      }),
+    );
+
+    const byPath = Object.fromEntries(entries.map((e) => [e.path, e.state]));
+    expect(byPath["a.ts"]).toBe("staged");
+    expect(byPath["b.ts"]).toBe("unstaged");
+    expect(byPath["c.ts"]).toBe("partial");
+    expect(byPath["d.ts"]).toBe("untracked");
+  });
+
+  it("marks conflicted files as conflicted regardless of staged/unstaged", () => {
+    const entries = buildFileStageEntries(
+      makeRepoStatus({
+        conflictedChanges: [
+          {
+            path: "conflict.ts",
+            status: "unmerged",
+            indexStatus: "unmerged",
+            worktreeStatus: "unmerged",
+          },
+        ],
+      }),
+    );
+
+    expect(entries).toEqual([
+      { path: "conflict.ts", state: "conflicted", status: "unmerged" },
+    ]);
+  });
+});
+
+describe("nextFocusIndex / resolveFocusedPath", () => {
+  it("clamps at bounds and moves by direction", () => {
+    expect(nextFocusIndex(0, 3, 1)).toBe(1);
+    expect(nextFocusIndex(2, 3, 1)).toBe(2);
+    expect(nextFocusIndex(0, 3, -1)).toBe(0);
+    expect(nextFocusIndex(1, 3, -1)).toBe(0);
+  });
+
+  it("returns 0 when list is empty", () => {
+    expect(nextFocusIndex(5, 0, 1)).toBe(0);
+  });
+
+  it("resolves focused path from entries", () => {
+    const entries = buildFileStageEntries(
+      makeRepoStatus({
+        stagedChanges: [
+          {
+            path: "a.ts",
+            status: "added",
+            indexStatus: "added",
+            worktreeStatus: null,
+          },
+          {
+            path: "b.ts",
+            status: "modified",
+            indexStatus: "modified",
+            worktreeStatus: null,
+          },
+        ],
+      }),
+    );
+    expect(resolveFocusedPath(entries, 0)).toBe("a.ts");
+    expect(resolveFocusedPath(entries, 1)).toBe("b.ts");
+    expect(resolveFocusedPath(entries, 99)).toBe("b.ts");
+    expect(resolveFocusedPath([], 0)).toBeNull();
   });
 });

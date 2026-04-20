@@ -9,10 +9,29 @@ import * as React from "react";
 import { Virtuoso } from "react-virtuoso";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
-import { ArrowClockwise, CaretDown, Check, Trash } from "../ui/icons";
+import {
+  ArrowClockwise,
+  ArrowCounterClockwise,
+  CaretDown,
+  Check,
+  Copy,
+  GitBranch,
+  Trash,
+} from "../ui/icons";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { buildGitPanelViewModel } from "./git-panel-model";
 import { GitDiffViewer } from "./git-diff-viewer";
+import {
+  applyCommitTemplate,
+  type BranchSummary,
+  buildFileStageEntries,
+  buildGitPanelViewModel,
+  type CommitTemplate,
+  DEFAULT_COMMIT_TEMPLATES,
+  type FileStageEntry,
+  type GitPanelCapabilities,
+  NO_GIT_CAPABILITIES,
+  nextFocusIndex,
+} from "./git-panel-model";
 
 export {
   buildGitPanelViewModel,
@@ -29,6 +48,16 @@ export interface GitPanelProps {
   commitMessage: string;
   isLoading?: boolean;
   isRefreshing?: boolean;
+  /**
+   * Optional capability flags. Components gate UI behind these booleans for
+   * features whose backend IPC may not be wired yet (amend, revert, branch
+   * switching, etc). Defaults to {@link NO_GIT_CAPABILITIES}.
+   */
+  capabilities?: GitPanelCapabilities;
+  /** Available commit-message templates. Defaults to {@link DEFAULT_COMMIT_TEMPLATES}. */
+  commitTemplates?: ReadonlyArray<CommitTemplate>;
+  /** Branch list (frontend-only until backend IPC wired). */
+  branches?: ReadonlyArray<BranchSummary>;
   onCommitMessageChange: (value: string) => void;
   onRefresh: () => void | Promise<void>;
   onCommit: () => void | Promise<void>;
@@ -42,29 +71,54 @@ export interface GitPanelProps {
   onUnstageAllFiles: (filePaths: string[]) => void | Promise<void>;
   onDiscardFile: (filePath: string) => void | Promise<void>;
   onViewDiff?: (filePath: string, staged: boolean) => void;
+  /** Per-file revert. Called only when `capabilities.revertFile` is true. */
+  onRevertFile?: (filePath: string) => void | Promise<void>;
+  /** Amend toggle change. Called only when `capabilities.amend` is true. */
+  onAmendChange?: (amend: boolean) => void;
+  /** Initial amend state. */
+  amend?: boolean;
+  /** Branch switch. Called only when `capabilities.switchBranch` is true. */
+  onSwitchBranch?: (branchName: string) => void | Promise<void>;
 }
 
 interface GitChangeRowProps {
   path: string;
   isStaged: boolean;
   status: string;
+  isFocused: boolean;
+  canRevert: boolean;
   onStage: (filePath: string) => void | Promise<void>;
   onUnstage: (filePath: string) => void | Promise<void>;
   onDiscard: (filePath: string) => void | Promise<void>;
+  onRevert?: (filePath: string) => void | Promise<void>;
   onSelectFile?: (filePath: string, staged: boolean) => void;
+  onCopyPath: (filePath: string) => void;
+  onFocusRow: (filePath: string) => void;
 }
 
 const GitChangeRow = React.memo(function GitChangeRow({
   path,
   isStaged,
   status,
+  isFocused,
+  canRevert,
   onStage,
   onUnstage,
   onDiscard,
+  onRevert,
   onSelectFile,
+  onCopyPath,
+  onFocusRow,
 }: GitChangeRowProps) {
   return (
-    <div className="group flex w-full items-center gap-1.5 px-2 py-1 text-left text-[10px] transition-colors text-white/40 hover:bg-white/[0.04] hover:text-white/70 border-b border-white/[0.06]">
+    <div
+      data-path={path}
+      data-focused={isFocused ? "true" : "false"}
+      className={cn(
+        "group flex w-full items-center gap-1.5 px-2 py-1 text-left text-[10px] transition-colors text-white/40 hover:bg-white/[0.04] hover:text-white/70 border-b border-white/[0.06]",
+        isFocused && "bg-white/[0.06] text-white/80",
+      )}
+    >
       <button
         type="button"
         onClick={() => (isStaged ? void onUnstage(path) : void onStage(path))}
@@ -82,17 +136,47 @@ const GitChangeRow = React.memo(function GitChangeRow({
         <button
           type="button"
           className="truncate group-hover:text-white/80 text-left w-full"
-          onClick={() => onSelectFile?.(path, isStaged)}
+          onClick={() => {
+            onFocusRow(path);
+            onSelectFile?.(path, isStaged);
+          }}
         >
           {path}
         </button>
       </div>
       <div className="flex shrink-0 items-center gap-2">
-        <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+        <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 data-[focused=true]:opacity-100">
+          <button
+            type="button"
+            onClick={() => onCopyPath(path)}
+            title="Copy path"
+            aria-label={`Copy path ${path}`}
+            className={cn(
+              "flex size-4 items-center justify-center text-white/35 transition-colors duration-150",
+              "hover:bg-white/10 hover:text-white/80",
+            )}
+          >
+            <Copy className="size-2" />
+          </button>
+          {canRevert && onRevert ? (
+            <button
+              type="button"
+              onClick={() => void onRevert(path)}
+              title="Revert file"
+              aria-label={`Revert ${path}`}
+              className={cn(
+                "flex size-4 items-center justify-center text-white/35 transition-colors duration-150",
+                "hover:bg-amber-500/20 hover:text-amber-300",
+              )}
+            >
+              <ArrowCounterClockwise className="size-2" />
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={() => void onDiscard(path)}
             title="Discard changes"
+            aria-label={`Discard ${path}`}
             className={cn(
               "flex size-4 items-center justify-center text-white/35 transition-colors duration-150",
               "hover:bg-red-500/20 hover:text-red-400",
@@ -131,59 +215,67 @@ const GitChangeRow = React.memo(function GitChangeRow({
 });
 
 function CombinedChangeList({
-  repositoryStatus,
+  entries,
+  focusedPath,
+  capabilities,
   onStage,
   onStageAll,
   onUnstage,
   onUnstageAll,
   onDiscard,
+  onRevert,
   onSelectFile,
+  onCopyPath,
+  onFocusRow,
 }: {
-  repositoryStatus: GitRepositoryStatus | null;
+  entries: ReadonlyArray<FileStageEntry>;
+  focusedPath: string | null;
+  capabilities: GitPanelCapabilities;
   onStage: (filePath: string) => void | Promise<void>;
   onStageAll: (filePaths: string[]) => void | Promise<void>;
   onUnstage: (filePath: string) => void | Promise<void>;
   onUnstageAll: (filePaths: string[]) => void | Promise<void>;
   onDiscard: (filePath: string) => void | Promise<void>;
+  onRevert?: (filePath: string) => void | Promise<void>;
   onSelectFile?: (filePath: string, staged: boolean) => void;
+  onCopyPath: (filePath: string) => void;
+  onFocusRow: (filePath: string) => void;
 }) {
-  const { stagedPaths, unstagedPaths, stagedByPath, unstagedByPath, allPaths } =
-    React.useMemo(() => {
-      const staged = repositoryStatus?.stagedChanges ?? [];
-      const unstaged = repositoryStatus?.unstagedChanges ?? [];
-      const stagedMap = new Map(staged.map((c) => [c.path, c]));
-      const unstagedMap = new Map(unstaged.map((c) => [c.path, c]));
-      const union = new Set<string>();
-      staged.forEach((c) => {
-        union.add(c.path);
-      });
-      unstaged.forEach((c) => {
-        union.add(c.path);
-      });
-      return {
-        stagedPaths: staged.map((c) => c.path),
-        unstagedPaths: unstaged.map((c) => c.path),
-        stagedByPath: stagedMap,
-        unstagedByPath: unstagedMap,
-        allPaths: Array.from(union).sort(),
-      };
-    }, [repositoryStatus]);
+  const { stagedPaths, unstagedPaths, allPaths } = React.useMemo(() => {
+    const staged: string[] = [];
+    const unstaged: string[] = [];
+    entries.forEach((entry) => {
+      if (entry.state === "staged" || entry.state === "partial") {
+        staged.push(entry.path);
+      }
+      if (
+        entry.state === "unstaged" ||
+        entry.state === "partial" ||
+        entry.state === "untracked"
+      ) {
+        unstaged.push(entry.path);
+      }
+    });
+    return {
+      stagedPaths: staged,
+      unstagedPaths: unstaged,
+      allPaths: entries.map((entry) => entry.path),
+    };
+  }, [entries]);
 
   const { added, deleted, modified } = React.useMemo(() => {
     let a = 0;
     let d = 0;
     let m = 0;
-    allPaths.forEach((path) => {
-      const change = unstagedByPath.get(path) ?? stagedByPath.get(path);
-      const status = change?.status ?? "unknown";
-      if (status === "added" || status === "untracked") a++;
-      else if (status === "deleted") d++;
-      else if (status === "modified" || status === "renamed") m++;
+    entries.forEach((entry) => {
+      if (entry.status === "added" || entry.status === "untracked") a++;
+      else if (entry.status === "deleted") d++;
+      else if (entry.status === "modified" || entry.status === "renamed") m++;
     });
     return { added: a, deleted: d, modified: m };
-  }, [allPaths, stagedByPath, unstagedByPath]);
+  }, [entries]);
 
-  if (allPaths.length === 0) {
+  if (entries.length === 0) {
     return null;
   }
 
@@ -193,6 +285,27 @@ function CombinedChangeList({
 
   const handleUnstageAll = () => {
     void onUnstageAll(stagedPaths);
+  };
+
+  const renderRow = (entry: FileStageEntry) => {
+    const isStaged = entry.state === "staged" || entry.state === "partial";
+    return (
+      <GitChangeRow
+        key={entry.path}
+        path={entry.path}
+        isStaged={isStaged}
+        status={entry.status}
+        isFocused={focusedPath === entry.path}
+        canRevert={capabilities.revertFile}
+        onStage={onStage}
+        onUnstage={onUnstage}
+        onDiscard={onDiscard}
+        onRevert={onRevert}
+        onSelectFile={onSelectFile}
+        onCopyPath={onCopyPath}
+        onFocusRow={onFocusRow}
+      />
+    );
   };
 
   return (
@@ -247,48 +360,17 @@ function CombinedChangeList({
       </div>
       <div
         className="min-h-0 flex-1 overflow-hidden"
-        style={{ height: Math.min(allPaths.length * 28, 400) }}
+        style={{ height: Math.min(entries.length * 28, 400) }}
       >
-        {allPaths.length > 50 ? (
+        {entries.length > 50 ? (
           <Virtuoso
-            data={allPaths}
+            data={entries.slice()}
             className="custom-scrollbar"
-            itemContent={(_index, path) => {
-              const staged = stagedByPath.get(path);
-              const unstaged = unstagedByPath.get(path);
-              const status = (unstaged || staged)?.status ?? "unknown";
-              return (
-                <GitChangeRow
-                  path={path}
-                  isStaged={Boolean(staged)}
-                  status={status}
-                  onStage={onStage}
-                  onUnstage={onUnstage}
-                  onDiscard={onDiscard}
-                  onSelectFile={onSelectFile}
-                />
-              );
-            }}
+            itemContent={(_index, entry) => renderRow(entry)}
           />
         ) : (
           <div className="custom-scrollbar h-full overflow-auto">
-            {allPaths.map((path) => {
-              const staged = stagedByPath.get(path);
-              const unstaged = unstagedByPath.get(path);
-              const status = (unstaged || staged)?.status ?? "unknown";
-              return (
-                <GitChangeRow
-                  key={path}
-                  path={path}
-                  isStaged={Boolean(staged)}
-                  status={status}
-                  onStage={onStage}
-                  onUnstage={onUnstage}
-                  onDiscard={onDiscard}
-                  onSelectFile={onSelectFile}
-                />
-              );
-            })}
+            {entries.map((entry) => renderRow(entry))}
           </div>
         )}
       </div>
@@ -325,6 +407,10 @@ export function GitPanel({
   commitMessage,
   isLoading = false,
   isRefreshing = false,
+  capabilities = NO_GIT_CAPABILITIES,
+  commitTemplates = DEFAULT_COMMIT_TEMPLATES,
+  branches = [],
+  amend = false,
   onCommitMessageChange,
   onRefresh,
   onCommit,
@@ -338,11 +424,54 @@ export function GitPanel({
   onUnstageAllFiles,
   onDiscardFile,
   onViewDiff,
+  onRevertFile,
+  onAmendChange,
+  onSwitchBranch,
 }: GitPanelProps) {
   const [selectedDiff, setSelectedDiff] = React.useState<GitFileDiff | null>(
     null,
   );
   const [diffLoading, setDiffLoading] = React.useState(false);
+  const [focusIndex, setFocusIndex] = React.useState(0);
+  const listContainerRef = React.useRef<HTMLDivElement | null>(null);
+
+  const entries = React.useMemo(
+    () => buildFileStageEntries(repositoryStatus),
+    [repositoryStatus],
+  );
+
+  // Clamp focus when list shrinks.
+  React.useEffect(() => {
+    if (entries.length === 0) {
+      if (focusIndex !== 0) setFocusIndex(0);
+      return;
+    }
+    if (focusIndex >= entries.length) {
+      setFocusIndex(entries.length - 1);
+    }
+  }, [entries.length, focusIndex]);
+
+  const focusedPath =
+    entries.length > 0
+      ? (entries[Math.max(0, Math.min(focusIndex, entries.length - 1))]?.path ??
+        null)
+      : null;
+
+  const handleFocusRow = React.useCallback(
+    (filePath: string) => {
+      const idx = entries.findIndex((e) => e.path === filePath);
+      if (idx >= 0) setFocusIndex(idx);
+    },
+    [entries],
+  );
+
+  const handleCopyPath = React.useCallback((filePath: string) => {
+    const nav = typeof navigator !== "undefined" ? navigator : null;
+    if (!nav?.clipboard) return;
+    void nav.clipboard.writeText(filePath).catch(() => {
+      // Clipboard access can be denied in tests or locked-down contexts.
+    });
+  }, []);
 
   const handleSelectFile = React.useCallback(
     (filePath: string, staged: boolean) => {
@@ -371,6 +500,53 @@ export function GitPanel({
     setSelectedDiff(null);
   }, []);
 
+  const handleListKeyDown = React.useCallback(
+    (event: React.KeyboardEvent<HTMLDivElement>) => {
+      if (entries.length === 0) return;
+      if (event.key === "ArrowDown" || event.key === "j") {
+        event.preventDefault();
+        setFocusIndex((idx) => nextFocusIndex(idx, entries.length, 1));
+        return;
+      }
+      if (event.key === "ArrowUp" || event.key === "k") {
+        event.preventDefault();
+        setFocusIndex((idx) => nextFocusIndex(idx, entries.length, -1));
+        return;
+      }
+      const active = entries[focusIndex];
+      if (!active) return;
+      if (event.key === "Enter") {
+        event.preventDefault();
+        const isStaged =
+          active.state === "staged" || active.state === "partial";
+        handleSelectFile(active.path, isStaged);
+        return;
+      }
+      if (event.key === " ") {
+        event.preventDefault();
+        const isStaged =
+          active.state === "staged" || active.state === "partial";
+        if (isStaged) {
+          void onUnstageFile(active.path);
+        } else {
+          void onStageFile(active.path);
+        }
+      }
+    },
+    [entries, focusIndex, handleSelectFile, onStageFile, onUnstageFile],
+  );
+
+  const handleApplyTemplate = React.useCallback(
+    (template: CommitTemplate) => {
+      onCommitMessageChange(applyCommitTemplate(commitMessage, template));
+    },
+    [commitMessage, onCommitMessageChange],
+  );
+
+  const handleToggleAmend = React.useCallback(() => {
+    onAmendChange?.(!amend);
+  }, [amend, onAmendChange]);
+
   const viewModel = React.useMemo(
     () =>
       buildGitPanelViewModel({
@@ -384,9 +560,10 @@ export function GitPanel({
   const canRefresh =
     repositoryPath !== null && shellGit?.status === "repository";
   const canCommit =
-    repositoryPath !== null && viewModel.commitActionLabel !== null;
+    repositoryPath !== null && (viewModel.commitActionLabel !== null || amend);
   const canCommitAndPush =
-    repositoryPath !== null && viewModel.commitAndPushActionLabel !== null;
+    repositoryPath !== null &&
+    (viewModel.commitAndPushActionLabel !== null || amend);
   const canPull = repositoryPath !== null && viewModel.pullActionLabel !== null;
   const canPush = repositoryPath !== null && viewModel.pushActionLabel !== null;
   const canFetch =
@@ -408,15 +585,68 @@ export function GitPanel({
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-2 min-w-0">
-                <span className="truncate text-[10.5px] font-normal text-white/50">
-                  {viewModel.branchLabel}
-                </span>
+                {capabilities.listBranches && branches.length > 0 ? (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        aria-label="Switch branch"
+                        className="flex items-center gap-1.5 truncate text-[10.5px] font-normal text-white/50 hover:text-white/80 transition-colors"
+                      >
+                        <GitBranch className="size-3 shrink-0" />
+                        <span className="truncate">
+                          {viewModel.branchLabel}
+                        </span>
+                        <CaretDown className="size-2.5 shrink-0" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      align="start"
+                      side="bottom"
+                      className="w-56 border-white/10 bg-[var(--color-bg-tertiary)] p-1 shadow-2xl"
+                    >
+                      <div className="flex flex-col gap-0.5 max-h-64 overflow-auto custom-scrollbar">
+                        {branches.map((branch) => (
+                          <Button
+                            key={branch.name}
+                            variant="ghost"
+                            size="sm"
+                            disabled={
+                              !capabilities.switchBranch ||
+                              branch.isCurrent ||
+                              !onSwitchBranch
+                            }
+                            onClick={() => void onSwitchBranch?.(branch.name)}
+                            className="justify-start px-2 py-1.5 text-[10.5px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
+                          >
+                            <span className="flex items-center gap-1.5 truncate">
+                              {branch.isCurrent ? (
+                                <Check className="size-2.5 text-[var(--color-accent)]" />
+                              ) : (
+                                <span className="size-2.5" />
+                              )}
+                              <span className="truncate">{branch.name}</span>
+                              {branch.isRemote ? (
+                                <span className="text-white/30">(remote)</span>
+                              ) : null}
+                            </span>
+                          </Button>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                ) : (
+                  <span className="truncate text-[10.5px] font-normal text-white/50">
+                    {viewModel.branchLabel}
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-1 shrink-0">
                 <button
                   type="button"
                   onClick={() => void onRefresh()}
                   disabled={!canRefresh || isRefreshing}
+                  aria-label="Refresh git status"
                   className="flex size-8 items-center justify-center text-white/40 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/80 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <ArrowClockwise
@@ -453,7 +683,58 @@ export function GitPanel({
                   disabled={!repositoryPath || isLoading}
                   className="w-full resize-none bg-transparent px-0 py-2 text-[10.5px] leading-relaxed text-white/90 placeholder:text-white/20 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                 />
-                <div className="flex items-center justify-end gap-1.5 pt-1">
+                <div className="flex items-center justify-between gap-2 pt-1">
+                  <div className="flex items-center gap-2">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          aria-label="Insert commit template"
+                          disabled={!repositoryPath || isLoading}
+                          className="flex items-center gap-1 text-[10px] text-white/40 hover:text-white/70 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          <span>Template</span>
+                          <CaretDown className="size-2.5" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        align="start"
+                        side="bottom"
+                        className="w-40 border-white/10 bg-[var(--color-bg-tertiary)] p-1 shadow-2xl"
+                      >
+                        <div className="flex flex-col gap-0.5 max-h-56 overflow-auto custom-scrollbar">
+                          {commitTemplates.map((template) => (
+                            <Button
+                              key={template.id}
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleApplyTemplate(template)}
+                              className="justify-start px-2 py-1.5 text-[10.5px] font-mono text-white/60 hover:bg-white/[0.05] hover:text-white"
+                            >
+                              {template.label}
+                            </Button>
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                    {capabilities.amend ? (
+                      <label
+                        className={cn(
+                          "flex items-center gap-1.5 text-[10px] select-none cursor-pointer",
+                          amend ? "text-white/80" : "text-white/40",
+                        )}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={amend}
+                          onChange={handleToggleAmend}
+                          aria-label="Amend previous commit"
+                          className="accent-[var(--color-accent)]"
+                        />
+                        <span>Amend</span>
+                      </label>
+                    ) : null}
+                  </div>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -464,7 +745,7 @@ export function GitPanel({
                           !canCommit || !commitMessage.trim() || isLoading
                         }
                       >
-                        <span>Commit</span>
+                        <span>{amend ? "Amend" : "Commit"}</span>
                         <CaretDown className="size-2.5 ml-1" />
                       </Button>
                     </PopoverTrigger>
@@ -483,7 +764,7 @@ export function GitPanel({
                           onClick={() => void onCommit()}
                           className="justify-start px-2 py-1.5 text-[10.5px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
                         >
-                          Commit
+                          {amend ? "Amend" : "Commit"}
                         </Button>
                         <Button
                           variant="ghost"
@@ -496,7 +777,7 @@ export function GitPanel({
                           onClick={() => void onCommitAndPush()}
                           className="justify-start px-2 py-1.5 text-[10.5px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
                         >
-                          Commit & Push
+                          {amend ? "Amend & Push" : "Commit & Push"}
                         </Button>
                         <div className="my-1 h-px bg-white/5" />
                         <Button
@@ -532,15 +813,27 @@ export function GitPanel({
                 </div>
               </section>
 
-              <div className="space-y-5">
+              <div
+                ref={listContainerRef}
+                className="space-y-5 outline-none"
+                role="listbox"
+                aria-label="Changed files"
+                tabIndex={entries.length > 0 ? 0 : -1}
+                onKeyDown={handleListKeyDown}
+              >
                 <CombinedChangeList
-                  repositoryStatus={repositoryStatus}
+                  entries={entries}
+                  focusedPath={focusedPath}
+                  capabilities={capabilities}
                   onStage={onStageFile}
                   onStageAll={onStageAllFiles}
                   onUnstage={onUnstageFile}
                   onUnstageAll={onUnstageAllFiles}
                   onDiscard={onDiscardFile}
+                  onRevert={onRevertFile}
                   onSelectFile={handleSelectFile}
+                  onCopyPath={handleCopyPath}
+                  onFocusRow={handleFocusRow}
                 />
               </div>
             </div>

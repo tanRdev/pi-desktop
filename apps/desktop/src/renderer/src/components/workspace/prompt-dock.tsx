@@ -1,3 +1,4 @@
+import { X } from "@phosphor-icons/react";
 import type {
   MentionSuggestion,
   ProviderSnapshot,
@@ -171,12 +172,65 @@ export function PromptDock({
       ? getContextPercentage(currentContextTokens, currentContextWindow)
       : null);
 
+  const [pendingImages, setPendingImages] = React.useState<File[]>([]);
+  const objectUrlMap = React.useRef<Map<File, string>>(new Map());
+
+  const getObjectUrl = React.useCallback((file: File): string => {
+    const existing = objectUrlMap.current.get(file);
+    if (existing) return existing;
+    const url = URL.createObjectURL(file);
+    objectUrlMap.current.set(file, url);
+    return url;
+  }, []);
+
+  const handleImagePaste = React.useCallback((file: File) => {
+    setPendingImages((prev) => [...prev, file]);
+  }, []);
+
+  const handleRemovePendingImage = React.useCallback((index: number) => {
+    setPendingImages((prev) => {
+      const removed = prev[index];
+      if (removed) {
+        const url = objectUrlMap.current.get(removed);
+        if (url) {
+          URL.revokeObjectURL(url);
+          objectUrlMap.current.delete(removed);
+        }
+      }
+      return prev.filter((_, i) => i !== index);
+    });
+  }, []);
+
+  React.useEffect(() => {
+    return () => {
+      for (const url of objectUrlMap.current.values()) {
+        URL.revokeObjectURL(url);
+      }
+      objectUrlMap.current.clear();
+    };
+  }, []);
+
   const handleSubmit = React.useCallback(() => {
     if (!isPromptExecuting && draft.trim().length > 0) {
       history.push(draft);
     }
+    if (pendingImages.length > 0) {
+      window.dispatchEvent(
+        new CustomEvent("pi:paste-image", {
+          detail: { files: pendingImages },
+        }),
+      );
+      setPendingImages([]);
+    }
     void (isPromptExecuting ? onCancelPrompt() : onSend());
-  }, [isPromptExecuting, onCancelPrompt, onSend, history, draft]);
+  }, [
+    isPromptExecuting,
+    onCancelPrompt,
+    onSend,
+    history,
+    draft,
+    pendingImages,
+  ]);
 
   const handlePromptKeyDown = React.useCallback(
     (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -244,26 +298,6 @@ export function PromptDock({
     ],
   );
 
-  const handlePaste = React.useCallback(
-    (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
-      const items = event.clipboardData?.items;
-      if (!items) return;
-      for (const item of items) {
-        if (item.kind === "file" && item.type.startsWith("image/")) {
-          const file = item.getAsFile();
-          if (file) {
-            event.preventDefault();
-            window.dispatchEvent(
-              new CustomEvent("pi:paste-image", { detail: file }),
-            );
-            return;
-          }
-        }
-      }
-    },
-    [],
-  );
-
   return (
     <div
       aria-hidden={!isVisible}
@@ -313,7 +347,7 @@ export function PromptDock({
             }
             disabled={!hasActiveThread}
             onKeyDown={handlePromptKeyDown}
-            onPaste={handlePaste}
+            onImagePaste={handleImagePaste}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             className={cn(
@@ -325,6 +359,28 @@ export function PromptDock({
               isFocused && "placeholder:text-[var(--color-text-quaternary)]",
             )}
           />
+
+          {pendingImages.length > 0 ? (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {pendingImages.map((file, index) => (
+                <div key={`${file.name}-${index}`} className="group relative">
+                  <img
+                    src={getObjectUrl(file)}
+                    alt={file.name}
+                    className="size-16 object-cover rounded-md"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRemovePendingImage(index)}
+                    aria-label={`Remove ${file.name}`}
+                    className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-black/70 text-white opacity-0 transition-opacity group-hover:opacity-100"
+                  >
+                    <X size={10} weight="bold" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : null}
 
           <PromptInputActions className="mt-1.5 flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">

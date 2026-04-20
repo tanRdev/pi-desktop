@@ -1,9 +1,12 @@
 import * as React from "react";
 import {
   CaretDown,
+  Chat,
+  File,
   GitCommit,
   TerminalWindow,
   Upload,
+  X,
 } from "@/components/ui/icons";
 import {
   Popover,
@@ -18,6 +21,10 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { getTrafficLightInset } from "../../lib/title-bar-layout";
+import {
+  type ContextSurfaceKey,
+  type ContextWindow,
+} from "../../lib/workspace-pane-state";
 
 const COMMIT_PROMPT = "Commit all changes with a conventional-commits message";
 const COMMIT_AND_PUSH_PROMPT =
@@ -68,7 +75,12 @@ export interface TitleBarProps {
   isPromptExecuting?: boolean;
   onToggleTerminal?: () => void;
   isTerminalVisible?: boolean;
-  onAddWorkspace?: () => void;
+  activeThreadId?: string | null;
+  activeThreadTitle?: string | null;
+  contextWindows?: ContextWindow[];
+  selectedContextSurface?: ContextSurfaceKey | null;
+  onSelectContextSurface?: (surfaceKey: ContextSurfaceKey | null) => void;
+  onCloseFileWindow?: (windowId: string) => void;
 }
 
 interface GitSplitButtonProps {
@@ -108,8 +120,9 @@ function GitSplitButton({
     [noThread, hasChangesToCommit, hasCommitsToPush],
   );
 
-  const currentAction = GIT_ACTIONS.find((a) => a.id === selectedAction)!;
-  const CurrentIcon = currentAction.icon;
+  const currentAction =
+    GIT_ACTIONS.find((a) => a.id === selectedAction) ?? GIT_ACTIONS[0];
+  const CurrentIcon = currentAction?.icon ?? GitCommit;
   const mainButtonDisabled = isActionDisabled(selectedAction);
 
   const showGlow = hasChangesToCommit && !isPromptExecuting && !noThread;
@@ -143,7 +156,7 @@ function GitSplitButton({
         type="button"
         disabled={mainButtonDisabled}
         title={mainTitle}
-        onClick={() => send(currentAction.prompt)}
+        onClick={() => send(currentAction?.prompt ?? "")}
         className={cn(
           "flex items-center gap-1.5 px-2 text-[10px] uppercase tracking-wider transition-colors duration-150",
           showGlow
@@ -157,7 +170,7 @@ function GitSplitButton({
         )}
       >
         <CurrentIcon className="size-3.5" />
-        <span>{currentAction.label}</span>
+        <span>{currentAction?.label ?? ""}</span>
       </button>
       <div className="w-px bg-white/[0.06]" aria-hidden="true" />
       <Popover open={menuOpen} onOpenChange={setMenuOpen}>
@@ -217,6 +230,73 @@ function GitSplitButton({
   );
 }
 
+function getFileName(path: string): string {
+  return path.split(/[/\\]/).pop() ?? path;
+}
+
+function TitleBarTab({
+  tabKey,
+  label,
+  icon,
+  isActive,
+  isClosable,
+  onSelect,
+  onClose,
+}: {
+  tabKey: string;
+  label: string;
+  icon: "chat" | "file";
+  isActive: boolean;
+  isClosable?: boolean;
+  onSelect: () => void;
+  onClose?: () => void;
+}) {
+  const Icon = icon === "chat" ? Chat : File;
+
+  return (
+    <div
+      role="tab"
+      tabIndex={0}
+      aria-selected={isActive}
+      className={cn(
+        "group flex h-7 min-w-0 max-w-[160px] items-center gap-1.5 px-2",
+        "text-[10px] uppercase tracking-wider transition-colors duration-150",
+        "focus:outline-none focus-visible:outline-none cursor-pointer select-none",
+        isActive
+          ? "text-white/90 border-b border-white/20"
+          : "text-white/40 hover:text-white/70 border-b border-transparent",
+      )}
+      onClick={onSelect}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelect();
+        }
+      }}
+    >
+      <Icon className="size-3 shrink-0" weight="regular" />
+      <span className="truncate">{label}</span>
+      {isClosable && onClose && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
+          className={cn(
+            "ml-auto shrink-0 flex size-4 items-center justify-center",
+            "text-white/20 hover:text-white/60",
+            "opacity-0 group-hover:opacity-100 transition-opacity duration-100",
+          )}
+          aria-label={`Close ${label}`}
+        >
+          <X className="size-2.5" weight="bold" />
+        </button>
+      )}
+    </div>
+  );
+}
+
 export function TitleBar({
   platform,
   onAgentGitAction,
@@ -226,9 +306,25 @@ export function TitleBar({
   isPromptExecuting = false,
   onToggleTerminal,
   isTerminalVisible = false,
-  onAddWorkspace,
+  activeThreadId,
+  activeThreadTitle,
+  contextWindows = [],
+  selectedContextSurface,
+  onSelectContextSurface,
+  onCloseFileWindow,
 }: TitleBarProps) {
   const trafficLightInset = getTrafficLightInset(platform);
+
+  const fileWindows = React.useMemo(
+    () =>
+      contextWindows.filter(
+        (w): w is Extract<ContextWindow, { kind: "file" }> => w.kind === "file",
+      ),
+    [contextWindows],
+  );
+
+  const isChatActive =
+    selectedContextSurface === null || selectedContextSurface === "activity";
 
   return (
     <div
@@ -237,10 +333,34 @@ export function TitleBar({
       style={{ paddingLeft: trafficLightInset }}
     >
       <div
-        data-slot="titlebar-project"
-        className="flex min-w-0 items-center gap-3"
+        data-slot="titlebar-tabs"
+        data-no-drag="true"
+        className="flex min-w-0 items-center gap-0 overflow-x-auto"
+        role="tablist"
       >
-        <div data-testid="titlebar-project-name" className="sr-only" />
+        {activeThreadId && (
+          <TitleBarTab
+            tabKey="chat"
+            label={activeThreadTitle ?? "Chat"}
+            icon="chat"
+            isActive={isChatActive}
+            onSelect={() => onSelectContextSurface?.(null)}
+          />
+        )}
+        {fileWindows.map((win) => (
+          <TitleBarTab
+            key={win.id}
+            tabKey={win.id}
+            label={getFileName(win.filePath)}
+            icon="file"
+            isActive={selectedContextSurface === win.id}
+            isClosable
+            onSelect={() => onSelectContextSurface?.(win.id)}
+            onClose={
+              onCloseFileWindow ? () => onCloseFileWindow(win.id) : undefined
+            }
+          />
+        ))}
       </div>
 
       <div

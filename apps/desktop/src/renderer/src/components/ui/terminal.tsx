@@ -32,6 +32,33 @@ interface TerminalProps {
   ownerWindowId?: string;
   className?: string;
   onExit?: () => void;
+  /**
+   * When true (default), any text selected via mouse/keyboard is copied
+   * to the system clipboard automatically, matching common terminal UX.
+   */
+  copyOnSelect?: boolean;
+  /**
+   * Milliseconds to debounce ResizeObserver-driven fit/resize calls.
+   * Defaults to 100ms. Exposed for tests.
+   */
+  resizeDebounceMs?: number;
+}
+
+/**
+ * Imperative handle for callers that want to invoke terminal actions
+ * (search, clear) from a toolbar or keyboard shortcut layer that lives
+ * outside this component. All methods are safe to call before the
+ * terminal has finished initializing (they become no-ops).
+ */
+export interface TerminalHandle {
+  clear(): void;
+  focus(): void;
+  /**
+   * Minimal in-buffer text search. Returns the number of matches and
+   * the (0-indexed) row of the first match, or -1 if no match.
+   * We avoid the @xterm/addon-search dep by scanning Terminal.buffer.active.
+   */
+  findAll(needle: string): { count: number; firstRow: number };
 }
 
 function syncTerminalSurface(container: HTMLDivElement | null) {
@@ -78,6 +105,39 @@ function resolveCssVar(varName: string, fallback: string): string {
   }
 }
 
+/**
+ * Build an xterm theme object from the app's CSS variables so the terminal
+ * tracks the active theme. Falls back to hardcoded values if a variable is
+ * unset (e.g. jsdom in tests).
+ */
+function buildXtermTheme() {
+  const bg = resolveCssVar("--color-bg-primary", "#0C0D0F");
+  const fg = resolveCssVar("--color-text-primary", "#d4d4d4");
+  return {
+    background: bg,
+    foreground: fg,
+    cursor: fg,
+    cursorAccent: bg,
+    selectionBackground: "rgba(255,255,255,0.1)",
+    black: bg,
+    red: "#ef4444",
+    green: "#22c55e",
+    yellow: "#eab308",
+    blue: "#60a5fa",
+    magenta: "#a855f7",
+    cyan: "#67e8f9",
+    white: fg,
+    brightBlack: "#525252",
+    brightRed: "#f87171",
+    brightGreen: "#4ade80",
+    brightYellow: "#facc15",
+    brightBlue: "#93c5fd",
+    brightMagenta: "#c084fc",
+    brightCyan: "#a5f3fc",
+    brightWhite: "#fafafa",
+  };
+}
+
 function TerminalSkeleton() {
   return (
     <div className="flex h-full w-full flex-col bg-[var(--color-bg-primary)]">
@@ -94,252 +154,315 @@ function TerminalSkeleton() {
   );
 }
 
-export function Terminal({
-  id,
-  cwd,
-  backend = "shell",
-  ownerWindowId,
-  className,
-  onExit,
-}: TerminalProps) {
-  const containerRef = React.useRef<HTMLDivElement>(null);
-  const terminalRef = React.useRef<XTermType | null>(null);
-  const fitAddonRef = React.useRef<FitAddonType | null>(null);
-  const [error, setError] = React.useState<string | null>(null);
-  const [isInitializing, setIsInitializing] = React.useState(true);
+/**
+ * Best-effort clipboard copy. Falls back silently if the async clipboard
+ * API is unavailable (e.g. insecure context, headless test env).
+ */
+function copyToClipboard(text: string): void {
+  if (!text) return;
+  const clipboard = globalThis.navigator?.clipboard;
+  if (!clipboard?.writeText) return;
+  clipboard.writeText(text).catch(() => {
+    /* swallow: best-effort */
+  });
+}
 
-  // Monotonic counter so each mount gets a unique PTY session id.
-  // Prevents React StrictMode double-mount from causing the first
-  // mount's async cleanup to destroy the second mount's session.
-  const mountCounterRef = React.useRef(0);
+export const Terminal = React.forwardRef<TerminalHandle, TerminalProps>(
+  function Terminal(
+    {
+      id,
+      cwd,
+      backend = "shell",
+      ownerWindowId,
+      className,
+      onExit,
+      copyOnSelect = true,
+      resizeDebounceMs = 100,
+    },
+    ref,
+  ) {
+    const containerRef = React.useRef<HTMLDivElement>(null);
+    const terminalRef = React.useRef<XTermType | null>(null);
+    const fitAddonRef = React.useRef<FitAddonType | null>(null);
+    const [error, setError] = React.useState<string | null>(null);
+    const [isInitializing, setIsInitializing] = React.useState(true);
 
-  // When no workspace is active the main-process terminal handler rejects
-  // requests whose cwd is outside the repository allowlist, so we cannot
-  // just fall back to a home directory.  Show a hint instead of a blank pane.
-  const noCwd = !cwd;
+    // Monotonic counter so each mount gets a unique PTY session id.
+    // Prevents React StrictMode double-mount from causing the first
+    // mount's async cleanup to destroy the second mount's session.
+    const mountCounterRef = React.useRef(0);
 
-  React.useEffect(() => {
-    if (!cwd || !containerRef.current) return;
+    // When no workspace is active the main-process terminal handler rejects
+    // requests whose cwd is outside the repository allowlist, so we cannot
+    // just fall back to a home directory.  Show a hint instead of a blank pane.
+    const noCwd = !cwd;
 
-    // Dispose any leftover xterm instance from a stale mount (handles
-    // the case where StrictMode cleanup hasn't resolved yet).
-    if (terminalRef.current) {
-      terminalRef.current.dispose();
-      terminalRef.current = null;
-      fitAddonRef.current = null;
-    }
-
-    const mountNum = ++mountCounterRef.current;
-    const sessionId = mountNum === 1 ? id : `${id}--${mountNum}`;
-
-    let cancelled = false;
-    let terminal: XTermType | null = null;
-    let resizeObserver: ResizeObserver | null = null;
-    let unsubscribe: (() => void) | null = null;
-    let createPromise: Promise<unknown> = Promise.resolve();
-
-    const initPromise = loadXtermModule().then(({ XTerm, FitAddon }) => {
-      if (cancelled || !containerRef.current) return;
-
-      // Resolve CSS variables to actual hex values so the xterm.js canvas
-      // renderer can use them. Canvas context cannot parse `var(...)` strings.
-      const bgColor = resolveCssVar("--color-bg-primary", "#0C0D0F");
-
-      terminal = new XTerm({
-        theme: {
-          background: bgColor,
-          foreground: "#d4d4d4",
-          cursor: "#d4d4d4",
-          cursorAccent: bgColor,
-          selectionBackground: "rgba(255,255,255,0.1)",
-          black: bgColor,
-          red: "#ef4444",
-          green: "#22c55e",
-          yellow: "#eab308",
-          blue: "#60a5fa",
-          magenta: "#a855f7",
-          cyan: "#67e8f9",
-          white: "#d4d4d4",
-          brightBlack: "#525252",
-          brightRed: "#f87171",
-          brightGreen: "#4ade80",
-          brightYellow: "#facc15",
-          brightBlue: "#93c5fd",
-          brightMagenta: "#c084fc",
-          brightCyan: "#a5f3fc",
-          brightWhite: "#fafafa",
+    // Imperative handle for toolbar / shortcut wiring.
+    React.useImperativeHandle(
+      ref,
+      () => ({
+        clear() {
+          terminalRef.current?.clear();
         },
-        fontFamily: '"JetBrains Mono", "SF Mono", ui-monospace, monospace',
-        fontSize: 13,
-        lineHeight: 1.4,
-        cursorBlink: true,
-      });
+        focus() {
+          terminalRef.current?.focus();
+        },
+        findAll(needle: string) {
+          const term = terminalRef.current;
+          if (!term || !needle) return { count: 0, firstRow: -1 };
+          const buffer = term.buffer.active;
+          let count = 0;
+          let firstRow = -1;
+          const total = buffer.length;
+          for (let i = 0; i < total; i++) {
+            const line = buffer.getLine(i);
+            if (!line) continue;
+            const text = line.translateToString(true);
+            if (text.includes(needle)) {
+              if (firstRow === -1) firstRow = i;
+              count += 1;
+            }
+          }
+          return { count, firstRow };
+        },
+      }),
+      [],
+    );
 
-      const fitAddon = new FitAddon();
-      terminal.loadAddon(fitAddon);
-      terminal.open(containerRef.current);
-      syncTerminalSurface(containerRef.current);
+    React.useEffect(() => {
+      if (!cwd || !containerRef.current) return;
 
-      requestAnimationFrame(() => {
+      // Dispose any leftover xterm instance from a stale mount (handles
+      // the case where StrictMode cleanup hasn't resolved yet).
+      if (terminalRef.current) {
+        terminalRef.current.dispose();
+        terminalRef.current = null;
+        fitAddonRef.current = null;
+      }
+
+      const mountNum = ++mountCounterRef.current;
+      const sessionId = mountNum === 1 ? id : `${id}--${mountNum}`;
+
+      let cancelled = false;
+      let terminal: XTermType | null = null;
+      let resizeObserver: ResizeObserver | null = null;
+      let unsubscribe: (() => void) | null = null;
+      let createPromise: Promise<unknown> = Promise.resolve();
+      let resizeTimeout: ReturnType<typeof setTimeout> | null = null;
+
+      const initPromise = loadXtermModule().then(({ XTerm, FitAddon }) => {
+        if (cancelled || !containerRef.current) return;
+
+        terminal = new XTerm({
+          theme: buildXtermTheme(),
+          fontFamily: '"JetBrains Mono", "SF Mono", ui-monospace, monospace',
+          fontSize: 13,
+          lineHeight: 1.4,
+          cursorBlink: true,
+        });
+
+        const fitAddon = new FitAddon();
+        terminal.loadAddon(fitAddon);
+        terminal.open(containerRef.current);
         syncTerminalSurface(containerRef.current);
-        fitAddon.fit();
-      });
 
-      terminalRef.current = terminal;
-      fitAddonRef.current = fitAddon;
+        requestAnimationFrame(() => {
+          syncTerminalSurface(containerRef.current);
+          fitAddon.fit();
+        });
 
-      const { cols, rows } = terminal;
-      const localTerminal = terminal;
-      createPromise = window.piDesktop.terminal
-        .create({
-          id: sessionId,
-          cols,
-          rows,
-          cwd,
-          ownerWindowId: ownerWindowId ?? `terminal-${sessionId}`,
-          backend,
-        })
-        .then((session) => {
-          if (cancelled) return session;
-          if (session?.status === "error") {
-            const errorMessage = "Failed to create terminal session";
+        terminalRef.current = terminal;
+        fitAddonRef.current = fitAddon;
+
+        const { cols, rows } = terminal;
+        const localTerminal = terminal;
+        createPromise = window.piDesktop.terminal
+          .create({
+            id: sessionId,
+            cols,
+            rows,
+            cwd,
+            ownerWindowId: ownerWindowId ?? `terminal-${sessionId}`,
+            backend,
+          })
+          .then((session) => {
+            if (cancelled) return session;
+            if (session?.status === "error") {
+              const errorMessage = "Failed to create terminal session";
+              setError(errorMessage);
+              localTerminal.write(`\x1b[31mError: ${errorMessage}\x1b[0m\r\n`);
+            }
+            return session;
+          })
+          .catch((err) => {
+            if (cancelled) return undefined;
+            const errorMessage =
+              err instanceof Error ? err.message : "Failed to create terminal";
             setError(errorMessage);
             localTerminal.write(`\x1b[31mError: ${errorMessage}\x1b[0m\r\n`);
-          }
-          return session;
-        })
-        .catch((err) => {
-          if (cancelled) return undefined;
-          const errorMessage =
-            err instanceof Error ? err.message : "Failed to create terminal";
-          setError(errorMessage);
-          localTerminal.write(`\x1b[31mError: ${errorMessage}\x1b[0m\r\n`);
-          localTerminal.write(
-            "Terminal functionality may require rebuilding native modules.\r\n",
-          );
-          return undefined;
+            localTerminal.write(
+              "Terminal functionality may require rebuilding native modules.\r\n",
+            );
+            return undefined;
+          });
+
+        terminal.onData((data: string) => {
+          window.piDesktop.terminal.write(sessionId, data).catch(console.error);
         });
 
-      terminal.onData((data: string) => {
-        window.piDesktop.terminal.write(sessionId, data).catch(console.error);
-      });
+        // Copy-on-select: when the user finishes a selection, push the
+        // selected text to the clipboard. xterm fires onSelectionChange
+        // on every selection update; we only copy when a non-empty
+        // selection exists (i.e. after the drag settles).
+        if (copyOnSelect && terminal.onSelectionChange) {
+          terminal.onSelectionChange(() => {
+            const current = terminalRef.current;
+            if (!current) return;
+            if (!current.hasSelection()) return;
+            const text = current.getSelection();
+            if (text) copyToClipboard(text);
+          });
+        }
 
-      const handleResize = () => {
-        if (fitAddonRef.current && terminalRef.current) {
+        const performResize = () => {
+          const addon = fitAddonRef.current;
+          const term = terminalRef.current;
+          if (!addon || !term) return;
           syncTerminalSurface(containerRef.current);
-          fitAddonRef.current.fit();
-          const { cols, rows } = terminalRef.current;
+          addon.fit();
           window.piDesktop.terminal
-            .resize(sessionId, cols, rows)
+            .resize(sessionId, term.cols, term.rows)
             .catch(console.error);
-        }
-      };
+        };
 
-      resizeObserver = new ResizeObserver(handleResize);
-      resizeObserver.observe(containerRef.current);
+        const scheduleResize = () => {
+          if (resizeTimeout !== null) {
+            clearTimeout(resizeTimeout);
+          }
+          resizeTimeout = setTimeout(() => {
+            resizeTimeout = null;
+            performResize();
+          }, resizeDebounceMs);
+        };
 
-      unsubscribe = window.piDesktop.terminal.onEvent((event) => {
-        if (event.id !== sessionId) return;
+        resizeObserver = new ResizeObserver(scheduleResize);
+        resizeObserver.observe(containerRef.current);
 
-        if (event.type === "data" && event.data) {
-          terminalRef.current?.write(event.data);
-        } else if (event.type === "exit") {
-          onExit?.();
-        }
-      });
+        unsubscribe = window.piDesktop.terminal.onEvent((event) => {
+          if (event.id !== sessionId) return;
 
-      setIsInitializing(false);
-    });
-
-    return () => {
-      cancelled = true;
-      // Clear refs SYNCHRONOUSLY so a StrictMode remount can proceed
-      // without the stale guard check blocking re-initialization.
-      terminalRef.current = null;
-      fitAddonRef.current = null;
-
-      // Async cleanup: disconnect observers, dispose xterm DOM, destroy
-      // the backend PTY session.  Using the mount-specific `sessionId`
-      // ensures this cleanup only destroys *this* mount's session.
-      void initPromise.then(() => {
-        resizeObserver?.disconnect();
-        unsubscribe?.();
-        terminal?.dispose();
-        void createPromise.finally(() => {
-          window.piDesktop.terminal.destroy(sessionId).catch(console.error);
+          if (event.type === "data" && event.data) {
+            terminalRef.current?.write(event.data);
+          } else if (event.type === "exit") {
+            onExit?.();
+          }
         });
-      });
-    };
-  }, [id, cwd, backend, ownerWindowId, onExit]);
 
-  return (
-    <>
-      {noCwd ? (
-        <div
-          className={cn(
-            "flex h-full w-full flex-col items-center justify-center bg-[var(--color-bg-primary)] p-4 text-center",
-            className,
-          )}
-        >
-          <div className="text-sm text-white/30">No workspace selected</div>
-          <div className="mt-1 text-xs text-white/20">
-            Select a workspace to open a terminal session.
-          </div>
-        </div>
-      ) : error ? (
-        <div
-          className={cn(
-            "flex h-full w-full flex-col bg-[var(--color-bg-primary)]",
-            className,
-          )}
-        >
+        setIsInitializing(false);
+      });
+
+      return () => {
+        cancelled = true;
+        // Clear refs SYNCHRONOUSLY so a StrictMode remount can proceed
+        // without the stale guard check blocking re-initialization.
+        terminalRef.current = null;
+        fitAddonRef.current = null;
+
+        // Async cleanup: disconnect observers, dispose xterm DOM, destroy
+        // the backend PTY session.  Using the mount-specific `sessionId`
+        // ensures this cleanup only destroys *this* mount's session.
+        void initPromise.then(() => {
+          if (resizeTimeout !== null) {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = null;
+          }
+          resizeObserver?.disconnect();
+          unsubscribe?.();
+          terminal?.dispose();
+          void createPromise.finally(() => {
+            window.piDesktop.terminal.destroy(sessionId).catch(console.error);
+          });
+        });
+      };
+    }, [
+      id,
+      cwd,
+      backend,
+      ownerWindowId,
+      onExit,
+      copyOnSelect,
+      resizeDebounceMs,
+    ]);
+
+    return (
+      <>
+        {noCwd ? (
           <div
             className={cn(
-              "flex h-full flex-col items-center justify-center gap-3 p-4 text-center",
-              "animate-in fade-in zoom-in-95 duration-200 [transition-timing-function:var(--ease-out)]",
-              "motion-reduce:animate-none",
+              "flex h-full w-full flex-col items-center justify-center bg-[var(--color-bg-primary)] p-4 text-center",
+              className,
             )}
           >
-            <div className="text-sm text-white/40">Terminal Error</div>
-            <div className="text-xs text-white/40">{error}</div>
-            <div className="text-xs text-white/30">
-              Run{" "}
-              <code
-                className={cn(
-                  "bg-white/[0.08] px-1.5 py-0.5 text-white/60",
-                  "transition-all duration-150",
-                  "hover:bg-white/[0.12]",
-                )}
-              >
-                bun rebuild node-pty
-              </code>{" "}
-              to rebuild native modules.
+            <div className="text-sm text-white/30">No workspace selected</div>
+            <div className="mt-1 text-xs text-white/20">
+              Select a workspace to open a terminal session.
             </div>
           </div>
-        </div>
-      ) : (
-        <div
-          className={cn(
-            "relative h-full w-full bg-[var(--color-bg-primary)]",
-            className,
-          )}
-        >
-          {/* Loading overlay — disappears once xterm.js initializes */}
-          {isInitializing && (
-            <div className="absolute inset-0 z-10">
-              <TerminalSkeleton />
-            </div>
-          )}
-          <div className="flex h-full w-full flex-col">
-            <div className="min-h-0 flex-1 overflow-hidden bg-[var(--color-bg-primary)]">
-              <div
-                ref={containerRef}
-                className="h-full w-full bg-[var(--color-bg-primary)]"
-              />
+        ) : error ? (
+          <div
+            className={cn(
+              "flex h-full w-full flex-col bg-[var(--color-bg-primary)]",
+              className,
+            )}
+          >
+            <div
+              className={cn(
+                "flex h-full flex-col items-center justify-center gap-3 p-4 text-center",
+                "animate-in fade-in zoom-in-95 duration-200 [transition-timing-function:var(--ease-out)]",
+                "motion-reduce:animate-none",
+              )}
+            >
+              <div className="text-sm text-white/40">Terminal Error</div>
+              <div className="text-xs text-white/40">{error}</div>
+              <div className="text-xs text-white/30">
+                Run{" "}
+                <code
+                  className={cn(
+                    "bg-white/[0.08] px-1.5 py-0.5 text-white/60",
+                    "transition-all duration-150",
+                    "hover:bg-white/[0.12]",
+                  )}
+                >
+                  bun rebuild node-pty
+                </code>{" "}
+                to rebuild native modules.
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </>
-  );
-}
+        ) : (
+          <div
+            className={cn(
+              "relative h-full w-full bg-[var(--color-bg-primary)]",
+              className,
+            )}
+          >
+            {/* Loading overlay — disappears once xterm.js initializes */}
+            {isInitializing && (
+              <div className="absolute inset-0 z-10">
+                <TerminalSkeleton />
+              </div>
+            )}
+            <div className="flex h-full w-full flex-col">
+              <div className="min-h-0 flex-1 overflow-hidden bg-[var(--color-bg-primary)]">
+                <div
+                  ref={containerRef}
+                  className="h-full w-full bg-[var(--color-bg-primary)]"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  },
+);

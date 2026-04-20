@@ -1,7 +1,9 @@
+// @vitest-environment jsdom
 import type { AgentMessageSnapshot } from "@pi-desktop/shared";
 import { cleanup, render, screen } from "@testing-library/react";
 import type * as React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { ChatThreadPanel } from "./chat-thread-panel";
 
 vi.mock("@pi-desktop/ui", () => ({
@@ -144,12 +146,14 @@ describe("ChatThreadPanel", () => {
 
   it("uses tighter transcript spacing for message rows", () => {
     render(
-      <ChatThreadPanel
-        threadTitle="Signal"
-        messages={[createAssistantMessage()]}
-        isStreaming={false}
-        lastError={null}
-      />,
+      <TooltipProvider>
+        <ChatThreadPanel
+          threadTitle="Signal"
+          messages={[createAssistantMessage()]}
+          isStreaming={false}
+          lastError={null}
+        />
+      </TooltipProvider>,
     );
 
     const transcript = screen.getByTestId("chat-transcript");

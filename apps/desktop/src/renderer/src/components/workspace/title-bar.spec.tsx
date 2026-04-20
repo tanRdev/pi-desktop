@@ -1,7 +1,27 @@
+// @vitest-environment jsdom
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { TitleBar } from "./title-bar";
+import type { ContextWindow } from "../../lib/workspace-pane-state";
+
+const makeFileWindow = (
+  overrides: Partial<ContextWindow> & { id?: string; filePath?: string } = {},
+): ContextWindow =>
+  ({
+    id: overrides.id ?? "file-1",
+    kind: "file",
+    title: "App.tsx",
+    filePath: overrides.filePath ?? "/src/App.tsx",
+    isDirty: false,
+    isFocused: false,
+    x: 0,
+    y: 0,
+    width: 600,
+    height: 400,
+    zIndex: 1,
+    ...overrides,
+  }) as ContextWindow;
 
 afterEach(() => {
   cleanup();
@@ -19,7 +39,6 @@ describe("TitleBar", () => {
     );
 
     expect(container.firstElementChild).toHaveStyle({ paddingLeft: "16px" });
-    expect(screen.getByTestId("titlebar-project-name")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /Commit & Push/i }),
     ).toBeVisible();
@@ -87,5 +106,61 @@ describe("TitleBar", () => {
     expect(container.firstElementChild).toHaveClass("h-11");
     expect(container.firstElementChild).toHaveClass("border-b");
     expect(container.firstElementChild).toHaveClass("border-white/[0.03]");
+  });
+
+  it("renders chat and file tabs when context windows are provided", () => {
+    const onSelectContextSurface = vi.fn();
+    render(
+      <TitleBar
+        platform="darwin"
+        activeThreadId="thread-1"
+        activeThreadTitle="My Chat"
+        contextWindows={[makeFileWindow()]}
+        selectedContextSurface="file-1"
+        onSelectContextSurface={onSelectContextSurface}
+      />,
+    );
+
+    expect(screen.getByRole("tablist")).toBeInTheDocument();
+    expect(screen.getByText("My Chat")).toBeInTheDocument();
+    expect(screen.getByText("App.tsx")).toBeInTheDocument();
+  });
+
+  it("calls onSelectContextSurface with null when chat tab is clicked", async () => {
+    const user = userEvent.setup();
+    const onSelectContextSurface = vi.fn();
+
+    render(
+      <TitleBar
+        platform="darwin"
+        activeThreadId="thread-1"
+        activeThreadTitle="Chat"
+        contextWindows={[makeFileWindow()]}
+        selectedContextSurface="file-1"
+        onSelectContextSurface={onSelectContextSurface}
+      />,
+    );
+
+    await user.click(screen.getByText("Chat"));
+    expect(onSelectContextSurface).toHaveBeenCalledWith(null);
+  });
+
+  it("calls onSelectContextSurface with window id when file tab is clicked", async () => {
+    const user = userEvent.setup();
+    const onSelectContextSurface = vi.fn();
+
+    render(
+      <TitleBar
+        platform="darwin"
+        activeThreadId="thread-1"
+        activeThreadTitle="Chat"
+        contextWindows={[makeFileWindow()]}
+        selectedContextSurface={null}
+        onSelectContextSurface={onSelectContextSurface}
+      />,
+    );
+
+    await user.click(screen.getByText("App.tsx"));
+    expect(onSelectContextSurface).toHaveBeenCalledWith("file-1");
   });
 });

@@ -21,6 +21,16 @@ interface FileTreeItemProps {
   onFileSelect: (path: string) => void;
   expandedPaths: Set<string>;
   isActive?: boolean;
+  /** True when this row is part of a multi-selection (visual only). */
+  isMultiSelected?: boolean;
+  /** True when this row is the keyboard-focus cursor (single selected). */
+  isSelected?: boolean;
+  /** Multi-select paths to forward to descendants when rendering recursively. */
+  multiSelectedPaths?: Set<string>;
+  /** Single-selected cursor path, forwarded to descendants. */
+  selectedPath?: string | null;
+  /** Called when user Cmd/Ctrl+clicks this row. */
+  onToggleMultiSelect?: (path: string) => void;
   isRenaming?: boolean;
   onRenameSubmit?: (oldPath: string, newName: string) => void;
   onRenameCancel?: () => void;
@@ -107,6 +117,11 @@ export const FileTreeItem = React.memo(function FileTreeItem({
   onFileSelect,
   expandedPaths,
   isActive,
+  isMultiSelected,
+  isSelected,
+  multiSelectedPaths,
+  selectedPath,
+  onToggleMultiSelect,
   isRenaming,
   onRenameSubmit,
   onRenameCancel,
@@ -120,7 +135,11 @@ export const FileTreeItem = React.memo(function FileTreeItem({
   const DirIcon = isDir ? (isExpanded ? FolderOpen : Folder) : null;
   const badge = gitStatus ? getGitBadge(gitStatus) : null;
 
-  function handleClick() {
+  function handleClick(e: React.MouseEvent) {
+    if ((e.metaKey || e.ctrlKey) && onToggleMultiSelect) {
+      onToggleMultiSelect(entry.path);
+      return;
+    }
     if (isDir) {
       onToggleExpand(entry.path);
     } else {
@@ -132,6 +151,11 @@ export const FileTreeItem = React.memo(function FileTreeItem({
     <>
       <button
         type="button"
+        role="treeitem"
+        aria-label={entry.name}
+        aria-expanded={isDir ? isExpanded : undefined}
+        aria-selected={isSelected ? true : undefined}
+        data-path={entry.path}
         onClick={handleClick}
         onContextMenu={(e) => {
           e.preventDefault();
@@ -142,7 +166,10 @@ export const FileTreeItem = React.memo(function FileTreeItem({
           "text-[10.5px] text-white/50 hover:text-white/80",
           "hover:bg-white/[0.04]",
           "transition-colors duration-100",
+          "focus:outline-none focus-visible:ring-1 focus-visible:ring-white/20",
           isActive && "bg-white/[0.06]",
+          isSelected && "bg-white/[0.07] text-white/80",
+          isMultiSelected && "bg-white/[0.09] text-white/85",
         )}
         style={{ paddingLeft: depth * 16 + 8 }}
       >
@@ -206,6 +233,11 @@ export const FileTreeItem = React.memo(function FileTreeItem({
             onToggleExpand={onToggleExpand}
             onFileSelect={onFileSelect}
             expandedPaths={expandedPaths}
+            isSelected={selectedPath === child.entry.path}
+            isMultiSelected={multiSelectedPaths?.has(child.entry.path)}
+            multiSelectedPaths={multiSelectedPaths}
+            selectedPath={selectedPath}
+            onToggleMultiSelect={onToggleMultiSelect}
             isRenaming={renamingPath === child.entry.path}
             onRenameSubmit={onRenameSubmit}
             onRenameCancel={onRenameCancel}

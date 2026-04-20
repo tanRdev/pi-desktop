@@ -4,6 +4,7 @@ import * as React from "react";
 import { File, Image as ImageIcon, Save } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
+import { Breadcrumb } from "./breadcrumb";
 import { MonacoFileEditor } from "./monaco-file-editor.lazy";
 
 function getFileName(filePath: string): string {
@@ -143,6 +144,8 @@ export function WorkspaceFileContent({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isDirty, isReadOnly, onSave]);
 
+  const breadcrumbBar = filePath ? <Breadcrumb filePath={filePath} /> : null;
+
   const toolbar = onSave ? (
     <div className="flex h-11 shrink-0 items-center justify-between border-b border-white/[0.04] bg-transparent px-5">
       <div className="text-[10.5px] font-normal uppercase tracking-wider text-white/30">
@@ -165,12 +168,13 @@ export function WorkspaceFileContent({
   function renderContent() {
     if (error) {
       return (
-        <div
-          className={cn("flex h-full items-center justify-center", className)}
-        >
-          <div className="flex flex-col items-center gap-3 text-center text-red-400/80">
-            <File className="h-7 w-7" />
-            <span className="text-sm">{error}</span>
+        <div className={cn("flex h-full flex-col", className)}>
+          {breadcrumbBar}
+          <div className="flex flex-1 items-center justify-center">
+            <div className="flex flex-col items-center gap-3 text-center text-red-400/80">
+              <File className="h-7 w-7" />
+              <span className="text-sm">{error}</span>
+            </div>
           </div>
         </div>
       );
@@ -178,12 +182,13 @@ export function WorkspaceFileContent({
 
     if (!content) {
       return (
-        <div
-          className={cn("flex h-full items-center justify-center", className)}
-        >
-          <div className="flex flex-col items-center gap-3 text-white/50">
-            <File className="h-7 w-7" />
-            <span className="text-sm">No file loaded</span>
+        <div className={cn("flex h-full flex-col", className)}>
+          {breadcrumbBar}
+          <div className="flex flex-1 items-center justify-center">
+            <div className="flex flex-col items-center gap-3 text-white/50">
+              <File className="h-7 w-7" />
+              <span className="text-sm">No file loaded</span>
+            </div>
           </div>
         </div>
       );
@@ -191,15 +196,16 @@ export function WorkspaceFileContent({
 
     if (content.type === "binary") {
       return (
-        <div
-          className={cn("flex h-full items-center justify-center", className)}
-        >
-          <div className="flex flex-col items-center gap-3 text-white/50">
-            <File className="h-7 w-7" />
-            <span className="text-sm">Binary file</span>
-            <span className="text-xs text-white/30">
-              {content.size ?? 0} bytes
-            </span>
+        <div className={cn("flex h-full flex-col", className)}>
+          {breadcrumbBar}
+          <div className="flex flex-1 items-center justify-center">
+            <div className="flex flex-col items-center gap-3 text-white/50">
+              <File className="h-7 w-7" />
+              <span className="text-sm">Binary file</span>
+              <span className="text-xs text-white/30">
+                {content.size ?? 0} bytes
+              </span>
+            </div>
           </div>
         </div>
       );
@@ -207,12 +213,13 @@ export function WorkspaceFileContent({
 
     if (content.type === "unsupported") {
       return (
-        <div
-          className={cn("flex h-full items-center justify-center", className)}
-        >
-          <div className="flex flex-col items-center gap-3 text-white/50">
-            <File className="h-7 w-7" />
-            <span className="text-sm">Unsupported preview</span>
+        <div className={cn("flex h-full flex-col", className)}>
+          {breadcrumbBar}
+          <div className="flex flex-1 items-center justify-center">
+            <div className="flex flex-col items-center gap-3 text-white/50">
+              <File className="h-7 w-7" />
+              <span className="text-sm">Unsupported preview</span>
+            </div>
           </div>
         </div>
       );
@@ -230,6 +237,7 @@ export function WorkspaceFileContent({
             className,
           )}
         >
+          {breadcrumbBar}
           {toolbar}
           <div className="flex min-h-0 flex-1 items-center justify-center p-4">
             <img
@@ -245,6 +253,7 @@ export function WorkspaceFileContent({
     if (content.type === "text") {
       return (
         <div className={cn("flex h-full flex-col", className)}>
+          {breadcrumbBar}
           {toolbar}
           <TextContent
             filePath={filePath}

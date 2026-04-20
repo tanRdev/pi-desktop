@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -14,6 +15,14 @@ vi.mock("@/components/ui/icons", () => {
     Save: Stub,
   };
 });
+
+vi.mock("./breadcrumb", () => ({
+  Breadcrumb({ filePath }: { filePath: string | null }) {
+    return filePath ? (
+      <nav data-testid="breadcrumb" data-filepath={filePath} />
+    ) : null;
+  },
+}));
 
 vi.mock("./monaco-file-editor.lazy", () => ({
   MonacoFileEditor({

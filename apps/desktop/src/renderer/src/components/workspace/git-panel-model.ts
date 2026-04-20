@@ -178,6 +178,181 @@ export function formatGitCountsSummary(git: WorktreeGitSnapshot): string {
   return parts.join(", ");
 }
 
+// ============================================================================
+// Extensions (A8): templates, amend, branch list, stash list, focus state
+// Frontend-only state for features whose backend IPC may not yet be wired.
+// ============================================================================
+
+export interface CommitTemplate {
+  readonly id: string;
+  readonly label: string;
+  readonly message: string;
+}
+
+/**
+ * Conventional-commit inspired default templates. Pure data so they can be
+ * overridden per-project later without touching the view model.
+ */
+export const DEFAULT_COMMIT_TEMPLATES: ReadonlyArray<CommitTemplate> = [
+  { id: "feat", label: "feat", message: "feat: " },
+  { id: "fix", label: "fix", message: "fix: " },
+  { id: "chore", label: "chore", message: "chore: " },
+  { id: "docs", label: "docs", message: "docs: " },
+  { id: "refactor", label: "refactor", message: "refactor: " },
+  { id: "test", label: "test", message: "test: " },
+  { id: "perf", label: "perf", message: "perf: " },
+];
+
+export function applyCommitTemplate(
+  current: string,
+  template: CommitTemplate,
+): string {
+  const trimmed = current.trimStart();
+  if (trimmed.length === 0) {
+    return template.message;
+  }
+  // If the current message already starts with a known type prefix, replace it.
+  const prefixMatch = trimmed.match(/^([a-z]+)(\([^)]*\))?:\s*/);
+  if (prefixMatch) {
+    return template.message + trimmed.slice(prefixMatch[0].length);
+  }
+  return template.message + trimmed;
+}
+
+/**
+ * Per-file granular tracking. A file may have staged hunks, unstaged hunks,
+ * both, or be in conflict. Captures that explicitly for richer UI.
+ */
+export type FileStageState =
+  | "staged"
+  | "unstaged"
+  | "partial" // both staged and unstaged changes
+  | "conflicted"
+  | "untracked";
+
+export interface FileStageEntry {
+  readonly path: string;
+  readonly state: FileStageState;
+  readonly status: string;
+}
+
+export function buildFileStageEntries(
+  status: GitRepositoryStatus | null,
+): ReadonlyArray<FileStageEntry> {
+  if (!status) return [];
+  const stagedByPath = new Map(status.stagedChanges.map((c) => [c.path, c]));
+  const unstagedByPath = new Map(
+    status.unstagedChanges.map((c) => [c.path, c]),
+  );
+  const conflictedPaths = new Set(status.conflictedChanges.map((c) => c.path));
+  const paths = new Set<string>();
+  stagedByPath.forEach((_v, k) => {
+    paths.add(k);
+  });
+  unstagedByPath.forEach((_v, k) => {
+    paths.add(k);
+  });
+  conflictedPaths.forEach((p) => {
+    paths.add(p);
+  });
+
+  return Array.from(paths)
+    .sort()
+    .map((path): FileStageEntry => {
+      const staged = stagedByPath.get(path);
+      const unstaged = unstagedByPath.get(path);
+      const conflicted = status.conflictedChanges.find((c) => c.path === path);
+      const rawStatus =
+        staged?.status ?? unstaged?.status ?? conflicted?.status ?? "unknown";
+      if (conflictedPaths.has(path)) {
+        return { path, state: "conflicted", status: rawStatus };
+      }
+      if (staged && unstaged) {
+        return { path, state: "partial", status: rawStatus };
+      }
+      if (staged) {
+        return { path, state: "staged", status: rawStatus };
+      }
+      if (unstaged?.status === "untracked") {
+        return { path, state: "untracked", status: rawStatus };
+      }
+      return { path, state: "unstaged", status: rawStatus };
+    });
+}
+
+/**
+ * Keyboard focus tracking among the changed-file list. The view keeps the
+ * focused index in sync with the sorted union of staged+unstaged paths.
+ */
+export interface FocusState {
+  readonly index: number;
+  readonly path: string | null;
+}
+
+export function nextFocusIndex(
+  current: number,
+  total: number,
+  direction: 1 | -1,
+): number {
+  if (total <= 0) return 0;
+  const next = current + direction;
+  if (next < 0) return 0;
+  if (next >= total) return total - 1;
+  return next;
+}
+
+export function resolveFocusedPath(
+  entries: ReadonlyArray<FileStageEntry>,
+  index: number,
+): string | null {
+  if (entries.length === 0) return null;
+  const clamped = Math.max(0, Math.min(index, entries.length - 1));
+  return entries[clamped]?.path ?? null;
+}
+
+/**
+ * Branch list shape. Backend IPC is not yet wired — callers must treat this
+ * as frontend-only state. TODO(a8): replace with window.piDesktop.git.listBranches
+ * once A6 adds the channel.
+ */
+export interface BranchSummary {
+  readonly name: string;
+  readonly isCurrent: boolean;
+  readonly isRemote: boolean;
+  readonly upstream: string | null;
+}
+
+/**
+ * Stash list shape. TODO(a8): backend IPC not yet available. Keep as
+ * UI-only state; the stash panel should be gated behind a capability probe.
+ */
+export interface StashEntry {
+  readonly id: string;
+  readonly message: string;
+  readonly createdAt: number;
+  readonly branch: string | null;
+}
+
+/**
+ * Capability flags for optional backend features. Components should probe
+ * `window.piDesktop.git` with optional chaining and pass booleans here.
+ */
+export interface GitPanelCapabilities {
+  readonly revertFile: boolean;
+  readonly amend: boolean;
+  readonly listBranches: boolean;
+  readonly switchBranch: boolean;
+  readonly listStashes: boolean;
+}
+
+export const NO_GIT_CAPABILITIES: GitPanelCapabilities = {
+  revertFile: false,
+  amend: false,
+  listBranches: false,
+  switchBranch: false,
+  listStashes: false,
+};
+
 export function buildGitPanelViewModel(options: {
   worktree: WorktreeSnapshot | null;
   repositoryStatus: GitRepositoryStatus | null;

@@ -5,14 +5,18 @@ import type * as React from "react";
 
 import { cn } from "../../lib/utils";
 
+const TOOLTIP_DELAY_MS = 300;
+
 function TooltipProvider({
-  delayDuration = 0,
+  delayDuration = TOOLTIP_DELAY_MS,
+  skipDelayDuration = 200,
   ...props
 }: React.ComponentProps<typeof TooltipPrimitive.Provider>) {
   return (
     <TooltipPrimitive.Provider
       data-slot="tooltip-provider"
       delayDuration={delayDuration}
+      skipDelayDuration={skipDelayDuration}
       {...props}
     />
   );
@@ -32,7 +36,7 @@ function TooltipTrigger({
 
 function TooltipContent({
   className,
-  sideOffset = 4,
+  sideOffset = 6,
   children,
   ...props
 }: React.ComponentProps<typeof TooltipPrimitive.Content>) {
@@ -41,8 +45,14 @@ function TooltipContent({
       <TooltipPrimitive.Content
         data-slot="tooltip-content"
         sideOffset={sideOffset}
+        collisionPadding={8}
+        avoidCollisions
+        {...props}
         className={cn(
-          "z-50 w-fit max-w-xs border border-white/[0.06] bg-[#0C0D0F] px-3 py-1.5 text-xs text-white/80 shadow-[0_4px_12px_rgba(0,0,0,0.4)] backdrop-blur-md",
+          "z-50 w-fit max-w-xs select-none",
+          "border border-white/[0.06] bg-[var(--color-bg-secondary)]",
+          "px-3 py-1.5 text-xs text-white/80",
+          "shadow-[0_4px_12px_rgba(0,0,0,0.4)]",
           "origin-[var(--radix-tooltip-content-transform-origin)]",
           "animate-in fade-in-0 zoom-in-95 duration-[150ms] ease-[var(--ease-out)]",
           "data-[side=bottom]:slide-in-from-top-2",
@@ -50,15 +60,22 @@ function TooltipContent({
           "data-[side=right]:slide-in-from-left-2",
           "data-[side=top]:slide-in-from-bottom-2",
           "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:duration-[100ms]",
+          "data-[state=instant]:animate-none",
+          "motion-reduce:animate-none motion-reduce:duration-0",
           className,
         )}
-        {...props}
       >
         {children}
-        <TooltipPrimitive.Arrow className="z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 bg-[#0C0D0F] border border-white/[0.06] fill-[#0C0D0F]" />
+        <TooltipPrimitive.Arrow className="z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 border border-white/[0.06] fill-[var(--color-bg-secondary)] bg-[var(--color-bg-secondary)]" />
       </TooltipPrimitive.Content>
     </TooltipPrimitive.Portal>
   );
 }
 
-export { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger };
+export {
+  TOOLTIP_DELAY_MS,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+};

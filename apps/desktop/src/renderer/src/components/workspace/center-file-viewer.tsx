@@ -31,16 +31,20 @@ export function CenterFileViewer({
   );
 
   return (
-    <WorkspaceFileContent
-      filePath={filePath}
-      content={fileState?.content ?? null}
-      isLoading={fileState?.isLoading ?? false}
-      error={fileState?.error ?? null}
-      isDirty={isDirty}
-      isReadOnly={isReadOnly}
-      onContentChange={(content) => onContentChange(windowId, content)}
-      onSave={() => void onFileSave(windowId, filePath)}
-      className="h-full"
-    />
+    <>
+      {/* <-- MediaPreview integration point --> */}
+      {/* Conditionally render <MediaPreview filePath={filePath} ... /> based on file extension here */}
+      <WorkspaceFileContent
+        filePath={filePath}
+        content={fileState?.content ?? null}
+        isLoading={fileState?.isLoading ?? false}
+        error={fileState?.error ?? null}
+        isDirty={isDirty}
+        isReadOnly={isReadOnly}
+        onContentChange={(content) => onContentChange(windowId, content)}
+        onSave={() => void onFileSave(windowId, filePath)}
+        className="h-full"
+      />
+    </>
   );
 }

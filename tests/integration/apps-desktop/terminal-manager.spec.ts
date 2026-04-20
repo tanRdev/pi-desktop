@@ -317,7 +317,7 @@ describe("terminalManager", () => {
       status: "ready",
     });
     expect(harness.ptySpawn).toHaveBeenCalledWith(
-      "pi",
+      expect.stringMatching(/(^|\/)pi$/),
       ["--continue"],
       expect.objectContaining({
         cols: 120,

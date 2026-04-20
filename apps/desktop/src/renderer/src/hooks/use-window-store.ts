@@ -73,6 +73,7 @@ export interface WindowStoreAdapter {
   zoomOut: WorkspaceSessionStoreState["zoomOut"];
   resetZoom: WorkspaceSessionStoreState["resetZoom"];
   setPan: WorkspaceSessionStoreState["setPan"];
+  reorderWindows: WorkspaceSessionStoreState["reorderWindows"];
   setDraggingWindowId(windowId: string | null): void;
   setResizingWindowId(windowId: string | null): void;
   setSnapPreview(preview: WindowStoreState["snapPreview"]): void;
@@ -267,6 +268,7 @@ function getStoreAdapter(): WindowStoreAdapter {
     zoomOut: (...args) => store.getState().zoomOut(...args),
     resetZoom: (...args) => store.getState().resetZoom(...args),
     setPan: (...args) => store.getState().setPan(...args),
+    reorderWindows: (...args) => store.getState().reorderWindows(...args),
     setDraggingWindowId(windowId) {
       uiInteractionStore.getState().setDraggingWindowId(windowId);
     },
@@ -300,6 +302,7 @@ export function useWindowStore() {
     zoomOut: store.zoomOut,
     resetZoom: store.resetZoom,
     setPan: store.setPan,
+    reorderWindows: store.reorderWindows,
     setDraggingWindowId: store.setDraggingWindowId,
     setResizingWindowId: store.setResizingWindowId,
     setSnapPreview: store.setSnapPreview,

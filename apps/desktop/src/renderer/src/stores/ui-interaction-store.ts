@@ -42,6 +42,21 @@ export interface UiOverlaysState {
   fileTree: FileTreeOverlayState;
 }
 
+/**
+ * A single dismissable dialog state change. Tracking these entries
+ * in a bounded undo stack lets users reverse accidental dismissals
+ * (e.g. closing a "Create Worktree" dialog) without losing context.
+ */
+export interface DialogHistoryEntry {
+  dialog: UiDialogId;
+  /** Value the dialog had BEFORE this change (the undo target). */
+  previous: boolean;
+  /** Value the dialog had AFTER this change (the redo target). */
+  next: boolean;
+}
+
+const DIALOG_HISTORY_LIMIT = 20;
+
 export interface UiInteractionState {
   draggingWindowId: string | null;
   resizingWindowId: string | null;
@@ -53,6 +68,10 @@ export interface UiInteractionState {
   promptAutocompleteSuggestions: (SlashSuggestion | MentionSuggestion)[];
   promptAutocompleteSelectedIndex: number;
   threadLastViewedAt: Record<string, number>;
+  /** Bounded stack of recent dialog transitions, most recent last. */
+  dialogUndoStack: DialogHistoryEntry[];
+  /** Redo stack — populated when undo is called. Cleared on new action. */
+  dialogRedoStack: DialogHistoryEntry[];
   markThreadViewed(threadId: string): void;
   setDraggingWindowId(windowId: string | null): void;
   setResizingWindowId(windowId: string | null): void;
@@ -60,6 +79,8 @@ export interface UiInteractionState {
   clearHoveredItem(): void;
   setMainWindowFullscreen(isFullscreen: boolean): void;
   setDialogOpen(dialog: UiDialogId, isOpen: boolean): void;
+  undoDialogChange(): boolean;
+  redoDialogChange(): boolean;
   openLauncherOverlay(): void;
   closeLauncherOverlay(): void;
   openFileTreeOverlay(): void;
@@ -108,6 +129,8 @@ export function createUiInteractionStore() {
     promptAutocompleteSuggestions: [],
     promptAutocompleteSelectedIndex: -1,
     threadLastViewedAt: {},
+    dialogUndoStack: [],
+    dialogRedoStack: [],
     markThreadViewed(threadId) {
       set((state) => ({
         threadLastViewedAt: {
@@ -132,12 +155,67 @@ export function createUiInteractionStore() {
       set({ isMainWindowFullscreen });
     },
     setDialogOpen(dialog, isOpen) {
-      set((state) => ({
-        dialogs: {
-          ...state.dialogs,
-          [dialog]: isOpen,
-        },
-      }));
+      set((state) => {
+        const previous = state.dialogs[dialog];
+        if (previous === isOpen) {
+          return state;
+        }
+        const entry: DialogHistoryEntry = {
+          dialog,
+          previous,
+          next: isOpen,
+        };
+        const nextStack =
+          state.dialogUndoStack.length >= DIALOG_HISTORY_LIMIT
+            ? [...state.dialogUndoStack.slice(1), entry]
+            : [...state.dialogUndoStack, entry];
+        return {
+          dialogs: {
+            ...state.dialogs,
+            [dialog]: isOpen,
+          },
+          dialogUndoStack: nextStack,
+          dialogRedoStack: [],
+        };
+      });
+    },
+    undoDialogChange() {
+      let didUndo = false;
+      set((state) => {
+        const entry = state.dialogUndoStack.at(-1);
+        if (!entry) {
+          return state;
+        }
+        didUndo = true;
+        return {
+          dialogs: {
+            ...state.dialogs,
+            [entry.dialog]: entry.previous,
+          },
+          dialogUndoStack: state.dialogUndoStack.slice(0, -1),
+          dialogRedoStack: [...state.dialogRedoStack, entry],
+        };
+      });
+      return didUndo;
+    },
+    redoDialogChange() {
+      let didRedo = false;
+      set((state) => {
+        const entry = state.dialogRedoStack.at(-1);
+        if (!entry) {
+          return state;
+        }
+        didRedo = true;
+        return {
+          dialogs: {
+            ...state.dialogs,
+            [entry.dialog]: entry.next,
+          },
+          dialogUndoStack: [...state.dialogUndoStack, entry],
+          dialogRedoStack: state.dialogRedoStack.slice(0, -1),
+        };
+      });
+      return didRedo;
     },
     openLauncherOverlay() {
       set((state) => ({

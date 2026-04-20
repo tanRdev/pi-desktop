@@ -3,10 +3,10 @@ import type { RepositorySnapshot, WorktreeSnapshot } from "@pi-desktop/shared";
 import { Skeleton } from "boneyard-js/react";
 import * as React from "react";
 import {
+  Archive,
   ArrowDown,
   ArrowUp,
   Check,
-  Archive,
   Copy,
   Folder,
   GitBranch,
@@ -464,7 +464,7 @@ function ProjectRowImpl({
   repository,
   isActive,
   isExpanded,
-  sessionCount,
+  sessionCount: _sessionCount,
   onSelect,
   onContextMenu,
   onCreateSession,
@@ -502,7 +502,7 @@ function ProjectRowImpl({
             isActive && "text-white",
           )}
         >
-          {getRepositoryName(repository).toUpperCase()}
+          {getRepositoryName(repository)}
         </span>
       </button>
 
@@ -533,7 +533,7 @@ const ProjectRow = React.memo(ProjectRowImpl);
 
 export function LeftSidebarImpl({
   platform,
-  appVersion,
+  appVersion: _appVersion,
   repositories,
   activeRepositoryId,
   activeWorktreeId,
@@ -611,20 +611,13 @@ export function LeftSidebarImpl({
   >(() => (activeRepositoryId ? new Set([activeRepositoryId]) : new Set()));
 
   React.useEffect(() => {
-    setExpandedRepositoryIds((current) => {
-      const next = new Set(
-        Array.from(current).filter((repositoryId) =>
-          repositories.some((repository) => repository.id === repositoryId),
-        ),
-      );
-
+    setExpandedRepositoryIds(() => {
       if (activeRepositoryId) {
-        next.add(activeRepositoryId);
+        return new Set([activeRepositoryId]);
       }
-
-      return next;
+      return new Set();
     });
-  }, [activeRepositoryId, repositories]);
+  }, [activeRepositoryId]);
 
   React.useEffect(() => {
     if (!contextMenu.isOpen) return;
@@ -1033,7 +1026,7 @@ export function LeftSidebarImpl({
                   onClick={onAddRepository}
                   className={cn(
                     "flex w-full items-center justify-center gap-2 rounded-sm",
-                    "px-3 py-2 text-[11px] font-medium uppercase tracking-wider",
+                    "px-3 py-2 text-[10px] font-medium uppercase tracking-wider",
                     "border border-white/[0.06] bg-white/[0.02] text-white/50",
                     "transition-all duration-150",
                     "hover:border-white/[0.12] hover:bg-white/[0.04] hover:text-white/70",
@@ -1041,7 +1034,7 @@ export function LeftSidebarImpl({
                   )}
                 >
                   <Plus aria-hidden="true" className="size-3.5" />
-                  Add Workspace
+                  Add workspace
                 </button>
               </TooltipTrigger>
               <TooltipContent side="top">Add a new workspace</TooltipContent>

@@ -1,5 +1,6 @@
 "use client";
 
+import { Check, Copy } from "@phosphor-icons/react";
 import type React from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { codeToHtml } from "shiki";
@@ -277,13 +278,92 @@ export type CodeBlockCodeProps = {
   language?: string;
   theme?: string;
   className?: string;
+  showLineNumbers?: boolean;
+  showCopyButton?: boolean;
+  showLanguageLabel?: boolean;
 } & React.HTMLProps<HTMLDivElement>;
+
+function CopyButton({ code }: { code: string }) {
+  const [copied, setCopied] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleCopy = useCallback(async () => {
+    try {
+      if (
+        typeof navigator !== "undefined" &&
+        navigator.clipboard &&
+        typeof navigator.clipboard.writeText === "function"
+      ) {
+        await navigator.clipboard.writeText(code);
+      }
+      setCopied(true);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = setTimeout(() => setCopied(false), 1600);
+    } catch {
+      setCopied(false);
+    }
+  }, [code]);
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      aria-label={copied ? "Copied" : "Copy code"}
+      className={cn(
+        "inline-flex items-center gap-1 px-2 py-1 text-[10.5px] uppercase tracking-wide",
+        "text-white/50 hover:text-white/90",
+        "bg-white/[0.03] hover:bg-white/[0.08]",
+        "border border-white/[0.06]",
+        "transition-all duration-[var(--duration-fast)] ease-out",
+      )}
+    >
+      {copied ? (
+        <>
+          <Check size={12} weight="bold" aria-hidden="true" />
+          <span>Copied!</span>
+        </>
+      ) : (
+        <>
+          <Copy size={12} aria-hidden="true" />
+          <span>Copy</span>
+        </>
+      )}
+    </button>
+  );
+}
+
+function LanguageLabel({ language }: { language: string }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center px-2 py-1 text-[10.5px] uppercase tracking-wide",
+        "text-white/40 bg-white/[0.02]",
+        "border border-white/[0.06]",
+      )}
+    >
+      {language}
+    </span>
+  );
+}
 
 function CodeBlockCode({
   code,
   language = "tsx",
   theme = "github-dark",
   className,
+  showLineNumbers = false,
+  showCopyButton = true,
+  showLanguageLabel = true,
   ...props
 }: CodeBlockCodeProps) {
   const [highlightedHtml, setHighlightedHtml] = useState<string | null>(null);
@@ -366,14 +446,52 @@ function CodeBlockCode({
   }, [code, runHighlight]);
 
   const classNames = cn(
-    "relative w-full overflow-x-auto border border-white/[0.04] bg-[#111111] font-mono text-[10.5px] leading-relaxed",
+    "relative w-full overflow-x-auto overflow-y-hidden border border-white/[0.04] bg-[#111111] font-mono text-[10.5px] leading-relaxed",
     className,
   );
+
+  const lineCount = useMemo(() => {
+    if (!code) return 0;
+    return code.split("\n").length;
+  }, [code]);
+
+  const header =
+    showCopyButton || showLanguageLabel ? (
+      <div
+        data-testid="code-block-header"
+        className={cn(
+          "sticky top-0 right-0 z-20 flex items-center justify-between gap-2",
+          "border-b border-white/[0.04] bg-white/[0.02] px-3 py-1.5 backdrop-blur",
+        )}
+      >
+        {showLanguageLabel ? <LanguageLabel language={language} /> : <span />}
+        {showCopyButton ? <CopyButton code={code} /> : null}
+      </div>
+    ) : null;
+
+  const renderLineNumbers = (content: React.ReactNode) => {
+    if (!showLineNumbers) return content;
+    return (
+      <div className="flex">
+        <div
+          aria-hidden="true"
+          className="select-none pr-3 text-right text-white/25"
+          data-testid="code-block-line-numbers"
+        >
+          {Array.from({ length: Math.max(lineCount, 1) }, (_, index) => (
+            <div key={`ln-${index + 1}`}>{index + 1}</div>
+          ))}
+        </div>
+        <div className="flex-1 min-w-0">{content}</div>
+      </div>
+    );
+  };
 
   // If file is too large, show plain text with a notice
   if (isTooLarge) {
     return (
       <div className={classNames} {...props}>
+        {header}
         <div
           className={cn(
             "sticky top-0 z-10 border-b border-white/[0.04] bg-white/[0.02] px-4 py-2 text-xs text-white/20 backdrop-blur",
@@ -383,9 +501,11 @@ function CodeBlockCode({
           File too large for syntax highlighting
         </div>
         <div className="p-4">
-          <pre className="whitespace-pre-wrap break-words">
-            <code>{code}</code>
-          </pre>
+          {renderLineNumbers(
+            <pre className="whitespace-pre">
+              <code>{code}</code>
+            </pre>,
+          )}
         </div>
       </div>
     );
@@ -394,6 +514,7 @@ function CodeBlockCode({
   // Show plain text immediately while highlighting loads
   return (
     <div className={classNames} {...props}>
+      {header}
       {isHighlighting && (
         <div
           className={cn(
@@ -406,13 +527,15 @@ function CodeBlockCode({
       )}
       {highlightedContent ? (
         <div className="p-4 transition-opacity duration-[var(--duration-fast)] ease-out">
-          {highlightedContent}
+          {renderLineNumbers(highlightedContent)}
         </div>
       ) : (
         <div className="p-4 transition-opacity duration-[var(--duration-fast)] ease-out">
-          <pre className="whitespace-pre-wrap break-words">
-            <code>{code}</code>
-          </pre>
+          {renderLineNumbers(
+            <pre className="whitespace-pre">
+              <code>{code}</code>
+            </pre>,
+          )}
         </div>
       )}
     </div>

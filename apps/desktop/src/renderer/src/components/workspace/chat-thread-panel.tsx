@@ -6,6 +6,7 @@ import {
 } from "@pi-desktop/ui";
 import { Skeleton } from "boneyard-js/react";
 import * as React from "react";
+import { Tool, type ToolPart } from "@/components/ui/tool";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import type { ActivityIndicatorProps } from "../ui/activity-indicator";
@@ -13,15 +14,30 @@ import { StreamingIndicator } from "../ui/activity-indicator";
 import { EnhancedMessage } from "../ui/enhanced-message";
 import { ScrollButton } from "../ui/scroll-button";
 import { SystemMessage } from "../ui/system-message";
-import { Tool, type ToolPart } from "@/components/ui/tool";
 import { FileChangeSummary } from "./chat/file-change-summary";
+import { InlineMessageEditor, MessageActions } from "./chat/message-actions";
+import { MessageTimestamp } from "./chat/message-timestamp";
 import { ResponseDivider } from "./chat/response-divider";
+import type { InlineModelPickerProps } from "./chat/thread-header";
+import { TokenCount } from "./chat/token-count";
 
 type ChatMessageRowProps = {
   message: AgentMessageSnapshot;
   index: number;
   onCopyMessage: (text: string) => void;
   userTimestamp?: number;
+  /** Whether this message is the last user message that failed. */
+  isFailedLastUser?: boolean;
+  /** Whether this user message can be edited/resubmitted. */
+  canEditUser?: boolean;
+  /** Whether this user row is currently being edited inline. */
+  isEditing?: boolean;
+  onStartEdit?: () => void;
+  onCancelEdit?: () => void;
+  onSubmitEdit?: (text: string) => void;
+  onRetry?: () => void;
+  /** Optional token count for assistant messages. */
+  tokens?: number | null;
 };
 
 interface ChatTurn {
@@ -206,16 +222,30 @@ const ChatMessageRow = React.memo(function ChatMessageRow({
   index,
   onCopyMessage,
   userTimestamp,
+  isFailedLastUser,
+  canEditUser,
+  isEditing,
+  onStartEdit,
+  onCancelEdit,
+  onSubmitEdit,
+  onRetry,
+  tokens,
 }: ChatMessageRowProps) {
   const isSystem = message.role === "system";
   const isTool = message.role === "tool";
   const isAssistant = message.role === "assistant";
   const isUser = message.role === "user";
 
+  const showUserActions = isUser && !isEditing && Boolean(message.text?.trim());
+  const showAssistantFooter =
+    isAssistant &&
+    message.status === "complete" &&
+    Boolean(message.text?.trim());
+
   return (
     <div
       className={cn(
-        "group flex w-full flex-col px-0 py-5",
+        "group flex w-full flex-col px-0 py-2",
         isUser && "justify-end items-end",
         isAssistant && "justify-start items-start",
         (isSystem || isTool) && "justify-center items-center",
@@ -239,13 +269,42 @@ const ChatMessageRow = React.memo(function ChatMessageRow({
             (isSystem || isTool) && "text-white/40",
           )}
         >
-          <MemoizedChatMessageBody
-            message={message}
-            onCopy={() => onCopyMessage(message.text)}
-            index={index}
-            userTimestamp={userTimestamp}
-          />
+          {isUser && isEditing && onSubmitEdit && onCancelEdit ? (
+            <InlineMessageEditor
+              initialText={message.text}
+              onCancel={onCancelEdit}
+              onSubmit={onSubmitEdit}
+            />
+          ) : (
+            <MemoizedChatMessageBody
+              message={message}
+              onCopy={() => onCopyMessage(message.text)}
+              index={index}
+              userTimestamp={userTimestamp}
+            />
+          )}
         </div>
+
+        {showUserActions ? (
+          <div className="flex w-full flex-col items-end gap-1">
+            <MessageActions
+              text={message.text}
+              canRetry={isFailedLastUser}
+              onRetry={onRetry}
+              canEdit={canEditUser}
+              onStartEdit={onStartEdit}
+              align="end"
+            />
+            <MessageTimestamp timestamp={message.timestamp} />
+          </div>
+        ) : null}
+
+        {showAssistantFooter ? (
+          <div className="flex w-full items-center gap-2 pt-0.5">
+            <TokenCount tokens={tokens} />
+            <MessageTimestamp timestamp={message.timestamp} />
+          </div>
+        ) : null}
       </div>
     </div>
   );
@@ -319,6 +378,28 @@ export interface ChatThreadPanelProps {
   isLoading?: boolean;
   lastError: string | null;
   className?: string;
+  /**
+   * Optional retry handler for the last user message when it failed.
+   * When provided, a Retry action becomes visible on the failed user row.
+   */
+  onRetryLastUserMessage?: (text: string) => void;
+  /**
+   * Optional edit+resubmit handler for the last user message. When provided,
+   * user rows expose an Edit action that swaps in an inline editor.
+   */
+  onResubmitUserMessage?: (messageId: string, nextText: string) => void;
+  /**
+   * Optional token count lookup for assistant messages. Return undefined to
+   * hide the token pill for that message.
+   */
+  getMessageTokens?: (messageId: string) => number | null | undefined;
+  /**
+   * Inline model picker wiring shown in the thread header. When omitted,
+   * the header is still rendered without a picker.
+   */
+  modelPicker?: InlineModelPickerProps;
+  /** Hide the thread header entirely. */
+  hideHeader?: boolean;
 }
 
 export function ChatThreadPanel({
