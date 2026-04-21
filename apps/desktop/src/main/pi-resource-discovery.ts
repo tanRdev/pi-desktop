@@ -144,6 +144,8 @@ function getSkillRoots(
     path.join(homeDir, ".agents"),
     path.join(homeDir, ".opencode"),
     path.join(homeDir, ".claude"),
+    path.join(homeDir, ".cursor"),
+    path.join(homeDir, ".aider"),
   ]);
 }
 
@@ -312,10 +314,9 @@ export function getPiSlashSuggestions(options: {
   agentDir: string;
   cwd: string;
   context: AutocompleteContext;
-  maxResults?: number;
   discoveryOptions?: PiDiscoveryOptions;
 }): AutocompleteSuggestions {
-  const { agentDir, cwd, context, maxResults = 12, discoveryOptions } = options;
+  const { agentDir, cwd, context, discoveryOptions } = options;
   const discovery = discoverPiResources(agentDir, cwd, {
     includeMachineAgentRoots: true,
     ...discoveryOptions,
@@ -334,11 +335,11 @@ export function getPiSlashSuggestions(options: {
     ...BUILT_IN_COMMANDS.filter((command) =>
       matchesBuiltInCommand(command, query),
     ).map(toCommandSuggestion),
-  ].slice(0, maxResults);
+  ];
 
   return {
     kind: "slash",
     suggestions,
-    hasMore: suggestions.length >= maxResults,
+    hasMore: false,
   };
 }

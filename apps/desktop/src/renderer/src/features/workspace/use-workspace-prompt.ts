@@ -268,21 +268,17 @@ export function useWorkspacePrompt({
 
       if (event.key === "ArrowDown") {
         event.preventDefault();
-        handleAutocompleteHover(
-          autocompleteSelectedIndex < autocompleteSuggestions.length - 1
-            ? autocompleteSelectedIndex + 1
-            : 0,
-        );
+        if (autocompleteSelectedIndex < autocompleteSuggestions.length - 1) {
+          handleAutocompleteHover(autocompleteSelectedIndex + 1);
+        }
         return;
       }
 
       if (event.key === "ArrowUp") {
         event.preventDefault();
-        handleAutocompleteHover(
-          autocompleteSelectedIndex > 0
-            ? autocompleteSelectedIndex - 1
-            : autocompleteSuggestions.length - 1,
-        );
+        if (autocompleteSelectedIndex > 0) {
+          handleAutocompleteHover(autocompleteSelectedIndex - 1);
+        }
         return;
       }
 

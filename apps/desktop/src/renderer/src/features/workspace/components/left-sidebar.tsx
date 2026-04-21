@@ -6,6 +6,7 @@ import {
   Archive,
   ArrowDown,
   ArrowUp,
+  Chat,
   Check,
   Copy,
   Folder,
@@ -303,6 +304,9 @@ function ThreadRowImpl({
 }: ThreadRowProps) {
   const threadTitle = thread.title.trim() || "Untitled thread";
   const tooltipText = `${repositoryName} › ${worktreeName} › ${threadTitle}`;
+  const resolvedState = isActive
+    ? indicatorState
+    : passiveIndicatorState(indicatorState);
 
   return (
     <div data-testid="thread-row">
@@ -324,14 +328,20 @@ function ThreadRowImpl({
                 : "text-white/40 hover:bg-white/[0.03] hover:text-white/65",
             )}
           >
-            <StatusIndicator
-              state={
+            <Chat
+              aria-hidden="true"
+              weight="regular"
+              className={cn(
+                "size-3 shrink-0 transition-colors duration-150",
                 isActive
-                  ? indicatorState
-                  : passiveIndicatorState(indicatorState)
-              }
+                  ? "text-white/60"
+                  : "text-white/25 group-hover:text-white/45",
+              )}
             />
             <span className="min-w-0 flex-1 truncate">{threadTitle}</span>
+            {resolvedState !== "idle" && (
+              <StatusIndicator state={resolvedState} />
+            )}
           </button>
         </TooltipTrigger>
         <TooltipContent side="right">{tooltipText}</TooltipContent>

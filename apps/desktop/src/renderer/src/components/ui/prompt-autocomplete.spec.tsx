@@ -48,26 +48,6 @@ describe("PromptAutocomplete", () => {
     expect(onSelect).toHaveBeenCalledWith(suggestions[0]);
   });
 
-  it("expands collapsed sections when more than five items are present", async () => {
-    const user = userEvent.setup();
-    const suggestions = Array.from({ length: 6 }, (_, index) => ({
-      kind: "command" as const,
-      name: `command-${index + 1}`,
-      slash: `/command-${index + 1}`,
-    }));
-
-    render(<PromptAutocomplete visible suggestions={suggestions} />);
-
-    expect(screen.queryByText("command-6")).not.toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: /show 1 more/i }));
-
-    expect(screen.getByText("command-6")).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /show less/i }),
-    ).toBeInTheDocument();
-  });
-
   it("renders nothing when visible is false", () => {
     const { container } = render(
       <PromptAutocomplete

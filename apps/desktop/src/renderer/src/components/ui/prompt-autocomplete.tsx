@@ -2,11 +2,11 @@ import type { MentionSuggestion, SlashSuggestion } from "@pi-desktop/shared";
 import * as React from "react";
 import {
   AtSign,
-  Command,
-  Faders,
   File,
   MessageSquare,
   Terminal,
+  TerminalWindow,
+  Wrench,
 } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 
@@ -19,9 +19,6 @@ export type PromptAutocompleteProps = {
   onKeyDown?: React.KeyboardEventHandler<HTMLDivElement>;
   className?: string;
 };
-
-/** Max items shown per section before "Show N more" */
-const MAX_PER_SECTION = 5;
 
 const SECTION_LABELS: Record<string, string> = {
   skill: "Skills",
@@ -55,13 +52,15 @@ function renderIcon(suggestion: SlashSuggestion | MentionSuggestion) {
 
   switch (suggestion.kind) {
     case "skill":
-      return <Faders className="size-5 shrink-0 text-indigo-400/70" />;
+      return <Wrench className="size-4 shrink-0 text-indigo-400/70" />;
+    case "command":
+      return <TerminalWindow className="size-4 shrink-0 text-emerald-400/70" />;
     case "prompt":
-      return <MessageSquare className="size-5 shrink-0 text-sky-400/70" />;
+      return <MessageSquare className="size-4 shrink-0 text-sky-400/70" />;
     case "model":
-      return <Command className="size-5 shrink-0 text-white/30" />;
+      return <Terminal className="size-4 shrink-0 text-white/30" />;
     default:
-      return <Command className="size-5 shrink-0 text-white/30" />;
+      return <Terminal className="size-4 shrink-0 text-white/30" />;
   }
 }
 
@@ -131,33 +130,36 @@ export function PromptAutocomplete({
   onKeyDown,
   className,
 }: PromptAutocompleteProps) {
-  const [expandedKinds, setExpandedKinds] = React.useState<Set<string>>(
-    new Set(),
-  );
+  const listRef = React.useRef<HTMLDivElement>(null);
+  const selectedRef = React.useRef<HTMLButtonElement>(null);
+
+  React.useEffect(() => {
+    if (selectedRef.current && listRef.current) {
+      const list = listRef.current;
+      const selected = selectedRef.current;
+      const listRect = list.getBoundingClientRect();
+      const selectedRect = selected.getBoundingClientRect();
+
+      if (selectedRect.bottom > listRect.bottom) {
+        list.scrollTop += selectedRect.bottom - listRect.bottom;
+      } else if (selectedRect.top < listRect.top) {
+        list.scrollTop -= listRect.top - selectedRect.top;
+      }
+    }
+  });
 
   if (!visible) return null;
 
   const groups = groupSuggestions(suggestions);
-
-  const toggleExpand = (kind: string) => {
-    setExpandedKinds((prev) => {
-      const next = new Set(prev);
-      if (next.has(kind)) {
-        next.delete(kind);
-      } else {
-        next.add(kind);
-      }
-      return next;
-    });
-  };
 
   return (
     <div
       role="listbox"
       tabIndex={0}
       onKeyDown={onKeyDown}
+      ref={listRef}
       className={cn(
-        "z-50 w-72 overflow-hidden border border-white/[0.06] bg-[var(--color-bg-secondary)] p-1 text-white/80 shadow-[0_8px_32px_rgba(0,0,0,0.5)]",
+        "z-50 max-h-[min(24rem,60vh)] w-72 overflow-y-auto border border-white/[0.06] bg-[var(--color-bg-secondary)] p-1 text-white/80 shadow-[0_8px_32px_rgba(0,0,0,0.5)]",
         "origin-top",
         "animate-in fade-in-0 zoom-in-95 duration-200 ease-[var(--ease-out)]",
         "motion-reduce:animate-none motion-reduce:opacity-100",
@@ -169,11 +171,6 @@ export function PromptAutocomplete({
       ) : (
         <div className="space-y-0.5">
           {groups.map((group) => {
-            const isExpanded = expandedKinds.has(group.kind);
-            const visibleItems = isExpanded
-              ? group.items
-              : group.items.slice(0, MAX_PER_SECTION);
-            const hiddenCount = group.items.length - visibleItems.length;
             const label = SECTION_LABELS[group.kind] ?? group.kind;
 
             return (
@@ -184,7 +181,7 @@ export function PromptAutocomplete({
                 </div>
 
                 <ul className="divide-y divide-white/[0.04]">
-                  {visibleItems.map((suggestion, localIndex) => {
+                  {group.items.map((suggestion, localIndex) => {
                     const globalIndex = group.startIndex + localIndex;
                     const isSelected = globalIndex === selectedIndex;
                     const isMention = isMentionSuggestion(suggestion);
@@ -205,6 +202,7 @@ export function PromptAutocomplete({
                       >
                         <button
                           type="button"
+                          ref={isSelected ? selectedRef : undefined}
                           role="option"
                           aria-selected={isSelected}
                           onClick={() => onSelect?.(suggestion)}
@@ -239,17 +237,6 @@ export function PromptAutocomplete({
                     );
                   })}
                 </ul>
-
-                {/* Show N more / Show less */}
-                {group.items.length > MAX_PER_SECTION && (
-                  <button
-                    type="button"
-                    onClick={() => toggleExpand(group.kind)}
-                    className="w-full px-3 py-1.5 text-left text-[10.5px] text-white/30 transition-colors duration-150 hover:text-white/50"
-                  >
-                    {isExpanded ? "Show less" : `Show ${hiddenCount} more`}
-                  </button>
-                )}
               </div>
             );
           })}
