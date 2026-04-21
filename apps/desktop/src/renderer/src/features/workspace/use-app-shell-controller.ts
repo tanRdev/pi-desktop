@@ -33,7 +33,6 @@ import {
   useWindowStore,
 } from "@/hooks/use-window-store";
 import { uiInteractionStore } from "@/stores/ui-interaction-store";
-import { syncActiveThreadConversation } from "@/stores/workspace-session-runtime";
 import { selectThreadConversationByWorktree } from "@/stores/workspace-session-selectors";
 import type { ThreadConversationState } from "@/stores/workspace-session-store";
 import { DEFAULT_UNTITLED_THREAD_TITLE } from "../../../../thread-title-defaults";
@@ -41,6 +40,7 @@ import {
   useWorkspaceShellControls,
   type WorkspaceShellControlsController,
 } from "./use-workspace-shell-controls";
+import { useWorkspaceShellSync } from "./use-workspace-shell-sync";
 
 export { getMainPaneState } from "@/features/workspace/workspace-pane-state";
 
@@ -49,35 +49,6 @@ function getThreadWindowTitle(
 ): string {
   const title = thread?.title.trim();
   return title && title.length > 0 ? title : DEFAULT_UNTITLED_THREAD_TITLE;
-}
-
-export function shouldPersistThreadConversation(
-  conversation: ThreadConversationState,
-): boolean {
-  return !(
-    conversation.status === "starting" &&
-    conversation.messages.length === 0 &&
-    conversation.lastError === null
-  );
-}
-
-export function shouldRetryEmptyShellReload(input: {
-  repositoryCount: number;
-  selection: {
-    repositoryId: string | null;
-    worktreeId: string | null;
-    threadId: string | null;
-  };
-}): boolean {
-  if (input.repositoryCount > 0) {
-    return false;
-  }
-
-  return (
-    input.selection.repositoryId !== null ||
-    input.selection.worktreeId !== null ||
-    input.selection.threadId !== null
-  );
 }
 
 export interface AppShellController
@@ -265,57 +236,26 @@ export function useAppShellController(): AppShellController {
     handleAgentGitAction,
   } = workspacePrompt;
 
-  const prevThreadIdRef = React.useRef<string | null>(null);
-  React.useEffect(() => {
-    if (prevThreadIdRef.current && prevThreadIdRef.current !== activeThreadId) {
-      uiInteractionStore.getState().markThreadViewed(prevThreadIdRef.current);
-    }
-    if (activeThreadId) {
-      uiInteractionStore.getState().markThreadViewed(activeThreadId);
-    }
-    prevThreadIdRef.current = activeThreadId;
-  }, [activeThreadId]);
+  const agentConversation = React.useMemo(
+    () =>
+      ({
+        messages: agent.messages,
+        status: agent.status,
+        lastError: agent.lastError,
+      }) satisfies ThreadConversationState,
+    [agent.lastError, agent.messages, agent.status],
+  );
 
-  React.useEffect(() => {
-    const conversation = {
-      messages: agent.messages,
-      status: agent.status,
-      lastError: agent.lastError,
-    } satisfies ThreadConversationState;
-
-    if (!shouldPersistThreadConversation(conversation)) {
-      return;
-    }
-
-    syncActiveThreadConversation({
-      sessionStore: getWorkspaceSessionStore(),
-      worktreeId: activeWorktreeId,
-      threadId: activeThreadId,
-      conversation,
-    });
-  }, [
-    activeWorktreeId,
+  useWorkspaceShellSync({
     activeThreadId,
-    agent.lastError,
-    agent.messages,
-    agent.status,
-  ]);
-
-  React.useEffect(() => {
-    const selection = shell.catalog.selection;
-    if (
-      !shouldRetryEmptyShellReload({
-        repositoryCount: shell.catalog.repositories.length,
-        selection,
-      })
-    ) {
-      return;
-    }
-    const timer = window.setTimeout(() => {
-      void reload();
-    }, 250);
-    return () => window.clearTimeout(timer);
-  }, [reload, shell.catalog.repositories.length, shell.catalog.selection]);
+    activeWorktreeId,
+    agent: agentConversation,
+    reload,
+    repositoryCount: shell.catalog.repositories.length,
+    selection: shell.catalog.selection,
+    sessionStore: getWorkspaceSessionStore(),
+    uiStore: uiInteractionStore,
+  });
 
   const activeThreadTitle = activeThread
     ? getThreadWindowTitle(activeThread)

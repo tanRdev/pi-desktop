@@ -97,6 +97,13 @@ interface RegisterFilesystemHandlersDependencies {
   getWorkspaceRootPath(): string | null;
 }
 
+function isVisibleFilesystemEntry(entry: {
+  isDirectory(): boolean;
+  isFile(): boolean;
+}): boolean {
+  return entry.isDirectory() || entry.isFile();
+}
+
 function requireRoots(getWorkspaceRootPath: () => string | null): string[] {
   const root = getWorkspaceRootPath();
   if (!root) {
@@ -124,7 +131,10 @@ export function registerFilesystemHandlers({
         withFileTypes: true,
       });
       const result = entries
-        .filter((entry) => !entry.name.startsWith("."))
+        .filter(
+          (entry) =>
+            !entry.name.startsWith(".") && isVisibleFilesystemEntry(entry),
+        )
         .sort((a, b) => {
           if (a.isDirectory() && !b.isDirectory()) return -1;
           if (!a.isDirectory() && b.isDirectory()) return 1;
@@ -190,6 +200,10 @@ export function registerFilesystemHandlers({
     }
 
     const stats = statSync(authorizedPath);
+    if (!stats.isFile()) {
+      throw new Error(`Path is not a regular file: ${filePath}`);
+    }
+
     if (stats.size > MAX_READ_BYTES) {
       return {
         path: filePath,

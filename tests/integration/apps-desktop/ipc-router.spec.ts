@@ -157,6 +157,43 @@ it("fs.readFile rejects out-of-workspace absolute paths before touching node:fs.
   expect(nodeFs.statSync).not.toHaveBeenCalled();
 });
 
+it("fs.readFile rejects non-regular files before touching node:fs.readFileSync", async () => {
+  const harness = createHandlerHarness();
+  const shellSnapshot = createShellSnapshot();
+  shellSnapshot.workspace.rootPath = "/tmp/pi-desktop";
+  const getShellSnapshot = vi.fn(() => shellSnapshot);
+
+  registerIpcHandlers({
+    handle: harness.handle,
+    getShellSnapshot,
+    getWorkspaceRootPath: () => "/tmp/pi-desktop",
+    agentHost: createAgentHost(createAgentSnapshot()),
+    mainWindow: null,
+  });
+
+  const nodeFs = await loadMockedNodeFs();
+  nodeFs.readFileSync.mockClear();
+  nodeFs.statSync.mockClear();
+  nodeFs.realpathSync.mockImplementation((value) => value.toString());
+  nodeFs.statSync.mockImplementation((targetPath) => {
+    expect(targetPath.toString()).toBe("/tmp/pi-desktop/fifo.txt");
+    return {
+      size: 0,
+      isDirectory: () => false,
+      isFile: () => false,
+    } as ReturnType<typeof nodeFs.statSync>;
+  });
+
+  await expect(
+    harness.handlers.get(IPC_CHANNELS.fs.readFile)?.(undefined, {
+      path: "/tmp/pi-desktop/fifo.txt",
+    }),
+  ).rejects.toThrow(/not a regular file/);
+
+  expect(nodeFs.readFileSync).not.toHaveBeenCalled();
+  expect(nodeFs.statSync).toHaveBeenCalledWith("/tmp/pi-desktop/fifo.txt");
+});
+
 it("fs.writeFile rejects out-of-workspace absolute paths before touching node:fs/promises.mkdir or writeFile", async () => {
   const harness = createHandlerHarness();
   const shellSnapshot = createShellSnapshot();
@@ -276,7 +313,10 @@ async function loadMockedNodeFsPromises() {
   };
 }
 
-function createDirent(name: string, kind: "file" | "directory"): Dirent {
+function createDirent(
+  name: string,
+  kind: "file" | "directory" | "fifo",
+): Dirent {
   return {
     name,
     path: "",
@@ -284,7 +324,7 @@ function createDirent(name: string, kind: "file" | "directory"): Dirent {
     isBlockDevice: () => false,
     isCharacterDevice: () => false,
     isDirectory: () => kind === "directory",
-    isFIFO: () => false,
+    isFIFO: () => kind === "fifo",
     isFile: () => kind === "file",
     isSocket: () => false,
     isSymbolicLink: () => false,
@@ -1399,6 +1439,61 @@ describe("registerIpcHandlers", () => {
         {
           name: "file1.txt",
           path: "/tmp/pi-desktop/project/file1.txt",
+          type: "file",
+          extension: "txt",
+        },
+      ],
+    });
+  });
+
+  it("fs.readDirectory excludes non-regular entries such as FIFOs", async () => {
+    const harness = createHandlerHarness();
+    const shellSnapshot = createShellSnapshot();
+    shellSnapshot.workspace.rootPath = "/tmp/pi-desktop";
+    const getShellSnapshot = vi.fn(() => shellSnapshot);
+
+    registerIpcHandlers({
+      handle: harness.handle,
+      getShellSnapshot,
+      getWorkspaceRootPath: () => "/tmp/pi-desktop",
+      agentHost: createAgentHost(createAgentSnapshot()),
+      mainWindow: null,
+    });
+
+    const nodeFs = await loadMockedNodeFs();
+    nodeFs.readdirSync.mockClear();
+    nodeFs.realpathSync.mockImplementation((value) => value.toString());
+    nodeFs.statSync.mockImplementation((targetPath) => {
+      expect(targetPath.toString()).toBe("/tmp/pi-desktop/project/fifo.txt");
+      return {
+        isDirectory: () => false,
+        isFile: () => false,
+      } as ReturnType<typeof nodeFs.statSync>;
+    });
+
+    nodeFs.readdirSync.mockImplementation(() => [
+      createDirent("fifo.txt", "fifo"),
+      createDirent("notes.txt", "file"),
+      createDirent("src", "directory"),
+    ]);
+
+    const result = await harness.handlers.get(IPC_CHANNELS.fs.readDirectory)?.(
+      undefined,
+      { path: "/tmp/pi-desktop/project" },
+    );
+
+    expect(result).toEqual({
+      path: "/tmp/pi-desktop/project",
+      entries: [
+        {
+          name: "src",
+          path: "/tmp/pi-desktop/project/src",
+          type: "directory",
+          extension: undefined,
+        },
+        {
+          name: "notes.txt",
+          path: "/tmp/pi-desktop/project/notes.txt",
           type: "file",
           extension: "txt",
         },
