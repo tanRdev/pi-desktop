@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useSyncExternalStore } from "react";
-import type { StorageLike } from "../snapshots/snapshot-store";
+import type { StorageLike } from "@/features/snapshots/snapshot-store";
 import {
   createWorkspacePrefsStore,
   DEFAULT_WORKSPACE_PREFS,

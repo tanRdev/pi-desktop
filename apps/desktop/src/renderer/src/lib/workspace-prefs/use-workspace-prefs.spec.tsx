@@ -1,6 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
-import type { StorageLike } from "../snapshots/snapshot-store";
+import type { StorageLike } from "@/features/snapshots/snapshot-store";
 import { useWorkspacePrefs } from "./use-workspace-prefs";
 
 function createMemoryStorage(): StorageLike & {

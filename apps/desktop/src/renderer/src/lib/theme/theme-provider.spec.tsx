@@ -2,7 +2,7 @@
 import { act, renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { UI_SETTINGS_STORAGE_KEY } from "@/components/settings/use-settings";
+import { UI_SETTINGS_STORAGE_KEY } from "@/features/settings/use-settings";
 import { ThemeProvider, useTheme } from "./theme-provider";
 
 function createMediaQuery(initiallyDark: boolean) {

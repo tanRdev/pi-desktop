@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { StorageLike } from "../snapshots/snapshot-store";
+import type { StorageLike } from "@/features/snapshots/snapshot-store";
 import {
   CURRENT_SCHEMA_VERSION,
   DEFAULT_WORKSPACE_PREFS,

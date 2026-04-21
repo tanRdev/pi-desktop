@@ -1,4 +1,4 @@
-import type { StorageLike } from "../snapshots/snapshot-store";
+import type { StorageLike } from "@/features/snapshots/snapshot-store";
 
 export const KEY_PREFIX = "pi-desktop:workspace-prefs:";
 export const CURRENT_SCHEMA_VERSION = 2;

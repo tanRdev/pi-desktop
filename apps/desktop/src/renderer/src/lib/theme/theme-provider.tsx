@@ -9,7 +9,7 @@ import {
 import {
   type ThemeChoice,
   useSettings,
-} from "@/components/settings/use-settings";
+} from "@/features/settings/use-settings";
 
 export type { ThemeChoice };
 export type ResolvedTheme = "light" | "dark";

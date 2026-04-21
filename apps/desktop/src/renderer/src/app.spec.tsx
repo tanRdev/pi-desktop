@@ -116,7 +116,7 @@ beforeAll(() => {
   });
 });
 
-vi.mock("./components/workspace/workspace-shell", () => ({
+vi.mock("@/features/workspace/components/workspace-shell", () => ({
   WorkspaceShell() {
     return <div data-testid="workspace-shell">Workspace shell</div>;
   },
@@ -128,19 +128,19 @@ vi.mock("@/components/ui/sonner", () => ({
   },
 }));
 
-vi.mock("./hooks/use-app-shell-controller", () => ({
+vi.mock("@/features/workspace/use-app-shell-controller", () => ({
   useAppShellController() {
     return mockUseAppShellController();
   },
 }));
 
-vi.mock("./components/command-palette", () => ({
+vi.mock("@/features/command-palette", () => ({
   CommandPaletteHost() {
     return null;
   },
 }));
 
-vi.mock("./components/settings", () => ({
+vi.mock("@/features/settings", () => ({
   SettingsHost() {
     return null;
   },
@@ -152,7 +152,7 @@ vi.mock("@/lib/keyboard", () => ({
   },
 }));
 
-vi.mock("@/lib/notifications", () => ({
+vi.mock("@/features/notifications", () => ({
   NotificationHost() {
     return null;
   },
@@ -176,7 +176,7 @@ vi.mock("./components/ui/update-banner", () => ({
   },
 }));
 
-vi.mock("./components/workspace/thread-search", () => ({
+vi.mock("@/features/workspace/components/thread-search", () => ({
   ThreadSearchHost() {
     return null;
   },
