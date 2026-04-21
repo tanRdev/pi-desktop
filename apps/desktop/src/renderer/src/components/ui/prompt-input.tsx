@@ -117,11 +117,14 @@ function PromptInput({
 
 export type PromptInputTextareaProps = {
   disableAutosize?: boolean;
+  onImagePaste?: (file: File) => void;
 } & React.ComponentProps<typeof Textarea>;
 
 function PromptInputTextarea({
   className,
   onKeyDown,
+  onPaste,
+  onImagePaste,
   disableAutosize = false,
   ...props
 }: PromptInputTextareaProps) {
@@ -172,12 +175,32 @@ function PromptInputTextarea({
     onKeyDown?.(e);
   };
 
+  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    if (onImagePaste) {
+      const items = e.clipboardData?.items;
+      if (items) {
+        for (const item of items) {
+          if (item.kind === "file" && item.type.startsWith("image/")) {
+            const file = item.getAsFile();
+            if (file) {
+              e.preventDefault();
+              onImagePaste(file);
+              return;
+            }
+          }
+        }
+      }
+    }
+    onPaste?.(e);
+  };
+
   return (
     <Textarea
       ref={handleRef}
       value={value}
       onChange={handleChange}
       onKeyDown={handleKeyDown}
+      onPaste={handlePaste}
       className={cn(
         "min-h-[44px] w-full resize-none border-0 bg-transparent text-sm leading-relaxed text-foreground shadow-none",
         "outline-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-subtle/50",

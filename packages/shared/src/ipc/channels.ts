@@ -95,6 +95,9 @@ export const IPC_CHANNELS = {
     fullscreenChanged: "window:fullscreenChanged",
     getFullscreenState: "window:getFullscreenState",
   },
+  clipboard: {
+    writeText: "clipboard:writeText",
+  },
 } as const;
 
 export type IpcChannels = typeof IPC_CHANNELS;

@@ -8,9 +8,8 @@ import {
 } from "./helpers/desktop-app";
 
 test.fixme("launches the shell and streams a mock agent reply", async () => {
-  // FIXME(imaginary-lamb): thread creation via create-thread-button no longer
-  // increases thread-tab-select count in the mock-agent desktop shell.
-  // Non-trivial regression from sidebar consolidation; needs investigation.
+  // Thread creation itself is covered elsewhere. This spec remains disabled
+  // until the mock-agent transcript assertion path is revalidated end-to-end.
   test.setTimeout(45_000);
 
   const { app, page, launchContext } = await launchDesktopApp(

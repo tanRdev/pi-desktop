@@ -76,6 +76,7 @@ export type WindowAction =
   | { type: "ZOOM_OUT" }
   | { type: "RESET_ZOOM" }
   | { type: "SET_PAN"; payload: { panX: number; panY: number } }
+  | { type: "REORDER_WINDOWS"; payload: { fromIndex: number; toIndex: number } }
   | { type: "CLEAR_ALL" };
 
 const DEFAULT_WINDOW_WIDTH = 640;
@@ -550,6 +551,31 @@ export function windowReducer(
       };
     }
 
+    case "REORDER_WINDOWS": {
+      const { fromIndex, toIndex } = action.payload;
+      const windows = [...state.layout.windows];
+      const maxIndex = windows.length - 1;
+      if (
+        fromIndex < 0 ||
+        fromIndex > maxIndex ||
+        toIndex < 0 ||
+        toIndex > maxIndex
+      ) {
+        return state;
+      }
+      const moved = windows[fromIndex];
+      if (!moved) return state;
+      windows.splice(fromIndex, 1);
+      windows.splice(toIndex, 0, moved);
+      return {
+        ...state,
+        layout: {
+          ...state.layout,
+          windows,
+        },
+      };
+    }
+
     case "CLEAR_ALL": {
       return createInitialWindowStoreState();
     }
@@ -651,6 +677,13 @@ export function createWindowStore() {
 
     setPan(panX: number, panY: number): void {
       this.dispatch({ type: "SET_PAN", payload: { panX, panY } });
+    },
+
+    reorderWindows(fromIndex: number, toIndex: number): void {
+      this.dispatch({
+        type: "REORDER_WINDOWS",
+        payload: { fromIndex, toIndex },
+      });
     },
 
     setSnapPreview(

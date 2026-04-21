@@ -13,6 +13,7 @@ export { Textarea } from "./components/ui/textarea";
 export type { TodoItem } from "./components/ui/todo";
 export { Todo } from "./components/ui/todo";
 export {
+  TOOLTIP_DELAY_MS,
   Tooltip,
   TooltipContent,
   TooltipProvider,

@@ -1,5 +1,6 @@
 import { realpathSync as realpathSyncDefault } from "node:fs";
 import path from "node:path";
+import { Data } from "effect";
 
 /**
  * Path containment guard shared by every main-process IPC handler.
@@ -60,6 +61,17 @@ function relativeIsInside(parent: string, child: string): boolean {
   return true;
 }
 
+function isLexicallyWithin(
+  parent: string,
+  child: string,
+  platform: NodeJS.Platform,
+): boolean {
+  return relativeIsInside(
+    normalizeForCompare(parent, platform),
+    normalizeForCompare(child, platform),
+  );
+}
+
 export interface IsPathWithinOptions {
   /**
    * Platform to use for case sensitivity. Defaults to the current runtime
@@ -84,22 +96,17 @@ export function isPathWithin(
 
   const platform = options.platform ?? process.platform;
 
-  const lexicalParent = normalizeForCompare(parent, platform);
-  const lexicalChild = normalizeForCompare(child, platform);
-
-  if (relativeIsInside(lexicalParent, lexicalChild)) {
-    return true;
-  }
+  const lexicalInside = isLexicallyWithin(parent, child, platform);
 
   const canonicalParentRaw = tryRealpath(path.resolve(parent));
   const canonicalChildRaw = tryRealpath(path.resolve(child));
-  if (canonicalParentRaw === null || canonicalChildRaw === null) {
-    return false;
+
+  if (canonicalChildRaw !== null) {
+    const canonicalParentBase = canonicalParentRaw ?? path.resolve(parent);
+    return isLexicallyWithin(canonicalParentBase, canonicalChildRaw, platform);
   }
 
-  const canonicalParent = normalizeForCompare(canonicalParentRaw, platform);
-  const canonicalChild = normalizeForCompare(canonicalChildRaw, platform);
-  return relativeIsInside(canonicalParent, canonicalChild);
+  return lexicalInside;
 }
 
 /**
@@ -116,4 +123,155 @@ export function isPathWithinAny(
     }
   }
   return false;
+}
+
+/**
+ * Stable error codes for path guard failures. Used by IPC handlers so the
+ * renderer can show accurate, localized messages without seeing raw paths.
+ */
+export type PathGuardCode =
+  | "path/no-root-configured"
+  | "path/not-a-string"
+  | "path/contains-null-byte"
+  | "path/outside-root"
+  | "path/symlink-escape";
+
+/**
+ * Effect-style tagged error consistent with apps/desktop/src/main/effect/errors.ts.
+ * Callers that use plain try/catch can still pattern-match on `_tag` and
+ * `code`.
+ */
+export class PathGuardError extends Data.TaggedError("PathGuardError")<{
+  readonly code: PathGuardCode;
+  readonly message: string;
+  readonly attemptedPath?: string;
+}> {
+  override toString(): string {
+    return `PathGuardError[${this.code}]: ${this.message}`;
+  }
+}
+
+export interface ResolveInsideRootOptions {
+  /**
+   * When `true` (the default) the returned path is passed through
+   * `fs.realpathSync` so symlinks are resolved to their real target. If the
+   * target does not yet exist (e.g. for a write), the nearest existing
+   * ancestor is canonicalized instead and the containment check is repeated
+   * against the ancestor.
+   */
+  allowCreate?: boolean;
+}
+
+/**
+ * Resolve `userPath` against a set of allowed roots, enforcing all path
+ * security rules in one place:
+ *   - `userPath` must be a non-empty string.
+ *   - `userPath` must not contain NUL bytes (POSIX path-truncation attack).
+ *   - Relative paths are resolved against the first root.
+ *   - After `path.resolve()`, the target must lie within one of the roots
+ *     both lexically AND after following any symlinks (`fs.realpath`).
+ *
+ * Throws `PathGuardError` with a stable `code` on any violation.
+ */
+export function resolveInsideRoot(
+  allowedRoots: readonly string[],
+  userPath: unknown,
+  options: ResolveInsideRootOptions = {},
+): string {
+  if (allowedRoots.length === 0) {
+    throw new PathGuardError({
+      code: "path/no-root-configured",
+      message: "no allowed roots configured",
+    });
+  }
+
+  if (typeof userPath !== "string" || userPath.length === 0) {
+    throw new PathGuardError({
+      code: "path/not-a-string",
+      message: "path must be a non-empty string",
+    });
+  }
+
+  if (userPath.includes("\0")) {
+    throw new PathGuardError({
+      code: "path/contains-null-byte",
+      message: "path must not contain a NUL byte",
+    });
+  }
+
+  const allowCreate = options.allowCreate ?? false;
+  const primaryRoot = path.resolve(allowedRoots[0] ?? "");
+  const resolvedTarget = path.isAbsolute(userPath)
+    ? path.resolve(userPath)
+    : path.resolve(primaryRoot, userPath);
+
+  // First: lexical containment must hold against at least one allowed root.
+  // This rejects `..` traversal before we touch the filesystem.
+  const resolvedRoots = allowedRoots.map((r) => path.resolve(r));
+  const lexicalMatch = resolvedRoots.some((root) =>
+    isLexicallyWithin(root, resolvedTarget, process.platform),
+  );
+  if (!lexicalMatch) {
+    throw new PathGuardError({
+      code: "path/outside-root",
+      message: "path resolves outside every allowed root",
+      attemptedPath: resolvedTarget,
+    });
+  }
+
+  // Second: if the path exists, canonicalize and re-check so a symlink cannot
+  // escape the root.
+  const canonical = tryRealpath(resolvedTarget);
+  if (canonical !== null) {
+    const canonicalMatch = resolvedRoots.some((root) =>
+      isPathWithin(root, canonical),
+    );
+    if (!canonicalMatch) {
+      throw new PathGuardError({
+        code: "path/symlink-escape",
+        message: "path resolves (via symlink) outside every allowed root",
+        attemptedPath: resolvedTarget,
+      });
+    }
+    return canonical;
+  }
+
+  // Third: path does not exist. Only allow when `allowCreate` is set AND the
+  // nearest existing ancestor is still within an allowed root (blocks
+  // symlinked parents that would push new files out of tree).
+  if (!allowCreate) {
+    throw new PathGuardError({
+      code: "path/outside-root",
+      message: "path does not exist",
+      attemptedPath: resolvedTarget,
+    });
+  }
+
+  let parent = path.dirname(resolvedTarget);
+  while (true) {
+    const canonicalAncestor = tryRealpath(parent);
+    if (canonicalAncestor !== null) {
+      const ancestorMatch = resolvedRoots.some((root) =>
+        isPathWithin(root, canonicalAncestor),
+      );
+      if (!ancestorMatch) {
+        throw new PathGuardError({
+          code: "path/symlink-escape",
+          message: "nearest existing ancestor is outside every allowed root",
+          attemptedPath: resolvedTarget,
+        });
+      }
+      return resolvedTarget;
+    }
+    const next = path.dirname(parent);
+    if (next === parent) {
+      // Walked off the root without finding anything. Conservatively reject.
+      throw new PathGuardError({
+        code: "path/outside-root",
+        message: "no existing ancestor of path could be canonicalized",
+        attemptedPath: resolvedTarget,
+      });
+    }
+    parent = next;
+  }
 }

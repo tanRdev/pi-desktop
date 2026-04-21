@@ -11,6 +11,16 @@ const agentHostSessionServerEntry = fileURLToPath(
 );
 export default defineConfig({
   main: {
+    resolve: {
+      alias: {
+        "@pi-desktop/shared": fileURLToPath(
+          new URL("../../packages/shared/src", import.meta.url),
+        ),
+        "@pi-desktop/agent-host": fileURLToPath(
+          new URL("../../packages/agent-host/src", import.meta.url),
+        ),
+      },
+    },
     build: {
       externalizeDeps: true,
       outDir: "out/main",

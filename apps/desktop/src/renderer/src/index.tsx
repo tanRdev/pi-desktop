@@ -5,7 +5,7 @@ import ReactDOM from "react-dom/client";
 import "./app.css";
 import App from "./app";
 import { ErrorBoundary } from "./components/error-boundary";
-import { ThemeProvider } from "./components/theme-provider";
+import { ThemeProvider } from "./lib/theme";
 
 if (import.meta.env.DEV) {
   import("react-grab");

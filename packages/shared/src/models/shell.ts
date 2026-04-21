@@ -21,7 +21,7 @@ export interface ShellProjectSnapshot {
 }
 
 export interface ShellWorkspaceSnapshot {
-  rootPath: string;
+  rootPath: string | null;
   agentDirectory: string | null;
   projects: ShellProjectSnapshot[];
 }
@@ -57,7 +57,7 @@ export interface ShellSnapshot {
   capabilities?: ShellCapabilitiesSnapshot;
   // Optional git information about the current workspace. Keep lightweight and
   // forward-compatible while the renderer transitions to the repository catalog.
-  git?: ShellGitSnapshot;
+  git?: ShellGitSnapshot | null;
 }
 
 export type ShellGitStatus = "repository" | "not_repo" | "unavailable";

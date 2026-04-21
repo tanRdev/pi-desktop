@@ -5,6 +5,7 @@ import type {
   BrowserWindowConstructorOptions,
   HandlerDetails,
 } from "electron";
+import { shell } from "electron";
 
 export interface CreateMainWindowOptionsInput {
   preloadPath: string;
@@ -76,11 +77,57 @@ export function shouldAllowNavigation(targetUrl: string): boolean {
     return false;
   }
 
-  return new URL(targetUrl).protocol === "file:";
+  const parsed = new URL(targetUrl);
+
+  if (parsed.protocol === "file:") {
+    return true;
+  }
+
+  // Dev server: electron-vite serves the renderer from
+  // http://localhost or http://127.0.0.1. We accept those for in-page
+  // navigation only when ELECTRON_RENDERER_URL is set (dev mode).
+  if (
+    parsed.protocol === "http:" &&
+    (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1") &&
+    process.env.ELECTRON_RENDERER_URL !== undefined
+  ) {
+    return true;
+  }
+
+  return false;
 }
 
+export type WindowOpenDecision =
+  | { kind: "deny" }
+  | { kind: "external"; url: string }
+  | { kind: "allow" };
+
+export function classifyWindowOpen(
+  details: HandlerDetails,
+): WindowOpenDecision {
+  if (!URL.canParse(details.url)) {
+    return { kind: "deny" };
+  }
+
+  const parsed = new URL(details.url);
+
+  // Open http(s) URLs in the user's default browser.
+  if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+    return { kind: "external", url: parsed.toString() };
+  }
+
+  if (shouldAllowNavigation(details.url)) {
+    return { kind: "allow" };
+  }
+
+  return { kind: "deny" };
+}
+
+/**
+ * Retained for backwards compatibility with existing tests.
+ */
 export function shouldDenyWindowOpen(details: HandlerDetails): boolean {
-  return !shouldAllowNavigation(details.url);
+  return classifyWindowOpen(details).kind !== "allow";
 }
 
 export function hardenMainWindow(window: BrowserWindow): void {
@@ -92,11 +139,18 @@ export function hardenMainWindow(window: BrowserWindow): void {
   });
 
   window.webContents.setWindowOpenHandler((details) => {
-    if (shouldDenyWindowOpen(details)) {
+    const decision = classifyWindowOpen(details);
+
+    if (decision.kind === "external") {
+      void shell.openExternal(decision.url);
       return { action: "deny" };
     }
 
-    return { action: "allow" };
+    if (decision.kind === "allow") {
+      return { action: "allow" };
+    }
+
+    return { action: "deny" };
   });
 
   window.webContents.on("will-navigate", (event, targetUrl) => {
@@ -105,6 +159,13 @@ export function hardenMainWindow(window: BrowserWindow): void {
     }
 
     event.preventDefault();
+
+    if (URL.canParse(targetUrl)) {
+      const parsed = new URL(targetUrl);
+      if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+        void shell.openExternal(parsed.toString());
+      }
+    }
   });
 }
 

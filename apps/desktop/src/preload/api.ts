@@ -15,6 +15,8 @@ import {
   type PackageRemoveRequest,
   type PackageSearchRequest,
   type PackageSearchResponse,
+  type PackagesEvent,
+  type PackageUpdateRequest,
   type PiDesktopAgentEvent,
   type PiDesktopApi,
   type PiDiscoveryResult,
@@ -48,10 +50,66 @@ export interface CreatePiDesktopApiDependencies {
   on: PreloadOn;
 }
 
+// TODO(A6): once shared exposes UpdaterState + IPC_CHANNELS.updates, replace
+// these locally-mirrored types with the canonical shared ones and add
+// `updates` to the PiDesktopApi interface.
+export type UpdaterStatus =
+  | "idle"
+  | "checking"
+  | "available"
+  | "downloading"
+  | "downloaded"
+  | "restart-pending"
+  | "error";
+
+export interface UpdateInfoSnapshot {
+  readonly version: string;
+  readonly releaseNotes?: string | null;
+  readonly releaseName?: string | null;
+  readonly releaseDate?: string | null;
+}
+
+export interface UpdaterErrorInfo {
+  readonly message: string;
+  readonly attempt: number;
+}
+
+export interface UpdaterState {
+  readonly status: UpdaterStatus;
+  readonly updateInfo: UpdateInfoSnapshot | null;
+  readonly downloadPercent: number;
+  readonly error: UpdaterErrorInfo | null;
+  readonly errorCount: number;
+  readonly lastCheckAt: number | null;
+  readonly userConsented: boolean;
+}
+
+export interface UpdatesApi {
+  getState(): Promise<UpdaterState>;
+  check(): Promise<UpdaterState>;
+  download(): Promise<UpdaterState>;
+  install(): void;
+  subscribe(listener: (state: UpdaterState) => void): () => void;
+}
+
+export type PiDesktopApiWithUpdates = PiDesktopApi & {
+  updates: UpdatesApi;
+};
+
+// Channel constants mirror apps/desktop/src/main/auto-updater.ts UPDATE_IPC_CHANNELS.
+// TODO(A6): consume IPC_CHANNELS.updates.* once shared exports them.
+const UPDATE_IPC_CHANNELS = {
+  event: "updates:event",
+  getState: "updates:getState",
+  check: "updates:check",
+  download: "updates:download",
+  install: "updates:install",
+} as const;
+
 export function createPiDesktopApi({
   invoke,
   on,
-}: CreatePiDesktopApiDependencies): PiDesktopApi {
+}: CreatePiDesktopApiDependencies): PiDesktopApiWithUpdates {
   return {
     shell: {
       getSnapshot() {
@@ -201,11 +259,15 @@ export function createPiDesktopApi({
       },
     },
     git: {
-      getRepositoryStatus(repositoryPath: string) {
+      getRepositoryStatus(
+        repositoryPath: string,
+        options?: { force?: boolean },
+      ) {
         return invoke<GitRepositoryStatus>(
           IPC_CHANNELS.git.getRepositoryStatus,
           {
             repositoryPath,
+            ...(options?.force ? { force: true } : {}),
           },
         );
       },
@@ -419,6 +481,28 @@ export function createPiDesktopApi({
       },
       onFullscreenChanged(listener: (isFullscreen: boolean) => void) {
         return on<boolean>(IPC_CHANNELS.window.fullscreenChanged, listener);
+      },
+    },
+    clipboard: {
+      writeText(text: string) {
+        return invoke<void>(IPC_CHANNELS.clipboard.writeText, { text });
+      },
+    },
+    updates: {
+      getState() {
+        return invoke<UpdaterState>(UPDATE_IPC_CHANNELS.getState, undefined);
+      },
+      check() {
+        return invoke<UpdaterState>(UPDATE_IPC_CHANNELS.check, undefined);
+      },
+      download() {
+        return invoke<UpdaterState>(UPDATE_IPC_CHANNELS.download, undefined);
+      },
+      install() {
+        void invoke<UpdaterState>(UPDATE_IPC_CHANNELS.install, undefined);
+      },
+      subscribe(listener: (state: UpdaterState) => void) {
+        return on<UpdaterState>(UPDATE_IPC_CHANNELS.event, listener);
       },
     },
   };

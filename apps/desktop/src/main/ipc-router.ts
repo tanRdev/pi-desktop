@@ -12,7 +12,7 @@ import {
   type SettingsSnapshot,
   type ShellSnapshot,
 } from "@pi-desktop/shared";
-import type { BrowserWindow } from "electron";
+import { BrowserWindow, clipboard } from "electron";
 import type { GitWorktreeService } from "./git-worktree-service";
 import {
   getNumberField,
@@ -359,4 +359,15 @@ export function registerIpcHandlers({
     IPC_CHANNELS.window.getFullscreenState,
     async () => mainWindow?.isFullScreen() ?? false,
   );
+
+  handle(IPC_CHANNELS.clipboard.writeText, async (_event, payload) => {
+    const text = getStringField(payload, "text");
+    if (text === undefined) {
+      throw new Error("clipboard:writeText payload must include text");
+    }
+    if (!clipboard) {
+      throw new Error("clipboard module is unavailable");
+    }
+    clipboard.writeText(text);
+  });
 }

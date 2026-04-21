@@ -14,6 +14,7 @@ export default defineConfig({
   test: {
     projects: [
       "./apps/desktop/vitest.config.ts",
+      "./packages/ui/vitest.config.ts",
       {
         resolve: {
           alias: {

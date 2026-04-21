@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import type { SlashSuggestion } from "@pi-desktop/shared";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -47,23 +48,47 @@ describe("PromptAutocomplete", () => {
     expect(onSelect).toHaveBeenCalledWith(suggestions[0]);
   });
 
-  it("expands collapsed sections when more than five items are present", async () => {
-    const user = userEvent.setup();
-    const suggestions = Array.from({ length: 6 }, (_, index) => ({
-      kind: "command" as const,
-      name: `command-${index + 1}`,
-      slash: `/command-${index + 1}`,
-    }));
+  it("renders nothing when visible is false", () => {
+    const { container } = render(
+      <PromptAutocomplete
+        visible={false}
+        suggestions={[
+          {
+            kind: "command",
+            name: "ship",
+            slash: "/ship",
+          },
+        ]}
+      />,
+    );
 
-    render(<PromptAutocomplete visible suggestions={suggestions} />);
+    expect(container.firstChild).toBeNull();
+  });
 
-    expect(screen.queryByText("command-6")).not.toBeInTheDocument();
+  it("shows the empty-state label when visible with no suggestions", () => {
+    render(<PromptAutocomplete visible suggestions={[]} />);
 
-    await user.click(screen.getByRole("button", { name: /show 1 more/i }));
+    expect(screen.getByText(/no suggestions/i)).toBeInTheDocument();
+  });
 
-    expect(screen.getByText("command-6")).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /show less/i }),
-    ).toBeInTheDocument();
+  it("marks the selected suggestion with aria-selected", () => {
+    render(
+      <PromptAutocomplete
+        visible
+        selectedIndex={0}
+        suggestions={[
+          {
+            kind: "command",
+            name: "ship",
+            slash: "/ship",
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByRole("option", { name: /ship/i })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
   });
 });

@@ -8,6 +8,7 @@ import type {
 } from "@pi-desktop/shared";
 import { Effect } from "effect";
 import type { BrowserWindow } from "electron";
+import { createModuleLogger } from "./effect/logger";
 import { terminateChildWithEscalation } from "./process-lifecycle";
 import { buildEnhancedPath, resolvePiPathOrThrow } from "./resolve-pi-path";
 import { resolveLocalShellProgram } from "./terminal/terminal-backends";
@@ -15,6 +16,25 @@ import {
   bindChildProcessSessionEvents,
   bindPtySessionEvents,
 } from "./terminal/terminal-session-events";
+
+const logger = createModuleLogger("terminal-manager");
+
+/**
+ * Per-session cap on cumulative bytes forwarded from the backend PTY
+ * to the renderer. Prevents a runaway process (e.g. `yes`) from
+ * filling the IPC queue or blowing renderer memory. 16MB is roughly
+ * 160k lines of 100-col output, well beyond any interactive session.
+ */
+const DEFAULT_SCROLLBACK_BYTE_CAP = 16 * 1024 * 1024;
+
+const ANSI_ESCAPE_PATTERN = new RegExp(
+  `${String.fromCharCode(27)}\\[[0-9;]*[A-Za-z]`,
+  "g",
+);
+
+function stripAnsi(input: string): string {
+  return input.replace(ANSI_ESCAPE_PATTERN, "");
+}
 
 const nodeRequire = createRequire(import.meta.url);
 
@@ -61,15 +81,24 @@ function createDefaultDependencies(): Required<
   };
 }
 
+const log = {
+  info: (msg: string) => {
+    Effect.runFork(logger.info(msg));
+  },
+  warn: (msg: string) => {
+    Effect.runFork(logger.warn(msg));
+  },
+  error: (msg: string, err?: unknown) => {
+    Effect.runFork(logger.error(msg, err));
+  },
+};
+
 function runTerminalOperation(operation: () => void): void {
-  void Effect.runSync(
-    Effect.either(
-      Effect.try({
-        try: operation,
-        catch: () => undefined,
-      }),
-    ),
-  );
+  try {
+    operation();
+  } catch {
+    // Swallow - pty operations may throw after destroy
+  }
 }
 
 export class TerminalManager {
@@ -163,7 +192,19 @@ export class TerminalManager {
     };
 
     const handleAttachedProcessExit = () => {
+      log.info(`session ${stripAnsi(id)} exited; cleaning up`);
+      const current = this.terminals.get(id);
+      if (current) {
+        current.pty = null;
+        current.childProcess = null;
+      }
       this.terminals.delete(id);
+    };
+
+    const handleScrollbackCapReached = (bytesDropped: number) => {
+      log.warn(
+        `session ${stripAnsi(id)} exceeded scrollback cap (${bytesDropped} bytes); dropping further output`,
+      );
     };
 
     const attachProcess = (attachCmd: {
@@ -187,6 +228,8 @@ export class TerminalManager {
           id,
           mainWindow: this.mainWindow,
           onExit: handleAttachedProcessExit,
+          scrollbackByteCap: DEFAULT_SCROLLBACK_BYTE_CAP,
+          onScrollbackCapReached: handleScrollbackCapReached,
         });
         this.terminals.set(id, instance);
         return;
@@ -204,6 +247,8 @@ export class TerminalManager {
         id,
         mainWindow: this.mainWindow,
         onExit: handleAttachedProcessExit,
+        scrollbackByteCap: DEFAULT_SCROLLBACK_BYTE_CAP,
+        onScrollbackCapReached: handleScrollbackCapReached,
       });
 
       this.terminals.set(id, instance);
@@ -237,10 +282,14 @@ export class TerminalManager {
       });
       session.status = "ready";
       session.lastActivityAt = this.now();
+      log.info(
+        `created session ${stripAnsi(id)} backend=${backend} cwd=${cwd}`,
+      );
       return session;
     } catch (error) {
       session.status = "error";
       this.terminals.delete(id);
+      log.error(`failed to create session ${stripAnsi(id)}`, error);
       throw error instanceof Error ? error : new Error(String(error));
     }
   }
@@ -300,7 +349,10 @@ export class TerminalManager {
         });
       }
     } finally {
+      instance.pty = null;
+      instance.childProcess = null;
       this.terminals.delete(id);
+      log.info(`destroyed session ${stripAnsi(id)}`);
     }
   }
 
@@ -317,7 +369,10 @@ export class TerminalManager {
         await terminateChildWithEscalation(instance.childProcess);
       }
     } finally {
+      instance.pty = null;
+      instance.childProcess = null;
       this.terminals.delete(id);
+      log.info(`destroyed session ${stripAnsi(id)} (async)`);
     }
   }
 

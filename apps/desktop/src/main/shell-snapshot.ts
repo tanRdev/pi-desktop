@@ -23,7 +23,7 @@ export interface CreateShellSnapshotOptions {
   platform: NodeJS.Platform | string;
   env: Record<string, string | undefined>;
   isPackaged: boolean;
-  cwd?: string;
+  cwd?: string | null;
   agentDir?: string;
   agentMode?: string;
   agentSnapshot?: AgentSnapshot | null;
@@ -236,24 +236,26 @@ export function createShellSnapshot({
   selectedThread,
   catalog,
 }: CreateShellSnapshotOptions): ShellSnapshot {
-  const requestedPath = cwd ?? process.cwd();
+  const requestedPath = cwd ?? null;
   const activeCatalogWorktree = catalog ? getActiveWorktree({ catalog }) : null;
   const gitFromCatalog = catalog
     ? toShellGitSnapshotFromCatalog(catalog)
     : null;
   let inspection: GitRepositoryInspection | null = null;
 
-  let git: ShellGitSnapshot;
+  let git: ShellGitSnapshot | null;
   let activePath = activeCatalogWorktree?.path ?? requestedPath;
 
   if (gitFromCatalog) {
     git = gitFromCatalog;
-  } else {
+  } else if (requestedPath) {
     inspection = gitService.inspect(requestedPath);
     git = toShellGitSnapshot(inspection);
     if (inspection.status === "repository" && inspection.currentWorktreePath) {
       activePath = inspection.currentWorktreePath;
     }
+  } else {
+    git = null;
   }
 
   const resolvedCatalog =
@@ -285,7 +287,7 @@ export function createShellSnapshot({
       agentDirectory: agentDir ?? null,
     },
     workspace: {
-      rootPath: activePath,
+      rootPath: activePath ?? null,
       agentDirectory: agentDir ?? null,
       projects: createWorkspaceProjects(appName, resolvedCatalog),
     },

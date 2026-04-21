@@ -6,9 +6,16 @@ import type {
   SearchRequest,
   SearchResponse,
 } from "@pi-desktop/shared";
-import { Effect, Either } from "effect";
+import { Duration, Effect } from "effect";
+import { createModuleLogger } from "./effect/logger";
 
 const DEFAULT_TIMEOUT_MS = 10_000;
+
+const logger = createModuleLogger("workspace-search");
+
+function fireAndForget(effect: Effect.Effect<void, unknown>): void {
+  Effect.runFork(effect);
+}
 
 function globToRegExp(pattern: string): RegExp {
   const esc = pattern.replace(/[.+^${}()|\\]/g, "\\$&");
@@ -28,16 +35,11 @@ function matchesAnyPattern(relativePath: string, patterns?: string[]): boolean {
 }
 
 function safeJsonParse(text: string): unknown | null {
-  const result = Effect.runSync(
-    Effect.either(
-      Effect.try({
-        try: () => JSON.parse(text),
-        catch: () => null,
-      }),
-    ),
-  );
-
-  return Either.isRight(result) ? result.right : null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
 }
 
 function toSearchMatch(
@@ -105,14 +107,13 @@ export class WorkspaceSearchService {
 
   async search(request: SearchRequest): Promise<SearchResponse> {
     const start = Date.now();
-    let results: SearchMatch[] = [];
 
-    try {
-      results = await this.runFffSearch(request);
-    } catch (_err) {
-      // Use fallback; keep error logging minimal in main process
-      results = await this.fallbackSearch(request);
-    }
+    const program = this.runFffSearch(request).pipe(
+      Effect.timeout(Duration.millis(this.timeoutMs)),
+      Effect.catchAll(() => this.fallbackSearchEffect(request)),
+    );
+
+    const results = await Effect.runPromise(program);
 
     const max = request.maxResults ?? results.length;
     const sliced = results.slice(0, max);
@@ -125,47 +126,33 @@ export class WorkspaceSearchService {
     };
   }
 
-  private runFffSearch(request: SearchRequest): Promise<SearchMatch[]> {
-    return new Promise((resolve, reject) => {
+  private runFffSearch(
+    request: SearchRequest,
+  ): Effect.Effect<SearchMatch[], Error> {
+    return Effect.async<SearchMatch[], Error>((resume) => {
       const args = ["find", "--json", request.query];
       const proc = spawn("fff", args, { cwd: request.rootPath });
 
       let stdout = "";
       let stderr = "";
-      let finished = false;
-
-      const timer = setTimeout(() => {
-        if (!finished) {
-          finished = true;
-          if (!proc.killed) {
-            proc.kill();
-          }
-          reject(new Error("fff: timeout"));
-        }
-      }, this.timeoutMs);
 
       proc.stdout?.on("data", (chunk) => (stdout += String(chunk)));
       proc.stderr?.on("data", (chunk) => (stderr += String(chunk)));
 
       proc.on("error", (err: NodeJS.ErrnoException) => {
-        clearTimeout(timer);
-        finished = true;
-        // fff not installed or spawn failed
         if (err.code === "ENOENT") {
-          reject(new Error("fff: not found"));
+          resume(Effect.fail(new Error("fff: not found")));
         } else {
-          reject(err);
+          resume(Effect.fail(err));
         }
       });
 
       proc.on("close", (code) => {
-        clearTimeout(timer);
-        if (finished) return;
-        finished = true;
-
         if (code !== 0) {
-          return reject(
-            new Error(`fff exited with code ${code}: ${stderr.trim()}`),
+          return resume(
+            Effect.fail(
+              new Error(`fff exited with code ${code}: ${stderr.trim()}`),
+            ),
           );
         }
 
@@ -187,7 +174,6 @@ export class WorkspaceSearchService {
           })
           .filter((match): match is SearchMatch => match !== null);
 
-        // apply include/exclude patterns if any
         const filtered = mapped.filter((match) => {
           const relPath = path
             .relative(request.rootPath, match.path)
@@ -205,8 +191,23 @@ export class WorkspaceSearchService {
           return true;
         });
 
-        resolve(filtered);
+        resume(Effect.succeed(filtered));
       });
+
+      return Effect.sync(() => {
+        if (!proc.killed) {
+          proc.kill();
+        }
+      });
+    });
+  }
+
+  private fallbackSearchEffect(
+    request: SearchRequest,
+  ): Effect.Effect<SearchMatch[], Error> {
+    return Effect.tryPromise({
+      try: () => this.fallbackSearch(request),
+      catch: (e) => new Error(`fallback search failed: ${e}`),
     });
   }
 

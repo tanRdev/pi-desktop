@@ -1,5 +1,9 @@
 import { existsSync, mkdirSync, rmSync } from "node:fs";
 import path from "node:path";
+import { Effect } from "effect";
+import { PiError } from "./effect/errors";
+import { fromUnknownError } from "./effect/errors";
+import { runEffect, runEffectVoid } from "./effect/runtime";
 import type {
   AgentSnapshot,
   AutocompleteContext,
@@ -13,7 +17,15 @@ import type {
   SettingsSnapshot,
 } from "@pi-desktop/shared";
 import { IPC_CHANNELS } from "@pi-desktop/shared";
-import { app, BrowserWindow, dialog, ipcMain, Menu, shell } from "electron";
+import {
+  app,
+  BrowserWindow,
+  dialog,
+  ipcMain,
+  Menu,
+  session,
+  shell,
+} from "electron";
 import {
   DEFAULT_UNTITLED_THREAD_TITLE,
   generateThreadTitleFromMessage,
@@ -32,6 +44,7 @@ import {
 import { AppPreferencesCatalog } from "./app-preferences-catalog";
 import { initAutoUpdater } from "./auto-updater";
 import { switchModelForContext } from "./bootstrap/model-switch";
+import { resolveInitialWorkspaceTarget } from "./bootstrap/initial-workspace";
 import {
   buildThreadContext as buildThreadContextFromHelper,
   type ResolvedRepositoryInspection,
@@ -56,6 +69,7 @@ import {
 } from "./pi-resource-discovery";
 import { RepositoryCatalog } from "./repository-catalog";
 import { RepositoryPreferencesCatalog } from "./repository-preferences-catalog";
+import { installSecurityHeaders } from "./security/csp";
 import { SelectionState } from "./selection-state";
 import { buildShellCatalog } from "./shell-catalog-builder";
 import { createShellSnapshot } from "./shell-snapshot";
@@ -251,6 +265,11 @@ async function bootstrapDesktop() {
   app.setName("Pi Desktop");
   await app.whenReady();
 
+  installSecurityHeaders({
+    session: session.defaultSession,
+    isDevelopment: process.env.ELECTRON_RENDERER_URL !== undefined,
+  });
+
   const isMac = process.platform === "darwin";
   const template: Electron.MenuItemConstructorOptions[] = [
     ...(isMac
@@ -274,12 +293,10 @@ async function bootstrapDesktop() {
                   });
 
                   if (response.response === 1) {
-                    try {
-                      // Get paths to delete
+                    const doUninstall = (): void => {
                       const userDataPath = app.getPath("userData");
-                      const appPath = app.getPath("exe"); // Only works well if packaged
+                      const appPath = app.getPath("exe");
 
-                      // Delete user data
                       if (existsSync(userDataPath)) {
                         rmSync(userDataPath, {
                           recursive: true,
@@ -287,7 +304,6 @@ async function bootstrapDesktop() {
                         });
                       }
 
-                      // If packaged on Mac, delete the .app bundle
                       if (isMac && app.isPackaged) {
                         const appBundlePath = appPath.substring(
                           0,
@@ -307,9 +323,19 @@ async function bootstrapDesktop() {
                           "Pi Desktop data removed. You can now move the app to Trash.",
                       });
                       app.quit();
-                    } catch (err) {
-                      dialog.showErrorBox("Uninstall Failed", String(err));
-                    }
+                    };
+                    const uninstallEffect = Effect.try({
+                      try: doUninstall,
+                      catch: (err) =>
+                        PiError.of("EINTERNAL", "Uninstall failed", err),
+                    }).pipe(
+                      Effect.catchAll((err) =>
+                        Effect.sync(() =>
+                          dialog.showErrorBox("Uninstall Failed", err.message),
+                        ),
+                      ),
+                    );
+                    runEffectVoid(uninstallEffect);
                   }
                 },
               },
@@ -460,35 +486,43 @@ async function bootstrapDesktop() {
   }
 
   async function handleSwitchModel(request: ModelSwitchRequest): Promise<void> {
-    try {
-      await currentHost.switchModel(request);
-      notifySessionChanged();
-      return;
-    } catch (error) {
-      if (
-        error instanceof Error &&
-        error.message !==
-          "Model switching is not supported by the active Pi runtime"
-      ) {
-        throw error;
-      }
+    const UNSUPPORTED_MODEL_SWITCH =
+      "Model switching is not supported by the active Pi runtime";
+
+    const switchResult = await runEffect(
+      Effect.tryPromise({
+        try: () => currentHost.switchModel(request),
+        catch: (error) => fromUnknownError(error, "switchModel"),
+      }).pipe(
+        Effect.tap(() => Effect.sync(() => notifySessionChanged())),
+        Effect.catchAll((error) => {
+          if (
+            error.cause instanceof Error &&
+            error.cause.message !== UNSUPPORTED_MODEL_SWITCH
+          ) {
+            return Effect.fail(error);
+          }
+          return Effect.succeed("fallback" as const);
+        }),
+      ),
+    );
+
+    if (switchResult === "fallback") {
+      await switchModelForContext(request, {
+        currentContext,
+        currentHost,
+        resolveAgentDirectory,
+        createSettingsManager: async (worktreePath, agentDirectory) => {
+          const { SettingsManager } = await import(
+            "@mariozechner/pi-coding-agent"
+          );
+          return SettingsManager.create(worktreePath, agentDirectory);
+        },
+        runtimeManager,
+        attachContext,
+        commitAttachment,
+      });
     }
-
-    await switchModelForContext(request, {
-      currentContext,
-      currentHost,
-      resolveAgentDirectory,
-      createSettingsManager: async (worktreePath, agentDirectory) => {
-        const { SettingsManager } = await import(
-          "@mariozechner/pi-coding-agent"
-        );
-
-        return SettingsManager.create(worktreePath, agentDirectory);
-      },
-      runtimeManager,
-      attachContext,
-      commitAttachment,
-    });
   }
 
   async function handleGetDiscovery(): Promise<PiDiscoveryResult> {
@@ -653,6 +687,11 @@ async function bootstrapDesktop() {
     }
 
     const inspection = inspectWorktreeOrThrow(repository.rootPath);
+    if (!gitService.isRepository(repository.rootPath)) {
+      throw new Error(
+        `"${path.basename(repository.rootPath)}" is not a git repository. Initialize git to create a session.`,
+      );
+    }
     const trimmedBranchName = branchName.trim();
     if (!trimmedBranchName) {
       throw new Error("Worktree branch name must not be empty");
@@ -928,40 +967,58 @@ async function bootstrapDesktop() {
   );
 
   const preferredSelection = selectionState.get();
-  const preferredWorkspacePath =
-    preferredSelection.worktreeId ??
-    preferredSelection.repositoryId ??
-    process.cwd();
-  const shouldPreserveEmptySelection =
-    preferredSelection.threadId === null &&
-    (preferredSelection.worktreeId !== null ||
-      preferredSelection.repositoryId !== null);
+  const {
+    preferredWorkspacePath,
+    fallbackWorkspacePath,
+    shouldPreserveEmptySelection,
+  } = resolveInitialWorkspaceTarget({
+    selection: preferredSelection,
+    repositories: repositoryCatalog.list(),
+  });
 
-  try {
-    await activateWorkspacePath(preferredWorkspacePath, {
-      createIfMissing: !shouldPreserveEmptySelection,
-    });
-  } catch (error) {
-    const fallbackPath = process.cwd();
-    if (preferredWorkspacePath !== fallbackPath) {
-      try {
-        await activateWorkspacePath(fallbackPath);
-      } catch (fallbackError) {
-        currentHost = createBootstrapErrorHost(
-          fallbackError instanceof Error
-            ? fallbackError.message
-            : "Unknown agent host error",
-        );
-        unsubscribe();
-        unsubscribe = subscribeToHost(currentHost, null);
-      }
-    } else {
-      currentHost = createBootstrapErrorHost(
-        error instanceof Error ? error.message : "Unknown agent host error",
-      );
-      unsubscribe();
-      unsubscribe = subscribeToHost(currentHost, null);
-    }
+  if (preferredWorkspacePath === null) {
+    currentHost = createBootstrapErrorHost("No workspace selected");
+    unsubscribe();
+    unsubscribe = subscribeToHost(currentHost, null);
+  } else {
+    await runEffectVoid(
+      Effect.tryPromise({
+        try: () =>
+          activateWorkspacePath(preferredWorkspacePath, {
+            createIfMissing: !shouldPreserveEmptySelection,
+          }),
+        catch: (error) => fromUnknownError(error, "activateWorkspacePath"),
+      }).pipe(
+        Effect.catchAll((error) => {
+          if (
+            fallbackWorkspacePath &&
+            preferredWorkspacePath !== fallbackWorkspacePath
+          ) {
+            return Effect.tryPromise({
+              try: () => activateWorkspacePath(fallbackWorkspacePath),
+              catch: (fallbackError) =>
+                fromUnknownError(
+                  fallbackError,
+                  "activateWorkspacePath fallback",
+                ),
+            }).pipe(
+              Effect.catchAll((fallbackError) =>
+                Effect.sync(() => {
+                  currentHost = createBootstrapErrorHost(fallbackError.message);
+                  unsubscribe();
+                  unsubscribe = subscribeToHost(currentHost, null);
+                }),
+              ),
+            );
+          }
+          return Effect.sync(() => {
+            currentHost = createBootstrapErrorHost(error.message);
+            unsubscribe();
+            unsubscribe = subscribeToHost(currentHost, null);
+          });
+        }),
+      ),
+    );
   }
 
   function switchContextInBackground(context: SelectedThreadContext): void {
@@ -1039,18 +1096,21 @@ async function bootstrapDesktop() {
       },
     }),
     getShellSnapshot: async () => {
-      let agentSnapshot: AgentSnapshot | null = null;
-      try {
-        agentSnapshot = await currentHost.getSnapshot();
-      } catch (error) {
-        agentSnapshot = {
-          sessionId: AGENT_BOOTSTRAP_ERROR_SESSION_ID,
-          status: "error",
-          messages: [],
-          lastError:
-            error instanceof Error ? error.message : "Unknown agent host error",
-        };
-      }
+      const agentSnapshot = await runEffect(
+        Effect.tryPromise({
+          try: () => currentHost.getSnapshot(),
+          catch: (error) => fromUnknownError(error, "getSnapshot"),
+        }).pipe(
+          Effect.catchAll((error) =>
+            Effect.succeed<AgentSnapshot>({
+              sessionId: AGENT_BOOTSTRAP_ERROR_SESSION_ID,
+              status: "error",
+              messages: [],
+              lastError: error.message,
+            }),
+          ),
+        ),
+      );
 
       const selection = currentContext
         ? {
@@ -1164,14 +1224,20 @@ async function bootstrapDesktop() {
           workspaceSessionCatalog.remove(worktree.path);
 
           // Remove the git worktree from disk
-          try {
-            gitService.removeWorktree({
-              worktreePath: worktree.path,
-              repositoryRoot: repository.rootPath,
-            });
-          } catch {
-            // Best-effort: worktree directory may already be gone
-          }
+          runEffectVoid(
+            Effect.try({
+              try: () =>
+                gitService.removeWorktree({
+                  worktreePath: worktree.path,
+                  repositoryRoot: repository.rootPath,
+                }),
+              catch: () =>
+                PiError.of(
+                  "EGIT_FAILED",
+                  "Best-effort worktree removal failed",
+                ),
+            }).pipe(Effect.catchAll(() => Effect.void)),
+          );
         }
 
         // Clean up threads and session for the main worktree (repository root)
@@ -1395,8 +1461,19 @@ async function bootstrapDesktop() {
     getSlashSuggestions: handleGetSlashSuggestions,
     threadCatalog,
     packagesService,
-    getAllowedRepositoryRoots: () =>
-      repositoryCatalog.list().map((entry) => entry.rootPath),
+    getAllowedRepositoryRoots: () => {
+      const roots = new Set<string>();
+      for (const entry of repositoryCatalog.list()) {
+        roots.add(entry.rootPath);
+        const inspection = gitService.inspect(entry.rootPath);
+        if (inspection.worktrees) {
+          for (const worktree of inspection.worktrees) {
+            roots.add(worktree.path);
+          }
+        }
+      }
+      return [...roots];
+    },
     getAllowedTerminalCwds: () => {
       const roots: string[] = [];
       for (const entry of repositoryCatalog.list()) {
@@ -1417,6 +1494,20 @@ async function bootstrapDesktop() {
   let unsubscribeFullscreen = subscribeToFullscreenChanges(mainWindow);
 
   if (app.isPackaged) {
+    initAutoUpdater({
+      mainWindow: {
+        getMainWindow: () => mainWindow,
+      },
+      consent: {
+        // TODO(A3/A6): replace with appPreferencesCatalog.get().autoDownloadUpdates
+        // once shared AppPreferences exposes the field. Defaulting to false keeps
+        // downloads gated on explicit user action.
+        shouldAutoDownload: () => false,
+      },
+    });
+  } else {
+    // In dev/unpackaged mode, register stub handlers so the renderer
+    // UpdateBanner doesn't get "No handler registered" IPC errors.
     initAutoUpdater();
   }
   mainWindow.on("closed", () => {

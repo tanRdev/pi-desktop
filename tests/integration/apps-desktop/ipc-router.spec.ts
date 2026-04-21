@@ -151,10 +151,47 @@ it("fs.readFile rejects out-of-workspace absolute paths before touching node:fs.
     harness.handlers.get(IPC_CHANNELS.fs.readFile)?.(undefined, {
       path: "/etc/passwd",
     }),
-  ).rejects.toThrow(/outside the workspace root/);
+  ).rejects.toThrow(/path resolves outside every allowed root/);
 
   expect(nodeFs.readFileSync).not.toHaveBeenCalled();
   expect(nodeFs.statSync).not.toHaveBeenCalled();
+});
+
+it("fs.readFile rejects non-regular files before touching node:fs.readFileSync", async () => {
+  const harness = createHandlerHarness();
+  const shellSnapshot = createShellSnapshot();
+  shellSnapshot.workspace.rootPath = "/tmp/pi-desktop";
+  const getShellSnapshot = vi.fn(() => shellSnapshot);
+
+  registerIpcHandlers({
+    handle: harness.handle,
+    getShellSnapshot,
+    getWorkspaceRootPath: () => "/tmp/pi-desktop",
+    agentHost: createAgentHost(createAgentSnapshot()),
+    mainWindow: null,
+  });
+
+  const nodeFs = await loadMockedNodeFs();
+  nodeFs.readFileSync.mockClear();
+  nodeFs.statSync.mockClear();
+  nodeFs.realpathSync.mockImplementation((value) => value.toString());
+  nodeFs.statSync.mockImplementation((targetPath) => {
+    expect(targetPath.toString()).toBe("/tmp/pi-desktop/fifo.txt");
+    return {
+      size: 0,
+      isDirectory: () => false,
+      isFile: () => false,
+    } as ReturnType<typeof nodeFs.statSync>;
+  });
+
+  await expect(
+    harness.handlers.get(IPC_CHANNELS.fs.readFile)?.(undefined, {
+      path: "/tmp/pi-desktop/fifo.txt",
+    }),
+  ).rejects.toThrow(/not a regular file/);
+
+  expect(nodeFs.readFileSync).not.toHaveBeenCalled();
+  expect(nodeFs.statSync).toHaveBeenCalledWith("/tmp/pi-desktop/fifo.txt");
 });
 
 it("fs.writeFile rejects out-of-workspace absolute paths before touching node:fs/promises.mkdir or writeFile", async () => {
@@ -183,7 +220,7 @@ it("fs.writeFile rejects out-of-workspace absolute paths before touching node:fs
       path: "/etc/hosts",
       content: "hello",
     }),
-  ).rejects.toThrow(/outside the workspace root/);
+  ).rejects.toThrow(/path resolves outside every allowed root/);
 
   expect(nodeFsPromises.mkdir).not.toHaveBeenCalled();
   expect(nodeFsPromises.writeFile).not.toHaveBeenCalled();
@@ -276,7 +313,10 @@ async function loadMockedNodeFsPromises() {
   };
 }
 
-function createDirent(name: string, kind: "file" | "directory"): Dirent {
+function createDirent(
+  name: string,
+  kind: "file" | "directory" | "fifo",
+): Dirent {
   return {
     name,
     path: "",
@@ -284,7 +324,7 @@ function createDirent(name: string, kind: "file" | "directory"): Dirent {
     isBlockDevice: () => false,
     isCharacterDevice: () => false,
     isDirectory: () => kind === "directory",
-    isFIFO: () => false,
+    isFIFO: () => kind === "fifo",
     isFile: () => kind === "file",
     isSocket: () => false,
     isSymbolicLink: () => false,
@@ -423,7 +463,6 @@ function createShellSnapshot(): ShellSnapshotWithWorkspace {
                 {
                   id: "default-thread",
                   title: "North Star",
-                  isArchived: false,
                   lastActivityAt: null,
                   runtime: {
                     status: "ready",
@@ -484,11 +523,15 @@ function createAgentHost(agentSnapshot: AgentSnapshot) {
     reset: vi.fn(async () => undefined),
     addRepository: vi.fn(async () => undefined),
     selectRepository: vi.fn(async () => undefined),
+    removeRepository: vi.fn(async () => undefined),
+    openRepositoryInFinder: vi.fn(async () => undefined),
     reorderRepositories: vi.fn(async () => undefined),
     createWorktree: vi.fn(async () => undefined),
     selectWorktree: vi.fn(async () => undefined),
-    createThread: vi.fn(async () => undefined),
+    removeWorktree: vi.fn(async () => undefined),
+    createThread: vi.fn(async () => "thread-created"),
     selectThread: vi.fn(async () => undefined),
+    deleteThread: vi.fn(async () => undefined),
   };
 }
 
@@ -669,7 +712,7 @@ describe("registerIpcHandlers", () => {
         backend: "shell",
         cwd: "/etc",
       }),
-    ).rejects.toThrow(/not within any allowed/i);
+    ).rejects.toThrow(/outside every allowed root/i);
     expect(tmMock.create).not.toHaveBeenCalled();
   });
 
@@ -727,6 +770,42 @@ describe("registerIpcHandlers", () => {
       }),
     ).resolves.toEqual(fakeSession);
     expect(tmMock.create).toHaveBeenCalled();
+  });
+
+  it("terminal.create rejects symlinked cwd paths that resolve outside the allowlist", async () => {
+    const harness = createHandlerHarness();
+    const tmMock = createTerminalManagerMock({
+      create: vi.fn(() => createTerminalSession()),
+    });
+
+    registerIpcHandlers({
+      handle: harness.handle,
+      getShellSnapshot: vi.fn(createShellSnapshot),
+      agentHost: createAgentHost(createAgentSnapshot()),
+      mainWindow: null,
+      terminalManager: tmMock,
+      getAllowedTerminalCwds: () => ["/tmp/allowed-repo"],
+    });
+
+    const nodeFs = await loadMockedNodeFs();
+    nodeFs.realpathSync.mockImplementation((value) => {
+      const normalized = value.toString();
+      return normalized === "/tmp/allowed-repo/link"
+        ? "/tmp/outside-repo"
+        : normalized;
+    });
+
+    await expect(
+      harness.handlers.get(IPC_CHANNELS.terminal.create)?.(undefined, {
+        id: "term-link",
+        cols: 80,
+        rows: 24,
+        ownerWindowId: "terminal-term-link",
+        backend: "shell",
+        cwd: "/tmp/allowed-repo/link",
+      }),
+    ).rejects.toThrow(/allowed|outside/i);
+    expect(tmMock.create).not.toHaveBeenCalled();
   });
 
   it("binds state persistence handlers", async () => {
@@ -1204,10 +1283,13 @@ describe("registerIpcHandlers", () => {
 
     await expect(
       harness.handlers.get(IPC_CHANNELS.fs.readDirectory)?.(undefined, {}),
-    ).resolves.toEqual({
-      success: false,
-      error: expect.stringContaining("path"),
-    });
+    ).resolves.toEqual(
+      expect.objectContaining({
+        success: false,
+        error: expect.stringContaining("path"),
+        code: expect.stringMatching(/^payload\//),
+      }),
+    );
   });
 
   it("fs.readDirectory outside workspace root should not call node:fs and should resolve a typed error", async () => {
@@ -1233,10 +1315,15 @@ describe("registerIpcHandlers", () => {
       harness.handlers.get(IPC_CHANNELS.fs.readDirectory)?.(undefined, {
         path: "/etc",
       }),
-    ).resolves.toEqual({
-      success: false,
-      error: expect.stringContaining("outside the workspace root"),
-    });
+    ).resolves.toEqual(
+      expect.objectContaining({
+        success: false,
+        error: expect.stringMatching(
+          /path resolves outside every allowed root/,
+        ),
+        code: "path/outside-root",
+      }),
+    );
 
     expect(nodeFs.readdirSync).not.toHaveBeenCalled();
   });
@@ -1277,10 +1364,15 @@ describe("registerIpcHandlers", () => {
       harness.handlers.get(IPC_CHANNELS.fs.readDirectory)?.(undefined, {
         path: "/tmp/pi-desktop/link-to-outside",
       }),
-    ).resolves.toEqual({
-      success: false,
-      error: expect.stringContaining("outside the workspace root"),
-    });
+    ).resolves.toEqual(
+      expect.objectContaining({
+        success: false,
+        error: expect.stringMatching(
+          /path resolves \(via symlink\) outside every allowed root/,
+        ),
+        code: "path/symlink-escape",
+      }),
+    );
 
     expect(nodeFs.readdirSync).not.toHaveBeenCalled();
   });
@@ -1392,6 +1484,61 @@ describe("registerIpcHandlers", () => {
       ],
     });
   });
+
+  it("fs.readDirectory excludes non-regular entries such as FIFOs", async () => {
+    const harness = createHandlerHarness();
+    const shellSnapshot = createShellSnapshot();
+    shellSnapshot.workspace.rootPath = "/tmp/pi-desktop";
+    const getShellSnapshot = vi.fn(() => shellSnapshot);
+
+    registerIpcHandlers({
+      handle: harness.handle,
+      getShellSnapshot,
+      getWorkspaceRootPath: () => "/tmp/pi-desktop",
+      agentHost: createAgentHost(createAgentSnapshot()),
+      mainWindow: null,
+    });
+
+    const nodeFs = await loadMockedNodeFs();
+    nodeFs.readdirSync.mockClear();
+    nodeFs.realpathSync.mockImplementation((value) => value.toString());
+    nodeFs.statSync.mockImplementation((targetPath) => {
+      expect(targetPath.toString()).toBe("/tmp/pi-desktop/project/fifo.txt");
+      return {
+        isDirectory: () => false,
+        isFile: () => false,
+      } as ReturnType<typeof nodeFs.statSync>;
+    });
+
+    nodeFs.readdirSync.mockImplementation(() => [
+      createDirent("fifo.txt", "fifo"),
+      createDirent("notes.txt", "file"),
+      createDirent("src", "directory"),
+    ]);
+
+    const result = await harness.handlers.get(IPC_CHANNELS.fs.readDirectory)?.(
+      undefined,
+      { path: "/tmp/pi-desktop/project" },
+    );
+
+    expect(result).toEqual({
+      path: "/tmp/pi-desktop/project",
+      entries: [
+        {
+          name: "src",
+          path: "/tmp/pi-desktop/project/src",
+          type: "directory",
+          extension: undefined,
+        },
+        {
+          name: "notes.txt",
+          path: "/tmp/pi-desktop/project/notes.txt",
+          type: "file",
+          extension: "txt",
+        },
+      ],
+    });
+  });
 });
 
 describe("git handlers repositoryPath allowlist", () => {
@@ -1437,13 +1584,14 @@ describe("git handlers repositoryPath allowlist", () => {
       mainWindow: null,
       // biome-ignore lint/suspicious/noExplicitAny: test mock of GitWorktreeService
       gitService: gitService as any,
-      getAllowedRepositoryRoots: () => ["/allowed/repo"],
+      getAllowedRepositoryRoots: () => [
+        "/allowed/repo",
+        "/linked/worktrees/feature",
+      ],
     });
 
     for (const channel of [
       IPC_CHANNELS.git.getRepositoryStatus,
-      IPC_CHANNELS.git.isRepository,
-      IPC_CHANNELS.git.init,
       IPC_CHANNELS.git.stageFile,
       IPC_CHANNELS.git.stageFiles,
       IPC_CHANNELS.git.unstageFile,
@@ -1461,7 +1609,7 @@ describe("git handlers repositoryPath allowlist", () => {
           filePaths: ["passwd"],
           message: "evil",
         }),
-      ).rejects.toThrow(/not an allowed repository/i);
+      ).rejects.toThrow(/path resolves outside every allowed root/i);
     }
 
     expect(gitService.getRepositoryStatus).not.toHaveBeenCalled();
@@ -1476,6 +1624,34 @@ describe("git handlers repositoryPath allowlist", () => {
     expect(gitService.pull).not.toHaveBeenCalled();
     expect(gitService.push).not.toHaveBeenCalled();
     expect(gitService.fetch).not.toHaveBeenCalled();
+  });
+
+  it("allows pre-catalog git checks on arbitrary paths", async () => {
+    const harness = createHandlerHarness();
+    const gitService = createGitServiceMock();
+
+    registerIpcHandlers({
+      handle: harness.handle,
+      getShellSnapshot: vi.fn(createShellSnapshot),
+      agentHost: createAgentHost(createAgentSnapshot()),
+      mainWindow: null,
+      // biome-ignore lint/suspicious/noExplicitAny: test mock of GitWorktreeService
+      gitService: gitService as any,
+      getAllowedRepositoryRoots: () => [
+        "/allowed/repo",
+        "/linked/worktrees/feature",
+      ],
+    });
+
+    await harness.handlers.get(IPC_CHANNELS.git.isRepository)?.(undefined, {
+      repositoryPath: "/etc",
+    });
+    await harness.handlers.get(IPC_CHANNELS.git.init)?.(undefined, {
+      repositoryPath: "/tmp/new-repo",
+    });
+
+    expect(gitService.isRepository).toHaveBeenCalledWith("/etc");
+    expect(gitService.init).toHaveBeenCalledWith("/tmp/new-repo");
   });
 
   it("routes git.fetch to gitService.fetch when repositoryPath is an allowed root", async () => {
@@ -1517,11 +1693,17 @@ describe("git handlers repositoryPath allowlist", () => {
       getAllowedRepositoryRoots: () => ["/allowed/repo"],
     });
 
-    await harness.handlers.get(IPC_CHANNELS.git.isRepository)?.(undefined, {
-      repositoryPath: "/allowed/repo",
-    });
+    await harness.handlers.get(IPC_CHANNELS.git.getRepositoryStatus)?.(
+      undefined,
+      {
+        repositoryPath: "/allowed/repo",
+      },
+    );
 
-    expect(gitService.isRepository).toHaveBeenCalledWith("/allowed/repo");
+    expect(gitService.getRepositoryStatus).toHaveBeenCalledWith(
+      "/allowed/repo",
+      { force: false },
+    );
   });
 
   it("accepts git handlers when repositoryPath is nested inside an allowed root (worktree under repo)", async () => {
@@ -1540,12 +1722,48 @@ describe("git handlers repositoryPath allowlist", () => {
       getAllowedRepositoryRoots: () => ["/allowed/repo"],
     });
 
-    await harness.handlers.get(IPC_CHANNELS.git.isRepository)?.(undefined, {
-      repositoryPath: "/allowed/repo/worktrees/feature",
+    await harness.handlers.get(IPC_CHANNELS.git.getRepositoryStatus)?.(
+      undefined,
+      {
+        repositoryPath: "/allowed/repo/worktrees/feature",
+      },
+    );
+
+    expect(gitService.getRepositoryStatus).toHaveBeenCalledWith(
+      "/allowed/repo/worktrees/feature",
+      { force: false },
+    );
+  });
+
+  it("accepts linked worktrees when the expanded allowlist includes the worktree path", async () => {
+    const harness = createHandlerHarness();
+    const gitService = createGitServiceMock();
+    const nodeFs = await loadMockedNodeFs();
+    nodeFs.realpathSync.mockImplementation((value) => value.toString());
+
+    registerIpcHandlers({
+      handle: harness.handle,
+      getShellSnapshot: vi.fn(createShellSnapshot),
+      agentHost: createAgentHost(createAgentSnapshot()),
+      mainWindow: null,
+      // biome-ignore lint/suspicious/noExplicitAny: test mock of GitWorktreeService
+      gitService: gitService as any,
+      getAllowedRepositoryRoots: () => [
+        "/allowed/repo",
+        "/linked/worktrees/feature",
+      ],
     });
 
-    expect(gitService.isRepository).toHaveBeenCalledWith(
-      "/allowed/repo/worktrees/feature",
+    await harness.handlers.get(IPC_CHANNELS.git.getRepositoryStatus)?.(
+      undefined,
+      {
+        repositoryPath: "/linked/worktrees/feature",
+      },
+    );
+
+    expect(gitService.getRepositoryStatus).toHaveBeenCalledWith(
+      "/linked/worktrees/feature",
+      { force: false },
     );
   });
 
@@ -1570,7 +1788,7 @@ describe("git handlers repositoryPath allowlist", () => {
         repositoryPath: "/allowed/repo/../../etc",
         filePath: "passwd",
       }),
-    ).rejects.toThrow(/not an allowed repository/i);
+    ).rejects.toThrow(/path resolves outside every allowed root/i);
 
     expect(gitService.discardFile).not.toHaveBeenCalled();
   });

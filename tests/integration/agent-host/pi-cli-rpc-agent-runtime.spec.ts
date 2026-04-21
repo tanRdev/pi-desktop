@@ -404,6 +404,166 @@ describe("PiCliRpcAgentRuntime", () => {
     ]);
   });
 
+  it("derives context usage from RPC messages and the active model", async () => {
+    const child = new FakeRpcChildProcess((command, currentChild) => {
+      if (command.type === "get_state") {
+        currentChild.emitStdout({
+          id: command.id,
+          type: "response",
+          command: "get_state",
+          success: true,
+          data: {
+            sessionId: "cli-session",
+            thinkingLevel: "medium",
+            isStreaming: false,
+            isCompacting: false,
+            steeringMode: "all",
+            followUpMode: "all",
+            autoCompactionEnabled: true,
+            messageCount: 2,
+            pendingMessageCount: 0,
+            model: {
+              id: "claude-sonnet-4-20250514",
+              name: "Claude Sonnet 4",
+              provider: "anthropic",
+              reasoning: true,
+              input: ["text"],
+              contextWindow: 200_000,
+              maxTokens: 64_000,
+            },
+          },
+        });
+        return;
+      }
+
+      if (command.type === "get_messages") {
+        currentChild.emitStdout({
+          id: command.id,
+          type: "response",
+          command: "get_messages",
+          success: true,
+          data: {
+            messages: [
+              {
+                role: "assistant",
+                api: "anthropic",
+                provider: "anthropic",
+                model: "claude-sonnet-4-20250514",
+                usage: {
+                  input: 40_000,
+                  output: 10_000,
+                  cacheRead: 2_000,
+                  cacheWrite: 428,
+                  totalTokens: 52_428,
+                },
+                stopReason: "stop",
+                timestamp: 100,
+                content: [{ type: "text", text: "Done." }],
+              },
+              {
+                role: "user",
+                timestamp: 101,
+                content: "ping",
+              },
+            ],
+          },
+        });
+        return;
+      }
+
+      throw new Error(`Unexpected RPC command: ${command.type}`);
+    });
+
+    const runtime = new PiCliRpcAgentRuntime({
+      cwd: "/tmp/pi-desktop-workspace",
+      agentDir: "/tmp/pi-desktop-agent",
+      spawnProcess: vi.fn(() => child),
+    });
+
+    await runtime.bootstrap();
+
+    const snapshot = runtime.getSnapshot();
+
+    expect(snapshot.contextUsage?.tokens).toBe(52_429);
+    expect(snapshot.contextUsage?.contextWindow).toBe(200_000);
+    expect(snapshot.contextUsage?.percent).toBeCloseTo(26.2145, 4);
+  });
+
+  it("reports unknown context usage after compaction until a new assistant usage arrives", async () => {
+    const child = new FakeRpcChildProcess((command, currentChild) => {
+      if (command.type === "get_state") {
+        currentChild.emitStdout({
+          id: command.id,
+          type: "response",
+          command: "get_state",
+          success: true,
+          data: {
+            sessionId: "cli-session",
+            thinkingLevel: "medium",
+            isStreaming: false,
+            isCompacting: false,
+            steeringMode: "all",
+            followUpMode: "all",
+            autoCompactionEnabled: true,
+            messageCount: 2,
+            pendingMessageCount: 0,
+            model: {
+              id: "claude-sonnet-4-20250514",
+              name: "Claude Sonnet 4",
+              provider: "anthropic",
+              reasoning: true,
+              input: ["text"],
+              contextWindow: 200_000,
+              maxTokens: 64_000,
+            },
+          },
+        });
+        return;
+      }
+
+      if (command.type === "get_messages") {
+        currentChild.emitStdout({
+          id: command.id,
+          type: "response",
+          command: "get_messages",
+          success: true,
+          data: {
+            messages: [
+              {
+                role: "compactionSummary",
+                summary: "Earlier context was compacted.",
+                tokensBefore: 140_000,
+                timestamp: 100,
+              },
+              {
+                role: "user",
+                timestamp: 101,
+                content: "What changed?",
+              },
+            ],
+          },
+        });
+        return;
+      }
+
+      throw new Error(`Unexpected RPC command: ${command.type}`);
+    });
+
+    const runtime = new PiCliRpcAgentRuntime({
+      cwd: "/tmp/pi-desktop-workspace",
+      agentDir: "/tmp/pi-desktop-agent",
+      spawnProcess: vi.fn(() => child),
+    });
+
+    await runtime.bootstrap();
+
+    expect(runtime.getSnapshot().contextUsage).toEqual({
+      tokens: null,
+      contextWindow: 200_000,
+      percent: null,
+    });
+  });
+
   it("resets to a fresh session and emits session_changed", async () => {
     let sessionId = "cli-session-1";
     const child = new FakeRpcChildProcess((command, currentChild) => {

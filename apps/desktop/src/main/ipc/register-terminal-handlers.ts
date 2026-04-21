@@ -1,6 +1,6 @@
 import { IPC_CHANNELS } from "@pi-desktop/shared";
 import type { BrowserWindow } from "electron";
-import { isPathWithinAny } from "../fs/path-guards";
+import { resolveInsideRoot } from "../fs/path-guards";
 import type { IpcRegistrar } from "../ipc-router";
 import {
   getNumberField,
@@ -74,18 +74,15 @@ export function registerTerminalHandlers({
     }
 
     const allowedCwds = getAllowedTerminalCwds();
-    if (
-      allowedCwds.length === 0 ||
-      !isPathWithinAny(allowedCwds, requestedCwd)
-    ) {
-      throw new Error(
-        `terminal.create cwd is not within any allowed repository or worktree: ${requestedCwd}`,
-      );
-    }
+
+    const authorizedCwd = resolveInsideRoot(allowedCwds, requestedCwd);
 
     return terminalManager.create(
       options.id ?? "",
-      options,
+      {
+        ...options,
+        cwd: authorizedCwd,
+      },
       extractSenderKey(_event),
     );
   });

@@ -4,7 +4,10 @@ import type {
   FileContent,
   WorkspaceSession,
 } from "@pi-desktop/shared";
-import { createEmptyWorkspaceSession } from "@pi-desktop/shared";
+import {
+  createEmptyWindowLayoutState,
+  createEmptyWorkspaceSession,
+} from "@pi-desktop/shared";
 import { createStore } from "zustand/vanilla";
 import {
   createInitialWindowStoreState,
@@ -14,6 +17,405 @@ import {
   type WindowUpdates,
   windowReducer,
 } from "./window-store";
+
+/**
+ * Persistence schema version for the renderer workspace session model.
+ *
+ * The on-disk shape is owned by the main process persistence layer, so we
+ * cannot rely on a version tag being present. The migration path here is
+ * defensive: it accepts a loosely-typed `unknown` snapshot (optionally
+ * wrapped in `{ schemaVersion, session }`) and returns a valid
+ * `WorkspaceSession`, applying v1->current normalization as needed.
+ *
+ * Bump this constant when the shape changes and add a new branch to
+ * `migrateWorkspaceSessionSnapshot`.
+ */
+export const WORKSPACE_SESSION_SCHEMA_VERSION = 2 as const;
+
+export type WorkspaceSessionSchemaVersion = 1 | 2;
+
+export interface VersionedWorkspaceSessionSnapshot {
+  schemaVersion: WorkspaceSessionSchemaVersion;
+  session: WorkspaceSession;
+}
+
+export type WorkspaceSessionSnapshot =
+  | WorkspaceSession
+  | VersionedWorkspaceSessionSnapshot;
+
+type UnknownRecord = { [key: string]: unknown };
+
+function isRecord(value: unknown): value is UnknownRecord {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function stringOrNull(value: unknown): string | null {
+  return typeof value === "string" ? value : null;
+}
+
+function parseSchemaVersion(value: unknown): WorkspaceSessionSchemaVersion {
+  if (value === 1) {
+    return 1;
+  }
+  if (value === 2) {
+    return 2;
+  }
+  return 1;
+}
+
+function coerceBase(value: UnknownRecord): {
+  id: string;
+  title: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  zIndex: number;
+  isFocused: boolean;
+  state: "normal" | "minimized" | "maximized";
+  linkColor?: "blue" | "green" | "orange" | "pink" | "purple" | "yellow";
+  linkTargetIds?: string[];
+} | null {
+  if (typeof value.id !== "string" || !value.id) return null;
+  if (typeof value.title !== "string") return null;
+  if (typeof value.x !== "number") return null;
+  if (typeof value.y !== "number") return null;
+  if (typeof value.width !== "number") return null;
+  if (typeof value.height !== "number") return null;
+  if (typeof value.zIndex !== "number") return null;
+
+  const state =
+    value.state === "minimized" || value.state === "maximized"
+      ? value.state
+      : "normal";
+
+  const linkColor =
+    value.linkColor === "blue" ||
+    value.linkColor === "green" ||
+    value.linkColor === "orange" ||
+    value.linkColor === "pink" ||
+    value.linkColor === "purple" ||
+    value.linkColor === "yellow"
+      ? value.linkColor
+      : undefined;
+
+  const linkTargetIds = Array.isArray(value.linkTargetIds)
+    ? value.linkTargetIds.filter((id): id is string => typeof id === "string")
+    : undefined;
+
+  return {
+    id: value.id,
+    title: value.title,
+    x: value.x,
+    y: value.y,
+    width: value.width,
+    height: value.height,
+    zIndex: value.zIndex,
+    isFocused: value.isFocused === true,
+    state,
+    ...(linkColor ? { linkColor } : {}),
+    ...(linkTargetIds ? { linkTargetIds } : {}),
+  };
+}
+
+function coerceWindow(
+  value: unknown,
+): WorkspaceSession["layout"]["windows"][number] | null {
+  if (!isRecord(value)) return null;
+  const kind = value.kind;
+  // Drop legacy `search` windows during migration — the renderer no longer
+  // supports them as persisted entries (they become launcher overlays).
+  if (kind === "search") return null;
+
+  const base = coerceBase(value);
+  if (!base) return null;
+
+  switch (kind) {
+    case "file": {
+      if (typeof value.filePath !== "string") return null;
+      return {
+        ...base,
+        kind: "file",
+        filePath: value.filePath,
+        isDirty: value.isDirty === true,
+        ...(typeof value.encoding === "string"
+          ? { encoding: value.encoding }
+          : {}),
+        ...(typeof value.isReadOnly === "boolean"
+          ? { isReadOnly: value.isReadOnly }
+          : {}),
+      };
+    }
+    case "terminal": {
+      if (typeof value.terminalId !== "string") return null;
+      const backend =
+        value.backend === "shell" || value.backend === "pi"
+          ? value.backend
+          : "shell";
+      return {
+        ...base,
+        kind: "terminal",
+        terminalId: value.terminalId,
+        backend,
+        cwd: typeof value.cwd === "string" ? value.cwd : "",
+      };
+    }
+    case "chat": {
+      if (typeof value.threadId !== "string") return null;
+      return { ...base, kind: "chat", threadId: value.threadId };
+    }
+    case "note": {
+      if (typeof value.noteId !== "string") return null;
+      return {
+        ...base,
+        kind: "note",
+        noteId: value.noteId,
+        isDirty: value.isDirty === true,
+        ...(typeof value.storagePath === "string"
+          ? { storagePath: value.storagePath }
+          : {}),
+      };
+    }
+    case "git": {
+      if (typeof value.repositoryPath !== "string") return null;
+      return {
+        ...base,
+        kind: "git",
+        repositoryPath: value.repositoryPath,
+      };
+    }
+    case "graph": {
+      const rawFilters = isRecord(value.filters) ? value.filters : {};
+      return {
+        ...base,
+        kind: "graph",
+        filters: {
+          showFiles: rawFilters.showFiles !== false,
+          showTerminals: rawFilters.showTerminals !== false,
+          showNotes: rawFilters.showNotes !== false,
+          showThreadLinks: rawFilters.showThreadLinks !== false,
+          showMentions: rawFilters.showMentions !== false,
+        },
+      };
+    }
+    case "image": {
+      if (typeof value.filePath !== "string") return null;
+      const dimensions =
+        isRecord(value.dimensions) &&
+        typeof value.dimensions.width === "number" &&
+        typeof value.dimensions.height === "number"
+          ? { width: value.dimensions.width, height: value.dimensions.height }
+          : undefined;
+      return {
+        ...base,
+        kind: "image",
+        filePath: value.filePath,
+        ...(dimensions ? { dimensions } : {}),
+        ...(typeof value.mimeType === "string"
+          ? { mimeType: value.mimeType }
+          : {}),
+      };
+    }
+    default:
+      return null;
+  }
+}
+
+function coerceLayout(value: unknown): WorkspaceSession["layout"] {
+  const fallback = createEmptyWindowLayoutState();
+  if (!isRecord(value)) {
+    return fallback;
+  }
+
+  const rawWindows = Array.isArray(value.windows) ? value.windows : [];
+  const windows = rawWindows
+    .map(coerceWindow)
+    .filter((w): w is WorkspaceSession["layout"]["windows"][number] => !!w);
+
+  return {
+    windows,
+    nextZIndex:
+      typeof value.nextZIndex === "number" && Number.isFinite(value.nextZIndex)
+        ? value.nextZIndex
+        : fallback.nextZIndex,
+    focusedWindowId: stringOrNull(value.focusedWindowId),
+    snapGridSize:
+      typeof value.snapGridSize === "number" && value.snapGridSize > 0
+        ? value.snapGridSize
+        : fallback.snapGridSize,
+    zoom:
+      typeof value.zoom === "number" && value.zoom > 0
+        ? value.zoom
+        : fallback.zoom,
+    panX: typeof value.panX === "number" ? value.panX : fallback.panX,
+    panY: typeof value.panY === "number" ? value.panY : fallback.panY,
+  };
+}
+
+function coerceStringRecord(value: unknown): Record<string, string> {
+  if (!isRecord(value)) {
+    return {};
+  }
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(value)) {
+    if (typeof v === "string") {
+      out[k] = v;
+    }
+  }
+  return out;
+}
+
+function coerceSidebar(value: unknown): WorkspaceSession["sidebar"] {
+  if (!isRecord(value)) {
+    return { activePanel: null, isCollapsed: false };
+  }
+  const activePanel = value.activePanel;
+  const panel: WorkspaceSession["sidebar"]["activePanel"] =
+    activePanel === "files" ||
+    activePanel === "notes" ||
+    activePanel === "search"
+      ? activePanel
+      : null;
+  return {
+    activePanel: panel,
+    isCollapsed: value.isCollapsed === true,
+  };
+}
+
+function coerceSearch(value: unknown): WorkspaceSession["search"] {
+  if (!isRecord(value)) {
+    return { query: "", selectedPath: null };
+  }
+  return {
+    query: typeof value.query === "string" ? value.query : "",
+    selectedPath: stringOrNull(value.selectedPath),
+  };
+}
+
+function coerceFiles(value: unknown): WorkspaceSession["files"] {
+  if (!isRecord(value)) {
+    return {};
+  }
+  const out: WorkspaceSession["files"] = {};
+  for (const [k, v] of Object.entries(value)) {
+    if (!isRecord(v)) continue;
+    if (typeof v.filePath !== "string") continue;
+    out[k] = {
+      filePath: v.filePath,
+      scrollTop: typeof v.scrollTop === "number" ? v.scrollTop : 0,
+    };
+  }
+  return out;
+}
+
+function coerceNotes(value: unknown): WorkspaceSession["notes"] {
+  if (!isRecord(value)) {
+    return {};
+  }
+  const out: WorkspaceSession["notes"] = {};
+  for (const [k, v] of Object.entries(value)) {
+    if (!isRecord(v)) continue;
+    if (typeof v.noteId !== "string") continue;
+    out[k] = {
+      noteId: v.noteId,
+      draft: typeof v.draft === "string" ? v.draft : "",
+    };
+  }
+  return out;
+}
+
+function coerceRecoveryDrafts(
+  value: unknown,
+): WorkspaceSession["recoveryDrafts"] {
+  if (!isRecord(value)) {
+    return {};
+  }
+  const out: WorkspaceSession["recoveryDrafts"] = {};
+  for (const [k, v] of Object.entries(value)) {
+    if (!isRecord(v)) continue;
+    const kind = v.kind;
+    if (kind !== "thread" && kind !== "note") continue;
+    if (typeof v.text !== "string") continue;
+    if (typeof v.updatedAt !== "number") continue;
+    out[k] = { kind, text: v.text, updatedAt: v.updatedAt };
+  }
+  return out;
+}
+
+function migrateRawSession(raw: unknown): WorkspaceSession {
+  if (!isRecord(raw) || typeof raw.worktreeId !== "string") {
+    return createEmptyWorkspaceSession("");
+  }
+
+  return {
+    worktreeId: raw.worktreeId,
+    layout: coerceLayout(raw.layout),
+    sidebar: coerceSidebar(raw.sidebar),
+    promptDrafts: coerceStringRecord(raw.promptDrafts),
+    search: coerceSearch(raw.search),
+    files: coerceFiles(raw.files),
+    notes: coerceNotes(raw.notes),
+    recoveryDrafts: coerceRecoveryDrafts(raw.recoveryDrafts),
+  };
+}
+
+/**
+ * Apply a v1 -> v2 migration to a normalized session. v2 guarantees:
+ *   - no `search` kind windows in `layout.windows`
+ *   - `focusedWindowId` points to an existing window or is null
+ *
+ * The concrete normalization already happens in `migrateRawSession` +
+ * `sanitizeWorkspaceSessionLayout`; this hook exists so future versions
+ * can plug in additional transforms without rewriting callers.
+ */
+function applyV1ToV2(session: WorkspaceSession): WorkspaceSession {
+  const windows = session.layout.windows.filter((w) => w.kind !== "search");
+  const focusedWindowId =
+    session.layout.focusedWindowId &&
+    windows.some((w) => w.id === session.layout.focusedWindowId)
+      ? session.layout.focusedWindowId
+      : null;
+  return {
+    ...session,
+    layout: { ...session.layout, windows, focusedWindowId },
+  };
+}
+
+/**
+ * Run the full migration pipeline on an unknown persisted value.
+ * Returns `null` if the value is unrecoverable (e.g. missing worktreeId).
+ */
+export function migrateWorkspaceSessionSnapshot(
+  raw: unknown,
+): WorkspaceSession | null {
+  if (raw === null || raw === undefined) {
+    return null;
+  }
+
+  let version: WorkspaceSessionSchemaVersion = 1;
+  let inner: unknown = raw;
+
+  if (
+    isRecord(raw) &&
+    "schemaVersion" in raw &&
+    "session" in raw &&
+    isRecord(raw.session)
+  ) {
+    version = parseSchemaVersion(raw.schemaVersion);
+    inner = raw.session;
+  }
+
+  let session = migrateRawSession(inner);
+  if (!session.worktreeId) {
+    return null;
+  }
+
+  if (version < 2) {
+    session = applyV1ToV2(session);
+  }
+
+  return session;
+}
 
 export type ThreadConversationState = {
   messages: AgentMessageSnapshot[];
@@ -39,7 +441,14 @@ export interface RendererWorkspaceSession extends WorkspaceSession {
 }
 
 export interface WorkspaceSessionStoreDependencies {
-  getWorkspaceSession(worktreeId: string): Promise<WorkspaceSession | null>;
+  /**
+   * Returns a persisted workspace session payload. The return type is
+   * intentionally `unknown` — the store runs
+   * `migrateWorkspaceSessionSnapshot` on every load so that legacy
+   * schemas, missing fields, or stray `search` windows are handled
+   * defensively. A value of `null`/`undefined` means "no stored session".
+   */
+  getWorkspaceSession(worktreeId: string): Promise<unknown>;
   saveWorkspaceSession(session: WorkspaceSession): Promise<WorkspaceSession>;
   persistDelayMs?: number;
 }
@@ -49,7 +458,7 @@ export interface WorkspaceSessionStoreState {
   activeWorktreeVersion: number;
   sessionsByWorktreeId: Record<string, RendererWorkspaceSession>;
   setActiveWorktree(worktreeId: string | null): Promise<void>;
-  hydrateCatalogSessions(sessions: WorkspaceSession[]): void;
+  hydrateCatalogSessions(sessions: readonly unknown[]): void;
   createWindow(
     action: CreateWindowAction,
     cwd?: string,
@@ -66,6 +475,7 @@ export interface WorkspaceSessionStoreState {
   zoomOut(): void;
   resetZoom(): void;
   setPan(panX: number, panY: number): void;
+  reorderWindows(fromIndex: number, toIndex: number): void;
   clearAll(): void;
   setThreadConversation(threadId: string, value: ThreadConversationState): void;
   setThreadConversationForWorktree(
@@ -315,12 +725,15 @@ export function createWorkspaceSessionStore({
     activeWorktreeVersion: 0,
     sessionsByWorktreeId: {},
     hydrateCatalogSessions(sessions) {
+      const migrated = sessions
+        .map((s) => migrateWorkspaceSessionSnapshot(s))
+        .filter((s): s is WorkspaceSession => s !== null);
       set((state) => ({
         ...state,
         sessionsByWorktreeId: {
           ...state.sessionsByWorktreeId,
           ...Object.fromEntries(
-            sessions.map((session) => [
+            migrated.map((session) => [
               session.worktreeId,
               mergeSession(
                 state.sessionsByWorktreeId[session.worktreeId],
@@ -382,7 +795,8 @@ export function createWorkspaceSessionStore({
       if (get().activeWorktreeVersion !== nextVersion) {
         return;
       }
-      if (!persisted) {
+      const migrated = migrateWorkspaceSessionSnapshot(persisted);
+      if (!migrated) {
         return;
       }
 
@@ -392,7 +806,7 @@ export function createWorkspaceSessionStore({
           ...state.sessionsByWorktreeId,
           [worktreeId]: mergeSession(
             state.sessionsByWorktreeId[worktreeId],
-            persisted,
+            migrated,
           ),
         },
       }));
@@ -618,6 +1032,16 @@ export function createWorkspaceSessionStore({
           windowReducer(windowState, {
             type: "SET_PAN",
             payload: { panX, panY },
+          }),
+        ),
+      );
+    },
+    reorderWindows(fromIndex, toIndex) {
+      withActiveSession((session) =>
+        applyLayout(session, (windowState) =>
+          windowReducer(windowState, {
+            type: "REORDER_WINDOWS",
+            payload: { fromIndex, toIndex },
           }),
         ),
       );

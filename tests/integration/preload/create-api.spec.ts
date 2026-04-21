@@ -198,6 +198,51 @@ describe("createPiDesktopApi", () => {
     ]);
   });
 
+  it("forwards forced git refresh options to the preload invoke layer", async () => {
+    const invokeCalls: Array<[string, unknown?]> = [];
+    const invoke: PreloadInvoke = async <TReturn>(
+      channel: string,
+      payload?: unknown,
+    ) => {
+      invokeCalls.push([channel, payload]);
+      return {
+        repositoryPath: "/tmp/work/repo-one",
+        branch: "main",
+        commit: "abc1234",
+        upstreamBranch: null,
+        summary: {
+          status: "ready",
+          branch: "main",
+          commit: "abc1234",
+          hasChanges: false,
+          ahead: 0,
+          behind: 0,
+          stagedCount: 0,
+          modifiedCount: 0,
+          untrackedCount: 0,
+          message: null,
+        },
+        stagedChanges: [],
+        unstagedChanges: [],
+        conflictedChanges: [],
+      } as TReturn;
+    };
+
+    const api = createPiDesktopApi({
+      invoke,
+      on: () => () => undefined,
+    });
+
+    await api.git.getRepositoryStatus("/tmp/work/repo-one", { force: true });
+
+    expect(invokeCalls).toEqual([
+      [
+        IPC_CHANNELS.git.getRepositoryStatus,
+        { repositoryPath: "/tmp/work/repo-one", force: true },
+      ],
+    ]);
+  });
+
   it("sends prompt cancellation over the dedicated agent cancel channel", async () => {
     const invokeCalls: Array<[string, unknown?]> = [];
     const invoke: PreloadInvoke = async <TReturn>(

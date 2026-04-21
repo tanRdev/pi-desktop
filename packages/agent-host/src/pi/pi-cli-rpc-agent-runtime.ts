@@ -4,6 +4,7 @@ import type { AgentSessionEvent } from "@mariozechner/pi-coding-agent";
 import type {
   AgentMessageSnapshot,
   AgentSnapshot,
+  ContextUsageSnapshot,
   ModelSnapshot,
   ModelSwitchRequest,
   PiDesktopAgentEvent,
@@ -59,7 +60,20 @@ function safeJsonParse(text: string): unknown | null {
 type RpcMessageLike = {
   role: string;
   timestamp: number;
-  content?: string | Array<{ type?: string; text?: string }>;
+  content?: unknown;
+  summary?: unknown;
+  command?: unknown;
+  output?: unknown;
+  usage?: unknown;
+  stopReason?: unknown;
+};
+
+type RpcUsageLike = {
+  input: number;
+  output: number;
+  cacheRead: number;
+  cacheWrite: number;
+  totalTokens?: number;
 };
 
 type PendingRequest = {
@@ -108,20 +122,43 @@ function isRpcMessage(value: unknown): value is RpcMessageLike {
   );
 }
 
-function getMessageText(message: RpcMessageLike): string {
-  if (typeof message.content === "string") {
-    return message.content;
-  }
+function isRpcUsage(value: unknown): value is RpcUsageLike {
+  return (
+    isRecord(value) &&
+    typeof value.input === "number" &&
+    typeof value.output === "number" &&
+    typeof value.cacheRead === "number" &&
+    typeof value.cacheWrite === "number" &&
+    (value.totalTokens === undefined || typeof value.totalTokens === "number")
+  );
+}
 
-  if (!Array.isArray(message.content)) {
+function getTextBlockText(block: unknown): string {
+  if (!isRecord(block) || typeof block.type !== "string") {
     return "";
   }
 
-  return message.content
-    .flatMap((item) =>
-      item && typeof item.text === "string" ? [item.text] : [],
-    )
-    .join("");
+  if (block.type === "text" && typeof block.text === "string") {
+    return block.text;
+  }
+
+  return "";
+}
+
+function getContentText(content: unknown): string {
+  if (typeof content === "string") {
+    return content;
+  }
+
+  if (!Array.isArray(content)) {
+    return "";
+  }
+
+  return content.map(getTextBlockText).join("");
+}
+
+function getMessageText(message: RpcMessageLike): string {
+  return getContentText(message.content);
 }
 
 function toSnapshotRole(role: string): AgentMessageSnapshot["role"] | null {
@@ -158,6 +195,203 @@ function toSnapshotMessages(messages: unknown[]): AgentMessageSnapshot[] {
       },
     ];
   });
+}
+
+function calculateContextTokens(usage: RpcUsageLike): number {
+  return (
+    usage.totalTokens ??
+    usage.input + usage.output + usage.cacheRead + usage.cacheWrite
+  );
+}
+
+function getAssistantUsage(message: RpcMessageLike): RpcUsageLike | null {
+  if (message.role !== "assistant") {
+    return null;
+  }
+
+  if (message.stopReason === "aborted" || message.stopReason === "error") {
+    return null;
+  }
+
+  return isRpcUsage(message.usage) ? message.usage : null;
+}
+
+function getLastAssistantUsageInfo(messages: RpcMessageLike[]): {
+  index: number;
+  usage: RpcUsageLike;
+} | null {
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = messages[index];
+
+    if (!message) {
+      continue;
+    }
+
+    const usage = getAssistantUsage(message);
+
+    if (usage) {
+      return { index, usage };
+    }
+  }
+
+  return null;
+}
+
+function getLastCompactionSummaryIndex(messages: RpcMessageLike[]): number {
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = messages[index];
+
+    if (message?.role === "compactionSummary") {
+      return index;
+    }
+  }
+
+  return -1;
+}
+
+function getEstimatedContentChars(content: unknown): number {
+  if (typeof content === "string") {
+    return content.length;
+  }
+
+  if (!Array.isArray(content)) {
+    return 0;
+  }
+
+  let chars = 0;
+
+  for (const block of content) {
+    if (!isRecord(block) || typeof block.type !== "string") {
+      continue;
+    }
+
+    if (block.type === "text" && typeof block.text === "string") {
+      chars += block.text.length;
+    }
+
+    if (block.type === "image") {
+      chars += 4_800;
+    }
+  }
+
+  return chars;
+}
+
+function estimateMessageTokens(message: RpcMessageLike): number {
+  let chars = 0;
+
+  switch (message.role) {
+    case "user": {
+      return Math.ceil(getEstimatedContentChars(message.content) / 4);
+    }
+    case "assistant": {
+      if (!Array.isArray(message.content)) {
+        return 0;
+      }
+
+      for (const block of message.content) {
+        if (!isRecord(block) || typeof block.type !== "string") {
+          continue;
+        }
+
+        if (block.type === "text" && typeof block.text === "string") {
+          chars += block.text.length;
+          continue;
+        }
+
+        if (block.type === "thinking" && typeof block.thinking === "string") {
+          chars += block.thinking.length;
+          continue;
+        }
+
+        if (block.type === "toolCall" && typeof block.name === "string") {
+          const argumentsText = JSON.stringify(block.arguments) ?? "";
+          chars += block.name.length + argumentsText.length;
+        }
+      }
+
+      return Math.ceil(chars / 4);
+    }
+    case "custom":
+    case "toolResult": {
+      return Math.ceil(getEstimatedContentChars(message.content) / 4);
+    }
+    case "bashExecution": {
+      const command =
+        typeof message.command === "string" ? message.command : "";
+      const output = typeof message.output === "string" ? message.output : "";
+      return Math.ceil((command.length + output.length) / 4);
+    }
+    case "branchSummary":
+    case "compactionSummary": {
+      const summary =
+        typeof message.summary === "string" ? message.summary : "";
+      return Math.ceil(summary.length / 4);
+    }
+    default: {
+      return 0;
+    }
+  }
+}
+
+function getContextUsage(
+  messages: RpcMessageLike[],
+  contextWindow: number | undefined,
+): ContextUsageSnapshot | undefined {
+  if (typeof contextWindow !== "number" || contextWindow <= 0) {
+    return undefined;
+  }
+
+  const lastCompactionIndex = getLastCompactionSummaryIndex(messages);
+  const lastUsageInfo = getLastAssistantUsageInfo(messages);
+
+  if (lastCompactionIndex !== -1) {
+    if (!lastUsageInfo || lastUsageInfo.index < lastCompactionIndex) {
+      return {
+        tokens: null,
+        contextWindow,
+        percent: null,
+      };
+    }
+  }
+
+  if (!lastUsageInfo) {
+    let tokens = 0;
+
+    for (const message of messages) {
+      tokens += estimateMessageTokens(message);
+    }
+
+    return {
+      tokens,
+      contextWindow,
+      percent: (tokens / contextWindow) * 100,
+    };
+  }
+
+  let trailingTokens = 0;
+
+  for (
+    let index = lastUsageInfo.index + 1;
+    index < messages.length;
+    index += 1
+  ) {
+    const message = messages[index];
+
+    if (!message) {
+      continue;
+    }
+
+    trailingTokens += estimateMessageTokens(message);
+  }
+
+  const tokens = calculateContextTokens(lastUsageInfo.usage) + trailingTokens;
+
+  return {
+    tokens,
+    contextWindow,
+    percent: (tokens / contextWindow) * 100,
+  };
 }
 
 function mapThinkingLevel(
@@ -485,7 +719,12 @@ export class PiCliRpcAgentRuntime {
     ]);
 
     const state = this.parseRpcState(stateResponse);
-    const messages = this.parseRpcMessages(messagesResponse);
+    const rpcMessages = this.parseRpcMessagesResponse(messagesResponse);
+    const messages = toSnapshotMessages(rpcMessages);
+    const contextUsage = getContextUsage(
+      rpcMessages,
+      state.model?.contextWindow,
+    );
     this.rpcState = state;
     this.snapshot = {
       sessionId: state.sessionId,
@@ -494,6 +733,7 @@ export class PiCliRpcAgentRuntime {
       lastError: null,
       currentProviderId: state.model?.provider,
       currentModelId: state.model?.id,
+      contextUsage,
     };
   }
 
@@ -547,13 +787,13 @@ export class PiCliRpcAgentRuntime {
     };
   }
 
-  private parseRpcMessages(value: unknown): AgentMessageSnapshot[] {
+  private parseRpcMessagesResponse(value: unknown): RpcMessageLike[] {
     if (!isRecord(value)) {
       return [];
     }
 
-    return toSnapshotMessages(
-      Array.isArray(value.messages) ? value.messages : [],
+    return (Array.isArray(value.messages) ? value.messages : []).flatMap(
+      (message) => (isRpcMessage(message) ? [message] : []),
     );
   }
 
