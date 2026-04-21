@@ -40,11 +40,8 @@ function requireAllowedRepositoryPath(
   payload: unknown,
   getAllowedRepositoryRoots: () => readonly string[],
 ): string {
-  const repositoryPath = requireStringField(payload, "repositoryPath");
+  const repositoryPath = requireValidPath(payload);
   const allowedRoots = getAllowedRepositoryRoots();
-  // `resolveInsideRoot` enforces: null-byte rejection, lexical `..` traversal
-  // rejection, and symlink-escape rejection. The returned path is the
-  // canonical on-disk location (already realpath'd).
   return resolveInsideRoot(allowedRoots, repositoryPath);
 }
 

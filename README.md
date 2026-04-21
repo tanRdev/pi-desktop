@@ -52,7 +52,7 @@ This launches Pi Desktop in development mode with hot reload.
 
 ### macOS DMG (Recommended)
 
-Download `Pi Desktop-0.1.0-arm64.dmg` from [GitHub Releases](https://github.com/tanRdev/pi-desktop/releases).
+Download the latest `Pi Desktop-<version>-arm64.dmg` from [GitHub Releases](https://github.com/tanRdev/pi-desktop/releases).
 
 1. Open the DMG file.
 2. Drag **Pi Desktop.app** into your `Applications` folder.
@@ -265,8 +265,8 @@ bun run dist:mac
 ```
 
 Output lands in `dist/release/` as:
-- `Pi Desktop-0.1.0-arm64.dmg`
-- `Pi Desktop-0.1.0-arm64.zip`
+- `Pi Desktop-<version>-arm64.dmg`
+- `Pi Desktop-<version>-arm64.zip`
 
 ### Quality
 

@@ -25,6 +25,7 @@ import { GitPanel } from "./git-panel";
 import { LeftSidebar, SIDEBAR_WIDTH } from "./left-sidebar";
 import { PromptDock } from "./prompt-dock";
 import { StatusBar } from "./status-bar";
+import { OPEN_MESSAGE_EVENT } from "./thread-search/thread-search-host";
 import { TitleBar } from "./title-bar";
 
 export interface WorkspaceShellProps {
@@ -208,6 +209,9 @@ function WorkspaceShellImpl({
   onFileTreeMoveFile,
   onAgentGitAction,
 }: WorkspaceShellProps) {
+  const [targetMessageId, setTargetMessageId] = React.useState<string | null>(
+    null,
+  );
   const hasChangesToCommit =
     (activeGitRepositoryStatus?.stagedChanges.length ?? 0) +
       (activeGitRepositoryStatus?.unstagedChanges.length ?? 0) >
@@ -248,6 +252,122 @@ function WorkspaceShellImpl({
     ) ?? null;
 
   const hasActiveThread = activeThreadId !== null;
+
+  const handleToggleSidebar = React.useCallback(() => {
+    if (leftSidebarWidth > 0) {
+      onLeftSidebarResize(0);
+      return;
+    }
+
+    onLeftSidebarResize(lastExpandedSidebarWidthRef.current || SIDEBAR_WIDTH);
+  }, [leftSidebarWidth, onLeftSidebarResize]);
+
+  const handleTargetMessageNavigated = React.useCallback(
+    (messageId: string) => {
+      setTargetMessageId((currentMessageId) =>
+        currentMessageId === messageId ? null : currentMessageId,
+      );
+    },
+    [],
+  );
+
+  React.useEffect(() => {
+    const handleCommand = (event: Event) => {
+      if (!(event instanceof CustomEvent)) {
+        return;
+      }
+
+      const detail = event.detail;
+      if (!detail || typeof detail !== "object") {
+        return;
+      }
+
+      const commandId = Reflect.get(detail, "commandId");
+      if (
+        (commandId === "new-thread" || commandId === "new") &&
+        activeWorktreeId
+      ) {
+        void _onCreateThread(activeWorktreeId);
+        return;
+      }
+
+      if (commandId === "toggle-sidebar") {
+        handleToggleSidebar();
+      }
+    };
+
+    const handleNewThreadCommand = () => {
+      if (!activeWorktreeId) {
+        return;
+      }
+
+      void _onCreateThread(activeWorktreeId);
+    };
+
+    const handleToggleSidebarCommand = () => {
+      handleToggleSidebar();
+    };
+
+    const handleThreadSelect = (event: Event) => {
+      if (!(event instanceof CustomEvent)) {
+        return;
+      }
+
+      const detail = event.detail;
+      if (!detail || typeof detail !== "object") {
+        return;
+      }
+
+      const threadId = Reflect.get(detail, "threadId");
+      if (typeof threadId === "string") {
+        void onSelectThread(threadId);
+      }
+    };
+
+    const handleOpenMessage = (event: Event) => {
+      if (!(event instanceof CustomEvent)) {
+        return;
+      }
+
+      const detail = event.detail;
+      if (!detail || typeof detail !== "object") {
+        return;
+      }
+
+      const threadId = Reflect.get(detail, "threadId");
+      if (typeof threadId === "string") {
+        void onSelectThread(threadId);
+      }
+
+      const messageId = Reflect.get(detail, "messageId");
+      if (typeof messageId === "string") {
+        setTargetMessageId(messageId);
+      }
+    };
+
+    window.addEventListener("pi:command", handleCommand);
+    window.addEventListener("pi:command:new-thread", handleNewThreadCommand);
+    window.addEventListener(
+      "pi:command:toggle-sidebar",
+      handleToggleSidebarCommand,
+    );
+    window.addEventListener("pi:thread-select", handleThreadSelect);
+    window.addEventListener(OPEN_MESSAGE_EVENT, handleOpenMessage);
+
+    return () => {
+      window.removeEventListener("pi:command", handleCommand);
+      window.removeEventListener(
+        "pi:command:new-thread",
+        handleNewThreadCommand,
+      );
+      window.removeEventListener(
+        "pi:command:toggle-sidebar",
+        handleToggleSidebarCommand,
+      );
+      window.removeEventListener("pi:thread-select", handleThreadSelect);
+      window.removeEventListener(OPEN_MESSAGE_EVENT, handleOpenMessage);
+    };
+  }, [activeWorktreeId, _onCreateThread, handleToggleSidebar, onSelectThread]);
 
   React.useEffect(() => {
     if (leftSidebarWidth > 0) {
@@ -342,6 +462,7 @@ function WorkspaceShellImpl({
           onDeleteThread={onDeleteThread}
           onArchiveWorktree={onArchiveWorktree}
           onArchiveThread={onArchiveThread}
+          onCreateThread={_onCreateThread}
           onAddRepository={onAddRepository}
           gitPanel={gitPanel}
           filesPanel={filesPanel}
@@ -400,6 +521,8 @@ function WorkspaceShellImpl({
                       messages={threadMessages}
                       isStreaming={isPromptExecuting}
                       lastError={threadLastError}
+                      targetMessageId={targetMessageId}
+                      onTargetMessageNavigated={handleTargetMessageNavigated}
                       className="h-full"
                     />
                   </div>

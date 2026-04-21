@@ -164,9 +164,23 @@ describe("path guards - symlink escape", () => {
       }
     }
   });
+
+  it("treats symlink escapes as outside for isPathWithinAny", async () => {
+    const { isPathWithinAny } = await loadPathGuards();
+    expect(
+      isPathWithinAny([canonicalRoot], path.join(canonicalRoot, "escape-link")),
+    ).toBe(false);
+  });
 });
 
 describe("payload-parsers - strict validation", () => {
+  it("exports isPayloadRecord for integration tests", async () => {
+    const payloadParsers = await loadPayloadParsers();
+    expect(typeof payloadParsers.isPayloadRecord).toBe("function");
+    expect(payloadParsers.isPayloadRecord(Object.create(null))).toBe(true);
+    expect(payloadParsers.isPayloadRecord([])).toBe(false);
+  });
+
   it("caps strings at MAX_STRING_BYTES", async () => {
     const { getStringField, PayloadValidationError, MAX_STRING_BYTES } =
       await loadPayloadParsers();

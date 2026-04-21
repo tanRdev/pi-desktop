@@ -378,6 +378,8 @@ export interface ChatThreadPanelProps {
   isLoading?: boolean;
   lastError: string | null;
   className?: string;
+  targetMessageId?: string | null;
+  onTargetMessageNavigated?: (messageId: string) => void;
   /**
    * Optional retry handler for the last user message when it failed.
    * When provided, a Retry action becomes visible on the failed user row.
@@ -409,9 +411,12 @@ export function ChatThreadPanel({
   isLoading,
   lastError,
   className,
+  targetMessageId,
+  onTargetMessageNavigated,
 }: ChatThreadPanelProps) {
   const [showScrollButton, setShowScrollButton] = React.useState(false);
   const [queuedMessageCount, setQueuedMessageCount] = React.useState(0);
+  const panelRef = React.useRef<HTMLDivElement | null>(null);
   const scrollViewportRef = React.useRef<HTMLDivElement | null>(null);
   const previousMessageCountRef = React.useRef(messages.length);
 
@@ -460,6 +465,26 @@ export function ChatThreadPanel({
 
   const turns = React.useMemo(() => buildTurns(messages), [messages]);
 
+  React.useEffect(() => {
+    if (!targetMessageId) {
+      return;
+    }
+
+    if (!messages.some((message) => message.id === targetMessageId)) {
+      return;
+    }
+
+    const targetMessage = panelRef.current?.querySelector<HTMLElement>(
+      `[data-message-id="${targetMessageId}"]`,
+    );
+    if (!targetMessage) {
+      return;
+    }
+
+    targetMessage.scrollIntoView({ block: "center" });
+    onTargetMessageNavigated?.(targetMessageId);
+  }, [messages, onTargetMessageNavigated, targetMessageId]);
+
   const lastTurn = turns.length > 0 ? turns[turns.length - 1] : undefined;
   const lastTurnDividerWorking =
     lastTurn !== undefined &&
@@ -489,6 +514,7 @@ export function ChatThreadPanel({
 
   return (
     <div
+      ref={panelRef}
       className={cn(
         "relative flex h-full min-h-0 flex-col bg-[var(--shell-main-bg)] select-none",
         className,

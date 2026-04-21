@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import type { RepositorySnapshot } from "@pi-desktop/shared";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import type { ComponentProps, ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { WorkspaceShell } from "./workspace-shell";
@@ -8,8 +9,15 @@ import { WorkspaceShell } from "./workspace-shell";
 const gitPanelPropsSpy = vi.fn();
 
 vi.mock("./chat-thread-panel", () => ({
-  ChatThreadPanel() {
-    return <div data-testid="chat-thread-panel">Chat</div>;
+  ChatThreadPanel({ targetMessageId }: { targetMessageId?: string | null }) {
+    return (
+      <div
+        data-testid="chat-thread-panel"
+        data-target-message-id={targetMessageId ?? ""}
+      >
+        Chat
+      </div>
+    );
   },
 }));
 
@@ -25,6 +33,7 @@ vi.mock("./left-sidebar", () => ({
   LeftSidebar(props: {
     width?: number;
     onSelectRepository?: unknown;
+    onCreateThread?: (worktreeId: string) => void;
     gitPanel?: ReactNode;
     filesPanel?: ReactNode;
   }) {
@@ -37,6 +46,13 @@ vi.mock("./left-sidebar", () => ({
         )}
       >
         Left rail
+        <button
+          type="button"
+          data-testid="mock-create-thread"
+          onClick={() => props.onCreateThread?.("worktree-1")}
+        >
+          New thread
+        </button>
         {props.gitPanel}
         {props.filesPanel}
       </div>
@@ -271,6 +287,147 @@ describe("WorkspaceShell", () => {
         onUnstageAllFiles: onUnstageAllGitFiles,
       }),
     );
+  });
+
+  it("forwards thread creation into the left sidebar", async () => {
+    const user = userEvent.setup();
+    const onCreateThread = vi.fn(async () => "thread-2");
+
+    render(
+      <WorkspaceShell
+        {...createWorkspaceShellProps({
+          onCreateThread,
+        })}
+      />,
+    );
+
+    await user.click(screen.getByTestId("mock-create-thread"));
+
+    expect(onCreateThread).toHaveBeenCalledWith("worktree-1");
+  });
+
+  it("creates a new thread from shared command events", () => {
+    const onCreateThread = vi.fn(async () => "thread-2");
+
+    render(
+      <WorkspaceShell
+        {...createWorkspaceShellProps({
+          onCreateThread,
+        })}
+      />,
+    );
+
+    window.dispatchEvent(
+      new CustomEvent("pi:command", {
+        detail: { commandId: "new-thread" },
+      }),
+    );
+    window.dispatchEvent(
+      new CustomEvent("pi:command", {
+        detail: { commandId: "new" },
+      }),
+    );
+
+    expect(onCreateThread).toHaveBeenNthCalledWith(1, "worktree-1");
+    expect(onCreateThread).toHaveBeenNthCalledWith(2, "worktree-1");
+  });
+
+  it("creates a new thread from namespaced command events", () => {
+    const onCreateThread = vi.fn(async () => "thread-2");
+
+    render(
+      <WorkspaceShell
+        {...createWorkspaceShellProps({
+          onCreateThread,
+        })}
+      />,
+    );
+
+    window.dispatchEvent(new Event("pi:command:new-thread"));
+
+    expect(onCreateThread).toHaveBeenCalledWith("worktree-1");
+  });
+
+  it("selects a thread from shared thread-search navigation events", () => {
+    const onSelectThread = vi.fn();
+
+    render(
+      <WorkspaceShell
+        {...createWorkspaceShellProps({
+          onSelectThread,
+        })}
+      />,
+    );
+
+    window.dispatchEvent(
+      new CustomEvent("pi:thread-select", {
+        detail: { threadId: "thread-2" },
+      }),
+    );
+
+    expect(onSelectThread).toHaveBeenCalledWith("thread-2");
+  });
+
+  it("forwards message navigation targets from thread-search events", async () => {
+    const onSelectThread = vi.fn();
+
+    render(
+      <WorkspaceShell
+        {...createWorkspaceShellProps({
+          onSelectThread,
+        })}
+      />,
+    );
+
+    window.dispatchEvent(
+      new CustomEvent("pi:thread-select", {
+        detail: { threadId: "thread-2" },
+      }),
+    );
+    window.dispatchEvent(
+      new CustomEvent("pi:open-message", {
+        detail: { threadId: "thread-2", messageId: "message-9" },
+      }),
+    );
+
+    expect(onSelectThread).toHaveBeenCalledWith("thread-2");
+    await waitFor(() => {
+      expect(screen.getByTestId("chat-thread-panel")).toHaveAttribute(
+        "data-target-message-id",
+        "message-9",
+      );
+    });
+  });
+
+  it("toggles the sidebar from shared and namespaced command events", () => {
+    const onLeftSidebarResize = vi.fn();
+    const initialProps = createWorkspaceShellProps({
+      onLeftSidebarResize,
+      leftSidebarWidth: 240,
+    });
+
+    const { rerender } = render(<WorkspaceShell {...initialProps} />);
+
+    window.dispatchEvent(
+      new CustomEvent("pi:command", {
+        detail: { commandId: "toggle-sidebar" },
+      }),
+    );
+
+    expect(onLeftSidebarResize).toHaveBeenNthCalledWith(1, 0);
+
+    rerender(
+      <WorkspaceShell
+        {...createWorkspaceShellProps({
+          onLeftSidebarResize,
+          leftSidebarWidth: 0,
+        })}
+      />,
+    );
+
+    window.dispatchEvent(new Event("pi:command:toggle-sidebar"));
+
+    expect(onLeftSidebarResize).toHaveBeenNthCalledWith(2, 240);
   });
 
   it("renders selected file windows in the center pane", () => {

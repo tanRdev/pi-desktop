@@ -61,6 +61,17 @@ function relativeIsInside(parent: string, child: string): boolean {
   return true;
 }
 
+function isLexicallyWithin(
+  parent: string,
+  child: string,
+  platform: NodeJS.Platform,
+): boolean {
+  return relativeIsInside(
+    normalizeForCompare(parent, platform),
+    normalizeForCompare(child, platform),
+  );
+}
+
 export interface IsPathWithinOptions {
   /**
    * Platform to use for case sensitivity. Defaults to the current runtime
@@ -85,22 +96,17 @@ export function isPathWithin(
 
   const platform = options.platform ?? process.platform;
 
-  const lexicalParent = normalizeForCompare(parent, platform);
-  const lexicalChild = normalizeForCompare(child, platform);
-
-  if (relativeIsInside(lexicalParent, lexicalChild)) {
-    return true;
-  }
+  const lexicalInside = isLexicallyWithin(parent, child, platform);
 
   const canonicalParentRaw = tryRealpath(path.resolve(parent));
   const canonicalChildRaw = tryRealpath(path.resolve(child));
-  if (canonicalParentRaw === null || canonicalChildRaw === null) {
-    return false;
+
+  if (canonicalChildRaw !== null) {
+    const canonicalParentBase = canonicalParentRaw ?? path.resolve(parent);
+    return isLexicallyWithin(canonicalParentBase, canonicalChildRaw, platform);
   }
 
-  const canonicalParent = normalizeForCompare(canonicalParentRaw, platform);
-  const canonicalChild = normalizeForCompare(canonicalChildRaw, platform);
-  return relativeIsInside(canonicalParent, canonicalChild);
+  return lexicalInside;
 }
 
 /**
@@ -203,7 +209,7 @@ export function resolveInsideRoot(
   // This rejects `..` traversal before we touch the filesystem.
   const resolvedRoots = allowedRoots.map((r) => path.resolve(r));
   const lexicalMatch = resolvedRoots.some((root) =>
-    isPathWithin(root, resolvedTarget),
+    isLexicallyWithin(root, resolvedTarget, process.platform),
   );
   if (!lexicalMatch) {
     throw new PathGuardError({

@@ -1456,8 +1456,19 @@ async function bootstrapDesktop() {
     getSlashSuggestions: handleGetSlashSuggestions,
     threadCatalog,
     packagesService,
-    getAllowedRepositoryRoots: () =>
-      repositoryCatalog.list().map((entry) => entry.rootPath),
+    getAllowedRepositoryRoots: () => {
+      const roots = new Set<string>();
+      for (const entry of repositoryCatalog.list()) {
+        roots.add(entry.rootPath);
+        const inspection = gitService.inspect(entry.rootPath);
+        if (inspection.worktrees) {
+          for (const worktree of inspection.worktrees) {
+            roots.add(worktree.path);
+          }
+        }
+      }
+      return [...roots];
+    },
     getAllowedTerminalCwds: () => {
       const roots: string[] = [];
       for (const entry of repositoryCatalog.list()) {

@@ -12,9 +12,13 @@ import {
   type UsePromptDockInputOptions,
   usePromptDockInput,
 } from "./use-prompt-dock-input";
+import { toast } from "@/lib/toast";
 
-const originalCreateObjectURL = window.URL.createObjectURL;
-const originalRevokeObjectURL = window.URL.revokeObjectURL;
+vi.mock("@/lib/toast", () => ({
+  toast: {
+    info: vi.fn(),
+  },
+}));
 
 function createOptions(
   overrides: Partial<UsePromptDockInputOptions> = {},
@@ -52,47 +56,17 @@ function renderInputHarness(options: UsePromptDockInputOptions) {
 beforeEach(() => {
   cleanup();
   window.localStorage.clear();
-
-  Object.defineProperty(window.URL, "createObjectURL", {
-    configurable: true,
-    value: vi.fn((file: File) => `blob:${file.name}`),
-  });
-
-  Object.defineProperty(window.URL, "revokeObjectURL", {
-    configurable: true,
-    value: vi.fn(),
-  });
 });
 
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
-
-  Object.defineProperty(window.URL, "createObjectURL", {
-    configurable: true,
-    value: originalCreateObjectURL,
-  });
-
-  Object.defineProperty(window.URL, "revokeObjectURL", {
-    configurable: true,
-    value: originalRevokeObjectURL,
-  });
 });
 
 describe("usePromptDockInput", () => {
-  it("submits draft history and pasted images while idle", () => {
+  it("submits draft history while idle", () => {
     const onSend = vi.fn();
     const onCancelPrompt = vi.fn();
-    const pastedImages: File[][] = [];
-    const listener = (event: Event) => {
-      if (!(event instanceof CustomEvent)) return;
-      const detail = event.detail;
-      if (!detail || typeof detail !== "object") return;
-      if (!("files" in detail) || !Array.isArray(detail.files)) return;
-      pastedImages.push(detail.files);
-    };
-
-    window.addEventListener("pi:paste-image", listener);
 
     const { result } = renderHook(() =>
       usePromptDockInput(
@@ -104,28 +78,35 @@ describe("usePromptDockInput", () => {
       ),
     );
 
-    const image = new File(["binary"], "shot.png", { type: "image/png" });
-
-    act(() => {
-      result.current.handleImagePaste(image);
-    });
-
-    expect(result.current.pendingImages).toEqual([image]);
-
     act(() => {
       result.current.handleSubmit();
     });
 
     expect(onSend).toHaveBeenCalledTimes(1);
     expect(onCancelPrompt).not.toHaveBeenCalled();
-    expect(result.current.pendingImages).toEqual([]);
-    expect(pastedImages).toHaveLength(1);
-    expect(pastedImages[0]?.[0]?.name).toBe("shot.png");
     expect(window.localStorage.getItem("pi:prompt-history:thread-1")).toBe(
       JSON.stringify(["ship it"]),
     );
+  });
 
-    window.removeEventListener("pi:paste-image", listener);
+  it("shows a truthful toast when an image is pasted", () => {
+    const { result } = renderHook(() =>
+      usePromptDockInput(
+        createOptions({
+          activeThreadId: "thread-9",
+        }),
+      ),
+    );
+
+    act(() => {
+      result.current.handleImagePaste(
+        new File(["binary"], "shot.png", { type: "image/png" }),
+      );
+    });
+
+    expect(toast.info).toHaveBeenCalledWith("Paste image isn't supported yet", {
+      description: "Use Attach files to add images to your prompt.",
+    });
   });
 
   it("cancels instead of sending when a prompt is already executing", () => {
@@ -210,35 +191,5 @@ describe("usePromptDockInput", () => {
 
     expect(onDraftChange).not.toHaveBeenCalled();
     expect(onPromptKeyDown).toHaveBeenCalledTimes(1);
-  });
-
-  it("revokes object urls when removing images and on unmount", () => {
-    const { result, unmount } = renderHook(() =>
-      usePromptDockInput(createOptions()),
-    );
-
-    const firstImage = new File(["first"], "first.png", { type: "image/png" });
-    const secondImage = new File(["second"], "second.png", {
-      type: "image/png",
-    });
-
-    act(() => {
-      result.current.handleImagePaste(firstImage);
-      result.current.handleImagePaste(secondImage);
-    });
-
-    const firstUrl = result.current.getObjectUrl(firstImage);
-    const secondUrl = result.current.getObjectUrl(secondImage);
-
-    act(() => {
-      result.current.handleRemovePendingImage(0);
-    });
-
-    expect(window.URL.revokeObjectURL).toHaveBeenCalledWith(firstUrl);
-    expect(result.current.pendingImages).toEqual([secondImage]);
-
-    unmount();
-
-    expect(window.URL.revokeObjectURL).toHaveBeenCalledWith(secondUrl);
   });
 });

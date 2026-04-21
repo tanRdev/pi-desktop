@@ -1,4 +1,5 @@
 import * as React from "react";
+import { toast } from "@/lib/toast";
 import { usePromptHistory } from "./prompt-history";
 
 export interface UsePromptDockInputOptions {
@@ -13,10 +14,7 @@ export interface UsePromptDockInputOptions {
 }
 
 export interface PromptDockInputController {
-  pendingImages: File[];
-  getObjectUrl: (file: File) => string;
   handleImagePaste: (file: File) => void;
-  handleRemovePendingImage: (index: number) => void;
   handleSubmit: () => void;
   handlePromptKeyDown: React.KeyboardEventHandler<HTMLTextAreaElement>;
 }
@@ -32,46 +30,10 @@ export function usePromptDockInput({
   onPromptKeyDown,
 }: UsePromptDockInputOptions): PromptDockInputController {
   const history = usePromptHistory(activeThreadId);
-  const [pendingImages, setPendingImages] = React.useState<File[]>([]);
-  const objectUrlMap = React.useRef(new Map<File, string>());
-
-  const getObjectUrl = React.useCallback((file: File): string => {
-    const existing = objectUrlMap.current.get(file);
-    if (existing) {
-      return existing;
-    }
-
-    const url = URL.createObjectURL(file);
-    objectUrlMap.current.set(file, url);
-    return url;
-  }, []);
-
-  const handleImagePaste = React.useCallback((file: File) => {
-    setPendingImages((previousImages) => [...previousImages, file]);
-  }, []);
-
-  const handleRemovePendingImage = React.useCallback((index: number) => {
-    setPendingImages((previousImages) => {
-      const removedImage = previousImages[index];
-      if (removedImage) {
-        const objectUrl = objectUrlMap.current.get(removedImage);
-        if (objectUrl) {
-          URL.revokeObjectURL(objectUrl);
-          objectUrlMap.current.delete(removedImage);
-        }
-      }
-
-      return previousImages.filter((_, imageIndex) => imageIndex !== index);
+  const handleImagePaste = React.useCallback((_file: File) => {
+    toast.info("Paste image isn't supported yet", {
+      description: "Use Attach files to add images to your prompt.",
     });
-  }, []);
-
-  React.useEffect(() => {
-    return () => {
-      for (const objectUrl of objectUrlMap.current.values()) {
-        URL.revokeObjectURL(objectUrl);
-      }
-      objectUrlMap.current.clear();
-    };
   }, []);
 
   const handleSubmit = React.useCallback(() => {
@@ -79,24 +41,8 @@ export function usePromptDockInput({
       history.push(draft);
     }
 
-    if (pendingImages.length > 0) {
-      window.dispatchEvent(
-        new CustomEvent("pi:paste-image", {
-          detail: { files: pendingImages },
-        }),
-      );
-      setPendingImages([]);
-    }
-
     void (isPromptExecuting ? onCancelPrompt() : onSend());
-  }, [
-    draft,
-    history,
-    isPromptExecuting,
-    onCancelPrompt,
-    onSend,
-    pendingImages,
-  ]);
+  }, [draft, history, isPromptExecuting, onCancelPrompt, onSend]);
 
   const handlePromptKeyDown = React.useCallback(
     (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -164,10 +110,7 @@ export function usePromptDockInput({
   );
 
   return {
-    pendingImages,
-    getObjectUrl,
     handleImagePaste,
-    handleRemovePendingImage,
     handleSubmit,
     handlePromptKeyDown,
   };

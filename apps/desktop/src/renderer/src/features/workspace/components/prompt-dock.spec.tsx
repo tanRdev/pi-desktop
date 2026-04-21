@@ -330,39 +330,4 @@ describe("PromptDock", () => {
     fireEvent.keyDown(input, { key: "ArrowDown" });
     expect(onDraftChange).toHaveBeenLastCalledWith("second");
   });
-
-  it.skip("dispatches pi:paste-image when an image is pasted and submitted", async () => {
-    const events: { files: File[] }[] = [];
-    const listener = (event: Event) => {
-      const custom = event instanceof CustomEvent ? event : null;
-      const detail = custom?.detail;
-      if (detail && Array.isArray(detail.files)) events.push(detail);
-    };
-    window.addEventListener("pi:paste-image", listener);
-
-    renderPromptDock({ draft: "hello" });
-
-    const file = new File(["binary"], "shot.png", { type: "image/png" });
-    const input = screen.getByTestId("chat-input");
-
-    fireEvent.paste(input, {
-      clipboardData: {
-        items: [
-          {
-            kind: "file",
-            type: "image/png",
-            getAsFile: () => file,
-          },
-        ],
-      },
-    });
-
-    const submitButton = screen.getByTestId("prompt-submit");
-    fireEvent.click(submitButton);
-
-    expect(events).toHaveLength(1);
-    expect(events[0]?.files?.[0]?.name).toBe("shot.png");
-
-    window.removeEventListener("pi:paste-image", listener);
-  });
 });

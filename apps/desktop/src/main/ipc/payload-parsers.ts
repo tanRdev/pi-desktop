@@ -47,7 +47,9 @@ export class PayloadValidationError extends Error {
   }
 }
 
-function isPayloadRecord(value: unknown): value is Record<string, unknown> {
+export function isPayloadRecord(
+  value: unknown,
+): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 

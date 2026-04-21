@@ -122,4 +122,40 @@ describe("packages-service", () => {
       ]),
     );
   });
+
+  it("passes -l for local package updates", async () => {
+    const homePath = createTempDir("pi-desktop-packages-home-");
+    const worktreePath = createTempDir("pi-desktop-packages-worktree-");
+    const cli = {
+      run: vi.fn(async (args: string[]) => ({
+        exitCode: 0,
+        stdout: args[0] === "list" ? "Project packages:\n" : "",
+        stderr: "",
+      })),
+    };
+    const catalogClient = {
+      search: vi.fn(),
+      getDetail: vi.fn(),
+    };
+
+    const service = new PackagesServiceImpl({
+      homePath,
+      getLocalSettingsPath: () => null,
+      getLocalWorkingDirectory: () => worktreePath,
+      emit: () => undefined,
+      cli,
+      catalogClient,
+    });
+
+    await service.update({
+      packageName: "@acme/local-tools",
+      scope: "local",
+    });
+
+    expect(cli.run).toHaveBeenNthCalledWith(
+      1,
+      ["update", "-l", "npm:@acme/local-tools"],
+      worktreePath,
+    );
+  });
 });

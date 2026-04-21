@@ -27,7 +27,9 @@ export function AppShortcuts(): null {
     },
     () => {
       window.dispatchEvent(
-        new CustomEvent("pi:command", { detail: { id: "reload" } }),
+        new CustomEvent("pi:command", {
+          detail: { commandId: "reload-window" },
+        }),
       );
     },
   );

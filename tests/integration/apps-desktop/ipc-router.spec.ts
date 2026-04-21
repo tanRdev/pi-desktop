@@ -463,7 +463,6 @@ function createShellSnapshot(): ShellSnapshotWithWorkspace {
                 {
                   id: "default-thread",
                   title: "North Star",
-                  isArchived: false,
                   lastActivityAt: null,
                   runtime: {
                     status: "ready",
@@ -524,11 +523,15 @@ function createAgentHost(agentSnapshot: AgentSnapshot) {
     reset: vi.fn(async () => undefined),
     addRepository: vi.fn(async () => undefined),
     selectRepository: vi.fn(async () => undefined),
+    removeRepository: vi.fn(async () => undefined),
+    openRepositoryInFinder: vi.fn(async () => undefined),
     reorderRepositories: vi.fn(async () => undefined),
     createWorktree: vi.fn(async () => undefined),
     selectWorktree: vi.fn(async () => undefined),
-    createThread: vi.fn(async () => undefined),
+    removeWorktree: vi.fn(async () => undefined),
+    createThread: vi.fn(async () => "thread-created"),
     selectThread: vi.fn(async () => undefined),
+    deleteThread: vi.fn(async () => undefined),
   };
 }
 
@@ -709,7 +712,7 @@ describe("registerIpcHandlers", () => {
         backend: "shell",
         cwd: "/etc",
       }),
-    ).rejects.toThrow(/not within any allowed/i);
+    ).rejects.toThrow(/outside every allowed root/i);
     expect(tmMock.create).not.toHaveBeenCalled();
   });
 
@@ -767,6 +770,42 @@ describe("registerIpcHandlers", () => {
       }),
     ).resolves.toEqual(fakeSession);
     expect(tmMock.create).toHaveBeenCalled();
+  });
+
+  it("terminal.create rejects symlinked cwd paths that resolve outside the allowlist", async () => {
+    const harness = createHandlerHarness();
+    const tmMock = createTerminalManagerMock({
+      create: vi.fn(() => createTerminalSession()),
+    });
+
+    registerIpcHandlers({
+      handle: harness.handle,
+      getShellSnapshot: vi.fn(createShellSnapshot),
+      agentHost: createAgentHost(createAgentSnapshot()),
+      mainWindow: null,
+      terminalManager: tmMock,
+      getAllowedTerminalCwds: () => ["/tmp/allowed-repo"],
+    });
+
+    const nodeFs = await loadMockedNodeFs();
+    nodeFs.realpathSync.mockImplementation((value) => {
+      const normalized = value.toString();
+      return normalized === "/tmp/allowed-repo/link"
+        ? "/tmp/outside-repo"
+        : normalized;
+    });
+
+    await expect(
+      harness.handlers.get(IPC_CHANNELS.terminal.create)?.(undefined, {
+        id: "term-link",
+        cols: 80,
+        rows: 24,
+        ownerWindowId: "terminal-term-link",
+        backend: "shell",
+        cwd: "/tmp/allowed-repo/link",
+      }),
+    ).rejects.toThrow(/allowed|outside/i);
+    expect(tmMock.create).not.toHaveBeenCalled();
   });
 
   it("binds state persistence handlers", async () => {
@@ -1545,7 +1584,10 @@ describe("git handlers repositoryPath allowlist", () => {
       mainWindow: null,
       // biome-ignore lint/suspicious/noExplicitAny: test mock of GitWorktreeService
       gitService: gitService as any,
-      getAllowedRepositoryRoots: () => ["/allowed/repo"],
+      getAllowedRepositoryRoots: () => [
+        "/allowed/repo",
+        "/linked/worktrees/feature",
+      ],
     });
 
     for (const channel of [
@@ -1595,7 +1637,10 @@ describe("git handlers repositoryPath allowlist", () => {
       mainWindow: null,
       // biome-ignore lint/suspicious/noExplicitAny: test mock of GitWorktreeService
       gitService: gitService as any,
-      getAllowedRepositoryRoots: () => ["/allowed/repo"],
+      getAllowedRepositoryRoots: () => [
+        "/allowed/repo",
+        "/linked/worktrees/feature",
+      ],
     });
 
     await harness.handlers.get(IPC_CHANNELS.git.isRepository)?.(undefined, {
@@ -1657,6 +1702,7 @@ describe("git handlers repositoryPath allowlist", () => {
 
     expect(gitService.getRepositoryStatus).toHaveBeenCalledWith(
       "/allowed/repo",
+      { force: false },
     );
   });
 
@@ -1685,6 +1731,39 @@ describe("git handlers repositoryPath allowlist", () => {
 
     expect(gitService.getRepositoryStatus).toHaveBeenCalledWith(
       "/allowed/repo/worktrees/feature",
+      { force: false },
+    );
+  });
+
+  it("accepts linked worktrees when the expanded allowlist includes the worktree path", async () => {
+    const harness = createHandlerHarness();
+    const gitService = createGitServiceMock();
+    const nodeFs = await loadMockedNodeFs();
+    nodeFs.realpathSync.mockImplementation((value) => value.toString());
+
+    registerIpcHandlers({
+      handle: harness.handle,
+      getShellSnapshot: vi.fn(createShellSnapshot),
+      agentHost: createAgentHost(createAgentSnapshot()),
+      mainWindow: null,
+      // biome-ignore lint/suspicious/noExplicitAny: test mock of GitWorktreeService
+      gitService: gitService as any,
+      getAllowedRepositoryRoots: () => [
+        "/allowed/repo",
+        "/linked/worktrees/feature",
+      ],
+    });
+
+    await harness.handlers.get(IPC_CHANNELS.git.getRepositoryStatus)?.(
+      undefined,
+      {
+        repositoryPath: "/linked/worktrees/feature",
+      },
+    );
+
+    expect(gitService.getRepositoryStatus).toHaveBeenCalledWith(
+      "/linked/worktrees/feature",
+      { force: false },
     );
   });
 

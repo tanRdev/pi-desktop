@@ -71,7 +71,7 @@ function TitleBarTab({
           className={cn(
             "ml-auto shrink-0 flex size-4 items-center justify-center",
             "text-white/20 hover:text-white/60",
-            "opacity-0 group-hover:opacity-100 transition-opacity duration-100",
+            "opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity duration-100",
           )}
           aria-label={`Close ${label}`}
         >

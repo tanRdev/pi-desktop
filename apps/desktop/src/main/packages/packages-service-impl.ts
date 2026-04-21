@@ -232,6 +232,7 @@ export class PackagesServiceImpl implements PackagesService {
       request.scope,
       [
         "update",
+        ...(request.scope === "local" ? ["-l"] : []),
         ...(request.packageName ? [`npm:${request.packageName}`] : []),
       ],
     );

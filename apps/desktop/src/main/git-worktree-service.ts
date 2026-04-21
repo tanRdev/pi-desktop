@@ -217,6 +217,44 @@ function parseGitFileChange(line: string): GitFileChange | null {
   };
 }
 
+function parseRenamedOldFilePathFromStatus(
+  statusOutput: string,
+  filePath: string,
+): string | null {
+  for (const line of statusOutput.split(/\r?\n/)) {
+    if (!line.includes(" -> ")) {
+      continue;
+    }
+
+    const trimmed = line.trim();
+    const arrowIndex = trimmed.indexOf(" -> ");
+    if (arrowIndex === -1) {
+      continue;
+    }
+
+    const oldPath = trimmed.slice(3, arrowIndex).trim();
+    const newPath = trimmed.slice(arrowIndex + 4).trim();
+    if (newPath === filePath && oldPath) {
+      return oldPath;
+    }
+  }
+
+  return null;
+}
+
+function resolveRenamedOldFilePath(
+  runGit: (cwd: string, args: string[]) => GitCommandResult,
+  repositoryPath: string,
+  filePath: string,
+): string | null {
+  const statusResult = runGit(repositoryPath, ["status", "--porcelain"]);
+  if (statusResult.error || statusResult.status !== 0) {
+    return null;
+  }
+
+  return parseRenamedOldFilePathFromStatus(statusResult.stdout, filePath);
+}
+
 function parseWorktreeBlocks(output: string): ParsedWorktree[] {
   const blocks = output
     .split(/\n\n+/)
@@ -852,7 +890,14 @@ export class GitWorktreeService {
     }
 
     const fileStatus = change?.status ?? "modified";
-    const oldFilePath = change?.status === "renamed" ? filePath : null;
+    const oldFilePath =
+      change?.status === "renamed"
+        ? resolveRenamedOldFilePath(
+            this.runGit.bind(this),
+            repositoryPath,
+            filePath,
+          )
+        : null;
 
     if (result.stdout.includes("Binary files")) {
       return {

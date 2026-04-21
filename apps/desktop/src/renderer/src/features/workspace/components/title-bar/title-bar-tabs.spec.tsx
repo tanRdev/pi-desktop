@@ -56,4 +56,20 @@ describe("TitleBarTabs", () => {
     expect(onCloseFileWindow).toHaveBeenCalledWith("file-1");
     expect(onSelectContextSurface).not.toHaveBeenCalled();
   });
+
+  it("makes the close button visible when it receives keyboard focus", () => {
+    render(
+      <TitleBarTabs
+        activeThreadId="thread-1"
+        activeThreadTitle="Chat"
+        contextWindows={[makeFileWindow()]}
+        selectedContextSurface={null}
+        onCloseFileWindow={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "Close App.tsx" })).toHaveClass(
+      "focus-visible:opacity-100",
+    );
+  });
 });

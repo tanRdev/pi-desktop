@@ -105,6 +105,12 @@ export function ThreadSearchHost() {
   }, []);
 
   const handleSelect = React.useCallback((result: SearchResult) => {
+    window.dispatchEvent(
+      new CustomEvent("pi:thread-select", {
+        detail: { threadId: result.threadId },
+      }),
+    );
+
     const detail: OpenMessageEventDetail = {
       threadId: result.threadId,
       messageId: result.messageId,

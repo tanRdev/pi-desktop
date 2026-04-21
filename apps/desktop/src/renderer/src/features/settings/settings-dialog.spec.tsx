@@ -120,11 +120,12 @@ describe("SettingsDialog", () => {
 
     await user.click(screen.getByTestId("settings-tab-updates"));
     expect(
-      screen.getByRole("switch", { name: "Automatic updates" }),
+      screen.getByText("Desktop updates are not wired into this panel yet."),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /Check now/i }),
-    ).toBeInTheDocument();
+      screen.queryByRole("switch", { name: "Automatic updates" }),
+    ).toBeNull();
+    expect(screen.queryByRole("button", { name: /Check now/i })).toBeNull();
 
     await user.click(screen.getByTestId("settings-tab-danger-zone"));
     expect(

@@ -1,4 +1,3 @@
-import { X } from "@phosphor-icons/react";
 import type {
   MentionSuggestion,
   ProviderSnapshot,
@@ -120,23 +119,17 @@ export function PromptDock({
     contextUsage,
   });
 
-  const {
-    pendingImages,
-    getObjectUrl,
-    handleImagePaste,
-    handleRemovePendingImage,
-    handleSubmit,
-    handlePromptKeyDown,
-  } = usePromptDockInput({
-    activeThreadId,
-    draft,
-    isPromptExecuting,
-    autocompleteVisible,
-    onDraftChange,
-    onSend,
-    onCancelPrompt,
-    onPromptKeyDown,
-  });
+  const { handleImagePaste, handleSubmit, handlePromptKeyDown } =
+    usePromptDockInput({
+      activeThreadId,
+      draft,
+      isPromptExecuting,
+      autocompleteVisible,
+      onDraftChange,
+      onSend,
+      onCancelPrompt,
+      onPromptKeyDown,
+    });
 
   return (
     <div
@@ -199,28 +192,6 @@ export function PromptDock({
               isFocused && "placeholder:text-[var(--color-text-quaternary)]",
             )}
           />
-
-          {pendingImages.length > 0 ? (
-            <div className="mt-2 flex flex-wrap gap-2">
-              {pendingImages.map((file, index) => (
-                <div key={`${file.name}-${index}`} className="group relative">
-                  <img
-                    src={getObjectUrl(file)}
-                    alt={file.name}
-                    className="size-16 object-cover rounded-md"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleRemovePendingImage(index)}
-                    aria-label={`Remove ${file.name}`}
-                    className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-black/70 text-white opacity-0 transition-opacity group-hover:opacity-100"
-                  >
-                    <X size={10} weight="bold" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          ) : null}
 
           <PromptInputActions className="mt-1.5 flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
