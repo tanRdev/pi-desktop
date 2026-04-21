@@ -172,4 +172,70 @@ describe("useAppDialogs", () => {
     expect(result.current.initGitRepoPath).toBeNull();
     expect(result.current.initGitRepoName).toBeNull();
   });
+
+  it("does not open the create-session dialog after a normal git init submit", async () => {
+    const reload = vi.fn(async () => undefined);
+    const uiStore = createUiInteractionStore();
+    const api = installMockPiDesktop({
+      git: {
+        init: vi.fn(async () => undefined),
+      },
+      repositories: {
+        add: vi.fn(async () => undefined),
+      },
+    });
+    const git = requireNamespace(api.git, "git");
+    const repositories = requireNamespace(api.repositories, "repositories");
+
+    const { result } = renderHook(() =>
+      useAppDialogs({ activeRepositoryId: "repo-1", reload, uiStore }),
+    );
+
+    act(() => {
+      result.current.requestInitGitRepo("/tmp/workspace", "workspace");
+    });
+
+    await act(async () => {
+      await result.current.submitInitGitRepo();
+    });
+
+    expect(git.init).toHaveBeenCalledWith("/tmp/workspace");
+    expect(repositories.add).toHaveBeenCalledWith("/tmp/workspace");
+    expect(result.current.isInitGitRepoOpen).toBe(false);
+    expect(result.current.isCreateWorktreeOpen).toBe(false);
+  });
+
+  it("continues to the create-session dialog after initializing git for that flow", async () => {
+    const reload = vi.fn(async () => undefined);
+    const uiStore = createUiInteractionStore();
+    const api = installMockPiDesktop({
+      git: {
+        init: vi.fn(async () => undefined),
+      },
+      repositories: {
+        add: vi.fn(async () => undefined),
+      },
+    });
+    const git = requireNamespace(api.git, "git");
+    const repositories = requireNamespace(api.repositories, "repositories");
+
+    const { result } = renderHook(() =>
+      useAppDialogs({ activeRepositoryId: "repo-1", reload, uiStore }),
+    );
+
+    act(() => {
+      result.current.requestInitGitRepo("/tmp/workspace", "workspace", {
+        continueToCreateWorktree: true,
+      });
+    });
+
+    await act(async () => {
+      await result.current.submitInitGitRepo();
+    });
+
+    expect(git.init).toHaveBeenCalledWith("/tmp/workspace");
+    expect(repositories.add).toHaveBeenCalledWith("/tmp/workspace");
+    expect(result.current.isInitGitRepoOpen).toBe(false);
+    expect(result.current.isCreateWorktreeOpen).toBe(true);
+  });
 });

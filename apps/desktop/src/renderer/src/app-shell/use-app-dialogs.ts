@@ -45,7 +45,11 @@ export interface AppDialogsController {
   submitRemoveRepository: () => Promise<void>;
   isInitGitRepoOpen: boolean;
   setInitGitRepoOpen: (isOpen: boolean) => void;
-  requestInitGitRepo: (path: string, name: string) => void;
+  requestInitGitRepo: (
+    path: string,
+    name: string,
+    options?: { continueToCreateWorktree?: boolean },
+  ) => void;
   initGitRepoPath: string | null;
   initGitRepoName: string | null;
   submitInitGitRepo: () => Promise<void>;
@@ -95,6 +99,10 @@ export function useAppDialogs({
   const [initGitRepoName, setInitGitRepoName] = React.useState<string | null>(
     null,
   );
+  const [
+    continueToCreateWorktreeAfterInit,
+    setContinueToCreateWorktreeAfterInit,
+  ] = React.useState(false);
   const [oauthProviders, setOAuthProviders] = React.useState<
     OAuthProviderSnapshot[]
   >([]);
@@ -205,6 +213,7 @@ export function useAppDialogs({
       if (!isOpen) {
         setInitGitRepoPath(null);
         setInitGitRepoName(null);
+        setContinueToCreateWorktreeAfterInit(false);
       }
     },
     [uiStore],
@@ -277,9 +286,16 @@ export function useAppDialogs({
   }, [confirmRemoveRepositoryId, reload, setRemoveRepositoryOpen]);
 
   const requestInitGitRepo = React.useCallback(
-    (path: string, name: string) => {
+    (
+      path: string,
+      name: string,
+      options?: { continueToCreateWorktree?: boolean },
+    ) => {
       setInitGitRepoPath(path);
       setInitGitRepoName(name);
+      setContinueToCreateWorktreeAfterInit(
+        options?.continueToCreateWorktree ?? false,
+      );
       setInitGitRepoOpen(true);
     },
     [setInitGitRepoOpen],
@@ -294,6 +310,9 @@ export function useAppDialogs({
       await window.piDesktop.git.init(initGitRepoPath);
       await window.piDesktop.repositories.add(initGitRepoPath);
       setInitGitRepoOpen(false);
+      if (continueToCreateWorktreeAfterInit) {
+        setCreateWorktreeOpen(true);
+      }
       await reload();
       toast.success("Git repository initialized");
     } catch (error) {
@@ -301,7 +320,14 @@ export function useAppDialogs({
         description: error instanceof Error ? error.message : "Unknown error",
       });
     }
-  }, [initGitRepoName, initGitRepoPath, reload, setInitGitRepoOpen]);
+  }, [
+    continueToCreateWorktreeAfterInit,
+    initGitRepoName,
+    initGitRepoPath,
+    reload,
+    setCreateWorktreeOpen,
+    setInitGitRepoOpen,
+  ]);
 
   const skipInitGitRepo = React.useCallback(async () => {
     if (!initGitRepoPath) {

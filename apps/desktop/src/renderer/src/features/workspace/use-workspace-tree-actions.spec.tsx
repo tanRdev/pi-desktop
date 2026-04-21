@@ -236,6 +236,9 @@ describe("useWorkspaceTreeActions", () => {
     expect(requestInitGitRepo).toHaveBeenCalledWith(
       "/tmp/plain-folder",
       "Plain Folder",
+      {
+        continueToCreateWorktree: true,
+      },
     );
     expect(setCreateWorktreeOpen).not.toHaveBeenCalled();
   });

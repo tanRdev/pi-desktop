@@ -31,7 +31,11 @@ export interface UseWorkspaceTreeActionsOptions {
   reload: () => Promise<void>;
   clearSelectedContextSurface: () => void;
   confirmRemoveRepository: (input: ConfirmRemoveRepositoryInput) => void;
-  requestInitGitRepo: (path: string, name: string) => void;
+  requestInitGitRepo: (
+    path: string,
+    name: string,
+    options?: { continueToCreateWorktree?: boolean },
+  ) => void;
   setCreateWorktreeOpen: (open: boolean) => void;
 }
 
@@ -174,7 +178,9 @@ export function useWorkspaceTreeActions({
     try {
       const isRepo = await window.piDesktop.git.isRepository(rootPath);
       if (!isRepo) {
-        requestInitGitRepo(rootPath, repositoryName);
+        requestInitGitRepo(rootPath, repositoryName, {
+          continueToCreateWorktree: true,
+        });
         return;
       }
     } catch {
