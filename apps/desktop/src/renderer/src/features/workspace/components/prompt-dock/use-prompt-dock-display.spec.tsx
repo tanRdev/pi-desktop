@@ -246,4 +246,20 @@ describe("usePromptDockDisplay", () => {
     expect(result.current.currentContextWindow).toBe(200_000);
     expect(result.current.currentContextPercentage).toBe(26);
   });
+
+  it("falls back to the selected model context window when tokens are unavailable", () => {
+    const { result } = renderHook<
+      PromptDockDisplayController,
+      UsePromptDockDisplayOptions
+    >((props) => usePromptDockDisplay(props), {
+      initialProps: createOptions({
+        currentModelValue: "google::gemini-2.5-pro",
+        contextUsage: null,
+      }),
+    });
+
+    expect(result.current.currentContextTokens).toBeNull();
+    expect(result.current.currentContextWindow).toBe(1_048_576);
+    expect(result.current.currentContextPercentage).toBeNull();
+  });
 });

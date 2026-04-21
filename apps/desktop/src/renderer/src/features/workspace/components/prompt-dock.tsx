@@ -18,7 +18,6 @@ import { cn } from "@/lib/utils";
 import { Attachments, useAttachments } from "./prompt-dock/attachments";
 import { CharacterCounter } from "./prompt-dock/character-counter";
 import { ContextGauge } from "./prompt-dock/context-gauge";
-import { ContextUsageMeter } from "./prompt-dock/context-usage-meter";
 import { ModelPicker } from "./prompt-dock/model-picker";
 import { usePersistDraft } from "./prompt-dock/prompt-draft";
 import { SendButton } from "./prompt-dock/send-button";
@@ -225,7 +224,12 @@ export function PromptDock({
             <div className="flex items-center gap-[var(--space-3)]">
               {isSwitchingModel ? <Loader label="Switching" /> : null}
 
-              <CharacterCounter value={draft} />
+              {currentContextWindow != null ? (
+                <CharacterCounter
+                  tokens={currentContextTokens}
+                  contextWindow={currentContextWindow}
+                />
+              ) : null}
 
               {currentContextWindow != null &&
               currentContextPercentage !== null ? (
@@ -234,15 +238,6 @@ export function PromptDock({
                   contextWindow={currentContextWindow}
                   percent={currentContextPercentage}
                   modelDisplayName={currentModelDisplay}
-                />
-              ) : null}
-
-              {currentContextWindow != null &&
-              currentContextPercentage !== null ? (
-                <ContextUsageMeter
-                  tokens={currentContextTokens}
-                  contextWindow={currentContextWindow}
-                  percent={currentContextPercentage}
                 />
               ) : null}
 

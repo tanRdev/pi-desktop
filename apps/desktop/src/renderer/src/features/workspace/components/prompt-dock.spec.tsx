@@ -236,11 +236,37 @@ describe("PromptDock", () => {
     expect(screen.queryByText("Favorites")).not.toBeInTheDocument();
   });
 
-  it("renders the character counter reflecting the current draft", () => {
-    renderPromptDock({ draft: "hello" });
+  it("renders the prompt context counter using tokens and context window", () => {
+    renderPromptDock({
+      currentModelValue: "anthropic::claude-sonnet-4-20250514",
+      contextUsage: {
+        tokens: 52_428,
+        contextWindow: 200_000,
+        percent: null,
+      },
+    });
 
-    const counter = screen.getByTestId("prompt-char-counter");
-    expect(counter).toHaveTextContent("5 ch");
+    const counter = screen.getByTestId("prompt-context-counter");
+    expect(counter).toHaveTextContent("52.4K / 200K");
+    expect(screen.queryByTestId("prompt-char-counter")).not.toBeInTheDocument();
+  });
+
+  it("keeps showing the total context window when used tokens are unknown", () => {
+    renderPromptDock({
+      currentModelValue: "anthropic::claude-sonnet-4-20250514",
+      contextUsage: {
+        tokens: null,
+        contextWindow: 200_000,
+        percent: null,
+      },
+    });
+
+    expect(screen.getByTestId("prompt-context-counter")).toHaveTextContent(
+      "— / 200K",
+    );
+    expect(
+      screen.queryByRole("img", { name: /Context window usage/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("merges built-in slash commands into the autocomplete when draft begins with /", () => {

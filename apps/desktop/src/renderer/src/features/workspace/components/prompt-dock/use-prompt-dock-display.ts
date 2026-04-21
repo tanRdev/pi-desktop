@@ -12,6 +12,21 @@ import {
   findBuiltInBySlash,
 } from "./slash-commands";
 
+function getCurrentModelContextWindow(
+  providerSnapshots: ProviderSnapshot[],
+  currentModelValue: string,
+): number | null {
+  for (const provider of providerSnapshots) {
+    for (const model of provider.models) {
+      if (`${provider.id}::${model.id}` === currentModelValue) {
+        return model.contextWindow ?? null;
+      }
+    }
+  }
+
+  return null;
+}
+
 export interface PromptDockContextUsage {
   tokens: number | null;
   contextWindow: number;
@@ -115,7 +130,9 @@ export function usePromptDockDisplay({
     [providerSnapshots, currentModelValue],
   );
 
-  const currentContextWindow = contextUsage?.contextWindow ?? null;
+  const currentContextWindow =
+    contextUsage?.contextWindow ??
+    getCurrentModelContextWindow(providerSnapshots, currentModelValue);
   const currentContextTokens = contextUsage?.tokens ?? null;
   const currentContextPercentage =
     contextUsage?.percent ??

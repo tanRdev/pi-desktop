@@ -1,39 +1,46 @@
 import { cn } from "@/lib/utils";
 
+function formatTokens(tokens: number): string {
+  if (tokens >= 1_000_000) {
+    const value = tokens / 1_000_000;
+    return `${value % 1 === 0 ? value.toFixed(0) : value.toFixed(1)}M`;
+  }
+
+  if (tokens >= 1_000) {
+    const value = tokens / 1_000;
+    return `${value % 1 === 0 ? value.toFixed(0) : value.toFixed(1)}K`;
+  }
+
+  return String(tokens);
+}
+
 export interface CharacterCounterProps {
-  value: string;
-  /** Optional token count when a tokenizer is available. */
-  tokenCount?: number | null;
+  tokens: number | null;
+  contextWindow: number;
   className?: string;
 }
 
-/**
- * Compact character (and optional token) counter for the prompt dock.
- */
 export function CharacterCounter({
-  value,
-  tokenCount,
+  tokens,
+  contextWindow,
   className,
 }: CharacterCounterProps) {
-  const charCount = value.length;
-  const showTokens = typeof tokenCount === "number" && tokenCount >= 0;
+  const tokensLabel = tokens !== null ? formatTokens(tokens) : "—";
+  const contextWindowLabel = formatTokens(contextWindow);
 
   return (
     <output
-      data-testid="prompt-char-counter"
+      data-testid="prompt-context-counter"
       aria-live="off"
       className={cn(
         "select-none font-[var(--app-font-mono)] text-[10px] text-[var(--color-text-quaternary)]",
         className,
       )}
-      aria-label={
-        showTokens
-          ? `${charCount} characters, ${tokenCount} tokens`
-          : `${charCount} characters`
-      }
+      aria-label={`Context usage ${tokensLabel} of ${contextWindowLabel}`}
     >
-      <span>{charCount} ch</span>
-      {showTokens ? <span className="ml-1">· {tokenCount} tok</span> : null}
+      <span>
+        {tokensLabel} / {contextWindowLabel}
+      </span>
     </output>
   );
 }
