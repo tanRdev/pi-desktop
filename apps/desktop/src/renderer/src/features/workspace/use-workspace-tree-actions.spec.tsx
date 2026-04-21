@@ -71,6 +71,7 @@ describe("useWorkspaceTreeActions", () => {
     const { result } = renderHook(() =>
       useWorkspaceTreeActions({
         repositories: [],
+        activeRepository: null,
         activeWorktree: null,
         activeWorktreeId: null,
         activeThreadId: null,
@@ -131,6 +132,7 @@ describe("useWorkspaceTreeActions", () => {
     const { result } = renderHook(() =>
       useWorkspaceTreeActions({
         repositories: [repository],
+        activeRepository: repository,
         activeWorktree: repository.worktrees[0] ?? null,
         activeWorktreeId: "worktree-1",
         activeThreadId: "thread-1",
@@ -162,10 +164,16 @@ describe("useWorkspaceTreeActions", () => {
       name: "Alpha Workspace",
       customName: "Workspace Alpha",
     });
+    installMockPiDesktop({
+      git: {
+        isRepository: vi.fn(async () => true),
+      },
+    });
 
     const { result } = renderHook(() =>
       useWorkspaceTreeActions({
         repositories: [repository],
+        activeRepository: repository,
         activeWorktree: repository.worktrees[0] ?? null,
         activeWorktreeId: repository.worktrees[0]?.id ?? null,
         activeThreadId: repository.worktrees[0]?.threads[0]?.id ?? null,
@@ -189,6 +197,49 @@ describe("useWorkspaceTreeActions", () => {
     });
   });
 
+  it("requests git init instead of opening the worktree dialog when the active project is not a git repo", async () => {
+    const requestInitGitRepo = vi.fn();
+    const setCreateWorktreeOpen = vi.fn();
+    const repository = createRepository({
+      id: "repo-8",
+      name: "Plain Folder",
+      customName: null,
+      rootPath: "/tmp/plain-folder",
+    });
+    const api = installMockPiDesktop({
+      git: {
+        isRepository: vi.fn(async () => false),
+      },
+    });
+    const git = requireNamespace(api.git, "git");
+
+    const { result } = renderHook(() =>
+      useWorkspaceTreeActions({
+        repositories: [repository],
+        activeRepository: repository,
+        activeWorktree: repository.worktrees[0] ?? null,
+        activeWorktreeId: repository.worktrees[0]?.id ?? null,
+        activeThreadId: repository.worktrees[0]?.threads[0]?.id ?? null,
+        reload: vi.fn(async () => undefined),
+        clearSelectedContextSurface: vi.fn(),
+        confirmRemoveRepository: vi.fn(),
+        requestInitGitRepo,
+        setCreateWorktreeOpen,
+      }),
+    );
+
+    await act(async () => {
+      await result.current.createSession();
+    });
+
+    expect(git.isRepository).toHaveBeenCalledWith("/tmp/plain-folder");
+    expect(requestInitGitRepo).toHaveBeenCalledWith(
+      "/tmp/plain-folder",
+      "Plain Folder",
+    );
+    expect(setCreateWorktreeOpen).not.toHaveBeenCalled();
+  });
+
   it("creates a thread and closes the active thread by selecting the next one", async () => {
     const clearSelectedContextSurface = vi.fn();
     const worktree = createWorktree({
@@ -210,6 +261,7 @@ describe("useWorkspaceTreeActions", () => {
     const { result } = renderHook(() =>
       useWorkspaceTreeActions({
         repositories: [createRepository({ worktrees: [worktree] })],
+        activeRepository: createRepository({ worktrees: [worktree] }),
         activeWorktree: worktree,
         activeWorktreeId: "worktree-1",
         activeThreadId: "thread-1",
@@ -262,6 +314,7 @@ describe("useWorkspaceTreeActions", () => {
     const { result } = renderHook(() =>
       useWorkspaceTreeActions({
         repositories: [repository],
+        activeRepository: repository,
         activeWorktree: repository.worktrees[0] ?? null,
         activeWorktreeId: repository.worktrees[0]?.id ?? null,
         activeThreadId: repository.worktrees[0]?.threads[0]?.id ?? null,

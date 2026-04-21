@@ -687,6 +687,11 @@ async function bootstrapDesktop() {
     }
 
     const inspection = inspectWorktreeOrThrow(repository.rootPath);
+    if (!gitService.isRepository(repository.rootPath)) {
+      throw new Error(
+        `"${path.basename(repository.rootPath)}" is not a git repository. Initialize git to create a session.`,
+      );
+    }
     const trimmedBranchName = branchName.trim();
     if (!trimmedBranchName) {
       throw new Error("Worktree branch name must not be empty");

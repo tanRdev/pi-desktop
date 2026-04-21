@@ -168,6 +168,7 @@ export function useAppShellController(): AppShellController {
   } = workspaceWindows;
   const workspaceTreeActions = useWorkspaceTreeActions({
     repositories,
+    activeRepository,
     activeWorktree,
     activeWorktreeId,
     activeThreadId,

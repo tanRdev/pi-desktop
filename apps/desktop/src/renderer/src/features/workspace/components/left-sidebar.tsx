@@ -507,7 +507,7 @@ interface ProjectRowProps {
   sessionCount: number;
   onSelect: (id: string) => void;
   onContextMenu: (e: React.MouseEvent, repo: RepositorySnapshot) => void;
-  onCreateSession?: () => void;
+  onCreateSession?: () => void | Promise<void>;
   isCreatingSession?: boolean;
 }
 
@@ -570,7 +570,9 @@ function ProjectRowImpl({
             <TooltipTrigger asChild>
               <button
                 type="button"
-                onClick={onCreateSession}
+                onClick={() => {
+                  void onCreateSession();
+                }}
                 disabled={isCreatingSession}
                 aria-label="New branch"
                 data-testid="create-session-button"

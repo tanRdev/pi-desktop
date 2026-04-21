@@ -13,7 +13,7 @@ export interface WorkspaceTreeActionsController {
   removeRepository: (repositoryId: string) => Promise<void>;
   copyRepositoryPath: (repositoryId: string) => Promise<void>;
   openInFinder: (repositoryId: string) => Promise<void>;
-  createSession: () => void;
+  createSession: () => Promise<void>;
   selectWorktree: (worktreeId: string) => Promise<void>;
   createThread: (worktreeId: string) => Promise<string>;
   closeThread: (threadId: string) => Promise<void>;
@@ -24,6 +24,7 @@ export interface WorkspaceTreeActionsController {
 
 export interface UseWorkspaceTreeActionsOptions {
   repositories: RepositorySnapshot[];
+  activeRepository: RepositorySnapshot | null;
   activeWorktree: WorktreeSnapshot | null;
   activeWorktreeId: string | null;
   activeThreadId: string | null;
@@ -36,6 +37,7 @@ export interface UseWorkspaceTreeActionsOptions {
 
 export function useWorkspaceTreeActions({
   repositories,
+  activeRepository,
   activeWorktree,
   activeWorktreeId,
   activeThreadId,
@@ -157,9 +159,30 @@ export function useWorkspaceTreeActions({
     await window.piDesktop.worktrees.select(worktreeId);
   }, []);
 
-  const createSession = React.useCallback(() => {
+  const createSession = React.useCallback(async () => {
+    if (!activeRepository) {
+      toast.error("No project selected", {
+        description: "Add or select a project to create a session.",
+      });
+      return;
+    }
+
+    const rootPath = activeRepository.rootPath;
+    const repositoryName =
+      activeRepository.customName ?? activeRepository.name ?? rootPath;
+
+    try {
+      const isRepo = await window.piDesktop.git.isRepository(rootPath);
+      if (!isRepo) {
+        requestInitGitRepo(rootPath, repositoryName);
+        return;
+      }
+    } catch {
+      // If the check fails, fall through and let the dialog handle errors.
+    }
+
     setCreateWorktreeOpen(true);
-  }, [setCreateWorktreeOpen]);
+  }, [activeRepository, requestInitGitRepo, setCreateWorktreeOpen]);
 
   const createThread = React.useCallback(
     async (worktreeId: string) => {
