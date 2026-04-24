@@ -237,7 +237,7 @@ function SidebarEdgeToggle({
             }}
             className={cn(
               "flex h-8 w-3 touch-manipulation items-center justify-center",
-              "bg-[var(--color-bg-primary)] text-white/25",
+              "bg-[var(--color-bg-primary)] text-white/50",
               "border border-white/[0.10]",
               "opacity-0 group-hover:opacity-100",
               "transition-all duration-150 hover:text-white hover:border-white/30 hover:shadow-[0_0_8px_2px_rgba(255,255,255,0.08)]",
@@ -325,7 +325,7 @@ function ThreadRowImpl({
               "transition-colors duration-150",
               isActive
                 ? "text-white"
-                : "text-white/40 hover:bg-white/[0.03] hover:text-white/65",
+                : "text-white/40 hover:bg-white/[0.06] hover:text-white/65",
             )}
           >
             <Chat
@@ -335,7 +335,7 @@ function ThreadRowImpl({
                 "size-3 shrink-0 transition-colors duration-150",
                 isActive
                   ? "text-white/60"
-                  : "text-white/25 group-hover:text-white/45",
+                  : "text-white/50 group-hover:text-white/45",
               )}
             />
             <span className="min-w-0 flex-1 truncate">{threadTitle}</span>
@@ -389,7 +389,7 @@ function WorktreeRowImpl({
     if (isDirty) {
       return <GitBranch className="size-3.5 text-white/40" />;
     }
-    return <Check className="size-3.5 text-white/30" />;
+    return <Check className="size-3.5 text-white/50" />;
   })();
 
   return (
@@ -410,7 +410,7 @@ function WorktreeRowImpl({
                 "transition-colors duration-150",
                 isActive
                   ? "text-white"
-                  : "text-white/50 hover:text-white/70 hover:bg-white/[0.04]",
+                  : "text-white/50 hover:text-white/70 hover:bg-white/[0.06]",
               )}
             >
               <StatusIndicator
@@ -426,7 +426,7 @@ function WorktreeRowImpl({
               </span>
 
               {(ahead > 0 || behind > 0) && (
-                <span className="flex items-center gap-1 text-[10px] font-mono text-white/40">
+                <span className="flex items-center gap-1 text-[11px] font-mono text-white/40">
                   {ahead > 0 && (
                     <span className="text-[var(--color-accent)]">+{ahead}</span>
                   )}
@@ -453,7 +453,7 @@ function WorktreeRowImpl({
                 type="button"
                 onClick={() => onCreateThread(session.id)}
                 aria-label="New thread"
-                className="flex size-6 shrink-0 items-center justify-center text-white/30 transition-colors duration-150 hover:text-white/60 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/30"
+                className="flex size-6 shrink-0 items-center justify-center text-white/50 transition-colors duration-150 hover:text-white/60 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/30"
               >
                 <Plus aria-hidden="true" className="size-3.5" />
               </button>
@@ -556,7 +556,7 @@ function ProjectRowImpl({
                 "size-3.5 shrink-0 transition-colors duration-150",
                 isActive
                   ? "text-white/70"
-                  : "text-white/35 group-hover:text-white/55",
+                  : "text-white/50 group-hover:text-white/55",
               )}
             />
             <span
@@ -586,7 +586,7 @@ function ProjectRowImpl({
                 disabled={isCreatingSession}
                 aria-label="New branch"
                 data-testid="create-session-button"
-                className="flex size-6 items-center justify-center text-white/30 transition-colors duration-150 hover:text-white/60 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/30"
+                className="flex size-6 items-center justify-center text-white/50 transition-colors duration-150 hover:text-white/60 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/30"
               >
                 <Plus aria-hidden="true" className="size-3.5" />
               </button>
@@ -766,7 +766,7 @@ export function LeftSidebarImpl({
                   data-testid={`sidebar-tab-${tab.id}`}
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
-                    "flex-1 h-8 px-3 text-[10px] uppercase tracking-wider font-medium text-center",
+                    "flex-1 h-8 px-3 text-[11px] uppercase tracking-wider font-medium text-center",
                     "transition-colors duration-150 border-b border-transparent",
                     isActive
                       ? "text-white/90 border-[var(--color-accent)]"
@@ -891,10 +891,10 @@ export function LeftSidebarImpl({
                   onClick={onAddRepository}
                   className={cn(
                     "flex w-full items-center justify-center gap-2 rounded-sm",
-                    "px-3 py-2 text-[10px] font-medium uppercase tracking-wider",
+                    "px-3 py-2 text-[11px] font-medium uppercase tracking-wider",
                     "border border-white/[0.06] bg-white/[0.02] text-white/50",
                     "transition-all duration-150",
-                    "hover:border-white/[0.12] hover:bg-white/[0.04] hover:text-white/70",
+                    "hover:border-white/[0.12] hover:bg-white/[0.06] hover:text-white/70",
                     "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20",
                   )}
                 >
@@ -933,7 +933,7 @@ export function LeftSidebarImpl({
                       onCopyRepositoryPath(contextMenuRepositoryId),
                     )
                   }
-                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] text-white/70 hover:bg-white/[0.04] transition-colors duration-150"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] text-white/70 hover:bg-white/[0.06] transition-colors duration-150"
                 >
                   <Copy className="size-4" />
                   Copy path
@@ -947,7 +947,7 @@ export function LeftSidebarImpl({
                       onOpenInFinder(contextMenuRepositoryId),
                     )
                   }
-                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] text-white/70 hover:bg-white/[0.04] transition-colors duration-150"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] text-white/70 hover:bg-white/[0.06] transition-colors duration-150"
                 >
                   <svg
                     className="size-4"
@@ -1015,7 +1015,7 @@ export function LeftSidebarImpl({
                     <button
                       type="button"
                       onClick={() => clearItemMenuConfirmation()}
-                      className="flex-1 py-1 text-[11px] text-white/40 hover:bg-white/[0.04] transition-colors duration-150"
+                      className="flex-1 py-1 text-[11px] text-white/40 hover:bg-white/[0.06] transition-colors duration-150"
                     >
                       Cancel
                     </button>
@@ -1037,7 +1037,7 @@ export function LeftSidebarImpl({
                     <button
                       type="button"
                       onClick={() => clearItemMenuConfirmation()}
-                      className="flex-1 py-1 text-[11px] text-white/40 hover:bg-white/[0.04] transition-colors duration-150"
+                      className="flex-1 py-1 text-[11px] text-white/40 hover:bg-white/[0.06] transition-colors duration-150"
                     >
                       Cancel
                     </button>
@@ -1048,7 +1048,7 @@ export function LeftSidebarImpl({
                   <button
                     type="button"
                     onClick={() => handleItemMenuConfirmAction("archive")}
-                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] text-white/70 hover:bg-white/[0.04] transition-colors duration-150"
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] text-white/70 hover:bg-white/[0.06] transition-colors duration-150"
                   >
                     <Archive className="size-4" />
                     Archive

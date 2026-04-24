@@ -54,7 +54,7 @@ export function TitleBar({
   return (
     <div
       data-drag-region="true"
-      className="flex h-11 shrink-0 items-center justify-between gap-4 border-b border-white/[0.03] px-4 select-none"
+      className="flex h-11 shrink-0 items-center justify-between gap-4 border-b border-white/[0.06] px-4 select-none"
       style={{ paddingLeft: trafficLightInset }}
     >
       <TitleBarTabs
@@ -90,7 +90,7 @@ export function TitleBar({
                     "border border-white/[0.06] transition-colors duration-150",
                     isTerminalVisible
                       ? "bg-white/[0.06] text-white/80"
-                      : "text-white/40 hover:bg-white/[0.04] hover:text-white/70",
+                      : "text-white/40 hover:bg-white/[0.06] hover:text-white/70",
                   )}
                   aria-label={
                     isTerminalVisible ? "Close terminal" : "Open terminal"

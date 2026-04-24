@@ -49,7 +49,7 @@ export function ContextUsageMeter({
           style={{ width: `${clamped}%`, backgroundColor: barColor }}
         />
       </div>
-      <span className="font-mono text-[10px] text-white/40 tabular-nums">
+      <span className="font-mono text-[11px] text-white/40 tabular-nums">
         {tokensLabel} / {windowLabel}
       </span>
     </div>

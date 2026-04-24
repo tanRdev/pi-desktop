@@ -113,14 +113,14 @@ export function AppDialogs({
               }}
               placeholder="feature/my-task"
               className={cn(
-                "w-full border border-white/[0.06] bg-[var(--color-bg-primary)] px-3 py-2 text-[10.5px] text-white/80 outline-none",
+                "w-full border border-white/[0.06] bg-[var(--color-bg-primary)] px-3 py-2 text-[11px] text-white/80 outline-none",
                 "transition-all duration-[var(--duration-fast)]",
                 "focus:border-white/[0.12] focus:ring-1 focus:ring-white/[0.06]",
-                "placeholder:text-white/30",
+                "placeholder:text-white/50",
               )}
             />
             {worktreeCreateError ? (
-              <p className="animate-pulse text-[10.5px] text-destructive">
+              <p className="animate-pulse text-[11px] text-destructive">
                 {worktreeCreateError}
               </p>
             ) : null}
@@ -155,7 +155,7 @@ export function AppDialogs({
             <DialogTitle className="text-base font-normal tracking-tight">
               {getOAuthDialogTitle(oauthDialogState.mode)}
             </DialogTitle>
-            <DialogDescription className="text-[10.5px] text-white/40">
+            <DialogDescription className="text-[11px] text-white/40">
               {getOAuthDialogDescription(oauthDialogState.mode)}
             </DialogDescription>
           </DialogHeader>
@@ -163,9 +163,9 @@ export function AppDialogs({
             {oauthDialogState.providers.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <div className="mb-4 flex size-12 items-center justify-center border border-white/[0.04] bg-white/[0.02]">
-                  <Globe className="size-6 text-white/20" />
+                  <Globe className="size-6 text-white/45" />
                 </div>
-                <p className="text-[10.5px] text-white/40">
+                <p className="text-[11px] text-white/40">
                   No OAuth providers available.
                 </p>
               </div>
@@ -193,19 +193,19 @@ export function AppDialogs({
                       className={cn(
                         "stagger-item group relative -mx-6 flex w-full items-center gap-4 px-6 py-4 text-left outline-none transition-all",
                         "hover:bg-white/[0.02]",
-                        "active:bg-white/[0.04] disabled:opacity-50",
+                        "active:bg-white/[0.06] disabled:opacity-50",
                       )}
                     >
-                      <Avatar className="size-9 shrink-0 border-white/[0.08] bg-white/[0.03]">
-                        <AvatarFallback className="bg-transparent text-[10.5px] text-white/20">
+                      <Avatar className="size-9 shrink-0 border-white/[0.08] bg-white/[0.06]">
+                        <AvatarFallback className="bg-transparent text-[11px] text-white/45">
                           {provider.name[0]}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex min-w-0 flex-1 flex-col">
-                        <span className="truncate text-[10.5px] font-normal text-white/90 group-hover:text-white">
+                        <span className="truncate text-[11px] font-normal text-white/90 group-hover:text-white">
                           {provider.name}
                         </span>
-                        <span className="text-[11px] text-white/30">
+                        <span className="text-[11px] text-white/50">
                           {provider.usesCallbackServer
                             ? "Browser authentication"
                             : "Manual authentication"}
@@ -215,21 +215,21 @@ export function AppDialogs({
                         {isLogoutMode ? (
                           <div
                             className={cn(
-                              "text-[10.5px] font-normal",
+                              "text-[11px] font-normal",
                               provider.isAuthenticated
                                 ? "text-white/70 group-hover:text-white"
-                                : "text-white/30",
+                                : "text-white/50",
                             )}
                           >
                             {actionLabel}
                           </div>
                         ) : provider.isAuthenticated ? (
-                          <div className="flex items-center gap-2 text-[10.5px] font-normal text-[var(--color-success)]">
+                          <div className="flex items-center gap-2 text-[11px] font-normal text-[var(--color-success)]">
                             <div className="size-1.5 bg-[var(--color-success)] shadow-[0_0_8px_rgba(95,184,122,0.3)]" />
                             {actionLabel}
                           </div>
                         ) : (
-                          <div className="text-[10.5px] text-white/40 transition-colors group-hover:text-white/60">
+                          <div className="text-[11px] text-white/40 transition-colors group-hover:text-white/60">
                             {actionLabel}
                           </div>
                         )}
@@ -242,8 +242,8 @@ export function AppDialogs({
 
             {oauthDialogState.requestedProviderId ? (
               <div className="-mx-6 mt-2 border-t border-white/[0.06] bg-white/[0.01] px-6 py-4">
-                <div className="flex items-start gap-3 text-[10.5px] text-white/40">
-                  <Info className="mt-0.5 size-4 shrink-0 text-white/20" />
+                <div className="flex items-start gap-3 text-[11px] text-white/40">
+                  <Info className="mt-0.5 size-4 shrink-0 text-white/45" />
                   <div className="flex flex-col gap-1">
                     <span className="font-normal text-white/50">
                       Provider requested
@@ -284,7 +284,7 @@ export function AppDialogs({
           </DialogHeader>
           {removeRepositoryError ? (
             <div className="space-y-3 bg-[var(--color-bg-secondary)] px-6 py-4">
-              <p className="text-[10.5px] text-destructive">
+              <p className="text-[11px] text-destructive">
                 {removeRepositoryError}
               </p>
             </div>

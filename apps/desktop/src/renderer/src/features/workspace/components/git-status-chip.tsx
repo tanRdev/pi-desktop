@@ -26,17 +26,17 @@ export function GitStatusChip({ git, className }: GitStatusChipProps) {
   if (git.status !== "ready") {
     const statusIcons: Record<string, React.ReactNode> = {
       loading: (
-        <Spinner className={cn(iconClass, "animate-spin text-white/30")} />
+        <Spinner className={cn(iconClass, "animate-spin text-white/50")} />
       ),
       error: <WarningCircle className={cn(iconClass, "text-yellow-400/60")} />,
-      disconnected: <WifiSlash className={cn(iconClass, "text-white/30")} />,
+      disconnected: <WifiSlash className={cn(iconClass, "text-white/50")} />,
       starting: (
         <Spinner className={cn(iconClass, "animate-spin text-white/40")} />
       ),
       missing: (
         <WarningCircle className={cn(iconClass, "text-yellow-400/60")} />
       ),
-      unavailable: <WifiSlash className={cn(iconClass, "text-white/30")} />,
+      unavailable: <WifiSlash className={cn(iconClass, "text-white/50")} />,
     };
     return (
       <span
@@ -48,7 +48,7 @@ export function GitStatusChip({ git, className }: GitStatusChipProps) {
         )}
       >
         {statusIcons[git.status] ?? (
-          <WarningCircle className={cn(iconClass, "text-white/30")} />
+          <WarningCircle className={cn(iconClass, "text-white/50")} />
         )}
       </span>
     );

@@ -178,7 +178,7 @@ export function CommandPalette({
             "bg-[var(--color-bg-secondary)]",
           )}
         >
-          <MagnifyingGlass className={cn(ICON_SIZE_SM, "text-white/30")} />
+          <MagnifyingGlass className={cn(ICON_SIZE_SM, "text-white/50")} />
           <input
             ref={inputRef}
             data-testid="command-palette-input"
@@ -195,7 +195,7 @@ export function CommandPalette({
             }}
             placeholder={placeholder}
             className={cn(
-              "flex-1 bg-transparent text-[11px] text-white/90 outline-none placeholder:text-white/30",
+              "flex-1 bg-transparent text-[11px] text-white/90 outline-none placeholder:text-white/50",
               "border-none focus:outline-none focus:ring-0",
             )}
           />
@@ -203,7 +203,7 @@ export function CommandPalette({
             className={cn(
               "hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5",
               "border border-white/[0.06] bg-white/[0.02]",
-              "text-[10px] text-white/40",
+              "text-[11px] text-white/40",
             )}
           >
             ESC
@@ -221,7 +221,7 @@ export function CommandPalette({
           {hits.length === 0 ? (
             <div
               data-testid="command-palette-empty"
-              className="px-4 py-8 text-center text-[11px] text-white/30"
+              className="px-4 py-8 text-center text-[11px] text-white/50"
             >
               No commands found
             </div>
@@ -231,8 +231,8 @@ export function CommandPalette({
                 {section.group ? (
                   <div
                     className={cn(
-                      "px-4 py-1.5 text-[9px] uppercase tracking-widest",
-                      "text-white/30",
+                      "px-4 py-1.5 text-[11px] uppercase tracking-widest",
+                      "text-white/50",
                     )}
                   >
                     {section.group}
@@ -265,7 +265,7 @@ export function CommandPalette({
             "flex items-center justify-between gap-2 px-4 py-2",
             "border-t border-white/[0.06]",
             "bg-[var(--color-bg-secondary)]",
-            "text-[10px] text-white/30",
+            "text-[11px] text-white/50",
           )}
         >
           <div className="flex items-center gap-3">
@@ -274,7 +274,7 @@ export function CommandPalette({
             <HintKey label="esc" text="close" />
           </div>
           <div className="flex items-center gap-1">
-            <CommandGlyph className={cn(ICON_SIZE_SM, "text-white/20")} />
+            <CommandGlyph className={cn(ICON_SIZE_SM, "text-white/45")} />
             <span>Command Palette</span>
           </div>
         </div>
@@ -290,7 +290,7 @@ function HintKey({ label, text }: { label: string; text: string }) {
         className={cn(
           "inline-flex items-center px-1.5 py-0.5",
           "border border-white/[0.06] bg-white/[0.02]",
-          "text-[9px] text-white/40",
+          "text-[11px] text-white/40",
         )}
       >
         {label}
@@ -335,7 +335,7 @@ function CommandRow({ hit, selected, onMouseEnter, onClick }: CommandRowProps) {
         "text-[11px] text-white/70",
         selected
           ? "bg-white/[0.06] text-white"
-          : "hover:bg-white/[0.03] hover:text-white/90",
+          : "hover:bg-white/[0.06] hover:text-white/90",
       )}
     >
       {command.icon ? (
@@ -346,7 +346,7 @@ function CommandRow({ hit, selected, onMouseEnter, onClick }: CommandRowProps) {
           <HighlightedText text={command.title} indices={matchIndices} />
         </span>
         {command.subtitle ? (
-          <span className="truncate text-[10px] text-white/30">
+          <span className="truncate text-[11px] text-white/50">
             {command.subtitle}
           </span>
         ) : null}
@@ -356,7 +356,7 @@ function CommandRow({ hit, selected, onMouseEnter, onClick }: CommandRowProps) {
           className={cn(
             "shrink-0 px-1.5 py-0.5",
             "border border-white/[0.06] bg-white/[0.02]",
-            "text-[10px] text-white/40 tracking-widest",
+            "text-[11px] text-white/40 tracking-widest",
           )}
         >
           {command.shortcut}

@@ -86,7 +86,7 @@ export function ShortcutHelpOverlay({
                             className={cn(
                               "px-1.5 py-0.5 rounded",
                               "border border-white/[0.08]",
-                              "bg-white/[0.04]",
+                              "bg-white/[0.06]",
                               "text-xs font-mono text-white/70",
                             )}
                           >

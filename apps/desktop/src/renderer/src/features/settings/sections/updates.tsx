@@ -13,7 +13,7 @@ export function UpdatesSection({
       title="Updates"
       description="This panel does not control desktop updates yet."
     >
-      <div className="text-[10.5px] leading-relaxed text-white/50">
+      <div className="text-[11px] leading-relaxed text-white/50">
         <p>Desktop updates are not wired into this panel yet.</p>
         <p className="mt-2 text-white/40">
           When the packaged updater is available, update prompts appear in the

@@ -125,7 +125,7 @@ export function SnapshotPanel({
           data-testid="snapshot-list"
         >
           {snapshots.length === 0 ? (
-            <p className="text-[10.5px] text-white/40 py-8 text-center">
+            <p className="text-[11px] text-white/40 py-8 text-center">
               No snapshots yet.
             </p>
           ) : (
@@ -137,11 +137,11 @@ export function SnapshotPanel({
                   data-testid={`snapshot-row-${snap.ts}`}
                 >
                   <div className="flex flex-col min-w-0">
-                    <span className="text-[10.5px] text-white/80 truncate">
+                    <span className="text-[11px] text-white/80 truncate">
                       {formatTimestamp(snap.ts)}
                       {snap.label ? ` · ${snap.label}` : ""}
                     </span>
-                    <span className="text-[10.5px] text-white/40">
+                    <span className="text-[11px] text-white/40">
                       v{snap.schemaVersion} · {snap.windowCount} window
                       {snap.windowCount === 1 ? "" : "s"} ·{" "}
                       {formatBytes(snap.byteSize)}
@@ -192,7 +192,7 @@ export function SnapshotPanel({
 
         {feedback !== null ? (
           <p
-            className="text-[10.5px] text-white/50 px-6 pt-2"
+            className="text-[11px] text-white/50 px-6 pt-2"
             data-testid="snapshot-feedback"
           >
             {feedback}

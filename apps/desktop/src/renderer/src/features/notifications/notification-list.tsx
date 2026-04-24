@@ -63,7 +63,7 @@ function NotificationRow({ item, now }: { item: Notification; now: number }) {
             {item.description}
           </span>
         ) : null}
-        <span className="text-[10px] text-white/30 mt-0.5">
+        <span className="text-[11px] text-white/50 mt-0.5">
           {formatRelative(item.createdAt, now)}
         </span>
       </div>
@@ -123,7 +123,7 @@ export function NotificationList({
             <span className="text-[11px] tracking-wide text-white/70 uppercase">
               Notifications
             </span>
-            <span className="text-[10px] text-white/30">
+            <span className="text-[11px] text-white/50">
               {notifications.length}
             </span>
           </div>
@@ -133,7 +133,7 @@ export function NotificationList({
                 type="button"
                 data-testid="notifications-clear"
                 onClick={clear}
-                className="text-[10px] text-white/40 hover:text-white/70 transition-colors px-2 py-1"
+                className="text-[11px] text-white/40 hover:text-white/70 transition-colors px-2 py-1"
               >
                 Clear
               </button>
@@ -155,7 +155,7 @@ export function NotificationList({
               data-testid="notifications-empty"
               className="flex h-full items-center justify-center px-6 text-center"
             >
-              <p className="text-[11px] text-white/30">No notifications yet.</p>
+              <p className="text-[11px] text-white/50">No notifications yet.</p>
             </div>
           ) : (
             <div className="flex flex-col">

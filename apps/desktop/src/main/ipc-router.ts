@@ -12,7 +12,7 @@ import {
   type SettingsSnapshot,
   type ShellSnapshot,
 } from "@pi-desktop/shared";
-import { BrowserWindow, clipboard } from "electron";
+import { type BrowserWindow, clipboard } from "electron";
 import type { GitWorktreeService } from "./git-worktree-service";
 import {
   getNumberField,

@@ -31,20 +31,20 @@ export function FileUpload({
           {files.map((file) => (
             <div
               key={file.id}
-              className="flex items-center gap-2 border border-white/[0.06] bg-white/[0.04] px-2 py-1"
+              className="flex items-center gap-2 border border-white/[0.06] bg-white/[0.06] px-2 py-1"
             >
               {file.kind === "image" ? (
                 <Image className={`${ICON_SIZE_SM} text-white/70`} />
               ) : (
                 <Paperclip className={`${ICON_SIZE_SM} text-white/70`} />
               )}
-              <span className="max-w-[12rem] truncate font-mono text-[10.5px] uppercase tracking-[0.16em] text-white/70">
+              <span className="max-w-[12rem] truncate font-mono text-[11px] uppercase tracking-[0.16em] text-white/70">
                 {file.name}
               </span>
               <button
                 type="button"
                 onClick={() => onRemoveFile(file.id)}
-                className="text-white/30 transition-colors hover:text-white/60"
+                className="text-white/50 transition-colors hover:text-white/60"
                 aria-label={`Remove ${file.name}`}
               >
                 <X className={ICON_SIZE_SM} />

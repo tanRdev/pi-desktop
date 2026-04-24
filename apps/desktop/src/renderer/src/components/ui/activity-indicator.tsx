@@ -153,7 +153,7 @@ export function ActivityIndicator({
         "flex items-center gap-2 border px-2.5 py-1.5",
         "transition-all duration-[var(--duration-fast)] ease-[var(--ease-out)]",
         statusCfg.borderColor,
-        "bg-white/[0.02] hover:bg-white/[0.03]",
+        "bg-white/[0.02] hover:bg-white/[0.06]",
         className,
       )}
       {...props}
@@ -168,7 +168,7 @@ export function ActivityIndicator({
       </div>
 
       <div className="flex min-w-0 flex-1 items-center gap-2">
-        <span className="truncate text-[10.5px] font-normal text-white/70">
+        <span className="truncate text-[11px] font-normal text-white/70">
           {label}
         </span>
 
@@ -176,7 +176,7 @@ export function ActivityIndicator({
           <span
             className={cn(
               "flex h-4 min-w-[16px] items-center justify-center px-1",
-              "text-[10px] font-normal tabular-nums",
+              "text-[11px] font-normal tabular-nums",
               config.bgColor,
               config.color,
             )}
@@ -188,13 +188,11 @@ export function ActivityIndicator({
 
       <div className="flex items-center gap-2">
         {details && (
-          <span className="truncate text-[10.5px] text-white/40">
-            {details}
-          </span>
+          <span className="truncate text-[11px] text-white/40">{details}</span>
         )}
 
         {duration && (
-          <span className="text-[11px] tabular-nums text-white/30">
+          <span className="text-[11px] tabular-nums text-white/50">
             {duration}
           </span>
         )}
@@ -227,10 +225,10 @@ export function ActivityGroup({
     <div className={cn("space-y-2", className)} {...props}>
       {title && (
         <div className="flex items-center gap-2 px-1">
-          <span className="text-[11px] font-normal uppercase tracking-wider text-white/30">
+          <span className="text-[11px] font-normal uppercase tracking-wider text-white/50">
             {title}
           </span>
-          <div className="h-px flex-1 bg-white/[0.04]" />
+          <div className="h-px flex-1 bg-white/[0.06]" />
         </div>
       )}
       <div className="flex flex-col gap-1.5">{children}</div>
@@ -285,11 +283,11 @@ export function StreamingIndicator({
           <div className="absolute inset-0 size-2 animate-ping bg-[var(--color-accent)]/30" />
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="text-[10.5px] font-normal text-white/70">
+          <span className="text-[11px] font-normal text-white/70">
             {message}
           </span>
           <div className="flex items-center gap-1">
-            <span className="text-[10.5px] text-white/40">Generating</span>
+            <span className="text-[11px] text-white/40">Generating</span>
             <span className="flex gap-0.5">
               {[0, 1, 2].map((i) => (
                 <span

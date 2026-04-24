@@ -44,7 +44,7 @@ export function ResponseDivider({
       <div className="h-px flex-1 bg-white/[0.06]" />
       <div
         className={cn(
-          "font-mono text-[10px] uppercase tracking-wider text-white/30",
+          "font-mono text-[11px] uppercase tracking-wider text-white/50",
           isWorking && "text-white/50",
         )}
       >

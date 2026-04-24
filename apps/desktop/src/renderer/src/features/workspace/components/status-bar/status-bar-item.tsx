@@ -39,7 +39,7 @@ export function StatusBarItem({
   );
 
   const interactiveClass = cn(
-    "hover:bg-white/[0.04] hover:text-white/80 active:bg-white/[0.06]",
+    "hover:bg-white/[0.06] hover:text-white/80 active:bg-white/[0.06]",
     "focus-visible:outline-none focus-visible:bg-white/[0.06] focus-visible:text-white/90",
   );
 

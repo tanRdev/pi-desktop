@@ -64,7 +64,7 @@ function FileTypeBadge({ filePath }: { filePath: string }) {
   if (!ext) return null;
 
   return (
-    <span className="inline-flex items-center gap-1 rounded-none px-1 py-0 text-[10px] text-white/40 bg-white/[0.04] shrink-0">
+    <span className="inline-flex items-center gap-1 rounded-none px-1 py-0 text-[11px] text-white/40 bg-white/[0.06] shrink-0">
       {ext.toUpperCase()}
     </span>
   );
@@ -98,7 +98,7 @@ function MatchRow({
       />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="text-[10px] text-white/30 font-mono shrink-0">
+          <span className="text-[11px] text-white/50 font-mono shrink-0">
             {match.lineNumber}
           </span>
           <span className="text-[11px] leading-5 text-white/80 truncate font-mono">
@@ -116,7 +116,7 @@ function MatchRow({
           onClick={() => onReplaceOne(filePath, match.lineNumber)}
           className={cn(
             "shrink-0 mt-0.5 p-0.5 rounded-none",
-            "text-white/30 hover:text-white/70",
+            "text-white/50 hover:text-white/70",
             "transition-colors duration-[var(--duration-fast)]",
           )}
           title="Replace this match"
@@ -155,7 +155,7 @@ function FileResultsGroup({
           {fileName}
         </span>
         <FileTypeBadge filePath={result.filePath} />
-        <span className="text-[10px] text-white/30 shrink-0 ml-auto">
+        <span className="text-[11px] text-white/50 shrink-0 ml-auto">
           {result.matches.length}
         </span>
       </div>
@@ -314,7 +314,7 @@ export function SearchReplacePanel({
         {/* Search row */}
         <div className="flex items-center gap-1.5">
           <MagnifyingGlass
-            className={cn(ICON_SIZE_SM, "text-white/30 shrink-0")}
+            className={cn(ICON_SIZE_SM, "text-white/50 shrink-0")}
           />
           <input
             ref={searchInputRef}
@@ -325,7 +325,7 @@ export function SearchReplacePanel({
             placeholder="Search"
             className={cn(
               "flex-1 bg-transparent text-[11px] text-white/90 outline-none",
-              "placeholder:text-white/30 border-none focus:outline-none focus:ring-0",
+              "placeholder:text-white/50 border-none focus:outline-none focus:ring-0",
             )}
           />
           <button
@@ -337,7 +337,7 @@ export function SearchReplacePanel({
               "p-1 rounded-none transition-colors duration-[var(--duration-fast)]",
               isRegex
                 ? "text-[var(--color-accent)] bg-white/[0.06]"
-                : "text-white/30 hover:text-white/60",
+                : "text-white/50 hover:text-white/60",
             )}
           >
             <BracketsCurly
@@ -354,7 +354,7 @@ export function SearchReplacePanel({
               "p-1 rounded-none transition-colors duration-[var(--duration-fast)]",
               isCaseSensitive
                 ? "text-[var(--color-accent)] bg-white/[0.06]"
-                : "text-white/30 hover:text-white/60",
+                : "text-white/50 hover:text-white/60",
             )}
           >
             <TextAa
@@ -371,7 +371,7 @@ export function SearchReplacePanel({
               "p-1 rounded-none transition-colors duration-[var(--duration-fast)]",
               showReplace
                 ? "text-[var(--color-accent)] bg-white/[0.06]"
-                : "text-white/30 hover:text-white/60",
+                : "text-white/50 hover:text-white/60",
             )}
           >
             <ArrowClockwise
@@ -388,10 +388,10 @@ export function SearchReplacePanel({
               "p-1 rounded-none transition-colors duration-[var(--duration-fast)]",
               showFileFilter
                 ? "text-[var(--color-accent)] bg-white/[0.06]"
-                : "text-white/30 hover:text-white/60",
+                : "text-white/50 hover:text-white/60",
             )}
           >
-            <span className="text-[10px] font-mono leading-none select-none">
+            <span className="text-[11px] font-mono leading-none select-none">
               *
             </span>
           </button>
@@ -401,7 +401,7 @@ export function SearchReplacePanel({
             onClick={() => onOpenChange(false)}
             title="Close"
             className={cn(
-              "p-1 rounded-none text-white/30 hover:text-white/60",
+              "p-1 rounded-none text-white/50 hover:text-white/60",
               "transition-colors duration-[var(--duration-fast)]",
             )}
           >
@@ -413,7 +413,7 @@ export function SearchReplacePanel({
         {showReplace && (
           <div className="flex items-center gap-1.5 mt-1">
             <ArrowClockwise
-              className={cn(ICON_SIZE_SM, "text-white/30 shrink-0")}
+              className={cn(ICON_SIZE_SM, "text-white/50 shrink-0")}
             />
             <input
               data-testid="replace-input"
@@ -423,7 +423,7 @@ export function SearchReplacePanel({
               placeholder="Replace"
               className={cn(
                 "flex-1 bg-transparent text-[11px] text-white/90 outline-none",
-                "placeholder:text-white/30 border-none focus:outline-none focus:ring-0",
+                "placeholder:text-white/50 border-none focus:outline-none focus:ring-0",
               )}
             />
             {searchPattern.trim() && (
@@ -434,7 +434,7 @@ export function SearchReplacePanel({
                 disabled={totalMatches === 0}
                 title={`Replace all (${totalMatches} match${totalMatches === 1 ? "" : "es"})`}
                 className={cn(
-                  "px-2 py-0.5 text-[10px] rounded-none",
+                  "px-2 py-0.5 text-[11px] rounded-none",
                   "border border-white/[0.08] bg-white/[0.02]",
                   "text-white/60 hover:text-white/90",
                   "transition-colors duration-[var(--duration-fast)]",
@@ -450,7 +450,7 @@ export function SearchReplacePanel({
         {/* File filter row */}
         {showFileFilter && (
           <div className="flex items-center gap-1.5 mt-1">
-            <span className="text-[10px] text-white/30 font-mono shrink-0">
+            <span className="text-[11px] text-white/50 font-mono shrink-0">
               *
             </span>
             <input
@@ -466,7 +466,7 @@ export function SearchReplacePanel({
               placeholder="e.g. *.ts, src/**"
               className={cn(
                 "flex-1 bg-transparent text-[11px] text-white/90 outline-none",
-                "placeholder:text-white/30 border-none focus:outline-none focus:ring-0",
+                "placeholder:text-white/50 border-none focus:outline-none focus:ring-0",
                 "font-mono",
               )}
             />
@@ -486,13 +486,13 @@ export function SearchReplacePanel({
           {results.length === 0 ? (
             <div
               data-testid="search-no-results"
-              className="px-3 py-6 text-center text-[11px] text-white/30"
+              className="px-3 py-6 text-center text-[11px] text-white/50"
             >
               No results found
             </div>
           ) : (
             <>
-              <div className="flex items-center justify-between px-3 py-1.5 text-[10px] text-white/30 border-b border-white/[0.04]">
+              <div className="flex items-center justify-between px-3 py-1.5 text-[11px] text-white/50 border-b border-white/[0.04]">
                 <span>
                   {totalMatches} match{totalMatches === 1 ? "" : "es"} in{" "}
                   {results.length} file{results.length === 1 ? "" : "s"}

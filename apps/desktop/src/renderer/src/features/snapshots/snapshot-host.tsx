@@ -63,7 +63,7 @@ function SnapshotHostInner({
         "fixed bottom-4 right-4 z-[9999] pointer-events-none",
         "flex items-center gap-2 px-3 py-1.5 rounded-full",
         "bg-[var(--color-bg-primary)] border border-white/10 shadow-lg",
-        "text-[10.5px] text-white/70 font-mono",
+        "text-[11px] text-white/70 font-mono",
         "transition-opacity duration-500",
         justSaved ? "opacity-100" : "opacity-0",
       )}

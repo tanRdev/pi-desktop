@@ -73,8 +73,8 @@ export function ThreadList({
       <section className="space-y-3 px-2 pt-3 select-none">
         <div className="flex items-center justify-between border-b border-white/[0.04] pb-2 px-1 select-none">
           <div className="flex items-center gap-2">
-            <ChatText className="size-5 text-white/30" weight="regular" />
-            <span className="text-[10.5px] font-normal text-white/30 uppercase tracking-[0.16em]">
+            <ChatText className="size-5 text-white/50" weight="regular" />
+            <span className="text-[11px] font-normal text-white/50 uppercase tracking-[0.16em]">
               Threads
             </span>
           </div>
@@ -82,7 +82,7 @@ export function ThreadList({
             type="button"
             variant="ghost"
             size="icon"
-            className="size-8 text-white/30 transition-all duration-150 hover:bg-white/[0.04] hover:text-white/60 active:scale-95"
+            className="size-8 text-white/50 transition-all duration-150 hover:bg-white/[0.06] hover:text-white/60 active:scale-95"
             onClick={() => onCreate()}
             aria-label="Create thread"
           >
@@ -93,8 +93,8 @@ export function ThreadList({
         <div className="space-y-0.5">
           {threads.length === 0 ? (
             <div className="border border-white/[0.06] bg-white/[0.02] px-3 py-4 text-center">
-              <p className="text-[10.5px] text-white/50">No threads yet</p>
-              <p className="mt-1 text-[10.5px] text-white/30">
+              <p className="text-[11px] text-white/50">No threads yet</p>
+              <p className="mt-1 text-[11px] text-white/50">
                 Create one to start chatting
               </p>
             </div>
@@ -111,7 +111,7 @@ export function ThreadList({
                     "group relative w-full px-3 py-2.5 text-left transition-all duration-150",
                     isActive
                       ? "bg-white/[0.06] text-white/80"
-                      : "text-white/50 hover:bg-white/[0.04] hover:text-white/70",
+                      : "text-white/50 hover:bg-white/[0.06] hover:text-white/70",
                   )}
                   data-active={isActive}
                   style={{ animationDelay: `${Math.min(index * 40, 320)}ms` }}
@@ -124,13 +124,13 @@ export function ThreadList({
                             "size-5 shrink-0 transition-colors",
                             isActive
                               ? "text-white/60"
-                              : "text-white/20 group-hover:text-white/30",
+                              : "text-white/45 group-hover:text-white/50",
                           )}
                           weight="regular"
                         />
                         <span
                           className={cn(
-                            "truncate text-[10.5px] font-normal leading-none",
+                            "truncate text-[11px] font-normal leading-none",
                             isActive ? "text-white/80" : "text-white/50",
                           )}
                         >
@@ -138,7 +138,7 @@ export function ThreadList({
                         </span>
                       </div>
                       <div className="mt-1 flex items-center gap-2 pl-6">
-                        <span className="text-[10.5px] text-white/20">
+                        <span className="text-[11px] text-white/45">
                           {formatActivity(thread.lastActivityAt)}
                         </span>
                       </div>

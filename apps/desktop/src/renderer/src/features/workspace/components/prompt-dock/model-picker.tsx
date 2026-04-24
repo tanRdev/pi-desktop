@@ -128,16 +128,16 @@ export function ModelPicker({
             disabled || isSwitchingModel || providerSnapshots.length === 0
           }
           className={cn(
-            "h-5 gap-1 px-1.5 py-0 text-[10.5px] font-normal text-white/40",
-            "hover:text-white/80 hover:bg-white/[0.04]",
+            "h-5 gap-1 px-1.5 py-0 text-[11px] font-normal text-white/40",
+            "hover:text-white/80 hover:bg-white/[0.06]",
             "active:scale-100",
-            open && "text-white/80 bg-white/[0.04]",
+            open && "text-white/80 bg-white/[0.06]",
           )}
         >
           <span className="max-w-[140px] truncate">{currentModelDisplay}</span>
           <CaretDown
             className={cn(
-              "size-2.5 transition-transform duration-[var(--duration-fast)] ease-out text-white/25",
+              "size-2.5 transition-transform duration-[var(--duration-fast)] ease-out text-white/50",
               open && "rotate-180 text-white/50",
             )}
           />
@@ -156,7 +156,7 @@ export function ModelPicker({
             fixture={
               <div className="space-y-1">
                 <div className="h-8 w-full bg-white/5" />
-                <div className="my-1 h-px bg-white/[0.04]" />
+                <div className="my-1 h-px bg-white/[0.06]" />
                 <div className="h-8 w-full bg-white/5" />
                 <div className="h-8 w-full bg-white/5" />
                 <div className="h-8 w-full bg-white/5" />
@@ -170,17 +170,17 @@ export function ModelPicker({
                 setOpen(false);
               }}
               className={cn(
-                "flex w-full items-center gap-2.5 px-2.5 py-2 text-left text-[10.5px] transition-colors",
-                "text-white/50 hover:bg-white/[0.04] hover:text-white/90",
+                "flex w-full items-center gap-2.5 px-2.5 py-2 text-left text-[11px] transition-colors",
+                "text-white/50 hover:bg-white/[0.06] hover:text-white/90",
               )}
             >
               <Plus className="size-4" />
               <span>Connect provider</span>
             </button>
-            <div className="my-1 h-px bg-white/[0.04]" />
+            <div className="my-1 h-px bg-white/[0.06]" />
             {favoriteModelsList.length > 0 && (
               <>
-                <div className="px-2 py-1.5 text-[11px] font-light uppercase tracking-wider text-white/30">
+                <div className="px-2 py-1.5 text-[11px] font-light uppercase tracking-wider text-white/50">
                   Favorites
                 </div>
                 {favoriteModelsList.map((fav) => {
@@ -192,10 +192,10 @@ export function ModelPicker({
                       data-testid={`model-option-${fav.providerId}-${fav.modelId}`}
                       onClick={() => handleSelect(fav.value)}
                       className={cn(
-                        "flex w-full items-center gap-2.5 px-2.5 py-2 text-left text-[10.5px] transition-colors",
+                        "flex w-full items-center gap-2.5 px-2.5 py-2 text-left text-[11px] transition-colors",
                         isSelected
                           ? "bg-white/[0.08] text-white"
-                          : "text-white/70 hover:bg-white/[0.04] hover:text-white",
+                          : "text-white/70 hover:bg-white/[0.06] hover:text-white",
                       )}
                     >
                       <ProviderIcon
@@ -218,7 +218,7 @@ export function ModelPicker({
                     </button>
                   );
                 })}
-                <div className="my-1 h-px bg-white/[0.04]" />
+                <div className="my-1 h-px bg-white/[0.06]" />
               </>
             )}
             {providerSnapshots.map((provider) => {
@@ -229,7 +229,7 @@ export function ModelPicker({
 
               return (
                 <div key={provider.id}>
-                  <div className="flex items-center gap-2 px-2 py-1.5 text-[11px] font-light uppercase tracking-wider text-white/30">
+                  <div className="flex items-center gap-2 px-2 py-1.5 text-[11px] font-light uppercase tracking-wider text-white/50">
                     <ProviderIcon
                       providerId={provider.id}
                       className="shrink-0"
@@ -246,17 +246,17 @@ export function ModelPicker({
                         data-testid={`model-option-${provider.id}-${model.id}`}
                         onClick={() => handleSelect(value)}
                         className={cn(
-                          "flex w-full items-center gap-2.5 px-2.5 py-2 text-left text-[10.5px] transition-colors",
+                          "flex w-full items-center gap-2.5 px-2.5 py-2 text-left text-[11px] transition-colors",
                           isSelected
                             ? "bg-white/[0.08] text-white"
-                            : "text-white/70 hover:bg-white/[0.04] hover:text-white",
+                            : "text-white/70 hover:bg-white/[0.06] hover:text-white",
                         )}
                       >
                         <span className="truncate">{model.name}</span>
                         <button
                           type="button"
                           data-testid={`toggle-favorite-${provider.id}-${model.id}`}
-                          className="ml-auto shrink-0 p-0.5 text-white/20 hover:text-amber-400/80 transition-colors"
+                          className="ml-auto shrink-0 p-0.5 text-white/45 hover:text-amber-400/80 transition-colors"
                           onClick={(e) => {
                             e.stopPropagation();
                             onToggleFavorite?.(value);

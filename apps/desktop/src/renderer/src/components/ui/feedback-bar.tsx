@@ -20,7 +20,7 @@ export function FeedbackBar({
       {...props}
     >
       {duration && (
-        <span className="text-[10px] text-white/30 font-mono">{duration}</span>
+        <span className="text-[11px] text-white/50 font-mono">{duration}</span>
       )}
       {onCopy ? (
         <Button
@@ -29,7 +29,7 @@ export function FeedbackBar({
           variant="ghost"
           onClick={onCopy}
           aria-label="Copy response"
-          className="text-white/20 hover:text-white/50 hover:bg-transparent"
+          className="text-white/45 hover:text-white/50 hover:bg-transparent"
         >
           <Copy className="size-3" />
         </Button>

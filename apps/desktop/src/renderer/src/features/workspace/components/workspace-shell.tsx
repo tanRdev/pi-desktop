@@ -573,13 +573,13 @@ function WorkspaceShellImpl({
             )}
           >
             <div className="flex h-11 shrink-0 items-center justify-between border-b border-white/[0.06] px-3">
-              <span className="text-[10px] uppercase tracking-wider text-white/40 font-medium">
+              <span className="text-[11px] uppercase tracking-wider text-white/40 font-medium">
                 Terminal
               </span>
               <button
                 type="button"
                 onClick={onToggleTerminal}
-                className="flex size-6 items-center justify-center text-white/30 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/70"
+                className="flex size-6 items-center justify-center text-white/50 transition-colors duration-150 hover:bg-white/[0.06] hover:text-white/70"
                 aria-label="Close terminal"
               >
                 <X className="size-3.5" />

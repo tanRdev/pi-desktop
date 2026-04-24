@@ -31,7 +31,7 @@ export function TokenCount({ tokens, className }: TokenCountProps) {
         <span
           data-testid="token-count"
           className={cn(
-            "inline-flex items-center font-mono text-[10px] uppercase tracking-wider text-white/30 select-none",
+            "inline-flex items-center font-mono text-[11px] uppercase tracking-wider text-white/50 select-none",
             className,
           )}
         >

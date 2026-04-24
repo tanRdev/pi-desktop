@@ -148,7 +148,7 @@ export function WorkspaceFileContent({
 
   const toolbar = onSave ? (
     <div className="flex h-11 shrink-0 items-center justify-between border-b border-white/[0.04] bg-transparent px-5">
-      <div className="text-[10.5px] font-normal uppercase tracking-wider text-white/30">
+      <div className="text-[11px] font-normal uppercase tracking-wider text-white/50">
         {fileName}
       </div>
       <Button
@@ -157,7 +157,7 @@ export function WorkspaceFileContent({
         size="xs"
         onClick={onSave}
         disabled={isReadOnly || !isDirty}
-        className="h-6 gap-1.5 px-2 text-[10.5px] uppercase tracking-wider text-white/40"
+        className="h-6 gap-1.5 px-2 text-[11px] uppercase tracking-wider text-white/40"
       >
         <Save className="size-3" />
         Save
@@ -202,7 +202,7 @@ export function WorkspaceFileContent({
             <div className="flex flex-col items-center gap-3 text-white/50">
               <File className="h-7 w-7" />
               <span className="text-sm">Binary file</span>
-              <span className="text-xs text-white/30">
+              <span className="text-xs text-white/50">
                 {content.size ?? 0} bytes
               </span>
             </div>

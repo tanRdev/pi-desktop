@@ -33,7 +33,7 @@ export function CharacterCounter({
       data-testid="prompt-context-counter"
       aria-live="off"
       className={cn(
-        "select-none font-[var(--app-font-mono)] text-[10px] text-[var(--color-text-quaternary)]",
+        "select-none font-[var(--app-font-mono)] text-[11px] text-[var(--color-text-quaternary)]",
         className,
       )}
       aria-label={`Context usage ${tokensLabel} of ${contextWindowLabel}`}

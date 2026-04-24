@@ -3,21 +3,21 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
-  MAX_ARRAY_LENGTH,
-  MAX_STRING_BYTES,
-  PayloadValidationError,
+  isPathWithinAny,
+  resolveInsideRoot,
+} from "../../../apps/desktop/src/main/fs/path-guards";
+import {
   getBooleanField,
   getNumberField,
   getStringArrayField,
   getStringField,
   isPayloadRecord,
+  MAX_ARRAY_LENGTH,
+  MAX_STRING_BYTES,
+  PayloadValidationError,
   parseTerminalCreateOptionsStrict,
   requireStringField,
 } from "../../../apps/desktop/src/main/ipc/payload-parsers";
-import {
-  isPathWithinAny,
-  resolveInsideRoot,
-} from "../../../apps/desktop/src/main/fs/path-guards";
 
 const TMP_PREFIX = path.join(os.tmpdir(), "pi-ipc-handlers-coverage-");
 const tempDirs: string[] = [];

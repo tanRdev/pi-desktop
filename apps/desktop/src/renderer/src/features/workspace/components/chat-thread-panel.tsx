@@ -547,7 +547,7 @@ export function ChatThreadPanel({
                   className="flex min-h-full w-full flex-1 items-center justify-center px-6"
                 >
                   <div className="flex max-w-md flex-col items-center gap-6 text-center">
-                    <div className="font-mono text-[10.5px] uppercase tracking-[0.08em] text-white/25">
+                    <div className="font-mono text-[11px] uppercase tracking-[0.08em] text-white/50">
                       Start a conversation with Pi.
                     </div>
                     <div className="flex flex-wrap items-center justify-center gap-1.5">
@@ -564,10 +564,10 @@ export function ChatThreadPanel({
                           }
                           className={cn(
                             "inline-flex items-center rounded-none px-2.5 py-1",
-                            "text-[10.5px] text-white/40",
+                            "text-[11px] text-white/40",
                             "border border-white/[0.06] bg-white/[0.01]",
                             "transition-colors duration-[var(--duration-fast)]",
-                            "hover:border-white/[0.12] hover:bg-white/[0.04] hover:text-white/70",
+                            "hover:border-white/[0.12] hover:bg-white/[0.06] hover:text-white/70",
                             "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-accent-ring)]",
                           )}
                         >

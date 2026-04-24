@@ -83,10 +83,10 @@ export function SettingsDialog({
                   data-testid={`settings-tab-${id}`}
                   onClick={() => setActiveSection(id)}
                   className={cn(
-                    "flex items-center gap-2 px-2.5 py-1.5 text-left text-[10.5px] transition-colors outline-none",
+                    "flex items-center gap-2 px-2.5 py-1.5 text-left text-[11px] transition-colors outline-none",
                     isActive
                       ? "bg-white/[0.06] text-white/90"
-                      : "text-white/50 hover:bg-white/[0.03] hover:text-white/80",
+                      : "text-white/50 hover:bg-white/[0.06] hover:text-white/80",
                   )}
                 >
                   <Icon className="size-3.5" />

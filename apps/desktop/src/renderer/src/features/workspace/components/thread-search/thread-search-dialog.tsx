@@ -93,15 +93,15 @@ const ResultRow = React.forwardRef<HTMLButtonElement, ResultRowProps>(
           "flex w-full flex-col gap-1 px-4 py-2 text-left",
           "border-l-2 border-transparent",
           "transition-colors duration-[var(--duration-fast)]",
-          selected && "bg-white/[0.04] border-[var(--color-accent-ring)]",
+          selected && "bg-white/[0.06] border-[var(--color-accent-ring)]",
           !selected && "hover:bg-white/[0.02]",
         )}
       >
-        <div className="flex items-center justify-between gap-2 text-[10px] text-white/40">
+        <div className="flex items-center justify-between gap-2 text-[11px] text-white/40">
           <span className="truncate font-mono uppercase tracking-[0.08em]">
             {result.threadTitle}
           </span>
-          <span className="shrink-0 text-white/30">{result.role}</span>
+          <span className="shrink-0 text-white/50">{result.role}</span>
         </div>
         <div className="text-[11px] leading-5 text-white/80">
           <HighlightedSnippet
@@ -204,7 +204,7 @@ export function ThreadSearchDialog({
             "bg-[var(--color-bg-secondary)]",
           )}
         >
-          <MagnifyingGlass className={cn(ICON_SIZE_SM, "text-white/30")} />
+          <MagnifyingGlass className={cn(ICON_SIZE_SM, "text-white/50")} />
           <input
             ref={inputRef}
             data-testid="thread-search-input"
@@ -215,7 +215,7 @@ export function ThreadSearchDialog({
             }}
             placeholder={placeholder}
             className={cn(
-              "flex-1 bg-transparent text-[11px] text-white/90 outline-none placeholder:text-white/30",
+              "flex-1 bg-transparent text-[11px] text-white/90 outline-none placeholder:text-white/50",
               "border-none focus:outline-none focus:ring-0",
             )}
           />
@@ -223,7 +223,7 @@ export function ThreadSearchDialog({
             className={cn(
               "hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5",
               "border border-white/[0.06] bg-white/[0.02]",
-              "text-[10px] text-white/40",
+              "text-[11px] text-white/40",
             )}
           >
             ESC
@@ -238,14 +238,14 @@ export function ThreadSearchDialog({
           {query.trim() === "" ? (
             <div
               data-testid="thread-search-hint"
-              className="px-4 py-8 text-center text-[11px] text-white/30"
+              className="px-4 py-8 text-center text-[11px] text-white/50"
             >
               Type to search across recent threads
             </div>
           ) : results.length === 0 ? (
             <div
               data-testid="thread-search-empty"
-              className="px-4 py-8 text-center text-[11px] text-white/30"
+              className="px-4 py-8 text-center text-[11px] text-white/50"
             >
               No messages match “{query.trim()}”
             </div>
@@ -281,7 +281,7 @@ export function ThreadSearchDialog({
             "flex items-center justify-between gap-2 px-4 py-2",
             "border-t border-white/[0.06]",
             "bg-[var(--color-bg-secondary)]",
-            "text-[10px] text-white/30",
+            "text-[11px] text-white/50",
           )}
         >
           <div className="flex items-center gap-3">

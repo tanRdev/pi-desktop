@@ -67,7 +67,7 @@ function StepIndicators({
 function WelcomeStep() {
   return (
     <div className="flex flex-col items-center gap-5 px-6 py-8">
-      <div className="flex size-16 items-center justify-center rounded-2xl border border-white/[0.08] bg-white/[0.04]">
+      <div className="flex size-16 items-center justify-center rounded-2xl border border-white/[0.08] bg-white/[0.06]">
         <Pi className={ICON_SIZE_XL} />
       </div>
       <div className="flex flex-col items-center gap-2 text-center">
@@ -110,7 +110,7 @@ function ShortcutsStep() {
         <div className="w-full max-h-[200px] overflow-y-auto space-y-3">
           {groups.map(([groupName, items]) => (
             <section key={groupName} className="space-y-1">
-              <h3 className="text-[10px] uppercase tracking-wider text-white/30">
+              <h3 className="text-[11px] uppercase tracking-wider text-white/50">
                 {groupName}
               </h3>
               <ul className="space-y-0.5">
@@ -129,8 +129,8 @@ function ShortcutsStep() {
                           className={cn(
                             "px-1.5 py-0.5 rounded",
                             "border border-white/[0.08]",
-                            "bg-white/[0.04]",
-                            "text-[10px] font-mono text-white/50",
+                            "bg-white/[0.06]",
+                            "text-[11px] font-mono text-white/50",
                           )}
                         >
                           {formatShortcut(p, platform)}

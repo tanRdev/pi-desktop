@@ -16,9 +16,9 @@ function ActionButton({ className, children, ...props }: BaseBtnProps) {
       type="button"
       className={cn(
         "inline-flex h-6 items-center gap-1 border border-white/[0.06] bg-white/[0.01] px-2",
-        "font-mono text-[10px] uppercase tracking-wider text-white/50",
+        "font-mono text-[11px] uppercase tracking-wider text-white/50",
         "transition-colors duration-[var(--duration-fast)]",
-        "hover:border-white/[0.12] hover:bg-white/[0.04] hover:text-white/80",
+        "hover:border-white/[0.12] hover:bg-white/[0.06] hover:text-white/80",
         "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-accent-ring)]",
         "disabled:opacity-40 disabled:hover:border-white/[0.06] disabled:hover:bg-white/[0.01] disabled:hover:text-white/50",
         className,
@@ -191,7 +191,7 @@ export function InlineMessageEditor({
         rows={Math.min(8, Math.max(2, value.split("\n").length))}
         className={cn(
           "w-full resize-none bg-transparent text-sm leading-6 text-white/80",
-          "placeholder:text-white/30 focus:outline-none",
+          "placeholder:text-white/50 focus:outline-none",
         )}
       />
       <div className="mt-1.5 flex items-center justify-end gap-1.5">

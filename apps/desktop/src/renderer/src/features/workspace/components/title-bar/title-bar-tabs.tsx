@@ -45,7 +45,7 @@ function TitleBarTab({
       aria-selected={isActive}
       className={cn(
         "group flex h-7 min-w-0 max-w-[160px] items-center gap-1.5 px-2",
-        "text-[10px] uppercase tracking-wider transition-colors duration-150",
+        "text-[11px] uppercase tracking-wider transition-colors duration-150",
         "focus:outline-none focus-visible:outline-none cursor-pointer select-none",
         isActive
           ? "text-white/90 border-b border-white/20"
@@ -70,7 +70,7 @@ function TitleBarTab({
           }}
           className={cn(
             "ml-auto shrink-0 flex size-4 items-center justify-center",
-            "text-white/20 hover:text-white/60",
+            "text-white/45 hover:text-white/60",
             "opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity duration-100",
           )}
           aria-label={`Close ${label}`}

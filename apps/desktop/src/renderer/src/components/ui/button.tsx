@@ -14,18 +14,18 @@ const buttonVariants = cva(
         destructive:
           "bg-red-500/80 text-white hover:bg-red-500 active:bg-red-600 border-none",
         outline:
-          "border border-white/[0.08] bg-transparent text-white/70 hover:border-white/[0.15] hover:text-white active:bg-white/[0.04]",
+          "border border-white/[0.08] bg-transparent text-white/70 hover:border-white/[0.15] hover:text-white active:bg-white/[0.06]",
         secondary:
           "bg-white/[0.06] text-white/80 hover:bg-white/[0.1] active:bg-white/[0.14] border-none",
         ghost:
-          "text-white/40 hover:text-white/70 hover:bg-white/[0.04] active:text-white active:bg-white/[0.06]",
+          "text-white/40 hover:text-white/70 hover:bg-white/[0.06] active:text-white active:bg-white/[0.06]",
         link: "text-white underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-8 px-4 py-2 text-[10.5px]",
-        xs: "h-4 gap-1 px-1 text-[10.5px] [&_svg]:size-3",
-        sm: "h-6 gap-1 px-2 text-[10.5px]",
-        lg: "h-12 px-8 text-[10.5px]",
+        default: "h-8 px-4 py-2 text-[11px]",
+        xs: "h-4 gap-1 px-1 text-[11px] [&_svg]:size-3",
+        sm: "h-6 gap-1 px-2 text-[11px]",
+        lg: "h-12 px-8 text-[11px]",
         icon: "size-8",
         "icon-xs": "size-5 [&_svg]:size-3",
         "icon-sm": "size-6",

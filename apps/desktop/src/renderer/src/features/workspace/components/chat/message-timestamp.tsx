@@ -68,7 +68,7 @@ export function MessageTimestamp({
           dateTime={iso}
           data-testid="message-timestamp"
           className={cn(
-            "font-mono text-[10px] text-white/30 select-none",
+            "font-mono text-[11px] text-white/50 select-none",
             className,
           )}
         >

@@ -102,7 +102,7 @@ function RenameInput({ initialValue, onSubmit, onCancel }: RenameInputProps) {
         }
       }}
       onClick={(e) => e.stopPropagation()}
-      className="bg-white/[0.06] border border-white/[0.12] px-1 py-0 text-[10.5px] text-white/80 outline-none w-full min-w-0"
+      className="bg-white/[0.06] border border-white/[0.12] px-1 py-0 text-[11px] text-white/80 outline-none w-full min-w-0"
     />
   );
 }
@@ -163,8 +163,8 @@ export const FileTreeItem = React.memo(function FileTreeItem({
         }}
         className={cn(
           "flex h-7 w-full items-center gap-1.5 select-none",
-          "text-[10.5px] text-white/50 hover:text-white/80",
-          "hover:bg-white/[0.04]",
+          "text-[11px] text-white/50 hover:text-white/80",
+          "hover:bg-white/[0.06]",
           "transition-colors duration-100",
           "focus:outline-none focus-visible:ring-1 focus-visible:ring-white/20",
           isActive && "bg-white/[0.06]",
@@ -175,11 +175,11 @@ export const FileTreeItem = React.memo(function FileTreeItem({
       >
         {isDir ? (
           isLoading ? (
-            <CircleNotch className="w-3 h-3 text-white/30 animate-spin" />
+            <CircleNotch className="w-3 h-3 text-white/50 animate-spin" />
           ) : (
             <CaretRight
               className={cn(
-                "w-3 h-3 text-white/30 transition-transform duration-150",
+                "w-3 h-3 text-white/50 transition-transform duration-150",
                 isExpanded && "rotate-90",
               )}
             />

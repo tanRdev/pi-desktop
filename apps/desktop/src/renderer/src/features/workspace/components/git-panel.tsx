@@ -119,7 +119,7 @@ const GitChangeRow = React.memo(function GitChangeRow({
       data-path={path}
       data-focused={isFocused ? "true" : "false"}
       className={cn(
-        "group flex w-full items-center gap-1.5 px-2 py-1 text-left text-[10px] transition-colors text-white/40 hover:bg-white/[0.04] hover:text-white/70 border-b border-white/[0.06]",
+        "group flex w-full items-center gap-1.5 px-2 py-1 text-left text-[11px] transition-colors text-white/40 hover:bg-white/[0.06] hover:text-white/70 border-b border-white/[0.06]",
         isFocused && "bg-white/[0.06] text-white/80",
       )}
     >
@@ -156,7 +156,7 @@ const GitChangeRow = React.memo(function GitChangeRow({
             title="Copy path"
             aria-label={`Copy path ${path}`}
             className={cn(
-              "flex size-4 items-center justify-center text-white/35 transition-colors duration-150",
+              "flex size-4 items-center justify-center text-white/50 transition-colors duration-150",
               "hover:bg-white/10 hover:text-white/80",
             )}
           >
@@ -169,7 +169,7 @@ const GitChangeRow = React.memo(function GitChangeRow({
               title="Revert file"
               aria-label={`Revert ${path}`}
               className={cn(
-                "flex size-4 items-center justify-center text-white/35 transition-colors duration-150",
+                "flex size-4 items-center justify-center text-white/50 transition-colors duration-150",
                 "hover:bg-amber-500/20 hover:text-amber-300",
               )}
             >
@@ -182,7 +182,7 @@ const GitChangeRow = React.memo(function GitChangeRow({
             title="Discard changes"
             aria-label={`Discard ${path}`}
             className={cn(
-              "flex size-4 items-center justify-center text-white/35 transition-colors duration-150",
+              "flex size-4 items-center justify-center text-white/50 transition-colors duration-150",
               "hover:bg-red-500/20 hover:text-red-400",
             )}
           >
@@ -191,7 +191,7 @@ const GitChangeRow = React.memo(function GitChangeRow({
         </div>
         <div
           className={cn(
-            "w-3 text-center text-[10px] font-bold select-none font-mono",
+            "w-3 text-center text-[11px] font-bold select-none font-mono",
             status === "added" || status === "untracked"
               ? "text-[var(--color-accent)]"
               : status === "deleted"
@@ -200,7 +200,7 @@ const GitChangeRow = React.memo(function GitChangeRow({
                   ? "text-amber-400"
                   : status === "renamed"
                     ? "text-sky-400"
-                    : "text-white/30",
+                    : "text-white/50",
           )}
         >
           {status === "added" || status === "untracked"
@@ -316,13 +316,13 @@ function CombinedChangeList({
     <section className="space-y-2">
       <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-2">
-          <h3 className="text-[10px] text-white/50">Changes</h3>
-          <div className="flex items-center gap-1.5 text-[10px]">
+          <h3 className="text-[11px] text-white/50">Changes</h3>
+          <div className="flex items-center gap-1.5 text-[11px]">
             <button
               type="button"
               onClick={handleStageAll}
               disabled={unstagedPaths.length === 0}
-              className="text-white/40 transition-colors duration-150 hover:text-white/80 disabled:cursor-not-allowed disabled:text-white/20"
+              className="text-white/40 transition-colors duration-150 hover:text-white/80 disabled:cursor-not-allowed disabled:text-white/45"
             >
               Select all
             </button>
@@ -330,25 +330,25 @@ function CombinedChangeList({
               type="button"
               onClick={handleUnstageAll}
               disabled={stagedPaths.length === 0}
-              className="text-white/40 transition-colors duration-150 hover:text-white/80 disabled:cursor-not-allowed disabled:text-white/20"
+              className="text-white/40 transition-colors duration-150 hover:text-white/80 disabled:cursor-not-allowed disabled:text-white/45"
             >
               Deselect all
             </button>
           </div>
         </div>
-        <div className="flex items-center gap-1 font-mono text-[10px] font-bold">
+        <div className="flex items-center gap-1 font-mono text-[11px] font-bold">
           {added > 0 && (
-            <span className="flex items-center justify-center bg-[var(--color-accent)]/10 px-1 py-px text-[var(--color-accent)] text-[10px]">
+            <span className="flex items-center justify-center bg-[var(--color-accent)]/10 px-1 py-px text-[var(--color-accent)] text-[11px]">
               +{added}
             </span>
           )}
           {modified > 0 && (
-            <span className="flex items-center justify-center bg-amber-500/10 px-1 py-px text-amber-400 text-[10px]">
+            <span className="flex items-center justify-center bg-amber-500/10 px-1 py-px text-amber-400 text-[11px]">
               ~{modified}
             </span>
           )}
           {deleted > 0 && (
-            <span className="flex items-center justify-center bg-rose-500/10 px-1 py-px text-rose-400 text-[10px]">
+            <span className="flex items-center justify-center bg-rose-500/10 px-1 py-px text-rose-400 text-[11px]">
               -{deleted}
             </span>
           )}
@@ -356,7 +356,7 @@ function CombinedChangeList({
             modified === 0 &&
             deleted === 0 &&
             allPaths.length > 0 && (
-              <span className="flex items-center justify-center bg-white/5 px-1 py-px text-white/40 text-[10px]">
+              <span className="flex items-center justify-center bg-white/5 px-1 py-px text-white/40 text-[11px]">
                 {allPaths.length}
               </span>
             )}
@@ -595,7 +595,7 @@ export function GitPanel({
                       <button
                         type="button"
                         aria-label="Switch branch"
-                        className="flex items-center gap-1.5 truncate text-[10.5px] font-normal text-white/50 hover:text-white/80 transition-colors"
+                        className="flex items-center gap-1.5 truncate text-[11px] font-normal text-white/50 hover:text-white/80 transition-colors"
                       >
                         <GitBranch className="size-3 shrink-0" />
                         <span className="truncate">
@@ -621,7 +621,7 @@ export function GitPanel({
                               !onSwitchBranch
                             }
                             onClick={() => void onSwitchBranch?.(branch.name)}
-                            className="justify-start px-2 py-1.5 text-[10.5px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
+                            className="justify-start px-2 py-1.5 text-[11px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
                           >
                             <span className="flex items-center gap-1.5 truncate">
                               {branch.isCurrent ? (
@@ -631,7 +631,7 @@ export function GitPanel({
                               )}
                               <span className="truncate">{branch.name}</span>
                               {branch.isRemote ? (
-                                <span className="text-white/30">(remote)</span>
+                                <span className="text-white/50">(remote)</span>
                               ) : null}
                             </span>
                           </Button>
@@ -640,7 +640,7 @@ export function GitPanel({
                     </PopoverContent>
                   </Popover>
                 ) : (
-                  <span className="truncate text-[10.5px] font-normal text-white/50">
+                  <span className="truncate text-[11px] font-normal text-white/50">
                     {viewModel.branchLabel}
                   </span>
                 )}
@@ -651,7 +651,7 @@ export function GitPanel({
                   onClick={() => void onRefresh()}
                   disabled={!canRefresh || isRefreshing}
                   aria-label="Refresh git status"
-                  className="flex size-8 items-center justify-center text-white/40 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/80 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex size-8 items-center justify-center text-white/40 transition-colors duration-150 hover:bg-white/[0.06] hover:text-white/80 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <ArrowClockwise
                     className={cn("size-4", isRefreshing && "animate-spin")}
@@ -659,9 +659,9 @@ export function GitPanel({
                 </button>
               </div>
             </div>
-            <div className="flex items-center gap-2 text-[10.5px] tabular-nums tracking-wide text-white/40">
+            <div className="flex items-center gap-2 text-[11px] tabular-nums tracking-wide text-white/40">
               <span className="truncate font-normal">{viewModel.summary}</span>
-              <span className="text-white/20 select-none">·</span>
+              <span className="text-white/45 select-none">·</span>
               <span className="truncate">{viewModel.syncLabel}</span>
             </div>
           </div>
@@ -670,7 +670,7 @@ export function GitPanel({
         {selectedDiff ? (
           <GitDiffViewer diff={selectedDiff} onClose={handleCloseDiff} />
         ) : diffLoading ? (
-          <div className="flex h-full items-center justify-center text-[10px] text-white/30">
+          <div className="flex h-full items-center justify-center text-[11px] text-white/50">
             Loading diff...
           </div>
         ) : (
@@ -685,7 +685,7 @@ export function GitPanel({
                   placeholder="Commit message..."
                   rows={2}
                   disabled={!repositoryPath || isLoading}
-                  className="w-full resize-none bg-transparent px-0 py-2 text-[10.5px] leading-relaxed text-white/90 placeholder:text-white/20 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                  className="w-full resize-none bg-transparent px-0 py-2 text-[11px] leading-relaxed text-white/90 placeholder:text-white/55 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                 />
                 <div className="flex items-center justify-between gap-2 pt-1">
                   <div className="flex items-center gap-2">
@@ -695,7 +695,7 @@ export function GitPanel({
                           type="button"
                           aria-label="Insert commit template"
                           disabled={!repositoryPath || isLoading}
-                          className="flex items-center gap-1 text-[10px] text-white/40 hover:text-white/70 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                          className="flex items-center gap-1 text-[11px] text-white/40 hover:text-white/70 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                           <span>Template</span>
                           <CaretDown className="size-2.5" />
@@ -713,7 +713,7 @@ export function GitPanel({
                               variant="ghost"
                               size="sm"
                               onClick={() => handleApplyTemplate(template)}
-                              className="justify-start px-2 py-1.5 text-[10.5px] font-mono text-white/60 hover:bg-white/[0.05] hover:text-white"
+                              className="justify-start px-2 py-1.5 text-[11px] font-mono text-white/60 hover:bg-white/[0.05] hover:text-white"
                             >
                               {template.label}
                             </Button>
@@ -724,7 +724,7 @@ export function GitPanel({
                     {capabilities.amend ? (
                       <label
                         className={cn(
-                          "flex items-center gap-1.5 text-[10px] select-none cursor-pointer",
+                          "flex items-center gap-1.5 text-[11px] select-none cursor-pointer",
                           amend ? "text-white/80" : "text-white/40",
                         )}
                       >
@@ -766,7 +766,7 @@ export function GitPanel({
                             !canCommit || !commitMessage.trim() || isLoading
                           }
                           onClick={() => void onCommit()}
-                          className="justify-start px-2 py-1.5 text-[10.5px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
+                          className="justify-start px-2 py-1.5 text-[11px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
                         >
                           {amend ? "Amend" : "Commit"}
                         </Button>
@@ -779,7 +779,7 @@ export function GitPanel({
                             isLoading
                           }
                           onClick={() => void onCommitAndPush()}
-                          className="justify-start px-2 py-1.5 text-[10.5px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
+                          className="justify-start px-2 py-1.5 text-[11px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
                         >
                           {amend ? "Amend & Push" : "Commit & Push"}
                         </Button>
@@ -789,7 +789,7 @@ export function GitPanel({
                           size="sm"
                           disabled={!canPush || isLoading}
                           onClick={() => void onPush()}
-                          className="justify-start px-2 py-1.5 text-[10.5px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
+                          className="justify-start px-2 py-1.5 text-[11px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
                         >
                           Push
                         </Button>
@@ -798,7 +798,7 @@ export function GitPanel({
                           size="sm"
                           disabled={!canPull || isLoading}
                           onClick={() => void onPull()}
-                          className="justify-start px-2 py-1.5 text-[10.5px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
+                          className="justify-start px-2 py-1.5 text-[11px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
                         >
                           Pull
                         </Button>
@@ -807,7 +807,7 @@ export function GitPanel({
                           size="sm"
                           disabled={!canFetch || isLoading}
                           onClick={() => void onFetch()}
-                          className="justify-start px-2 py-1.5 text-[10.5px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
+                          className="justify-start px-2 py-1.5 text-[11px] font-normal text-white/60 hover:bg-white/[0.05] hover:text-white"
                         >
                           Fetch
                         </Button>

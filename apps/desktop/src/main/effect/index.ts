@@ -18,6 +18,13 @@ export {
 } from "./layers";
 export { createModuleLogger, PiDesktopLoggerLive } from "./logger";
 export { PiDesktopLive, runEffect, runEffectVoid } from "./runtime";
+export type {
+  GitWorktreeServiceServiceOps,
+  PersistentJsonFileRef,
+  PersistentJsonFileServiceOps,
+  RepositoryCatalogServiceOps,
+  TerminalManagerServiceOps,
+} from "./services";
 export {
   GitWorktreeService,
   GitWorktreeServiceService,
@@ -27,11 +34,4 @@ export {
   RepositoryCatalogService,
   TerminalManager,
   TerminalManagerService,
-} from "./services";
-export type {
-  GitWorktreeServiceServiceOps,
-  PersistentJsonFileRef,
-  PersistentJsonFileServiceOps,
-  RepositoryCatalogServiceOps,
-  TerminalManagerServiceOps,
 } from "./services";

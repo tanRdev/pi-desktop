@@ -105,7 +105,7 @@ describe("TitleBar", () => {
     );
     expect(container.firstElementChild).toHaveClass("h-11");
     expect(container.firstElementChild).toHaveClass("border-b");
-    expect(container.firstElementChild).toHaveClass("border-white/[0.03]");
+    expect(container.firstElementChild).toHaveClass("border-white/[0.06]");
   });
 
   it("renders chat and file tabs when context windows are provided", () => {

@@ -1,10 +1,12 @@
 import { Effect, Layer } from "effect";
-import { GitWorktreeService as GitWorktreeServiceClass } from "../git-worktree-service";
-import { PersistentJsonFile as PersistentJsonFileClass } from "../persistent-json-file";
+import type { GitWorktreeService as GitWorktreeServiceClass } from "../git-worktree-service";
 import type { PersistentJsonFileOptions } from "../persistent-json-file";
-import { RepositoryCatalog as RepositoryCatalogClass } from "../repository-catalog";
-import { TerminalManager as TerminalManagerClass } from "../terminal-manager";
-import type { TerminalInstance } from "../terminal-manager";
+import { PersistentJsonFile as PersistentJsonFileClass } from "../persistent-json-file";
+import type { RepositoryCatalog as RepositoryCatalogClass } from "../repository-catalog";
+import type {
+  TerminalInstance,
+  TerminalManager as TerminalManagerClass,
+} from "../terminal-manager";
 import {
   FileSystemError,
   GitError,
@@ -12,15 +14,15 @@ import {
   TerminalError,
 } from "./errors";
 import {
-  GitWorktreeService as GitWorktreeServiceTag,
   type GitWorktreeServiceServiceOps,
-  PersistentJsonFile as PersistentJsonFileTag,
+  GitWorktreeService as GitWorktreeServiceTag,
   type PersistentJsonFileRef,
   type PersistentJsonFileServiceOps,
-  RepositoryCatalog as RepositoryCatalogTag,
+  PersistentJsonFile as PersistentJsonFileTag,
   type RepositoryCatalogServiceOps,
-  TerminalManager as TerminalManagerTag,
+  RepositoryCatalog as RepositoryCatalogTag,
   type TerminalManagerServiceOps,
+  TerminalManager as TerminalManagerTag,
 } from "./services";
 
 // ---------------------------------------------------------------------------

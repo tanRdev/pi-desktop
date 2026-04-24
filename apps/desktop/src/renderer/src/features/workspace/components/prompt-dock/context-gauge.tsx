@@ -40,10 +40,10 @@ export function ContextGauge({
     <PromptInputAction
       tooltip={
         <div className="flex flex-col gap-1 px-1 py-0.5">
-          <div className="text-[10.5px] font-normal text-white">
+          <div className="text-[11px] font-normal text-white">
             {modelDisplayName}
           </div>
-          <div className="text-[10.5px] text-white/50">
+          <div className="text-[11px] text-white/50">
             Context: {formatTokenCount(tokens ?? 0)} /{" "}
             {formatTokenCount(contextWindow)} tokens
           </div>

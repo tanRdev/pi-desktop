@@ -434,8 +434,8 @@ export const Terminal = React.forwardRef<TerminalHandle, TerminalProps>(
               className,
             )}
           >
-            <div className="text-sm text-white/30">No workspace selected</div>
-            <div className="mt-1 text-xs text-white/20">
+            <div className="text-sm text-white/50">No workspace selected</div>
+            <div className="mt-1 text-xs text-white/45">
               Select a workspace to open a terminal session.
             </div>
           </div>
@@ -455,7 +455,7 @@ export const Terminal = React.forwardRef<TerminalHandle, TerminalProps>(
             >
               <div className="text-sm text-white/40">Terminal Error</div>
               <div className="text-xs text-white/40">{error}</div>
-              <div className="text-xs text-white/30">
+              <div className="text-xs text-white/50">
                 Run{" "}
                 <code
                   className={cn(

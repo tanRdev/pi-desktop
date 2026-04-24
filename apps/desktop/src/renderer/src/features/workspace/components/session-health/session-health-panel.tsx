@@ -87,9 +87,9 @@ function MetricCard({
     >
       <div className="flex items-center gap-1.5">
         {icon ? (
-          <span className={cn(ICON_SIZE_SM, "text-white/30")}>{icon}</span>
+          <span className={cn(ICON_SIZE_SM, "text-white/50")}>{icon}</span>
         ) : null}
-        <span className="text-[10px] text-white/40 uppercase tracking-wider">
+        <span className="text-[11px] text-white/40 uppercase tracking-wider">
           {label}
         </span>
       </div>
@@ -127,7 +127,7 @@ export function SessionHealthPanel({ snapshot }: SessionHealthPanelProps) {
       >
         <ConnectionIcon status={snapshot.connectionStatus} />
         <span className={cn("block size-1.5 rounded-full", conn.dot)} />
-        <span className="text-[10px] font-semibold uppercase tracking-wider">
+        <span className="text-[11px] font-semibold uppercase tracking-wider">
           {conn.label}
         </span>
       </div>
@@ -161,7 +161,7 @@ export function SessionHealthPanel({ snapshot }: SessionHealthPanelProps) {
             <Warning
               className={cn(
                 ICON_SIZE_SM,
-                snapshot.errorRate > 0 ? "text-red-400" : "text-white/30",
+                snapshot.errorRate > 0 ? "text-red-400" : "text-white/50",
               )}
             />
           }

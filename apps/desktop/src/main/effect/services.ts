@@ -1,19 +1,19 @@
-import { Context, Effect } from "effect";
 import type {
   GitFileDiff,
   GitRepositoryStatus,
   TerminalCreateOptions,
   TerminalSession,
 } from "@pi-desktop/shared";
+import { Context, Effect } from "effect";
 import type {
-  GitWorktreeSummary,
   GitRepositoryInspection,
+  GitWorktreeSummary,
 } from "../git-worktree-service";
+import type { PersistentJsonFileOptions } from "../persistent-json-file";
 import type { RepositoryCatalogEntry } from "../repository-catalog";
 import type { TerminalInstance } from "../terminal-manager";
-import type { PersistentJsonFileOptions } from "../persistent-json-file";
 import {
-  FileSystemError,
+  type FileSystemError,
   GitError,
   RepositoryError,
   TerminalError,

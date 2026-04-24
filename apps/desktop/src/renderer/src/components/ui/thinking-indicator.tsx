@@ -97,7 +97,7 @@ export function ThinkingBlock({
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="text-[10.5px] font-normal text-cyan-400/80">
+                <span className="text-[11px] font-normal text-cyan-400/80">
                   {isThinking ? "Thinking" : "Thought process"}
                 </span>
 
@@ -148,7 +148,7 @@ export function ThinkingBlock({
             >
               <pre
                 className={cn(
-                  "whitespace-pre-wrap break-words font-mono text-[10.5px] leading-relaxed",
+                  "whitespace-pre-wrap break-words font-mono text-[11px] leading-relaxed",
                   "text-cyan-100/50",
                 )}
               >
@@ -208,7 +208,7 @@ interface ReasoningStepProps {
 
 function ReasoningStep({ step, isLast }: ReasoningStepProps) {
   const statusColors = {
-    pending: "bg-white/[0.04]",
+    pending: "bg-white/[0.06]",
     running: "bg-cyan-400/50",
     complete: "bg-cyan-400/30",
     error: "bg-red-400/50",
@@ -247,7 +247,7 @@ function ReasoningStep({ step, isLast }: ReasoningStepProps) {
       <div className="flex min-w-0 flex-1 items-center gap-2 pb-3">
         <span
           className={cn(
-            "text-[10.5px]",
+            "text-[11px]",
             step.status === "running" ? "text-cyan-100/70" : "text-cyan-100/40",
           )}
         >
@@ -255,7 +255,7 @@ function ReasoningStep({ step, isLast }: ReasoningStepProps) {
         </span>
 
         {step.duration && step.status === "complete" && (
-          <span className="text-[10px] tabular-nums text-cyan-400/30">
+          <span className="text-[11px] tabular-nums text-cyan-400/30">
             {step.duration}
           </span>
         )}

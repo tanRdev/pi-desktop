@@ -58,7 +58,7 @@ export function WorktreeSection({
           "group flex w-full items-center gap-1.5 px-1.5 py-1.5 text-left transition-all duration-[var(--duration-fast)]",
           isExpanded || isWorktreeActive
             ? "text-white/65"
-            : "text-white/30 hover:text-white/50",
+            : "text-white/50 hover:text-white/50",
         )}
       >
         <GitBranch
@@ -66,13 +66,13 @@ export function WorktreeSection({
             "size-3 shrink-0 transition-colors",
             isExpanded || isWorktreeActive
               ? "text-white/40"
-              : "text-white/20 group-hover:text-white/35",
+              : "text-white/45 group-hover:text-white/50",
           )}
           weight="regular"
         />
         <span
           className={cn(
-            "min-w-0 flex-1 truncate text-[10.5px] leading-none",
+            "min-w-0 flex-1 truncate text-[11px] leading-none",
             isExpanded || isWorktreeActive
               ? "text-white/70 font-normal"
               : "group-hover:text-white/55",
@@ -85,7 +85,7 @@ export function WorktreeSection({
             "flex size-3 shrink-0 items-center justify-center transition-colors",
             isExpanded
               ? "text-white/40"
-              : "text-white/15 group-hover:text-white/30",
+              : "text-white/40 group-hover:text-white/50",
           )}
         >
           {isExpanded ? (
@@ -129,7 +129,7 @@ export function WorktreeSection({
                       "absolute left-[-9px] top-[13px] w-3 h-px",
                       thread.id === activeThreadId
                         ? "bg-white/[0.08]"
-                        : "bg-white/[0.04]",
+                        : "bg-white/[0.06]",
                     )}
                   />
                   <ThreadListItem
@@ -151,9 +151,9 @@ export function WorktreeSection({
               aria-label="Start new chat"
               disabled={isCreatingThread}
               className={cn(
-                "relative mt-1 flex h-7 w-full items-center gap-1.5 px-1.5 py-1 text-[10.5px]",
-                "text-white/25 transition-all duration-[var(--duration-fast)]",
-                "hover:bg-white/[0.04] hover:text-white/50",
+                "relative mt-1 flex h-7 w-full items-center gap-1.5 px-1.5 py-1 text-[11px]",
+                "text-white/50 transition-all duration-[var(--duration-fast)]",
+                "hover:bg-white/[0.06] hover:text-white/50",
                 isCreatingThread && "pointer-events-none opacity-50",
               )}
               onClick={(e) => {
@@ -162,7 +162,7 @@ export function WorktreeSection({
               }}
             >
               {/* Horizontal connector */}
-              <div className="absolute left-[-9px] top-1/2 -translate-y-1/2 w-3 h-px bg-white/[0.03]" />
+              <div className="absolute left-[-9px] top-1/2 -translate-y-1/2 w-3 h-px bg-white/[0.06]" />
               {isCreatingThread ? (
                 <Spinner className="size-3 animate-spin" />
               ) : (

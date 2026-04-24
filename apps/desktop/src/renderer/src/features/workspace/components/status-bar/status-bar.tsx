@@ -86,7 +86,7 @@ export function StatusBar({
               <span className="text-[var(--color-accent)]/70">
                 {data.stagedCount}
               </span>
-              <span className="text-white/30">/</span>
+              <span className="text-white/50">/</span>
               <span className="text-yellow-400/70">{data.unstagedCount}</span>
             </span>
           }

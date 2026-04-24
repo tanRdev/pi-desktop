@@ -17,7 +17,7 @@ import {
   stat as statAsync,
 } from "node:fs/promises";
 import path from "node:path";
-import { Data, Effect, Scope } from "effect";
+import { Data, Effect, type Scope } from "effect";
 import { runEffect } from "./effect/runtime";
 
 export class PersistentJsonFileError extends Data.TaggedError(

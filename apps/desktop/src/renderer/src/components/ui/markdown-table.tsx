@@ -52,7 +52,7 @@ export function MarkdownTr({
   return (
     <tr
       className={cn(
-        "even:bg-white/[0.02] transition-all duration-150 ease-out hover:bg-white/[0.04]",
+        "even:bg-white/[0.02] transition-all duration-150 ease-out hover:bg-white/[0.06]",
       )}
       {...props}
     >

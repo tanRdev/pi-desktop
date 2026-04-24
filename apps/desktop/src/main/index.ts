@@ -1,9 +1,5 @@
 import { existsSync, mkdirSync, rmSync } from "node:fs";
 import path from "node:path";
-import { Effect } from "effect";
-import { PiError } from "./effect/errors";
-import { fromUnknownError } from "./effect/errors";
-import { runEffect, runEffectVoid } from "./effect/runtime";
 import type {
   AgentSnapshot,
   AutocompleteContext,
@@ -17,6 +13,7 @@ import type {
   SettingsSnapshot,
 } from "@pi-desktop/shared";
 import { IPC_CHANNELS } from "@pi-desktop/shared";
+import { Effect } from "effect";
 import {
   app,
   BrowserWindow,
@@ -43,8 +40,8 @@ import {
 } from "./agent-host-socket-transport";
 import { AppPreferencesCatalog } from "./app-preferences-catalog";
 import { initAutoUpdater } from "./auto-updater";
-import { switchModelForContext } from "./bootstrap/model-switch";
 import { resolveInitialWorkspaceTarget } from "./bootstrap/initial-workspace";
+import { switchModelForContext } from "./bootstrap/model-switch";
 import {
   buildThreadContext as buildThreadContextFromHelper,
   type ResolvedRepositoryInspection,
@@ -52,6 +49,8 @@ import {
 } from "./bootstrap/thread-context";
 import { resolveWorkspaceInspection } from "./bootstrap/workspace-inspection";
 import { createContextSwitchController } from "./context-switch-controller";
+import { fromUnknownError, PiError } from "./effect/errors";
+import { runEffect, runEffectVoid } from "./effect/runtime";
 import { GitWorktreeService } from "./git-worktree-service";
 import { createSanitizingHandle } from "./ipc/sanitize-ipc-error";
 import { registerIpcHandlers } from "./ipc-router";

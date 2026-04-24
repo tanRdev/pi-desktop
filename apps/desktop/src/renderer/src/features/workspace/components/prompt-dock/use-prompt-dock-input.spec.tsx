@@ -8,11 +8,11 @@ import {
   screen,
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { toast } from "@/lib/toast";
 import {
   type UsePromptDockInputOptions,
   usePromptDockInput,
 } from "./use-prompt-dock-input";
-import { toast } from "@/lib/toast";
 
 vi.mock("@/lib/toast", () => ({
   toast: {

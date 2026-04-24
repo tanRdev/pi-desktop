@@ -196,8 +196,8 @@ export function FileTreePanel({
 
   return (
     <div className="flex h-full flex-col select-none">
-      <div className="flex items-center justify-between px-3 py-2 border-b border-white/[0.03]">
-        <span className="text-[10.5px] text-white/50 font-medium tracking-wide uppercase">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-white/[0.06]">
+        <span className="text-[11px] text-white/50 font-medium tracking-wide uppercase">
           Files
         </span>
         <div className="flex items-center gap-0.5">
@@ -207,7 +207,7 @@ export function FileTreePanel({
             aria-label="New file"
             title="New file"
             className={cn(
-              "p-1 text-white/30 hover:text-white/60",
+              "p-1 text-white/50 hover:text-white/60",
               "transition-colors duration-100",
             )}
           >
@@ -219,7 +219,7 @@ export function FileTreePanel({
             aria-label="New folder"
             title="New folder"
             className={cn(
-              "p-1 text-white/30 hover:text-white/60",
+              "p-1 text-white/50 hover:text-white/60",
               "transition-colors duration-100",
             )}
           >
@@ -231,7 +231,7 @@ export function FileTreePanel({
             aria-label="Refresh"
             title="Refresh"
             className={cn(
-              "p-1 text-white/30 hover:text-white/60",
+              "p-1 text-white/50 hover:text-white/60",
               "transition-colors duration-100",
             )}
           >
@@ -240,9 +240,9 @@ export function FileTreePanel({
         </div>
       </div>
 
-      <div className="px-2 py-1.5 border-b border-white/[0.03]">
+      <div className="px-2 py-1.5 border-b border-white/[0.06]">
         <div className="relative flex items-center">
-          <MagnifyingGlass className="absolute left-2 w-3 h-3 text-white/30 pointer-events-none" />
+          <MagnifyingGlass className="absolute left-2 w-3 h-3 text-white/50 pointer-events-none" />
           <input
             type="text"
             value={filter}
@@ -250,8 +250,8 @@ export function FileTreePanel({
             placeholder="Filter files..."
             aria-label="Filter files"
             className={cn(
-              "w-full bg-white/[0.03] border border-white/[0.04] pl-7 pr-2 py-1",
-              "text-[10.5px] text-white/70 placeholder:text-white/25",
+              "w-full bg-white/[0.06] border border-white/[0.04] pl-7 pr-2 py-1",
+              "text-[11px] text-white/70 placeholder:text-white/50",
               "focus:outline-none focus:border-white/[0.12] focus:bg-white/[0.05]",
               "transition-colors duration-100",
             )}
@@ -272,10 +272,10 @@ export function FileTreePanel({
           fixture={<FileTreeSkeleton />}
         >
           {hasRecentFiles && (
-            <div className="border-b border-white/[0.03]">
+            <div className="border-b border-white/[0.06]">
               <div className="flex items-center gap-1.5 px-3 py-1">
-                <ClockCounterClockwise className="w-3 h-3 text-white/25" />
-                <span className="text-[9.5px] text-white/35 font-medium tracking-wide uppercase">
+                <ClockCounterClockwise className="w-3 h-3 text-white/50" />
+                <span className="text-[9.5px] text-white/50 font-medium tracking-wide uppercase">
                   Recent
                 </span>
               </div>
@@ -295,13 +295,13 @@ export function FileTreePanel({
                     }}
                     className={cn(
                       "flex items-center gap-1.5 w-full px-3 h-6",
-                      "text-[10.5px] text-white/50 hover:text-white/80 truncate",
-                      "hover:bg-white/[0.04] transition-colors duration-100",
+                      "text-[11px] text-white/50 hover:text-white/80 truncate",
+                      "hover:bg-white/[0.06] transition-colors duration-100",
                     )}
                   >
                     {isPinned && (
                       <PushPin
-                        className="w-2.5 h-2.5 text-white/30 shrink-0"
+                        className="w-2.5 h-2.5 text-white/50 shrink-0"
                         weight="fill"
                       />
                     )}
@@ -312,7 +312,7 @@ export function FileTreePanel({
             </div>
           )}
           {rootNodes.length === 0 ? (
-            <div className="px-3 py-6 text-center text-[10.5px] text-white/30">
+            <div className="px-3 py-6 text-center text-[11px] text-white/50">
               No files
             </div>
           ) : filter.length > 0 ? (
@@ -343,7 +343,7 @@ export function FileTreePanel({
                 />
               ))}
               {flatRows.length === 0 && (
-                <div className="px-3 py-6 text-center text-[10.5px] text-white/30">
+                <div className="px-3 py-6 text-center text-[11px] text-white/50">
                   No matches
                 </div>
               )}

@@ -20,7 +20,7 @@ export function WorktreeList({
   return (
     <section className="space-y-2 px-3">
       <div className="flex items-center justify-between">
-        <p className="text-[10.5px] font-normal uppercase tracking-wider text-white/30">
+        <p className="text-[11px] font-normal uppercase tracking-wider text-white/50">
           Worktrees
         </p>
         <Button
@@ -52,11 +52,11 @@ export function WorktreeList({
               className={cn(
                 "w-full border p-3 text-left",
                 "transition-all duration-150 ease-out",
-                "hover:bg-white/[0.04]",
+                "hover:bg-white/[0.06]",
                 "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/10",
                 "active:scale-[0.98] active:duration-100",
                 worktree.id === activeWorktreeId
-                  ? "border-white/[0.08] bg-white/[0.04]"
+                  ? "border-white/[0.08] bg-white/[0.06]"
                   : "border-white/[0.04] bg-transparent hover:border-white/[0.06]",
               )}
               style={{ animationDelay: `${Math.min(index * 40, 320)}ms` }}
@@ -64,23 +64,23 @@ export function WorktreeList({
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <GitBranch className="size-5 shrink-0 text-white/30" />
+                    <GitBranch className="size-5 shrink-0 text-white/50" />
                     <span className="truncate text-sm font-normal text-white/80">
                       {worktree.label}
                     </span>
                     {worktree.isMain && (
-                      <span className="border border-white/[0.08] px-1.5 py-0.5 text-[10.5px] uppercase tracking-wide text-white/30">
+                      <span className="border border-white/[0.08] px-1.5 py-0.5 text-[11px] uppercase tracking-wide text-white/50">
                         main
                       </span>
                     )}
                   </div>
-                  <div className="mt-1 truncate text-xs text-white/30">
+                  <div className="mt-1 truncate text-xs text-white/50">
                     {worktree.path}
                   </div>
                 </div>
                 <GitStatusChip git={worktree.git} />
               </div>
-              <div className="mt-2 flex items-center justify-between text-[10.5px] text-white/30">
+              <div className="mt-2 flex items-center justify-between text-[11px] text-white/50">
                 <span>
                   {threadCount} thread
                   {threadCount === 1 ? "" : "s"}

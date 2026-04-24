@@ -243,7 +243,7 @@ const INITIAL_COMPONENTS: Partial<Components> = {
   },
   del: function DelComponent({ children, ...props }) {
     return (
-      <del className="line-through text-white/30" {...props}>
+      <del className="line-through text-white/50" {...props}>
         {children}
       </del>
     );
@@ -284,7 +284,7 @@ const INITIAL_COMPONENTS: Partial<Components> = {
   li: function LiComponent({ children, ...props }) {
     return (
       <li className="my-1.5 pl-1 flex items-start gap-2" {...props}>
-        <span className="text-white/20 mt-1.5 size-1 bg-current shrink-0" />
+        <span className="text-white/45 mt-1.5 size-1 bg-current shrink-0" />
         <div>{children}</div>
       </li>
     );

@@ -13,7 +13,7 @@ const STATUS_STYLES: Record<ThreadRuntimeStatus, string> = {
     "border-[var(--color-accent)]/20 bg-[var(--color-accent)]/[0.06] text-[var(--color-accent)]/70",
   streaming: "border-violet-400/20 bg-violet-400/[0.06] text-violet-300/70",
   disconnected: "border-amber-400/20 bg-amber-400/[0.06] text-amber-300/70",
-  exited: "border-white/[0.06] bg-white/[0.03] text-white/30",
+  exited: "border-white/[0.06] bg-white/[0.06] text-white/50",
   error: "border-rose-400/20 bg-rose-400/[0.06] text-rose-300/70",
 };
 
@@ -35,7 +35,7 @@ export function RuntimeStatusChip({
     <span
       data-testid={testId}
       className={cn(
-        "inline-flex items-center border px-2 py-0.5 text-[10.5px] font-mono font-normal uppercase tracking-widest",
+        "inline-flex items-center border px-2 py-0.5 text-[11px] font-mono font-normal uppercase tracking-widest",
         "transition-all duration-150 motion-reduce:transition-none",
         "hover:brightness-125 active:scale-[0.98] motion-reduce:hover:scale-100 motion-reduce:active:scale-100",
         "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/10 focus-visible:ring-offset-0",

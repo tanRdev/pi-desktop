@@ -26,7 +26,7 @@ export function SettingsRow({
           {label}
         </label>
         {description ? (
-          <p className="text-[10.5px] text-white/40 leading-relaxed">
+          <p className="text-[11px] text-white/40 leading-relaxed">
             {description}
           </p>
         ) : null}
@@ -50,7 +50,7 @@ export function SettingsSection({
       <div className="mb-2">
         <h2 className="text-[12px] font-normal text-white/90">{title}</h2>
         {description ? (
-          <p className="mt-0.5 text-[10.5px] text-white/40">{description}</p>
+          <p className="mt-0.5 text-[11px] text-white/40">{description}</p>
         ) : null}
       </div>
       <div className="divide-y divide-white/[0.04]">{children}</div>
@@ -113,7 +113,7 @@ export function SettingsSelect({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       className={cn(
-        "min-w-[140px] border border-white/[0.08] bg-[var(--color-bg-primary)] px-2 py-1 text-[10.5px] text-white/80 outline-none",
+        "min-w-[140px] border border-white/[0.08] bg-[var(--color-bg-primary)] px-2 py-1 text-[11px] text-white/80 outline-none",
         "transition-colors hover:border-white/[0.14] focus:border-white/[0.2]",
       )}
     >
@@ -161,12 +161,12 @@ export function SettingsNumberInput({
           if (Number.isFinite(parsed)) onChange(parsed);
         }}
         className={cn(
-          "w-20 border border-white/[0.08] bg-[var(--color-bg-primary)] px-2 py-1 text-[10.5px] text-white/80 outline-none",
+          "w-20 border border-white/[0.08] bg-[var(--color-bg-primary)] px-2 py-1 text-[11px] text-white/80 outline-none",
           "transition-colors hover:border-white/[0.14] focus:border-white/[0.2]",
         )}
       />
       {suffix ? (
-        <span className="text-[10.5px] text-white/40">{suffix}</span>
+        <span className="text-[11px] text-white/40">{suffix}</span>
       ) : null}
     </div>
   );
@@ -191,9 +191,9 @@ export function SettingsTextInput({
       placeholder={placeholder}
       onChange={(e) => onChange(e.target.value)}
       className={cn(
-        "w-[200px] border border-white/[0.08] bg-[var(--color-bg-primary)] px-2 py-1 text-[10.5px] text-white/80 outline-none",
+        "w-[200px] border border-white/[0.08] bg-[var(--color-bg-primary)] px-2 py-1 text-[11px] text-white/80 outline-none",
         "transition-colors hover:border-white/[0.14] focus:border-white/[0.2]",
-        "placeholder:text-white/30",
+        "placeholder:text-white/50",
       )}
     />
   );

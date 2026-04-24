@@ -184,7 +184,7 @@ export function PromptDock({
             onBlur={() => setIsFocused(false)}
             className={cn(
               "min-h-[28px] resize-none border-0 bg-transparent px-0 py-0",
-              "text-[10.5px] leading-normal text-[var(--color-text-primary)]",
+              "text-[11px] leading-normal text-[var(--color-text-primary)]",
               "placeholder:text-[var(--color-text-tertiary)]",
               "focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none",
               "disabled:opacity-50",

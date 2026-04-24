@@ -64,7 +64,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
         return (
           <CheckCircle
             className={cn(
-              "h-3.5 w-3.5 text-white/30",
+              "h-3.5 w-3.5 text-white/50",
               "transition-all duration-[var(--duration-fast)] ease-out",
             )}
           />
@@ -82,7 +82,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
         return (
           <Gear
             className={cn(
-              "h-3.5 w-3.5 text-white/20",
+              "h-3.5 w-3.5 text-white/45",
               "transition-all duration-[var(--duration-fast)] ease-out",
             )}
           />
@@ -92,7 +92,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
 
   const getStateBadge = () => {
     const baseClasses = cn(
-      "px-1.5 py-0.5 text-[10.5px] font-normal",
+      "px-1.5 py-0.5 text-[11px] font-normal",
       "transition-all duration-[var(--duration-fast)] ease-out",
     );
     switch (state) {
@@ -118,7 +118,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
         );
       case "output-available":
         return (
-          <span className={cn(baseClasses, "bg-white/[0.04] text-white/40")}>
+          <span className={cn(baseClasses, "bg-white/[0.06] text-white/40")}>
             Completed
           </span>
         );
@@ -130,7 +130,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
         );
       default:
         return (
-          <span className={cn(baseClasses, "bg-white/[0.03] text-white/30")}>
+          <span className={cn(baseClasses, "bg-white/[0.06] text-white/50")}>
             Pending
           </span>
         );
@@ -178,7 +178,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
             </div>
             <CaretDown
               className={cn(
-                "h-3.5 w-3.5 text-white/20 transition-transform duration-[var(--duration-normal)] ease-out",
+                "h-3.5 w-3.5 text-white/45 transition-transform duration-[var(--duration-normal)] ease-out",
                 isOpen && "rotate-180",
               )}
             />
@@ -193,13 +193,13 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
           <div className="space-y-3 pb-3 pl-6">
             {input && Object.keys(input).length > 0 && (
               <div>
-                <h4 className="mb-2 text-xs font-normal text-white/30">
+                <h4 className="mb-2 text-xs font-normal text-white/50">
                   Input
                 </h4>
                 <div className="border border-white/[0.04] bg-white/[0.02] p-2 font-mono text-sm text-white/60">
                   {Object.entries(input).map(([key, value]) => (
                     <div key={key} className="mb-1">
-                      <span className="text-white/30">{key}:</span>{" "}
+                      <span className="text-white/50">{key}:</span>{" "}
                       <span>{formatValue(value)}</span>
                     </div>
                   ))}
@@ -209,7 +209,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
 
             {output && (
               <div>
-                <h4 className="mb-2 text-xs font-normal text-white/30">
+                <h4 className="mb-2 text-xs font-normal text-white/50">
                   Output
                 </h4>
                 <div className="max-h-60 overflow-auto border border-white/[0.04] bg-white/[0.02] p-2 font-mono text-sm text-white/60">
@@ -224,7 +224,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
               state !== "input-streaming" &&
               state !== "output-error" && (
                 <div>
-                  <h4 className="mb-2 text-xs font-normal text-white/30">
+                  <h4 className="mb-2 text-xs font-normal text-white/50">
                     Output
                   </h4>
                   <div className="text-sm text-white/40 italic">
@@ -245,13 +245,13 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
             )}
 
             {state === "input-streaming" && (
-              <div className="text-sm text-white/30 animate-pulse">
+              <div className="text-sm text-white/50 animate-pulse">
                 Processing tool call...
               </div>
             )}
 
             {toolCallId && (
-              <div className="border-t border-white/[0.04] pt-2 text-xs text-white/20">
+              <div className="border-t border-white/[0.04] pt-2 text-xs text-white/45">
                 <span className="font-mono">Call ID: {toolCallId}</span>
               </div>
             )}

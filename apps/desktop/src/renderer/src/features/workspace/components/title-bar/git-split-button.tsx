@@ -123,10 +123,10 @@ export function GitSplitButton({
         title={mainTitle}
         onClick={() => send(currentAction?.prompt ?? "")}
         className={cn(
-          "flex items-center gap-1.5 px-2 text-[10px] uppercase tracking-wider transition-colors duration-150",
+          "flex items-center gap-1.5 px-2 text-[11px] uppercase tracking-wider transition-colors duration-150",
           showGlow
             ? "text-green-400 hover:bg-green-500/10 hover:text-green-300"
-            : "text-white/70 hover:bg-white/[0.04] hover:text-white/90",
+            : "text-white/70 hover:bg-white/[0.06] hover:text-white/90",
           mainButtonDisabled && "cursor-not-allowed",
           mainButtonDisabled && showGlow
             ? "hover:bg-transparent"
@@ -147,7 +147,7 @@ export function GitSplitButton({
             aria-label="More git actions"
             className={cn(
               "flex items-center justify-center px-1.5 text-white/70 transition-colors duration-150",
-              "hover:bg-white/[0.04] hover:text-white/90",
+              "hover:bg-white/[0.06] hover:text-white/90",
               "disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-white/70",
               "focus:outline-none focus-visible:outline-none",
             )}
@@ -176,10 +176,10 @@ export function GitSplitButton({
                     setMenuOpen(false);
                   }}
                   className={cn(
-                    "flex items-center gap-2 px-2 py-1.5 text-left text-[10px] uppercase tracking-wider transition-colors duration-150",
+                    "flex items-center gap-2 px-2 py-1.5 text-left text-[11px] uppercase tracking-wider transition-colors duration-150",
                     action.id === selectedAction
-                      ? "text-white/90 bg-white/[0.04]"
-                      : "text-white/70 hover:bg-white/[0.04] hover:text-white/90",
+                      ? "text-white/90 bg-white/[0.06]"
+                      : "text-white/70 hover:bg-white/[0.06] hover:text-white/90",
                     itemDisabled && "opacity-40 cursor-not-allowed",
                     "focus:outline-none focus-visible:outline-none",
                   )}

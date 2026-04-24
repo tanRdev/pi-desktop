@@ -71,17 +71,17 @@ export function InlineModelPicker({
         onClick={() => setOpen((v) => !v)}
         className={cn(
           "inline-flex h-6 items-center gap-1 border border-white/[0.06] bg-white/[0.01] px-2",
-          "font-mono text-[10px] uppercase tracking-wider text-white/60",
+          "font-mono text-[11px] uppercase tracking-wider text-white/60",
           "transition-colors duration-[var(--duration-fast)]",
-          "hover:border-white/[0.12] hover:bg-white/[0.04] hover:text-white/90",
+          "hover:border-white/[0.12] hover:bg-white/[0.06] hover:text-white/90",
           "disabled:opacity-40 disabled:cursor-not-allowed",
-          open && "border-white/[0.12] bg-white/[0.04] text-white/90",
+          open && "border-white/[0.12] bg-white/[0.06] text-white/90",
         )}
       >
         <span className="max-w-[160px] truncate">{label}</span>
         <CaretDown
           className={cn(
-            "size-2.5 transition-transform text-white/30",
+            "size-2.5 transition-transform text-white/50",
             open && "rotate-180 text-white/60",
           )}
         />
@@ -97,7 +97,7 @@ export function InlineModelPicker({
         >
           {providerSnapshots.map((provider) => (
             <div key={provider.id} className="mb-1 last:mb-0">
-              <div className="px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-white/30">
+              <div className="px-2 py-1 font-mono text-[11px] uppercase tracking-wider text-white/50">
                 {provider.name}
               </div>
               {provider.models.map((model) => {
@@ -126,7 +126,7 @@ export function InlineModelPicker({
                       "transition-colors",
                       isSelected
                         ? "bg-white/[0.08] text-white"
-                        : "text-white/70 hover:bg-white/[0.04] hover:text-white",
+                        : "text-white/70 hover:bg-white/[0.06] hover:text-white",
                     )}
                   >
                     {model.name}

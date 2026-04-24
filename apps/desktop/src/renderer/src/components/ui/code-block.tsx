@@ -320,9 +320,9 @@ function CopyButton({ code }: { code: string }) {
       onClick={handleCopy}
       aria-label={copied ? "Copied" : "Copy code"}
       className={cn(
-        "inline-flex items-center gap-1 px-2 py-1 text-[10.5px] uppercase tracking-wide",
+        "inline-flex items-center gap-1 px-2 py-1 text-[11px] uppercase tracking-wide",
         "text-white/50 hover:text-white/90",
-        "bg-white/[0.03] hover:bg-white/[0.08]",
+        "bg-white/[0.06] hover:bg-white/[0.08]",
         "border border-white/[0.06]",
         "transition-all duration-[var(--duration-fast)] ease-out",
       )}
@@ -346,7 +346,7 @@ function LanguageLabel({ language }: { language: string }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center px-2 py-1 text-[10.5px] uppercase tracking-wide",
+        "inline-flex items-center px-2 py-1 text-[11px] uppercase tracking-wide",
         "text-white/40 bg-white/[0.02]",
         "border border-white/[0.06]",
       )}
@@ -446,7 +446,7 @@ function CodeBlockCode({
   }, [code, runHighlight]);
 
   const classNames = cn(
-    "relative w-full overflow-x-auto overflow-y-hidden border border-white/[0.04] bg-[#111111] font-mono text-[10.5px] leading-relaxed",
+    "relative w-full overflow-x-auto overflow-y-hidden border border-white/[0.04] bg-[#111111] font-mono text-[11px] leading-relaxed",
     className,
   );
 
@@ -475,7 +475,7 @@ function CodeBlockCode({
       <div className="flex">
         <div
           aria-hidden="true"
-          className="select-none pr-3 text-right text-white/25"
+          className="select-none pr-3 text-right text-white/50"
           data-testid="code-block-line-numbers"
         >
           {Array.from({ length: Math.max(lineCount, 1) }, (_, index) => (
@@ -494,7 +494,7 @@ function CodeBlockCode({
         {header}
         <div
           className={cn(
-            "sticky top-0 z-10 border-b border-white/[0.04] bg-white/[0.02] px-4 py-2 text-xs text-white/20 backdrop-blur",
+            "sticky top-0 z-10 border-b border-white/[0.04] bg-white/[0.02] px-4 py-2 text-xs text-white/45 backdrop-blur",
             "transition-all duration-[var(--duration-fast)] ease-out",
           )}
         >
@@ -518,7 +518,7 @@ function CodeBlockCode({
       {isHighlighting && (
         <div
           className={cn(
-            "sticky top-0 z-10 border-b border-white/[0.04] bg-white/[0.02] px-4 py-2 text-xs text-white/20 backdrop-blur",
+            "sticky top-0 z-10 border-b border-white/[0.04] bg-white/[0.02] px-4 py-2 text-xs text-white/45 backdrop-blur",
             "transition-all duration-[var(--duration-fast)] ease-out",
           )}
         >

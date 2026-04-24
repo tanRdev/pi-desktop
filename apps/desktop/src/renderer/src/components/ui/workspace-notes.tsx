@@ -39,10 +39,10 @@ Write your notes here...
             type="button"
             onClick={() => setIsEditing(true)}
             className={cn(
-              "px-2 py-0.5 text-[10.5px] font-mono font-bold uppercase tracking-wider transition-all duration-150 ease-out",
+              "px-2 py-0.5 text-[11px] font-mono font-bold uppercase tracking-wider transition-all duration-150 ease-out",
               isEditing
                 ? "bg-white/[0.06] text-white/80"
-                : "text-white/40 hover:bg-white/[0.04] hover:text-white/80",
+                : "text-white/40 hover:bg-white/[0.06] hover:text-white/80",
             )}
           >
             Edit
@@ -51,16 +51,16 @@ Write your notes here...
             type="button"
             onClick={() => setIsEditing(false)}
             className={cn(
-              "px-2 py-0.5 text-[10.5px] font-mono font-bold uppercase tracking-wider transition-all duration-150 ease-out",
+              "px-2 py-0.5 text-[11px] font-mono font-bold uppercase tracking-wider transition-all duration-150 ease-out",
               !isEditing
                 ? "bg-white/[0.06] text-white/80"
-                : "text-white/40 hover:bg-white/[0.04] hover:text-white/80",
+                : "text-white/40 hover:bg-white/[0.06] hover:text-white/80",
             )}
           >
             Preview
           </button>
         </div>
-        <span className="text-[9px] font-mono text-white/30 uppercase tracking-tight">
+        <span className="text-[11px] font-mono text-white/50 uppercase tracking-tight">
           Markdown
         </span>
       </div>
@@ -73,14 +73,14 @@ Write your notes here...
               value={content}
               onChange={handleChange}
               placeholder={placeholder}
-              className="h-full w-full resize-none border-0 bg-transparent p-0 text-[10.5px] font-mono leading-relaxed text-white/80 placeholder:text-white/20 focus:outline-none focus-visible:ring-0"
+              className="h-full w-full resize-none border-0 bg-transparent p-0 text-[11px] font-mono leading-relaxed text-white/80 placeholder:text-white/55 focus:outline-none focus-visible:ring-0"
             />
           ) : (
             <div className="prose prose-sm prose-invert max-w-none font-mono">
               {content ? (
                 <Markdown>{content}</Markdown>
               ) : (
-                <p className="text-white/40 uppercase text-[10.5px]">
+                <p className="text-white/40 uppercase text-[11px]">
                   No notes yet. Switch to Edit mode to add content.
                 </p>
               )}

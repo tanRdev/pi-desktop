@@ -19,7 +19,7 @@ export function WorkspaceSwitchLoader({
       <div className="flex flex-col items-center gap-5 text-center">
         <Pi className="size-16 motion-safe:animate-[pulse_1100ms_ease-in-out_infinite]" />
         <div className="space-y-1">
-          <p className="text-[10.5px] uppercase tracking-[0.28em] text-white/45">
+          <p className="text-[11px] uppercase tracking-[0.28em] text-white/45">
             Switching workspace
           </p>
           <p className="text-sm text-white/72">

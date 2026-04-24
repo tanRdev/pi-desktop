@@ -108,7 +108,7 @@ export class ErrorBoundary extends Component<
           </p>
           <pre
             data-testid="error-boundary-message"
-            className="overflow-auto border border-white/[0.08] bg-[var(--color-bg-secondary)] p-3 font-mono text-[10.5px] text-white/80"
+            className="overflow-auto border border-white/[0.08] bg-[var(--color-bg-secondary)] p-3 font-mono text-[11px] text-white/80"
           >
             {redactedMessage}
           </pre>
@@ -120,7 +120,7 @@ export class ErrorBoundary extends Component<
                 onClick={this.toggleStack}
                 aria-expanded={showStack}
                 data-testid="error-boundary-toggle-stack"
-                className="flex items-center gap-1 self-start text-[10.5px] text-white/50 hover:text-white/80"
+                className="flex items-center gap-1 self-start text-[11px] text-white/50 hover:text-white/80"
               >
                 {showStack ? (
                   <CaretDown className="size-3" />
@@ -132,7 +132,7 @@ export class ErrorBoundary extends Component<
               {showStack ? (
                 <pre
                   data-testid="error-boundary-stack"
-                  className="max-h-64 overflow-auto border border-white/[0.06] bg-[var(--color-bg-secondary)] p-3 font-mono text-[10px] text-white/60"
+                  className="max-h-64 overflow-auto border border-white/[0.06] bg-[var(--color-bg-secondary)] p-3 font-mono text-[11px] text-white/60"
                 >
                   {stack}
                 </pre>
@@ -145,7 +145,7 @@ export class ErrorBoundary extends Component<
               type="button"
               onClick={this.reset}
               data-testid="error-boundary-reset"
-              className="flex items-center gap-1.5 border border-white/[0.08] px-3 py-1.5 text-[10.5px] text-white/80 hover:bg-white/[0.04]"
+              className="flex items-center gap-1.5 border border-white/[0.08] px-3 py-1.5 text-[11px] text-white/80 hover:bg-white/[0.06]"
             >
               <ArrowClockwise className="size-3.5" />
               Try again
@@ -154,7 +154,7 @@ export class ErrorBoundary extends Component<
               type="button"
               onClick={this.reload}
               data-testid="error-boundary-reload"
-              className="bg-primary px-3 py-1.5 text-[10.5px] text-primary-foreground hover:opacity-90"
+              className="bg-primary px-3 py-1.5 text-[11px] text-primary-foreground hover:opacity-90"
             >
               Reload window
             </button>

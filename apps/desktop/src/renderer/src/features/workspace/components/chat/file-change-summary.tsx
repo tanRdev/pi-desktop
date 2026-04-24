@@ -22,10 +22,10 @@ export function FileChangeSummary({
         disabled={!hasPaths}
         className={cn(
           "inline-flex items-center gap-2 border border-white/[0.06] bg-white/[0.01] px-2.5 py-1",
-          "font-mono text-[10px] uppercase tracking-wider text-white/50",
+          "font-mono text-[11px] uppercase tracking-wider text-white/50",
           "transition-colors duration-[var(--duration-fast)]",
           hasPaths &&
-            "hover:bg-white/[0.04] hover:text-white/70 cursor-pointer",
+            "hover:bg-white/[0.06] hover:text-white/70 cursor-pointer",
           !hasPaths && "cursor-default",
         )}
       >
@@ -39,7 +39,7 @@ export function FileChangeSummary({
           {filePaths.map((path, i) => (
             <li
               key={`${path}-${i}`}
-              className="font-mono text-[10.5px] text-white/50 truncate"
+              className="font-mono text-[11px] text-white/50 truncate"
             >
               {path}
             </li>

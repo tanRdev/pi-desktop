@@ -40,13 +40,13 @@ function renderIcon(suggestion: SlashSuggestion | MentionSuggestion) {
   if (isMentionSuggestion(suggestion)) {
     switch (suggestion.kind) {
       case "file":
-        return <File className="size-5 shrink-0 text-white/30" />;
+        return <File className="size-5 shrink-0 text-white/50" />;
       case "terminal":
         return <Terminal className="size-5 shrink-0 text-amber-400" />;
       case "thread":
-        return <MessageSquare className="size-5 shrink-0 text-white/30" />;
+        return <MessageSquare className="size-5 shrink-0 text-white/50" />;
       default:
-        return <AtSign className="size-5 shrink-0 text-white/30" />;
+        return <AtSign className="size-5 shrink-0 text-white/50" />;
     }
   }
 
@@ -58,9 +58,9 @@ function renderIcon(suggestion: SlashSuggestion | MentionSuggestion) {
     case "prompt":
       return <MessageSquare className="size-4 shrink-0 text-sky-400/70" />;
     case "model":
-      return <Terminal className="size-4 shrink-0 text-white/30" />;
+      return <Terminal className="size-4 shrink-0 text-white/50" />;
     default:
-      return <Terminal className="size-4 shrink-0 text-white/30" />;
+      return <Terminal className="size-4 shrink-0 text-white/50" />;
   }
 }
 
@@ -176,7 +176,7 @@ export function PromptAutocomplete({
             return (
               <div key={group.kind}>
                 {/* Section header */}
-                <div className="px-3 pb-1 pt-2 text-[10.5px] font-normal uppercase tracking-[0.12em] text-white/25 select-none">
+                <div className="px-3 pb-1 pt-2 text-[11px] font-normal uppercase tracking-[0.12em] text-white/50 select-none">
                   {label}
                 </div>
 
@@ -210,7 +210,7 @@ export function PromptAutocomplete({
                           className={cn(
                             "flex w-full items-center gap-2 px-3 py-2 text-left text-sm",
                             "transition-all duration-150 ease-[var(--ease-out)]",
-                            "hover:bg-white/[0.04] hover:text-white/80",
+                            "hover:bg-white/[0.06] hover:text-white/80",
                             "active:scale-[0.97] motion-reduce:active:scale-100",
                             "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/[0.06]",
                             "motion-reduce:focus-visible:outline-none",

@@ -153,7 +153,7 @@ export function EnhancedMessage({
               <SlashCommandHighlighter text={content || " "} />
             </div>
             {timestamp !== undefined && (
-              <div className="text-right font-mono text-[10px] text-white/30">
+              <div className="text-right font-mono text-[11px] text-white/50">
                 {formatTimestamp(timestamp)}
               </div>
             )}
@@ -296,11 +296,11 @@ export function StreamingIndicator({
           <div className="absolute inset-0 size-2 animate-ping bg-[var(--color-accent)]/30" />
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="text-[10.5px] font-normal text-white/70">
+          <span className="text-[11px] font-normal text-white/70">
             {message}
           </span>
           <div className="flex items-center gap-1">
-            <span className="text-[10.5px] text-white/40">Generating</span>
+            <span className="text-[11px] text-white/40">Generating</span>
             <span className="flex gap-0.5">
               {[0, 1, 2].map((i) => (
                 <span

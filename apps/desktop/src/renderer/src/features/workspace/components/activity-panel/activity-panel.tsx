@@ -53,7 +53,7 @@ function LevelBadge({ level }: { level: LogLevel }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center justify-center rounded-[2px] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider border",
+        "inline-flex items-center justify-center rounded-[2px] px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider border",
         LEVEL_COLORS[level],
         LEVEL_BG[level],
         LEVEL_BORDER[level],
@@ -73,7 +73,7 @@ function EntryRow({ entry, now }: { entry: LogEntry; now: number }) {
       <div className="flex flex-col items-start gap-1 min-w-0 flex-1">
         <div className="flex items-center gap-2 w-full">
           <LevelBadge level={entry.level} />
-          <span className="text-[10px] text-white/30 font-mono truncate">
+          <span className="text-[11px] text-white/50 font-mono truncate">
             {entry.scope}
           </span>
         </div>
@@ -81,7 +81,7 @@ function EntryRow({ entry, now }: { entry: LogEntry; now: number }) {
           {entry.message}
         </span>
       </div>
-      <span className="text-[10px] text-white/25 shrink-0 mt-0.5">
+      <span className="text-[11px] text-white/50 shrink-0 mt-0.5">
         {formatRelative(entry.ts, now)}
       </span>
     </div>
@@ -103,7 +103,7 @@ function FilterBar({
 }) {
   return (
     <div className="flex items-center gap-2 px-3 py-2 border-b border-white/[0.06]">
-      <Funnel className={cn(ICON_SIZE_SM, "text-white/30 shrink-0")} />
+      <Funnel className={cn(ICON_SIZE_SM, "text-white/50 shrink-0")} />
       <div className="flex items-center gap-1 flex-wrap">
         {(["all", ...LOG_LEVELS] as const).map((level) => (
           <button
@@ -112,7 +112,7 @@ function FilterBar({
             data-testid={`activity-filter-level-${level}`}
             onClick={() => onLevelFilterChange(level)}
             className={cn(
-              "text-[9px] px-1.5 py-0.5 rounded-[2px] border transition-colors uppercase tracking-wider",
+              "text-[11px] px-1.5 py-0.5 rounded-[2px] border transition-colors uppercase tracking-wider",
               levelFilter === level
                 ? cn(
                     LEVEL_COLORS[level === "all" ? "info" : level],
@@ -120,7 +120,7 @@ function FilterBar({
                     LEVEL_BORDER[level === "all" ? "info" : level],
                     "font-semibold",
                   )
-                : "text-white/30 border-white/[0.06] hover:text-white/50 hover:border-white/[0.12]",
+                : "text-white/50 border-white/[0.06] hover:text-white/50 hover:border-white/[0.12]",
             )}
           >
             {level}
@@ -132,7 +132,7 @@ function FilterBar({
         placeholder="Filter scope..."
         value={scopeFilter}
         onChange={(e) => onScopeFilterChange(e.target.value)}
-        className="ml-auto text-[10px] bg-white/[0.04] border border-white/[0.06] rounded-[2px] px-2 py-1 text-[var(--color-text-primary)] placeholder:text-white/20 focus:outline-none focus:border-white/[0.12] w-28"
+        className="ml-auto text-[11px] bg-white/[0.06] border border-white/[0.06] rounded-[2px] px-2 py-1 text-[var(--color-text-primary)] placeholder:text-white/55 focus:outline-none focus:border-white/[0.12] w-28"
         data-testid="activity-filter-scope"
       />
     </div>
@@ -228,7 +228,7 @@ export function ActivityPanel({
             <span className="text-[11px] tracking-wide text-white/70 uppercase">
               Activity
             </span>
-            <span className="text-[10px] text-white/30">
+            <span className="text-[11px] text-white/50">
               {filteredEntries.length}
             </span>
           </div>
@@ -238,7 +238,7 @@ export function ActivityPanel({
                 type="button"
                 data-testid="activity-clear"
                 onClick={log.clear}
-                className="text-[10px] text-white/40 hover:text-white/70 transition-colors px-2 py-1"
+                className="text-[11px] text-white/40 hover:text-white/70 transition-colors px-2 py-1"
               >
                 Clear
               </button>
@@ -273,7 +273,7 @@ export function ActivityPanel({
               data-testid="activity-empty"
               className="flex h-full items-center justify-center px-6 text-center"
             >
-              <p className="text-[11px] text-white/30">No activity yet.</p>
+              <p className="text-[11px] text-white/50">No activity yet.</p>
             </div>
           ) : (
             <div className="flex flex-col">

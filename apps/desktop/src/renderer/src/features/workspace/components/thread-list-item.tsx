@@ -30,7 +30,7 @@ export function ThreadListItem({
       className={cn(
         "group flex w-full items-center gap-1.5 px-1.5 py-1.5 text-left transition-all duration-[var(--duration-fast)]",
         "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-accent-ring)]",
-        isActive ? "text-white/90" : "text-white/30 hover:text-white/55",
+        isActive ? "text-white/90" : "text-white/50 hover:text-white/55",
         "cursor-pointer",
       )}
     >
@@ -39,7 +39,7 @@ export function ThreadListItem({
           "size-3 shrink-0 transition-colors duration-150",
           isActive
             ? "text-white/60"
-            : "text-white/20 group-hover:text-white/35",
+            : "text-white/45 group-hover:text-white/50",
         )}
         weight="regular"
       />
@@ -47,7 +47,7 @@ export function ThreadListItem({
         <span
           data-testid={isActive ? "current-thread-title" : undefined}
           className={cn(
-            "block truncate text-[10.5px] leading-none transition-colors duration-150",
+            "block truncate text-[11px] leading-none transition-colors duration-150",
             isActive
               ? "font-normal text-white/90"
               : "text-white/45 group-hover:text-white/60",

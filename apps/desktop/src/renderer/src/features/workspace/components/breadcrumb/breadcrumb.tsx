@@ -69,7 +69,7 @@ function BreadcrumbContextMenu({
   }
 
   const itemClass =
-    "flex items-center gap-2 w-full px-3 py-1.5 text-[10.5px] text-white/60 hover:text-white/80 hover:bg-white/[0.06] transition-colors duration-75";
+    "flex items-center gap-2 w-full px-3 py-1.5 text-[11px] text-white/60 hover:text-white/80 hover:bg-white/[0.06] transition-colors duration-75";
 
   return createPortal(
     <div
@@ -178,7 +178,7 @@ function OverflowSegments({
           <button
             key={segment.path}
             type="button"
-            className="flex w-full items-center px-2 py-1 text-[10.5px] text-white/60 hover:text-white/80 hover:bg-white/[0.06] transition-colors duration-75 text-left"
+            className="flex w-full items-center px-2 py-1 text-[11px] text-white/60 hover:text-white/80 hover:bg-white/[0.06] transition-colors duration-75 text-left"
             onClick={() => onNavigate(segment.path)}
             data-testid="breadcrumb-overflow-segment"
             data-path={segment.path}

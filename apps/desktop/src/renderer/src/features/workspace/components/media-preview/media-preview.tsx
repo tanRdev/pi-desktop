@@ -305,16 +305,16 @@ export function MediaPreview({ filePath, onClose }: MediaPreviewProps) {
       <div className="flex h-full flex-col">
         <div className="flex h-11 shrink-0 items-center justify-between border-b border-white/[0.04] bg-transparent px-3">
           <div className="flex items-center gap-2 overflow-hidden">
-            <span className="truncate text-[10.5px] font-normal uppercase tracking-wider text-white/30">
+            <span className="truncate text-[11px] font-normal uppercase tracking-wider text-white/50">
               {fileName}
             </span>
             {controls.naturalSize && (
-              <span className="shrink-0 text-[10px] text-white/20">
+              <span className="shrink-0 text-[11px] text-white/45">
                 {controls.naturalSize.width}×{controls.naturalSize.height}
               </span>
             )}
             {controls.zoom > 1 && (
-              <span className="shrink-0 text-[10px] text-white/20">
+              <span className="shrink-0 text-[11px] text-white/45">
                 {currentZoomDisplay}
               </span>
             )}
@@ -331,7 +331,7 @@ export function MediaPreview({ filePath, onClose }: MediaPreviewProps) {
             >
               <MagnifyingGlassMinus className={ICON_SIZE_SM} />
             </Button>
-            <span className="min-w-[3rem] text-center text-[10px] tabular-nums text-white/40">
+            <span className="min-w-[3rem] text-center text-[11px] tabular-nums text-white/40">
               {currentZoomDisplay}
             </span>
             <Button
@@ -383,7 +383,7 @@ export function MediaPreview({ filePath, onClose }: MediaPreviewProps) {
           {imageError ? (
             <div className="flex h-full flex-col items-center justify-center gap-3 text-white/50">
               <span className="text-sm">Unable to load image</span>
-              <span className="text-xs text-white/30">{fileName}</span>
+              <span className="text-xs text-white/50">{fileName}</span>
             </div>
           ) : (
             <div className="flex h-full w-full items-center justify-center">

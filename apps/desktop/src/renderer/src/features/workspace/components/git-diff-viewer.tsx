@@ -88,9 +88,9 @@ function DiffLine({
 }) {
   if (line.type === "hunk_header") {
     return (
-      <div className="flex font-mono text-[10px] leading-[18px] text-blue-400 select-none">
-        <span className="w-9 shrink-0 select-none text-right text-white/30 pr-2 border-r border-white/[0.06]" />
-        <span className="w-9 shrink-0 select-none text-right text-white/30 pr-2 border-r border-white/[0.06]" />
+      <div className="flex font-mono text-[11px] leading-[18px] text-blue-400 select-none">
+        <span className="w-9 shrink-0 select-none text-right text-white/50 pr-2 border-r border-white/[0.06]" />
+        <span className="w-9 shrink-0 select-none text-right text-white/50 pr-2 border-r border-white/[0.06]" />
         <span className="w-4 shrink-0 select-none text-center" />
         <span className="truncate pl-1 text-blue-400">{line.content}</span>
       </div>
@@ -124,11 +124,11 @@ function DiffLine({
   const middleStart = charDiff ? charDiff.prefix.length : 0;
 
   return (
-    <div className={cn("flex font-mono text-[10px] leading-[18px]", bgClass)}>
-      <span className="w-9 shrink-0 select-none text-right text-white/30 pr-2 border-r border-white/[0.06]">
+    <div className={cn("flex font-mono text-[11px] leading-[18px]", bgClass)}>
+      <span className="w-9 shrink-0 select-none text-right text-white/50 pr-2 border-r border-white/[0.06]">
         {isRemove ? lineNumber : emptyLineNum}
       </span>
-      <span className="w-9 shrink-0 select-none text-right text-white/30 pr-2 border-r border-white/[0.06]">
+      <span className="w-9 shrink-0 select-none text-right text-white/50 pr-2 border-r border-white/[0.06]">
         {isAdd ? lineNumber : emptyLineNum}
       </span>
       <span className={cn("w-4 shrink-0 select-none text-center", textClass)}>
@@ -179,7 +179,7 @@ export function pairRemoveAddLines(
 
 function HunkHeader({ hunk }: { hunk: GitDiffHunk }) {
   return (
-    <div className="flex items-center gap-2 px-2 py-1 bg-[var(--color-accent)]/[0.04] text-[10px] text-blue-400 font-mono select-none border-y border-white/[0.06]">
+    <div className="flex items-center gap-2 px-2 py-1 bg-[var(--color-accent)]/[0.04] text-[11px] text-blue-400 font-mono select-none border-y border-white/[0.06]">
       <span>
         @@ -{hunk.oldStart},{hunk.oldCount} +{hunk.newStart},{hunk.newCount} @@
       </span>
@@ -238,7 +238,7 @@ export function GitDiffViewer({ diff, onClose }: GitDiffViewerProps) {
       <div className="flex items-center gap-2 border-b border-white/[0.06] px-3 py-2 shrink-0">
         <div
           className={cn(
-            "text-[10px] font-bold font-mono px-1.5 py-0.5",
+            "text-[11px] font-bold font-mono px-1.5 py-0.5",
             diff.status === "added" || diff.status === "untracked"
               ? "text-[var(--color-accent)] bg-[var(--color-accent)]/10"
               : diff.status === "deleted"
@@ -258,11 +258,11 @@ export function GitDiffViewer({ diff, onClose }: GitDiffViewerProps) {
                   ? "R"
                   : "·"}
         </div>
-        <span className="truncate text-[10.5px] text-white/70 flex-1 min-w-0 font-mono">
+        <span className="truncate text-[11px] text-white/70 flex-1 min-w-0 font-mono">
           {diff.filePath}
         </span>
         <span
-          className="shrink-0 font-mono text-[9.5px] uppercase tracking-wide text-white/30"
+          className="shrink-0 font-mono text-[9.5px] uppercase tracking-wide text-white/50"
           title={`Language: ${language}`}
         >
           {language}
@@ -273,7 +273,7 @@ export function GitDiffViewer({ diff, onClose }: GitDiffViewerProps) {
           disabled={diff.binary || diff.hunks.length === 0}
           aria-label="Copy diff"
           title="Copy diff"
-          className="flex size-5 shrink-0 items-center justify-center text-white/30 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/70 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="flex size-5 shrink-0 items-center justify-center text-white/50 transition-colors duration-150 hover:bg-white/[0.06] hover:text-white/70 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {copied ? (
             <Check className="size-3 text-[var(--color-accent)]" />
@@ -285,7 +285,7 @@ export function GitDiffViewer({ diff, onClose }: GitDiffViewerProps) {
           type="button"
           onClick={onClose}
           aria-label="Close diff"
-          className="flex size-5 shrink-0 items-center justify-center text-white/30 transition-colors duration-150 hover:bg-white/[0.04] hover:text-white/70"
+          className="flex size-5 shrink-0 items-center justify-center text-white/50 transition-colors duration-150 hover:bg-white/[0.06] hover:text-white/70"
         >
           <X className="size-3" />
         </button>
@@ -299,11 +299,11 @@ export function GitDiffViewer({ diff, onClose }: GitDiffViewerProps) {
         data-language={language}
       >
         {diff.binary ? (
-          <div className="flex items-center justify-center h-32 text-[10px] text-white/30">
+          <div className="flex items-center justify-center h-32 text-[11px] text-white/50">
             Binary file
           </div>
         ) : diff.hunks.length === 0 ? (
-          <div className="flex items-center justify-center h-32 text-[10px] text-white/30">
+          <div className="flex items-center justify-center h-32 text-[11px] text-white/50">
             No changes
           </div>
         ) : (

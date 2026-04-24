@@ -27,11 +27,11 @@ export function SourceItem({
     >
       <ArrowSquareOut className="size-5 shrink-0 text-white/45" />
       <span className="min-w-0">
-        <span className="block truncate font-mono text-[10.5px] uppercase tracking-[0.16em] text-white/82">
+        <span className="block truncate font-mono text-[11px] uppercase tracking-[0.16em] text-white/82">
           {label}
         </span>
         {detail ? (
-          <span className="block truncate text-[10.5px] text-white/45">
+          <span className="block truncate text-[11px] text-white/45">
             {detail}
           </span>
         ) : null}

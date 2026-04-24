@@ -71,10 +71,10 @@ const DialogContent = React.forwardRef<
         <DialogPrimitive.Close
           aria-label="Close"
           className={cn(
-            "absolute right-0 top-0 p-3 text-white/30 transition-all duration-150",
-            "hover:text-white/60 hover:bg-white/[0.04]",
+            "absolute right-0 top-0 p-3 text-white/50 transition-all duration-150",
+            "hover:text-white/60 hover:bg-white/[0.06]",
             "focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 disabled:pointer-events-none",
-            "data-[state=open]:bg-white/[0.04]",
+            "data-[state=open]:bg-white/[0.06]",
           )}
         >
           <X className={ICON_SIZE_MD} />
@@ -136,7 +136,7 @@ const DialogDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Description
     ref={ref}
-    className={cn("text-xs text-white/40", className)}
+    className={cn("text-[11px] text-white/55", className)}
     {...props}
   />
 ));
