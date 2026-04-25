@@ -14,6 +14,10 @@ export default defineConfig({
   test: {
     projects: [
       "./apps/desktop/vitest.config.ts",
+      "./packages/agent-host/vitest.config.ts",
+      "./packages/contracts/vitest.config.ts",
+      "./packages/shared/vitest.config.ts",
+      "./packages/shell-model/vitest.config.ts",
       "./packages/ui/vitest.config.ts",
       {
         resolve: {

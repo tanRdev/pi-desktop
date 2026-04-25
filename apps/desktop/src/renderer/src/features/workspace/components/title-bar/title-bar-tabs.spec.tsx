@@ -35,6 +35,26 @@ afterEach(() => {
 });
 
 describe("TitleBarTabs", () => {
+  it("keeps visible focus styles on tabs", () => {
+    render(
+      <TitleBarTabs
+        activeThreadId="thread-1"
+        activeThreadTitle="Chat"
+        contextWindows={[makeFileWindow()]}
+        selectedContextSurface={null}
+      />,
+    );
+
+    expect(screen.getByRole("tab", { name: "Chat" })).toHaveClass(
+      "focus-visible:ring-1",
+      "focus-visible:ring-white/20",
+    );
+    expect(screen.getByRole("tab", { name: "App.tsx" })).toHaveClass(
+      "focus-visible:ring-1",
+      "focus-visible:ring-white/20",
+    );
+  });
+
   it("closes a file tab without selecting it first", async () => {
     const user = userEvent.setup();
     const onSelectContextSurface = vi.fn();

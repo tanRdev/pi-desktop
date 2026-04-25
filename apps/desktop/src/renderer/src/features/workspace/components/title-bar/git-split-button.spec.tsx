@@ -9,6 +9,34 @@ afterEach(() => {
 });
 
 describe("GitSplitButton", () => {
+  it("keeps visible focus styles on the main and menu buttons", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <GitSplitButton
+        hasActiveThread
+        hasChangesToCommit
+        hasCommitsToPush
+        isPromptExecuting={false}
+        onAgentGitAction={vi.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByRole("button", { name: /^Commit & Push$/i }),
+    ).toHaveClass("focus-visible:ring-1", "focus-visible:ring-white/20");
+    expect(
+      screen.getByRole("button", { name: "More git actions" }),
+    ).toHaveClass("focus-visible:ring-1", "focus-visible:ring-white/20");
+
+    await user.click(screen.getByRole("button", { name: "More git actions" }));
+
+    expect(screen.getByRole("button", { name: /^Fetch$/i })).toHaveClass(
+      "focus-visible:ring-1",
+      "focus-visible:ring-white/20",
+    );
+  });
+
   it("uses the newly selected action for the main button", async () => {
     const user = userEvent.setup();
     const onAgentGitAction = vi.fn();

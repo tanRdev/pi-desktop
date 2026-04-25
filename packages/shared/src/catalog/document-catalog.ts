@@ -127,6 +127,9 @@ export function decodeVersionedEnvelope<T>(
     if (!step) {
       return { ok: false, reason: "missing-migration" };
     }
+    if (step.to <= version) {
+      return { ok: false, reason: "bad-envelope" };
+    }
     try {
       data = step.migrate(data);
     } catch {

@@ -235,6 +235,26 @@ describe("PromptDock", () => {
     );
   });
 
+  it("renders favorite toggles as named sibling controls", async () => {
+    const user = userEvent.setup();
+
+    renderPromptDock({
+      favoriteModels: ["anthropic::claude-sonnet-4-20250514"],
+    });
+
+    await user.click(screen.getByTestId("model-selector-trigger"));
+
+    const favoriteToggle = screen.getByRole("button", {
+      name: "Remove Claude Sonnet 4 from favorites",
+    });
+    const favoriteRow = screen.getByTestId(
+      "model-option-anthropic-claude-sonnet-4-20250514",
+    );
+
+    expect(favoriteRow).toHaveAccessibleName("Claude Sonnet 4");
+    expect(favoriteToggle.parentElement).not.toBe(favoriteRow);
+  });
+
   it("does not show Favorites header when no models are favorited", async () => {
     const user = userEvent.setup();
 

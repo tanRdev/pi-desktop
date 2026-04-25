@@ -1,6 +1,6 @@
 import type { AgentSessionEvent } from "@mariozechner/pi-coding-agent";
 import type { AgentSnapshot, PiDesktopAgentEvent } from "@pi-desktop/shared";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { normalizeAgentSessionEvent } from "../events/normalize-agent-session-event.js";
 import { applyEventToSnapshot } from "../state/state-helpers.js";
@@ -53,6 +53,61 @@ function isMessageUpdateEvent(
 }
 
 describe("handleRpcLine", () => {
+  it("returns an error snapshot when a pending prompt response fails", async () => {
+    const handleRpcLine = await loadHandleRpcLine();
+
+    expect(handleRpcLine).not.toBeNull();
+
+    if (!handleRpcLine) {
+      return;
+    }
+
+    const snapshot: AgentSnapshot = {
+      sessionId: "cli-session",
+      status: "starting",
+      messages: [],
+      lastError: null,
+    };
+    const reject = vi.fn();
+    const pendingRequests = new Map<string, PendingRequest>([
+      [
+        "request-1",
+        {
+          command: "prompt",
+          resolve: vi.fn(),
+          reject,
+        },
+      ],
+    ]);
+
+    const result = handleRpcLine({
+      line: JSON.stringify({
+        type: "response",
+        id: "request-1",
+        command: "prompt",
+        success: false,
+        error: "model unavailable",
+      }),
+      snapshot,
+      pendingRequests,
+      setErrorState: (message, sessionId) => ({
+        ...snapshot,
+        sessionId,
+        status: "error",
+        lastError: message,
+      }),
+      normalizeEvent: () => null,
+      applyEvent: (currentSnapshot) => currentSnapshot,
+    });
+
+    expect(reject).toHaveBeenCalledOnce();
+    expect(result.snapshot).toEqual({
+      ...snapshot,
+      status: "error",
+      lastError: "model unavailable",
+    });
+  });
+
   it("applies agent message updates to the snapshot and emits the normalized event", async () => {
     const handleRpcLine = await loadHandleRpcLine();
 

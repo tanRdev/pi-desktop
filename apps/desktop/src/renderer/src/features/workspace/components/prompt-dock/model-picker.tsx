@@ -3,7 +3,7 @@ import { cn } from "@pi-desktop/ui";
 import { Skeleton } from "boneyard-js/react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
-import { CaretDown, Plus, Star } from "@/components/ui/phosphor-icons";
+import { CaretDown, Check, Plus, Star } from "@/components/ui/phosphor-icons";
 import {
   Popover,
   PopoverContent,
@@ -186,36 +186,38 @@ export function ModelPicker({
                 {favoriteModelsList.map((fav) => {
                   const isSelected = fav.value === currentModelValue;
                   return (
-                    <button
+                    <div
                       key={`fav-${fav.value}`}
-                      type="button"
-                      data-testid={`model-option-${fav.providerId}-${fav.modelId}`}
-                      onClick={() => handleSelect(fav.value)}
                       className={cn(
-                        "flex w-full items-center gap-2.5 px-2.5 py-2 text-left text-[11px] transition-colors",
+                        "flex w-full items-center text-[11px] transition-colors",
                         isSelected
                           ? "bg-white/[0.08] text-white"
                           : "text-white/70 hover:bg-white/[0.06] hover:text-white",
                       )}
                     >
-                      <ProviderIcon
-                        providerId={fav.providerId}
-                        className="shrink-0"
-                      />
-                      <span className="truncate">{fav.modelName}</span>
+                      <button
+                        type="button"
+                        data-testid={`model-option-${fav.providerId}-${fav.modelId}`}
+                        onClick={() => handleSelect(fav.value)}
+                        className="flex min-w-0 flex-1 items-center gap-2.5 px-2.5 py-2 text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20"
+                      >
+                        <ProviderIcon
+                          providerId={fav.providerId}
+                          className="shrink-0"
+                        />
+                        <span className="truncate">{fav.modelName}</span>
+                      </button>
                       <button
                         type="button"
                         data-testid={`toggle-favorite-${fav.providerId}-${fav.modelId}`}
-                        className="ml-auto shrink-0 p-0.5 text-amber-400/80 hover:text-amber-400 transition-colors"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onToggleFavorite?.(fav.value);
-                        }}
+                        aria-label={`Remove ${fav.modelName} from favorites`}
+                        className="shrink-0 p-0.5 text-amber-400/80 transition-colors hover:text-amber-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20"
+                        onClick={() => onToggleFavorite?.(fav.value)}
                       >
                         <Star weight="fill" className="size-3.5" />
                       </button>
                       {isSelected && <SelectedCheck />}
-                    </button>
+                    </div>
                   );
                 })}
                 <div className="my-1 h-px bg-white/[0.06]" />
@@ -240,32 +242,34 @@ export function ModelPicker({
                     const value = `${provider.id}::${model.id}`;
                     const isSelected = value === currentModelValue;
                     return (
-                      <button
+                      <div
                         key={`${provider.id}:${model.id}`}
-                        type="button"
-                        data-testid={`model-option-${provider.id}-${model.id}`}
-                        onClick={() => handleSelect(value)}
                         className={cn(
-                          "flex w-full items-center gap-2.5 px-2.5 py-2 text-left text-[11px] transition-colors",
+                          "flex w-full items-center text-[11px] transition-colors",
                           isSelected
                             ? "bg-white/[0.08] text-white"
                             : "text-white/70 hover:bg-white/[0.06] hover:text-white",
                         )}
                       >
-                        <span className="truncate">{model.name}</span>
+                        <button
+                          type="button"
+                          data-testid={`model-option-${provider.id}-${model.id}`}
+                          onClick={() => handleSelect(value)}
+                          className="flex min-w-0 flex-1 items-center gap-2.5 px-2.5 py-2 text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20"
+                        >
+                          <span className="truncate">{model.name}</span>
+                        </button>
                         <button
                           type="button"
                           data-testid={`toggle-favorite-${provider.id}-${model.id}`}
-                          className="ml-auto shrink-0 p-0.5 text-white/45 hover:text-amber-400/80 transition-colors"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onToggleFavorite?.(value);
-                          }}
+                          aria-label={`Add ${model.name} to favorites`}
+                          className="shrink-0 p-0.5 text-white/45 transition-colors hover:text-amber-400/80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20"
+                          onClick={() => onToggleFavorite?.(value)}
                         >
                           <Star weight="regular" className="size-3.5" />
                         </button>
                         {isSelected && <SelectedCheck />}
-                      </button>
+                      </div>
                     );
                   })}
                 </div>
@@ -279,18 +283,7 @@ export function ModelPicker({
 }
 
 function SelectedCheck() {
-  return (
-    <svg
-      className="size-4 text-white/60 shrink-0"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-      aria-hidden="true"
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-    </svg>
-  );
+  return <Check className="size-4 shrink-0 text-white/60" aria-hidden="true" />;
 }
 
 export function getCurrentModelName(

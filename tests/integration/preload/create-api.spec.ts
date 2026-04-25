@@ -814,4 +814,19 @@ describe("createPiDesktopApi", () => {
       "importLegacyPreferences(importData: LegacyPreferencesImport)",
     );
   });
+
+  it("keeps preload contract invocation free of runtime contracts package imports", async () => {
+    const source = await import("node:fs/promises").then((fs) =>
+      fs.readFile(
+        new URL("../../../apps/desktop/src/preload/api.ts", import.meta.url),
+        "utf8",
+      ),
+    );
+
+    expect(source).not.toContain('from "@pi-desktop/contracts"');
+    expect(source).toContain("invokeNoPayload<ShellSnapshot>");
+    expect(source).toContain("invokeNoPayload<ProviderSnapshot[]>");
+    expect(source).toContain("invokeNoPayload<SettingsSnapshot>");
+    expect(source).toContain("invokeNoPayload<AgentSnapshot>");
+  });
 });

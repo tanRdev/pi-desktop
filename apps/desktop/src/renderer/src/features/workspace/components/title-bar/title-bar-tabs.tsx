@@ -46,7 +46,7 @@ function TitleBarTab({
       className={cn(
         "group flex h-7 min-w-0 max-w-[160px] items-center gap-1.5 px-2",
         "text-[11px] uppercase tracking-wider transition-colors duration-150",
-        "focus:outline-none focus-visible:outline-none cursor-pointer select-none",
+        "focus:outline-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20 cursor-pointer select-none",
         isActive
           ? "text-white/90 border-b border-white/20"
           : "text-white/40 hover:text-white/70 border-b border-transparent",

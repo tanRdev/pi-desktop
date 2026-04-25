@@ -1,8 +1,5 @@
 import {
-  createContractInvoker,
-  snapshotContracts,
-} from "@pi-desktop/contracts";
-import {
+  type AgentSnapshot,
   type AutocompleteContext,
   type AutocompleteSuggestions,
   type GitFileDiff,
@@ -22,8 +19,11 @@ import {
   type PiDesktopAgentEvent,
   type PiDesktopApi,
   type PiDiscoveryResult,
+  type ProviderSnapshot,
   type SearchRequest,
   type SearchResponse,
+  type SettingsSnapshot,
+  type ShellSnapshot,
   type TerminalCreateOptions,
   type TerminalSession,
 } from "@pi-desktop/shared";
@@ -56,62 +56,60 @@ export function createPiDesktopApi({
   invoke,
   on,
 }: CreatePiDesktopApiDependencies): PiDesktopApiWithUpdates {
-  const invokeContract = createContractInvoker(invoke);
+  const { agent, shell } = IPC_CHANNELS;
+  const invokeNoPayload = <TResponse>(channel: string) =>
+    invoke<TResponse>(channel, undefined);
 
   return {
     shell: {
       getSnapshot() {
-        return invokeContract(snapshotContracts.shell.getSnapshot);
+        return invokeNoPayload<ShellSnapshot>(shell.getSnapshot);
       },
     },
     agent: {
       getProviders() {
-        return invokeContract(snapshotContracts.agent.getProviders);
+        return invokeNoPayload<ProviderSnapshot[]>(agent.getProviders);
       },
       getSettings() {
-        return invokeContract(snapshotContracts.agent.getSettings);
+        return invokeNoPayload<SettingsSnapshot>(agent.getSettings);
       },
       getSnapshot() {
-        return invokeContract(snapshotContracts.agent.getSnapshot);
+        return invokeNoPayload<AgentSnapshot>(agent.getSnapshot);
       },
       getOAuthProviders() {
-        return invoke<OAuthProviderSnapshot[]>(
-          IPC_CHANNELS.agent.getOAuthProviders,
-          undefined,
+        return invokeNoPayload<OAuthProviderSnapshot[]>(
+          agent.getOAuthProviders,
         );
       },
       loginWithOAuth(providerId: string) {
-        return invoke<void>(IPC_CHANNELS.agent.loginWithOAuth, { providerId });
+        return invoke<void>(agent.loginWithOAuth, { providerId });
       },
       logoutOAuth(providerId: string) {
-        return invoke<void>(IPC_CHANNELS.agent.logoutOAuth, { providerId });
+        return invoke<void>(agent.logoutOAuth, { providerId });
       },
       prompt(text: string) {
-        return invoke<void>(IPC_CHANNELS.agent.prompt, { text });
+        return invoke<void>(agent.prompt, { text });
       },
       cancelPrompt() {
-        return invoke<void>(IPC_CHANNELS.agent.cancelPrompt, undefined);
+        return invokeNoPayload<void>(agent.cancelPrompt);
       },
       reset() {
-        return invoke<void>(IPC_CHANNELS.agent.reset, undefined);
+        return invokeNoPayload<void>(agent.reset);
       },
       switchModel(request: ModelSwitchRequest) {
-        return invoke<void>(IPC_CHANNELS.agent.switchModel, request);
+        return invoke<void>(agent.switchModel, request);
       },
       getDiscovery() {
-        return invoke<PiDiscoveryResult>(
-          IPC_CHANNELS.agent.getDiscovery,
-          undefined,
-        );
+        return invokeNoPayload<PiDiscoveryResult>(agent.getDiscovery);
       },
       getSlashSuggestions(context: AutocompleteContext) {
         return invoke<AutocompleteSuggestions>(
-          IPC_CHANNELS.agent.getSlashSuggestions,
+          agent.getSlashSuggestions,
           context,
         );
       },
       subscribe(listener: (event: PiDesktopAgentEvent) => void) {
-        return on<PiDesktopAgentEvent>(IPC_CHANNELS.agent.event, listener);
+        return on<PiDesktopAgentEvent>(agent.event, listener);
       },
     },
     repositories: {

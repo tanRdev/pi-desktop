@@ -131,7 +131,7 @@ export function GitSplitButton({
           mainButtonDisabled && showGlow
             ? "hover:bg-transparent"
             : mainButtonDisabled && "hover:bg-transparent hover:text-white/70",
-          "focus:outline-none focus-visible:outline-none",
+          "focus:outline-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20",
         )}
       >
         <CurrentIcon className="size-3.5" />
@@ -149,7 +149,7 @@ export function GitSplitButton({
               "flex items-center justify-center px-1.5 text-white/70 transition-colors duration-150",
               "hover:bg-white/[0.06] hover:text-white/90",
               "disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-white/70",
-              "focus:outline-none focus-visible:outline-none",
+              "focus:outline-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20",
             )}
           >
             <CaretDown className="size-3.5" />
@@ -181,7 +181,7 @@ export function GitSplitButton({
                       ? "text-white/90 bg-white/[0.06]"
                       : "text-white/70 hover:bg-white/[0.06] hover:text-white/90",
                     itemDisabled && "opacity-40 cursor-not-allowed",
-                    "focus:outline-none focus-visible:outline-none",
+                    "focus:outline-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20",
                   )}
                 >
                   <Icon className="size-3.5" />

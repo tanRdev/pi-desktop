@@ -244,6 +244,7 @@ Starts the Electron app in development mode with hot reload for the renderer pro
 | `bun run dev` | Start dev server with hot reload |
 | `bun run lint` | Run Biome linter |
 | `bun run format` | Apply Biome formatting |
+| `bun run prepare` | Configure Git to use the tracked `.githooks/` hooks |
 | `bun run typecheck` | Type-check all workspaces |
 | `bun run test` | Run workspace Vitest tests, including `tests/integration/` |
 
@@ -294,6 +295,8 @@ cd pi-desktop
 bun install
 bun run dev
 ```
+
+`bun install` runs the `prepare` script and configures the tracked pre-commit hook automatically. If your package manager skips lifecycle scripts, run `bun run prepare` or `git config core.hooksPath .githooks` once after cloning.
 
 ### Code Standards
 

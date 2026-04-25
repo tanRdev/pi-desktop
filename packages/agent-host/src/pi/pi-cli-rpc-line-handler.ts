@@ -65,9 +65,14 @@ export function handleRpcLine({
     pendingRequests.delete(requestId);
 
     if (!parsed.success) {
-      pendingRequest.reject(
-        new Error(parsed.error ?? `Pi RPC ${pendingRequest.command} failed`),
-      );
+      const message = parsed.error ?? `Pi RPC ${pendingRequest.command} failed`;
+      pendingRequest.reject(new Error(message));
+      if (pendingRequest.command === "prompt") {
+        return {
+          snapshot: setErrorState(message, snapshot.sessionId),
+          event: null,
+        };
+      }
       return { snapshot, event: null };
     }
 

@@ -6,8 +6,8 @@ import {
   completeCurrentTurn,
   ensureCurrentLiveTurn,
   startLiveTurn,
-} from "./agent-feed-live-state";
-import type { AgentLiveFeed, AgentLiveTurn } from "./agent-feed-types";
+} from "./agent-feed-live-state.js";
+import type { AgentLiveFeed, AgentLiveTurn } from "./agent-feed-types.js";
 
 function appendUnique(values: string[], value: string): string[] {
   return values.includes(value) ? values : [...values, value];

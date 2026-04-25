@@ -122,10 +122,15 @@ function mergeAppPreferences(
     updates.leftSidebarWidth === undefined
       ? current.leftSidebarWidth
       : updates.leftSidebarWidth;
+  const favoriteModels =
+    updates.favoriteModels === undefined
+      ? current.favoriteModels
+      : updates.favoriteModels;
 
   return {
     ...(leftSidebarWidth === undefined ? {} : { leftSidebarWidth }),
     ...(nextAi === undefined ? {} : { ai: nextAi }),
+    ...(favoriteModels === undefined ? {} : { favoriteModels }),
   };
 }
 

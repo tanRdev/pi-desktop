@@ -452,6 +452,39 @@ async function bootstrapDesktop() {
     },
   );
 
+  const { activateWorkspacePath, switchRepositoryPath } =
+    createWorkspaceActivationRouter<
+      {
+        context: SelectedThreadContext;
+        host: AgentDesktopHost;
+        transport: AgentHostSocketTransport;
+      },
+      AgentDesktopHost,
+      SelectedThreadContext
+    >({
+      inspectPath: (targetPath) => gitService.inspect(targetPath),
+      attachToPath,
+      commitAttachment,
+      selectFolderWorkspace: (
+        targetPath,
+        message,
+        subscribeToHostForSelection,
+      ) =>
+        workspaceSelectionActions.selectFolderWorkspace(
+          targetPath,
+          message,
+          (host) => subscribeToHostForSelection(host),
+        ),
+      subscribeToHost: (host) => subscribeToHost(host, null),
+      nonRepositoryWorkspaceMessage: NON_REPOSITORY_WORKSPACE_MESSAGE,
+      resolveDefaultThreadContext,
+      switchContextInBackground,
+      upsertRepository: (input) => repositoryCatalog.upsert(input),
+      selectWorktreeWithoutThread: (repositoryId, worktreePath) =>
+        selectWorktreeWithoutThread(repositoryId, worktreePath),
+      notifySessionChanged,
+    });
+
   const preferredSelection = selectionState.get();
   const {
     preferredWorkspacePath,
@@ -566,39 +599,6 @@ async function bootstrapDesktop() {
       });
     },
   });
-
-  const { activateWorkspacePath, switchRepositoryPath } =
-    createWorkspaceActivationRouter<
-      {
-        context: SelectedThreadContext;
-        host: AgentDesktopHost;
-        transport: AgentHostSocketTransport;
-      },
-      AgentDesktopHost,
-      SelectedThreadContext
-    >({
-      inspectPath: (targetPath) => gitService.inspect(targetPath),
-      attachToPath,
-      commitAttachment,
-      selectFolderWorkspace: (
-        targetPath,
-        message,
-        subscribeToHostForSelection,
-      ) =>
-        workspaceSelectionActions.selectFolderWorkspace(
-          targetPath,
-          message,
-          (host) => subscribeToHostForSelection(host),
-        ),
-      subscribeToHost: (host) => subscribeToHost(host, null),
-      nonRepositoryWorkspaceMessage: NON_REPOSITORY_WORKSPACE_MESSAGE,
-      resolveDefaultThreadContext,
-      switchContextInBackground,
-      upsertRepository: (input) => repositoryCatalog.upsert(input),
-      selectWorktreeWithoutThread: (repositoryId, worktreePath) =>
-        selectWorktreeWithoutThread(repositoryId, worktreePath),
-      notifySessionChanged,
-    });
 
   const shellStateIpc = createShellStateIpcDependencies({
     appName: app.getName(),

@@ -315,15 +315,21 @@ export const ProviderSnapshotSchema = Schema.Struct({
 
 export const ProviderSnapshotArraySchema = mutableArray(ProviderSnapshotSchema);
 
-/**
- * SettingsSnapshot has an open `[key: string]: unknown` index signature. We
- * validate as a plain record of unknown values — any shape passes — and let
- * the TS index signature cover the specific known keys at the type level.
- */
-export const SettingsSnapshotSchema = Schema.Record({
-  key: Schema.String,
-  value: Schema.Unknown,
-});
+export const SettingsSnapshotSchema = Schema.Struct(
+  {
+    currentProviderId: Schema.optional(Schema.String),
+    currentModelId: Schema.optional(Schema.String),
+    defaultProvider: Schema.optional(Schema.String),
+    defaultModel: Schema.optional(Schema.String),
+    thinkingLevel: Schema.optional(
+      Schema.Literal("none", "low", "medium", "high"),
+    ),
+  },
+  {
+    key: Schema.String,
+    value: Schema.Unknown,
+  },
+) satisfies Schema.Schema<SettingsSnapshot>;
 
 const ContextUsageSnapshotSchema = Schema.Struct({
   tokens: Schema.NullOr(Schema.Number),
