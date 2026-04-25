@@ -1,13 +1,13 @@
 import { ArrowClockwise, BracketsCurly } from "@phosphor-icons/react";
+import { cn } from "@pi-desktop/ui";
 import * as React from "react";
 import {
   ICON_SIZE_SM,
   MagnifyingGlass,
   TextAa,
   X,
-} from "@/components/ui/icons";
+} from "@/components/ui/phosphor-icons";
 import { type FileIcon, getFileIconByExtension } from "@/lib/file-icons";
-import { cn } from "@/lib/utils";
 import {
   type FileMatch,
   type HighlightRange,

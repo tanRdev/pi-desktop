@@ -1,10 +1,10 @@
+import { cn } from "@pi-desktop/ui";
 import * as React from "react";
-import { Chat, File, X } from "@/components/ui/icons";
+import { Chat, File, X } from "@/components/ui/phosphor-icons";
 import type {
   ContextSurfaceKey,
   ContextWindow,
 } from "@/features/workspace/workspace-pane-state";
-import { cn } from "@/lib/utils";
 
 const EMPTY_CONTEXT_WINDOWS: ContextWindow[] = [];
 

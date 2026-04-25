@@ -7,15 +7,8 @@ import type {
   SearchResponse,
 } from "@pi-desktop/shared";
 import { Duration, Effect } from "effect";
-import { createModuleLogger } from "./effect/logger";
 
 const DEFAULT_TIMEOUT_MS = 10_000;
-
-const logger = createModuleLogger("workspace-search");
-
-function fireAndForget(effect: Effect.Effect<void, unknown>): void {
-  Effect.runFork(effect);
-}
 
 function globToRegExp(pattern: string): RegExp {
   const esc = pattern.replace(/[.+^${}()|\\]/g, "\\$&");

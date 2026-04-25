@@ -32,6 +32,7 @@
         "@monaco-editor/react": "^4.7.0",
         "@phosphor-icons/react": "^2.1.10",
         "@pi-desktop/agent-host": "workspace:*",
+        "@pi-desktop/contracts": "workspace:*",
         "@pi-desktop/shared": "workspace:*",
         "@pi-desktop/shell-model": "workspace:*",
         "@pi-desktop/ui": "workspace:*",
@@ -89,6 +90,14 @@
         "effect": "^3.21.0",
       },
     },
+    "packages/contracts": {
+      "name": "@pi-desktop/contracts",
+      "version": "0.1.0",
+      "dependencies": {
+        "@pi-desktop/shared": "workspace:*",
+        "effect": "^3.21.0",
+      },
+    },
     "packages/shared": {
       "name": "@pi-desktop/shared",
       "version": "0.1.0",
@@ -107,6 +116,8 @@
       "name": "@pi-desktop/ui",
       "version": "0.1.0",
       "dependencies": {
+        "@fontsource-variable/dm-sans": "^5.2.8",
+        "@fontsource/ibm-plex-mono": "^5.2.7",
         "@phosphor-icons/react": "^2.1.10",
         "@radix-ui/react-tooltip": "^1.2.8",
         "clsx": "^2.1.1",
@@ -485,6 +496,8 @@
     "@phosphor-icons/react": ["@phosphor-icons/react@2.1.10", "", { "peerDependencies": { "react": ">= 16.8", "react-dom": ">= 16.8" } }, "sha512-vt8Tvq8GLjheAZZYa+YG/pW7HDbov8El/MANW8pOAz4eGxrwhnbfrQZq0Cp4q8zBEu8NIhHdnr+r8thnfRSNYA=="],
 
     "@pi-desktop/agent-host": ["@pi-desktop/agent-host@workspace:packages/agent-host"],
+
+    "@pi-desktop/contracts": ["@pi-desktop/contracts@workspace:packages/contracts"],
 
     "@pi-desktop/desktop": ["@pi-desktop/desktop@workspace:apps/desktop"],
 

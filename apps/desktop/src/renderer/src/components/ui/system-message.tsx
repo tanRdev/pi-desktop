@@ -1,6 +1,6 @@
 import { Info, Sparkle, Warning } from "@phosphor-icons/react";
+import { cn } from "@pi-desktop/ui";
 import type * as React from "react";
-import { cn } from "@/lib/utils";
 
 type SystemMessageTone = "info" | "success" | "warning" | "error";
 

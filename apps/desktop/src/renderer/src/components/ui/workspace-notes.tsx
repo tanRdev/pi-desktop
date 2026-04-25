@@ -1,7 +1,7 @@
 "use client";
 
+import { cn } from "@pi-desktop/ui";
 import * as React from "react";
-import { cn } from "@/lib/utils";
 import { Markdown } from "./markdown";
 import { ScrollArea } from "./scroll-area";
 

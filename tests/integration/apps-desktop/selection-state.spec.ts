@@ -45,6 +45,35 @@ describe("SelectionState", () => {
     });
   });
 
+  it("normalizes repository and worktree ids on set and replace", () => {
+    const userDataPath = createUserDataPath();
+    const selection = new SelectionState(userDataPath);
+
+    expect(
+      selection.set({
+        repositoryId: "repo-1/",
+        worktreeId: "repo-1/main/",
+        threadId: "thread-1",
+      }),
+    ).toEqual({
+      repositoryId: "repo-1",
+      worktreeId: "repo-1/main",
+      threadId: "thread-1",
+    });
+
+    expect(
+      selection.replace({
+        repositoryId: "repo-2/",
+        worktreeId: "repo-2/feature/",
+        threadId: null,
+      }),
+    ).toEqual({
+      repositoryId: "repo-2",
+      worktreeId: "repo-2/feature",
+      threadId: null,
+    });
+  });
+
   it("clears persisted selection state", () => {
     const userDataPath = createUserDataPath();
     const selection = new SelectionState(userDataPath);

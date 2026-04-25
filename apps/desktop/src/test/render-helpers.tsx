@@ -1,10 +1,10 @@
+import { TooltipProvider } from "@pi-desktop/ui";
 import {
   type RenderOptions,
   type RenderResult,
   render,
 } from "@testing-library/react";
 import type { ReactElement } from "react";
-import { TooltipProvider } from "../renderer/src/components/ui/tooltip";
 
 /**
  * Wrap `render()` with the global providers most workspace components require.

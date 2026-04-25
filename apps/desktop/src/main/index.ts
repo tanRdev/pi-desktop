@@ -2,14 +2,9 @@ import { existsSync, mkdirSync, rmSync } from "node:fs";
 import path from "node:path";
 import type {
   AgentSnapshot,
-  AutocompleteContext,
-  AutocompleteSuggestions,
   ModelSwitchRequest,
   PiDesktopAgentEvent,
-  PiDiscoveryResult,
   ProviderSnapshot,
-  SearchRequest,
-  SearchResponse,
   SettingsSnapshot,
 } from "@pi-desktop/shared";
 import { IPC_CHANNELS } from "@pi-desktop/shared";
@@ -23,75 +18,67 @@ import {
   session,
   shell,
 } from "electron";
-import {
-  DEFAULT_UNTITLED_THREAD_TITLE,
-  generateThreadTitleFromMessage,
-  getDefaultThreadTitle,
-} from "../thread-title-defaults";
+import { getDefaultThreadTitle } from "../thread-title-defaults";
 import { createAgentHostClient } from "./agent-host-client";
 import {
   createUnavailableAgentHost,
   resolveAgentRuntimeOptions,
 } from "./agent-host-runtime";
 import agentHostSessionServerEntryPath from "./agent-host-session-server-entry?modulePath";
-import {
-  type AgentHostSocketTransport,
-  createAgentHostSocketTransport,
-} from "./agent-host-socket-transport";
+import type { AgentHostSocketTransport } from "./agent-host-socket-transport";
 import { AppPreferencesCatalog } from "./app-preferences-catalog";
 import { initAutoUpdater } from "./auto-updater";
+import { connectAgentHostWithRetry } from "./bootstrap/agent-host-connection";
+import { createAgentRuntimeHandlers } from "./bootstrap/agent-runtime-handlers";
+import { registerDesktopAppLifecycle } from "./bootstrap/app-lifecycle";
+import { installApplicationMenu } from "./bootstrap/application-menu";
 import { resolveInitialWorkspaceTarget } from "./bootstrap/initial-workspace";
-import { switchModelForContext } from "./bootstrap/model-switch";
+import { activateInitialWorkspaceSelection } from "./bootstrap/initial-workspace-activation";
+import {
+  createAgentIpcHost,
+  createDesktopIpcHandlerDependencies,
+} from "./bootstrap/ipc-registration";
+import {
+  createMainWindow,
+  subscribeToFullscreenChanges,
+} from "./bootstrap/main-window";
+import { createAndTrackMainWindow } from "./bootstrap/main-window-lifecycle";
+import { createOAuthPromptBridge } from "./bootstrap/oauth-prompt-bridge";
+import { createShellStateIpcDependencies } from "./bootstrap/shell-state-ipc";
 import {
   buildThreadContext as buildThreadContextFromHelper,
   type ResolvedRepositoryInspection,
   type SelectedThreadContext,
 } from "./bootstrap/thread-context";
+import { createThreadContextActions } from "./bootstrap/thread-context-actions";
+import { createThreadWorkspaceActions } from "./bootstrap/thread-workspace-actions";
+import { createWorkspaceActivationRouter } from "./bootstrap/workspace-activation-router";
 import { resolveWorkspaceInspection } from "./bootstrap/workspace-inspection";
+import { createWorkspaceRemovalActions } from "./bootstrap/workspace-removal-actions";
+import { createWorkspaceSelectionActions } from "./bootstrap/workspace-selection-actions";
 import { createContextSwitchController } from "./context-switch-controller";
-import { fromUnknownError, PiError } from "./effect/errors";
-import { runEffect, runEffectVoid } from "./effect/runtime";
+import { PiError } from "./effect/errors";
+import { runEffectVoid } from "./effect/runtime";
 import { GitWorktreeService } from "./git-worktree-service";
 import { createSanitizingHandle } from "./ipc/sanitize-ipc-error";
 import { registerIpcHandlers } from "./ipc-router";
 import { LocalThreadRuntimeManager } from "./local-thread-runtime-manager";
 import { PackagesServiceImpl } from "./packages/packages-service-impl";
 import { flushAllPersistentJsonFiles } from "./persistent-json-file";
-import {
-  getOAuthProvidersForAgentDir,
-  loginWithOAuthForAgentDir,
-  logoutOAuthForAgentDir,
-} from "./pi-oauth-service";
-import {
-  discoverPiResources,
-  getPiSlashSuggestions,
-} from "./pi-resource-discovery";
 import { RepositoryCatalog } from "./repository-catalog";
 import { RepositoryPreferencesCatalog } from "./repository-preferences-catalog";
 import { installSecurityHeaders } from "./security/csp";
 import { SelectionState } from "./selection-state";
-import { buildShellCatalog } from "./shell-catalog-builder";
-import { createShellSnapshot } from "./shell-snapshot";
 import { terminalManager } from "./terminal-manager";
 import { ThreadCatalog, type ThreadCatalogEntry } from "./thread-catalog";
 import { createThreadRuntimeLaunchDetails } from "./thread-runtime-launch";
-import {
-  createMainWindowOptions,
-  hardenMainWindow,
-  resolvePreloadTarget,
-  resolveRendererTarget,
-  shouldDeferWindowShowUntilReady,
-  shouldQuitWhenAllWindowsClosed,
-  shouldShowMainWindow,
-} from "./window-config";
+import { shouldQuitWhenAllWindowsClosed } from "./window-config";
 import { WorkspaceSearchService } from "./workspace-search-service";
 import { WorkspaceSessionCatalog } from "./workspace-session-catalog";
 
 let mainWindow: BrowserWindow | null = null;
 
 const AGENT_BOOTSTRAP_ERROR_SESSION_ID = "bootstrap-error";
-const SOCKET_CONNECT_TIMEOUT_MS = 5_000;
-const SOCKET_CONNECT_RETRY_MS = 50;
 const NON_REPOSITORY_WORKSPACE_MESSAGE =
   "This folder is open, but it is not a git repository.";
 
@@ -170,93 +157,10 @@ function createBootstrapErrorHost(message: string): AgentDesktopHost {
   };
 }
 
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 function getEventTimestamp(event: PiDesktopAgentEvent): number | null {
   return "timestamp" in event && typeof event.timestamp === "number"
     ? event.timestamp
     : null;
-}
-
-async function createMainWindow() {
-  const rendererUrl = process.env.ELECTRON_RENDERER_URL;
-  const windowOptions = createMainWindowOptions({
-    preloadPath: resolvePreloadTarget(import.meta.url),
-  });
-  const window = new BrowserWindow(windowOptions);
-  hardenMainWindow(window);
-
-  if (shouldShowMainWindow(process.env)) {
-    const showWindow = () => {
-      window.show();
-    };
-
-    if (shouldDeferWindowShowUntilReady(windowOptions)) {
-      window.once("ready-to-show", showWindow);
-    } else {
-      showWindow();
-    }
-  }
-
-  const rendererTarget = resolveRendererTarget(rendererUrl, import.meta.url);
-  if (rendererTarget.kind === "url") {
-    await window.loadURL(rendererTarget.value);
-  } else {
-    await window.loadFile(rendererTarget.value);
-  }
-
-  return window;
-}
-
-async function promptForOAuthInput(params: {
-  providerId: string;
-  message: string;
-  authUrl?: string;
-  verificationUri?: string;
-  userCode?: string;
-}): Promise<string> {
-  if (!mainWindow) {
-    throw new Error("Main window is unavailable");
-  }
-
-  const detailLines = [
-    params.message,
-    params.authUrl ? `URL: ${params.authUrl}` : null,
-    params.verificationUri ? `Verify at: ${params.verificationUri}` : null,
-    params.userCode ? `Code: ${params.userCode}` : null,
-  ].filter((value): value is string => Boolean(value));
-
-  const response = await mainWindow.webContents.executeJavaScript(
-    `window.prompt(${JSON.stringify(detailLines.join("\n\n"))}, "")`,
-    true,
-  );
-
-  if (typeof response !== "string") {
-    throw new Error(`OAuth input cancelled for ${params.providerId}`);
-  }
-
-  return response.trim();
-}
-
-function subscribeToFullscreenChanges(window: BrowserWindow) {
-  const emitFullscreenState = () => {
-    window.webContents.send(
-      IPC_CHANNELS.window.fullscreenChanged,
-      window.isFullScreen(),
-    );
-  };
-
-  window.on("enter-full-screen", emitFullscreenState);
-  window.on("leave-full-screen", emitFullscreenState);
-  window.on("ready-to-show", emitFullscreenState);
-
-  return () => {
-    window.removeListener("enter-full-screen", emitFullscreenState);
-    window.removeListener("leave-full-screen", emitFullscreenState);
-    window.removeListener("ready-to-show", emitFullscreenState);
-  };
 }
 
 async function bootstrapDesktop() {
@@ -270,142 +174,15 @@ async function bootstrapDesktop() {
   });
 
   const isMac = process.platform === "darwin";
-  const template: Electron.MenuItemConstructorOptions[] = [
-    ...(isMac
-      ? [
-          {
-            label: app.name,
-            submenu: [
-              { role: "about" } as Electron.MenuItemConstructorOptions,
-              { type: "separator" } as Electron.MenuItemConstructorOptions,
-              {
-                label: "Uninstall Pi Desktop...",
-                click: async () => {
-                  const response = await dialog.showMessageBox({
-                    type: "warning",
-                    buttons: ["Cancel", "Uninstall"],
-                    defaultId: 1,
-                    title: "Uninstall Pi Desktop",
-                    message: "Are you sure you want to uninstall Pi Desktop?",
-                    detail:
-                      "This will remove the application, your settings, and cached data. This action cannot be undone.",
-                  });
-
-                  if (response.response === 1) {
-                    const doUninstall = (): void => {
-                      const userDataPath = app.getPath("userData");
-                      const appPath = app.getPath("exe");
-
-                      if (existsSync(userDataPath)) {
-                        rmSync(userDataPath, {
-                          recursive: true,
-                          force: true,
-                        });
-                      }
-
-                      if (isMac && app.isPackaged) {
-                        const appBundlePath = appPath.substring(
-                          0,
-                          appPath.indexOf(".app") + 4,
-                        );
-                        if (existsSync(appBundlePath)) {
-                          app.relaunch({
-                            args: ["--uninstall-script", appBundlePath],
-                          });
-                          app.quit();
-                          return;
-                        }
-                      }
-
-                      dialog.showMessageBoxSync({
-                        message:
-                          "Pi Desktop data removed. You can now move the app to Trash.",
-                      });
-                      app.quit();
-                    };
-                    const uninstallEffect = Effect.try({
-                      try: doUninstall,
-                      catch: (err) =>
-                        PiError.of("EINTERNAL", "Uninstall failed", err),
-                    }).pipe(
-                      Effect.catchAll((err) =>
-                        Effect.sync(() =>
-                          dialog.showErrorBox("Uninstall Failed", err.message),
-                        ),
-                      ),
-                    );
-                    runEffectVoid(uninstallEffect);
-                  }
-                },
-              },
-              { type: "separator" } as Electron.MenuItemConstructorOptions,
-              { role: "services" } as Electron.MenuItemConstructorOptions,
-              { type: "separator" } as Electron.MenuItemConstructorOptions,
-              { role: "hide" } as Electron.MenuItemConstructorOptions,
-              { role: "hideOthers" } as Electron.MenuItemConstructorOptions,
-              { role: "unhide" } as Electron.MenuItemConstructorOptions,
-              { type: "separator" } as Electron.MenuItemConstructorOptions,
-              { role: "quit" } as Electron.MenuItemConstructorOptions,
-            ],
-          },
-        ]
-      : []),
-    {
-      label: "Edit",
-      submenu: [
-        { role: "undo" },
-        { role: "redo" },
-        { type: "separator" },
-        { role: "cut" },
-        { role: "copy" },
-        { role: "paste" },
-        ...(isMac
-          ? [
-              { role: "pasteAndMatchStyle" },
-              { role: "delete" },
-              { role: "selectAll" },
-              { type: "separator" },
-              {
-                label: "Speech",
-                submenu: [{ role: "startSpeaking" }, { role: "stopSpeaking" }],
-              },
-            ]
-          : [{ role: "delete" }, { type: "separator" }, { role: "selectAll" }]),
-      ] as Electron.MenuItemConstructorOptions[],
-    },
-    {
-      label: "View",
-      submenu: [
-        { role: "reload" },
-        { role: "forceReload" },
-        { role: "toggleDevTools" },
-        { type: "separator" },
-        { role: "resetZoom" },
-        { role: "zoomIn" },
-        { role: "zoomOut" },
-        { type: "separator" },
-        { role: "togglefullscreen" },
-      ],
-    },
-    {
-      label: "Window",
-      submenu: [
-        { role: "minimize" },
-        { role: "zoom" },
-        ...(isMac
-          ? [
-              { type: "separator" },
-              { role: "front" },
-              { type: "separator" },
-              { role: "window" },
-            ]
-          : [{ role: "close" }]),
-      ] as Electron.MenuItemConstructorOptions[],
-    },
-  ];
-
-  const menu = Menu.buildFromTemplate(template);
-  Menu.setApplicationMenu(menu);
+  installApplicationMenu({
+    app,
+    menu: Menu,
+    dialog,
+    isMac,
+    existsSync,
+    rmSync,
+    runEffectVoid,
+  });
 
   const explicitUserDataPath = process.env.PI_DESKTOP_USER_DATA_DIR;
   if (explicitUserDataPath) {
@@ -430,6 +207,12 @@ async function bootstrapDesktop() {
   const threadCatalog = new ThreadCatalog(userDataPath);
   const selectionState = new SelectionState(userDataPath);
   const runtimeManager = new LocalThreadRuntimeManager();
+  const oauthPromptBridge = createOAuthPromptBridge({
+    getMainWindow: () => mainWindow,
+    openExternal: async (url) => {
+      await shell.openExternal(url);
+    },
+  });
   const runtimeSocketDirectory = path.join(app.getPath("temp"), "pd");
   mkdirSync(runtimeSocketDirectory, { recursive: true });
 
@@ -471,127 +254,6 @@ async function bootstrapDesktop() {
       type: "session_changed",
     });
   };
-
-  function resolveAgentDirectory(): string {
-    return currentContext?.runtimeAgentDirectory ?? defaultAgentDirectory;
-  }
-
-  function resolveContextCwd(): string {
-    return (
-      currentContext?.worktreePath ??
-      selectionState.get().worktreeId ??
-      process.cwd()
-    );
-  }
-
-  async function handleSwitchModel(request: ModelSwitchRequest): Promise<void> {
-    const UNSUPPORTED_MODEL_SWITCH =
-      "Model switching is not supported by the active Pi runtime";
-
-    const switchResult = await runEffect(
-      Effect.tryPromise({
-        try: () => currentHost.switchModel(request),
-        catch: (error) => fromUnknownError(error, "switchModel"),
-      }).pipe(
-        Effect.tap(() => Effect.sync(() => notifySessionChanged())),
-        Effect.catchAll((error) => {
-          if (
-            error.cause instanceof Error &&
-            error.cause.message !== UNSUPPORTED_MODEL_SWITCH
-          ) {
-            return Effect.fail(error);
-          }
-          return Effect.succeed("fallback" as const);
-        }),
-      ),
-    );
-
-    if (switchResult === "fallback") {
-      await switchModelForContext(request, {
-        currentContext,
-        currentHost,
-        resolveAgentDirectory,
-        createSettingsManager: async (worktreePath, agentDirectory) => {
-          const { SettingsManager } = await import(
-            "@mariozechner/pi-coding-agent"
-          );
-          return SettingsManager.create(worktreePath, agentDirectory);
-        },
-        runtimeManager,
-        attachContext,
-        commitAttachment,
-      });
-    }
-  }
-
-  async function handleGetDiscovery(): Promise<PiDiscoveryResult> {
-    return discoverPiResources(resolveAgentDirectory(), resolveContextCwd());
-  }
-
-  async function handleGetSlashSuggestions(
-    context: AutocompleteContext,
-  ): Promise<AutocompleteSuggestions> {
-    return getPiSlashSuggestions({
-      agentDir: resolveAgentDirectory(),
-      cwd: resolveContextCwd(),
-      context,
-    });
-  }
-
-  async function handleSearchFiles(
-    request: SearchRequest,
-  ): Promise<SearchResponse> {
-    return workspaceSearchService.search(request);
-  }
-
-  async function handleGetOAuthProviders() {
-    return getOAuthProvidersForAgentDir(resolveAgentDirectory());
-  }
-
-  async function handleLoginWithOAuth(providerId: string): Promise<void> {
-    await loginWithOAuthForAgentDir(resolveAgentDirectory(), providerId, {
-      openExternal: async (url) => {
-        await shell.openExternal(url);
-      },
-      requestInput: promptForOAuthInput,
-    });
-    notifySessionChanged();
-  }
-
-  async function handleLogoutOAuth(providerId: string): Promise<void> {
-    await logoutOAuthForAgentDir(resolveAgentDirectory(), providerId);
-    notifySessionChanged();
-  }
-
-  async function connectSocketHost(socketPath: string): Promise<{
-    host: AgentDesktopHost;
-    transport: AgentHostSocketTransport;
-  }> {
-    const deadline = Date.now() + SOCKET_CONNECT_TIMEOUT_MS;
-    let lastError: Error | null = null;
-
-    while (Date.now() < deadline) {
-      const transport = createAgentHostSocketTransport(socketPath);
-      try {
-        await transport.connect();
-        const host = createAgentHostClient(transport);
-        await host.bootstrap();
-        return { host, transport };
-      } catch (error) {
-        transport.close();
-        lastError =
-          error instanceof Error
-            ? error
-            : new Error(String(error ?? "Unknown socket connect error"));
-        await delay(SOCKET_CONNECT_RETRY_MS);
-      }
-    }
-
-    throw (
-      lastError ??
-      new Error(`Timed out connecting to agent session socket at ${socketPath}`)
-    );
-  }
 
   function inspectWorktreeOrThrow(
     targetPath: string,
@@ -641,277 +303,84 @@ async function bootstrapDesktop() {
     });
   }
 
-  async function resolveDefaultThreadContext(
-    targetPath: string,
-    options: { createIfMissing?: boolean } = {},
-  ): Promise<SelectedThreadContext | null> {
-    const inspection = inspectWorktreeOrThrow(targetPath);
-    const repositoryEntry = repositoryCatalog.upsert({
-      rootPath: inspection.rootPath,
-    });
-    const thread = threadCatalog.listByWorktree(
-      inspection.currentWorktreePath,
-    )[0];
+  const {
+    resolveDefaultThreadContext,
+    createWorktreeContext,
+    buildFastThreadContext,
+    attachContext,
+    attachToPath,
+  } = createThreadContextActions<AgentDesktopHost, AgentHostSocketTransport>({
+    inspectWorktreeOrThrow,
+    upsertRepository: (input) => repositoryCatalog.upsert(input),
+    getRepository: (repositoryId) => repositoryCatalog.get(repositoryId),
+    setLastSelectedWorktree: (repositoryId, worktreeId) =>
+      repositoryCatalog.setLastSelectedWorktree(repositoryId, worktreeId),
+    replaceSelection: (selection) => selectionState.replace(selection),
+    listThreadsByWorktree: (worktreeId) =>
+      threadCatalog.listByWorktree(worktreeId),
+    createThread: (input) => threadCatalog.create(input),
+    getDefaultThreadTitle,
+    buildThreadContext,
+    environment: process.env,
+    runtimeSocketDirectory,
+    execPath: process.execPath,
+    sessionServerEntryPath: agentHostSessionServerEntryPath,
+    ensureDirectory: mkdirSync,
+    resolveRuntimeOptions: (environment, cwd) =>
+      resolveAgentRuntimeOptions(environment, cwd),
+    createLaunchDetails: (input) =>
+      createThreadRuntimeLaunchDetails({
+        ...input,
+        agentDirectory: input.agentDirectory ?? undefined,
+      }),
+    getHomePath: () => app.getPath("home"),
+    isRepository: (rootPath) => gitService.isRepository(rootPath),
+    createWorktree: (input) => gitService.createWorktree(input),
+    ensureThreadRuntime: (launchSpec) =>
+      runtimeManager.ensureThreadRuntime(launchSpec),
+    restartThreadRuntime: (launchSpec) =>
+      runtimeManager.restartThreadRuntime(launchSpec),
+    connectAgentHost: async (socketPath) =>
+      connectAgentHostWithRetry({
+        socketPath,
+        createHost: createAgentHostClient,
+      }),
+  });
 
-    if (!thread && options.createIfMissing === false) {
-      repositoryCatalog.setLastSelectedWorktree(
-        repositoryEntry.id,
-        inspection.currentWorktreePath,
-      );
-      selectionState.replace({
-        repositoryId: repositoryEntry.id,
-        worktreeId: inspection.currentWorktreePath,
-        threadId: null,
-      });
-      return null;
-    }
-
-    const resolvedThread =
-      thread ??
-      threadCatalog.create({
-        worktreeId: inspection.currentWorktreePath,
-        title: getDefaultThreadTitle(),
-      });
-
-    return buildThreadContext(repositoryEntry.id, inspection, resolvedThread);
-  }
-
-  async function createWorktreeContext(
-    repositoryId: string,
-    branchName: string,
-  ): Promise<SelectedThreadContext | null> {
-    const repository = repositoryCatalog.get(repositoryId);
-    if (!repository) {
-      throw new Error(`Unknown repository: ${repositoryId}`);
-    }
-
-    const inspection = inspectWorktreeOrThrow(repository.rootPath);
-    if (!gitService.isRepository(repository.rootPath)) {
-      throw new Error(
-        `"${path.basename(repository.rootPath)}" is not a git repository. Initialize git to create a session.`,
-      );
-    }
-    const trimmedBranchName = branchName.trim();
-    if (!trimmedBranchName) {
-      throw new Error("Worktree branch name must not be empty");
-    }
-
-    const worktreePath = path.join(
-      app.getPath("home"),
-      ".pi-desktop",
-      path.basename(repository.rootPath),
-      trimmedBranchName.replace(/[\\/]+/g, "-"),
-    );
-    const createdWorktreePath = gitService.createWorktree({
-      repositoryRoot: repository.rootPath,
-      branchName: trimmedBranchName,
-      worktreePath,
-      baseBranch: inspection.defaultBranch ?? undefined,
-    });
-
-    return resolveDefaultThreadContext(createdWorktreePath);
-  }
-
-  async function resolveThreadContext(
-    threadId: string,
-  ): Promise<SelectedThreadContext> {
-    const thread = threadCatalog.get(threadId);
-    if (!thread) {
-      throw new Error(`Unknown thread: ${threadId}`);
-    }
-
-    const inspection = inspectWorktreeOrThrow(thread.worktreeId);
-    const repositoryEntry = repositoryCatalog.upsert({
-      rootPath: inspection.rootPath,
-    });
-
-    return buildThreadContext(repositoryEntry.id, inspection, thread);
-  }
-
-  async function createThreadContext(
-    worktreeId: string,
-  ): Promise<SelectedThreadContext> {
-    const inspection = inspectWorktreeOrThrow(worktreeId);
-    const thread = threadCatalog.create({
-      worktreeId: inspection.currentWorktreePath,
-      title: getDefaultThreadTitle(),
-    });
-    const repositoryEntry = repositoryCatalog.upsert({
-      rootPath: inspection.rootPath,
-    });
-
-    return buildThreadContext(repositoryEntry.id, inspection, thread);
-  }
-
-  function getRepositoryIdForWorktree(worktreeId: string): string | null {
-    const normalizedWorktreeId = path
-      .resolve(worktreeId)
-      .replace(/[\\/]+$/, "");
-
-    for (const repository of repositoryCatalog.list()) {
-      if (
-        normalizedWorktreeId === repository.rootPath ||
-        normalizedWorktreeId.startsWith(`${repository.rootPath}${path.sep}`)
-      ) {
-        return repository.id;
-      }
-    }
-
-    return currentContext?.repositoryId ?? selectionState.get().repositoryId;
-  }
-
-  function buildFastThreadContext(options: {
-    repositoryId: string;
-    worktreePath: string;
-    thread: ThreadCatalogEntry;
-  }): SelectedThreadContext {
-    const runtimeOptions = resolveAgentRuntimeOptions(
-      process.env,
-      options.worktreePath,
-    );
-
-    if (runtimeOptions.agentDir) {
-      mkdirSync(runtimeOptions.agentDir, { recursive: true });
-    }
-
-    const launch = createThreadRuntimeLaunchDetails({
-      threadId: options.thread.id,
-      worktreePath: options.worktreePath,
-      mode: runtimeOptions.mode,
-      socketDirectory: runtimeSocketDirectory,
-      execPath: process.execPath,
-      sessionServerEntryPath: agentHostSessionServerEntryPath,
-      nodeEnv: process.env.NODE_ENV,
-      agentDirectory: runtimeOptions.agentDir ?? undefined,
-    });
-
-    repositoryCatalog.setLastSelectedWorktree(
-      options.repositoryId,
-      options.worktreePath,
-    );
-    selectionState.replace({
-      repositoryId: options.repositoryId,
-      worktreeId: options.worktreePath,
-      threadId: options.thread.id,
-    });
-
-    return {
-      repositoryId: options.repositoryId,
-      worktreePath: options.worktreePath,
-      thread: options.thread,
-      socketPath: launch.socketPath,
-      runtimeId: launch.runtimeId ?? null,
-      command: launch.command,
-      agentMode: runtimeOptions.mode,
-      agentDirectory: runtimeOptions.agentDir ?? null,
-      runtimeAgentDirectory: launch.agentDirectory ?? null,
-    };
-  }
-
-  function selectWorktreeWithoutThread(
-    repositoryId: string | null,
-    worktreePath: string,
-  ): void {
-    if (repositoryId) {
-      repositoryCatalog.setLastSelectedWorktree(repositoryId, worktreePath);
-    }
-
-    currentContext = null;
-    currentTransport?.close();
-    currentTransport = null;
-    unsubscribe();
-    unsubscribe = () => {};
-    currentHost = createBootstrapErrorHost(
-      "No active session is selected for this workspace",
-    );
-    selectionState.replace({
-      repositoryId,
-      worktreeId: worktreePath,
-      threadId: null,
-    });
-    notifySessionChanged();
-  }
-
-  async function attachContext(context: SelectedThreadContext): Promise<{
-    context: SelectedThreadContext;
-    host: AgentDesktopHost;
-    transport: AgentHostSocketTransport;
-  }> {
-    const launchSpec = {
-      threadId: context.thread.id,
-      worktreePath: context.worktreePath,
-      command: context.command,
-    };
-
-    await runtimeManager.ensureThreadRuntime(launchSpec);
-
-    try {
-      const { host, transport } = await connectSocketHost(context.socketPath);
-      return { context, host, transport };
-    } catch {
-      await runtimeManager.restartThreadRuntime(launchSpec);
-      const { host, transport } = await connectSocketHost(context.socketPath);
-      return { context, host, transport };
-    }
-  }
-
-  async function attachToPath(
-    targetPath: string,
-    options: { createIfMissing?: boolean } = {},
-  ) {
-    const context = await resolveDefaultThreadContext(targetPath, options);
-    if (!context) {
-      return null;
-    }
-
-    return attachContext(context);
-  }
-
-  function selectFolderWorkspace(targetPath: string): void {
-    const repositoryEntry = repositoryCatalog.upsert({ rootPath: targetPath });
-    const previousTransport = currentTransport;
-    const previousUnsubscribe = unsubscribe;
-
-    currentContext = null;
-    currentHost = createBootstrapErrorHost(NON_REPOSITORY_WORKSPACE_MESSAGE);
-    currentTransport = null;
-    unsubscribe = subscribeToHost(currentHost, null);
-    selectionState.replace({
-      repositoryId: repositoryEntry.id,
-      worktreeId: null,
-      threadId: null,
-    });
-
-    previousUnsubscribe();
-    previousTransport?.close();
-  }
-
-  async function activateWorkspacePath(
-    targetPath: string,
-    options: { createIfMissing?: boolean } = {},
-  ): Promise<void> {
-    const inspection = gitService.inspect(targetPath);
-
-    if (
-      inspection.status === "repository" &&
-      inspection.rootPath &&
-      inspection.currentWorktreePath &&
-      inspection.worktrees
-    ) {
-      const attached = await attachToPath(targetPath, options);
-      if (attached) {
-        commitAttachment(attached);
-      }
-      return;
-    }
-
-    if (inspection.status === "not_repo") {
-      selectFolderWorkspace(targetPath);
-      return;
-    }
-
-    throw new Error(inspection.message ?? "Selected directory is unavailable");
-  }
+  const workspaceSelectionActions = createWorkspaceSelectionActions({
+    repositoryCatalog,
+    selectionState,
+    state: {
+      get currentContext() {
+        return currentContext;
+      },
+      set currentContext(value) {
+        currentContext = value;
+      },
+      get currentTransport() {
+        return currentTransport;
+      },
+      set currentTransport(value) {
+        currentTransport = value;
+      },
+      get unsubscribe() {
+        return unsubscribe;
+      },
+      set unsubscribe(value) {
+        unsubscribe = value;
+      },
+      get currentHost() {
+        return currentHost;
+      },
+      set currentHost(value) {
+        currentHost = value;
+      },
+    },
+    createBootstrapErrorHost,
+    notifySessionChanged,
+  });
+  const { getRepositoryIdForWorktree, selectWorktreeWithoutThread } =
+    workspaceSelectionActions;
 
   function commitAttachment(attached: {
     context: SelectedThreadContext;
@@ -929,6 +398,24 @@ async function bootstrapDesktop() {
     previousUnsubscribe();
     previousTransport?.close();
   }
+
+  const agentRuntimeHandlers = createAgentRuntimeHandlers({
+    getCurrentContext: () => currentContext,
+    getCurrentHost: () => currentHost,
+    getSelectionState: () => selectionState.get(),
+    defaultAgentDirectory,
+    getProcessCwd: () => process.cwd(),
+    createSettingsManager: async (worktreePath, agentDirectory) => {
+      const { SettingsManager } = await import("@mariozechner/pi-coding-agent");
+      return SettingsManager.create(worktreePath, agentDirectory);
+    },
+    runtimeManager,
+    attachContext,
+    commitAttachment,
+    workspaceSearchService,
+    oauthPromptBridge,
+    notifySessionChanged,
+  });
 
   const contextSwitchController = createContextSwitchController(
     {
@@ -975,577 +462,257 @@ async function bootstrapDesktop() {
     repositories: repositoryCatalog.list(),
   });
 
-  if (preferredWorkspacePath === null) {
-    currentHost = createBootstrapErrorHost("No workspace selected");
-    unsubscribe();
-    unsubscribe = subscribeToHost(currentHost, null);
-  } else {
-    await runEffectVoid(
-      Effect.tryPromise({
-        try: () =>
-          activateWorkspacePath(preferredWorkspacePath, {
-            createIfMissing: !shouldPreserveEmptySelection,
-          }),
-        catch: (error) => fromUnknownError(error, "activateWorkspacePath"),
-      }).pipe(
-        Effect.catchAll((error) => {
-          if (
-            fallbackWorkspacePath &&
-            preferredWorkspacePath !== fallbackWorkspacePath
-          ) {
-            return Effect.tryPromise({
-              try: () => activateWorkspacePath(fallbackWorkspacePath),
-              catch: (fallbackError) =>
-                fromUnknownError(
-                  fallbackError,
-                  "activateWorkspacePath fallback",
-                ),
-            }).pipe(
-              Effect.catchAll((fallbackError) =>
-                Effect.sync(() => {
-                  currentHost = createBootstrapErrorHost(fallbackError.message);
-                  unsubscribe();
-                  unsubscribe = subscribeToHost(currentHost, null);
-                }),
-              ),
-            );
-          }
-          return Effect.sync(() => {
-            currentHost = createBootstrapErrorHost(error.message);
-            unsubscribe();
-            unsubscribe = subscribeToHost(currentHost, null);
-          });
-        }),
-      ),
-    );
-  }
+  await activateInitialWorkspaceSelection({
+    preferredWorkspacePath,
+    fallbackWorkspacePath,
+    shouldPreserveEmptySelection,
+    state: {
+      get currentHost() {
+        return currentHost;
+      },
+      set currentHost(value) {
+        currentHost = value;
+      },
+      get unsubscribe() {
+        return unsubscribe;
+      },
+      set unsubscribe(value) {
+        unsubscribe = value;
+      },
+    },
+    activateWorkspacePath: (targetPath, options) =>
+      activateWorkspacePath(targetPath, options),
+    createBootstrapErrorHost,
+    subscribeToHost: (host, thread) => subscribeToHost(host, thread),
+  });
 
   function switchContextInBackground(context: SelectedThreadContext): void {
     void contextSwitchController.switchContext(async () => context);
   }
 
-  async function switchRepositoryPath(
-    targetPath: string,
-    options: { createIfMissing?: boolean } = {},
-  ): Promise<void> {
-    const inspection = gitService.inspect(targetPath);
+  const threadWorkspaceActions = createThreadWorkspaceActions({
+    getCurrentWorktreeId: () =>
+      currentContext?.worktreePath ?? selectionState.get().worktreeId,
+    getRepositoryIdForWorktree,
+    upsertRepository: (input) => repositoryCatalog.upsert(input),
+    getDefaultThreadTitle,
+    createThread: (input) => threadCatalog.create(input),
+    getThread: (threadId) => threadCatalog.get(threadId),
+    inspectWorktreeOrThrow,
+    buildThreadContext: (repositoryId, inspection, thread) =>
+      buildThreadContext(repositoryId, inspection, thread),
+    buildFastThreadContext,
+    switchContextInBackground,
+  });
 
-    if (
-      inspection.status === "repository" &&
-      inspection.rootPath &&
-      inspection.currentWorktreePath &&
-      inspection.worktrees
-    ) {
-      const context = await resolveDefaultThreadContext(targetPath, options);
-      if (!context) {
-        const repositoryEntry = repositoryCatalog.upsert({
-          rootPath: inspection.rootPath,
-        });
-        selectWorktreeWithoutThread(
-          repositoryEntry.id,
-          inspection.currentWorktreePath,
-        );
-        return;
-      }
+  const workspaceRemovalActions = createWorkspaceRemovalActions({
+    getRepository: (repositoryId) => repositoryCatalog.get(repositoryId),
+    listRepositories: () => repositoryCatalog.list(),
+    inspectRepositoryWorktrees: (repositoryRoot) => {
+      const inspection = gitService.inspect(repositoryRoot);
+      return inspection.status === "repository" && inspection.worktrees
+        ? inspection.worktrees
+        : [];
+    },
+    listThreadsByWorktree: (worktreeId) =>
+      threadCatalog.listByWorktree(worktreeId),
+    deleteThread: (threadId) => {
+      threadCatalog.delete(threadId);
+    },
+    removeWorkspaceSession: (worktreeId) => {
+      workspaceSessionCatalog.remove(worktreeId);
+    },
+    runBestEffortRemoveWorktree: ({ worktreePath, repositoryRoot }) => {
+      runEffectVoid(
+        Effect.try({
+          try: () =>
+            gitService.removeWorktree({
+              worktreePath,
+              repositoryRoot,
+            }),
+          catch: () =>
+            PiError.of("EGIT_FAILED", "Best-effort worktree removal failed"),
+        }).pipe(Effect.catchAll(() => Effect.void)),
+      );
+    },
+    removeRepository: (repositoryId) => {
+      repositoryCatalog.remove(repositoryId);
+    },
+    removeRepositoryPreferences: (repositoryId) => {
+      repositoryPreferencesCatalog.remove(repositoryId);
+    },
+    getSelectedRepositoryId: () =>
+      currentContext?.repositoryId ?? selectionState.get().repositoryId,
+    clearSelection: () => {
+      selectionState.clear();
+    },
+    notifySessionChanged,
+    activateWorkspacePath: (targetPath) => activateWorkspacePath(targetPath),
+    getRepositoryIdForWorktree,
+    inspectRemainingWorktrees: (repositoryRoot) => {
+      const inspection = gitService.inspect(repositoryRoot);
+      return inspection.status === "repository" && inspection.worktrees
+        ? inspection.worktrees
+        : [];
+    },
+    resolveDefaultThreadContext,
+    switchContextInBackground,
+    getSelectedWorktreeId: () =>
+      currentContext?.worktreePath ?? selectionState.get().worktreeId,
+    removeWorktreeFromGit: ({ worktreePath, repositoryRoot }) => {
+      gitService.removeWorktree({
+        worktreePath,
+        repositoryRoot,
+      });
+    },
+  });
 
-      switchContextInBackground(context);
-      return;
-    }
+  const { activateWorkspacePath, switchRepositoryPath } =
+    createWorkspaceActivationRouter<
+      {
+        context: SelectedThreadContext;
+        host: AgentDesktopHost;
+        transport: AgentHostSocketTransport;
+      },
+      AgentDesktopHost,
+      SelectedThreadContext
+    >({
+      inspectPath: (targetPath) => gitService.inspect(targetPath),
+      attachToPath,
+      commitAttachment,
+      selectFolderWorkspace: (
+        targetPath,
+        message,
+        subscribeToHostForSelection,
+      ) =>
+        workspaceSelectionActions.selectFolderWorkspace(
+          targetPath,
+          message,
+          (host) => subscribeToHostForSelection(host),
+        ),
+      subscribeToHost: (host) => subscribeToHost(host, null),
+      nonRepositoryWorkspaceMessage: NON_REPOSITORY_WORKSPACE_MESSAGE,
+      resolveDefaultThreadContext,
+      switchContextInBackground,
+      upsertRepository: (input) => repositoryCatalog.upsert(input),
+      selectWorktreeWithoutThread: (repositoryId, worktreePath) =>
+        selectWorktreeWithoutThread(repositoryId, worktreePath),
+      notifySessionChanged,
+    });
 
-    await activateWorkspacePath(targetPath, options);
-    if (inspection.status !== "repository") {
-      notifySessionChanged();
-    }
-  }
+  const shellStateIpc = createShellStateIpcDependencies({
+    appName: app.getName(),
+    appVersion: app.getVersion(),
+    chromeVersion: process.versions.chrome,
+    electronVersion: process.versions.electron,
+    platform: process.platform,
+    env: process.env,
+    isPackaged: app.isPackaged,
+    preferredWorkspacePath,
+    getCurrentHost: () => currentHost,
+    getCurrentContext: () => currentContext,
+    selectionState,
+    repositoryCatalog,
+    repositoryPreferencesCatalog,
+    workspaceSessionCatalog,
+    gitService,
+    threadCatalog,
+    runtimeManager,
+  });
 
-  async function deleteThreadAndRefresh(threadId: string): Promise<void> {
-    const thread = threadCatalog.get(threadId);
-    if (!thread) {
-      throw new Error(`Unknown thread: ${threadId}`);
-    }
+  const agentHost = createAgentIpcHost({
+    getCurrentContext: () => currentContext,
+    getCurrentHost: () => currentHost,
+    getSelectedRepositoryId: () => selectionState.get().repositoryId,
+    getSelectedThreadId: () => selectionState.get().threadId,
+    threadCatalog,
+    notifySessionChanged,
+    repositoryCatalog,
+    workspaceRemovalActions,
+    switchRepositoryPath,
+    shellOpenPath: (targetPath) => shell.openPath(targetPath),
+    createWorktreeContext,
+    switchContextInBackground,
+    resolveDefaultThreadContext,
+    getRepositoryIdForWorktree,
+    selectWorktreeWithoutThread,
+    threadWorkspaceActions,
+    inspectWorktreeOrThrow,
+    buildThreadContext,
+  });
 
-    const isActiveThread =
-      (currentContext?.thread.id ?? selectionState.get().threadId) === threadId;
-
-    threadCatalog.delete(threadId);
-
-    if (!isActiveThread) {
-      notifySessionChanged();
-      return;
-    }
-
-    const nextOpenThread = threadCatalog
-      .listByWorktree(thread.worktreeId)
-      .find((entry) => entry.id !== threadId);
-
-    if (!nextOpenThread) {
-      const repositoryId =
-        currentContext?.repositoryId ?? selectionState.get().repositoryId;
-      selectWorktreeWithoutThread(repositoryId, thread.worktreeId);
-      return;
-    }
-
-    switchContextInBackground(await resolveThreadContext(nextOpenThread.id));
-  }
-
-  registerIpcHandlers({
-    handle: createSanitizingHandle(ipcMain.handle.bind(ipcMain), {
-      log: (error) => {
+  registerIpcHandlers(
+    createDesktopIpcHandlerDependencies({
+      handle: ipcMain.handle.bind(ipcMain),
+      createSanitizingHandle,
+      logIpcError: (error) => {
         console.error("[ipc] handler error:", error);
       },
+      shellStateIpc,
+      agentHost,
+      repositoryPreferencesCatalog,
+      workspaceSessionCatalog,
+      appPreferencesCatalog,
+      readImportedAiPreferences,
+      isRecord,
+      mainWindow: null,
+      gitService,
+      searchFiles: agentRuntimeHandlers.handleSearchFiles,
+      switchModel: agentRuntimeHandlers.handleSwitchModel,
+      getOAuthProviders: agentRuntimeHandlers.handleGetOAuthProviders,
+      loginWithOAuth: agentRuntimeHandlers.handleLoginWithOAuth,
+      logoutOAuth: agentRuntimeHandlers.handleLogoutOAuth,
+      getDiscovery: agentRuntimeHandlers.handleGetDiscovery,
+      getSlashSuggestions: agentRuntimeHandlers.handleGetSlashSuggestions,
+      threadCatalog,
+      packagesService,
     }),
-    getShellSnapshot: async () => {
-      const agentSnapshot = await runEffect(
-        Effect.tryPromise({
-          try: () => currentHost.getSnapshot(),
-          catch: (error) => fromUnknownError(error, "getSnapshot"),
-        }).pipe(
-          Effect.catchAll((error) =>
-            Effect.succeed<AgentSnapshot>({
-              sessionId: AGENT_BOOTSTRAP_ERROR_SESSION_ID,
-              status: "error",
-              messages: [],
-              lastError: error.message,
-            }),
-          ),
-        ),
-      );
+  );
 
-      const selection = currentContext
-        ? {
-            repositoryId: currentContext.repositoryId,
-            worktreeId: currentContext.worktreePath,
-            threadId: currentContext.thread.id,
-          }
-        : selectionState.get();
-      const catalog = await buildShellCatalog({
-        repositories: repositoryCatalog.list(),
-        selection,
-        repositoryPreferences: repositoryPreferencesCatalog.list(),
-        workspaceSessions: workspaceSessionCatalog.list(),
-        inspectRepository: (rootPath) => gitService.inspectAsync(rootPath),
-        listThreadsByWorktree: (worktreeId) =>
-          threadCatalog.listByWorktree(worktreeId),
-        getRuntimeState: (thread) => runtimeManager.getRuntimeState(thread),
-        selectedAgentSnapshot: agentSnapshot,
-      });
-      selectionState.replace(catalog.selection);
-      workspaceSessionCatalog.replaceAll(
-        catalog.reconciledWorkspaceSessions ?? [],
-      );
-
-      return createShellSnapshot({
-        appName: app.getName(),
-        appVersion: app.getVersion(),
-        chromeVersion: process.versions.chrome,
-        electronVersion: process.versions.electron,
-        platform: process.platform,
-        env: process.env,
-        isPackaged: app.isPackaged,
-        cwd:
-          selection.worktreeId ??
-          selection.repositoryId ??
-          preferredWorkspacePath,
-        agentDir: currentContext?.agentDirectory ?? undefined,
-        agentMode: currentContext?.agentMode,
-        agentSnapshot,
-        catalog,
-      });
+  mainWindow = await createAndTrackMainWindow({
+    createWindow: createMainWindow,
+    setMainWindow: (window) => {
+      terminalManager.setMainWindow(window);
     },
-    getWorkspaceRootPath: () =>
-      currentContext?.worktreePath ?? selectionState.get().worktreeId,
-    agentHost: {
-      getProviders: () => currentHost.getProviders(),
-      getSettings: () => currentHost.getSettings(),
-      getSnapshot: () => currentHost.getSnapshot(),
-      prompt: async (text) => {
-        const currentThread = currentContext?.thread;
-        if (currentThread) {
-          // Check if thread still has default "Pi" title
-          const threadEntry = threadCatalog.get(currentThread.id);
-          if (threadEntry?.title === DEFAULT_UNTITLED_THREAD_TITLE) {
-            const newTitle = generateThreadTitleFromMessage(text);
-            threadCatalog.rename(currentThread.id, newTitle);
-            notifySessionChanged();
-          }
-        }
-        await currentHost.prompt(text);
-      },
-      cancelPrompt: () => currentHost.cancelPrompt(),
-      reset: () => currentHost.reset(),
-      addRepository: async (targetPath) => {
-        await switchRepositoryPath(targetPath);
-      },
-      reorderRepositories: async (repositoryIds) => {
-        repositoryCatalog.reorder(repositoryIds);
-      },
-      selectRepository: async (repositoryId) => {
-        const repository = repositoryCatalog.get(repositoryId);
-        if (!repository) {
-          throw new Error(`Unknown repository: ${repositoryId}`);
-        }
-
-        await switchRepositoryPath(
-          repository.lastSelectedWorktreeId ?? repository.rootPath,
-          { createIfMissing: false },
-        );
-      },
-      removeRepository: async (repositoryId) => {
-        const repository = repositoryCatalog.get(repositoryId);
-        if (!repository) {
-          throw new Error(`Unknown repository: ${repositoryId}`);
-        }
-
-        const isActiveRepository =
-          (currentContext?.repositoryId ??
-            selectionState.get().repositoryId) === repository.id;
-
-        // Clean up all worktrees belonging to this repository
-        const inspection = gitService.inspect(repository.rootPath);
-        const worktrees =
-          inspection.status === "repository" && inspection.worktrees
-            ? inspection.worktrees
-            : [];
-
-        for (const worktree of worktrees) {
-          // Skip the main worktree (it's the repository root itself)
-          if (worktree.path === repository.rootPath) {
-            continue;
-          }
-
-          // Delete threads for this worktree
-          const threads = threadCatalog.listByWorktree(worktree.path);
-          for (const thread of threads) {
-            threadCatalog.delete(thread.id);
-          }
-
-          // Remove workspace session
-          workspaceSessionCatalog.remove(worktree.path);
-
-          // Remove the git worktree from disk
-          runEffectVoid(
-            Effect.try({
-              try: () =>
-                gitService.removeWorktree({
-                  worktreePath: worktree.path,
-                  repositoryRoot: repository.rootPath,
-                }),
-              catch: () =>
-                PiError.of(
-                  "EGIT_FAILED",
-                  "Best-effort worktree removal failed",
-                ),
-            }).pipe(Effect.catchAll(() => Effect.void)),
-          );
-        }
-
-        // Clean up threads and session for the main worktree (repository root)
-        const mainThreads = threadCatalog.listByWorktree(repository.rootPath);
-        for (const thread of mainThreads) {
-          threadCatalog.delete(thread.id);
-        }
-        workspaceSessionCatalog.remove(repository.rootPath);
-
-        // Remove from catalogs
-        repositoryCatalog.remove(repositoryId);
-        repositoryPreferencesCatalog.remove(repositoryId);
-
-        const remainingRepositories = repositoryCatalog.list();
-        if (remainingRepositories.length === 0) {
-          selectionState.clear();
-          notifySessionChanged();
-          return;
-        }
-
-        if (!isActiveRepository) {
-          notifySessionChanged();
-          return;
-        }
-
-        const nextRepository = remainingRepositories[0];
-        if (!nextRepository) {
-          selectionState.clear();
-          notifySessionChanged();
-          return;
-        }
-        await activateWorkspacePath(
-          nextRepository.lastSelectedWorktreeId ?? nextRepository.rootPath,
-        );
-        notifySessionChanged();
-      },
-      openRepositoryInFinder: async (repositoryId) => {
-        const repository = repositoryCatalog.get(repositoryId);
-        if (!repository) {
-          throw new Error(`Unknown repository: ${repositoryId}`);
-        }
-
-        await shell.openPath(repository.rootPath);
-      },
-      createWorktree: async (repositoryId, branchName) => {
-        const context = await createWorktreeContext(repositoryId, branchName);
-        if (!context) {
-          throw new Error(
-            "Failed to create a default thread for the new worktree",
-          );
-        }
-
-        switchContextInBackground(context);
-      },
-      selectWorktree: async (worktreeId) => {
-        const context = await resolveDefaultThreadContext(worktreeId, {
-          createIfMissing: false,
-        });
-        if (!context) {
-          const repositoryId = getRepositoryIdForWorktree(worktreeId);
-          selectWorktreeWithoutThread(repositoryId, worktreeId);
-          return;
-        }
-
-        switchContextInBackground(context);
-      },
-      removeWorktree: async (worktreeId) => {
-        const normalizedWorktreeId = path
-          .resolve(worktreeId)
-          .replace(/[\\/]+$/, "");
-
-        const repositoryId = getRepositoryIdForWorktree(normalizedWorktreeId);
-        const repository = repositoryId
-          ? repositoryCatalog.get(repositoryId)
-          : null;
-
-        if (!repository) {
-          throw new Error(`Cannot find repository for worktree: ${worktreeId}`);
-        }
-
-        const isActiveWorktree =
-          (currentContext?.worktreePath ?? selectionState.get().worktreeId) ===
-          normalizedWorktreeId;
-
-        const threadsInWorktree =
-          threadCatalog.listByWorktree(normalizedWorktreeId);
-        for (const thread of threadsInWorktree) {
-          threadCatalog.delete(thread.id);
-        }
-
-        gitService.removeWorktree({
-          worktreePath: normalizedWorktreeId,
-          repositoryRoot: repository.rootPath,
-        });
-
-        if (isActiveWorktree) {
-          const remainingWorktrees = gitService.inspect(repository.rootPath);
-          const nextWorktree =
-            remainingWorktrees.status === "repository" &&
-            remainingWorktrees.worktrees
-              ? remainingWorktrees.worktrees.find(
-                  (wt) => wt.path !== normalizedWorktreeId,
-                )
-              : null;
-
-          if (nextWorktree) {
-            const context = await resolveDefaultThreadContext(
-              nextWorktree.path,
-              {
-                createIfMissing: true,
-              },
-            );
-            if (context) {
-              switchContextInBackground(context);
-              return;
-            }
-          }
-
-          const remainingRepositories = repositoryCatalog
-            .list()
-            .filter((r) => r.id !== repositoryId);
-          const nextRepo = remainingRepositories[0];
-          if (nextRepo) {
-            await activateWorkspacePath(
-              nextRepo.lastSelectedWorktreeId ?? nextRepo.rootPath,
-            );
-          } else {
-            selectionState.clear();
-          }
-        }
-
-        notifySessionChanged();
-      },
-      createThread: async (worktreeId) => {
-        const normalizedWorktreeId = path
-          .resolve(worktreeId)
-          .replace(/[\\/]+$/, "");
-        const isCurrentWorktree =
-          normalizedWorktreeId ===
-          (currentContext?.worktreePath ?? selectionState.get().worktreeId);
-        const context = isCurrentWorktree
-          ? buildFastThreadContext({
-              repositoryId:
-                getRepositoryIdForWorktree(normalizedWorktreeId) ??
-                repositoryCatalog.upsert({ rootPath: normalizedWorktreeId }).id,
-              worktreePath: normalizedWorktreeId,
-              thread: threadCatalog.create({
-                worktreeId: normalizedWorktreeId,
-                title: getDefaultThreadTitle(),
-              }),
-            })
-          : await createThreadContext(normalizedWorktreeId);
-        switchContextInBackground(context);
-        return context.thread.id;
-      },
-      selectThread: async (threadId) => {
-        const thread = threadCatalog.get(threadId);
-        if (!thread) {
-          throw new Error(`Unknown thread: ${threadId}`);
-        }
-        switchContextInBackground(
-          thread.worktreeId ===
-            (currentContext?.worktreePath ?? selectionState.get().worktreeId)
-            ? buildFastThreadContext({
-                repositoryId:
-                  getRepositoryIdForWorktree(thread.worktreeId) ??
-                  repositoryCatalog.upsert({ rootPath: thread.worktreeId }).id,
-                worktreePath: thread.worktreeId,
-                thread,
-              })
-            : await resolveThreadContext(threadId),
-        );
-      },
-      deleteThread: async (threadId) => {
-        await deleteThreadAndRefresh(threadId);
-      },
-    },
-    gitService,
-    stateHost: {
-      getRepositoryPreferences: async (repositoryId) =>
-        repositoryPreferencesCatalog.get(repositoryId),
-      updateRepositoryPreferences: async (repositoryId, updates) =>
-        repositoryPreferencesCatalog.upsert(repositoryId, updates),
-      getWorkspaceSession: async (worktreeId) =>
-        workspaceSessionCatalog.get(worktreeId),
-      saveWorkspaceSession: async (session) =>
-        workspaceSessionCatalog.save(session),
-      getAppPreferences: async () => appPreferencesCatalog.get(),
-      updateAppPreferences: async (updates) =>
-        appPreferencesCatalog.update(updates),
-      importLegacyPreferences: async (importData) => {
-        const importedAi = isRecord(importData.settings)
-          ? readImportedAiPreferences(importData.settings.ai)
-          : undefined;
-        const repositoryPreferences = (importData.repositories ?? []).map(
-          (repository) =>
-            repositoryPreferencesCatalog.upsert(repository.repositoryId, {
-              customName: repository.customName,
-              icon: repository.icon,
-              accentColor: repository.accentColor,
-            }),
-        );
-        const appPreferences = appPreferencesCatalog.update({
-          leftSidebarWidth: importData.leftSidebarWidth,
-          ai: importedAi,
-        });
-
-        return {
-          repositoryPreferences,
-          appPreferences,
-        };
-      },
-    },
-    mainWindow: null,
-    searchFiles: handleSearchFiles,
-    switchModel: handleSwitchModel,
-    getOAuthProviders: handleGetOAuthProviders,
-    loginWithOAuth: handleLoginWithOAuth,
-    logoutOAuth: handleLogoutOAuth,
-    getDiscovery: handleGetDiscovery,
-    getSlashSuggestions: handleGetSlashSuggestions,
-    threadCatalog,
-    packagesService,
-    getAllowedRepositoryRoots: () => {
-      const roots = new Set<string>();
-      for (const entry of repositoryCatalog.list()) {
-        roots.add(entry.rootPath);
-        const inspection = gitService.inspect(entry.rootPath);
-        if (inspection.worktrees) {
-          for (const worktree of inspection.worktrees) {
-            roots.add(worktree.path);
-          }
-        }
-      }
-      return [...roots];
-    },
-    getAllowedTerminalCwds: () => {
-      const roots: string[] = [];
-      for (const entry of repositoryCatalog.list()) {
-        roots.push(entry.rootPath);
-        const inspection = gitService.inspect(entry.rootPath);
-        if (inspection.worktrees) {
-          for (const worktree of inspection.worktrees) {
-            roots.push(worktree.path);
-          }
-        }
-      }
-      return roots;
+    subscribeToFullscreenChanges,
+    setStoredMainWindow: (window) => {
+      mainWindow = window;
     },
   });
 
-  mainWindow = await createMainWindow();
-  terminalManager.setMainWindow(mainWindow);
-  let unsubscribeFullscreen = subscribeToFullscreenChanges(mainWindow);
-
-  if (app.isPackaged) {
-    initAutoUpdater({
-      mainWindow: {
-        getMainWindow: () => mainWindow,
-      },
-      consent: {
-        // TODO(A3/A6): replace with appPreferencesCatalog.get().autoDownloadUpdates
-        // once shared AppPreferences exposes the field. Defaulting to false keeps
-        // downloads gated on explicit user action.
-        shouldAutoDownload: () => false,
-      },
-    });
-  } else {
-    // In dev/unpackaged mode, register stub handlers so the renderer
-    // UpdateBanner doesn't get "No handler registered" IPC errors.
-    initAutoUpdater();
-  }
-  mainWindow.on("closed", () => {
-    unsubscribeFullscreen();
-    mainWindow = null;
-  });
-
-  app.once("will-quit", (event) => {
-    unsubscribe();
-    currentTransport?.close();
-    event.preventDefault();
-    Promise.allSettled([
-      terminalManager.destroyAllAsync(),
-      flushAllPersistentJsonFiles(),
-    ])
-      .catch((err) => {
-        console.error("Error during shutdown:", err);
-      })
-      .finally(() => {
-        app.exit(0);
+  registerDesktopAppLifecycle({
+    app,
+    browserWindow: BrowserWindow,
+    getMainWindow: () => mainWindow,
+    createTrackedMainWindow: async () => {
+      mainWindow = await createAndTrackMainWindow({
+        createWindow: createMainWindow,
+        setMainWindow: (window) => {
+          terminalManager.setMainWindow(window);
+        },
+        subscribeToFullscreenChanges,
+        setStoredMainWindow: (window) => {
+          mainWindow = window;
+        },
       });
-  });
 
-  app.on("activate", async () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      mainWindow = await createMainWindow();
-      terminalManager.setMainWindow(mainWindow);
-      unsubscribeFullscreen = subscribeToFullscreenChanges(mainWindow);
-      mainWindow.on("closed", () => {
-        unsubscribeFullscreen();
-        mainWindow = null;
-      });
-    }
-  });
-
-  app.on("window-all-closed", () => {
-    if (shouldQuitWhenAllWindowsClosed(process.env, process.platform)) {
-      app.quit();
-    }
+      return mainWindow;
+    },
+    initAutoUpdater,
+    terminalManager,
+    flushPersistentState: flushAllPersistentJsonFiles,
+    unsubscribeHost: () => {
+      unsubscribe();
+    },
+    closeCurrentTransport: () => {
+      currentTransport?.close();
+    },
+    shouldQuitWhenAllWindowsClosed,
+    env: process.env,
+    platform: process.platform,
+    logShutdownError: (error) => {
+      console.error("Error during shutdown:", error);
+    },
   });
 }
 

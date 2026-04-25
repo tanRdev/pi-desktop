@@ -6,6 +6,10 @@ import {
   type PreloadOn,
 } from "../../../apps/desktop/src/preload/api";
 import {
+  UPDATE_IPC_CHANNELS,
+  type UpdaterState,
+} from "../../../apps/desktop/src/preload/updates-api";
+import {
   type AgentSnapshot,
   createEmptyWorkspaceSession,
   IPC_CHANNELS,
@@ -102,6 +106,17 @@ describe("createPiDesktopApi", () => {
       messages: [],
       lastError: null,
     };
+    const providers: ProviderSnapshot[] = [
+      {
+        id: "anthropic",
+        name: "Anthropic",
+        models: [],
+      },
+    ];
+    const settings: SettingsSnapshot = {
+      currentProviderId: "anthropic",
+      currentModelId: "claude-sonnet",
+    };
 
     const invokeCalls: Array<[string, unknown?]> = [];
     const invoke: PreloadInvoke = async <TReturn>(
@@ -118,6 +133,14 @@ describe("createPiDesktopApi", () => {
         return agentSnapshot as TReturn;
       }
 
+      if (channel === IPC_CHANNELS.agent.getProviders) {
+        return providers as TReturn;
+      }
+
+      if (channel === IPC_CHANNELS.agent.getSettings) {
+        return settings as TReturn;
+      }
+
       return undefined as TReturn;
     };
 
@@ -127,10 +150,17 @@ describe("createPiDesktopApi", () => {
     } satisfies CreatePiDesktopApiDependencies);
 
     await expect(api.shell.getSnapshot()).resolves.toEqual(shellSnapshot);
+    await expect(api.agent.getProviders()).resolves.toEqual(providers);
+    await expect(api.agent.getSettings()).resolves.toEqual(settings);
     await expect(api.agent.getSnapshot()).resolves.toEqual(agentSnapshot);
 
     expect(invokeCalls[0]).toEqual([IPC_CHANNELS.shell.getSnapshot, undefined]);
-    expect(invokeCalls[1]).toEqual([IPC_CHANNELS.agent.getSnapshot, undefined]);
+    expect(invokeCalls[1]).toEqual([
+      IPC_CHANNELS.agent.getProviders,
+      undefined,
+    ]);
+    expect(invokeCalls[2]).toEqual([IPC_CHANNELS.agent.getSettings, undefined]);
+    expect(invokeCalls[3]).toEqual([IPC_CHANNELS.agent.getSnapshot, undefined]);
   });
 
   it("subscribes to agent events and returns an unsubscribe callback", () => {
@@ -645,5 +675,143 @@ describe("createPiDesktopApi", () => {
       ],
       [IPC_CHANNELS.packages.update, { scope: "global" }],
     ]);
+  });
+
+  it("invokes updater channels and returns an unsubscribe callback", async () => {
+    const idleState: UpdaterState = {
+      status: "idle",
+      updateInfo: null,
+      downloadPercent: 0,
+      error: null,
+      errorCount: 0,
+      lastCheckAt: null,
+      userConsented: false,
+    };
+    const downloadedState: UpdaterState = {
+      ...idleState,
+      status: "downloaded",
+      downloadPercent: 100,
+      updateInfo: {
+        version: "1.2.3",
+        releaseNotes: "Bug fixes",
+        releaseName: "Stable",
+        releaseDate: "2026-04-24T00:00:00.000Z",
+      },
+    };
+    const invokeCalls: Array<[string, unknown?]> = [];
+    const off = vi.fn();
+    const listener = vi.fn();
+    const invoke: PreloadInvoke = async <TReturn>(
+      channel: string,
+      payload?: unknown,
+    ) => {
+      invokeCalls.push([channel, payload]);
+
+      if (channel === UPDATE_IPC_CHANNELS.getState) {
+        return idleState as TReturn;
+      }
+
+      if (
+        channel === UPDATE_IPC_CHANNELS.check ||
+        channel === UPDATE_IPC_CHANNELS.download
+      ) {
+        return downloadedState as TReturn;
+      }
+
+      return undefined as TReturn;
+    };
+    const on: PreloadOn = <TPayload>(
+      channel: string,
+      callback: (payload: TPayload) => void,
+    ) => {
+      expect(channel).toBe(UPDATE_IPC_CHANNELS.event);
+      callback(downloadedState as TPayload);
+      return off;
+    };
+
+    const api = createPiDesktopApi({ invoke, on });
+
+    await expect(api.updates.getState()).resolves.toEqual(idleState);
+    await expect(api.updates.check()).resolves.toEqual(downloadedState);
+    await expect(api.updates.download()).resolves.toEqual(downloadedState);
+    expect(api.updates.install()).toBeUndefined();
+
+    const unsubscribe = api.updates.subscribe(listener);
+    unsubscribe();
+
+    expect(listener).toHaveBeenCalledWith(downloadedState);
+    expect(off).toHaveBeenCalledTimes(1);
+    expect(invokeCalls).toEqual([
+      [UPDATE_IPC_CHANNELS.getState, undefined],
+      [UPDATE_IPC_CHANNELS.check, undefined],
+      [UPDATE_IPC_CHANNELS.download, undefined],
+      [UPDATE_IPC_CHANNELS.install, undefined],
+    ]);
+  });
+
+  it("keeps updater IPC wiring behind an extracted preload helper seam", async () => {
+    const [source, helperSource] = await Promise.all([
+      import("node:fs/promises").then((fs) =>
+        fs.readFile(
+          new URL("../../../apps/desktop/src/preload/api.ts", import.meta.url),
+          "utf8",
+        ),
+      ),
+      import("node:fs/promises").then((fs) =>
+        fs.readFile(
+          new URL(
+            "../../../apps/desktop/src/preload/updates-api.ts",
+            import.meta.url,
+          ),
+          "utf8",
+        ),
+      ),
+    ]);
+
+    expect(source).toContain('from "./updates-api"');
+    expect(source).toContain("updates: createUpdatesApi({ invoke, on })");
+    expect(source).not.toContain("const UPDATE_IPC_CHANNELS = {");
+    expect(source).not.toContain("updates: {");
+
+    expect(helperSource).toContain("export const UPDATE_IPC_CHANNELS = {");
+    expect(helperSource).toContain("export function createUpdatesApi({");
+    expect(helperSource).toContain("install() {");
+    expect(helperSource).toContain(
+      "subscribe(listener: (state: UpdaterState) => void)",
+    );
+  });
+
+  it("keeps state IPC wiring behind an extracted preload helper seam", async () => {
+    const [source, helperSource] = await Promise.all([
+      import("node:fs/promises").then((fs) =>
+        fs.readFile(
+          new URL("../../../apps/desktop/src/preload/api.ts", import.meta.url),
+          "utf8",
+        ),
+      ),
+      import("node:fs/promises").then((fs) =>
+        fs.readFile(
+          new URL(
+            "../../../apps/desktop/src/preload/state-api.ts",
+            import.meta.url,
+          ),
+          "utf8",
+        ),
+      ),
+    ]);
+
+    expect(source).toContain('from "./state-api"');
+    expect(source).toContain("state: createStateApi({ invoke })");
+    expect(source).not.toContain("state: {");
+    expect(source).not.toContain(
+      "getRepositoryPreferences(repositoryId: string)",
+    );
+
+    expect(helperSource).toContain("export interface StateApi {");
+    expect(helperSource).toContain("export function createStateApi({");
+    expect(helperSource).toContain("updateRepositoryPreferences(");
+    expect(helperSource).toContain(
+      "importLegacyPreferences(importData: LegacyPreferencesImport)",
+    );
   });
 });

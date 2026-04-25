@@ -1,7 +1,7 @@
 import type { ProviderSnapshot } from "@pi-desktop/shared";
+import { cn } from "@pi-desktop/ui";
 import * as React from "react";
-import { CaretDown } from "@/components/ui/icons";
-import { cn } from "@/lib/utils";
+import { CaretDown } from "@/components/ui/phosphor-icons";
 
 export interface InlineModelPickerProps {
   providerSnapshots?: ProviderSnapshot[];

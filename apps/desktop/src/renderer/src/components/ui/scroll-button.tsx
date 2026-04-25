@@ -1,6 +1,6 @@
 import { ArrowDown } from "@phosphor-icons/react";
+import { cn } from "@pi-desktop/ui";
 import type * as React from "react";
-import { cn } from "@/lib/utils";
 
 export interface ScrollButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {

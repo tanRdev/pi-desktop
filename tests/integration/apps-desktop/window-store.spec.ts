@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import {
   createWindowStore,
@@ -18,6 +19,93 @@ function requireWindow<T extends { id: string }>(
 }
 
 describe("window-store", () => {
+  it("routes pure window creation through an extracted helper seam", async () => {
+    const [source, helperSource] = await Promise.all([
+      readFile(
+        new URL(
+          "../../../apps/desktop/src/renderer/src/stores/window-store.ts",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+      readFile(
+        new URL(
+          "../../../apps/desktop/src/renderer/src/stores/window-store-create.ts",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    ]);
+
+    expect(source).toContain('from "./window-store-create"');
+    expect(source).not.toContain("export function generateWindowId(");
+    expect(source).not.toContain("export function getDefaultWindowPosition(");
+    expect(source).not.toContain("export function getCenteredWindowPosition(");
+    expect(source).not.toContain("export function createWindowFromAction(");
+
+    expect(helperSource).toContain("export interface WindowCreationOptions");
+    expect(helperSource).toContain("export function generateWindowId");
+    expect(helperSource).toContain("export function getDefaultWindowPosition");
+    expect(helperSource).toContain("export function getCenteredWindowPosition");
+    expect(helperSource).toContain("export function createWindowFromAction");
+  });
+
+  it("routes pure reducer helpers through an extracted helper seam", async () => {
+    const [source, helperSource] = await Promise.all([
+      readFile(
+        new URL(
+          "../../../apps/desktop/src/renderer/src/stores/window-store.ts",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+      readFile(
+        new URL(
+          "../../../apps/desktop/src/renderer/src/stores/window-store-reducer.ts",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    ]);
+
+    expect(source).toContain('from "./window-store-reducer"');
+    expect(source).not.toContain("function applyWindowUpdates(");
+    expect(source).not.toContain("function pickNextFocusableWindowId(");
+    expect(source).not.toContain("function syncFocusedWindowState(");
+
+    expect(helperSource).toContain("export function applyWindowUpdates");
+    expect(helperSource).toContain("export function pickNextFocusableWindowId");
+    expect(helperSource).toContain("export function syncFocusedWindowState");
+  });
+
+  it("routes the local reducer harness through an extracted helper seam", async () => {
+    const [source, helperSource] = await Promise.all([
+      readFile(
+        new URL(
+          "../../../apps/desktop/src/renderer/src/stores/window-store.ts",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+      readFile(
+        new URL(
+          "../../../apps/desktop/src/renderer/src/stores/window-store-harness.ts",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    ]);
+
+    expect(source).toContain('from "./window-store-harness"');
+    expect(source).toContain("return createWindowStoreHarness<");
+    expect(source).not.toContain("const listeners = new Set<");
+    expect(source).not.toContain("function notify(): void {");
+
+    expect(helperSource).toContain("export function createWindowStoreHarness");
+    expect(helperSource).toContain("const listeners = new Set<");
+    expect(helperSource).toContain("function notify(): void {");
+  });
+
   it("creates, focuses, and closes windows while tracking z-order", () => {
     const store = createWindowStore();
 

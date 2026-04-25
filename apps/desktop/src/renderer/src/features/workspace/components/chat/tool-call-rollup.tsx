@@ -1,7 +1,7 @@
 import type { AgentMessageSnapshot } from "@pi-desktop/shared";
+import { cn } from "@pi-desktop/ui";
 import * as React from "react";
 import { Tool, type ToolPart } from "@/components/ui/tool";
-import { cn } from "@/lib/utils";
 
 type ToolState = "input-streaming" | "output-available" | "output-error";
 

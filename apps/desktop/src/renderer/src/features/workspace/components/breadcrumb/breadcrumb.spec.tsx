@@ -10,7 +10,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Breadcrumb } from "./breadcrumb";
 
-vi.mock("@/components/ui/icons", () => {
+vi.mock("@/components/ui/phosphor-icons", () => {
   const React = require("react");
   const Stub = (props: Record<string, unknown>) =>
     React.createElement("span", props);

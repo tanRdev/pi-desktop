@@ -1,4 +1,5 @@
 import type { WorktreeGitSnapshot } from "@pi-desktop/shared";
+import { cn } from "@pi-desktop/ui";
 import {
   ArrowDown,
   ArrowUp,
@@ -8,8 +9,7 @@ import {
   Spinner,
   WarningCircle,
   WifiSlash,
-} from "@/components/ui/icons";
-import { cn } from "@/lib/utils";
+} from "@/components/ui/phosphor-icons";
 
 export interface GitStatusChipProps {
   git: WorktreeGitSnapshot;

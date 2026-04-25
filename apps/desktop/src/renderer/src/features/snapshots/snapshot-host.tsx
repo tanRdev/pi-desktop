@@ -1,6 +1,6 @@
+import { cn } from "@pi-desktop/ui";
 import * as React from "react";
 import { useKeyboardShortcut } from "@/lib/keyboard";
-import { cn } from "@/lib/utils";
 import type { SnapshotApi } from "./snapshot-api";
 import { useSnapshots } from "./use-snapshots";
 

@@ -1,7 +1,7 @@
 "use client";
 
+import { cn } from "@pi-desktop/ui";
 import * as React from "react";
-import { cn } from "@/lib/utils";
 import type { ActivityIndicatorProps } from "./activity-indicator";
 import { ActivityGroup, ActivityIndicator } from "./activity-indicator";
 import { FeedbackBar } from "./feedback-bar";

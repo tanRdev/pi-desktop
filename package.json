@@ -12,6 +12,9 @@
     "dev": "bun run --parallel --filter @pi-desktop/shared --filter @pi-desktop/agent-host --filter @pi-desktop/desktop dev",
     "format": "biome check --write .",
     "lint": "biome check .",
+    "lint:imports": "node ./scripts/check-import-boundaries.mjs",
+    "lint:sizes": "node ./scripts/check-file-sizes.mjs",
+    "refactor:snapshot": "node ./scripts/refactor-snapshot.mjs",
     "test": "bun x vitest run --config vitest.workspace.ts",
     "typecheck": "bun run --workspaces typecheck"
   },

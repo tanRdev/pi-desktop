@@ -11,7 +11,6 @@ import {
   getNumberField,
   getStringArrayField,
   getStringField,
-  isPayloadRecord,
   MAX_ARRAY_LENGTH,
   MAX_STRING_BYTES,
   PayloadValidationError,

@@ -86,7 +86,7 @@ function tryReadJson<T>(
   }
 }
 
-const tryReadJsonEffect = <T>(
+const _tryReadJsonEffect = <T>(
   filePath: string,
   validate?: (raw: unknown) => raw is T,
 ): Effect.Effect<T | undefined, never> =>

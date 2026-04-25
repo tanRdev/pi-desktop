@@ -9,7 +9,7 @@ import { WorktreeSection } from "./worktree-section";
 
 // phosphor icons render real svgs; no mocking needed, but keep test fast
 // by stubbing icon library used by thread-list-item child.
-vi.mock("@/components/ui/icons", () => {
+vi.mock("@/components/ui/phosphor-icons", () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const React = require("react");
   const Stub = (props: Record<string, unknown>) =>

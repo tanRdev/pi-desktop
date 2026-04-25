@@ -6,6 +6,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/renderer/src/*"],
+      "@pi-desktop/contracts": ["../../packages/contracts/src/index.ts"],
+      "@pi-desktop/contracts/*": ["../../packages/contracts/src/*"],
       "@pi-desktop/shared": ["../../packages/shared/src/index.ts"],
       "@pi-desktop/shared/*": ["../../packages/shared/src/*"],
       "@pi-desktop/agent-host": ["../../packages/agent-host/src/index.ts"],

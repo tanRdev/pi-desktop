@@ -1,5 +1,5 @@
+import { Button, cn } from "@pi-desktop/ui";
 import * as React from "react";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -14,8 +14,7 @@ import {
   RefreshCw,
   RotateCcw,
   Save,
-} from "@/components/ui/icons";
-import { cn } from "@/lib/utils";
+} from "@/components/ui/phosphor-icons";
 import type { SnapshotApi } from "./snapshot-api";
 import type { SnapshotRestoreResult } from "./snapshot-store";
 import { useSnapshots } from "./use-snapshots";

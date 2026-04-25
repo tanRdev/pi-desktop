@@ -1,4 +1,5 @@
 import path from "node:path";
+import { DocumentCatalog } from "@pi-desktop/shared";
 import { PersistentJsonFile } from "./persistent-json-file";
 
 export interface AppSelectionState {
@@ -11,11 +12,17 @@ type SelectionDocument = AppSelectionState & {
   version: 1;
 };
 
-const DEFAULT_SELECTION: SelectionDocument = {
-  version: 1,
+type SelectionMutation = (selection: AppSelectionState) => AppSelectionState;
+
+const EMPTY_SELECTION: AppSelectionState = {
   repositoryId: null,
   worktreeId: null,
   threadId: null,
+};
+
+const DEFAULT_SELECTION: SelectionDocument = {
+  version: 1,
+  ...EMPTY_SELECTION,
 };
 
 function normalizeSelectionId(value: string | null | undefined): string | null {
@@ -26,24 +33,51 @@ function normalizeSelectionId(value: string | null | undefined): string | null {
   return value.replace(/[\\/]+$/, "") || value;
 }
 
+function readSelection(document: SelectionDocument): AppSelectionState {
+  return {
+    repositoryId: document.repositoryId,
+    worktreeId: document.worktreeId,
+    threadId: document.threadId,
+  };
+}
+
+function normalizeSelection(selection: AppSelectionState): AppSelectionState {
+  return {
+    repositoryId: normalizeSelectionId(selection.repositoryId),
+    worktreeId: normalizeSelectionId(selection.worktreeId),
+    threadId: selection.threadId,
+  };
+}
+
 export class SelectionState {
-  private readonly store: PersistentJsonFile<SelectionDocument>;
+  private readonly catalog: DocumentCatalog<
+    SelectionDocument,
+    AppSelectionState,
+    SelectionMutation
+  >;
 
   constructor(userDataPath: string) {
-    this.store = new PersistentJsonFile({
+    const store = new PersistentJsonFile({
       filePath: path.join(userDataPath, "catalog", "selection.json"),
       defaultValue: DEFAULT_SELECTION,
+    });
+
+    this.catalog = new DocumentCatalog({
+      store,
+      select: readSelection,
+      applyUpdate: (document, mutate) => ({
+        ...document,
+        ...mutate(readSelection(document)),
+      }),
     });
   }
 
   get(): AppSelectionState {
-    const { version: _version, ...selection } = this.store.get();
-    return selection;
+    return this.catalog.get();
   }
 
   set(nextSelection: Partial<AppSelectionState>): AppSelectionState {
-    const current = this.get();
-    const merged: AppSelectionState = {
+    return this.catalog.update((current) => ({
       repositoryId:
         nextSelection.repositoryId === undefined
           ? current.repositoryId
@@ -56,24 +90,14 @@ export class SelectionState {
         nextSelection.threadId === undefined
           ? current.threadId
           : nextSelection.threadId,
-    };
-
-    return this.replace(merged);
+    }));
   }
 
   replace(nextSelection: AppSelectionState): AppSelectionState {
-    const nextDocument: SelectionDocument = {
-      version: 1,
-      repositoryId: normalizeSelectionId(nextSelection.repositoryId),
-      worktreeId: normalizeSelectionId(nextSelection.worktreeId),
-      threadId: nextSelection.threadId,
-    };
-    this.store.set(nextDocument);
-    return this.get();
+    return this.catalog.update(() => normalizeSelection(nextSelection));
   }
 
   clear(): AppSelectionState {
-    this.store.set(DEFAULT_SELECTION);
-    return this.get();
+    return this.catalog.update(() => EMPTY_SELECTION);
   }
 }

@@ -1,6 +1,7 @@
 import {
   mkdirSync,
   mkdtempSync,
+  readFileSync,
   rmSync,
   symlinkSync,
   writeFileSync,
@@ -42,6 +43,17 @@ async function loadGitHandlers() {
 }
 
 const TMP_PREFIX = path.join(os.tmpdir(), "pi-ipc-security-");
+
+describe("shared dialog model boundary", () => {
+  it("does not import electron into shared dialog types", () => {
+    const dialogModelPath = path.resolve(
+      process.cwd(),
+      "packages/shared/src/models/dialog.ts",
+    );
+    const source = readFileSync(dialogModelPath, "utf8");
+    expect(source).not.toMatch(/from\s+["']electron["']/);
+  });
+});
 
 describe("path guards - traversal", () => {
   let root: string;

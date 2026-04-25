@@ -7,6 +7,7 @@ import {
   Gear,
   XCircle,
 } from "@phosphor-icons/react";
+import { cn } from "@pi-desktop/ui";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +15,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { cn } from "@/lib/utils";
 
 export type ToolPart = {
   type: string;

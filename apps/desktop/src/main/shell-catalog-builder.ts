@@ -1,19 +1,17 @@
 import os from "node:os";
 import path from "node:path";
-import {
-  type AgentSnapshot,
-  createEmptyWorkspaceSession,
-  isFileBackedWindow,
-  type RepositoryPreferences,
-  type ShellCatalogSnapshot,
-  type TerminalWindow,
-  type ThreadSnapshot,
-  type WorkspaceSession,
+import type {
+  AgentSnapshot,
+  RepositoryPreferences,
+  ShellCatalogSnapshot,
+  ThreadSnapshot,
+  WorkspaceSession,
 } from "@pi-desktop/shared";
 import type {
   GitRepositoryInspection,
   GitWorktreeSummary,
 } from "./git-worktree-service";
+import { reconcileWorkspaceSessions } from "./shell-catalog-builder-workspace-sessions";
 
 const PI_DESKTOP_WORKTREES_DIR = path.join(os.homedir(), ".pi-desktop");
 
@@ -45,163 +43,6 @@ export interface BuildShellCatalogOptions {
     lastError: string | null;
   }>;
   selectedAgentSnapshot?: AgentSnapshot | null;
-}
-
-type ThreadLookup = Map<string, Set<string>>;
-
-function isWithinWorktree(worktreeId: string, targetPath: string): boolean {
-  const normalizedTargetPath = path.resolve(targetPath);
-  return (
-    normalizedTargetPath === worktreeId ||
-    normalizedTargetPath.startsWith(`${worktreeId}${path.sep}`)
-  );
-}
-
-function indexThreadsByWorktree(
-  repositories: ShellCatalogSnapshot["repositories"],
-): ThreadLookup {
-  const index: ThreadLookup = new Map();
-
-  for (const repository of repositories) {
-    for (const worktree of repository.worktrees) {
-      index.set(
-        worktree.id,
-        new Set(worktree.threads.map((thread) => thread.id)),
-      );
-    }
-  }
-
-  return index;
-}
-
-function reconcileWorkspaceSessions(
-  repositories: ShellCatalogSnapshot["repositories"],
-  workspaceSessions: WorkspaceSession[],
-): WorkspaceSession[] {
-  const worktreeIds = new Set(
-    repositories.flatMap((repository) =>
-      repository.worktrees.map((worktree) => worktree.id),
-    ),
-  );
-  const threadIdsByWorktree = indexThreadsByWorktree(repositories);
-
-  return workspaceSessions.flatMap((session) => {
-    if (!worktreeIds.has(session.worktreeId)) {
-      return [];
-    }
-
-    const validThreadIds =
-      threadIdsByWorktree.get(session.worktreeId) ?? new Set();
-    const candidateWindows = session.layout.windows.filter((window) => {
-      if (window.kind === "chat") {
-        return validThreadIds.has(window.threadId);
-      }
-
-      if (isFileBackedWindow(window)) {
-        return isWithinWorktree(session.worktreeId, window.filePath);
-      }
-
-      return true;
-    });
-    const validWindows = candidateWindows.map((window) => {
-      if (window.kind === "terminal") {
-        const normalizedBackend =
-          window.backend === "pi" ? ("pi" as const) : ("shell" as const);
-
-        const normalizedWindow: TerminalWindow = {
-          id: window.id,
-          kind: window.kind,
-          title: window.title,
-          x: window.x,
-          y: window.y,
-          width: window.width,
-          height: window.height,
-          zIndex: window.zIndex,
-          isFocused: window.isFocused,
-          state: window.state,
-          ...(window.linkColor ? { linkColor: window.linkColor } : {}),
-          ...(window.linkTargetIds
-            ? { linkTargetIds: window.linkTargetIds }
-            : {}),
-          terminalId: window.terminalId,
-          backend: normalizedBackend,
-          cwd: isWithinWorktree(session.worktreeId, window.cwd)
-            ? window.cwd
-            : session.worktreeId,
-        };
-
-        return normalizedWindow;
-      }
-
-      if (window.kind === "git") {
-        return {
-          ...window,
-          repositoryPath: isWithinWorktree(
-            session.worktreeId,
-            window.repositoryPath,
-          )
-            ? window.repositoryPath
-            : session.worktreeId,
-        };
-      }
-
-      return window;
-    });
-    const validWindowIds = new Set(validWindows.map((window) => window.id));
-    const focusedWindowId =
-      session.layout.focusedWindowId &&
-      validWindowIds.has(session.layout.focusedWindowId)
-        ? session.layout.focusedWindowId
-        : (validWindows.findLast((window) => window.kind === "chat")?.id ??
-          validWindows[0]?.id ??
-          null);
-    const promptDrafts = Object.fromEntries(
-      Object.entries(session.promptDrafts).filter(([threadId]) =>
-        validThreadIds.has(threadId),
-      ),
-    );
-    const recoveryDrafts = Object.fromEntries(
-      Object.entries(session.recoveryDrafts).filter(([draftId, draft]) =>
-        draft.kind === "note" ? true : validThreadIds.has(draftId),
-      ),
-    );
-    const files = Object.fromEntries(
-      Object.entries(session.files).filter(([filePath]) =>
-        isWithinWorktree(session.worktreeId, filePath),
-      ),
-    );
-    const selectedPath =
-      session.search.selectedPath &&
-      isWithinWorktree(session.worktreeId, session.search.selectedPath)
-        ? session.search.selectedPath
-        : null;
-
-    return [
-      {
-        ...createEmptyWorkspaceSession(session.worktreeId),
-        ...session,
-        promptDrafts,
-        recoveryDrafts,
-        files,
-        search: {
-          ...session.search,
-          selectedPath,
-        },
-        layout: {
-          ...session.layout,
-          windows: validWindows,
-          focusedWindowId,
-          nextZIndex: Math.max(
-            session.layout.nextZIndex,
-            session.layout.windows.reduce(
-              (maxZIndex, window) => Math.max(maxZIndex, window.zIndex),
-              0,
-            ) + 1,
-          ),
-        },
-      },
-    ];
-  });
 }
 
 function createWorktreeLabel(
@@ -454,9 +295,9 @@ export async function buildShellCatalog({
   return {
     repositories: repositorySnapshots,
     selection: reconcileSelection(repositorySnapshots, selection),
-    reconciledWorkspaceSessions: reconcileWorkspaceSessions(
-      repositorySnapshots,
+    reconciledWorkspaceSessions: reconcileWorkspaceSessions({
+      repositories: repositorySnapshots,
       workspaceSessions,
-    ),
+    }),
   };
 }

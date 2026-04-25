@@ -1,14 +1,10 @@
 /* ============================================
-   Pi Desktop Shell - Base layer & utilities
-   Imported by app.css which is the source of truth
-   for radius, spacing, duration, font, and easing tokens.
-   This file provides:
-     - Semantic color variables (shadcn compat)
-     - Global border-color reset
-     - html/body/root base styles
-     - Utility classes (.glass, .interactive, .panel, etc.)
-     - .prose styles
+   Pi Desktop Shell - shared fonts, tokens, base layer, and utilities
+   Imported by app.css for package-level typography/theme primitives plus
+   shell variables and shared utilities.
    ============================================ */
+
+@import "./tokens.css";
 
 @layer base {
   :root {

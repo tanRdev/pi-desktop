@@ -1,5 +1,5 @@
-import { Pi } from "@/components/ui/icons";
-import { cn } from "@/lib/utils";
+import { cn } from "@pi-desktop/ui";
+import { Pi } from "@/components/ui/phosphor-icons";
 
 export interface WorkspaceSwitchLoaderProps {
   repositoryName: string | null;

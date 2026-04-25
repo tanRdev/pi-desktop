@@ -7,6 +7,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { WorkspaceShell } from "./workspace-shell";
 
 const gitPanelPropsSpy = vi.fn();
+const workspaceShellMainPanePropsSpy = vi.fn();
+const workspaceShellTerminalAsidePropsSpy = vi.fn();
 
 vi.mock("./chat-thread-panel", () => ({
   ChatThreadPanel({ targetMessageId }: { targetMessageId?: string | null }) {
@@ -25,6 +27,50 @@ vi.mock("./git-panel", () => ({
   GitPanel(props: Record<string, unknown>) {
     gitPanelPropsSpy(props);
     return <div data-testid="git-panel">Git Panel</div>;
+  },
+}));
+
+vi.mock("./workspace-shell-main-pane", () => ({
+  WorkspaceShellMainPane(props: {
+    hasActiveThread?: boolean;
+    selectedFileWindow?: { filePath: string } | null;
+    targetMessageId?: string | null;
+  }) {
+    workspaceShellMainPanePropsSpy(props);
+    return (
+      <div data-testid="workspace-shell-main-pane">
+        <div data-testid="workspace-chat-panel">
+          {props.selectedFileWindow ? (
+            <div data-testid="workspace-file-content">
+              {props.selectedFileWindow.filePath}
+            </div>
+          ) : props.hasActiveThread ? (
+            <div
+              data-testid="chat-thread-panel"
+              data-target-message-id={props.targetMessageId ?? ""}
+            >
+              Chat
+            </div>
+          ) : null}
+        </div>
+        {props.selectedFileWindow === null ? (
+          <div data-testid="prompt-dock">Prompt Dock</div>
+        ) : null}
+      </div>
+    );
+  },
+}));
+
+vi.mock("./workspace-shell-terminal-aside", () => ({
+  WorkspaceShellTerminalAside(props: {
+    workspacePath?: string | null;
+    onToggleTerminal?: () => void;
+    onTerminalCommandComplete?: () => void;
+  }) {
+    workspaceShellTerminalAsidePropsSpy(props);
+    return (
+      <div data-testid="workspace-shell-terminal-aside">Terminal Aside</div>
+    );
   },
 }));
 
@@ -240,6 +286,8 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   gitPanelPropsSpy.mockReset();
+  workspaceShellMainPanePropsSpy.mockReset();
+  workspaceShellTerminalAsidePropsSpy.mockReset();
 });
 
 describe("WorkspaceShell", () => {
@@ -397,6 +445,29 @@ describe("WorkspaceShell", () => {
         "message-9",
       );
     });
+
+    const latestMainPaneProps =
+      workspaceShellMainPanePropsSpy.mock.calls.at(-1)?.[0];
+
+    if (
+      !latestMainPaneProps ||
+      typeof latestMainPaneProps !== "object" ||
+      !("onTargetMessageNavigated" in latestMainPaneProps) ||
+      typeof latestMainPaneProps.onTargetMessageNavigated !== "function"
+    ) {
+      throw new Error(
+        "Expected main pane to receive target navigation callback",
+      );
+    }
+
+    latestMainPaneProps.onTargetMessageNavigated("message-9");
+
+    await waitFor(() => {
+      expect(screen.getByTestId("chat-thread-panel")).toHaveAttribute(
+        "data-target-message-id",
+        "",
+      );
+    });
   });
 
   it("toggles the sidebar from shared and namespaced command events", () => {
@@ -463,6 +534,59 @@ describe("WorkspaceShell", () => {
     expect(
       screen.getByText("/tmp/alpha-workspace/workspace-shell.tsx"),
     ).toBeInTheDocument();
+  });
+
+  it("delegates main pane rendering to the extracted seam", () => {
+    const onToggleTerminal = vi.fn();
+    const onSelectContextSurface = vi.fn();
+
+    render(
+      <WorkspaceShell
+        {...createWorkspaceShellProps({
+          onToggleTerminal,
+          onSelectContextSurface,
+          activeThreadTitle: null,
+        })}
+      />,
+    );
+
+    expect(screen.getByTestId("workspace-shell-main-pane")).toBeInTheDocument();
+    expect(workspaceShellMainPanePropsSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        platform: "darwin",
+        activeThreadTitle: null,
+        hasActiveThread: true,
+        onToggleTerminal,
+        onSelectContextSurface,
+      }),
+    );
+  });
+
+  it("delegates terminal aside rendering to the extracted seam", () => {
+    const onToggleTerminal = vi.fn();
+    const onTerminalCommandComplete = vi.fn();
+
+    render(
+      <WorkspaceShell
+        {...createWorkspaceShellProps({
+          isTerminalVisible: true,
+          workspacePath: "/test/workspace",
+          onToggleTerminal,
+          onTerminalCommandComplete,
+        })}
+      />,
+    );
+
+    expect(
+      screen.getByTestId("workspace-shell-terminal-aside"),
+    ).toBeInTheDocument();
+    expect(workspaceShellTerminalAsidePropsSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        workspacePath: "/test/workspace",
+        onToggleTerminal,
+        onTerminalCommandComplete,
+      }),
+    );
   });
 
   it("does not render breadcrumb in shell when no file window is selected", () => {

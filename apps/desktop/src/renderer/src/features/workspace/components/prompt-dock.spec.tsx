@@ -21,6 +21,15 @@ type PromptInputSectionProps = React.PropsWithChildren<{
 type PromptTextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement>;
 
 vi.mock("@pi-desktop/ui", () => ({
+  cn: (...parts: Array<string | false | null | undefined>) =>
+    parts.filter(Boolean).join(" "),
+  Button({ children, className, ...props }: React.ComponentProps<"button">) {
+    return (
+      <button className={className} {...props}>
+        {children}
+      </button>
+    );
+  },
   PromptInput({ children, className }: PromptInputProps) {
     return <div className={className}>{children}</div>;
   },

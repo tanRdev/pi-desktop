@@ -1,5 +1,5 @@
+import { cn } from "@pi-desktop/ui";
 import { type ReactNode, useCallback, useEffect, useRef } from "react";
-import { cn } from "@/lib/utils";
 import { useSplitPane } from "./use-split-pane";
 
 type SplitDirection = "horizontal" | "vertical";

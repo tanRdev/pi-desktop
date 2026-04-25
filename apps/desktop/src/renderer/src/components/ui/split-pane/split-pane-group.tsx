@@ -1,3 +1,4 @@
+import { cn } from "@pi-desktop/ui";
 import {
   createContext,
   useCallback,
@@ -5,7 +6,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { cn } from "@/lib/utils";
 import type { SplitOrientation } from "./split-pane";
 import { SplitPane } from "./split-pane";
 

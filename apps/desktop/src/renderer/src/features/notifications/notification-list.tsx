@@ -1,6 +1,6 @@
 import { X } from "@phosphor-icons/react";
+import { cn } from "@pi-desktop/ui";
 import { useEffect } from "react";
-import { cn } from "@/lib/utils";
 import {
   globalNotificationCenter,
   type Notification,

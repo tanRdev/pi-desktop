@@ -6,6 +6,16 @@ import { useLayoutState } from "./use-layout-state";
 
 const STORAGE_PREFIX = "pi-desktop:layout:";
 
+function parseStoredValue(key: string) {
+  const raw = localStorage.getItem(key);
+  expect(raw).not.toBeNull();
+  if (raw === null) {
+    throw new Error(`Missing localStorage entry for ${key}`);
+  }
+
+  return JSON.parse(raw);
+}
+
 let mockBreakpointCurrent = "sm";
 
 vi.mock("./use-breakpoint", () => ({
@@ -39,9 +49,7 @@ describe("useLayoutState", () => {
     });
 
     expect(result.current.sidebarCollapsed).toBe(true);
-    const raw = localStorage.getItem(`${STORAGE_PREFIX}sm`);
-    expect(raw).not.toBeNull();
-    const parsed = JSON.parse(raw!);
+    const parsed = parseStoredValue(`${STORAGE_PREFIX}sm`);
     expect(parsed.sidebarCollapsed).toBe(true);
   });
 
@@ -53,9 +61,7 @@ describe("useLayoutState", () => {
     });
 
     expect(result.current.panelSizes.left).toBe(260);
-    const raw = localStorage.getItem(`${STORAGE_PREFIX}sm`);
-    expect(raw).not.toBeNull();
-    const parsed = JSON.parse(raw!);
+    const parsed = parseStoredValue(`${STORAGE_PREFIX}sm`);
     expect(parsed.panelSizes.left).toBe(260);
   });
 
@@ -90,12 +96,10 @@ describe("useLayoutState", () => {
 
     expect(result.current.sidebarCollapsed).toBe(false);
 
-    const smRaw = localStorage.getItem(`${STORAGE_PREFIX}sm`);
-    const smParsed = JSON.parse(smRaw!);
+    const smParsed = parseStoredValue(`${STORAGE_PREFIX}sm`);
     expect(smParsed.sidebarCollapsed).toBe(false);
 
-    const lgRaw = localStorage.getItem(`${STORAGE_PREFIX}lg`);
-    const lgParsed = JSON.parse(lgRaw!);
+    const lgParsed = parseStoredValue(`${STORAGE_PREFIX}lg`);
     expect(lgParsed.sidebarCollapsed).toBe(false);
     expect(lgParsed.panelSizes.left).toBe(400);
   });

@@ -5,7 +5,6 @@
 
 import type {
   ChatWindow,
-  CreateWindowAction,
   FileWindow,
   GitWindow,
   GraphWindow,
@@ -16,8 +15,22 @@ import type {
   WindowLayoutState,
   WindowPosition,
   WorkspaceWindow,
-  WorkspaceWindowBase,
 } from "@pi-desktop/shared";
+import { createWindowFromAction } from "./window-store-create";
+import { createWindowStoreHarness } from "./window-store-harness";
+import {
+  applyWindowUpdates,
+  pickNextFocusableWindowId,
+  syncFocusedWindowState,
+} from "./window-store-reducer";
+
+export {
+  createWindowFromAction,
+  generateWindowId,
+  getCenteredWindowPosition,
+  getDefaultWindowPosition,
+  type WindowCreationOptions,
+} from "./window-store-create";
 
 /**
  * Window store state.
@@ -27,13 +40,6 @@ export interface WindowStoreState {
   layout: WindowLayoutState;
   /** Whether drag/snap preview is active */
   snapPreview: { windowId: string; position: WindowPosition } | null;
-}
-
-export interface WindowCreationOptions {
-  x?: number;
-  y?: number;
-  width?: number;
-  height?: number;
 }
 
 /**
@@ -79,8 +85,6 @@ export type WindowAction =
   | { type: "REORDER_WINDOWS"; payload: { fromIndex: number; toIndex: number } }
   | { type: "CLEAR_ALL" };
 
-const DEFAULT_WINDOW_WIDTH = 640;
-const DEFAULT_WINDOW_HEIGHT = 420;
 const DEFAULT_SNAP_GRID = 24;
 const DEFAULT_ZOOM = 0.9;
 const MIN_ZOOM = 0.25;
@@ -107,227 +111,6 @@ export function createInitialWindowStoreState(): WindowStoreState {
  */
 export const initialWindowStoreState: WindowStoreState =
   createInitialWindowStoreState();
-
-/**
- * Generate a unique window ID.
- */
-export function generateWindowId(kind: WorkspaceWindow["kind"]): string {
-  return `${kind}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-}
-
-/**
- * Get default window position (cascading from top-left).
- */
-export function getDefaultWindowPosition(existingWindows: WorkspaceWindow[]): {
-  x: number;
-  y: number;
-} {
-  const cascadeOffset = 48;
-  const maxOffset = 288;
-
-  const count = existingWindows.length;
-  const offset = Math.min(count * cascadeOffset, maxOffset);
-
-  return {
-    x: 160 + offset,
-    y: 120 + offset,
-  };
-}
-
-export function getCenteredWindowPosition({
-  viewportWidth,
-  viewportHeight,
-  windowWidth = DEFAULT_WINDOW_WIDTH,
-  windowHeight = DEFAULT_WINDOW_HEIGHT,
-  zoom = DEFAULT_ZOOM,
-  panX = 0,
-  panY = 0,
-}: {
-  viewportWidth: number;
-  viewportHeight: number;
-  windowWidth?: number;
-  windowHeight?: number;
-  zoom?: number;
-  panX?: number;
-  panY?: number;
-}): { x: number; y: number } {
-  const safeZoom = zoom > 0 ? zoom : DEFAULT_ZOOM;
-
-  return {
-    x: Math.round(
-      (viewportWidth / safeZoom - windowWidth) / 2 - panX / safeZoom,
-    ),
-    y: Math.round(
-      (viewportHeight / safeZoom - windowHeight) / 2 - panY / safeZoom,
-    ),
-  };
-}
-
-/**
- * Create a new window from an action.
- */
-export function createWindowFromAction(
-  action: CreateWindowAction,
-  existingWindows: WorkspaceWindow[],
-  nextZIndex: number,
-  cwd?: string,
-  options?: WindowCreationOptions,
-): WorkspaceWindow {
-  const id = generateWindowId(action.kind);
-  const position = getDefaultWindowPosition(existingWindows);
-
-  const base: Omit<WorkspaceWindowBase, "kind"> = {
-    id,
-    title: "",
-    x: options?.x ?? position.x,
-    y: options?.y ?? position.y,
-    width: options?.width ?? DEFAULT_WINDOW_WIDTH,
-    height: options?.height ?? DEFAULT_WINDOW_HEIGHT,
-    zIndex: nextZIndex,
-    isFocused: true,
-    state: "normal",
-  };
-
-  switch (action.kind) {
-    case "file": {
-      const win: FileWindow = {
-        ...base,
-        kind: "file",
-        title: action.filePath.split(/[/\\]/).pop() ?? action.filePath,
-        filePath: action.filePath,
-        isDirty: false,
-      };
-      return win;
-    }
-    case "terminal": {
-      const win: TerminalWindow = {
-        ...base,
-        kind: "terminal",
-        title: "Terminal",
-        terminalId: id,
-        backend: action.backend,
-        cwd: action.cwd ?? cwd ?? "/",
-      };
-      return win;
-    }
-    case "chat": {
-      const win: ChatWindow = {
-        ...base,
-        kind: "chat",
-        title: action.title ?? "Chat",
-        threadId: action.threadId,
-      };
-      return win;
-    }
-    case "note": {
-      const win: NoteWindow = {
-        ...base,
-        kind: "note",
-        title: "New Note",
-        noteId: id,
-        isDirty: false,
-      };
-      return win;
-    }
-    case "git": {
-      const win: GitWindow = {
-        ...base,
-        kind: "git",
-        title: "Git",
-        repositoryPath: action.repositoryPath,
-      };
-      return win;
-    }
-    case "search": {
-      throw new Error(
-        "Search windows are overlay-only. Use the launcher overlay instead.",
-      );
-    }
-    case "graph": {
-      const win: GraphWindow = {
-        ...base,
-        kind: "graph",
-        title: "Graph",
-        filters: {
-          showFiles: true,
-          showTerminals: true,
-          showNotes: true,
-          showThreadLinks: true,
-          showMentions: true,
-        },
-      };
-      return win;
-    }
-    case "image": {
-      const win: ImageWindow = {
-        ...base,
-        kind: "image",
-        title: action.filePath.split(/[/\\]/).pop() ?? action.filePath,
-        filePath: action.filePath,
-      };
-      return win;
-    }
-  }
-}
-
-function applyWindowUpdates(
-  window: WorkspaceWindow,
-  updates: WindowUpdates,
-): WorkspaceWindow {
-  const {
-    id: _ignoredId,
-    isFocused: _ignoredFocus,
-    zIndex: _ignoredZIndex,
-    ...safeUpdates
-  } = updates as WindowUpdates & {
-    id?: string;
-    isFocused?: boolean;
-    zIndex?: number;
-  };
-
-  switch (window.kind) {
-    case "file":
-      return { ...window, ...safeUpdates };
-    case "terminal":
-      return { ...window, ...safeUpdates };
-    case "chat":
-      return { ...window, ...safeUpdates };
-    case "note":
-      return { ...window, ...safeUpdates };
-    case "git":
-      return { ...window, ...safeUpdates };
-    case "search":
-      return { ...window, ...safeUpdates };
-    case "graph":
-      return { ...window, ...safeUpdates };
-    case "image":
-      return { ...window, ...safeUpdates };
-  }
-}
-
-function pickNextFocusableWindowId(windows: WorkspaceWindow[]): string | null {
-  const focusableWindows = windows.filter(
-    (window) => window.state !== "minimized",
-  );
-  if (focusableWindows.length === 0) {
-    return null;
-  }
-
-  const sortedByZIndex = [...focusableWindows].sort(
-    (a, b) => b.zIndex - a.zIndex,
-  );
-  return sortedByZIndex[0]?.id ?? null;
-}
-
-function syncFocusedWindowState(
-  windows: WorkspaceWindow[],
-  focusedWindowId: string | null,
-): WorkspaceWindow[] {
-  return windows.map((window) => ({
-    ...window,
-    isFocused: window.id === focusedWindowId,
-  }));
-}
 
 /**
  * Window store reducer.
@@ -590,112 +373,61 @@ export function windowReducer(
  * This is retained for tests and non-authoritative reducer use only.
  */
 export function createWindowStore() {
-  let state: WindowStoreState = createInitialWindowStoreState();
-  const listeners = new Set<(state: WindowStoreState) => void>();
-
-  function notify(): void {
-    for (const listener of listeners) {
-      listener(state);
-    }
-  }
-
-  return {
-    getState(): WindowStoreState {
-      return state;
-    },
-
-    subscribe(listener: (state: WindowStoreState) => void): () => void {
-      listeners.add(listener);
-      return () => {
-        listeners.delete(listener);
-      };
-    },
-
-    dispatch(action: WindowAction): void {
-      state = windowReducer(state, action);
-      notify();
-    },
-
-    createWindow(
-      action: CreateWindowAction,
-      cwd?: string,
-      options?: WindowCreationOptions,
-    ): WorkspaceWindow {
-      const window = createWindowFromAction(
-        action,
-        state.layout.windows,
-        state.layout.nextZIndex,
-        cwd,
-        options,
-      );
-      this.dispatch({ type: "CREATE_WINDOW", payload: { window } });
-      return window;
-    },
-
-    closeWindow(windowId: string): void {
-      this.dispatch({ type: "CLOSE_WINDOW", payload: { windowId } });
-    },
-
-    focusWindow(windowId: string): void {
-      this.dispatch({ type: "FOCUS_WINDOW", payload: { windowId } });
-    },
-
-    moveWindow(windowId: string, x: number, y: number): void {
-      this.dispatch({ type: "MOVE_WINDOW", payload: { windowId, x, y } });
-    },
-
-    resizeWindow(windowId: string, width: number, height: number): void {
-      this.dispatch({
+  return createWindowStoreHarness<
+    WindowStoreState,
+    WindowAction,
+    WorkspaceWindow,
+    WindowUpdates,
+    NonNullable<WindowStoreState["snapPreview"]>
+  >({
+    createInitialState: createInitialWindowStoreState,
+    reduce: windowReducer,
+    createWindowFromAction,
+    actions: {
+      createWindow: (window) => ({
+        type: "CREATE_WINDOW",
+        payload: { window },
+      }),
+      closeWindow: (windowId) => ({
+        type: "CLOSE_WINDOW",
+        payload: { windowId },
+      }),
+      focusWindow: (windowId) => ({
+        type: "FOCUS_WINDOW",
+        payload: { windowId },
+      }),
+      moveWindow: (windowId, x, y) => ({
+        type: "MOVE_WINDOW",
+        payload: { windowId, x, y },
+      }),
+      resizeWindow: (windowId, width, height) => ({
         type: "RESIZE_WINDOW",
         payload: { windowId, width, height },
-      });
-    },
-
-    updateWindow(windowId: string, updates: WindowUpdates): void {
-      this.dispatch({ type: "UPDATE_WINDOW", payload: { windowId, updates } });
-    },
-
-    setDirty(windowId: string, isDirty: boolean): void {
-      this.dispatch({ type: "SET_DIRTY", payload: { windowId, isDirty } });
-    },
-
-    setZoom(zoom: number): void {
-      this.dispatch({ type: "SET_ZOOM", payload: { zoom } });
-    },
-
-    zoomIn(): void {
-      this.dispatch({ type: "ZOOM_IN" });
-    },
-
-    zoomOut(): void {
-      this.dispatch({ type: "ZOOM_OUT" });
-    },
-
-    resetZoom(): void {
-      this.dispatch({ type: "RESET_ZOOM" });
-    },
-
-    setPan(panX: number, panY: number): void {
-      this.dispatch({ type: "SET_PAN", payload: { panX, panY } });
-    },
-
-    reorderWindows(fromIndex: number, toIndex: number): void {
-      this.dispatch({
+      }),
+      updateWindow: (windowId, updates) => ({
+        type: "UPDATE_WINDOW",
+        payload: { windowId, updates },
+      }),
+      setDirty: (windowId, isDirty) => ({
+        type: "SET_DIRTY",
+        payload: { windowId, isDirty },
+      }),
+      setZoom: (zoom) => ({ type: "SET_ZOOM", payload: { zoom } }),
+      zoomIn: () => ({ type: "ZOOM_IN" }),
+      zoomOut: () => ({ type: "ZOOM_OUT" }),
+      resetZoom: () => ({ type: "RESET_ZOOM" }),
+      setPan: (panX, panY) => ({ type: "SET_PAN", payload: { panX, panY } }),
+      reorderWindows: (fromIndex, toIndex) => ({
         type: "REORDER_WINDOWS",
         payload: { fromIndex, toIndex },
-      });
+      }),
+      setSnapPreview: (preview) => ({
+        type: "SET_SNAP_PREVIEW",
+        payload: preview,
+      }),
+      clearAll: () => ({ type: "CLEAR_ALL" }),
     },
-
-    setSnapPreview(
-      preview: { windowId: string; position: WindowPosition } | null,
-    ): void {
-      this.dispatch({ type: "SET_SNAP_PREVIEW", payload: preview });
-    },
-
-    clearAll(): void {
-      this.dispatch({ type: "CLEAR_ALL" });
-    },
-  };
+  });
 }
 
 export type WindowStore = ReturnType<typeof createWindowStore>;

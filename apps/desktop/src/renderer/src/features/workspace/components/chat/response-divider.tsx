@@ -1,5 +1,5 @@
+import { cn } from "@pi-desktop/ui";
 import * as React from "react";
-import { cn } from "@/lib/utils";
 
 function formatDuration(ms: number): string {
   const totalSeconds = Math.max(0, Math.floor(ms / 1000));

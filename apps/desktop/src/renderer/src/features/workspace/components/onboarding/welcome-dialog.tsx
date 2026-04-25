@@ -1,3 +1,4 @@
+import { cn } from "@pi-desktop/ui";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,14 +17,13 @@ import {
   Keyboard,
   Lightning,
   Pi,
-} from "@/components/ui/icons";
+} from "@/components/ui/phosphor-icons";
 import type { RegisteredShortcut } from "@/lib/keyboard";
 import {
   detectPlatform,
   formatShortcut,
   globalShortcutRegistry,
 } from "@/lib/keyboard";
-import { cn } from "@/lib/utils";
 
 const ONBOARDING_KEY = "pi-desktop:has-onboarded";
 const TOTAL_STEPS = 4;

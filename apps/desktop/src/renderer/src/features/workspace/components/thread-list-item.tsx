@@ -1,12 +1,12 @@
 import type { ThreadSnapshot } from "@pi-desktop/shared";
-import { ChatText, ICON_SIZE_XS, X } from "@/components/ui/icons";
 import {
+  cn,
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
+} from "@pi-desktop/ui";
+import { ChatText, ICON_SIZE_XS, X } from "@/components/ui/phosphor-icons";
 import { DEFAULT_UNTITLED_THREAD_TITLE } from "../../../../../thread-title-defaults";
 
 export interface ThreadListItemProps {

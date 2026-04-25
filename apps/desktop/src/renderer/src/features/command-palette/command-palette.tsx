@@ -1,3 +1,4 @@
+import { cn } from "@pi-desktop/ui";
 import * as React from "react";
 import {
   Dialog,
@@ -9,8 +10,7 @@ import {
   Command as CommandGlyph,
   ICON_SIZE_SM,
   MagnifyingGlass,
-} from "@/components/ui/icons";
-import { cn } from "@/lib/utils";
+} from "@/components/ui/phosphor-icons";
 import type { Command, CommandSearchHit } from "./command-registry";
 import { commandRegistry, useCommands } from "./command-registry";
 

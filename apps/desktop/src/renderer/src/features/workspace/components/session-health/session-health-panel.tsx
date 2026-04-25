@@ -1,6 +1,6 @@
 import { Heart, Warning, WifiHigh, WifiSlash } from "@phosphor-icons/react";
-import { ICON_SIZE_MD, ICON_SIZE_SM } from "@/components/ui/icons";
-import { cn } from "@/lib/utils";
+import { cn } from "@pi-desktop/ui";
+import { ICON_SIZE_MD, ICON_SIZE_SM } from "@/components/ui/phosphor-icons";
 import type {
   ConnectionStatus,
   SessionHealthSnapshot,

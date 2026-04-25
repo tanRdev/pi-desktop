@@ -1,4 +1,8 @@
 import {
+  registerContractHandler,
+  snapshotContracts,
+} from "@pi-desktop/contracts";
+import {
   type AgentSnapshot,
   type AutocompleteContext,
   type AutocompleteSuggestions,
@@ -246,10 +250,26 @@ export function registerIpcHandlers({
     return packagesService.update({ packageName, scope });
   });
 
-  handle(IPC_CHANNELS.shell.getSnapshot, async () => getShellSnapshot());
-  handle(IPC_CHANNELS.agent.getProviders, async () => agentHost.getProviders());
-  handle(IPC_CHANNELS.agent.getSettings, async () => agentHost.getSettings());
-  handle(IPC_CHANNELS.agent.getSnapshot, async () => agentHost.getSnapshot());
+  registerContractHandler({
+    handle,
+    contract: snapshotContracts.shell.getSnapshot,
+    handler: () => getShellSnapshot(),
+  });
+  registerContractHandler({
+    handle,
+    contract: snapshotContracts.agent.getProviders,
+    handler: () => agentHost.getProviders(),
+  });
+  registerContractHandler({
+    handle,
+    contract: snapshotContracts.agent.getSettings,
+    handler: () => agentHost.getSettings(),
+  });
+  registerContractHandler({
+    handle,
+    contract: snapshotContracts.agent.getSnapshot,
+    handler: () => agentHost.getSnapshot(),
+  });
 
   handle(IPC_CHANNELS.agent.switchModel, async (_event, payload) => {
     if (!switchModel) {

@@ -1,11 +1,11 @@
+import { cn } from "@pi-desktop/ui";
 import * as React from "react";
-import { CaretDown, GitCommit, Upload } from "@/components/ui/icons";
+import { CaretDown, GitCommit, Upload } from "@/components/ui/phosphor-icons";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
 
 const COMMIT_PROMPT = "Commit all changes with a conventional-commits message";
 const COMMIT_AND_PUSH_PROMPT =

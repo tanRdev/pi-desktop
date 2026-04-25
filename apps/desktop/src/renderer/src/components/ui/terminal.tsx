@@ -1,7 +1,7 @@
+import { cn } from "@pi-desktop/ui";
 import type { FitAddon as FitAddonType } from "@xterm/addon-fit";
 import type { Terminal as XTermType } from "@xterm/xterm";
 import * as React from "react";
-import { cn } from "@/lib/utils";
 
 // xterm + its fit addon + CSS are loaded on demand the first time a Terminal
 // mounts. They are heavy (the default export ships ~100kb minified) and are

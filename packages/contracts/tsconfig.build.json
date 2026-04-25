@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "dist",
+    "declaration": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "baseUrl": ".",
+    "paths": {
+      "@pi-desktop/shared": ["../shared/dist/index.d.ts"],
+      "@pi-desktop/shared/*": ["../shared/dist/*"]
+    }
+  }
+}

@@ -7,26 +7,19 @@ import type {
   SlashSuggestion,
 } from "@pi-desktop/shared";
 import * as React from "react";
-
-import { X } from "@/components/ui/icons";
-import { Terminal } from "@/components/ui/terminal";
-import {
-  type ContextSurfaceKey,
-  type ContextWindow,
-  getMainPaneState,
+import type {
+  ContextSurfaceKey,
+  ContextWindow,
 } from "@/features/workspace/workspace-pane-state";
-import { cn } from "@/lib/utils";
-import { uiInteractionStore } from "@/stores/ui-interaction-store";
-import { DEFAULT_UNTITLED_THREAD_TITLE } from "../../../../../thread-title-defaults";
-import { CenterFileViewer } from "./center-file-viewer";
-import { ChatThreadPanel } from "./chat-thread-panel";
 import { FileTreePanel } from "./file-tree-panel";
 import { GitPanel } from "./git-panel";
-import { LeftSidebar, SIDEBAR_WIDTH } from "./left-sidebar";
-import { PromptDock } from "./prompt-dock";
-import { StatusBar } from "./status-bar";
-import { OPEN_MESSAGE_EVENT } from "./thread-search/thread-search-host";
-import { TitleBar } from "./title-bar";
+import { SIDEBAR_WIDTH } from "./left-sidebar";
+import { buildWorkspaceShellDerivedState } from "./workspace-shell-derived-state";
+import { useWorkspaceShellEvents } from "./workspace-shell-events";
+import { useWorkspaceShellFullscreen } from "./workspace-shell-fullscreen";
+import { WorkspaceShellLayout } from "./workspace-shell-layout";
+import { buildWorkspaceShellLayoutProps } from "./workspace-shell-layout-props";
+import { useWorkspaceShellTargetMessage } from "./workspace-shell-target-message";
 
 export interface WorkspaceShellProps {
   platform: string | null;
@@ -209,49 +202,13 @@ function WorkspaceShellImpl({
   onFileTreeMoveFile,
   onAgentGitAction,
 }: WorkspaceShellProps) {
-  const [targetMessageId, setTargetMessageId] = React.useState<string | null>(
-    null,
-  );
-  const hasChangesToCommit =
-    (activeGitRepositoryStatus?.stagedChanges.length ?? 0) +
-      (activeGitRepositoryStatus?.unstagedChanges.length ?? 0) >
-    0;
-  const hasCommitsToPush = (shellGit?.ahead ?? 0) > 0;
+  useWorkspaceShellFullscreen();
+  const { targetMessageId, setTargetMessageId, handleTargetMessageNavigated } =
+    useWorkspaceShellTargetMessage();
 
   const lastExpandedSidebarWidthRef = React.useRef(
     leftSidebarWidth > 0 ? leftSidebarWidth : SIDEBAR_WIDTH,
   );
-
-  React.useEffect(() => {
-    let disposed = false;
-    const interactions = uiInteractionStore.getState();
-
-    void window.piDesktop.window.getFullscreenState().then((isFullscreen) => {
-      if (!disposed) {
-        interactions.setMainWindowFullscreen(isFullscreen);
-      }
-    });
-
-    const unsubscribe = window.piDesktop.window.onFullscreenChanged(
-      (isFullscreen) => {
-        uiInteractionStore.getState().setMainWindowFullscreen(isFullscreen);
-      },
-    );
-
-    return () => {
-      disposed = true;
-      unsubscribe();
-    };
-  }, []);
-
-  const projectName =
-    activeRepository?.customName ?? activeRepository?.name ?? "Pi";
-  const activeWorktree =
-    activeRepository?.worktrees.find(
-      (worktree) => worktree.id === activeWorktreeId,
-    ) ?? null;
-
-  const hasActiveThread = activeThreadId !== null;
 
   const handleToggleSidebar = React.useCallback(() => {
     if (leftSidebarWidth > 0) {
@@ -262,112 +219,13 @@ function WorkspaceShellImpl({
     onLeftSidebarResize(lastExpandedSidebarWidthRef.current || SIDEBAR_WIDTH);
   }, [leftSidebarWidth, onLeftSidebarResize]);
 
-  const handleTargetMessageNavigated = React.useCallback(
-    (messageId: string) => {
-      setTargetMessageId((currentMessageId) =>
-        currentMessageId === messageId ? null : currentMessageId,
-      );
-    },
-    [],
-  );
-
-  React.useEffect(() => {
-    const handleCommand = (event: Event) => {
-      if (!(event instanceof CustomEvent)) {
-        return;
-      }
-
-      const detail = event.detail;
-      if (!detail || typeof detail !== "object") {
-        return;
-      }
-
-      const commandId = Reflect.get(detail, "commandId");
-      if (
-        (commandId === "new-thread" || commandId === "new") &&
-        activeWorktreeId
-      ) {
-        void _onCreateThread(activeWorktreeId);
-        return;
-      }
-
-      if (commandId === "toggle-sidebar") {
-        handleToggleSidebar();
-      }
-    };
-
-    const handleNewThreadCommand = () => {
-      if (!activeWorktreeId) {
-        return;
-      }
-
-      void _onCreateThread(activeWorktreeId);
-    };
-
-    const handleToggleSidebarCommand = () => {
-      handleToggleSidebar();
-    };
-
-    const handleThreadSelect = (event: Event) => {
-      if (!(event instanceof CustomEvent)) {
-        return;
-      }
-
-      const detail = event.detail;
-      if (!detail || typeof detail !== "object") {
-        return;
-      }
-
-      const threadId = Reflect.get(detail, "threadId");
-      if (typeof threadId === "string") {
-        void onSelectThread(threadId);
-      }
-    };
-
-    const handleOpenMessage = (event: Event) => {
-      if (!(event instanceof CustomEvent)) {
-        return;
-      }
-
-      const detail = event.detail;
-      if (!detail || typeof detail !== "object") {
-        return;
-      }
-
-      const threadId = Reflect.get(detail, "threadId");
-      if (typeof threadId === "string") {
-        void onSelectThread(threadId);
-      }
-
-      const messageId = Reflect.get(detail, "messageId");
-      if (typeof messageId === "string") {
-        setTargetMessageId(messageId);
-      }
-    };
-
-    window.addEventListener("pi:command", handleCommand);
-    window.addEventListener("pi:command:new-thread", handleNewThreadCommand);
-    window.addEventListener(
-      "pi:command:toggle-sidebar",
-      handleToggleSidebarCommand,
-    );
-    window.addEventListener("pi:thread-select", handleThreadSelect);
-    window.addEventListener(OPEN_MESSAGE_EVENT, handleOpenMessage);
-
-    return () => {
-      window.removeEventListener("pi:command", handleCommand);
-      window.removeEventListener(
-        "pi:command:new-thread",
-        handleNewThreadCommand,
-      );
-      window.removeEventListener(
-        "pi:command:toggle-sidebar",
-        handleToggleSidebarCommand,
-      );
-      window.removeEventListener("pi:thread-select", handleThreadSelect);
-      window.removeEventListener(OPEN_MESSAGE_EVENT, handleOpenMessage);
-    };
-  }, [activeWorktreeId, _onCreateThread, handleToggleSidebar, onSelectThread]);
+  useWorkspaceShellEvents({
+    activeWorktreeId,
+    onCreateThread: _onCreateThread,
+    onToggleSidebar: handleToggleSidebar,
+    onSelectThread,
+    onTargetMessage: setTargetMessageId,
+  });
 
   React.useEffect(() => {
     if (leftSidebarWidth > 0) {
@@ -375,30 +233,33 @@ function WorkspaceShellImpl({
     }
   }, [leftSidebarWidth]);
 
-  const mainPaneState = React.useMemo(
+  const {
+    projectName,
+    activeWorktree,
+    hasActiveThread,
+    hasChangesToCommit,
+    hasCommitsToPush,
+    selectedFileWindow,
+  } = React.useMemo(
     () =>
-      getMainPaneState({
+      buildWorkspaceShellDerivedState({
+        activeRepository,
+        activeWorktreeId,
+        activeThreadId,
+        activeGitRepositoryStatus,
+        shellGit,
         contextWindows,
         selectedContextSurface,
       }),
-    [contextWindows, selectedContextSurface],
-  );
-  const openFileWindows = React.useMemo(
-    () =>
-      contextWindows.filter(
-        (window): window is Extract<ContextWindow, { kind: "file" }> =>
-          window.kind === "file",
-      ),
-    [contextWindows],
-  );
-  const selectedFileWindow = React.useMemo(
-    () =>
-      mainPaneState.selectedFileWindowId === null
-        ? null
-        : (openFileWindows.find(
-            (window) => window.id === mainPaneState.selectedFileWindowId,
-          ) ?? null),
-    [mainPaneState.selectedFileWindowId, openFileWindows],
+    [
+      activeRepository,
+      activeWorktreeId,
+      activeThreadId,
+      activeGitRepositoryStatus,
+      shellGit,
+      contextWindows,
+      selectedContextSurface,
+    ],
   );
 
   const gitPanel = (
@@ -437,171 +298,81 @@ function WorkspaceShellImpl({
     />
   );
 
-  return (
-    <div className="flex h-screen w-full flex-col overflow-hidden select-none">
-      <div className="relative flex min-h-0 flex-1 select-none">
-        <LeftSidebar
-          platform={platform}
-          appVersion={appVersion}
-          repositories={repositories}
-          activeRepositoryId={activeRepositoryId}
-          activeWorktreeId={activeWorktreeId}
-          activeThreadId={activeThreadId}
-          isPromptExecuting={isPromptExecuting}
-          threadLastViewedAt={threadLastViewedAt}
-          width={leftSidebarWidth}
-          onResize={onLeftSidebarResize}
-          onSelectRepository={onSelectRepository}
-          onRemoveRepository={onRemoveRepository}
-          onCopyRepositoryPath={onCopyRepositoryPath}
-          onOpenInFinder={onOpenInFinder}
-          onCreateSession={onCreateSession}
-          onSelectWorktree={onSelectWorktree}
-          onSelectThread={onSelectThread}
-          onDeleteWorktree={onDeleteWorktree}
-          onDeleteThread={onDeleteThread}
-          onArchiveWorktree={onArchiveWorktree}
-          onArchiveThread={onArchiveThread}
-          onCreateThread={_onCreateThread}
-          onAddRepository={onAddRepository}
-          gitPanel={gitPanel}
-          filesPanel={filesPanel}
-        />
+  const layoutProps = buildWorkspaceShellLayoutProps({
+    platform,
+    appVersion,
+    repositories,
+    activeRepositoryId,
+    activeWorktreeId,
+    activeThreadId,
+    isPromptExecuting,
+    threadLastViewedAt,
+    leftSidebarWidth,
+    onLeftSidebarResize,
+    onSelectRepository,
+    onRemoveRepository,
+    onCopyRepositoryPath,
+    onOpenInFinder,
+    onCreateSession,
+    onSelectWorktree,
+    onSelectThread,
+    onDeleteWorktree,
+    onDeleteThread,
+    onArchiveWorktree,
+    onArchiveThread,
+    onCreateThread: _onCreateThread,
+    onAddRepository,
+    gitPanel,
+    filesPanel,
+    activeThreadTitle,
+    hasActiveThread,
+    hasChangesToCommit,
+    hasCommitsToPush,
+    isTerminalVisible,
+    draft,
+    canSend,
+    autocompleteSuggestions,
+    autocompleteSelectedIndex,
+    displayAgentStatus,
+    runtimeModeLabel,
+    providerSnapshots,
+    currentModelValue,
+    contextUsage,
+    isSwitchingModel,
+    isPromptVisible,
+    promptMode,
+    threadMessages,
+    threadLastError,
+    contextWindows,
+    selectedContextSurface,
+    selectedFileWindow,
+    targetMessageId,
+    onTargetMessageNavigated: handleTargetMessageNavigated,
+    onToggleTerminal,
+    onSelectContextSurface,
+    onCloseFileWindow,
+    onFileContentChange,
+    onFileSave,
+    onDraftChange,
+    onSend,
+    onCancelPrompt,
+    onAutocompleteSelect,
+    onAutocompleteHover,
+    onPromptKeyDown,
+    onModelMenuOpenChange,
+    onModelSelection,
+    onPromptModeChange,
+    onConnectProvider,
+    favoriteModels,
+    onToggleFavorite,
+    onAgentGitAction,
+    workspacePath,
+    onTerminalCommandComplete,
+    activeGitRepositoryStatus,
+    shellGit,
+  });
 
-        <main
-          data-testid="chat-first-layout"
-          className={cn(
-            "relative z-10 flex min-w-0 flex-1 flex-col overflow-hidden",
-            "bg-[var(--shell-main-bg)]",
-          )}
-        >
-          <TitleBar
-            platform={platform}
-            onAgentGitAction={onAgentGitAction}
-            hasActiveThread={hasActiveThread}
-            hasChangesToCommit={hasChangesToCommit}
-            hasCommitsToPush={hasCommitsToPush}
-            isPromptExecuting={isPromptExecuting}
-            onToggleTerminal={onToggleTerminal}
-            isTerminalVisible={isTerminalVisible}
-            activeThreadId={activeThreadId}
-            activeThreadTitle={activeThreadTitle}
-            contextWindows={contextWindows}
-            selectedContextSurface={selectedContextSurface}
-            onSelectContextSurface={onSelectContextSurface}
-            onCloseFileWindow={onCloseFileWindow}
-          />
-          <div className="flex min-h-0 flex-1 overflow-hidden select-none">
-            <div
-              data-testid="workspace-chat-panel"
-              className={cn(
-                "relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden select-none",
-              )}
-            >
-              <div className="relative min-h-0 flex-1 overflow-hidden">
-                {selectedFileWindow ? (
-                  <CenterFileViewer
-                    activeWorktreeId={activeWorktreeId}
-                    windowId={selectedFileWindow.id}
-                    filePath={selectedFileWindow.filePath}
-                    isDirty={selectedFileWindow.isDirty}
-                    isReadOnly={selectedFileWindow.isReadOnly}
-                    onContentChange={onFileContentChange}
-                    onFileSave={onFileSave}
-                  />
-                ) : hasActiveThread ? (
-                  <div
-                    key={activeThreadId ?? "thread"}
-                    className="tab-content-enter h-full"
-                  >
-                    <ChatThreadPanel
-                      threadTitle={
-                        activeThreadTitle ?? DEFAULT_UNTITLED_THREAD_TITLE
-                      }
-                      messages={threadMessages}
-                      isStreaming={isPromptExecuting}
-                      lastError={threadLastError}
-                      targetMessageId={targetMessageId}
-                      onTargetMessageNavigated={handleTargetMessageNavigated}
-                      className="h-full"
-                    />
-                  </div>
-                ) : null}
-              </div>
-
-              <div className="shrink-0">
-                {selectedFileWindow === null ? (
-                  <PromptDock
-                    draft={draft}
-                    onDraftChange={onDraftChange}
-                    onSend={onSend}
-                    onCancelPrompt={onCancelPrompt}
-                    activeThreadId={activeThreadId}
-                    canSend={canSend}
-                    isVisible={isPromptVisible}
-                    isPromptExecuting={isPromptExecuting}
-                    autocompleteSuggestions={autocompleteSuggestions}
-                    autocompleteSelectedIndex={autocompleteSelectedIndex}
-                    onAutocompleteSelect={onAutocompleteSelect}
-                    onAutocompleteHover={onAutocompleteHover}
-                    onPromptKeyDown={onPromptKeyDown}
-                    displayAgentStatus={displayAgentStatus}
-                    runtimeModeLabel={runtimeModeLabel}
-                    providerSnapshots={providerSnapshots}
-                    currentModelValue={currentModelValue}
-                    contextUsage={contextUsage}
-                    isSwitchingModel={isSwitchingModel}
-                    promptMode={promptMode}
-                    onPromptModeChange={onPromptModeChange}
-                    onModelMenuOpenChange={onModelMenuOpenChange}
-                    onModelSelection={onModelSelection}
-                    onConnectProvider={onConnectProvider}
-                    favoriteModels={favoriteModels}
-                    onToggleFavorite={onToggleFavorite}
-                  />
-                ) : null}
-              </div>
-            </div>
-          </div>
-        </main>
-
-        {isTerminalVisible && (
-          <aside
-            className={cn(
-              "flex h-full w-[420px] shrink-0 flex-col border-l border-white/[0.06] bg-[var(--color-bg-primary)]",
-              "animate-in slide-in-from-right duration-[var(--duration-normal)] [transition-timing-function:var(--ease-emphasized-decel)]",
-            )}
-          >
-            <div className="flex h-11 shrink-0 items-center justify-between border-b border-white/[0.06] px-3">
-              <span className="text-[11px] uppercase tracking-wider text-white/40 font-medium">
-                Terminal
-              </span>
-              <button
-                type="button"
-                onClick={onToggleTerminal}
-                className="flex size-6 items-center justify-center text-white/50 transition-colors duration-150 hover:bg-white/[0.06] hover:text-white/70"
-                aria-label="Close terminal"
-              >
-                <X className="size-3.5" />
-              </button>
-            </div>
-            <div className="min-h-0 flex-1">
-              <Terminal
-                id="sidebar-terminal"
-                cwd={workspacePath ?? undefined}
-                onCommandComplete={onTerminalCommandComplete}
-              />
-            </div>
-          </aside>
-        )}
-      </div>
-      <StatusBar
-        gitStatus={activeGitRepositoryStatus}
-        shellGit={shellGit}
-        currentModelValue={currentModelValue}
-      />
-    </div>
-  );
+  return <WorkspaceShellLayout {...layoutProps} />;
 }
 
 export const WorkspaceShell = React.memo(WorkspaceShellImpl);

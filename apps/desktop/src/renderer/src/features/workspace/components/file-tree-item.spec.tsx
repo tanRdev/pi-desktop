@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { FileTreeItem } from "./file-tree-item";
 
-vi.mock("@/components/ui/icons", () => {
+vi.mock("@/components/ui/phosphor-icons", () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const React = require("react");
   const Stub = (props: Record<string, unknown>) =>

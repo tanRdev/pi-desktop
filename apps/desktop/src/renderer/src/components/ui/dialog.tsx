@@ -1,11 +1,11 @@
 "use client";
 
+import { cn } from "@pi-desktop/ui";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import * as React from "react";
-import { ICON_SIZE_MD, X } from "@/components/ui/icons";
+import { ICON_SIZE_MD, X } from "@/components/ui/phosphor-icons";
 import { trapFocus } from "@/lib/a11y/focus-trap";
 import { useFocusRestoration } from "@/lib/a11y/use-focus-restoration";
-import { cn } from "@/lib/utils";
 
 const Dialog = DialogPrimitive.Root;
 
@@ -37,9 +37,15 @@ const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
 >(({ className, children, ...props }, forwardedRef) => {
-  const contentRef = React.useRef<HTMLDivElement>(null!);
+  const contentRef = React.useRef<HTMLDivElement | null>(null);
 
-  React.useImperativeHandle(forwardedRef, () => contentRef.current);
+  React.useImperativeHandle(forwardedRef, () => {
+    if (!contentRef.current) {
+      throw new Error("Dialog content ref is not available yet");
+    }
+
+    return contentRef.current;
+  });
 
   useFocusRestoration(true);
 

@@ -1,3 +1,15 @@
-import type { OpenDialogOptions as ElectronOpenDialogOptions } from "electron";
+export type OpenDialogProperty =
+  | "openFile"
+  | "openDirectory"
+  | "multiSelections"
+  | "showHiddenFiles"
+  | "createDirectory"
+  | "promptToCreate"
+  | "noResolveAliases"
+  | "treatPackageAsDirectory"
+  | "dontAddToRecent";
 
-export interface OpenDialogOptions extends ElectronOpenDialogOptions {}
+export interface OpenDialogOptions {
+  title?: string;
+  properties?: OpenDialogProperty[];
+}

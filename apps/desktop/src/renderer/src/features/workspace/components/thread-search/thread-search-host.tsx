@@ -1,8 +1,11 @@
 import { getActiveWorktree } from "@pi-desktop/shared";
 import * as React from "react";
+import { useStore } from "zustand";
+import { useShallow } from "zustand/react/shallow";
 import { useShellModel } from "@/hooks/use-shell-model";
 import { getWorkspaceSessionStore } from "@/hooks/use-window-store";
 import { globalShortcutRegistry } from "@/lib/keyboard";
+import { selectActiveWorkspaceSession } from "@/stores/workspace-session-selectors";
 import type { SearchableMessage, SearchResult } from "./search-engine";
 import { ThreadSearchDialog } from "./thread-search-dialog";
 
@@ -17,13 +20,9 @@ export interface OpenMessageEventDetail {
   messageId: string;
 }
 
-function buildSearchableMessages(): SearchableMessage[] {
-  const sessionStore = getWorkspaceSessionStore();
-  const sessionState = sessionStore.getState();
-  const worktreeId = sessionState.activeWorktreeId;
-  if (!worktreeId) return [];
-
-  const session = sessionState.sessionsByWorktreeId[worktreeId];
+function buildSearchableMessages(
+  session: ReturnType<typeof selectActiveWorkspaceSession>,
+): SearchableMessage[] {
   if (!session) return [];
 
   const conversations = session.threadConversations;
@@ -52,6 +51,10 @@ function buildSearchableMessages(): SearchableMessage[] {
 export function ThreadSearchHost() {
   const [open, setOpen] = React.useState(false);
   const { state } = useShellModel();
+  const session = useStore(
+    getWorkspaceSessionStore(),
+    useShallow((storeState) => selectActiveWorkspaceSession(storeState)),
+  );
 
   // Recompute the searchable message pool whenever the dialog opens so we
   // pick up the latest threads/messages without subscribing to the entire
@@ -69,13 +72,13 @@ export function ThreadSearchHost() {
       }
     }
 
-    const raw = buildSearchableMessages();
+    const raw = buildSearchableMessages(session);
     return raw.map((entry) => ({
       ...entry,
       threadTitle: titleByThreadId.get(entry.threadId) ?? entry.threadTitle,
       threadLastActivityAt: lastActivityByThreadId.get(entry.threadId) ?? null,
     }));
-  }, [open, state.shell]);
+  }, [open, session, state.shell]);
 
   React.useEffect(() => {
     return globalShortcutRegistry.register({

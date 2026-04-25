@@ -1,13 +1,13 @@
+import { cn } from "@pi-desktop/ui";
 import * as React from "react";
 import { createPortal } from "react-dom";
-import { CaretRight, Copy, Export } from "@/components/ui/icons";
+import { CaretRight, Copy, Export } from "@/components/ui/phosphor-icons";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { toast } from "@/lib/toast";
-import { cn } from "@/lib/utils";
 import { type BreadcrumbSegment, useBreadcrumb } from "./use-breadcrumb";
 
 const OVERFLOW_THRESHOLD = 4;

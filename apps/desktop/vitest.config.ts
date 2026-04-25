@@ -8,6 +8,12 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src/renderer/src", import.meta.url)),
+      "@pi-desktop/contracts": fileURLToPath(
+        new URL("../../packages/contracts/src/index.ts", import.meta.url),
+      ),
+      "@pi-desktop/contracts/*": fileURLToPath(
+        new URL("../../packages/contracts/src", import.meta.url),
+      ),
       "@pi-desktop/shared": fileURLToPath(
         new URL("../../packages/shared/src/index.ts", import.meta.url),
       ),

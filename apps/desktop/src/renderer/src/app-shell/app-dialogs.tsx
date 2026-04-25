@@ -1,5 +1,5 @@
+import { Button, cn } from "@pi-desktop/ui";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -8,8 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Globe, Info } from "@/components/ui/icons";
-import { cn } from "@/lib/utils";
+import { Globe, Info } from "@/components/ui/phosphor-icons";
 import type { AppDialogsController } from "./use-app-dialogs";
 
 export type AppDialogsProps = Pick<

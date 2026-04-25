@@ -1,8 +1,9 @@
 import type { ProviderSnapshot } from "@pi-desktop/shared";
+import { cn } from "@pi-desktop/ui";
 import { Skeleton } from "boneyard-js/react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
-import { CaretDown, Plus, Star } from "@/components/ui/icons";
+import { CaretDown, Plus, Star } from "@/components/ui/phosphor-icons";
 import {
   Popover,
   PopoverContent,
@@ -12,7 +13,6 @@ import {
   getProviderDisplayName,
   ProviderIcon,
 } from "@/components/ui/provider-icon";
-import { cn } from "@/lib/utils";
 
 export interface ModelPickerProps {
   providerSnapshots: ProviderSnapshot[];

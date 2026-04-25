@@ -1,16 +1,16 @@
-import { TerminalWindow } from "@/components/ui/icons";
 import {
+  cn,
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@pi-desktop/ui";
+import { TerminalWindow } from "@/components/ui/phosphor-icons";
 import type {
   ContextSurfaceKey,
   ContextWindow,
 } from "@/features/workspace/workspace-pane-state";
 import { getTrafficLightInset } from "@/lib/title-bar-layout";
-import { cn } from "@/lib/utils";
 import { GitSplitButton } from "./title-bar/git-split-button";
 import { TitleBarTabs } from "./title-bar/title-bar-tabs";
 

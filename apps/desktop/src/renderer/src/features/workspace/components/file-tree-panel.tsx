@@ -3,6 +3,7 @@ import type {
   GitFileChangeStatus,
   GitRepositoryStatus,
 } from "@pi-desktop/shared/models/git";
+import { cn } from "@pi-desktop/ui";
 import { Skeleton } from "boneyard-js/react";
 import type * as React from "react";
 import { useCallback, useMemo, useState } from "react";
@@ -13,11 +14,10 @@ import {
   MagnifyingGlass,
   Plus,
   PushPin,
-} from "@/components/ui/icons";
+} from "@/components/ui/phosphor-icons";
 import { useRecentFiles } from "@/features/workspace/recent-items";
 import { useFileTree } from "@/features/workspace/use-file-tree";
 import { toast } from "@/lib/toast";
-import { cn } from "@/lib/utils";
 import { FileTreeContextMenu } from "./file-tree-context-menu";
 import { FileTreeItem } from "./file-tree-item";
 

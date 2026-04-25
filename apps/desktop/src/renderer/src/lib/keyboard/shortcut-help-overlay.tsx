@@ -1,3 +1,4 @@
+import { cn } from "@pi-desktop/ui";
 import * as React from "react";
 import {
   Dialog,
@@ -6,7 +7,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
 import { detectPlatform, formatShortcut } from "./parse-shortcut";
 import {
   globalShortcutRegistry,

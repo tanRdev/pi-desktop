@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
 import type { RepositorySnapshot } from "@pi-desktop/shared";
+import { TooltipProvider } from "@pi-desktop/ui";
 import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ComponentProps } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { LeftSidebar, SIDEBAR_WIDTH } from "./left-sidebar";
 
 function createRepository(): RepositorySnapshot {

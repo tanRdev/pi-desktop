@@ -1,7 +1,7 @@
 import type { WorktreeSnapshot } from "@pi-desktop/shared";
+import { cn } from "@pi-desktop/ui";
 import { Button } from "@/components/ui/button";
-import { GitBranch, Plus } from "@/components/ui/icons";
-import { cn } from "@/lib/utils";
+import { GitBranch, Plus } from "@/components/ui/phosphor-icons";
 import { GitStatusChip } from "./git-status-chip";
 
 export interface WorktreeListProps {

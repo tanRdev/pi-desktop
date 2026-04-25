@@ -1,53 +1,59 @@
 // @vitest-environment jsdom
+// @vitest-environment jsdom
 import type { AgentMessageSnapshot } from "@pi-desktop/shared";
+import { TooltipProvider } from "@pi-desktop/ui";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import type * as React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { ChatThreadPanel } from "./chat-thread-panel";
 
 const originalScrollIntoView = HTMLElement.prototype.scrollIntoView;
 
-vi.mock("@pi-desktop/ui", () => ({
-  ChatContainerRoot({
-    children,
-    className,
-    onScroll,
-  }: React.PropsWithChildren<{
-    className?: string;
-    onScroll?: React.UIEventHandler<HTMLDivElement>;
-  }>) {
-    return (
-      <div
-        data-testid="chat-container-root"
-        className={className}
-        onScroll={onScroll}
-      >
-        {children}
-      </div>
-    );
-  },
-  ChatContainerContent({
-    children,
-    className,
-    ...props
-  }: React.PropsWithChildren<{
-    className?: string;
-  }>) {
-    return (
-      <div
-        data-testid="chat-container-content"
-        className={className}
-        {...props}
-      >
-        {children}
-      </div>
-    );
-  },
-  ChatContainerScrollAnchor() {
-    return <div data-testid="chat-scroll-anchor" />;
-  },
-}));
+vi.mock("@pi-desktop/ui", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@pi-desktop/ui")>();
+
+  return {
+    ...actual,
+    ChatContainerRoot({
+      children,
+      className,
+      onScroll,
+    }: React.PropsWithChildren<{
+      className?: string;
+      onScroll?: React.UIEventHandler<HTMLDivElement>;
+    }>) {
+      return (
+        <div
+          data-testid="chat-container-root"
+          className={className}
+          onScroll={onScroll}
+        >
+          {children}
+        </div>
+      );
+    },
+    ChatContainerContent({
+      children,
+      className,
+      ...props
+    }: React.PropsWithChildren<{
+      className?: string;
+    }>) {
+      return (
+        <div
+          data-testid="chat-container-content"
+          className={className}
+          {...props}
+        >
+          {children}
+        </div>
+      );
+    },
+    ChatContainerScrollAnchor() {
+      return <div data-testid="chat-scroll-anchor" />;
+    },
+  };
+});
 
 vi.mock("@/components/ui/feedback-bar", () => ({
   FeedbackBar() {

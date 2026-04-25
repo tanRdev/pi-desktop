@@ -1,10 +1,10 @@
 "use client";
 
 import { Check, Copy } from "@phosphor-icons/react";
+import { cn } from "@pi-desktop/ui";
 import type React from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { codeToHtml } from "shiki";
-import { cn } from "@/lib/utils";
 
 // Skip highlighting for files larger than this (50KB)
 const MAX_HIGHLIGHT_SIZE = 50 * 1024;

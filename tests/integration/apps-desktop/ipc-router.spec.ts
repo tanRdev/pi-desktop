@@ -566,9 +566,22 @@ describe("registerIpcHandlers", () => {
   it("binds shell and agent handlers to the expected invoke channels", async () => {
     const shellSnapshot = createShellSnapshot();
     const agentSnapshot = createAgentSnapshot();
+    const providers = [
+      {
+        id: "anthropic",
+        name: "Anthropic",
+        models: [],
+      },
+    ];
+    const settings = {
+      currentProviderId: "anthropic",
+      currentModelId: "claude-sonnet",
+    };
     const harness = createHandlerHarness();
     const getShellSnapshot = vi.fn(() => shellSnapshot);
     const agentHost = createAgentHost(agentSnapshot);
+    agentHost.getProviders.mockResolvedValue(providers);
+    agentHost.getSettings.mockResolvedValue(settings);
 
     registerIpcHandlers({
       handle: harness.handle,
@@ -580,6 +593,12 @@ describe("registerIpcHandlers", () => {
     await expect(
       harness.handlers.get(IPC_CHANNELS.shell.getSnapshot)?.(),
     ).resolves.toEqual(shellSnapshot);
+    await expect(
+      harness.handlers.get(IPC_CHANNELS.agent.getProviders)?.(),
+    ).resolves.toEqual(providers);
+    await expect(
+      harness.handlers.get(IPC_CHANNELS.agent.getSettings)?.(),
+    ).resolves.toEqual(settings);
     await expect(
       harness.handlers.get(IPC_CHANNELS.agent.getSnapshot)?.(),
     ).resolves.toEqual(agentSnapshot);
@@ -625,6 +644,8 @@ describe("registerIpcHandlers", () => {
     );
 
     expect(getShellSnapshot).toHaveBeenCalledTimes(1);
+    expect(agentHost.getProviders).toHaveBeenCalledTimes(1);
+    expect(agentHost.getSettings).toHaveBeenCalledTimes(1);
     expect(agentHost.getSnapshot).toHaveBeenCalledTimes(1);
     expect(agentHost.prompt).toHaveBeenCalledWith("Inspect the workspace");
     expect(agentHost.addRepository).toHaveBeenCalledWith("/tmp/pi-desktop");

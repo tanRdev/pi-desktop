@@ -118,11 +118,11 @@ pi-desktop/
 │   ├── src/preload/      # Preload bridge: secure API exposure
 │   └── src/renderer/     # Renderer: React 19 UI
 ├── packages/
-│   ├── shared/           # IPC contracts, types, models
+│   ├── shared/           # Shared models, IPC constants, and utilities
 │   ├── agent-host/       # Agent runtime abstractions
 │   ├── shell-model/      # State management logic
 │   └── ui/               # Shared React components
-└── tests/                # E2E tests
+└── tests/                # Cross-package integration tests
 ```
 
 ### Process Architecture
@@ -151,17 +151,8 @@ The renderer has no direct access to Node.js APIs; all native operations go thro
 
 ### Data Layer
 
-**Catalog Pattern**
-Domain entities are managed through catalog classes that provide:
-- Atomic JSON file persistence via `PersistentJsonFile`
-- Immutable state updates (returns new references, never mutates)
-- Optimistic updates with rollback on failure
-- Versioned schemas for backward compatibility
-
-Key catalogs:
-- `RepositoryCatalog`: Manages repository metadata
-- `ThreadCatalog`: Manages chat threads and sessions
-- `WorkspaceSessionCatalog`: Manages editor/workspace state
+**Catalogs**
+The desktop app persists repository, thread, workspace, and preference state through catalog classes in `apps/desktop/src/main/`. For the current repo-hygiene and refactor direction, see [`REFACTOR.md`](./REFACTOR.md).
 
 **State Flow**
 ```
@@ -254,8 +245,13 @@ Starts the Electron app in development mode with hot reload for the renderer pro
 | `bun run lint` | Run Biome linter |
 | `bun run format` | Apply Biome formatting |
 | `bun run typecheck` | Type-check all workspaces |
-| `bun run test` | Run Vitest unit tests |
-| `bun run test:e2e` | Run Playwright end-to-end tests |
+| `bun run test` | Run workspace Vitest tests, including `tests/integration/` |
+
+### Test layout
+
+- `apps/desktop/src/**/*.spec.{ts,tsx}`: desktop unit and component tests
+- `packages/**/*.spec.{ts,tsx}`: package-local unit tests
+- `tests/integration/**/*.spec.ts`: cross-package and wiring tests
 
 ### Build macOS release
 

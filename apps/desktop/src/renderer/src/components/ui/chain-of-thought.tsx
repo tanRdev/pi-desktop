@@ -1,11 +1,11 @@
 import { CaretDown, XCircle } from "@phosphor-icons/react";
+import { cn } from "@pi-desktop/ui";
 import React from "react";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { cn } from "@/lib/utils";
 
 export type ChainOfThoughtItemProps = React.ComponentProps<"div">;
 

@@ -1,3 +1,4 @@
+import { cn } from "@pi-desktop/ui";
 import { useState } from "react";
 import {
   Dialog,
@@ -13,8 +14,7 @@ import {
   PaintBrush,
   ShieldLock,
   TerminalWindow,
-} from "@/components/ui/icons";
-import { cn } from "@/lib/utils";
+} from "@/components/ui/phosphor-icons";
 import { AppearanceSection } from "./sections/appearance";
 import { DangerZoneSection } from "./sections/danger-zone";
 import { EditorSection } from "./sections/editor";

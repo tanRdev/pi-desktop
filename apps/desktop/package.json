@@ -27,6 +27,7 @@
     "@mariozechner/pi-coding-agent": "0.57.1",
     "@monaco-editor/react": "^4.7.0",
     "@phosphor-icons/react": "^2.1.10",
+    "@pi-desktop/contracts": "workspace:*",
     "@pi-desktop/agent-host": "workspace:*",
     "@pi-desktop/shared": "workspace:*",
     "@pi-desktop/shell-model": "workspace:*",

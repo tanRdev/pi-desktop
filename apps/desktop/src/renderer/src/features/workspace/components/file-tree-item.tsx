@@ -1,15 +1,15 @@
 import type { FileEntry } from "@pi-desktop/shared/models/fs";
 import type { GitFileChangeStatus } from "@pi-desktop/shared/models/git";
+import { cn } from "@pi-desktop/ui";
 import * as React from "react";
 import {
   CaretRight,
   CircleNotch,
   Folder,
   FolderOpen,
-} from "@/components/ui/icons";
+} from "@/components/ui/phosphor-icons";
 import type { FileTreeNode } from "@/features/workspace/use-file-tree";
 import { type FileIcon, getFileIconByExtension } from "@/lib/file-icons";
-import { cn } from "@/lib/utils";
 
 interface FileTreeItemProps {
   entry: FileEntry;

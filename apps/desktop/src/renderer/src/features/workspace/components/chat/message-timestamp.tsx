@@ -1,10 +1,5 @@
+import { cn, Tooltip, TooltipContent, TooltipTrigger } from "@pi-desktop/ui";
 import * as React from "react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
 
 export interface MessageTimestampProps {
   /** Unix ms */

@@ -1,12 +1,11 @@
-import type * as React from "react";
-
 import {
+  cn,
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
+} from "@pi-desktop/ui";
+import type * as React from "react";
 
 export interface StatusBarItemProps {
   icon?: React.ReactNode;

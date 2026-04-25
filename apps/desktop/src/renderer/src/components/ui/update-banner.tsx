@@ -4,10 +4,9 @@ import {
   Warning,
   X,
 } from "@phosphor-icons/react";
+import { Button, cn } from "@pi-desktop/ui";
 import type * as React from "react";
-import { Button } from "@/components/ui/button";
 import { useUpdater } from "@/hooks/use-updater";
-import { cn } from "@/lib/utils";
 
 export interface UpdateBannerProps {
   className?: string;

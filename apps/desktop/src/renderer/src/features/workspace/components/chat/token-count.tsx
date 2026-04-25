@@ -1,9 +1,4 @@
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
+import { cn, Tooltip, TooltipContent, TooltipTrigger } from "@pi-desktop/ui";
 
 export interface TokenCountProps {
   tokens?: number | null;

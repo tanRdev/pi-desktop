@@ -50,6 +50,32 @@ describe("RepositoryPreferencesCatalog", () => {
     });
   });
 
+  it("normalizes repository ids across writes and removals", () => {
+    const userDataPath = createUserDataPath();
+    const catalog = new RepositoryPreferencesCatalog(userDataPath);
+
+    expect(
+      catalog.upsert("/tmp/work/repo-one/", {
+        customName: "Repo One",
+      }),
+    ).toEqual({
+      repositoryId: "/tmp/work/repo-one",
+      customName: "Repo One",
+      icon: null,
+      accentColor: null,
+    });
+    expect(catalog.get("/tmp/work/repo-one")).toEqual({
+      repositoryId: "/tmp/work/repo-one",
+      customName: "Repo One",
+      icon: null,
+      accentColor: null,
+    });
+
+    catalog.remove("/tmp/work/repo-one/");
+
+    expect(catalog.get("/tmp/work/repo-one")).toBeNull();
+  });
+
   it("does not overwrite customized names when importing legacy labels", () => {
     const userDataPath = createUserDataPath();
     const catalog = new RepositoryPreferencesCatalog(userDataPath);

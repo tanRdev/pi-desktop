@@ -1,6 +1,6 @@
 import type { ThreadRuntimeStatus } from "@pi-desktop/shared";
+import { cn } from "@pi-desktop/ui";
 import { useUnicodeSpinner } from "@/hooks/use-unicode-spinner";
-import { cn } from "@/lib/utils";
 
 export type ThreadDisplayStatus = "working" | "idle" | "archived";
 

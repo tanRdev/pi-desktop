@@ -18,6 +18,7 @@ export default defineConfig({
       {
         resolve: {
           alias: {
+            ...packageAlias("contracts"),
             ...packageAlias("shared"),
             ...packageAlias("ui"),
             ...packageAlias("shell-model"),

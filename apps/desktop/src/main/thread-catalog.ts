@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import path from "node:path";
+import { DocumentCatalog } from "@pi-desktop/shared";
 import { PersistentJsonFile } from "./persistent-json-file";
 
 export interface ThreadCatalogEntry {
@@ -22,6 +23,10 @@ type ThreadCatalogOptions = {
   createId?: () => string;
 };
 
+type ThreadCatalogMutation = (
+  threads: ThreadCatalogEntry[],
+) => ThreadCatalogEntry[];
+
 type CreateThreadInput = {
   worktreeId: string;
   title: string;
@@ -30,6 +35,11 @@ type CreateThreadInput = {
 type LegacyThreadCatalogEntry = Omit<ThreadCatalogEntry, "runtimeId"> & {
   runtimeId?: string | null;
   runtimeSessionName?: string | null;
+};
+
+type LegacyThreadCatalogState = {
+  version: 1;
+  threads?: LegacyThreadCatalogEntry[];
 };
 
 const DEFAULT_STATE: ThreadCatalogState = {
@@ -55,8 +65,47 @@ function sortThreads(
   return right.updatedAt - left.updatedAt;
 }
 
+function normalizeThreadEntry(
+  thread: LegacyThreadCatalogEntry,
+): ThreadCatalogEntry {
+  return {
+    id: thread.id,
+    worktreeId: thread.worktreeId,
+    title: thread.title,
+    lastActivityAt: thread.lastActivityAt,
+    runtimeId: thread.runtimeId ?? thread.runtimeSessionName ?? null,
+    createdAt: thread.createdAt,
+    updatedAt: thread.updatedAt,
+  };
+}
+
+function readThreadEntries(
+  document: ThreadCatalogState | LegacyThreadCatalogState,
+): ThreadCatalogEntry[] {
+  return (document.threads ?? []).map(normalizeThreadEntry);
+}
+
+function needsThreadRuntimeMigration(
+  legacyThreads: readonly LegacyThreadCatalogEntry[],
+  threads: readonly ThreadCatalogEntry[],
+): boolean {
+  return threads.some(
+    (thread, index) =>
+      legacyThreads[index]?.runtimeId !== thread.runtimeId ||
+      legacyThreads[index]?.runtimeSessionName !== undefined,
+  );
+}
+
 export class ThreadCatalog {
-  private readonly store: PersistentJsonFile<ThreadCatalogState>;
+  private readonly store: PersistentJsonFile<
+    ThreadCatalogState | LegacyThreadCatalogState
+  >;
+
+  private readonly catalog: DocumentCatalog<
+    ThreadCatalogState | LegacyThreadCatalogState,
+    ThreadCatalogEntry[],
+    ThreadCatalogMutation
+  >;
 
   private readonly now: () => number;
 
@@ -67,29 +116,25 @@ export class ThreadCatalog {
       filePath: path.join(userDataPath, "catalog", "threads.json"),
       defaultValue: DEFAULT_STATE,
     });
+
+    this.catalog = new DocumentCatalog({
+      store: this.store,
+      select: readThreadEntries,
+      applyUpdate: (document, mutate) => ({
+        version: 1,
+        threads: mutate(readThreadEntries(document)),
+      }),
+    });
     this.now = options.now ?? (() => Date.now());
     this.createId = options.createId ?? (() => randomUUID());
   }
 
   private readThreads(): ThreadCatalogEntry[] {
-    const state = this.store.get() as unknown as {
-      version: 1;
-      threads?: LegacyThreadCatalogEntry[];
-    };
+    const document = this.store.get();
+    const legacyThreads = document.threads ?? [];
+    const threads = this.catalog.get();
 
-    const legacyThreads = state.threads ?? [];
-    const threads: ThreadCatalogEntry[] = legacyThreads.map((thread) => ({
-      ...thread,
-      runtimeId: thread.runtimeId ?? thread.runtimeSessionName ?? null,
-    }));
-
-    const hasLegacyRuntimeField = threads.some(
-      (thread, index) =>
-        legacyThreads[index]?.runtimeId !== thread.runtimeId ||
-        "runtimeSessionName" in (legacyThreads[index] ?? {}),
-    );
-
-    if (hasLegacyRuntimeField) {
+    if (needsThreadRuntimeMigration(legacyThreads, threads)) {
       this.store.set({
         version: 1,
         threads,
@@ -123,10 +168,7 @@ export class ThreadCatalog {
       updatedAt: currentTime,
     };
 
-    this.store.update((state) => ({
-      ...state,
-      threads: [...state.threads, entry],
-    }));
+    this.catalog.update((threads) => [...threads, entry]);
 
     return entry;
   }
@@ -175,13 +217,13 @@ export class ThreadCatalog {
 
   delete(threadId: string): boolean {
     let deleted = false;
-    this.store.update((state) => {
-      const initialLength = state.threads.length;
-      const threads = state.threads.filter((t) => t.id !== threadId);
+    this.catalog.update((currentThreads) => {
+      const threads = currentThreads.filter((thread) => thread.id !== threadId);
+      const initialLength = currentThreads.length;
       if (threads.length !== initialLength) {
         deleted = true;
       }
-      return { ...state, threads };
+      return threads;
     });
     return deleted;
   }
@@ -196,9 +238,8 @@ export class ThreadCatalog {
     const currentTime = this.now();
     let updatedThread: ThreadCatalogEntry | null = null;
 
-    this.store.update((state) => ({
-      ...state,
-      threads: state.threads.map((thread) => {
+    this.catalog.update((threads) =>
+      threads.map((thread) => {
         if (thread.id !== threadId) {
           return thread;
         }
@@ -206,7 +247,7 @@ export class ThreadCatalog {
         updatedThread = updater(thread, currentTime);
         return updatedThread;
       }),
-    }));
+    );
 
     return updatedThread;
   }

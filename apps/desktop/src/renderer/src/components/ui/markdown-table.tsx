@@ -1,6 +1,6 @@
+import { cn } from "@pi-desktop/ui";
 import type { ComponentPropsWithoutRef } from "react";
 import type { Components } from "react-markdown";
-import { cn } from "@/lib/utils";
 
 type NodeExtra = { node?: unknown };
 

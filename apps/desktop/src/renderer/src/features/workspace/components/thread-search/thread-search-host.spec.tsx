@@ -1,12 +1,35 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import * as React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createStore } from "zustand/vanilla";
 import { OPEN_MESSAGE_EVENT, ThreadSearchHost } from "./thread-search-host";
 
 const useShellModelMock = vi.fn();
 const getWorkspaceSessionStoreMock = vi.fn();
+
+interface ThreadSearchMessage {
+  id: string;
+  role: string;
+  text: string;
+  status: string;
+  timestamp: number;
+}
+
+interface ThreadSearchSessionStoreState {
+  activeWorktreeId: string | null;
+  sessionsByWorktreeId: Record<
+    string,
+    {
+      threadConversations: Map<string, { messages: ThreadSearchMessage[] }>;
+    }
+  >;
+}
+
+let sessionStore = createStore<ThreadSearchSessionStoreState>(() => ({
+  activeWorktreeId: null,
+  sessionsByWorktreeId: {},
+}));
 
 vi.mock("@/hooks/use-shell-model", () => ({
   useShellModel: () => useShellModelMock(),
@@ -126,34 +149,41 @@ function createShellState() {
   };
 }
 
+function createMessage(id: string, text: string): ThreadSearchMessage {
+  return {
+    id,
+    role: "assistant",
+    text,
+    status: "complete",
+    timestamp: 1,
+  };
+}
+
+function createSessionState(messages: ThreadSearchMessage[]) {
+  return {
+    activeWorktreeId: "worktree-1",
+    sessionsByWorktreeId: {
+      "worktree-1": {
+        threadConversations: new Map([
+          [
+            "thread-2",
+            {
+              messages,
+            },
+          ],
+        ]),
+      },
+    },
+  } satisfies ThreadSearchSessionStoreState;
+}
+
 describe("ThreadSearchHost", () => {
   beforeEach(() => {
     useShellModelMock.mockReturnValue({ state: createShellState() });
-    getWorkspaceSessionStoreMock.mockReturnValue({
-      getState: () => ({
-        activeWorktreeId: "worktree-1",
-        sessionsByWorktreeId: {
-          "worktree-1": {
-            threadConversations: new Map([
-              [
-                "thread-2",
-                {
-                  messages: [
-                    {
-                      id: "message-9",
-                      role: "assistant",
-                      text: "Needle result",
-                      status: "complete",
-                      timestamp: 1,
-                    },
-                  ],
-                },
-              ],
-            ]),
-          },
-        },
-      }),
-    });
+    sessionStore = createStore<ThreadSearchSessionStoreState>(() =>
+      createSessionState([createMessage("message-9", "Needle result")]),
+    );
+    getWorkspaceSessionStoreMock.mockReturnValue(sessionStore);
   });
 
   afterEach(() => {
@@ -168,6 +198,29 @@ describe("ThreadSearchHost", () => {
 
     return waitFor(() => {
       expect(screen.getByTestId("thread-search-select")).toBeInTheDocument();
+    });
+  });
+
+  it("updates searchable messages when the active session changes while open", async () => {
+    render(<ThreadSearchHost />);
+
+    window.dispatchEvent(new Event("pi:thread-search:open"));
+
+    const result = await screen.findByTestId("thread-search-select");
+    expect(result).toHaveAttribute("data-message-count", "1");
+
+    sessionStore.setState(
+      createSessionState([
+        createMessage("message-9", "Needle result"),
+        createMessage("message-10", "Another result"),
+      ]),
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("thread-search-select")).toHaveAttribute(
+        "data-message-count",
+        "2",
+      );
     });
   });
 

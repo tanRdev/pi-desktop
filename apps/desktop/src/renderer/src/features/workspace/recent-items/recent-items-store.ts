@@ -266,7 +266,9 @@ export function createRecentItemsStore(
       const idx = items.findIndex((i) => i.id === id);
       if (idx === -1 || items[idx]?.pinned) return;
       const updated = [...items];
-      updated[idx] = { ...updated[idx]!, pinned: true };
+      const item = updated[idx];
+      if (!item) return;
+      updated[idx] = { ...item, pinned: true };
       data = { ...data, [category]: updated };
       persist();
       notify();
@@ -277,7 +279,9 @@ export function createRecentItemsStore(
       const idx = items.findIndex((i) => i.id === id);
       if (idx === -1 || !items[idx]?.pinned) return;
       const updated = [...items];
-      updated[idx] = { ...updated[idx]!, pinned: false };
+      const item = updated[idx];
+      if (!item) return;
+      updated[idx] = { ...item, pinned: false };
       data = { ...data, [category]: updated };
       persist();
       notify();

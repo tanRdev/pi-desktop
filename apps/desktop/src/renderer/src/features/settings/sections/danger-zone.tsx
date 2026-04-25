@@ -1,5 +1,5 @@
-import { Button } from "@/components/ui/button";
-import { FolderOpen, Trash } from "@/components/ui/icons";
+import { Button } from "@pi-desktop/ui";
+import { FolderOpen, Trash } from "@/components/ui/phosphor-icons";
 import { toast } from "@/lib/toast";
 import { SettingsRow, SettingsSection } from "../controls";
 

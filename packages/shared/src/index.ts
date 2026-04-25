@@ -1,3 +1,4 @@
+export * from "./catalog/index.js";
 export * from "./ipc/agent-host.js";
 export * from "./ipc/channels.js";
 export * from "./models/agent.js";

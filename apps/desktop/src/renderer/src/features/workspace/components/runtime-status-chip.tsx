@@ -1,5 +1,5 @@
 import type { ThreadRuntimeStatus } from "@pi-desktop/shared";
-import { cn } from "@/lib/utils";
+import { cn } from "@pi-desktop/ui";
 
 export interface RuntimeStatusChipProps {
   status: ThreadRuntimeStatus;

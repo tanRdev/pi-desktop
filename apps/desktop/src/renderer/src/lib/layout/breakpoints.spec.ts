@@ -18,8 +18,11 @@ describe("BREAKPOINTS", () => {
   it("values are in ascending order", () => {
     const values = Object.values(BREAKPOINTS);
     for (let i = 1; i < values.length; i++) {
-      const current: number = values[i]!;
-      const prev: number = values[i - 1]!;
+      const current = values[i];
+      const prev = values[i - 1];
+      if (current === undefined || prev === undefined) {
+        throw new Error("breakpoint values should be defined");
+      }
       expect(current).toBeGreaterThan(prev);
     }
   });

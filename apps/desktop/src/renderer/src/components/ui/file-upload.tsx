@@ -1,6 +1,11 @@
+import { cn } from "@pi-desktop/ui";
 import type * as React from "react";
-import { ICON_SIZE_SM, Image, Paperclip, X } from "@/components/ui/icons";
-import { cn } from "@/lib/utils";
+import {
+  ICON_SIZE_SM,
+  Image,
+  Paperclip,
+  X,
+} from "@/components/ui/phosphor-icons";
 
 export interface UploadedFile {
   id: string;

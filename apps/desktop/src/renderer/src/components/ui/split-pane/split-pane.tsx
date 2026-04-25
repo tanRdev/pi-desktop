@@ -1,5 +1,5 @@
+import { cn } from "@pi-desktop/ui";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { cn } from "@/lib/utils";
 
 const DEFAULT_MIN_SIZE = 10;
 const DEFAULT_MAX_SIZE = 90;

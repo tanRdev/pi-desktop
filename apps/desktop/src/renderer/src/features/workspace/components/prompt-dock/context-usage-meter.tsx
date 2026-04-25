@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from "@pi-desktop/ui";
 
 function formatTokens(tokens: number): string {
   if (tokens >= 1_000_000) {

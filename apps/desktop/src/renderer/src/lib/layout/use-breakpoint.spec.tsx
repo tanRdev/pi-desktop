@@ -210,7 +210,6 @@ describe("useBreakpoint", () => {
     vi.stubGlobal(
       "ResizeObserver",
       class {
-        constructor() {}
         observe() {}
         disconnect = mockDisconnect;
         unobserve() {}

@@ -1,9 +1,49 @@
 // @vitest-environment jsdom
-import { render, screen } from "@testing-library/react";
-import { beforeAll, describe, expect, it, vi } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { createStore } from "zustand/vanilla";
 import App from "./app";
 
 const mockUseAppShellController = vi.fn();
+const getWorkspaceSessionStoreMock = vi.fn();
+const appHostsSpy = vi.fn();
+
+interface SearchReplaceFileState {
+  id: string;
+  filePath: string;
+  content: string;
+  isLoading?: boolean;
+}
+
+interface AppWorkspaceSessionStoreState {
+  activeWorktreeId: string | null;
+  sessionsByWorktreeId: Record<
+    string,
+    {
+      layout: {
+        windows: Array<{
+          id: string;
+          kind: string;
+          filePath?: string;
+        }>;
+      };
+      fileContents: Map<
+        string,
+        {
+          content: { content: string } | null;
+          isLoading: boolean;
+        }
+      >;
+    }
+  >;
+  setActiveWorktree: ReturnType<typeof vi.fn>;
+}
+
+let sessionStore = createStore<AppWorkspaceSessionStoreState>(() => ({
+  activeWorktreeId: null,
+  sessionsByWorktreeId: {},
+  setActiveWorktree: vi.fn(),
+}));
 
 beforeAll(() => {
   Object.defineProperty(window, "piDesktop", {
@@ -134,6 +174,20 @@ vi.mock("@/features/workspace/use-app-shell-controller", () => ({
   },
 }));
 
+vi.mock("./hooks/use-window-store", () => ({
+  getWorkspaceSessionStore: () => getWorkspaceSessionStoreMock(),
+}));
+
+vi.mock("@/features/session-recovery", () => ({
+  useSessionRecovery() {
+    return {
+      isRecovering: false,
+      lastCheckpointTime: null,
+      recovery: null,
+    };
+  },
+}));
+
 vi.mock("@/features/command-palette", () => ({
   CommandPaletteHost() {
     return null;
@@ -173,6 +227,26 @@ vi.mock("./components/error-boundary", () => ({
 vi.mock("./components/ui/update-banner", () => ({
   UpdateBanner() {
     return null;
+  },
+}));
+
+vi.mock("@/features/workspace/components/onboarding", () => ({
+  OnboardingGuard({ children }: { children: React.ReactNode }) {
+    return children;
+  },
+}));
+
+vi.mock("./app-shell/app-hosts", () => ({
+  AppHosts(props: {
+    snapshotApi: object;
+    searchReplaceFiles: readonly { filePath: string; content: string }[];
+  }) {
+    appHostsSpy(props);
+    return (
+      <div data-testid="app-hosts">
+        {props.searchReplaceFiles.map((file) => file.filePath).join(",")}
+      </div>
+    );
   },
 }));
 
@@ -233,7 +307,77 @@ function createController(
   };
 }
 
+function createWorkspaceSessionState(files: SearchReplaceFileState[]) {
+  return {
+    activeWorktreeId: "wt-1",
+    sessionsByWorktreeId: {
+      "wt-1": {
+        layout: {
+          windows: files.map((file) => ({
+            id: file.id,
+            kind: "file",
+            filePath: file.filePath,
+          })),
+        },
+        fileContents: new Map(
+          files.map((file) => [
+            file.id,
+            {
+              content: { content: file.content },
+              isLoading: file.isLoading ?? false,
+            },
+          ]),
+        ),
+      },
+    },
+  };
+}
+
+beforeEach(() => {
+  mockUseAppShellController.mockReset();
+  mockUseAppShellController.mockReturnValue(createController());
+  appHostsSpy.mockClear();
+  sessionStore = createStore<AppWorkspaceSessionStoreState>(() => ({
+    ...createWorkspaceSessionState([
+      {
+        id: "file-1",
+        filePath: "/tmp/alpha.ts",
+        content: "alpha",
+      },
+    ]),
+    setActiveWorktree: vi.fn(),
+  }));
+  getWorkspaceSessionStoreMock.mockReturnValue(sessionStore);
+});
+
 describe("App OAuth dialog", () => {
+  it("updates search replace files when the workspace session changes", async () => {
+    render(<App />);
+
+    expect(screen.getByTestId("app-hosts")).toHaveTextContent("/tmp/alpha.ts");
+
+    sessionStore.setState(
+      createWorkspaceSessionState([
+        {
+          id: "file-1",
+          filePath: "/tmp/alpha.ts",
+          content: "alpha",
+        },
+        {
+          id: "file-2",
+          filePath: "/tmp/beta.ts",
+          content: "beta",
+        },
+      ]),
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("app-hosts")).toHaveTextContent(
+        "/tmp/alpha.ts,/tmp/beta.ts",
+      );
+    });
+  });
+
   it.skip("shows logout-specific row actions and disables providers that are not connected", () => {
     mockUseAppShellController.mockReturnValue(
       createController({

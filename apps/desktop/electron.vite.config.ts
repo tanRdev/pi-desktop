@@ -13,6 +13,9 @@ export default defineConfig({
   main: {
     resolve: {
       alias: {
+        "@pi-desktop/contracts": fileURLToPath(
+          new URL("../../packages/contracts/src", import.meta.url),
+        ),
         "@pi-desktop/shared": fileURLToPath(
           new URL("../../packages/shared/src", import.meta.url),
         ),

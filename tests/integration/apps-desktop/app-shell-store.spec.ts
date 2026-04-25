@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   DEFAULT_AI_PREFERENCES,
@@ -186,6 +187,55 @@ afterEach(() => {
 });
 
 describe("app-shell-store", () => {
+  it("routes app preference helpers through an extracted helper seam", async () => {
+    const [source, helperSource] = await Promise.all([
+      readFile(
+        new URL(
+          "../../../apps/desktop/src/renderer/src/stores/app-shell-store.ts",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+      readFile(
+        new URL(
+          "../../../apps/desktop/src/renderer/src/stores/app-shell-store-preferences.ts",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    ]);
+
+    expect(source).toContain('from "./app-shell-store-preferences"');
+    expect(source).not.toContain(
+      "function readLegacySettingsFromAppPreferences(",
+    );
+    expect(source).not.toContain("function getStoredAiPreferences(");
+    expect(source).not.toContain("function normalizeAppPreferences(");
+    expect(source).not.toContain("function getSelectedModelValue(");
+    expect(source).not.toContain("function buildAiPreferenceUpdate(");
+    expect(source).not.toContain("function getMigratedAppPreferences(");
+    expect(source).not.toContain("function mergeAppPreferences(");
+    expect(source).not.toContain("function mergeAiPreferenceUpdates(");
+    expect(source).not.toContain("function normalizeAppPreferenceUpdates(");
+
+    expect(helperSource).toContain(
+      "export function readLegacySettingsFromAppPreferences",
+    );
+    expect(helperSource).toContain("export function getStoredAiPreferences");
+    expect(helperSource).toContain("export function normalizeAppPreferences");
+    expect(helperSource).toContain("export function getSelectedModelValue");
+    expect(helperSource).toContain("export function buildAiPreferenceUpdate");
+    expect(helperSource).toContain("export function getMigratedAppPreferences");
+    expect(helperSource).toContain(
+      "export function getEffectiveLeftSidebarWidth",
+    );
+    expect(helperSource).toContain("export function mergeAppPreferences");
+    expect(helperSource).toContain("export function mergeAiPreferenceUpdates");
+    expect(helperSource).toContain(
+      "export function normalizeAppPreferenceUpdates",
+    );
+  });
+
   it("loads provider state, app preferences, and migrates legacy renderer preferences once", async () => {
     const storage = new Map<string, string>();
     vi.stubGlobal("localStorage", {

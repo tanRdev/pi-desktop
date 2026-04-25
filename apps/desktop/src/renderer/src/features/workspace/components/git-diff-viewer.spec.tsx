@@ -143,7 +143,7 @@ describe("GitDiffViewer line coloring", () => {
     const { container } = render(
       <GitDiffViewer diff={baseDiff} onClose={() => {}} />,
     );
-    const lineNumSpans = container.querySelectorAll(".text-white\\/30");
+    const lineNumSpans = container.querySelectorAll(".text-white\\/50");
     expect(lineNumSpans.length).toBeGreaterThan(0);
   });
 });

@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import { buildShellCatalog } from "../../../apps/desktop/src/main/shell-catalog-builder";
 import {
@@ -6,6 +7,41 @@ import {
 } from "../../../packages/shared/src";
 
 describe("buildShellCatalog", () => {
+  it("delegates workspace session reconciliation through an extracted helper seam", async () => {
+    const [source, helperSource] = await Promise.all([
+      readFile(
+        new URL(
+          "../../../apps/desktop/src/main/shell-catalog-builder.ts",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+      readFile(
+        new URL(
+          "../../../apps/desktop/src/main/shell-catalog-builder-workspace-sessions.ts",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    ]);
+
+    expect(source).toContain(
+      'from "./shell-catalog-builder-workspace-sessions"',
+    );
+    expect(source).toContain("reconcileWorkspaceSessions({");
+    expect(source).not.toContain("function isWithinWorktree(");
+    expect(source).not.toContain("function indexThreadsByWorktree(");
+    expect(source).not.toContain("function reconcileWorkspaceSessions(");
+
+    expect(helperSource).toContain("function isWithinWorktree(");
+    expect(helperSource).toContain("function indexThreadsByWorktree(");
+    expect(helperSource).toContain(
+      "export function reconcileWorkspaceSessions(",
+    );
+    expect(helperSource).toContain("createEmptyWorkspaceSession(");
+    expect(helperSource).toContain("isFileBackedWindow(window)");
+  });
+
   it("merges repository catalog entries, git worktrees, thread catalog entries, and selected runtime state", async () => {
     const selectedAgentSnapshot: AgentSnapshot = {
       sessionId: "selected-session",

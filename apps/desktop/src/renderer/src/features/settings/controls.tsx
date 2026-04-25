@@ -1,5 +1,5 @@
+import { cn } from "@pi-desktop/ui";
 import type { ReactNode } from "react";
-import { cn } from "@/lib/utils";
 
 /**
  * Low-profile form row used by every settings section. Label on the left,

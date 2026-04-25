@@ -1,3 +1,4 @@
+export { Button, buttonVariants } from "./components/ui/button";
 export {
   ChatContainerContent,
   ChatContainerRoot,

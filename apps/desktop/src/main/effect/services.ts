@@ -5,10 +5,7 @@ import type {
   TerminalSession,
 } from "@pi-desktop/shared";
 import { Context, Effect } from "effect";
-import type {
-  GitRepositoryInspection,
-  GitWorktreeSummary,
-} from "../git-worktree-service";
+import type { GitRepositoryInspection } from "../git-worktree-service";
 import type { PersistentJsonFileOptions } from "../persistent-json-file";
 import type { RepositoryCatalogEntry } from "../repository-catalog";
 import type { TerminalInstance } from "../terminal-manager";

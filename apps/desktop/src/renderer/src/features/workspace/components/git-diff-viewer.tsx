@@ -1,7 +1,7 @@
 import type { GitDiffHunk, GitDiffLine, GitFileDiff } from "@pi-desktop/shared";
+import { cn } from "@pi-desktop/ui";
 import * as React from "react";
-import { Check, Copy, X } from "@/components/ui/icons";
-import { cn } from "@/lib/utils";
+import { Check, Copy, X } from "@/components/ui/phosphor-icons";
 import { computeCharDiff } from "./compute-char-diff";
 
 interface GitDiffViewerProps {

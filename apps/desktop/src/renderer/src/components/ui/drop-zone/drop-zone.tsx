@@ -1,6 +1,6 @@
 import { UploadSimple } from "@phosphor-icons/react";
+import { cn } from "@pi-desktop/ui";
 import { useCallback, useRef, useState } from "react";
-import { cn } from "@/lib/utils";
 
 export type DropZoneProps = {
   children: React.ReactNode;

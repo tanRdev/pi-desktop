@@ -1,3 +1,4 @@
+import { cn } from "@pi-desktop/ui";
 import * as React from "react";
 import { Virtuoso } from "react-virtuoso";
 import {
@@ -6,8 +7,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ICON_SIZE_SM, MagnifyingGlass } from "@/components/ui/icons";
-import { cn } from "@/lib/utils";
+import { ICON_SIZE_SM, MagnifyingGlass } from "@/components/ui/phosphor-icons";
 import {
   type HighlightRange,
   type SearchableMessage,

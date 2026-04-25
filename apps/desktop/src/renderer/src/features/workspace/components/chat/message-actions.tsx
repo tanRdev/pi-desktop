@@ -1,3 +1,4 @@
+import { cn } from "@pi-desktop/ui";
 import * as React from "react";
 import {
   ArrowClockwise,
@@ -5,8 +6,7 @@ import {
   Copy,
   PencilSimple,
   X,
-} from "@/components/ui/icons";
-import { cn } from "@/lib/utils";
+} from "@/components/ui/phosphor-icons";
 
 type BaseBtnProps = React.ButtonHTMLAttributes<HTMLButtonElement>;
 

@@ -1,6 +1,6 @@
+import { cn } from "@pi-desktop/ui";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Pulse, X } from "@/components/ui/icons";
-import { cn } from "@/lib/utils";
+import { Pulse, X } from "@/components/ui/phosphor-icons";
 import { globalPerfStore, type PerfStore } from "./perf-store";
 import { usePerfEntries } from "./use-perf";
 

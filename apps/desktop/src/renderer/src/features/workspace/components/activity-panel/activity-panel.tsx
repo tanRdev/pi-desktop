@@ -1,9 +1,13 @@
 import { Funnel, X } from "@phosphor-icons/react";
 import type { LogEntry, LogLevel } from "@pi-desktop/shared";
 import { LOG_LEVELS } from "@pi-desktop/shared";
+import { cn } from "@pi-desktop/ui";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Activity, ICON_SIZE_MD, ICON_SIZE_SM } from "@/components/ui/icons";
-import { cn } from "@/lib/utils";
+import {
+  Activity,
+  ICON_SIZE_MD,
+  ICON_SIZE_SM,
+} from "@/components/ui/phosphor-icons";
 import { type ActivityLogStream, useActivityLog } from "./activity-log-stream";
 
 export interface ActivityPanelProps {

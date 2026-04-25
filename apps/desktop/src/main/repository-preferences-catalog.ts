@@ -1,5 +1,8 @@
 import path from "node:path";
-import type { RepositoryPreferences } from "@pi-desktop/shared";
+import {
+  DocumentCatalog,
+  type RepositoryPreferences,
+} from "@pi-desktop/shared";
 import { PersistentJsonFile } from "./persistent-json-file";
 import type { RepositoryCatalogEntry } from "./repository-catalog";
 
@@ -12,6 +15,10 @@ const DEFAULT_DOCUMENT: RepositoryPreferencesDocument = {
   version: 1,
   repositories: [],
 };
+
+type RepositoryPreferencesMutation = (
+  repositories: RepositoryPreferences[],
+) => RepositoryPreferences[];
 
 function normalizePathId(value: string): string {
   const resolved = path.resolve(value);
@@ -31,10 +38,14 @@ function normalizePreferences(
 }
 
 export class RepositoryPreferencesCatalog {
-  private readonly store: PersistentJsonFile<RepositoryPreferencesDocument>;
+  private readonly catalog: DocumentCatalog<
+    RepositoryPreferencesDocument,
+    RepositoryPreferences[],
+    RepositoryPreferencesMutation
+  >;
 
   constructor(userDataPath: string) {
-    this.store = new PersistentJsonFile({
+    const store = new PersistentJsonFile({
       filePath: path.join(
         userDataPath,
         "catalog",
@@ -42,10 +53,19 @@ export class RepositoryPreferencesCatalog {
       ),
       defaultValue: DEFAULT_DOCUMENT,
     });
+
+    this.catalog = new DocumentCatalog({
+      store,
+      select: (document) => document.repositories,
+      applyUpdate: (document, mutate) => ({
+        ...document,
+        repositories: mutate(document.repositories),
+      }),
+    });
   }
 
   list(): RepositoryPreferences[] {
-    return this.store.get().repositories;
+    return this.catalog.get();
   }
 
   get(repositoryId: string): RepositoryPreferences | null {
@@ -62,12 +82,12 @@ export class RepositoryPreferencesCatalog {
     updates: Partial<Omit<RepositoryPreferences, "repositoryId">>,
   ): RepositoryPreferences {
     const normalizedRepositoryId = normalizePathId(repositoryId);
-    const nextState = this.store.update((state) => {
-      const repositories = [...state.repositories];
-      const index = repositories.findIndex(
+    const repositories = this.catalog.update((currentRepositories) => {
+      const nextRepositories = [...currentRepositories];
+      const index = nextRepositories.findIndex(
         (repository) => repository.repositoryId === normalizedRepositoryId,
       );
-      const existing = index >= 0 ? repositories[index] : null;
+      const existing = index >= 0 ? nextRepositories[index] : null;
       const nextEntry = normalizePreferences(normalizedRepositoryId, {
         customName:
           updates.customName === undefined
@@ -81,19 +101,16 @@ export class RepositoryPreferencesCatalog {
       });
 
       if (index >= 0) {
-        repositories[index] = nextEntry;
+        nextRepositories[index] = nextEntry;
       } else {
-        repositories.push(nextEntry);
+        nextRepositories.push(nextEntry);
       }
 
-      return {
-        ...state,
-        repositories,
-      };
+      return nextRepositories;
     });
 
     return (
-      nextState.repositories.find(
+      repositories.find(
         (repository) => repository.repositoryId === normalizedRepositoryId,
       ) ?? normalizePreferences(normalizedRepositoryId, updates)
     );
@@ -126,11 +143,10 @@ export class RepositoryPreferencesCatalog {
 
   remove(repositoryId: string): void {
     const normalizedRepositoryId = normalizePathId(repositoryId);
-    this.store.update((state) => ({
-      ...state,
-      repositories: state.repositories.filter(
+    this.catalog.update((repositories) =>
+      repositories.filter(
         (repository) => repository.repositoryId !== normalizedRepositoryId,
       ),
-    }));
+    );
   }
 }

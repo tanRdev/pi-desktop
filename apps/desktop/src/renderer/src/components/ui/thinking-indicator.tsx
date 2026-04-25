@@ -1,6 +1,7 @@
 "use client";
 
 import { Brain, CaretDown } from "@phosphor-icons/react";
+import { cn } from "@pi-desktop/ui";
 import type * as React from "react";
 import { useState } from "react";
 import {
@@ -8,7 +9,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { cn } from "@/lib/utils";
 
 // ============================================
 // StreamingPlaceholder — compact pre-stream dots

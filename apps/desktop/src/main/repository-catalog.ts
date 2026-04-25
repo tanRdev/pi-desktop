@@ -1,4 +1,5 @@
 import path from "node:path";
+import { DocumentCatalog } from "@pi-desktop/shared";
 import { PersistentJsonFile } from "./persistent-json-file";
 
 export interface RepositoryCatalogEntry {
@@ -20,6 +21,10 @@ type RepositoryCatalogOptions = {
   now?: () => number;
 };
 
+type RepositoryCatalogMutation = (
+  repositories: RepositoryCatalogEntry[],
+) => RepositoryCatalogEntry[];
+
 type UpsertRepositoryInput = {
   rootPath: string;
   label?: string | null;
@@ -40,20 +45,33 @@ function hasLabel(input: UpsertRepositoryInput): boolean {
 }
 
 export class RepositoryCatalog {
-  private readonly store: PersistentJsonFile<RepositoryCatalogState>;
+  private readonly catalog: DocumentCatalog<
+    RepositoryCatalogState,
+    RepositoryCatalogEntry[],
+    RepositoryCatalogMutation
+  >;
 
   private readonly now: () => number;
 
   constructor(userDataPath: string, options: RepositoryCatalogOptions = {}) {
-    this.store = new PersistentJsonFile({
+    const store = new PersistentJsonFile({
       filePath: path.join(userDataPath, "catalog", "repositories.json"),
       defaultValue: DEFAULT_STATE,
+    });
+
+    this.catalog = new DocumentCatalog({
+      store,
+      select: (document) => document.repositories,
+      applyUpdate: (document, mutate) => ({
+        ...document,
+        repositories: mutate(document.repositories),
+      }),
     });
     this.now = options.now ?? (() => Date.now());
   }
 
   list(): RepositoryCatalogEntry[] {
-    return [...this.store.get().repositories].sort(
+    return [...this.catalog.get()].sort(
       (left, right) => left.order - right.order,
     );
   }
@@ -68,34 +86,31 @@ export class RepositoryCatalog {
   upsert(input: UpsertRepositoryInput): RepositoryCatalogEntry {
     const rootPath = normalizePathId(input.rootPath);
     const currentTime = this.now();
-    const nextState = this.store.update((state) => {
-      const repositories = [...state.repositories];
-      const existingIndex = repositories.findIndex(
+    const repositories = this.catalog.update((currentRepositories) => {
+      const nextRepositories = [...currentRepositories];
+      const existingIndex = nextRepositories.findIndex(
         (repository) => repository.id === rootPath,
       );
 
       if (existingIndex >= 0) {
-        const existing = repositories[existingIndex];
+        const existing = nextRepositories[existingIndex];
         if (!existing) {
-          return state;
+          return currentRepositories;
         }
-        repositories[existingIndex] = {
+        nextRepositories[existingIndex] = {
           ...existing,
           label: hasLabel(input) ? (input.label ?? null) : existing.label,
           updatedAt: currentTime,
         };
 
-        return {
-          ...state,
-          repositories,
-        };
+        return nextRepositories;
       }
 
-      const nextOrder = repositories.reduce(
+      const nextOrder = nextRepositories.reduce(
         (maxOrder, repository) => Math.max(maxOrder, repository.order),
         -1,
       );
-      repositories.push({
+      nextRepositories.push({
         id: rootPath,
         rootPath,
         label: input.label ?? null,
@@ -105,14 +120,11 @@ export class RepositoryCatalog {
         updatedAt: currentTime,
       });
 
-      return {
-        ...state,
-        repositories,
-      };
+      return nextRepositories;
     });
 
     return (
-      nextState.repositories.find((repository) => repository.id === rootPath) ??
+      repositories.find((repository) => repository.id === rootPath) ??
       this.get(rootPath) ??
       (() => {
         throw new Error(
@@ -131,9 +143,8 @@ export class RepositoryCatalog {
       ? normalizePathId(worktreeId)
       : null;
     const currentTime = this.now();
-    const nextState = this.store.update((state) => ({
-      ...state,
-      repositories: state.repositories.map((repository) =>
+    const repositories = this.catalog.update((currentRepositories) =>
+      currentRepositories.map((repository) =>
         repository.id === normalizedRepositoryId
           ? {
               ...repository,
@@ -142,10 +153,10 @@ export class RepositoryCatalog {
             }
           : repository,
       ),
-    }));
+    );
 
     return (
-      nextState.repositories.find(
+      repositories.find(
         (repository) => repository.id === normalizedRepositoryId,
       ) ?? null
     );
@@ -155,12 +166,12 @@ export class RepositoryCatalog {
     const normalizedRepositoryIds = repositoryIds.map(normalizePathId);
     const currentTime = this.now();
 
-    const nextState = this.store.update((state) => {
-      const repositories = [...state.repositories].sort(
+    const repositories = this.catalog.update((currentRepositories) => {
+      const sortedRepositories = [...currentRepositories].sort(
         (left, right) => left.order - right.order,
       );
       const repositoriesById = new Map(
-        repositories.map((repository) => [repository.id, repository]),
+        sortedRepositories.map((repository) => [repository.id, repository]),
       );
       const seenRepositoryIds = new Set<string>();
       const reorderedRepositories: RepositoryCatalogEntry[] = [];
@@ -179,38 +190,32 @@ export class RepositoryCatalog {
         reorderedRepositories.push(repository);
       }
 
-      for (const repository of repositories) {
+      for (const repository of sortedRepositories) {
         if (!seenRepositoryIds.has(repository.id)) {
           reorderedRepositories.push(repository);
         }
       }
 
-      return {
-        ...state,
-        repositories: reorderedRepositories.map((repository, order) =>
-          repository.order === order
-            ? repository
-            : {
-                ...repository,
-                order,
-                updatedAt: currentTime,
-              },
-        ),
-      };
+      return reorderedRepositories.map((repository, order) =>
+        repository.order === order
+          ? repository
+          : {
+              ...repository,
+              order,
+              updatedAt: currentTime,
+            },
+      );
     });
 
-    return [...nextState.repositories].sort(
-      (left, right) => left.order - right.order,
-    );
+    return [...repositories].sort((left, right) => left.order - right.order);
   }
 
   remove(repositoryId: string): void {
     const normalizedRepositoryId = normalizePathId(repositoryId);
-    this.store.update((state) => ({
-      ...state,
-      repositories: state.repositories.filter(
+    this.catalog.update((repositories) =>
+      repositories.filter(
         (repository) => repository.id !== normalizedRepositoryId,
       ),
-    }));
+    );
   }
 }

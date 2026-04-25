@@ -1,8 +1,8 @@
 import { ChatText, Plus } from "@phosphor-icons/react";
 import type { ThreadSnapshot } from "@pi-desktop/shared";
+import { cn } from "@pi-desktop/ui";
 import { Skeleton } from "boneyard-js/react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { RuntimeStatusChip } from "./runtime-status-chip";
 
 export interface ThreadListProps {

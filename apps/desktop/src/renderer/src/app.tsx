@@ -1,13 +1,15 @@
 import { IconContext } from "@phosphor-icons/react";
-import { TooltipProvider } from "@pi-desktop/ui";
+import { cn, TooltipProvider } from "@pi-desktop/ui";
 import * as React from "react";
+import { useStore } from "zustand";
+import { useShallow } from "zustand/react/shallow";
 import { useSessionRecovery } from "@/features/session-recovery";
 import { createSnapshotApi, createSnapshotStore } from "@/features/snapshots";
 import { OnboardingGuard } from "@/features/workspace/components/onboarding";
 import { WorkspaceShell } from "@/features/workspace/components/workspace-shell";
 import { useAppShellController } from "@/features/workspace/use-app-shell-controller";
 import { ThemeProvider } from "@/lib/theme";
-import { cn } from "@/lib/utils";
+import { selectActiveWorkspaceSession } from "@/stores/workspace-session-selectors";
 import { AppDialogs } from "./app-shell/app-dialogs";
 import { AppHosts } from "./app-shell/app-hosts";
 import { RootErrorBoundary } from "./components/error-boundary";
@@ -17,12 +19,10 @@ import { getWorkspaceSessionStore } from "./hooks/use-window-store";
 const EMPTY_FILES: readonly { filePath: string; content: string }[] = [];
 
 function useSearchReplaceFiles() {
-  const sessionStore = getWorkspaceSessionStore();
-  const sessionState = sessionStore.getState();
-  const activeWorktreeId = sessionState.activeWorktreeId;
-  const session = activeWorktreeId
-    ? sessionState.sessionsByWorktreeId[activeWorktreeId]
-    : undefined;
+  const session = useStore(
+    getWorkspaceSessionStore(),
+    useShallow((storeState) => selectActiveWorkspaceSession(storeState)),
+  );
 
   return React.useMemo(() => {
     if (!session) return EMPTY_FILES;

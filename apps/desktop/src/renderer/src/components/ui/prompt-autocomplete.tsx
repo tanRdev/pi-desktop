@@ -1,4 +1,5 @@
 import type { MentionSuggestion, SlashSuggestion } from "@pi-desktop/shared";
+import { cn } from "@pi-desktop/ui";
 import * as React from "react";
 import {
   AtSign,
@@ -7,8 +8,7 @@ import {
   Terminal,
   TerminalWindow,
   Wrench,
-} from "@/components/ui/icons";
-import { cn } from "@/lib/utils";
+} from "@/components/ui/phosphor-icons";
 
 export type PromptAutocompleteProps = {
   visible?: boolean;

@@ -1,3 +1,4 @@
+import { cn } from "@pi-desktop/ui";
 import * as React from "react";
 import { createPortal } from "react-dom";
 import {
@@ -8,9 +9,8 @@ import {
   PushPin,
   PushPinSlash,
   Trash,
-} from "@/components/ui/icons";
+} from "@/components/ui/phosphor-icons";
 import { toast } from "@/lib/toast";
-import { cn } from "@/lib/utils";
 
 interface FileTreeContextMenuProps {
   x: number;

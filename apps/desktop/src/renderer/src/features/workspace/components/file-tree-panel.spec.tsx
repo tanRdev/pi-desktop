@@ -10,7 +10,7 @@ import {
 import { renderWithProviders } from "../../../../../test/render-helpers";
 import { FileTreePanel } from "./file-tree-panel";
 
-vi.mock("@/components/ui/icons", () => {
+vi.mock("@/components/ui/phosphor-icons", () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const React = require("react");
   const Stub = (props: Record<string, unknown>) =>

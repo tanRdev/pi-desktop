@@ -1,5 +1,5 @@
 import type { GitRepositoryStatus, ShellGitSnapshot } from "@pi-desktop/shared";
-
+import { cn } from "@pi-desktop/ui";
 import {
   Brain,
   GitBranch,
@@ -7,9 +7,8 @@ import {
   PencilSimple,
   Pulse,
   Settings,
-} from "@/components/ui/icons";
+} from "@/components/ui/phosphor-icons";
 import { useNotifications } from "@/features/notifications/use-notifications";
-import { cn } from "@/lib/utils";
 
 import { StatusBarItem } from "./status-bar-item";
 import { useStatusBarData } from "./use-status-bar-data";

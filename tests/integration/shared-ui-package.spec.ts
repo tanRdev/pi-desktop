@@ -24,10 +24,40 @@ describe("shared ui package foundation (chunk-2a-ui-foundation)", () => {
     const p = path.join(ROOT, "packages/ui/src/styles/pi-desktop-shell.css");
     const content = read(p);
     if (content === null) throw new Error(`Missing ${p}`);
+    if (!content.includes('@import "./tokens.css";'))
+      throw new Error("Expected pi-desktop-shell.css to import ./tokens.css");
     if (!content.includes("--background:"))
       throw new Error("Expected --background token in pi-desktop-shell.css");
     if (!content.includes("--app-font-sans:"))
       throw new Error("Expected --app-font-sans token in pi-desktop-shell.css");
+  });
+
+  it("packages/ui shared font and token styles exist", () => {
+    const fontsPath = path.join(ROOT, "packages/ui/src/styles/fonts.css");
+    const fontsContent = read(fontsPath);
+    if (fontsContent === null) throw new Error(`Missing ${fontsPath}`);
+    if (!fontsContent.includes("@fontsource-variable/dm-sans"))
+      throw new Error("Expected fonts.css to import DM Sans");
+    if (!fontsContent.includes("@fontsource/ibm-plex-mono"))
+      throw new Error("Expected fonts.css to import IBM Plex Mono");
+
+    const tokensPath = path.join(ROOT, "packages/ui/src/styles/tokens.css");
+    const tokensContent = read(tokensPath);
+    if (tokensContent === null) throw new Error(`Missing ${tokensPath}`);
+    if (!tokensContent.includes("--font-heading:"))
+      throw new Error("Expected tokens.css to define --font-heading");
+    if (!tokensContent.includes("--text-base:"))
+      throw new Error("Expected tokens.css to define --text-base");
+  });
+
+  it("desktop app retains concrete font imports while consuming shared shell styles", () => {
+    const p = path.join(ROOT, "apps/desktop/src/renderer/src/app.css");
+    const content = read(p);
+    if (content === null) throw new Error(`Missing ${p}`);
+    if (!content.includes("@fontsource-variable/dm-sans"))
+      throw new Error("Expected app.css to import DM Sans directly");
+    if (!content.includes("@fontsource/ibm-plex-mono"))
+      throw new Error("Expected app.css to import IBM Plex Mono directly");
   });
 
   it("apps/desktop/src/renderer/src/app.css imports shared styles and retains drag-region rules", () => {

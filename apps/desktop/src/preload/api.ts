@@ -1,14 +1,16 @@
 import {
-  type AgentSnapshot,
-  type AppPreferences,
+  createContractInvoker,
+  snapshotContracts,
+} from "@pi-desktop/contracts";
+import {
   type AutocompleteContext,
   type AutocompleteSuggestions,
   type GitFileDiff,
   type GitRepositoryStatus,
   IPC_CHANNELS,
-  type LegacyPreferencesImport,
   type ModelSwitchRequest,
   type OAuthProviderSnapshot,
+  type OpenDialogOptions,
   type PackageInstallRequest,
   type PackageManagerStatus,
   type PackageOperationSnapshot,
@@ -20,117 +22,57 @@ import {
   type PiDesktopAgentEvent,
   type PiDesktopApi,
   type PiDiscoveryResult,
-  type ProviderSnapshot,
-  type RepositoryDisplayMetadata,
-  type RepositoryPreferences,
   type SearchRequest,
   type SearchResponse,
-  type SettingsSnapshot,
-  type ShellSnapshot,
   type TerminalCreateOptions,
   type TerminalSession,
-  type WorkspaceSession,
 } from "@pi-desktop/shared";
+
+import { createStateApi } from "./state-api";
+import {
+  createUpdatesApi,
+  type PreloadInvoke,
+  type PreloadOn,
+  type UpdateInfoSnapshot,
+  type UpdaterErrorInfo,
+  type UpdaterState,
+  type UpdaterStatus,
+  type UpdatesApi,
+} from "./updates-api";
 
 const OPEN_EXTERNAL_CHANNEL =
   IPC_CHANNELS.dialog.openExternal ?? "dialog:openExternal";
-
-export type PreloadInvoke = <TReturn>(
-  channel: string,
-  payload?: unknown,
-) => Promise<TReturn>;
-
-export type PreloadOn = <TPayload>(
-  channel: string,
-  listener: (payload: TPayload) => void,
-) => () => void;
 
 export interface CreatePiDesktopApiDependencies {
   invoke: PreloadInvoke;
   on: PreloadOn;
 }
 
-// TODO(A6): once shared exposes UpdaterState + IPC_CHANNELS.updates, replace
-// these locally-mirrored types with the canonical shared ones and add
-// `updates` to the PiDesktopApi interface.
-export type UpdaterStatus =
-  | "idle"
-  | "checking"
-  | "available"
-  | "downloading"
-  | "downloaded"
-  | "restart-pending"
-  | "error";
-
-export interface UpdateInfoSnapshot {
-  readonly version: string;
-  readonly releaseNotes?: string | null;
-  readonly releaseName?: string | null;
-  readonly releaseDate?: string | null;
-}
-
-export interface UpdaterErrorInfo {
-  readonly message: string;
-  readonly attempt: number;
-}
-
-export interface UpdaterState {
-  readonly status: UpdaterStatus;
-  readonly updateInfo: UpdateInfoSnapshot | null;
-  readonly downloadPercent: number;
-  readonly error: UpdaterErrorInfo | null;
-  readonly errorCount: number;
-  readonly lastCheckAt: number | null;
-  readonly userConsented: boolean;
-}
-
-export interface UpdatesApi {
-  getState(): Promise<UpdaterState>;
-  check(): Promise<UpdaterState>;
-  download(): Promise<UpdaterState>;
-  install(): void;
-  subscribe(listener: (state: UpdaterState) => void): () => void;
-}
-
 export type PiDesktopApiWithUpdates = PiDesktopApi & {
   updates: UpdatesApi;
 };
-
-// Channel constants mirror apps/desktop/src/main/auto-updater.ts UPDATE_IPC_CHANNELS.
-// TODO(A6): consume IPC_CHANNELS.updates.* once shared exports them.
-const UPDATE_IPC_CHANNELS = {
-  event: "updates:event",
-  getState: "updates:getState",
-  check: "updates:check",
-  download: "updates:download",
-  install: "updates:install",
-} as const;
 
 export function createPiDesktopApi({
   invoke,
   on,
 }: CreatePiDesktopApiDependencies): PiDesktopApiWithUpdates {
+  const invokeContract = createContractInvoker(invoke);
+
   return {
     shell: {
       getSnapshot() {
-        return invoke<ShellSnapshot>(IPC_CHANNELS.shell.getSnapshot, undefined);
+        return invokeContract(snapshotContracts.shell.getSnapshot);
       },
     },
     agent: {
       getProviders() {
-        return invoke<ProviderSnapshot[]>(
-          IPC_CHANNELS.agent.getProviders,
-          undefined,
-        );
+        return invokeContract(snapshotContracts.agent.getProviders);
       },
       getSettings() {
-        return invoke<SettingsSnapshot>(
-          IPC_CHANNELS.agent.getSettings,
-          undefined,
-        );
+        return invokeContract(snapshotContracts.agent.getSettings);
       },
       getSnapshot() {
-        return invoke<AgentSnapshot>(IPC_CHANNELS.agent.getSnapshot, undefined);
+        return invokeContract(snapshotContracts.agent.getSnapshot);
       },
       getOAuthProviders() {
         return invoke<OAuthProviderSnapshot[]>(
@@ -219,7 +161,7 @@ export function createPiDesktopApi({
       },
     },
     dialog: {
-      showOpenDialog(options: Electron.OpenDialogOptions) {
+      showOpenDialog(options: OpenDialogOptions) {
         return invoke<string[] | null>(
           IPC_CHANNELS.dialog.showOpenDialog,
           options,
@@ -422,56 +364,7 @@ export function createPiDesktopApi({
         return invoke<SearchResponse>(IPC_CHANNELS.search.searchFiles, request);
       },
     },
-    state: {
-      getRepositoryPreferences(repositoryId: string) {
-        return invoke<RepositoryPreferences | null>(
-          IPC_CHANNELS.state.getRepositoryPreferences,
-          { repositoryId },
-        );
-      },
-      updateRepositoryPreferences(
-        repositoryId: string,
-        updates: Partial<RepositoryDisplayMetadata>,
-      ) {
-        return invoke<RepositoryPreferences>(
-          IPC_CHANNELS.state.updateRepositoryPreferences,
-          { repositoryId, updates },
-        );
-      },
-      getWorkspaceSession(worktreeId: string) {
-        return invoke<WorkspaceSession | null>(
-          IPC_CHANNELS.state.getWorkspaceSession,
-          { worktreeId },
-        );
-      },
-      saveWorkspaceSession(session: WorkspaceSession) {
-        return invoke<WorkspaceSession>(
-          IPC_CHANNELS.state.saveWorkspaceSession,
-          {
-            session,
-          },
-        );
-      },
-      getAppPreferences() {
-        return invoke<AppPreferences>(
-          IPC_CHANNELS.state.getAppPreferences,
-          undefined,
-        );
-      },
-      updateAppPreferences(updates: Partial<AppPreferences>) {
-        return invoke<AppPreferences>(IPC_CHANNELS.state.updateAppPreferences, {
-          updates,
-        });
-      },
-      importLegacyPreferences(importData: LegacyPreferencesImport) {
-        return invoke<{
-          repositoryPreferences: RepositoryPreferences[];
-          appPreferences: AppPreferences;
-        }>(IPC_CHANNELS.state.importLegacyPreferences, {
-          importData,
-        });
-      },
-    },
+    state: createStateApi({ invoke }),
     window: {
       getFullscreenState() {
         return invoke<boolean>(
@@ -488,22 +381,16 @@ export function createPiDesktopApi({
         return invoke<void>(IPC_CHANNELS.clipboard.writeText, { text });
       },
     },
-    updates: {
-      getState() {
-        return invoke<UpdaterState>(UPDATE_IPC_CHANNELS.getState, undefined);
-      },
-      check() {
-        return invoke<UpdaterState>(UPDATE_IPC_CHANNELS.check, undefined);
-      },
-      download() {
-        return invoke<UpdaterState>(UPDATE_IPC_CHANNELS.download, undefined);
-      },
-      install() {
-        void invoke<UpdaterState>(UPDATE_IPC_CHANNELS.install, undefined);
-      },
-      subscribe(listener: (state: UpdaterState) => void) {
-        return on<UpdaterState>(UPDATE_IPC_CHANNELS.event, listener);
-      },
-    },
+    updates: createUpdatesApi({ invoke, on }),
   };
 }
+
+export type {
+  PreloadInvoke,
+  PreloadOn,
+  UpdatesApi,
+  UpdaterErrorInfo,
+  UpdateInfoSnapshot,
+  UpdaterState,
+  UpdaterStatus,
+};
