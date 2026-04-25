@@ -255,6 +255,22 @@ describe("PromptDock", () => {
     expect(favoriteToggle.parentElement).not.toBe(favoriteRow);
   });
 
+  it("does not add a second selected-state icon to the current model row", async () => {
+    const user = userEvent.setup();
+
+    renderPromptDock();
+
+    await user.click(screen.getByTestId("model-selector-trigger"));
+
+    const selectedModelButton = screen.getByTestId(
+      "model-option-google-gemini-2.5-pro",
+    );
+    const selectedModelRow = selectedModelButton.parentElement;
+
+    expect(selectedModelRow).not.toBeNull();
+    expect(selectedModelRow?.querySelectorAll("svg")).toHaveLength(1);
+  });
+
   it("does not show Favorites header when no models are favorited", async () => {
     const user = userEvent.setup();
 

@@ -91,7 +91,7 @@ export function GitPanelCommitComposer({
             <PopoverContent
               align="start"
               side="bottom"
-              className="w-40 border-white/10 bg-[var(--color-bg-tertiary)] p-1 shadow-2xl"
+              className="w-40 border-white/10 bg-[var(--color-bg-secondary)] p-1 shadow-2xl"
             >
               <div className="flex flex-col gap-0.5 max-h-56 overflow-auto custom-scrollbar">
                 {commitTemplates.map((template) => (
@@ -142,7 +142,7 @@ export function GitPanelCommitComposer({
           <PopoverContent
             align="end"
             side="bottom"
-            className="w-48 border-white/10 bg-[var(--color-bg-tertiary)] p-1 shadow-2xl"
+            className="w-48 border-white/10 bg-[var(--color-bg-secondary)] p-1 shadow-2xl"
           >
             <div className="flex flex-col gap-0.5">
               <Button

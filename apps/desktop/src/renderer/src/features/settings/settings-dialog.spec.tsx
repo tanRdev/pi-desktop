@@ -114,18 +114,12 @@ describe("SettingsDialog", () => {
     }
   });
 
-  it("exposes the updates and danger zone sections", async () => {
+  it("omits updates and keeps the danger zone section", async () => {
     const user = userEvent.setup();
     renderDialog();
 
-    await user.click(screen.getByTestId("settings-tab-updates"));
-    expect(
-      screen.getByText("Desktop updates are not wired into this panel yet."),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole("switch", { name: "Automatic updates" }),
-    ).toBeNull();
-    expect(screen.queryByRole("button", { name: /Check now/i })).toBeNull();
+    expect(screen.queryByTestId("settings-tab-updates")).toBeNull();
+    expect(screen.queryByText(/Desktop updates/i)).toBeNull();
 
     await user.click(screen.getByTestId("settings-tab-danger-zone"));
     expect(

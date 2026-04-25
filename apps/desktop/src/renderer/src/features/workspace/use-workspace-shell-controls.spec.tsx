@@ -28,33 +28,57 @@ vi.mock("@/lib/toast", () => ({
   },
 }));
 
+const googleModel = {
+  id: "gemini-2.5-pro",
+  name: "Gemini 2.5 Pro",
+  providerId: "google",
+  contextWindow: 1_048_576,
+};
+
+const anthropicModel = {
+  id: "claude-sonnet-4-20250514",
+  name: "Claude Sonnet 4",
+  providerId: "anthropic",
+  contextWindow: 200_000,
+};
+
+const googleProvider: ProviderSnapshot = {
+  id: "google",
+  name: "Google",
+  isConfigured: true,
+  models: [googleModel],
+};
+
+const anthropicProvider: ProviderSnapshot = {
+  id: "anthropic",
+  name: "Anthropic",
+  isConfigured: true,
+  models: [anthropicModel],
+};
+
 const providerSnapshots: ProviderSnapshot[] = [
-  {
-    id: "google",
-    name: "Google",
-    isConfigured: true,
-    models: [
-      {
-        id: "gemini-2.5-pro",
-        name: "Gemini 2.5 Pro",
-        providerId: "google",
-        contextWindow: 1_048_576,
-      },
-    ],
-  },
-  {
-    id: "anthropic",
-    name: "Anthropic",
-    isConfigured: true,
-    models: [
-      {
-        id: "claude-sonnet-4-20250514",
-        name: "Claude Sonnet 4",
-        providerId: "anthropic",
-        contextWindow: 200_000,
-      },
-    ],
-  },
+  googleProvider,
+  anthropicProvider,
+];
+
+const extraGoogleProvider: ProviderSnapshot = {
+  id: "google",
+  name: "Google",
+  isConfigured: true,
+  models: [
+    googleModel,
+    {
+      id: "gemini-2.5-flash",
+      name: "Gemini 2.5 Flash",
+      providerId: "google",
+      contextWindow: 1_048_576,
+    },
+  ],
+};
+
+const extraProviderSnapshots: ProviderSnapshot[] = [
+  extraGoogleProvider,
+  anthropicProvider,
 ];
 
 const settingsSnapshot: SettingsSnapshot = {
@@ -129,6 +153,40 @@ describe("useWorkspaceShellControls", () => {
     expect(result.current.leftSidebarWidth).toBe(320);
     expect(result.current.favoriteModels).toEqual([
       "anthropic::claude-sonnet-4-20250514",
+    ]);
+    expect(result.current.visibleProviderSnapshots).toEqual([
+      {
+        ...googleProvider,
+        models: [googleModel],
+      },
+      {
+        ...anthropicProvider,
+        models: [anthropicModel],
+      },
+    ]);
+  });
+
+  it("limits visible model picker providers to current, default, and favorites", () => {
+    const { result } = renderHook(() =>
+      useWorkspaceShellControls(
+        createOptions({
+          providerSnapshots: extraProviderSnapshots,
+          appPreferences: {
+            favoriteModels: ["anthropic::claude-sonnet-4-20250514"],
+          },
+        }),
+      ),
+    );
+
+    expect(result.current.visibleProviderSnapshots).toEqual([
+      {
+        ...extraGoogleProvider,
+        models: [googleModel],
+      },
+      {
+        ...anthropicProvider,
+        models: [anthropicModel],
+      },
     ]);
   });
 

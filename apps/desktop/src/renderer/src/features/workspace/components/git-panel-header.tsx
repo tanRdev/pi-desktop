@@ -57,7 +57,7 @@ export function GitPanelHeader({
                 <PopoverContent
                   align="start"
                   side="bottom"
-                  className="w-56 border-white/10 bg-[var(--color-bg-tertiary)] p-1 shadow-2xl"
+                  className="w-56 border-white/10 bg-[var(--color-bg-secondary)] p-1 shadow-2xl"
                 >
                   <div className="flex flex-col gap-0.5 max-h-64 overflow-auto custom-scrollbar">
                     {branches.map((branch) => (

@@ -3,7 +3,7 @@ import { cn } from "@pi-desktop/ui";
 import { Skeleton } from "boneyard-js/react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
-import { CaretDown, Check, Plus, Star } from "@/components/ui/phosphor-icons";
+import { CaretDown, Plus, Star } from "@/components/ui/phosphor-icons";
 import {
   Popover,
   PopoverContent,
@@ -216,7 +216,6 @@ export function ModelPicker({
                       >
                         <Star weight="fill" className="size-3.5" />
                       </button>
-                      {isSelected && <SelectedCheck />}
                     </div>
                   );
                 })}
@@ -268,7 +267,6 @@ export function ModelPicker({
                         >
                           <Star weight="regular" className="size-3.5" />
                         </button>
-                        {isSelected && <SelectedCheck />}
                       </div>
                     );
                   })}
@@ -280,10 +278,6 @@ export function ModelPicker({
       </PopoverContent>
     </Popover>
   );
-}
-
-function SelectedCheck() {
-  return <Check className="size-4 shrink-0 text-white/60" aria-hidden="true" />;
 }
 
 export function getCurrentModelName(

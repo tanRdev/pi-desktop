@@ -81,7 +81,7 @@ function MetricCard({
     <div
       className={cn(
         "flex flex-col gap-1.5 px-3 py-2.5",
-        "bg-[var(--color-bg-tertiary)] border border-white/[0.04]",
+        "bg-[var(--color-bg-secondary)] border border-white/[0.04]",
       )}
       data-testid={testId}
     >

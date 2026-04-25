@@ -123,7 +123,7 @@ export function GitSplitButton({
         title={mainTitle}
         onClick={() => send(currentAction?.prompt ?? "")}
         className={cn(
-          "flex items-center gap-1.5 px-2 text-[11px] uppercase tracking-wider transition-colors duration-150",
+          "flex min-w-0 items-center gap-1.5 overflow-hidden px-2 text-[11px] uppercase tracking-wider transition-colors duration-150",
           showGlow
             ? "text-green-400 hover:bg-green-500/10 hover:text-green-300"
             : "text-white/70 hover:bg-white/[0.06] hover:text-white/90",
@@ -134,8 +134,10 @@ export function GitSplitButton({
           "focus:outline-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20",
         )}
       >
-        <CurrentIcon className="size-3.5" />
-        <span>{currentAction?.label ?? ""}</span>
+        <CurrentIcon className="size-3.5 shrink-0" />
+        <span className="min-w-0 truncate whitespace-nowrap">
+          {currentAction?.label ?? ""}
+        </span>
       </button>
       <div className="w-px bg-white/[0.06]" aria-hidden="true" />
       <Popover open={menuOpen} onOpenChange={setMenuOpen}>

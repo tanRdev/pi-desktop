@@ -37,6 +37,27 @@ describe("GitSplitButton", () => {
     );
   });
 
+  it("keeps the primary action label on one truncated line", () => {
+    render(
+      <GitSplitButton
+        hasActiveThread
+        hasChangesToCommit
+        hasCommitsToPush
+        isPromptExecuting={false}
+        onAgentGitAction={vi.fn()}
+      />,
+    );
+
+    const mainButton = screen.getByRole("button", {
+      name: /^Commit & Push$/i,
+    });
+    const label = mainButton.querySelector("span");
+
+    expect(mainButton).toHaveClass("min-w-0", "overflow-hidden");
+    expect(label).not.toBeNull();
+    expect(label).toHaveClass("min-w-0", "truncate", "whitespace-nowrap");
+  });
+
   it("uses the newly selected action for the main button", async () => {
     const user = userEvent.setup();
     const onAgentGitAction = vi.fn();

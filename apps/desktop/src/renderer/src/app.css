@@ -14,7 +14,6 @@
   /* Color System — near-black floor #0C0D0F */
   --color-bg-primary: #0C0D0F;
   --color-bg-secondary: #101114;
-  --color-bg-tertiary: #14161A;
   --color-bg-quaternary: #1A1C21;
   --color-bg-hover: #1E2025;
   --color-bg-active: #22242A;
@@ -27,7 +26,6 @@
   /* Glass Morphism System — squared, accent-glow */
   --glass-bg-primary: rgba(12, 13, 15, 0.95);
   --glass-bg-secondary: rgba(16, 17, 20, 0.90);
-  --glass-bg-tertiary: rgba(20, 22, 26, 0.85);
   --glass-bg-solid: rgba(12, 13, 15, 1);
   --shell-sidebar-bg: #0C0D0F;
   --shell-main-bg: #0C0D0F;
@@ -73,7 +71,6 @@
   /* Surface aliases — ordered light → dark to match surface scale */
   --color-surface: #0C0D0F;
   --color-surface-secondary: #101114;
-  --color-surface-tertiary: #14161A;
   --color-text-muted: #8B94A3;
   --shadow-hover: 0 4px 24px rgba(0, 0, 0, 0.5);
   --accent-pale-red-text: #f87171;

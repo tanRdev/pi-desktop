@@ -63,7 +63,7 @@ const DialogContent = React.forwardRef<
         ref={contentRef}
         data-pi-dialog-content="true"
         className={cn(
-          "fixed z-50 grid w-full max-w-lg max-h-[calc(100vh-2rem)] overflow-y-auto gap-0 border border-white/[0.06] bg-[var(--color-bg-tertiary)] p-0 shadow-[0_16px_48px_rgba(0,0,0,0.5)] outline-none ring-0 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0",
+          "fixed z-50 grid w-full max-w-lg max-h-[calc(100vh-2rem)] overflow-y-auto gap-0 border border-white/[0.06] bg-[var(--color-bg-secondary)] p-0 shadow-[0_16px_48px_rgba(0,0,0,0.5)] outline-none ring-0 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0",
           className,
         )}
         style={{

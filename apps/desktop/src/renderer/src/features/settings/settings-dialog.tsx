@@ -8,7 +8,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Download,
   Faders,
   Gear,
   PaintBrush,
@@ -19,15 +18,9 @@ import { AppearanceSection } from "./sections/appearance";
 import { DangerZoneSection } from "./sections/danger-zone";
 import { EditorSection } from "./sections/editor";
 import { TerminalSection } from "./sections/terminal";
-import { UpdatesSection } from "./sections/updates";
 import { useSettings } from "./use-settings";
 
-type SectionId =
-  | "appearance"
-  | "editor"
-  | "terminal"
-  | "updates"
-  | "danger-zone";
+type SectionId = "appearance" | "editor" | "terminal" | "danger-zone";
 
 const SECTIONS: Array<{
   id: SectionId;
@@ -37,7 +30,6 @@ const SECTIONS: Array<{
   { id: "appearance", label: "Appearance", Icon: PaintBrush },
   { id: "editor", label: "Editor", Icon: Faders },
   { id: "terminal", label: "Terminal", Icon: TerminalWindow },
-  { id: "updates", label: "Updates", Icon: Download },
   { id: "danger-zone", label: "Danger zone", Icon: ShieldLock },
 ];
 
@@ -98,7 +90,7 @@ export function SettingsDialog({
           <div
             data-testid="settings-panel"
             data-active-section={activeSection}
-            className="flex flex-col gap-6 overflow-y-auto bg-[var(--color-bg-tertiary)] px-6 py-5"
+            className="flex flex-col gap-6 overflow-y-auto bg-[var(--color-bg-primary)] px-6 py-5"
           >
             {activeSection === "appearance" ? (
               <AppearanceSection settings={settings} update={update} />
@@ -108,9 +100,6 @@ export function SettingsDialog({
             ) : null}
             {activeSection === "terminal" ? (
               <TerminalSection settings={settings} update={update} />
-            ) : null}
-            {activeSection === "updates" ? (
-              <UpdatesSection settings={settings} update={update} />
             ) : null}
             {activeSection === "danger-zone" ? (
               <DangerZoneSection onResetPreferences={reset} />
