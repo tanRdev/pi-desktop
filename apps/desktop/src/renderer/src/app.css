@@ -11,12 +11,12 @@
    ============================================ */
 
 :root {
-  /* Color System — near-black floor #0C0D0F */
-  --color-bg-primary: #0C0D0F;
-  --color-bg-secondary: #101114;
-  --color-bg-quaternary: #1A1C21;
-  --color-bg-hover: #1E2025;
-  --color-bg-active: #22242A;
+  /* Color System — near-black floor #0E0F11 */
+  --color-bg-primary: #0E0F11;
+  --color-bg-secondary: #131417;
+  --color-bg-quaternary: #1C1D21;
+  --color-bg-hover: #202226;
+  --color-bg-active: #24262A;
 
   /* Bg hover ladder — layered hover intensities */
   --bg-hover-1: rgba(255, 255, 255, 0.04);
@@ -24,12 +24,12 @@
   --bg-hover-3: rgba(255, 255, 255, 0.10);
 
   /* Glass Morphism System — squared, accent-glow */
-  --glass-bg-primary: rgba(12, 13, 15, 0.95);
-  --glass-bg-secondary: rgba(16, 17, 20, 0.90);
-  --glass-bg-solid: rgba(12, 13, 15, 1);
-  --shell-sidebar-bg: #0C0D0F;
-  --shell-main-bg: #0C0D0F;
-  --shell-overlay-bg: #101114;
+  --glass-bg-primary: rgba(14, 15, 17, 0.95);
+  --glass-bg-secondary: rgba(19, 20, 23, 0.90);
+  --glass-bg-solid: rgba(14, 15, 17, 1);
+  --shell-sidebar-bg: #0E0F11;
+  --shell-main-bg: #0E0F11;
+  --shell-overlay-bg: #131417;
 
   --glass-border-subtle: rgba(255, 255, 255, 0.03);
   --glass-border-default: rgba(255, 255, 255, 0.06);
@@ -37,10 +37,10 @@
   --glass-border-glow: rgba(216, 106, 60, 0.25);
 
   /* Dim ladder — selection-focus text dimming */
-  /* Ensure all text dims meet WCAG AA (4.5:1) on #0C0D0F background
-     white/70 (#B0B0B0) ≈ 6.9:1  — primary dim
-     white/55 (#8C8C8C) ≈ 4.4:1  — secondary dim (min AA)
-     white/45 (#737373) ≈ 3.1:1   — tertiary (non-critical only) */
+  /* Ensure all text dims meet WCAG AA (4.5:1) on #0E0F11 background
+     white/70 (#B0B0B0) ≈ 6.7:1  — primary dim
+     white/55 (#8C8C8C) ≈ 4.3:1  — secondary dim (~AA)
+     white/45 (#737373) ≈ 3.0:1  — tertiary (non-critical only) */
   --text-dim-1: rgba(255, 255, 255, 0.70);
   --text-dim-2: rgba(255, 255, 255, 0.55);
   --text-dim-3: rgba(255, 255, 255, 0.45);
@@ -57,20 +57,20 @@
   --glass-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.02);
   --glass-shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 
-  --color-border-subtle: #14161A;
-  --color-border-default: #1A1C21;
-  --color-border-strong: #22242A;
-  --color-border-hover: #2E3038;
+  --color-border-subtle: #16171A;
+  --color-border-default: #1C1D21;
+  --color-border-strong: #24262A;
+  --color-border-hover: #303237;
 
   --color-text-primary: #e7e7e7;
   --color-text-secondary: #9CA3AF;
   --color-text-tertiary: #7B828D;
   --color-text-quaternary: #4B5563;
-  --color-text-inverse: #0C0D0F;
+  --color-text-inverse: #0E0F11;
 
   /* Surface aliases — ordered light → dark to match surface scale */
-  --color-surface: #0C0D0F;
-  --color-surface-secondary: #101114;
+  --color-surface: #0E0F11;
+  --color-surface-secondary: #131417;
   --color-text-muted: #8B94A3;
   --shadow-hover: 0 4px 24px rgba(0, 0, 0, 0.5);
   --accent-pale-red-text: #f87171;
@@ -202,7 +202,7 @@
 
   /* Window chrome title bar */
   .glass-titlebar {
-    background: rgba(10, 11, 13, 0.95);
+    background: rgba(12, 13, 15, 0.95);
     backdrop-filter: var(--glass-blur-md);
     -webkit-backdrop-filter: var(--glass-blur-md);
     border-bottom: 1px solid rgba(255, 255, 255, 0.04);

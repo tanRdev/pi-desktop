@@ -112,7 +112,7 @@ function resolveCssVar(varName: string, fallback: string): string {
  * unset (e.g. jsdom in tests).
  */
 function buildXtermTheme() {
-  const bg = resolveCssVar("--color-bg-primary", "#0C0D0F");
+  const bg = resolveCssVar("--color-bg-primary", "#0E0F11");
   const fg = resolveCssVar("--color-text-primary", "#d4d4d4");
   return {
     background: bg,
