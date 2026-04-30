@@ -239,6 +239,10 @@ describe("app-shell-store", () => {
   it("loads provider state, app preferences, and migrates legacy renderer preferences once", async () => {
     const storage = new Map<string, string>();
     vi.stubGlobal("localStorage", {
+      get length() {
+        return storage.size;
+      },
+      key: vi.fn((index: number) => Array.from(storage.keys())[index] ?? null),
       getItem: vi.fn((key: string) => storage.get(key) ?? null),
       setItem: vi.fn((key: string, value: string) => {
         storage.set(key, value);

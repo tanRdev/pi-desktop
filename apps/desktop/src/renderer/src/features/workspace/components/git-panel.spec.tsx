@@ -129,6 +129,22 @@ describe("GitPanel", () => {
     ).toBeInTheDocument();
   });
 
+  it("labels the refresh control as a local status refresh and calls onRefresh", async () => {
+    const user = userEvent.setup();
+    const onRefresh = vi.fn();
+
+    renderGitPanel({ onRefresh });
+
+    const refreshButton = screen.getByRole("button", {
+      name: "Refresh local Git status",
+    });
+    expect(refreshButton).toHaveAttribute("title", "Refresh local Git status");
+
+    await user.click(refreshButton);
+
+    expect(onRefresh).toHaveBeenCalledTimes(1);
+  });
+
   it("calls one bulk stage handler when select all is pressed", async () => {
     const user = userEvent.setup();
     const onStageAllFiles = vi.fn();

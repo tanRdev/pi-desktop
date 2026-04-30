@@ -100,8 +100,9 @@ export function GitPanelHeader({
               type="button"
               onClick={() => void onRefresh()}
               disabled={!canRefresh || isRefreshing}
-              aria-label="Refresh git status"
-              className="flex size-8 items-center justify-center text-white/40 transition-colors duration-150 hover:bg-white/[0.06] hover:text-white/80 disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Refresh local Git status"
+              title="Refresh local Git status"
+              className="flex size-8 items-center justify-center text-white/40 transition-colors duration-150 hover:bg-white/[0.06] hover:text-white/80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <ArrowClockwise
                 className={cn("size-4", isRefreshing && "animate-spin")}

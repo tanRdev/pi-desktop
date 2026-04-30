@@ -2,7 +2,7 @@ import {
   createEmptyWorkspaceSession,
   type WorkspaceSession,
 } from "@pi-desktop/shared";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   createSnapshotStore,
   type SnapshotStore,
@@ -10,12 +10,16 @@ import {
 } from "./snapshot-store";
 
 function createMemoryStorage(): StorageLike & {
+  clear: () => void;
   dump: () => Map<string, string>;
 } {
   const data = new Map<string, string>();
   return {
     get length() {
       return data.size;
+    },
+    clear() {
+      data.clear();
     },
     getItem(key) {
       return data.has(key) ? (data.get(key) ?? null) : null;
@@ -83,13 +87,6 @@ function makeHarness(overrides?: {
 }
 
 describe("createSnapshotStore", () => {
-  beforeEach(() => {
-    vi.stubGlobal("localStorage", createMemoryStorage());
-  });
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
   it("creates a snapshot and lists it with metadata", () => {
     const h = makeHarness();
     const meta = h.store.create("manual");

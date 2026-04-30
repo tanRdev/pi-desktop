@@ -1,12 +1,43 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createZoomManager } from "./zoom-manager";
 
 const STORAGE_KEY = "pi-desktop:zoom-level";
 
+function createMemoryStorage(): Storage {
+  const data = new Map<string, string>();
+
+  return {
+    get length() {
+      return data.size;
+    },
+    clear() {
+      data.clear();
+    },
+    getItem(key) {
+      return data.has(key) ? (data.get(key) ?? null) : null;
+    },
+    key(index) {
+      const keys = Array.from(data.keys());
+      return keys[index] ?? null;
+    },
+    removeItem(key) {
+      data.delete(key);
+    },
+    setItem(key, value) {
+      data.set(key, value);
+    },
+  };
+}
+
+beforeEach(() => {
+  vi.stubGlobal("localStorage", createMemoryStorage());
+});
+
 afterEach(() => {
   localStorage.clear();
   document.documentElement.style.zoom = "";
+  vi.unstubAllGlobals();
 });
 
 describe("createZoomManager", () => {

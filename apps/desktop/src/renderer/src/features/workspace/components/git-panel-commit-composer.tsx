@@ -72,7 +72,7 @@ export function GitPanelCommitComposer({
         placeholder="Commit message..."
         rows={2}
         disabled={!repositoryPath || isLoading}
-        className="w-full resize-none bg-transparent px-0 py-2 text-[11px] leading-relaxed text-white/90 placeholder:text-white/55 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+        className="w-full resize-none border border-white/[0.06] bg-transparent px-2.5 py-2 text-[11px] leading-relaxed text-white/90 placeholder:text-white/55 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20 disabled:cursor-not-allowed disabled:opacity-50"
       />
       <div className="flex items-center justify-between gap-2 pt-1">
         <div className="flex items-center gap-2">
@@ -82,7 +82,7 @@ export function GitPanelCommitComposer({
                 type="button"
                 aria-label="Insert commit template"
                 disabled={!repositoryPath || isLoading}
-                className="flex items-center gap-1 text-[11px] text-white/40 hover:text-white/70 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex items-center gap-1 border border-white/[0.06] bg-white/[0.02] px-2 py-1.5 text-[11px] text-white/40 transition-colors hover:border-white/[0.1] hover:bg-white/[0.04] hover:text-white/70 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-white/[0.06] disabled:hover:bg-white/[0.02] disabled:hover:text-white/40"
               >
                 <span>Template</span>
                 <CaretDown className="size-2.5" />
@@ -131,9 +131,10 @@ export function GitPanelCommitComposer({
           <PopoverTrigger asChild>
             <Button
               type="button"
-              variant="default"
+              variant="outline"
               size="sm"
               disabled={!canCommit || !commitMessage.trim() || isLoading}
+              className="border-white/[0.06] bg-white/[0.02] text-white/70 hover:border-white/[0.1] hover:bg-white/[0.04] hover:text-white/90 focus-visible:ring-1 focus-visible:ring-white/20"
             >
               <span>{amend ? "Amend" : "Commit"}</span>
               <CaretDown className="size-2.5 ml-1" />

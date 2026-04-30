@@ -75,6 +75,25 @@ describe("GitPanelCommitComposer", () => {
     expect(onCommitMessageChange).toHaveBeenCalledWith("feat: ");
   });
 
+  it("renders borders on the commit input and visible actions", () => {
+    renderComposer();
+
+    expect(screen.getByPlaceholderText("Commit message...")).toHaveClass(
+      "border",
+      "border-white/[0.06]",
+    );
+    expect(
+      screen.getByRole("button", { name: "Insert commit template" }),
+    ).toHaveClass("border", "border-white/[0.06]");
+    expect(screen.getByRole("button", { name: /^Commit$/i })).toHaveClass(
+      "border",
+      "border-white/[0.06]",
+    );
+    expect(screen.getByRole("button", { name: /^Commit$/i })).not.toHaveClass(
+      "border-none",
+    );
+  });
+
   it.each([
     ["Commit", "onCommit"],
     ["Commit & Push", "onCommitAndPush"],

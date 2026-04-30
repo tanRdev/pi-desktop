@@ -2,7 +2,7 @@ import {
   createEmptyWorkspaceSession,
   type WorkspaceSession,
 } from "@pi-desktop/shared";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   createSessionRecovery,
   SESSION_RECOVERY_SCHEMA_VERSION,
@@ -12,12 +12,25 @@ import {
 } from "./session-recovery";
 
 function createMemoryStorage(): StorageLike & {
+  readonly length: number;
+  clear: () => void;
   dump: () => Map<string, string>;
+  key: (index: number) => string | null;
 } {
   const data = new Map<string, string>();
   return {
+    get length() {
+      return data.size;
+    },
+    clear() {
+      data.clear();
+    },
     getItem(key) {
       return data.has(key) ? (data.get(key) ?? null) : null;
+    },
+    key(index) {
+      const keys = Array.from(data.keys());
+      return keys[index] ?? null;
     },
     setItem(key, value) {
       data.set(key, value);
@@ -69,13 +82,6 @@ function makeHarness(overrides?: {
 }
 
 describe("createSessionRecovery", () => {
-  beforeEach(() => {
-    vi.stubGlobal("localStorage", createMemoryStorage());
-  });
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
   it("saves and loads a checkpoint", () => {
     const h = makeHarness();
     const session = withSession("wt-1");

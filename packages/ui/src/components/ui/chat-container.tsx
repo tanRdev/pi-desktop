@@ -2,17 +2,12 @@ import type { HTMLAttributes, ReactNode, RefObject } from "react";
 import { StickToBottom } from "use-stick-to-bottom";
 import { cn } from "../../lib/utils";
 
-export type ChatContainerRootProps = {
+type ChatContainerContentProps = {
   children: ReactNode;
   className?: string;
 } & HTMLAttributes<HTMLDivElement>;
 
-export type ChatContainerContentProps = {
-  children: ReactNode;
-  className?: string;
-} & HTMLAttributes<HTMLDivElement>;
-
-export type ChatContainerScrollAnchorProps = {
+type ChatContainerScrollAnchorProps = {
   className?: string;
   ref?: RefObject<HTMLDivElement>;
 } & HTMLAttributes<HTMLDivElement>;
@@ -21,7 +16,10 @@ function ChatContainerRoot({
   children,
   className,
   ...props
-}: ChatContainerRootProps) {
+}: {
+  children: ReactNode;
+  className?: string;
+} & HTMLAttributes<HTMLDivElement>) {
   return (
     <StickToBottom
       className={cn("flex overflow-y-auto bg-transparent", className)}

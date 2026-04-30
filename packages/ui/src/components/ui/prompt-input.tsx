@@ -38,7 +38,7 @@ function usePromptInput() {
   return useContext(PromptInputContext);
 }
 
-export type PromptInputProps = {
+type PromptInputProps = {
   isLoading?: boolean;
   value?: string;
   onValueChange?: (value: string) => void;
@@ -104,7 +104,7 @@ function PromptInput({
   );
 }
 
-export type PromptInputTextareaProps = {
+type PromptInputTextareaProps = {
   disableAutosize?: boolean;
   onImagePaste?: (file: File) => void;
 } & React.ComponentProps<typeof Textarea>;
@@ -206,7 +206,7 @@ function PromptInputTextarea({
   );
 }
 
-export type PromptInputActionsProps = React.HTMLAttributes<HTMLDivElement>;
+type PromptInputActionsProps = React.HTMLAttributes<HTMLDivElement>;
 
 function PromptInputActions({
   children,
@@ -220,7 +220,7 @@ function PromptInputActions({
   );
 }
 
-export type PromptInputActionProps = {
+type PromptInputActionProps = {
   className?: string;
   tooltip: React.ReactNode;
   children: React.ReactNode;
