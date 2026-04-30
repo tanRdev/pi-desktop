@@ -1,5 +1,6 @@
-import { IPC_CHANNELS } from "@pi-desktop/shared";
-import { resolveInsideRoot } from "../fs/path-guards";
+import { existsSync } from "node:fs";
+import { type GitRepositoryStatus, IPC_CHANNELS } from "@pi-desktop/shared";
+import { PathGuardError, resolveInsideRoot } from "../fs/path-guards";
 import type { GitWorktreeService } from "../git-worktree-service";
 import type { IpcRegistrar } from "../ipc-router";
 import {
@@ -8,6 +9,41 @@ import {
   PayloadValidationError,
   requireStringField,
 } from "./payload-parsers";
+
+/**
+ * Synthetic empty status returned by `git:getRepositoryStatus` when the
+ * requested path is no longer a usable git repository (deleted directory,
+ * stale catalog entry, or never a repo to begin with).
+ *
+ * Returning this instead of throwing prevents noisy IPC error logs for a
+ * condition the user cannot act on. The renderer treats this as "no git
+ * data" and degrades gracefully, matching its existing fallback behavior.
+ */
+function buildUnavailableRepositoryStatus(
+  repositoryPath: string,
+): GitRepositoryStatus {
+  return {
+    repositoryPath,
+    branch: null,
+    commit: null,
+    upstreamBranch: null,
+    summary: {
+      status: "unavailable",
+      branch: null,
+      commit: null,
+      hasChanges: false,
+      ahead: null,
+      behind: null,
+      stagedCount: 0,
+      modifiedCount: 0,
+      untrackedCount: 0,
+      message: null,
+    },
+    stagedChanges: [],
+    unstagedChanges: [],
+    conflictedChanges: [],
+  };
+}
 
 /**
  * Maximum size of a git commit message. 100 KB is generous but rules out
@@ -82,12 +118,40 @@ export function registerGitHandlers({
   gitService,
   getAllowedRepositoryRoots,
 }: RegisterGitHandlersDependencies): void {
-  handle(IPC_CHANNELS.git.getRepositoryStatus, async (_event, payload) =>
-    gitService.getRepositoryStatus(
-      requireAllowedRepositoryPath(payload, getAllowedRepositoryRoots),
-      { force: requireForce(payload) },
-    ),
-  );
+  handle(IPC_CHANNELS.git.getRepositoryStatus, async (_event, payload) => {
+    // Validate the payload shape and reject malicious input. We deliberately
+    // do NOT call `requireAllowedRepositoryPath` here, because that would
+    // throw `PathGuardError[path/outside-root]` for any catalog entry whose
+    // directory was deleted off-disk — a routine, user-visible condition
+    // that should not surface as an IPC error.
+    const repositoryPath = requireValidPath(payload);
+    const allowedRoots = getAllowedRepositoryRoots();
+
+    let resolvedPath: string;
+    try {
+      resolvedPath = resolveInsideRoot(allowedRoots, repositoryPath);
+    } catch (error) {
+      // Stale path off-disk → return synthetic "unavailable" status.
+      // Genuine security violations (symlink escape, NUL byte, etc.) still
+      // throw so they remain visible in logs.
+      if (
+        error instanceof PathGuardError &&
+        error.code === "path/outside-root" &&
+        !existsSync(repositoryPath)
+      ) {
+        return buildUnavailableRepositoryStatus(repositoryPath);
+      }
+      throw error;
+    }
+
+    if (!existsSync(resolvedPath) || !gitService.isRepository(resolvedPath)) {
+      return buildUnavailableRepositoryStatus(resolvedPath);
+    }
+
+    return gitService.getRepositoryStatus(resolvedPath, {
+      force: requireForce(payload),
+    });
+  });
 
   // isRepository and init are called before a path is added to the catalog,
   // so they must accept any absolute path. Mutation handlers for existing
