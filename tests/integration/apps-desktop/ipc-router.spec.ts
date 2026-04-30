@@ -16,12 +16,16 @@ vi.mock("node:fs", () => {
   const statSync = vi.fn(() => {
     throw new Error("node:fs.statSync should not be called during tests");
   });
+  // Default to true so git status handlers proceed; individual tests can
+  // override to simulate stale catalog entries pointing at deleted dirs.
+  const existsSync = vi.fn(() => true);
   return {
     readdirSync,
     realpathSync,
     realpathSyncNative: realpathSync,
     readFileSync,
     statSync,
+    existsSync,
   };
 });
 
