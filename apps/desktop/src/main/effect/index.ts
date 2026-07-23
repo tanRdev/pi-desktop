@@ -1,3 +1,17 @@
+export type {
+  CreateSessionCapabilityOptions,
+  SessionAttachment,
+  SessionCapabilityOps,
+  SessionCapabilityServiceOps,
+} from "../session/session-capability";
+export {
+  createSessionCapability,
+  getSessionContext,
+  getSessionHost,
+  SessionCapability,
+  SessionCapabilityLive,
+  SessionCapabilityService,
+} from "../session/session-capability";
 export {
   FileSystemError,
   fromUnknownError,

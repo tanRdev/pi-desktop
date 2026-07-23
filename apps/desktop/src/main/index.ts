@@ -13,9 +13,9 @@ import {
   app,
   BrowserWindow,
   dialog,
+  session as electronSession,
   ipcMain,
   Menu,
-  session,
   shell,
 } from "electron";
 import { getDefaultThreadTitle } from "../thread-title-defaults";
@@ -65,7 +65,6 @@ import {
   type ThreadCatalogEntry,
 } from "./catalogs/thread-catalog";
 import { WorkspaceSessionCatalog } from "./catalogs/workspace-session-catalog";
-import { createContextSwitchController } from "./context-switch-controller";
 import { PiError } from "./effect/errors";
 import { runEffectVoid } from "./effect/runtime";
 import { GitWorktreeService } from "./git-worktree-service";
@@ -74,6 +73,10 @@ import { registerIpcHandlers } from "./ipc-router";
 import { LocalThreadRuntimeManager } from "./local-thread-runtime-manager";
 import { PackagesServiceImpl } from "./packages/packages-service-impl";
 import { installSecurityHeaders } from "./security/csp";
+import {
+  createSessionCapability,
+  type SessionAttachment,
+} from "./session/session-capability";
 import { terminalManager } from "./terminal-manager";
 import { createThreadRuntimeLaunchDetails } from "./thread-runtime-launch";
 import { shouldQuitWhenAllWindowsClosed } from "./window-config";
@@ -172,7 +175,7 @@ async function bootstrapDesktop() {
   await app.whenReady();
 
   installSecurityHeaders({
-    session: session.defaultSession,
+    session: electronSession.defaultSession,
     isDevelopment: process.env.ELECTRON_RENDERER_URL !== undefined,
   });
 
@@ -219,25 +222,8 @@ async function bootstrapDesktop() {
   const runtimeSocketDirectory = path.join(app.getPath("temp"), "pd");
   mkdirSync(runtimeSocketDirectory, { recursive: true });
 
-  let currentContext: SelectedThreadContext | null = null;
-  let currentTransport: AgentHostSocketTransport | null = null;
-  let currentHost: AgentDesktopHost = createBootstrapErrorHost(
-    "Pi Desktop agent host has not been attached yet",
-  );
   const workspaceSearchService = new WorkspaceSearchService();
   const defaultAgentDirectory = path.join(app.getPath("home"), ".pi", "agent");
-  const packagesService = new PackagesServiceImpl({
-    homePath: app.getPath("home"),
-    getLocalSettingsPath: () =>
-      currentContext?.worktreePath
-        ? path.join(currentContext.worktreePath, ".pi", "settings.json")
-        : null,
-    getLocalWorkingDirectory: () =>
-      currentContext?.worktreePath ?? selectionState.get().worktreeId,
-    emit: (event) => {
-      mainWindow?.webContents.send(IPC_CHANNELS.packages.event, event);
-    },
-  });
 
   const subscribeToHost = (
     host: AgentDesktopHost,
@@ -251,12 +237,58 @@ async function bootstrapDesktop() {
       mainWindow?.webContents.send(IPC_CHANNELS.agent.event, event);
     });
 
-  let unsubscribe = subscribeToHost(currentHost, null);
   const notifySessionChanged = () => {
     mainWindow?.webContents.send(IPC_CHANNELS.agent.event, {
       type: "session_changed",
     });
   };
+
+  let attachContextImpl: (
+    context: SelectedThreadContext,
+  ) => Promise<
+    SessionAttachment<
+      AgentDesktopHost,
+      AgentHostSocketTransport,
+      SelectedThreadContext
+    >
+  > = async () => {
+    throw new Error("Session attachContext is not ready");
+  };
+
+  const session = createSessionCapability<
+    AgentDesktopHost,
+    AgentHostSocketTransport,
+    SelectedThreadContext
+  >({
+    initialHost: createBootstrapErrorHost(
+      "Pi Desktop agent host has not been attached yet",
+    ),
+    attachContext: (context) => attachContextImpl(context),
+    subscribeToHost: (host, thread) =>
+      subscribeToHost(
+        host,
+        thread ? (threadCatalog.get(thread.id) ?? null) : null,
+      ),
+    notifySessionChanged,
+  });
+  session.replaceHost(session.getHost(), {
+    subscribe: () => subscribeToHost(session.getHost(), null),
+  });
+
+  const packagesService = new PackagesServiceImpl({
+    homePath: app.getPath("home"),
+    getLocalSettingsPath: () => {
+      const worktreePath = session.getContext()?.worktreePath;
+      return worktreePath
+        ? path.join(worktreePath, ".pi", "settings.json")
+        : null;
+    },
+    getLocalWorkingDirectory: () =>
+      session.getContext()?.worktreePath ?? selectionState.get().worktreeId,
+    emit: (event) => {
+      mainWindow?.webContents.send(IPC_CHANNELS.packages.event, event);
+    },
+  });
 
   function inspectWorktreeOrThrow(
     targetPath: string,
@@ -349,62 +381,25 @@ async function bootstrapDesktop() {
         createHost: createAgentHostClient,
       }),
   });
+  attachContextImpl = attachContext;
+
+  function switchContextInBackground(context: SelectedThreadContext): void {
+    void session.switchContext(async () => context);
+  }
 
   const workspaceSelectionActions = createWorkspaceSelectionActions({
     repositoryCatalog,
     selectionState,
-    state: {
-      get currentContext() {
-        return currentContext;
-      },
-      set currentContext(value) {
-        currentContext = value;
-      },
-      get currentTransport() {
-        return currentTransport;
-      },
-      set currentTransport(value) {
-        currentTransport = value;
-      },
-      get unsubscribe() {
-        return unsubscribe;
-      },
-      set unsubscribe(value) {
-        unsubscribe = value;
-      },
-      get currentHost() {
-        return currentHost;
-      },
-      set currentHost(value) {
-        currentHost = value;
-      },
-    },
+    session,
     createBootstrapErrorHost,
     notifySessionChanged,
   });
   const { getRepositoryIdForWorktree, selectWorktreeWithoutThread } =
     workspaceSelectionActions;
 
-  function commitAttachment(attached: {
-    context: SelectedThreadContext;
-    host: AgentDesktopHost;
-    transport: AgentHostSocketTransport;
-  }): void {
-    const previousTransport = currentTransport;
-    const previousUnsubscribe = unsubscribe;
-
-    currentContext = attached.context;
-    currentHost = attached.host;
-    currentTransport = attached.transport;
-    unsubscribe = subscribeToHost(currentHost, currentContext.thread);
-
-    previousUnsubscribe();
-    previousTransport?.close();
-  }
-
   const agentRuntimeHandlers = createAgentRuntimeHandlers({
-    getCurrentContext: () => currentContext,
-    getCurrentHost: () => currentHost,
+    getCurrentContext: () => session.getContext(),
+    getCurrentHost: () => session.getHost(),
     getSelectionState: () => selectionState.get(),
     defaultAgentDirectory,
     getProcessCwd: () => process.cwd(),
@@ -414,46 +409,18 @@ async function bootstrapDesktop() {
     },
     runtimeManager,
     attachContext,
-    commitAttachment,
+    commitAttachment: (attached) =>
+      session.commitAttachment(
+        attached as SessionAttachment<
+          AgentDesktopHost,
+          AgentHostSocketTransport,
+          SelectedThreadContext
+        >,
+      ),
     workspaceSearchService,
     oauthPromptBridge,
     notifySessionChanged,
   });
-
-  const contextSwitchController = createContextSwitchController(
-    {
-      get context() {
-        return currentContext;
-      },
-      set context(value) {
-        currentContext = value;
-      },
-      get host() {
-        return currentHost;
-      },
-      set host(value) {
-        currentHost = value;
-      },
-      get transport() {
-        return currentTransport;
-      },
-      set transport(value) {
-        currentTransport = value;
-      },
-      get unsubscribe() {
-        return unsubscribe;
-      },
-      set unsubscribe(value) {
-        unsubscribe = value;
-      },
-    },
-    {
-      attachContext,
-      subscribeToHost: (host, thread) =>
-        subscribeToHost(host, thread ? threadCatalog.get(thread.id) : null),
-      notifySessionChanged,
-    },
-  );
 
   const { activateWorkspacePath, switchRepositoryPath } =
     createWorkspaceActivationRouter<
@@ -467,7 +434,7 @@ async function bootstrapDesktop() {
     >({
       inspectPath: (targetPath) => gitService.inspect(targetPath),
       attachToPath,
-      commitAttachment,
+      commitAttachment: (attached) => session.commitAttachment(attached),
       selectFolderWorkspace: (
         targetPath,
         message,
@@ -502,33 +469,16 @@ async function bootstrapDesktop() {
     preferredWorkspacePath,
     fallbackWorkspacePath,
     shouldPreserveEmptySelection,
-    state: {
-      get currentHost() {
-        return currentHost;
-      },
-      set currentHost(value) {
-        currentHost = value;
-      },
-      get unsubscribe() {
-        return unsubscribe;
-      },
-      set unsubscribe(value) {
-        unsubscribe = value;
-      },
-    },
+    session,
     activateWorkspacePath: (targetPath, options) =>
       activateWorkspacePath(targetPath, options),
     createBootstrapErrorHost,
     subscribeToHost: (host, thread) => subscribeToHost(host, thread),
   });
 
-  function switchContextInBackground(context: SelectedThreadContext): void {
-    void contextSwitchController.switchContext(async () => context);
-  }
-
   const threadWorkspaceActions = createThreadWorkspaceActions({
     getCurrentWorktreeId: () =>
-      currentContext?.worktreePath ?? selectionState.get().worktreeId,
+      session.getContext()?.worktreePath ?? selectionState.get().worktreeId,
     getRepositoryIdForWorktree,
     upsertRepository: (input) => repositoryCatalog.upsert(input),
     getDefaultThreadTitle,
@@ -578,7 +528,7 @@ async function bootstrapDesktop() {
       repositoryPreferencesCatalog.remove(repositoryId);
     },
     getSelectedRepositoryId: () =>
-      currentContext?.repositoryId ?? selectionState.get().repositoryId,
+      session.getContext()?.repositoryId ?? selectionState.get().repositoryId,
     clearSelection: () => {
       selectionState.clear();
     },
@@ -594,7 +544,7 @@ async function bootstrapDesktop() {
     resolveDefaultThreadContext,
     switchContextInBackground,
     getSelectedWorktreeId: () =>
-      currentContext?.worktreePath ?? selectionState.get().worktreeId,
+      session.getContext()?.worktreePath ?? selectionState.get().worktreeId,
     removeWorktreeFromGit: ({ worktreePath, repositoryRoot }) => {
       gitService.removeWorktree({
         worktreePath,
@@ -612,8 +562,8 @@ async function bootstrapDesktop() {
     env: process.env,
     isPackaged: app.isPackaged,
     preferredWorkspacePath,
-    getCurrentHost: () => currentHost,
-    getCurrentContext: () => currentContext,
+    getCurrentHost: () => session.getHost(),
+    getCurrentContext: () => session.getContext(),
     selectionState,
     repositoryCatalog,
     repositoryPreferencesCatalog,
@@ -624,8 +574,8 @@ async function bootstrapDesktop() {
   });
 
   const agentHost = createAgentIpcHost({
-    getCurrentContext: () => currentContext,
-    getCurrentHost: () => currentHost,
+    getCurrentContext: () => session.getContext(),
+    getCurrentHost: () => session.getHost(),
     getSelectedRepositoryId: () => selectionState.get().repositoryId,
     getSelectedThreadId: () => selectionState.get().threadId,
     threadCatalog,
@@ -705,10 +655,10 @@ async function bootstrapDesktop() {
     terminalManager,
     flushPersistentState: flushAllPersistentJsonFiles,
     unsubscribeHost: () => {
-      unsubscribe();
+      session.getUnsubscribe()();
     },
     closeCurrentTransport: () => {
-      currentTransport?.close();
+      session.getTransport()?.close();
     },
     shouldQuitWhenAllWindowsClosed,
     env: process.env,

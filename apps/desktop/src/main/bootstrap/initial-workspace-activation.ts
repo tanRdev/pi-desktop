@@ -3,9 +3,13 @@ import { Effect } from "effect";
 import { fromUnknownError } from "../effect/errors";
 import { runEffect } from "../effect/runtime";
 
-type InitialWorkspaceActivationState<Host> = {
-  currentHost: Host;
-  unsubscribe: () => void;
+type InitialWorkspaceSession<Host> = {
+  replaceHost(
+    host: Host,
+    options?: {
+      subscribe?: () => () => void;
+    },
+  ): void;
 };
 
 type ActivateWorkspacePath = (
@@ -19,7 +23,7 @@ type ActivateInitialWorkspaceSelectionInput<Host> = {
   preferredWorkspacePath: string | null;
   fallbackWorkspacePath: string | null;
   shouldPreserveEmptySelection: boolean;
-  state: InitialWorkspaceActivationState<Host>;
+  session: InitialWorkspaceSession<Host>;
   activateWorkspacePath: ActivateWorkspacePath;
   createBootstrapErrorHost(message: string): Host;
   subscribeToHost(host: Host, thread: null): () => void;
@@ -31,9 +35,9 @@ function replaceWithBootstrapErrorHost<Host>(
 ): void {
   const bootstrapErrorHost = input.createBootstrapErrorHost(message);
 
-  input.state.currentHost = bootstrapErrorHost;
-  input.state.unsubscribe();
-  input.state.unsubscribe = input.subscribeToHost(bootstrapErrorHost, null);
+  input.session.replaceHost(bootstrapErrorHost, {
+    subscribe: () => input.subscribeToHost(bootstrapErrorHost, null),
+  });
 }
 
 export async function activateInitialWorkspaceSelection<Host>(
@@ -46,9 +50,9 @@ export async function activateInitialWorkspaceSelection<Host>(
       "No workspace selected",
     );
 
-    input.state.currentHost = bootstrapErrorHost;
-    input.state.unsubscribe();
-    input.state.unsubscribe = input.subscribeToHost(bootstrapErrorHost, null);
+    input.session.replaceHost(bootstrapErrorHost, {
+      subscribe: () => input.subscribeToHost(bootstrapErrorHost, null),
+    });
     return;
   }
 

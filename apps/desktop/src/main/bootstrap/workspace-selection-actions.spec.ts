@@ -8,6 +8,7 @@ import type { SelectionState } from "../catalogs/selection-state";
 import {
   createWorkspaceSelectionActions,
   type WorkspaceSelectionContextState,
+  workspaceSelectionSessionFromState,
 } from "./workspace-selection-actions";
 
 function createSelectionStateMock(initialSelection: {
@@ -80,7 +81,7 @@ describe("createWorkspaceSelectionActions", () => {
     const actions = createWorkspaceSelectionActions({
       repositoryCatalog,
       selectionState,
-      state,
+      session: workspaceSelectionSessionFromState(state),
       createBootstrapErrorHost,
       notifySessionChanged,
     });
@@ -134,7 +135,7 @@ describe("createWorkspaceSelectionActions", () => {
     const actions = createWorkspaceSelectionActions({
       repositoryCatalog,
       selectionState,
-      state,
+      session: workspaceSelectionSessionFromState(state),
       createBootstrapErrorHost: vi.fn((message: string) => ({ message })),
       notifySessionChanged: vi.fn(),
     });
@@ -182,7 +183,7 @@ describe("createWorkspaceSelectionActions", () => {
     const actions = createWorkspaceSelectionActions({
       repositoryCatalog,
       selectionState,
-      state,
+      session: workspaceSelectionSessionFromState(state),
       createBootstrapErrorHost,
       notifySessionChanged: vi.fn(),
     });

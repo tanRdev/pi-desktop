@@ -1,4 +1,16 @@
-import type { AgentSnapshot } from "@pi-desktop/shared";
+/**
+ * @deprecated Prefer `createSessionCapability` from `./session/session-capability`.
+ * Kept as a thin adapter so existing integration tests keep passing during Spine 3.
+ */
+import {
+  createFailedAgentHost,
+  createLoadingAgentHost,
+  createSessionCapability,
+  type SessionAttachment,
+  type SessionCapabilityOps,
+} from "./session/session-capability";
+
+export { createFailedAgentHost, createLoadingAgentHost };
 
 type SwitchContext = {
   repositoryId: string;
@@ -9,17 +21,11 @@ type SwitchContext = {
 type AgentHostLike = {
   getProviders(): Promise<unknown>;
   getSettings(): Promise<unknown>;
-  getSnapshot(): Promise<AgentSnapshot>;
+  getSnapshot(): Promise<import("@pi-desktop/shared").AgentSnapshot>;
   prompt(text: string): Promise<void>;
   cancelPrompt(): Promise<void>;
   reset(): Promise<void>;
   subscribe(listener: (event: unknown) => void): () => void;
-};
-
-type AttachedContext<THost extends AgentHostLike, TTransport> = {
-  context: SwitchContext;
-  host: THost;
-  transport: TTransport;
 };
 
 export type ContextSwitchState<
@@ -38,78 +44,10 @@ type CreateContextSwitchControllerOptions<
 > = {
   attachContext(
     context: SwitchContext,
-  ): Promise<AttachedContext<THost, TTransport>>;
+  ): Promise<SessionAttachment<THost, TTransport, SwitchContext>>;
   subscribeToHost(host: THost, thread: SwitchContext["thread"]): () => void;
   notifySessionChanged(): void;
 };
-
-function createSessionSnapshot(
-  context: SwitchContext,
-  status: AgentSnapshot["status"],
-  lastError: string | null,
-): AgentSnapshot {
-  return {
-    sessionId: context.thread.id,
-    status,
-    messages: [],
-    lastError,
-  };
-}
-
-export function createLoadingAgentHost<THost extends AgentHostLike>(
-  baseHost: THost,
-  context: SwitchContext,
-): THost {
-  return {
-    ...baseHost,
-    async getProviders() {
-      return [];
-    },
-    async getSettings() {
-      return {};
-    },
-    async getSnapshot() {
-      return createSessionSnapshot(context, "starting", null);
-    },
-    async prompt() {
-      throw new Error("Selected project is still loading");
-    },
-    async cancelPrompt() {
-      return Promise.resolve();
-    },
-    subscribe() {
-      return () => {};
-    },
-  };
-}
-
-export function createFailedAgentHost<THost extends AgentHostLike>(
-  baseHost: THost,
-  context: SwitchContext,
-  message: string,
-): THost {
-  return {
-    ...baseHost,
-    async getProviders() {
-      return [];
-    },
-    async getSettings() {
-      return {};
-    },
-    async getSnapshot() {
-      return createSessionSnapshot(context, "error", message);
-    },
-    async prompt() {
-      throw new Error(message);
-    },
-    async cancelPrompt() {
-      return Promise.resolve();
-    },
-    subscribe() {
-      return () => {};
-    },
-  };
-}
 
 export function createContextSwitchController<
   THost extends AgentHostLike,
@@ -118,53 +56,43 @@ export function createContextSwitchController<
   state: ContextSwitchState<THost, TTransport>,
   options: CreateContextSwitchControllerOptions<THost, TTransport>,
 ) {
-  let switchVersion = 0;
+  const session: SessionCapabilityOps<THost, TTransport, SwitchContext> =
+    createSessionCapability({
+      initialHost: state.host,
+      attachContext: options.attachContext,
+      subscribeToHost: (host, thread) =>
+        thread ? options.subscribeToHost(host, thread) : () => {},
+      notifySessionChanged: () => {
+        syncStateFromSession();
+        options.notifySessionChanged();
+      },
+    });
+
+  // Seed capability from the mutable bag used by legacy callers/tests.
+  if (state.context || state.transport) {
+    session.replaceHost(state.host, {
+      context: state.context,
+      transport: state.transport,
+      subscribe: () => state.unsubscribe,
+      closePreviousTransport: false,
+    });
+  }
+
+  function syncStateFromSession(): void {
+    state.context = session.getContext();
+    state.host = session.getHost();
+    state.transport = session.getTransport();
+    state.unsubscribe = session.getUnsubscribe();
+  }
+
+  syncStateFromSession();
 
   return {
     async switchContext(
       resolveContext: () => Promise<SwitchContext>,
     ): Promise<void> {
-      const nextContext = await resolveContext();
-      const currentVersion = switchVersion + 1;
-      switchVersion = currentVersion;
-      const previousTransport = state.transport;
-
-      state.unsubscribe();
-      state.unsubscribe = () => {};
-      state.context = nextContext;
-      state.host = createLoadingAgentHost(state.host, nextContext);
-      options.notifySessionChanged();
-
-      try {
-        const attached = await options.attachContext(nextContext);
-        if (switchVersion !== currentVersion) {
-          attached.transport.close();
-          return;
-        }
-
-        previousTransport?.close();
-        state.context = attached.context;
-        state.host = attached.host;
-        state.transport = attached.transport;
-        state.unsubscribe = options.subscribeToHost(
-          attached.host,
-          attached.context.thread,
-        );
-        options.notifySessionChanged();
-      } catch (error) {
-        if (switchVersion !== currentVersion) {
-          return;
-        }
-
-        previousTransport?.close();
-        state.transport = null;
-        state.host = createFailedAgentHost(
-          state.host,
-          nextContext,
-          error instanceof Error ? error.message : "Failed to switch session",
-        );
-        options.notifySessionChanged();
-      }
+      await session.switchContext(resolveContext);
+      syncStateFromSession();
     },
   };
 }
