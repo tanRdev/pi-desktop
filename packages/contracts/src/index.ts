@@ -1,3 +1,4 @@
+export * from "./channels.js";
 export * from "./contract-runtime.js";
 export * from "./domains/clipboard.js";
 export * from "./domains/dialog.js";

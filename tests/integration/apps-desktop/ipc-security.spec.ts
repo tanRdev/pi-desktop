@@ -391,7 +391,10 @@ describe("filesystem handlers - end-to-end security", () => {
     await expect(listener(undefined, {})).rejects.toMatchObject({
       code: "contract/encode-failed",
     });
-    await expect(listener(undefined, {})).rejects.toBeInstanceOf(ContractError);
+    await expect(listener(undefined, {})).rejects.toMatchObject({
+      name: "ContractError",
+      code: expect.stringMatching(/^contract\//),
+    });
   });
 
   it("writeFile rejects oversized content", async () => {
@@ -408,7 +411,10 @@ describe("filesystem handlers - end-to-end security", () => {
     });
     await expect(
       listener(undefined, { path: "big.txt", content: giant }),
-    ).rejects.toBeInstanceOf(ContractError);
+    ).rejects.toMatchObject({
+      name: "ContractError",
+      code: expect.stringMatching(/^contract\//),
+    });
   });
 
   it("readFile accepts a valid path inside the root", async () => {
@@ -485,7 +491,10 @@ describe("git handlers - repository path guard", () => {
         repositoryPath: allowedRoot,
         message: "x".repeat(200 * 1024),
       }),
-    ).rejects.toBeInstanceOf(ContractError);
+    ).rejects.toMatchObject({
+      name: "ContractError",
+      code: expect.stringMatching(/^contract\//),
+    });
   });
 
   it("rejects empty filePaths arrays for stageFiles", async () => {
@@ -507,6 +516,9 @@ describe("git handlers - repository path guard", () => {
         repositoryPath: allowedRoot,
         filePaths: [],
       }),
-    ).rejects.toBeInstanceOf(ContractError);
+    ).rejects.toMatchObject({
+      name: "ContractError",
+      code: expect.stringMatching(/^contract\//),
+    });
   });
 });

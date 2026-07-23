@@ -50,6 +50,10 @@ describe("createUpdatesApi", () => {
         return downloadedState as TReturn;
       }
 
+      if (channel === UPDATE_IPC_CHANNELS.install) {
+        return downloadedState as TReturn;
+      }
+
       return undefined as TReturn;
     };
 
@@ -70,13 +74,14 @@ describe("createUpdatesApi", () => {
   });
 
   it("fires install without awaiting the updater state result", async () => {
+    const installState = createUpdaterState({ status: "restart-pending" });
     const invokeCalls: Array<[string, unknown?]> = [];
     const invoke: PreloadInvoke = async <TReturn>(
       channel: string,
       payload?: unknown,
     ) => {
       invokeCalls.push([channel, payload]);
-      return undefined as TReturn;
+      return installState as TReturn;
     };
 
     const updates = createUpdatesApi({
@@ -85,6 +90,8 @@ describe("createUpdatesApi", () => {
     });
 
     expect(updates.install()).toBeUndefined();
+    // Allow the fire-and-forget contract decode to settle.
+    await Promise.resolve();
     expect(invokeCalls).toEqual([[UPDATE_IPC_CHANNELS.install, undefined]]);
   });
 

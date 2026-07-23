@@ -16,7 +16,7 @@
     "lint:contracts:migration": "CONTRACT_COVERAGE_MIGRATION=1 bun ./scripts/check-contract-coverage.mjs",
     "lint:imports": "node ./scripts/check-import-boundaries.mjs",
     "lint:sizes": "node ./scripts/check-file-sizes.mjs",
-    "prepare": "node ./scripts/install-git-hooks.mjs",
+    "prepare": "node ./scripts/install-git-hooks.mjs && node ./scripts/link-workspace-packages.mjs",
     "refactor:snapshot": "node ./scripts/refactor-snapshot.mjs",
     "test": "bun x vitest run --config vitest.workspace.ts",
     "typecheck": "bun run --workspaces typecheck"

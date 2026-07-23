@@ -1,11 +1,7 @@
 /**
- * Temporary mirror of IPC channel strings.
- *
- * Source of truth: `@pi-desktop/contracts` → `packages/contracts/src/channels.ts`.
- * Shared keeps this identical copy so the package DAG stays acyclic (contracts
- * still depends on shared for model types). Prefer importing from
- * `@pi-desktop/contracts` in new Contract code. A contracts unit test asserts
- * the two trees stay in sync.
+ * IPC channel string source of truth for Spine 1 Contracts.
+ * `@pi-desktop/shared` re-exports these during migration so existing call sites
+ * stay green; new Contract modules must import from here.
  */
 export const IPC_CHANNELS = {
   shell: {

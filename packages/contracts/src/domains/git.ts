@@ -1,6 +1,6 @@
 import type { GitFileDiff, GitRepositoryStatus } from "@pi-desktop/shared";
-import { IPC_CHANNELS } from "@pi-desktop/shared";
 import { Schema } from "effect";
+import { IPC_CHANNELS } from "../channels.js";
 
 import { createIpcContract } from "../contract-runtime.js";
 import { ipcStringSchema, mutableArray } from "./schema-primitives.js";

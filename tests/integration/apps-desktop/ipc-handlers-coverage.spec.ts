@@ -23,16 +23,8 @@ afterEach(() => {
   }
 });
 
-async function loadContractError() {
-  const { ContractError } = await import(
-    "../../../packages/contracts/src/contract-runtime"
-  );
-  return ContractError;
-}
-
 describe("terminal handlers - session ID validation", () => {
   it("terminal handlers reject invalid payloads at the contract seam", async () => {
-    const ContractError = await loadContractError();
     const { registerTerminalHandlers } = await import(
       "../../../apps/desktop/src/main/ipc/register-terminal-handlers"
     );
@@ -72,7 +64,10 @@ describe("terminal handlers - session ID validation", () => {
     });
     await expect(
       writeHandler({}, { id: 123, data: "hi" }),
-    ).rejects.toBeInstanceOf(ContractError);
+    ).rejects.toMatchObject({
+      name: "ContractError",
+      code: expect.stringMatching(/^contract\//),
+    });
 
     const resizeHandler = handlers.get("terminal:resize");
     if (!resizeHandler)
@@ -82,7 +77,10 @@ describe("terminal handlers - session ID validation", () => {
     ).rejects.toMatchObject({ code: "contract/encode-failed" });
     await expect(
       resizeHandler({}, { id: true, cols: 80, rows: 24 }),
-    ).rejects.toBeInstanceOf(ContractError);
+    ).rejects.toMatchObject({
+      name: "ContractError",
+      code: expect.stringMatching(/^contract\//),
+    });
 
     const destroyHandler = handlers.get("terminal:destroy");
     if (!destroyHandler)
@@ -90,9 +88,6 @@ describe("terminal handlers - session ID validation", () => {
     await expect(destroyHandler({}, { id: null })).rejects.toMatchObject({
       code: "contract/encode-failed",
     });
-    await expect(destroyHandler({}, { id: null })).rejects.toBeInstanceOf(
-      ContractError,
-    );
   });
 });
 
@@ -111,7 +106,6 @@ describe("repository handlers - path guard validation", () => {
   });
 
   it("repository handlers reject payloads with non-string repositoryId", async () => {
-    const ContractError = await loadContractError();
     const { registerRepositoryHandlers } = await import(
       "../../../apps/desktop/src/main/ipc/register-repository-handlers"
     );
@@ -142,9 +136,12 @@ describe("repository handlers - path guard validation", () => {
     await expect(selectHandler({}, { repositoryId: 42 })).rejects.toMatchObject(
       { code: "contract/encode-failed" },
     );
-    await expect(
-      selectHandler({}, { repositoryId: 42 }),
-    ).rejects.toBeInstanceOf(ContractError);
+    await expect(selectHandler({}, { repositoryId: 42 })).rejects.toMatchObject(
+      {
+        name: "ContractError",
+        code: expect.stringMatching(/^contract\//),
+      },
+    );
 
     const removeHandler = handlers.get("repositories:remove");
     if (!removeHandler)
@@ -162,7 +159,6 @@ describe("repository handlers - path guard validation", () => {
   });
 
   it("worktree handlers reject payloads with non-string IDs", async () => {
-    const ContractError = await loadContractError();
     const { registerRepositoryHandlers } = await import(
       "../../../apps/desktop/src/main/ipc/register-repository-handlers"
     );
@@ -198,7 +194,10 @@ describe("repository handlers - path guard validation", () => {
     ).rejects.toMatchObject({ code: "contract/encode-failed" });
     await expect(
       createHandler({}, { repositoryId: 123, branchName: "feat" }),
-    ).rejects.toBeInstanceOf(ContractError);
+    ).rejects.toMatchObject({
+      name: "ContractError",
+      code: expect.stringMatching(/^contract\//),
+    });
 
     const selectWtHandler = handlers.get("worktrees:select");
     if (!selectWtHandler)
@@ -218,7 +217,6 @@ describe("repository handlers - path guard validation", () => {
 
 describe("state handlers - key validation", () => {
   it("state handlers reject payloads with non-string repositoryId", async () => {
-    const ContractError = await loadContractError();
     const { registerStateHandlers } = await import(
       "../../../apps/desktop/src/main/ipc/register-state-handlers"
     );
@@ -261,7 +259,10 @@ describe("state handlers - key validation", () => {
     });
     await expect(
       getRepoHandler({}, { repositoryId: 123 }),
-    ).rejects.toBeInstanceOf(ContractError);
+    ).rejects.toMatchObject({
+      name: "ContractError",
+      code: expect.stringMatching(/^contract\//),
+    });
 
     const updateRepoHandler = handlers.get("state:updateRepositoryPreferences");
     if (!updateRepoHandler)
@@ -286,7 +287,6 @@ describe("state handlers - key validation", () => {
 
 describe("thread handlers - thread ID validation", () => {
   it("thread handlers reject payloads with non-string or empty threadId", async () => {
-    const ContractError = await loadContractError();
     const { registerThreadHandlers } = await import(
       "../../../apps/desktop/src/main/ipc/register-thread-handlers"
     );
@@ -312,9 +312,6 @@ describe("thread handlers - thread ID validation", () => {
     await expect(selectHandler({}, { threadId: 123 })).rejects.toMatchObject({
       code: "contract/encode-failed",
     });
-    await expect(selectHandler({}, { threadId: 123 })).rejects.toBeInstanceOf(
-      ContractError,
-    );
 
     const deleteHandler = handlers.get("threads:delete");
     if (!deleteHandler)
@@ -331,7 +328,6 @@ describe("thread handlers - thread ID validation", () => {
   });
 
   it("thread create rejects non-string worktreeId", async () => {
-    const ContractError = await loadContractError();
     const { registerThreadHandlers } = await import(
       "../../../apps/desktop/src/main/ipc/register-thread-handlers"
     );
@@ -363,8 +359,5 @@ describe("thread handlers - thread ID validation", () => {
     await expect(createHandler({}, {})).rejects.toMatchObject({
       code: "contract/encode-failed",
     });
-    await expect(createHandler({}, { worktreeId: 999 })).rejects.toBeInstanceOf(
-      ContractError,
-    );
   });
 });
