@@ -1,27 +1,27 @@
 import {
+  agentContracts,
   clipboardContracts,
+  packagesContracts,
   registerContractHandler,
   searchContracts,
   snapshotContracts,
   windowContracts,
 } from "@pi-desktop/contracts";
-import {
-  type AgentSnapshot,
-  type AutocompleteContext,
-  type AutocompleteSuggestions,
-  IPC_CHANNELS,
-  type ModelSwitchRequest,
-  type OAuthProviderSnapshot,
-  type PiDiscoveryResult,
-  type ProviderSnapshot,
-  type SearchRequest,
-  type SearchResponse,
-  type SettingsSnapshot,
-  type ShellSnapshot,
+import type {
+  AgentSnapshot,
+  AutocompleteContext,
+  AutocompleteSuggestions,
+  ModelSwitchRequest,
+  OAuthProviderSnapshot,
+  PiDiscoveryResult,
+  ProviderSnapshot,
+  SearchRequest,
+  SearchResponse,
+  SettingsSnapshot,
+  ShellSnapshot,
 } from "@pi-desktop/shared";
 import { type BrowserWindow, clipboard } from "electron";
 import type { GitWorktreeService } from "./git-worktree-service";
-import { getNumberField, getStringField } from "./ipc/payload-parsers";
 import { registerDialogHandlers } from "./ipc/register-dialog-handlers";
 import { registerFilesystemHandlers } from "./ipc/register-filesystem-handlers";
 import { registerGitHandlers } from "./ipc/register-git-handlers";
@@ -134,119 +134,88 @@ export function registerIpcHandlers({
     });
   }
 
-  handle(IPC_CHANNELS.packages.getManagerStatus, async () => {
-    if (!packagesService) {
-      throw new Error("Packages service is unavailable");
-    }
+  registerContractHandler({
+    handle,
+    contract: packagesContracts.getManagerStatus,
+    handler: async () => {
+      if (!packagesService) {
+        throw new Error("Packages service is unavailable");
+      }
 
-    return packagesService.getManagerStatus();
+      return packagesService.getManagerStatus();
+    },
   });
 
-  handle(IPC_CHANNELS.packages.searchCatalog, async (_event, payload) => {
-    if (!packagesService) {
-      throw new Error("Packages service is unavailable");
-    }
+  registerContractHandler({
+    handle,
+    contract: packagesContracts.searchCatalog,
+    handler: async (request) => {
+      if (!packagesService) {
+        throw new Error("Packages service is unavailable");
+      }
 
-    const query = getStringField(payload, "query") ?? "";
-    const sort = getStringField(payload, "sort") ?? "downloads";
-    const payloadKinds =
-      typeof payload === "object" && payload !== null && "kinds" in payload
-        ? (payload as { kinds?: unknown }).kinds
-        : undefined;
-    const kinds = Array.isArray(payloadKinds)
-      ? payloadKinds.filter(
-          (value): value is "extension" | "skill" | "theme" | "prompt" =>
-            value === "extension" ||
-            value === "skill" ||
-            value === "theme" ||
-            value === "prompt",
-        )
-      : [];
-    const hasDemoOnly =
-      typeof payload === "object" &&
-      payload !== null &&
-      "hasDemoOnly" in payload
-        ? typeof (payload as { hasDemoOnly?: unknown }).hasDemoOnly ===
-          "boolean"
-          ? (payload as { hasDemoOnly: boolean }).hasDemoOnly
-          : undefined
-        : undefined;
-
-    return packagesService.searchCatalog({
-      query,
-      sort:
-        sort === "recent" || sort === "name" || sort === "downloads"
-          ? sort
-          : "downloads",
-      kinds,
-      hasDemoOnly,
-    });
+      return packagesService.searchCatalog(request);
+    },
   });
 
-  handle(IPC_CHANNELS.packages.getPackageDetail, async (_event, payload) => {
-    if (!packagesService) {
-      throw new Error("Packages service is unavailable");
-    }
+  registerContractHandler({
+    handle,
+    contract: packagesContracts.getPackageDetail,
+    handler: async ({ packageName }) => {
+      if (!packagesService) {
+        throw new Error("Packages service is unavailable");
+      }
 
-    const packageName = getStringField(payload, "packageName");
-    if (!packageName) {
-      throw new Error("Package detail payload must include packageName");
-    }
-
-    return packagesService.getPackageDetail(packageName);
+      return packagesService.getPackageDetail(packageName);
+    },
   });
 
-  handle(IPC_CHANNELS.packages.listInstalled, async (_event, payload) => {
-    if (!packagesService) {
-      throw new Error("Packages service is unavailable");
-    }
+  registerContractHandler({
+    handle,
+    contract: packagesContracts.listInstalled,
+    handler: async ({ scope }) => {
+      if (!packagesService) {
+        throw new Error("Packages service is unavailable");
+      }
 
-    const scope = getStringField(payload, "scope");
-    return packagesService.listInstalled(
-      scope === "global" || scope === "local" ? scope : undefined,
-    );
+      return packagesService.listInstalled(scope);
+    },
   });
 
-  handle(IPC_CHANNELS.packages.install, async (_event, payload) => {
-    if (!packagesService) {
-      throw new Error("Packages service is unavailable");
-    }
+  registerContractHandler({
+    handle,
+    contract: packagesContracts.install,
+    handler: async (request) => {
+      if (!packagesService) {
+        throw new Error("Packages service is unavailable");
+      }
 
-    const packageName = getStringField(payload, "packageName");
-    const scope = getStringField(payload, "scope");
-    if (!packageName || (scope !== "global" && scope !== "local")) {
-      throw new Error("Install payload must include packageName and scope");
-    }
-
-    return packagesService.install({ packageName, scope });
+      return packagesService.install(request);
+    },
   });
 
-  handle(IPC_CHANNELS.packages.remove, async (_event, payload) => {
-    if (!packagesService) {
-      throw new Error("Packages service is unavailable");
-    }
+  registerContractHandler({
+    handle,
+    contract: packagesContracts.remove,
+    handler: async (request) => {
+      if (!packagesService) {
+        throw new Error("Packages service is unavailable");
+      }
 
-    const packageName = getStringField(payload, "packageName");
-    const scope = getStringField(payload, "scope");
-    if (!packageName || (scope !== "global" && scope !== "local")) {
-      throw new Error("Remove payload must include packageName and scope");
-    }
-
-    return packagesService.remove({ packageName, scope });
+      return packagesService.remove(request);
+    },
   });
 
-  handle(IPC_CHANNELS.packages.update, async (_event, payload) => {
-    if (!packagesService) {
-      throw new Error("Packages service is unavailable");
-    }
+  registerContractHandler({
+    handle,
+    contract: packagesContracts.update,
+    handler: async (request) => {
+      if (!packagesService) {
+        throw new Error("Packages service is unavailable");
+      }
 
-    const packageName = getStringField(payload, "packageName");
-    const scope = getStringField(payload, "scope");
-    if (scope !== "global" && scope !== "local") {
-      throw new Error("Update payload must include scope");
-    }
-
-    return packagesService.update({ packageName, scope });
+      return packagesService.update(request);
+    },
   });
 
   registerContractHandler({
@@ -270,97 +239,95 @@ export function registerIpcHandlers({
     handler: () => agentHost.getSnapshot(),
   });
 
-  handle(IPC_CHANNELS.agent.switchModel, async (_event, payload) => {
-    if (!switchModel) {
-      throw new Error("Model switching is unavailable");
-    }
-    const providerId = getStringField(payload, "providerId");
-    const modelId = getStringField(payload, "modelId");
-    if (!providerId || !modelId) {
-      throw new Error(
-        "Model switch payload must include providerId and modelId",
-      );
-    }
-    await switchModel({ providerId, modelId });
+  registerContractHandler({
+    handle,
+    contract: agentContracts.switchModel,
+    handler: async (request) => {
+      if (!switchModel) {
+        throw new Error("Model switching is unavailable");
+      }
+
+      await switchModel(request);
+    },
   });
 
-  handle(IPC_CHANNELS.agent.getDiscovery, async () =>
-    getDiscovery
-      ? getDiscovery()
-      : { isInstalled: false, skills: [], commands: [] },
-  );
-
-  handle(IPC_CHANNELS.agent.getOAuthProviders, async () =>
-    getOAuthProviders ? getOAuthProviders() : [],
-  );
-
-  handle(IPC_CHANNELS.agent.loginWithOAuth, async (_event, payload) => {
-    if (!loginWithOAuth) {
-      throw new Error("OAuth login is unavailable");
-    }
-
-    const providerId = getStringField(payload, "providerId");
-    if (!providerId) {
-      throw new Error("OAuth login payload must include providerId");
-    }
-
-    await loginWithOAuth(providerId);
+  registerContractHandler({
+    handle,
+    contract: agentContracts.getDiscovery,
+    handler: async () =>
+      getDiscovery
+        ? getDiscovery()
+        : { isInstalled: false, skills: [], commands: [] },
   });
 
-  handle(IPC_CHANNELS.agent.logoutOAuth, async (_event, payload) => {
-    if (!logoutOAuth) {
-      throw new Error("OAuth logout is unavailable");
-    }
-
-    const providerId = getStringField(payload, "providerId");
-    if (!providerId) {
-      throw new Error("OAuth logout payload must include providerId");
-    }
-
-    await logoutOAuth(providerId);
+  registerContractHandler({
+    handle,
+    contract: agentContracts.getOAuthProviders,
+    handler: async () => (getOAuthProviders ? getOAuthProviders() : []),
   });
 
-  handle(IPC_CHANNELS.agent.getSlashSuggestions, async (_event, payload) => {
-    if (!getSlashSuggestions) {
-      return {
-        kind: "slash",
-        suggestions: [],
-        hasMore: false,
-      } satisfies AutocompleteSuggestions;
-    }
+  registerContractHandler({
+    handle,
+    contract: agentContracts.loginWithOAuth,
+    handler: async ({ providerId }) => {
+      if (!loginWithOAuth) {
+        throw new Error("OAuth login is unavailable");
+      }
 
-    const text = getStringField(payload, "text");
-    const cursorPosition = getNumberField(payload, "cursorPosition");
-    const query = getStringField(payload, "query");
-    const trigger = getStringField(payload, "trigger");
-    if (!text || typeof cursorPosition !== "number" || query === undefined) {
-      throw new Error(
-        "Slash suggestions payload must include text, cursorPosition, and query",
-      );
-    }
-
-    return getSlashSuggestions({
-      text,
-      cursorPosition,
-      query,
-      trigger: trigger === "/" || trigger === "@" ? trigger : undefined,
-    });
+      await loginWithOAuth(providerId);
+    },
   });
 
-  handle(IPC_CHANNELS.agent.prompt, async (_event, payload) => {
-    const text = getStringField(payload, "text");
-    if (!text || text.length === 0) {
-      throw new Error("Agent prompt payload must include text");
-    }
-    await agentHost.prompt(text);
+  registerContractHandler({
+    handle,
+    contract: agentContracts.logoutOAuth,
+    handler: async ({ providerId }) => {
+      if (!logoutOAuth) {
+        throw new Error("OAuth logout is unavailable");
+      }
+
+      await logoutOAuth(providerId);
+    },
   });
 
-  handle(IPC_CHANNELS.agent.cancelPrompt, async () => {
-    await agentHost.cancelPrompt();
+  registerContractHandler({
+    handle,
+    contract: agentContracts.getSlashSuggestions,
+    handler: async (context) => {
+      if (!getSlashSuggestions) {
+        return {
+          kind: "slash",
+          suggestions: [],
+          hasMore: false,
+        } satisfies AutocompleteSuggestions;
+      }
+
+      return getSlashSuggestions(context);
+    },
   });
 
-  handle(IPC_CHANNELS.agent.reset, async () => {
-    await agentHost.reset();
+  registerContractHandler({
+    handle,
+    contract: agentContracts.prompt,
+    handler: async ({ text }) => {
+      await agentHost.prompt(text);
+    },
+  });
+
+  registerContractHandler({
+    handle,
+    contract: agentContracts.cancelPrompt,
+    handler: async () => {
+      await agentHost.cancelPrompt();
+    },
+  });
+
+  registerContractHandler({
+    handle,
+    contract: agentContracts.reset,
+    handler: async () => {
+      await agentHost.reset();
+    },
   });
 
   registerContractHandler({
