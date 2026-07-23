@@ -1,10 +1,10 @@
-import {
-  type AppPreferences,
-  IPC_CHANNELS,
-  type LegacyPreferencesImport,
-  type RepositoryDisplayMetadata,
-  type RepositoryPreferences,
-  type WorkspaceSession,
+import { createContractInvoker, stateContracts } from "@pi-desktop/contracts";
+import type {
+  AppPreferences,
+  LegacyPreferencesImport,
+  RepositoryDisplayMetadata,
+  RepositoryPreferences,
+  WorkspaceSession,
 } from "@pi-desktop/shared";
 
 import type { PreloadInvoke } from "./updates-api";
@@ -36,49 +36,39 @@ export function createStateApi({
 }: {
   invoke: PreloadInvoke;
 }): StateApi {
+  const invokeContract = createContractInvoker(invoke);
+
   return {
     getRepositoryPreferences(repositoryId: string) {
-      return invoke<RepositoryPreferences | null>(
-        IPC_CHANNELS.state.getRepositoryPreferences,
-        { repositoryId },
-      );
+      return invokeContract(stateContracts.getRepositoryPreferences, {
+        repositoryId,
+      });
     },
     updateRepositoryPreferences(
       repositoryId: string,
       updates: Partial<RepositoryDisplayMetadata>,
     ) {
-      return invoke<RepositoryPreferences>(
-        IPC_CHANNELS.state.updateRepositoryPreferences,
-        { repositoryId, updates },
-      );
-    },
-    getWorkspaceSession(worktreeId: string) {
-      return invoke<WorkspaceSession | null>(
-        IPC_CHANNELS.state.getWorkspaceSession,
-        { worktreeId },
-      );
-    },
-    saveWorkspaceSession(session: WorkspaceSession) {
-      return invoke<WorkspaceSession>(IPC_CHANNELS.state.saveWorkspaceSession, {
-        session,
-      });
-    },
-    getAppPreferences() {
-      return invoke<AppPreferences>(
-        IPC_CHANNELS.state.getAppPreferences,
-        undefined,
-      );
-    },
-    updateAppPreferences(updates: Partial<AppPreferences>) {
-      return invoke<AppPreferences>(IPC_CHANNELS.state.updateAppPreferences, {
+      return invokeContract(stateContracts.updateRepositoryPreferences, {
+        repositoryId,
         updates,
       });
     },
+    getWorkspaceSession(worktreeId: string) {
+      return invokeContract(stateContracts.getWorkspaceSession, {
+        worktreeId,
+      });
+    },
+    saveWorkspaceSession(session: WorkspaceSession) {
+      return invokeContract(stateContracts.saveWorkspaceSession, { session });
+    },
+    getAppPreferences() {
+      return invokeContract(stateContracts.getAppPreferences);
+    },
+    updateAppPreferences(updates: Partial<AppPreferences>) {
+      return invokeContract(stateContracts.updateAppPreferences, { updates });
+    },
     importLegacyPreferences(importData: LegacyPreferencesImport) {
-      return invoke<{
-        repositoryPreferences: RepositoryPreferences[];
-        appPreferences: AppPreferences;
-      }>(IPC_CHANNELS.state.importLegacyPreferences, {
+      return invokeContract(stateContracts.importLegacyPreferences, {
         importData,
       });
     },

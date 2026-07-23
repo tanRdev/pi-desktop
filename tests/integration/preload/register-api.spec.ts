@@ -69,7 +69,18 @@ describe("registerPiDesktopApi", () => {
 
   it("exposes oauth helper methods in preload api", async () => {
     const exposeInMainWorld = vi.fn();
-    const invoke = vi.fn(async () => undefined);
+    const invoke = vi.fn(async (channel: string) => {
+      if (channel === IPC_CHANNELS.agent.getOAuthProviders) {
+        return [
+          {
+            id: "anthropic",
+            name: "Anthropic",
+            usesCallbackServer: false,
+          },
+        ];
+      }
+      return undefined;
+    });
     const on = vi.fn(() => () => undefined);
 
     registerPiDesktopApi({

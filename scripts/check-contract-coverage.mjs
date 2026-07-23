@@ -43,18 +43,7 @@ async function main() {
   );
   const contracts = await import(pathToFileUrl(contractsEntry));
 
-  const UPDATE_CHANNELS = [
-    "updates:event",
-    "updates:getState",
-    "updates:check",
-    "updates:download",
-    "updates:install",
-  ];
-
-  const liveChannels = [
-    ...flattenChannels(shared.IPC_CHANNELS),
-    ...UPDATE_CHANNELS,
-  ].sort();
+  const liveChannels = [...flattenChannels(shared.IPC_CHANNELS)].sort();
 
   const registered = new Set(contracts.getRegisteredContractChannels());
   const undeclared = liveChannels.filter((channel) => !registered.has(channel));

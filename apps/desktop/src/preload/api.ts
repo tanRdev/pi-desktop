@@ -1,31 +1,31 @@
 import {
+  agentContracts,
+  clipboardContracts,
   createContractInvoker,
+  createContractSubscriber,
+  dialogContracts,
+  fsContracts,
+  gitContracts,
+  packagesContracts,
+  repositoryContracts,
+  searchContracts,
   snapshotContracts,
+  terminalContracts,
+  threadContracts,
+  windowContracts,
+  worktreeContracts,
 } from "@pi-desktop/contracts";
-import {
-  type AutocompleteContext,
-  type AutocompleteSuggestions,
-  type GitFileDiff,
-  type GitRepositoryStatus,
-  IPC_CHANNELS,
-  type ModelSwitchRequest,
-  type OAuthProviderSnapshot,
-  type OpenDialogOptions,
-  type PackageInstallRequest,
-  type PackageManagerStatus,
-  type PackageOperationSnapshot,
-  type PackageRemoveRequest,
-  type PackageSearchRequest,
-  type PackageSearchResponse,
-  type PackagesEvent,
-  type PackageUpdateRequest,
-  type PiDesktopAgentEvent,
-  type PiDesktopApi,
-  type PiDiscoveryResult,
-  type SearchRequest,
-  type SearchResponse,
-  type TerminalCreateOptions,
-  type TerminalSession,
+import type {
+  ModelSwitchRequest,
+  OpenDialogOptions,
+  PackageInstallRequest,
+  PackageRemoveRequest,
+  PackageSearchRequest,
+  PackageUpdateRequest,
+  PiDesktopAgentEvent,
+  PiDesktopApi,
+  SearchRequest,
+  TerminalCreateOptions,
 } from "@pi-desktop/shared";
 
 import { createStateApi } from "./state-api";
@@ -40,9 +40,6 @@ import {
   type UpdatesApi,
 } from "./updates-api";
 
-const OPEN_EXTERNAL_CHANNEL =
-  IPC_CHANNELS.dialog.openExternal ?? "dialog:openExternal";
-
 export interface CreatePiDesktopApiDependencies {
   invoke: PreloadInvoke;
   on: PreloadOn;
@@ -56,10 +53,8 @@ export function createPiDesktopApi({
   invoke,
   on,
 }: CreatePiDesktopApiDependencies): PiDesktopApiWithUpdates {
-  const { agent } = IPC_CHANNELS;
   const invokeContract = createContractInvoker(invoke);
-  const invokeNoPayload = <TResponse>(channel: string) =>
-    invoke<TResponse>(channel, undefined);
+  const subscribeContract = createContractSubscriber(on);
 
   return {
     shell: {
@@ -78,122 +73,111 @@ export function createPiDesktopApi({
         return invokeContract(snapshotContracts.agent.getSnapshot);
       },
       getOAuthProviders() {
-        return invokeNoPayload<OAuthProviderSnapshot[]>(
-          agent.getOAuthProviders,
-        );
+        return invokeContract(agentContracts.getOAuthProviders);
       },
       loginWithOAuth(providerId: string) {
-        return invoke<void>(agent.loginWithOAuth, { providerId });
+        return invokeContract(agentContracts.loginWithOAuth, { providerId });
       },
       logoutOAuth(providerId: string) {
-        return invoke<void>(agent.logoutOAuth, { providerId });
+        return invokeContract(agentContracts.logoutOAuth, { providerId });
       },
       prompt(text: string) {
-        return invoke<void>(agent.prompt, { text });
+        return invokeContract(agentContracts.prompt, { text });
       },
       cancelPrompt() {
-        return invokeNoPayload<void>(agent.cancelPrompt);
+        return invokeContract(agentContracts.cancelPrompt);
       },
       reset() {
-        return invokeNoPayload<void>(agent.reset);
+        return invokeContract(agentContracts.reset);
       },
       switchModel(request: ModelSwitchRequest) {
-        return invoke<void>(agent.switchModel, request);
+        return invokeContract(agentContracts.switchModel, request);
       },
       getDiscovery() {
-        return invokeNoPayload<PiDiscoveryResult>(agent.getDiscovery);
+        return invokeContract(agentContracts.getDiscovery);
       },
-      getSlashSuggestions(context: AutocompleteContext) {
-        return invoke<AutocompleteSuggestions>(
-          agent.getSlashSuggestions,
-          context,
-        );
+      getSlashSuggestions(context) {
+        return invokeContract(agentContracts.getSlashSuggestions, context);
       },
       subscribe(listener: (event: PiDesktopAgentEvent) => void) {
-        return on<PiDesktopAgentEvent>(agent.event, listener);
+        return subscribeContract(agentContracts.event, listener);
       },
     },
     repositories: {
       add(path: string) {
-        return invoke<void>(IPC_CHANNELS.repositories.add, { path });
+        return invokeContract(repositoryContracts.add, { path });
       },
       reorder(repositoryIds: string[]) {
-        return invoke<void>(IPC_CHANNELS.repositories.reorder, {
-          repositoryIds,
-        });
+        return invokeContract(repositoryContracts.reorder, { repositoryIds });
       },
       select(repositoryId: string) {
-        return invoke<void>(IPC_CHANNELS.repositories.select, { repositoryId });
+        return invokeContract(repositoryContracts.select, { repositoryId });
       },
       remove(repositoryId: string) {
-        return invoke<void>(IPC_CHANNELS.repositories.remove, { repositoryId });
+        return invokeContract(repositoryContracts.remove, { repositoryId });
       },
       openInFinder(repositoryId: string) {
-        return invoke<void>(IPC_CHANNELS.repositories.openInFinder, {
+        return invokeContract(repositoryContracts.openInFinder, {
           repositoryId,
         });
       },
     },
     worktrees: {
       create(repositoryId: string, branchName: string) {
-        return invoke<void>(IPC_CHANNELS.worktrees.create, {
+        return invokeContract(worktreeContracts.create, {
           repositoryId,
           branchName,
         });
       },
       select(worktreeId: string) {
-        return invoke<void>(IPC_CHANNELS.worktrees.select, { worktreeId });
+        return invokeContract(worktreeContracts.select, { worktreeId });
       },
       remove(worktreeId: string) {
-        return invoke<void>(IPC_CHANNELS.worktrees.remove, { worktreeId });
+        return invokeContract(worktreeContracts.remove, { worktreeId });
       },
     },
     threads: {
       create(worktreeId: string) {
-        return invoke<string>(IPC_CHANNELS.threads.create, { worktreeId });
+        return invokeContract(threadContracts.create, { worktreeId });
       },
       select(threadId: string) {
-        return invoke<void>(IPC_CHANNELS.threads.select, { threadId });
+        return invokeContract(threadContracts.select, { threadId });
       },
       delete(threadId: string) {
-        return invoke<void>(IPC_CHANNELS.threads.delete, { threadId });
+        return invokeContract(threadContracts.delete, { threadId });
       },
     },
     dialog: {
       showOpenDialog(options: OpenDialogOptions) {
-        return invoke<string[] | null>(
-          IPC_CHANNELS.dialog.showOpenDialog,
+        return invokeContract(
+          dialogContracts.showOpenDialog,
           options,
-        );
+        ) as Promise<string[] | null>;
       },
       openExternal(url: string) {
-        return invoke<void>(OPEN_EXTERNAL_CHANNEL, { url });
+        return invokeContract(dialogContracts.openExternal, { url });
       },
     },
     fs: {
       readDirectory(path: string) {
-        return invoke<import("@pi-desktop/shared").DirectoryListing>(
-          IPC_CHANNELS.fs.readDirectory,
-          { path },
-        );
+        return invokeContract(fsContracts.readDirectory, { path }) as Promise<
+          import("@pi-desktop/shared").DirectoryListing
+        >;
       },
       readFile(path: string) {
-        return invoke<import("@pi-desktop/shared").FileContent>(
-          IPC_CHANNELS.fs.readFile,
-          { path },
-        );
+        return invokeContract(fsContracts.readFile, { path });
       },
       writeFile(path: string, content: string) {
-        return invoke<void>(IPC_CHANNELS.fs.writeFile, { path, content });
+        return invokeContract(fsContracts.writeFile, { path, content });
       },
       deleteFile(path: string) {
-        return invoke<void>(IPC_CHANNELS.fs.deleteFile, { path });
+        return invokeContract(fsContracts.deleteFile, { path });
       },
       renameFile(oldPath: string, newPath: string) {
-        return invoke<void>(IPC_CHANNELS.fs.renameFile, { oldPath, newPath });
+        return invokeContract(fsContracts.renameFile, { oldPath, newPath });
       },
       moveFile(sourcePath: string, destinationPath: string) {
-        return invoke<void>(IPC_CHANNELS.fs.moveFile, {
+        return invokeContract(fsContracts.moveFile, {
           sourcePath,
           destinationPath,
         });
@@ -204,180 +188,142 @@ export function createPiDesktopApi({
         repositoryPath: string,
         options?: { force?: boolean },
       ) {
-        return invoke<GitRepositoryStatus>(
-          IPC_CHANNELS.git.getRepositoryStatus,
-          {
-            repositoryPath,
-            ...(options?.force ? { force: true } : {}),
-          },
-        );
+        return invokeContract(gitContracts.getRepositoryStatus, {
+          repositoryPath,
+          ...(options?.force ? { force: true } : {}),
+        });
       },
       isRepository(targetPath: string) {
-        return invoke<boolean>(IPC_CHANNELS.git.isRepository, {
+        return invokeContract(gitContracts.isRepository, {
           repositoryPath: targetPath,
         });
       },
       init(targetPath: string) {
-        return invoke<void>(IPC_CHANNELS.git.init, {
+        return invokeContract(gitContracts.init, {
           repositoryPath: targetPath,
         });
       },
       diffFile(repositoryPath: string, filePath: string, staged: boolean) {
-        return invoke<GitFileDiff>(IPC_CHANNELS.git.diffFile, {
+        return invokeContract(gitContracts.diffFile, {
           repositoryPath,
           filePath,
           staged,
         });
       },
       stageFile(repositoryPath: string, filePath: string) {
-        return invoke<GitRepositoryStatus>(IPC_CHANNELS.git.stageFile, {
+        return invokeContract(gitContracts.stageFile, {
           repositoryPath,
           filePath,
         });
       },
       stageFiles(repositoryPath: string, filePaths: string[]) {
-        return invoke<GitRepositoryStatus>(IPC_CHANNELS.git.stageFiles, {
+        return invokeContract(gitContracts.stageFiles, {
           repositoryPath,
           filePaths,
         });
       },
       unstageFile(repositoryPath: string, filePath: string) {
-        return invoke<GitRepositoryStatus>(IPC_CHANNELS.git.unstageFile, {
+        return invokeContract(gitContracts.unstageFile, {
           repositoryPath,
           filePath,
         });
       },
       unstageFiles(repositoryPath: string, filePaths: string[]) {
-        return invoke<GitRepositoryStatus>(IPC_CHANNELS.git.unstageFiles, {
+        return invokeContract(gitContracts.unstageFiles, {
           repositoryPath,
           filePaths,
         });
       },
       discardFile(repositoryPath: string, filePath: string) {
-        return invoke<GitRepositoryStatus>(IPC_CHANNELS.git.discardFile, {
+        return invokeContract(gitContracts.discardFile, {
           repositoryPath,
           filePath,
         });
       },
       commit(repositoryPath: string, message: string) {
-        return invoke<GitRepositoryStatus>(IPC_CHANNELS.git.commit, {
+        return invokeContract(gitContracts.commit, {
           repositoryPath,
           message,
         });
       },
       fetch(repositoryPath: string) {
-        return invoke<GitRepositoryStatus>(IPC_CHANNELS.git.fetch, {
-          repositoryPath,
-        });
+        return invokeContract(gitContracts.fetch, { repositoryPath });
       },
       pull(repositoryPath: string) {
-        return invoke<GitRepositoryStatus>(IPC_CHANNELS.git.pull, {
-          repositoryPath,
-        });
+        return invokeContract(gitContracts.pull, { repositoryPath });
       },
       push(repositoryPath: string) {
-        return invoke<GitRepositoryStatus>(IPC_CHANNELS.git.push, {
-          repositoryPath,
-        });
+        return invokeContract(gitContracts.push, { repositoryPath });
       },
     },
     packages: {
       getManagerStatus() {
-        return invoke<PackageManagerStatus>(
-          IPC_CHANNELS.packages.getManagerStatus,
-          undefined,
-        );
+        return invokeContract(packagesContracts.getManagerStatus);
       },
       searchCatalog(request: PackageSearchRequest) {
-        return invoke<PackageSearchResponse>(
-          IPC_CHANNELS.packages.searchCatalog,
-          request,
-        );
+        return invokeContract(packagesContracts.searchCatalog, request);
       },
       getPackageDetail(packageName: string) {
-        return invoke<import("@pi-desktop/shared").PackageCatalogDetail>(
-          IPC_CHANNELS.packages.getPackageDetail,
-          { packageName },
-        );
+        return invokeContract(packagesContracts.getPackageDetail, {
+          packageName,
+        });
       },
       listInstalled(scope?: "global" | "local") {
-        return invoke<import("@pi-desktop/shared").InstalledPackageSnapshot[]>(
-          IPC_CHANNELS.packages.listInstalled,
-          { scope },
-        );
+        return invokeContract(packagesContracts.listInstalled, { scope });
       },
       install(request: PackageInstallRequest) {
-        return invoke<PackageOperationSnapshot>(
-          IPC_CHANNELS.packages.install,
-          request,
-        );
+        return invokeContract(packagesContracts.install, request);
       },
       remove(request: PackageRemoveRequest) {
-        return invoke<PackageOperationSnapshot>(
-          IPC_CHANNELS.packages.remove,
-          request,
-        );
+        return invokeContract(packagesContracts.remove, request);
       },
       update(request: PackageUpdateRequest) {
-        return invoke<PackageOperationSnapshot>(
-          IPC_CHANNELS.packages.update,
-          request,
-        );
+        return invokeContract(packagesContracts.update, request);
       },
-      subscribe(listener: (event: PackagesEvent) => void) {
-        return on<PackagesEvent>(IPC_CHANNELS.packages.event, listener);
+      subscribe(listener) {
+        return subscribeContract(packagesContracts.event, listener);
       },
     },
     terminal: {
       create(options: TerminalCreateOptions) {
-        return invoke<TerminalSession>(IPC_CHANNELS.terminal.create, options);
+        return invokeContract(
+          terminalContracts.create as never,
+          options as never,
+        ) as Promise<import("@pi-desktop/shared").TerminalSession>;
       },
       write(id: string, data: string) {
-        return invoke<void>(IPC_CHANNELS.terminal.write, { id, data });
+        return invokeContract(terminalContracts.write, { id, data });
       },
       resize(id: string, cols: number, rows: number) {
-        return invoke<void>(IPC_CHANNELS.terminal.resize, { id, cols, rows });
+        return invokeContract(terminalContracts.resize, { id, cols, rows });
       },
       destroy(id: string) {
-        return invoke<void>(IPC_CHANNELS.terminal.destroy, { id });
+        return invokeContract(terminalContracts.destroy, { id });
       },
       getSessions() {
-        return invoke<TerminalSession[]>(
-          IPC_CHANNELS.terminal.getSessions,
-          undefined,
-        );
+        return invokeContract(terminalContracts.getSessions);
       },
-      onEvent(
-        listener: (event: {
-          type: string;
-          id: string;
-          data?: string;
-          exitCode?: number;
-        }) => void,
-      ) {
-        return on(IPC_CHANNELS.terminal.event, listener);
+      onEvent(listener) {
+        return subscribeContract(terminalContracts.event, listener);
       },
     },
     search: {
       searchFiles(request: SearchRequest) {
-        return invoke<SearchResponse>(IPC_CHANNELS.search.searchFiles, request);
+        return invokeContract(searchContracts.searchFiles, request);
       },
     },
     state: createStateApi({ invoke }),
     window: {
       getFullscreenState() {
-        return invoke<boolean>(
-          IPC_CHANNELS.window.getFullscreenState,
-          undefined,
-        );
+        return invokeContract(windowContracts.getFullscreenState);
       },
       onFullscreenChanged(listener: (isFullscreen: boolean) => void) {
-        return on<boolean>(IPC_CHANNELS.window.fullscreenChanged, listener);
+        return subscribeContract(windowContracts.fullscreenChanged, listener);
       },
     },
     clipboard: {
       writeText(text: string) {
-        return invoke<void>(IPC_CHANNELS.clipboard.writeText, { text });
+        return invokeContract(clipboardContracts.writeText, { text });
       },
     },
     updates: createUpdatesApi({ invoke, on }),

@@ -436,11 +436,49 @@ describe("createPiDesktopApi", () => {
       if (channel === IPC_CHANNELS.state.getRepositoryPreferences) {
         return repositoryPreferences as TReturn;
       }
+      if (channel === IPC_CHANNELS.state.updateRepositoryPreferences) {
+        return repositoryPreferences as TReturn;
+      }
       if (channel === IPC_CHANNELS.state.getWorkspaceSession) {
+        return workspaceSession as TReturn;
+      }
+      if (channel === IPC_CHANNELS.state.saveWorkspaceSession) {
         return workspaceSession as TReturn;
       }
       if (channel === IPC_CHANNELS.state.getAppPreferences) {
         return appPreferences as TReturn;
+      }
+      if (channel === IPC_CHANNELS.state.updateAppPreferences) {
+        return appPreferences as TReturn;
+      }
+      if (channel === IPC_CHANNELS.state.importLegacyPreferences) {
+        return {
+          repositoryPreferences: [repositoryPreferences],
+          appPreferences,
+        } as TReturn;
+      }
+      if (typeof channel === "string" && channel.startsWith("git:")) {
+        return {
+          repositoryPath: "/tmp/work/repo-one",
+          branch: "main",
+          commit: "abc1234",
+          upstreamBranch: null,
+          summary: {
+            status: "ready",
+            branch: "main",
+            commit: "abc1234",
+            hasChanges: false,
+            ahead: 0,
+            behind: 0,
+            stagedCount: 0,
+            modifiedCount: 0,
+            untrackedCount: 0,
+            message: null,
+          },
+          stagedChanges: [],
+          unstagedChanges: [],
+          conflictedChanges: [],
+        } as TReturn;
       }
 
       return undefined as TReturn;
@@ -590,6 +628,31 @@ describe("createPiDesktopApi", () => {
     const invokeCalls: Array<[string, unknown?]> = [];
     const off = vi.fn();
     const listener = vi.fn();
+    const operation = {
+      id: "operation-1",
+      packageName: "@acme/pi-tools",
+      scope: "local" as const,
+      kind: "install" as const,
+      status: "running" as const,
+      message: "Installing package",
+      output: [] as string[],
+    };
+    const catalogItem = {
+      name: "@acme/pi-tools",
+      version: "1.0.0",
+      description: "Tools",
+      downloads: 1,
+      publishedAt: null,
+      kinds: ["extension" as const],
+      author: null,
+      maintainers: [] as string[],
+      repositoryUrl: null,
+      npmUrl: "https://npmjs.com/package/@acme/pi-tools",
+      readmeUrl: null,
+      hasDemo: false,
+      demoVideoUrl: null,
+      demoImageUrl: null,
+    };
     const invoke: PreloadInvoke = async <TReturn>(
       channel: string,
       payload?: unknown,
@@ -598,6 +661,41 @@ describe("createPiDesktopApi", () => {
 
       if (channel === IPC_CHANNELS.packages.getManagerStatus) {
         return managerStatus as TReturn;
+      }
+      if (channel === IPC_CHANNELS.packages.searchCatalog) {
+        return {
+          query: "search",
+          sort: "downloads",
+          total: 1,
+          packages: [catalogItem],
+        } as TReturn;
+      }
+      if (channel === IPC_CHANNELS.packages.getPackageDetail) {
+        return {
+          ...catalogItem,
+          keywords: [],
+          readmeMarkdown: null,
+          installCommand: "pi install @acme/pi-tools",
+        } as TReturn;
+      }
+      if (channel === IPC_CHANNELS.packages.listInstalled) {
+        return [
+          {
+            source: "npm",
+            name: "@acme/pi-tools",
+            version: "1.0.0",
+            scope: "local",
+            installPath: null,
+            isPinned: false,
+          },
+        ] as TReturn;
+      }
+      if (
+        channel === IPC_CHANNELS.packages.install ||
+        channel === IPC_CHANNELS.packages.remove ||
+        channel === IPC_CHANNELS.packages.update
+      ) {
+        return operation as TReturn;
       }
 
       return undefined as TReturn;
@@ -609,15 +707,7 @@ describe("createPiDesktopApi", () => {
       expect(channel).toBe(IPC_CHANNELS.packages.event);
       callback({
         type: "operation_updated",
-        operation: {
-          id: "operation-1",
-          packageName: "@acme/pi-tools",
-          scope: "local",
-          kind: "install",
-          status: "running",
-          message: "Installing package",
-          output: [],
-        },
+        operation,
       } as TPayload);
       return off;
     };
@@ -713,7 +803,8 @@ describe("createPiDesktopApi", () => {
 
       if (
         channel === UPDATE_IPC_CHANNELS.check ||
-        channel === UPDATE_IPC_CHANNELS.download
+        channel === UPDATE_IPC_CHANNELS.download ||
+        channel === UPDATE_IPC_CHANNELS.install
       ) {
         return downloadedState as TReturn;
       }
@@ -773,7 +864,7 @@ describe("createPiDesktopApi", () => {
     expect(source).not.toContain("const UPDATE_IPC_CHANNELS = {");
     expect(source).not.toContain("updates: {");
 
-    expect(helperSource).toContain("export const UPDATE_IPC_CHANNELS = {");
+    expect(helperSource).toContain("export const UPDATE_IPC_CHANNELS =");
     expect(helperSource).toContain("export function createUpdatesApi({");
     expect(helperSource).toContain("install() {");
     expect(helperSource).toContain(

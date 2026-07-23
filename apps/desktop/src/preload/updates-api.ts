@@ -1,16 +1,20 @@
+import {
+  createContractInvoker,
+  createContractSubscriber,
+  updatesContracts,
+} from "@pi-desktop/contracts";
+import { IPC_CHANNELS } from "@pi-desktop/shared";
+
 export type PreloadInvoke = <TReturn>(
   channel: string,
   payload?: unknown,
 ) => Promise<TReturn>;
 
-export type PreloadOn = <TPayload>(
+export type PreloadOn = (
   channel: string,
-  listener: (payload: TPayload) => void,
+  listener: (payload: unknown) => void,
 ) => () => void;
 
-// TODO(A6): once shared exposes UpdaterState + IPC_CHANNELS.updates, replace
-// these locally-mirrored types with the canonical shared ones and add
-// `updates` to the PiDesktopApi interface.
 export type UpdaterStatus =
   | "idle"
   | "checking"
@@ -50,15 +54,8 @@ export interface UpdatesApi {
   subscribe(listener: (state: UpdaterState) => void): () => void;
 }
 
-// Channel constants mirror apps/desktop/src/main/auto-updater.ts UPDATE_IPC_CHANNELS.
-// TODO(A6): consume IPC_CHANNELS.updates.* once shared exports them.
-export const UPDATE_IPC_CHANNELS = {
-  event: "updates:event",
-  getState: "updates:getState",
-  check: "updates:check",
-  download: "updates:download",
-  install: "updates:install",
-} as const;
+/** @deprecated Prefer IPC_CHANNELS.updates — kept for tests that import channel constants. */
+export const UPDATE_IPC_CHANNELS = IPC_CHANNELS.updates;
 
 export function createUpdatesApi({
   invoke,
@@ -67,21 +64,26 @@ export function createUpdatesApi({
   invoke: PreloadInvoke;
   on: PreloadOn;
 }): UpdatesApi {
+  const invokeContract = createContractInvoker(invoke);
+  const subscribeContract = createContractSubscriber(on);
+
   return {
     getState() {
-      return invoke<UpdaterState>(UPDATE_IPC_CHANNELS.getState, undefined);
+      return invokeContract(updatesContracts.getState) as Promise<UpdaterState>;
     },
     check() {
-      return invoke<UpdaterState>(UPDATE_IPC_CHANNELS.check, undefined);
+      return invokeContract(updatesContracts.check) as Promise<UpdaterState>;
     },
     download() {
-      return invoke<UpdaterState>(UPDATE_IPC_CHANNELS.download, undefined);
+      return invokeContract(updatesContracts.download) as Promise<UpdaterState>;
     },
     install() {
-      void invoke<UpdaterState>(UPDATE_IPC_CHANNELS.install, undefined);
+      void invokeContract(updatesContracts.install);
     },
     subscribe(listener: (state: UpdaterState) => void) {
-      return on<UpdaterState>(UPDATE_IPC_CHANNELS.event, listener);
+      return subscribeContract(updatesContracts.event, (state) => {
+        listener(state as UpdaterState);
+      });
     },
   };
 }
