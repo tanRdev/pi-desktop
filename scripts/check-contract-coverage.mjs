@@ -2,10 +2,9 @@
 /**
  * Contract coverage gate.
  *
- * Migration mode (default): reports undeclared live IPC channels and exits 0
- * unless coverage falls below CONTRACT_COVERAGE_MIN (default 0 — always green
- * during early Spine 1). Set CONTRACT_COVERAGE_STRICT=1 for hard-fail on any
- * undeclared channel (Spine 1 finale).
+ * Default (strict): fails if any live IPC channel lacks a Contract registration.
+ * Migration mode: set CONTRACT_COVERAGE_MIGRATION=1 to report undeclared channels
+ * and exit 0 unless coverage falls below CONTRACT_COVERAGE_MIN (default 0).
  *
  * Compares registered Contracts against IPC_CHANNELS (+ updates orphans).
  */
@@ -53,7 +52,8 @@ async function main() {
       : (liveChannels.length - undeclared.length) / liveChannels.length;
 
   const minCoverage = Number(process.env.CONTRACT_COVERAGE_MIN ?? "0");
-  const strict = process.env.CONTRACT_COVERAGE_STRICT === "1";
+  const migrationMode = process.env.CONTRACT_COVERAGE_MIGRATION === "1";
+  const strict = !migrationMode;
 
   console.log(
     `Contract coverage: ${registered.size}/${liveChannels.length} (${(coverage * 100).toFixed(1)}%)`,
@@ -67,7 +67,7 @@ async function main() {
 
   if (strict && undeclared.length > 0) {
     console.error(
-      "CONTRACT_COVERAGE_STRICT=1: failing because undeclared channels remain.",
+      "Contract coverage gate: failing because undeclared channels remain (set CONTRACT_COVERAGE_MIGRATION=1 for migration mode).",
     );
     process.exit(1);
   }

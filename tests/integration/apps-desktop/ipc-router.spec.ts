@@ -29,94 +29,6 @@ vi.mock("node:fs", () => {
   };
 });
 
-describe("payload-parsers", () => {
-  it("parseDialogOptions preserves title and filters unsupported properties", async () => {
-    const parsers = await loadPayloadParsers();
-
-    const input = {
-      title: "Choose files",
-      properties: ["openFile", "createDirectory", "UNSUPPORTED_PROPERTY"],
-    };
-
-    const out = parsers.parseDialogOptions(input);
-
-    // Title must be preserved
-    expect(out.title).toBe("Choose files");
-    // Unsupported values should be removed from properties
-    expect(out.properties).toEqual(
-      expect.arrayContaining(["openFile", "createDirectory"]),
-    );
-    expect(out.properties).not.toEqual(
-      expect.arrayContaining(["UNSUPPORTED_PROPERTY"]),
-    );
-  });
-
-  it("parseSearchRequest returns null when either query or rootPath is missing, and returns expected object when both are present", async () => {
-    const parsers = await loadPayloadParsers();
-
-    expect(parsers.parseSearchRequest({})).toBeNull();
-    expect(parsers.parseSearchRequest({ query: "app" })).toBeNull();
-    expect(parsers.parseSearchRequest({ rootPath: "/tmp" })).toBeNull();
-
-    const req = parsers.parseSearchRequest({
-      query: "app",
-      rootPath: "/tmp/pi-desktop",
-      includePatterns: ["**/*.ts"],
-      excludePatterns: ["node_modules"],
-    });
-
-    expect(req).toMatchObject({
-      query: "app",
-      rootPath: "/tmp/pi-desktop",
-      includePatterns: ["**/*.ts"],
-      excludePatterns: ["node_modules"],
-    });
-  });
-
-  it("parseTerminalCreateOptions returns null when ownerWindowId is missing, normalizes supported backends, and strips unsupported backends", async () => {
-    const parsers = await loadPayloadParsers();
-
-    // missing ownerWindowId => null
-    expect(
-      parsers.parseTerminalCreateOptions({ id: "t1", cols: 80, rows: 24 }),
-    ).toBeNull();
-
-    // supported backend should produce a normalized options object
-    const good = parsers.parseTerminalCreateOptions({
-      id: "t-good",
-      cols: 80,
-      rows: 24,
-      ownerWindowId: "terminal-t-good",
-      backend: "pi",
-    });
-
-    expect(good).toMatchObject({
-      id: "t-good",
-      cols: 80,
-      rows: 24,
-      ownerWindowId: "terminal-t-good",
-      backend: "pi",
-    });
-
-    // unsupported backend should be stripped rather than rejecting the payload
-    const bad = parsers.parseTerminalCreateOptions({
-      id: "t-bad",
-      cols: 80,
-      rows: 24,
-      ownerWindowId: "terminal-t-bad",
-      backend: "unsupported-backend",
-    });
-
-    expect(bad).toMatchObject({
-      id: "t-bad",
-      cols: 80,
-      rows: 24,
-      ownerWindowId: "terminal-t-bad",
-    });
-    expect(bad?.backend).toBeUndefined();
-  });
-});
-
 // Mock the promise-based fs API used for mkdir/writeFile so tests can assert
 // whether production code attempted to perform disk writes.
 vi.mock("node:fs/promises", () => {
@@ -294,10 +206,6 @@ type MockedReadDirSync = {
 type MockedRealpathSync = {
   mockImplementation(implementation: (path: PathLike) => string): unknown;
 };
-
-async function loadPayloadParsers() {
-  return import("../../../apps/desktop/src/main/ipc/payload-parsers");
-}
 
 async function loadMockedNodeFs() {
   const nodeFs = await import("node:fs");
@@ -1189,7 +1097,7 @@ describe("registerIpcHandlers", () => {
       {
         query: "skill",
         sort: "downloads",
-        kinds: ["skill", "invalid"],
+        kinds: ["skill"],
         hasDemoOnly: true,
       },
     );
@@ -1563,30 +1471,64 @@ describe("registerIpcHandlers", () => {
 });
 
 describe("git handlers repositoryPath allowlist", () => {
-  function createGitServiceMock() {
+  function createMinimalGitStatus(repositoryPath: string) {
     return {
-      getRepositoryStatus: vi.fn(() => ({
-        worktreePath: "/allowed/repo",
+      repositoryPath,
+      branch: "main",
+      commit: null,
+      upstreamBranch: null,
+      summary: {
+        status: "ready" as const,
         branch: "main",
+        commit: null,
         hasChanges: false,
         ahead: 0,
         behind: 0,
-        staged: [],
-        modified: [],
-        untracked: [],
-        upstreamBranch: null,
-      })),
+        stagedCount: 0,
+        modifiedCount: 0,
+        untrackedCount: 0,
+        message: null,
+      },
+      stagedChanges: [],
+      unstagedChanges: [],
+      conflictedChanges: [],
+    };
+  }
+
+  function createGitServiceMock() {
+    return {
+      getRepositoryStatus: vi.fn((repositoryPath: string) =>
+        createMinimalGitStatus(repositoryPath),
+      ),
       isRepository: vi.fn(() => true),
       init: vi.fn(() => undefined),
-      stageFile: vi.fn(() => ({}) as never),
-      stageFiles: vi.fn(() => ({}) as never),
-      unstageFile: vi.fn(() => ({}) as never),
-      unstageFiles: vi.fn(() => ({}) as never),
-      discardFile: vi.fn(() => ({}) as never),
-      commit: vi.fn(() => ({}) as never),
-      pull: vi.fn(() => ({}) as never),
-      push: vi.fn(() => ({}) as never),
-      fetch: vi.fn(() => ({}) as never),
+      stageFile: vi.fn((repositoryPath: string) =>
+        createMinimalGitStatus(repositoryPath),
+      ),
+      stageFiles: vi.fn((repositoryPath: string) =>
+        createMinimalGitStatus(repositoryPath),
+      ),
+      unstageFile: vi.fn((repositoryPath: string) =>
+        createMinimalGitStatus(repositoryPath),
+      ),
+      unstageFiles: vi.fn((repositoryPath: string) =>
+        createMinimalGitStatus(repositoryPath),
+      ),
+      discardFile: vi.fn((repositoryPath: string) =>
+        createMinimalGitStatus(repositoryPath),
+      ),
+      commit: vi.fn((repositoryPath: string) =>
+        createMinimalGitStatus(repositoryPath),
+      ),
+      pull: vi.fn((repositoryPath: string) =>
+        createMinimalGitStatus(repositoryPath),
+      ),
+      push: vi.fn((repositoryPath: string) =>
+        createMinimalGitStatus(repositoryPath),
+      ),
+      fetch: vi.fn((repositoryPath: string) =>
+        createMinimalGitStatus(repositoryPath),
+      ),
       inspect: vi.fn(),
       inspectAsync: vi.fn(),
     };

@@ -22,10 +22,6 @@ async function loadPathGuards() {
   return await import("../../../apps/desktop/src/main/fs/path-guards");
 }
 
-async function loadPayloadParsers() {
-  return await import("../../../apps/desktop/src/main/ipc/payload-parsers");
-}
-
 async function loadSanitizer() {
   return await import("../../../apps/desktop/src/main/ipc/sanitize-ipc-error");
 }
@@ -185,110 +181,97 @@ describe("path guards - symlink escape", () => {
   });
 });
 
-describe("payload-parsers - strict validation", () => {
-  it("exports isPayloadRecord for integration tests", async () => {
-    const payloadParsers = await loadPayloadParsers();
-    expect(typeof payloadParsers.isPayloadRecord).toBe("function");
-    expect(payloadParsers.isPayloadRecord(Object.create(null))).toBe(true);
-    expect(payloadParsers.isPayloadRecord([])).toBe(false);
-  });
-
-  it("caps strings at MAX_STRING_BYTES", async () => {
-    const { getStringField, PayloadValidationError, MAX_STRING_BYTES } =
-      await loadPayloadParsers();
-    const giant = "x".repeat(MAX_STRING_BYTES + 1);
-    expect(() => getStringField({ value: giant }, "value")).toThrow(
-      PayloadValidationError,
+describe("contract schemas - strict validation", () => {
+  it("ShowOpenDialogOptionsSchema rejects unknown keys", async () => {
+    const { Schema } = await import("effect");
+    const { ShowOpenDialogOptionsSchema } = await import(
+      "../../../packages/contracts/src/domains/dialog.js"
     );
+    expect(() =>
+      Schema.decodeUnknownSync(ShowOpenDialogOptionsSchema)({
+        title: "ok",
+        defaultPath: "/etc",
+      }),
+    ).toThrow(/unknown field "defaultPath"/);
   });
 
-  it("caps arrays at MAX_ARRAY_LENGTH", async () => {
-    const { getStringArrayField, PayloadValidationError, MAX_ARRAY_LENGTH } =
-      await loadPayloadParsers();
-    const huge = new Array(MAX_ARRAY_LENGTH + 1).fill("x");
-    expect(() => getStringArrayField({ list: huge }, "list")).toThrow(
-      PayloadValidationError,
+  it("ShowOpenDialogOptionsSchema rejects invalid property literals", async () => {
+    const { Schema } = await import("effect");
+    const { ShowOpenDialogOptionsSchema } = await import(
+      "../../../packages/contracts/src/domains/dialog.js"
     );
+    expect(() =>
+      Schema.decodeUnknownSync(ShowOpenDialogOptionsSchema)({
+        title: "Pick",
+        properties: ["openFile", "promptToCreate", "evil-prop"],
+      }),
+    ).toThrow();
   });
 
-  it("requireStringField rejects missing fields with stable code", async () => {
-    const { requireStringField, PayloadValidationError } =
-      await loadPayloadParsers();
-    try {
-      requireStringField({}, "path");
-      throw new Error("expected PayloadValidationError");
-    } catch (error) {
-      expect(error).toBeInstanceOf(PayloadValidationError);
-      if (error instanceof PayloadValidationError) {
-        expect(error.code).toBe("payload/missing-field");
-        expect(error.field).toBe("path");
-      }
-    }
-  });
-
-  it("requireStringField rejects wrong types with stable code", async () => {
-    const { requireStringField, PayloadValidationError } =
-      await loadPayloadParsers();
-    try {
-      requireStringField({ path: 123 }, "path");
-      throw new Error("expected PayloadValidationError");
-    } catch (error) {
-      expect(error).toBeInstanceOf(PayloadValidationError);
-      if (error instanceof PayloadValidationError) {
-        expect(error.code).toBe("payload/wrong-type");
-      }
-    }
-  });
-
-  it("parseDialogOptionsStrict rejects unknown keys", async () => {
-    const { parseDialogOptionsStrict, PayloadValidationError } =
-      await loadPayloadParsers();
-    try {
-      parseDialogOptionsStrict({ title: "ok", defaultPath: "/etc" });
-      throw new Error("expected PayloadValidationError");
-    } catch (error) {
-      expect(error).toBeInstanceOf(PayloadValidationError);
-      if (error instanceof PayloadValidationError) {
-        expect(error.code).toBe("payload/unknown-keys");
-      }
-    }
-  });
-
-  it("parseDialogOptionsStrict filters non-allowed property strings", async () => {
-    const { parseDialogOptionsStrict } = await loadPayloadParsers();
-    const parsed = parseDialogOptionsStrict({
-      title: "Pick",
-      properties: ["openFile", "promptToCreate", "evil-prop"],
-    });
-    expect(parsed.title).toBe("Pick");
-    expect(parsed.properties).toEqual(["openFile", "promptToCreate"]);
-  });
-
-  it("parseSearchRequestStrict rejects unknown keys", async () => {
-    const { parseSearchRequestStrict, PayloadValidationError } =
-      await loadPayloadParsers();
-    try {
-      parseSearchRequestStrict({
+  it("SearchRequestSchema rejects unknown keys", async () => {
+    const { Schema } = await import("effect");
+    const { SearchRequestSchema } = await import(
+      "../../../packages/contracts/src/domains/search.js"
+    );
+    expect(() =>
+      Schema.decodeUnknownSync(SearchRequestSchema)({
         query: "q",
         rootPath: "/r",
         hacker: "yes",
-      });
-      throw new Error("expected PayloadValidationError");
-    } catch (error) {
-      expect(error).toBeInstanceOf(PayloadValidationError);
-      if (error instanceof PayloadValidationError) {
-        expect(error.code).toBe("payload/unknown-keys");
-      }
-    }
+      }),
+    ).toThrow(/unknown field "hacker"/);
   });
 
-  it("rejects NaN / Infinity numeric fields", async () => {
-    const { getNumberField } = await loadPayloadParsers();
-    expect(getNumberField({ x: Number.NaN }, "x")).toBeUndefined();
-    expect(
-      getNumberField({ x: Number.POSITIVE_INFINITY }, "x"),
-    ).toBeUndefined();
-    expect(getNumberField({ x: 12 }, "x")).toBe(12);
+  it("SearchRequestSchema rejects missing required fields", async () => {
+    const { Schema } = await import("effect");
+    const { SearchRequestSchema } = await import(
+      "../../../packages/contracts/src/domains/search.js"
+    );
+    expect(() =>
+      Schema.decodeUnknownSync(SearchRequestSchema)({ query: "q" }),
+    ).toThrow();
+  });
+
+  it("TerminalCreateRequestSchema rejects unknown keys and non-finite dimensions", async () => {
+    const { Schema } = await import("effect");
+    const { TerminalCreateRequestSchema } = await import(
+      "../../../packages/contracts/src/domains/terminal.js"
+    );
+    expect(() =>
+      Schema.decodeUnknownSync(TerminalCreateRequestSchema)({
+        id: "t1",
+        cols: 80,
+        rows: 24,
+        ownerWindowId: "w1",
+        evil: "injection",
+      }),
+    ).toThrow();
+    expect(() =>
+      Schema.decodeUnknownSync(TerminalCreateRequestSchema)({
+        id: "t1",
+        cols: Number.NaN,
+        rows: 24,
+        ownerWindowId: "w1",
+      }),
+    ).toThrow();
+  });
+
+  it("TerminalCreateRequestSchema caps oversized string fields", async () => {
+    const { Schema } = await import("effect");
+    const { MAX_IPC_STRING_BYTES } = await import(
+      "../../../packages/contracts/src/domains/schema-primitives.js"
+    );
+    const { TerminalCreateRequestSchema } = await import(
+      "../../../packages/contracts/src/domains/terminal.js"
+    );
+    expect(() =>
+      Schema.decodeUnknownSync(TerminalCreateRequestSchema)({
+        id: "x".repeat(MAX_IPC_STRING_BYTES + 1),
+        cols: 80,
+        rows: 24,
+        ownerWindowId: "w1",
+      }),
+    ).toThrow();
   });
 });
 
