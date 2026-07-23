@@ -1,5 +1,8 @@
 import {
-  type AgentSnapshot,
+  createContractInvoker,
+  snapshotContracts,
+} from "@pi-desktop/contracts";
+import {
   type AutocompleteContext,
   type AutocompleteSuggestions,
   type GitFileDiff,
@@ -19,11 +22,8 @@ import {
   type PiDesktopAgentEvent,
   type PiDesktopApi,
   type PiDiscoveryResult,
-  type ProviderSnapshot,
   type SearchRequest,
   type SearchResponse,
-  type SettingsSnapshot,
-  type ShellSnapshot,
   type TerminalCreateOptions,
   type TerminalSession,
 } from "@pi-desktop/shared";
@@ -56,25 +56,26 @@ export function createPiDesktopApi({
   invoke,
   on,
 }: CreatePiDesktopApiDependencies): PiDesktopApiWithUpdates {
-  const { agent, shell } = IPC_CHANNELS;
+  const { agent } = IPC_CHANNELS;
+  const invokeContract = createContractInvoker(invoke);
   const invokeNoPayload = <TResponse>(channel: string) =>
     invoke<TResponse>(channel, undefined);
 
   return {
     shell: {
       getSnapshot() {
-        return invokeNoPayload<ShellSnapshot>(shell.getSnapshot);
+        return invokeContract(snapshotContracts.shell.getSnapshot);
       },
     },
     agent: {
       getProviders() {
-        return invokeNoPayload<ProviderSnapshot[]>(agent.getProviders);
+        return invokeContract(snapshotContracts.agent.getProviders);
       },
       getSettings() {
-        return invokeNoPayload<SettingsSnapshot>(agent.getSettings);
+        return invokeContract(snapshotContracts.agent.getSettings);
       },
       getSnapshot() {
-        return invokeNoPayload<AgentSnapshot>(agent.getSnapshot);
+        return invokeContract(snapshotContracts.agent.getSnapshot);
       },
       getOAuthProviders() {
         return invokeNoPayload<OAuthProviderSnapshot[]>(

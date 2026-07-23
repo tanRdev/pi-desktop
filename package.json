@@ -12,6 +12,7 @@
     "dev": "bun run --parallel --filter @pi-desktop/shared --filter @pi-desktop/agent-host --filter @pi-desktop/desktop dev",
     "format": "biome check --write .",
     "lint": "biome check .",
+    "lint:contracts": "bun ./scripts/check-contract-coverage.mjs",
     "lint:imports": "node ./scripts/check-import-boundaries.mjs",
     "lint:sizes": "node ./scripts/check-file-sizes.mjs",
     "prepare": "node ./scripts/install-git-hooks.mjs",

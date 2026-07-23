@@ -815,7 +815,7 @@ describe("createPiDesktopApi", () => {
     );
   });
 
-  it("keeps preload contract invocation free of runtime contracts package imports", async () => {
+  it("routes snapshot channels through Contract invokers", async () => {
     const source = await import("node:fs/promises").then((fs) =>
       fs.readFile(
         new URL("../../../apps/desktop/src/preload/api.ts", import.meta.url),
@@ -823,10 +823,11 @@ describe("createPiDesktopApi", () => {
       ),
     );
 
-    expect(source).not.toContain('from "@pi-desktop/contracts"');
-    expect(source).toContain("invokeNoPayload<ShellSnapshot>");
-    expect(source).toContain("invokeNoPayload<ProviderSnapshot[]>");
-    expect(source).toContain("invokeNoPayload<SettingsSnapshot>");
-    expect(source).toContain("invokeNoPayload<AgentSnapshot>");
+    expect(source).toContain('from "@pi-desktop/contracts"');
+    expect(source).toContain("createContractInvoker");
+    expect(source).toContain("snapshotContracts.shell.getSnapshot");
+    expect(source).toContain("snapshotContracts.agent.getProviders");
+    expect(source).toContain("snapshotContracts.agent.getSettings");
+    expect(source).toContain("snapshotContracts.agent.getSnapshot");
   });
 });
