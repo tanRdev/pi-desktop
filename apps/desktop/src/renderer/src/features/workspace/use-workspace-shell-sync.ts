@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useStore } from "zustand";
 import type { UiInteractionStore } from "@/stores/ui-interaction-store";
 import { syncActiveThreadConversation } from "@/stores/workspace-session-runtime";
 import type {
@@ -62,15 +63,17 @@ export function useWorkspaceShellSync({
 }: UseWorkspaceShellSyncOptions): void {
   const prevThreadIdRef = React.useRef<string | null>(null);
 
+  const markThreadViewed = useStore(uiStore, (s) => s.markThreadViewed);
+
   React.useEffect(() => {
     if (prevThreadIdRef.current && prevThreadIdRef.current !== activeThreadId) {
-      uiStore.getState().markThreadViewed(prevThreadIdRef.current);
+      markThreadViewed(prevThreadIdRef.current);
     }
     if (activeThreadId) {
-      uiStore.getState().markThreadViewed(activeThreadId);
+      markThreadViewed(activeThreadId);
     }
     prevThreadIdRef.current = activeThreadId;
-  }, [activeThreadId, uiStore]);
+  }, [activeThreadId, markThreadViewed]);
 
   React.useEffect(() => {
     if (!shouldPersistThreadConversation(agent)) {

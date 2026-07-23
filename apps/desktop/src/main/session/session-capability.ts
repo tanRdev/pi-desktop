@@ -1,5 +1,7 @@
 import type { AgentSnapshot } from "@pi-desktop/shared";
-import { Context, Effect, Layer } from "effect";
+import { createFailedAgentHost, createLoadingAgentHost } from "./session-hosts";
+
+export { createFailedAgentHost, createLoadingAgentHost };
 
 type SwitchContext = {
   repositoryId: string;
@@ -65,74 +67,6 @@ export type CreateSessionCapabilityOptions<
   subscribeToHost(host: THost, thread: TContext["thread"] | null): () => void;
   notifySessionChanged(): void;
 };
-
-function createSessionSnapshot(
-  context: SwitchContext,
-  status: AgentSnapshot["status"],
-  lastError: string | null,
-): AgentSnapshot {
-  return {
-    sessionId: context.thread.id,
-    status,
-    messages: [],
-    lastError,
-  };
-}
-
-export function createLoadingAgentHost<THost extends AgentHostLike>(
-  baseHost: THost,
-  context: SwitchContext,
-): THost {
-  return {
-    ...baseHost,
-    async getProviders() {
-      return [];
-    },
-    async getSettings() {
-      return {};
-    },
-    async getSnapshot() {
-      return createSessionSnapshot(context, "starting", null);
-    },
-    async prompt() {
-      throw new Error("Selected project is still loading");
-    },
-    async cancelPrompt() {
-      return Promise.resolve();
-    },
-    subscribe() {
-      return () => {};
-    },
-  };
-}
-
-export function createFailedAgentHost<THost extends AgentHostLike>(
-  baseHost: THost,
-  context: SwitchContext,
-  message: string,
-): THost {
-  return {
-    ...baseHost,
-    async getProviders() {
-      return [];
-    },
-    async getSettings() {
-      return {};
-    },
-    async getSnapshot() {
-      return createSessionSnapshot(context, "error", message);
-    },
-    async prompt() {
-      throw new Error(message);
-    },
-    async cancelPrompt() {
-      return Promise.resolve();
-    },
-    subscribe() {
-      return () => {};
-    },
-  };
-}
 
 /**
  * Owns Context switch + current agent host/transport/subscription.
@@ -290,59 +224,11 @@ export function createSessionCapability<
   };
 }
 
-// ---------------------------------------------------------------------------
-// Effect.Service surface (concrete desktop host types are provided at boot)
-// ---------------------------------------------------------------------------
-
-export type SessionCapabilityServiceOps = SessionCapabilityOps<
-  AgentHostLike,
-  { close(...args: never[]): unknown },
-  SwitchContext
->;
-
-export class SessionCapabilityService extends Effect.Service<SessionCapabilityService>()(
-  "SessionCapabilityService",
-  {
-    succeed: {
-      getContext: () => null,
-      getHost: () => {
-        throw new Error("SessionCapabilityService stub: getHost");
-      },
-      getTransport: () => null,
-      getUnsubscribe: () => () => {},
-      commitAttachment: () => {
-        throw new Error("SessionCapabilityService stub: commitAttachment");
-      },
-      replaceHost: () => {
-        throw new Error("SessionCapabilityService stub: replaceHost");
-      },
-      clearSession: () => {
-        throw new Error("SessionCapabilityService stub: clearSession");
-      },
-      switchContext: async () => {
-        throw new Error("SessionCapabilityService stub: switchContext");
-      },
-      dispose: () => {},
-    } satisfies SessionCapabilityServiceOps,
-  },
-) {}
-
-export const SessionCapability =
-  Context.GenericTag<SessionCapabilityServiceOps>(
-    "@pi-desktop/SessionCapability",
-  );
-
-export const SessionCapabilityLive = (
-  capability: SessionCapabilityServiceOps,
-): Layer.Layer<SessionCapabilityServiceOps, never, never> =>
-  Layer.succeed(SessionCapability, capability);
-
-export const getSessionContext = Effect.gen(function* () {
-  const session = yield* SessionCapability;
-  return session.getContext();
-});
-
-export const getSessionHost = Effect.gen(function* () {
-  const session = yield* SessionCapability;
-  return session.getHost();
-});
+export {
+  getSessionContext,
+  getSessionHost,
+  SessionCapability,
+  SessionCapabilityLive,
+  SessionCapabilityService,
+  type SessionCapabilityServiceOps,
+} from "./session-capability-effect";

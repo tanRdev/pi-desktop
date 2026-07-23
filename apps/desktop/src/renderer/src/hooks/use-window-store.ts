@@ -106,6 +106,7 @@ const snapshotCache = createWindowStoreSnapshotCache();
 function getLayoutState(
   shellState: AppShellStoreState,
   sessionState: WorkspaceSessionStoreState,
+  uiState: ReturnType<typeof uiInteractionStore.getState>,
 ): WindowStoreState {
   const activeWorktreeId =
     sessionState.activeWorktreeId ??
@@ -121,9 +122,9 @@ function getLayoutState(
 
   return snapshotCache.getSnapshot({
     layout,
-    draggingWindowId: uiInteractionStore.getState().draggingWindowId,
-    resizingWindowId: uiInteractionStore.getState().resizingWindowId,
-    snapPreview: uiInteractionStore.getState().snapPreview,
+    draggingWindowId: uiState.draggingWindowId,
+    resizingWindowId: uiState.resizingWindowId,
+    snapPreview: uiState.snapPreview,
   });
 }
 
@@ -246,6 +247,7 @@ function getSnapshot(): WindowStoreState {
   return getLayoutState(
     getAppShellStore().getState(),
     getWorkspaceSessionStore().getState(),
+    uiInteractionStore.getState(),
   );
 }
 
