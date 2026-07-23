@@ -31,7 +31,14 @@ export {
   TerminalManagerLive,
 } from "./layers";
 export { createModuleLogger, PiDesktopLoggerLive } from "./logger";
-export { PiDesktopLive, runEffect, runEffectVoid } from "./runtime";
+export {
+  getDesktopMainRuntime,
+  installDesktopMainRuntime,
+  PiDesktopLive,
+  resetDesktopMainRuntimeForTests,
+  runEffect,
+  runEffectVoid,
+} from "./runtime";
 export type {
   GitWorktreeServiceServiceOps,
   PersistentJsonFileRef,

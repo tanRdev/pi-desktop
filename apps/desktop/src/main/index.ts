@@ -31,6 +31,7 @@ import { connectAgentHostWithRetry } from "./bootstrap/agent-host-connection";
 import { createAgentRuntimeHandlers } from "./bootstrap/agent-runtime-handlers";
 import { registerDesktopAppLifecycle } from "./bootstrap/app-lifecycle";
 import { installApplicationMenu } from "./bootstrap/application-menu";
+import { createDesktopMainLayer } from "./bootstrap/desktop-main-layer";
 import { resolveInitialWorkspaceTarget } from "./bootstrap/initial-workspace";
 import { activateInitialWorkspaceSelection } from "./bootstrap/initial-workspace-activation";
 import {
@@ -66,7 +67,7 @@ import {
 } from "./catalogs/thread-catalog";
 import { WorkspaceSessionCatalog } from "./catalogs/workspace-session-catalog";
 import { PiError } from "./effect/errors";
-import { runEffectVoid } from "./effect/runtime";
+import { installDesktopMainRuntime, runEffectVoid } from "./effect/runtime";
 import { GitWorktreeService } from "./git-worktree-service";
 import { createSanitizingHandle } from "./ipc/sanitize-ipc-error";
 import { registerIpcHandlers } from "./ipc-router";
@@ -274,6 +275,15 @@ async function bootstrapDesktop() {
   session.replaceHost(session.getHost(), {
     subscribe: () => subscribeToHost(session.getHost(), null),
   });
+
+  installDesktopMainRuntime(
+    createDesktopMainLayer({
+      repositoryCatalog,
+      gitService,
+      terminalManager,
+      sessionCapability: session as never,
+    }),
+  );
 
   const packagesService = new PackagesServiceImpl({
     homePath: app.getPath("home"),

@@ -10,22 +10,44 @@ const loggerLayer = Logger.replace(
   }),
 );
 
-// Default runtime with logger
+/** Base logger Layer always present in main Effect runs. */
 export const PiDesktopLive = Layer.mergeAll(
   loggerLayer,
   Logger.minimumLogLevel(LogLevel.Info),
 );
 
-// Helper to run effects with the default runtime
-export const runEffect = <A, E>(effect: Effect.Effect<A, E>) => {
-  return Effect.runPromise(effect.pipe(Effect.provide(PiDesktopLive)));
+type MainRuntimeLayer = Layer.Layer<never, never, never>;
+
+let installedMainLayer: MainRuntimeLayer = PiDesktopLive as MainRuntimeLayer;
+
+/**
+ * Install the composed Desktop main Layer (catalogs, git, terminal, session).
+ * After install, `runEffect` / `runEffectVoid` provide that graph — not logger-only theater.
+ */
+export function installDesktopMainRuntime(layer: MainRuntimeLayer): void {
+  installedMainLayer = layer;
+}
+
+export function getDesktopMainRuntime(): MainRuntimeLayer {
+  return installedMainLayer;
+}
+
+export function resetDesktopMainRuntimeForTests(): void {
+  installedMainLayer = PiDesktopLive as MainRuntimeLayer;
+}
+
+export const runEffect = <A, E, R = never>(effect: Effect.Effect<A, E, R>) => {
+  return Effect.runPromise(
+    effect.pipe(Effect.provide(installedMainLayer as Layer.Layer<R>)),
+  );
 };
 
-// Helper to run effects that don't return (fire and forget with error logging)
-export const runEffectVoid = <E>(effect: Effect.Effect<void, E>) => {
+export const runEffectVoid = <E, R = never>(
+  effect: Effect.Effect<void, E, R>,
+) => {
   Effect.runFork(
     effect.pipe(
-      Effect.provide(PiDesktopLive),
+      Effect.provide(installedMainLayer as Layer.Layer<R>),
       Effect.tapError((error) =>
         Effect.sync(() => console.error("Effect failed:", error)),
       ),
