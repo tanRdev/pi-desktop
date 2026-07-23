@@ -1,6 +1,8 @@
-import { IPC_CHANNELS } from "@pi-desktop/shared";
+import {
+  registerContractHandler,
+  threadContracts,
+} from "@pi-desktop/contracts";
 import type { RegisterIpcHandlersDependencies } from "../ipc-router";
-import { getStringField } from "./payload-parsers";
 
 type RegisterThreadHandlersDependencies = Pick<
   RegisterIpcHandlersDependencies,
@@ -11,30 +13,25 @@ export function registerThreadHandlers({
   handle,
   agentHost,
 }: RegisterThreadHandlersDependencies): void {
-  handle(IPC_CHANNELS.threads.create, async (_event, payload) => {
-    const worktreeId = getStringField(payload, "worktreeId");
-    if (!worktreeId) {
-      throw new Error("Thread create payload must include worktreeId");
-    }
-
-    return agentHost.createThread(worktreeId);
+  registerContractHandler({
+    handle,
+    contract: threadContracts.create,
+    handler: ({ worktreeId }) => agentHost.createThread(worktreeId),
   });
 
-  handle(IPC_CHANNELS.threads.select, async (_event, payload) => {
-    const threadId = getStringField(payload, "threadId");
-    if (!threadId) {
-      throw new Error("Thread select payload must include threadId");
-    }
-
-    await agentHost.selectThread(threadId);
+  registerContractHandler({
+    handle,
+    contract: threadContracts.select,
+    handler: async ({ threadId }) => {
+      await agentHost.selectThread(threadId);
+    },
   });
 
-  handle(IPC_CHANNELS.threads.delete, async (_event, payload) => {
-    const threadId = getStringField(payload, "threadId");
-    if (!threadId) {
-      throw new Error("Thread delete payload must include threadId");
-    }
-
-    await agentHost.deleteThread(threadId);
+  registerContractHandler({
+    handle,
+    contract: threadContracts.delete,
+    handler: async ({ threadId }) => {
+      await agentHost.deleteThread(threadId);
+    },
   });
 }
