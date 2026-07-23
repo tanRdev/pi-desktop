@@ -1,9 +1,13 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { _electron as electron, expect, test } from "@playwright/test";
 
-const ROOT = path.resolve(__dirname, "../..");
+const ROOT = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../..",
+);
 const DESKTOP = path.join(ROOT, "apps/desktop");
 const MAIN_ENTRY = path.join(DESKTOP, "out/main/index.js");
 
@@ -48,14 +52,25 @@ test.describe("Pi Desktop raised-bar smoke (mock agent)", () => {
         const api = (
           window as unknown as {
             piDesktop: {
+              shell: {
+                getSnapshot: () => Promise<{
+                  catalog: {
+                    repositories: Array<{ id: string; rootPath: string }>;
+                    selection: {
+                      repositoryId: string | null;
+                      worktreeId: string | null;
+                    };
+                  };
+                }>;
+              };
               repositories: {
-                add: (path: string) => Promise<{ id: string } | null>;
+                add: (path: string) => Promise<void>;
               };
               worktrees: {
                 create: (
                   repositoryId: string,
                   branchName: string,
-                ) => Promise<{ path: string } | null>;
+                ) => Promise<void>;
               };
               agent: {
                 prompt: (text: string) => Promise<void>;
@@ -65,30 +80,50 @@ test.describe("Pi Desktop raised-bar smoke (mock agent)", () => {
           }
         ).piDesktop;
 
-        const repository = await api.repositories.add(repoPath);
+        await api.repositories.add(repoPath);
+        const afterAdd = await api.shell.getSnapshot();
+        const repository =
+          afterAdd.catalog.repositories.find(
+            (entry) => entry.rootPath === repoPath,
+          ) ?? afterAdd.catalog.repositories[0];
         if (!repository?.id) {
-          throw new Error("repositories.add did not return a repository id");
+          throw new Error("Repository was not present in shell snapshot");
         }
 
-        const worktree = await api.worktrees.create(
-          repository.id,
-          `e2e-feature-${Date.now()}`,
-        );
-        if (!worktree?.path) {
-          throw new Error("worktrees.create did not return a worktree path");
+        const branchName = `e2e-feature-${Date.now()}`;
+        await api.worktrees.create(repository.id, branchName);
+        const afterWorktree = await api.shell.getSnapshot();
+        const worktreeId = afterWorktree.catalog.selection.worktreeId;
+        if (!worktreeId) {
+          throw new Error("Worktree selection missing after create");
+        }
+
+        const deadline = Date.now() + 30_000;
+        let status = "starting";
+        while (Date.now() < deadline) {
+          const snapshot = await api.agent.getSnapshot();
+          status = snapshot.status;
+          if (status === "ready" || status === "idle" || status === "error") {
+            break;
+          }
+          await new Promise((resolve) => setTimeout(resolve, 200));
+        }
+
+        if (status === "starting" || status === "streaming") {
+          throw new Error(`Agent host still ${status} after wait`);
         }
 
         await api.agent.prompt("hello from playwright smoke");
-        const snapshot = await api.agent.getSnapshot();
+        const afterPrompt = await api.agent.getSnapshot();
         return {
           repositoryId: repository.id,
-          worktreePath: worktree.path,
-          status: snapshot.status,
+          worktreeId,
+          status: afterPrompt.status,
         };
       }, fixtureRepo);
 
       expect(result.repositoryId).toBeTruthy();
-      expect(result.worktreePath).toBeTruthy();
+      expect(result.worktreeId).toBeTruthy();
       expect(["ready", "streaming", "idle", "starting", "error"]).toContain(
         result.status,
       );
