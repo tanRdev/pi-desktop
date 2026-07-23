@@ -1,6 +1,7 @@
 export { clipboardContracts } from "./clipboard.js";
 export { dialogContracts } from "./dialog.js";
 export { fsContractList, fsContracts } from "./fs.js";
+export { gitContractList, gitContracts } from "./git.js";
 export { repositoryContracts } from "./repositories.js";
 export { searchContracts } from "./search.js";
 export { terminalContractList, terminalContracts } from "./terminal.js";

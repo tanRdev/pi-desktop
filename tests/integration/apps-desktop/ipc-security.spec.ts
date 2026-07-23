@@ -484,38 +484,46 @@ describe("git handlers - repository path guard", () => {
   });
 
   it("rejects oversized commit messages", async () => {
-    const { PayloadValidationError } = await loadPayloadParsers();
+    const { ContractError } = await import(
+      "../../../packages/contracts/src/contract-runtime"
+    );
     const listener = handlers.get("git:commit");
     if (!listener) throw new Error("handler not registered");
-    try {
-      await listener(undefined, {
+    await expect(
+      listener(undefined, {
         repositoryPath: allowedRoot,
         message: "x".repeat(200 * 1024),
-      });
-      throw new Error("expected PayloadValidationError");
-    } catch (error) {
-      expect(error).toBeInstanceOf(PayloadValidationError);
-      if (error instanceof PayloadValidationError) {
-        expect(error.code).toBe("payload/string-too-large");
-      }
-    }
+      }),
+    ).rejects.toMatchObject({
+      code: "contract/encode-failed",
+    });
+    await expect(
+      listener(undefined, {
+        repositoryPath: allowedRoot,
+        message: "x".repeat(200 * 1024),
+      }),
+    ).rejects.toBeInstanceOf(ContractError);
   });
 
   it("rejects empty filePaths arrays for stageFiles", async () => {
-    const { PayloadValidationError } = await loadPayloadParsers();
+    const { ContractError } = await import(
+      "../../../packages/contracts/src/contract-runtime"
+    );
     const listener = handlers.get("git:stageFiles");
     if (!listener) throw new Error("handler not registered");
-    try {
-      await listener(undefined, {
+    await expect(
+      listener(undefined, {
         repositoryPath: allowedRoot,
         filePaths: [],
-      });
-      throw new Error("expected PayloadValidationError");
-    } catch (error) {
-      expect(error).toBeInstanceOf(PayloadValidationError);
-      if (error instanceof PayloadValidationError) {
-        expect(error.code).toBe("payload/empty-array");
-      }
-    }
+      }),
+    ).rejects.toMatchObject({
+      code: "contract/encode-failed",
+    });
+    await expect(
+      listener(undefined, {
+        repositoryPath: allowedRoot,
+        filePaths: [],
+      }),
+    ).rejects.toBeInstanceOf(ContractError);
   });
 });
