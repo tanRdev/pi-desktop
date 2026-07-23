@@ -1,5 +1,5 @@
+import { Button } from "@pi-desktop/ui";
 import * as React from "react";
-import { Button } from "@/components/ui/button";
 import { CaretDown } from "@/components/ui/phosphor-icons";
 import {
   Popover,

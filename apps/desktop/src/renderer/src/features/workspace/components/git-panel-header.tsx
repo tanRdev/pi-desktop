@@ -1,5 +1,4 @@
-import { cn } from "@pi-desktop/ui";
-import { Button } from "@/components/ui/button";
+import { Button, cn } from "@pi-desktop/ui";
 import {
   ArrowClockwise,
   CaretDown,

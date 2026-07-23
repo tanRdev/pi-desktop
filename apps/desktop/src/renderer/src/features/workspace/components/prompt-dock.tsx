@@ -4,6 +4,7 @@ import type {
   SlashSuggestion,
 } from "@pi-desktop/shared";
 import {
+  Button,
   cn,
   PromptInput,
   PromptInputAction,
@@ -11,7 +12,6 @@ import {
   PromptInputTextarea,
 } from "@pi-desktop/ui";
 import * as React from "react";
-import { Button } from "@/components/ui/button";
 import { Loader } from "@/components/ui/loader";
 import { ICON_SIZE_XS, Paperclip } from "@/components/ui/phosphor-icons";
 import PromptAutocomplete from "@/components/ui/prompt-autocomplete";

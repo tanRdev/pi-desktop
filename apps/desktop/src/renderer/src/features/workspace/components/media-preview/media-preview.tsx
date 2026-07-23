@@ -3,9 +3,8 @@ import {
   MagnifyingGlassMinus,
   MagnifyingGlassPlus,
 } from "@phosphor-icons/react";
-import { cn } from "@pi-desktop/ui";
+import { Button, cn } from "@pi-desktop/ui";
 import * as React from "react";
-import { Button } from "@/components/ui/button";
 import { ICON_SIZE_SM, X } from "@/components/ui/phosphor-icons";
 
 const MIN_ZOOM = 0.1;

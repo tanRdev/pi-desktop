@@ -7,9 +7,8 @@ import {
   Gear,
   XCircle,
 } from "@phosphor-icons/react";
-import { cn } from "@pi-desktop/ui";
+import { Button, cn } from "@pi-desktop/ui";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import {
   Collapsible,
   CollapsibleContent,

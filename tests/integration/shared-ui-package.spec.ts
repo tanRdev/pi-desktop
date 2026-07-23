@@ -50,14 +50,48 @@ describe("shared ui package foundation (chunk-2a-ui-foundation)", () => {
       throw new Error("Expected tokens.css to define --text-base");
   });
 
-  it("desktop app retains concrete font imports while consuming shared shell styles", () => {
-    const p = path.join(ROOT, "apps/desktop/src/renderer/src/app.css");
-    const content = read(p);
-    if (content === null) throw new Error(`Missing ${p}`);
-    if (!content.includes("@fontsource-variable/dm-sans"))
-      throw new Error("Expected app.css to import DM Sans directly");
-    if (!content.includes("@fontsource/ibm-plex-mono"))
-      throw new Error("Expected app.css to import IBM Plex Mono directly");
+  it("desktop loads fonts only via @pi-desktop/ui monopoly export", () => {
+    const appCssPath = path.join(ROOT, "apps/desktop/src/renderer/src/app.css");
+    const appCss = read(appCssPath);
+    if (appCss === null) throw new Error(`Missing ${appCssPath}`);
+    if (!appCss.includes("@pi-desktop/ui/styles/fonts.css")) {
+      throw new Error(
+        "Expected app.css to import @pi-desktop/ui/styles/fonts.css once",
+      );
+    }
+    if (
+      appCss.includes("@fontsource-variable/dm-sans") ||
+      appCss.includes("@fontsource/ibm-plex-mono")
+    ) {
+      throw new Error(
+        "app.css must not import @fontsource packages directly; use ui/styles/fonts.css",
+      );
+    }
+
+    const indexPath = path.join(
+      ROOT,
+      "apps/desktop/src/renderer/src/index.tsx",
+    );
+    const indexContent = read(indexPath);
+    if (indexContent === null) throw new Error(`Missing ${indexPath}`);
+    if (
+      indexContent.includes("@fontsource") ||
+      indexContent.includes("fontsource")
+    ) {
+      throw new Error(
+        "renderer index must not import @fontsource packages; fonts load via @pi-desktop/ui",
+      );
+    }
+
+    const buttonShim = path.join(
+      ROOT,
+      "apps/desktop/src/renderer/src/components/ui/button.tsx",
+    );
+    if (fs.existsSync(buttonShim)) {
+      throw new Error(
+        "desktop button shim must be deleted; import Button from @pi-desktop/ui",
+      );
+    }
   });
 
   it("apps/desktop/src/renderer/src/app.css imports shared styles and retains drag-region rules", () => {

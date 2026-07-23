@@ -1,6 +1,5 @@
-import { cn } from "@pi-desktop/ui";
+import { Button, cn } from "@pi-desktop/ui";
 import * as React from "react";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,

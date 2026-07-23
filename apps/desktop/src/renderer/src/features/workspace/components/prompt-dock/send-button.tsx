@@ -1,5 +1,4 @@
-import { PromptInputAction } from "@pi-desktop/ui";
-import { Button } from "@/components/ui/button";
+import { Button, PromptInputAction } from "@pi-desktop/ui";
 import { ArrowUp, Square } from "@/components/ui/phosphor-icons";
 
 export interface SendButtonProps {

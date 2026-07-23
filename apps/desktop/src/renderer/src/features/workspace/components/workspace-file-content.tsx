@@ -1,8 +1,7 @@
 import type { FileContent } from "@pi-desktop/shared";
-import { cn } from "@pi-desktop/ui";
+import { Button, cn } from "@pi-desktop/ui";
 import { Skeleton } from "boneyard-js/react";
 import * as React from "react";
-import { Button } from "@/components/ui/button";
 import { File, Image as ImageIcon, Save } from "@/components/ui/phosphor-icons";
 import { Breadcrumb } from "./breadcrumb";
 import { MonacoFileEditor } from "./monaco-file-editor.lazy";

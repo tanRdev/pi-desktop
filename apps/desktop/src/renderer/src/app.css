@@ -1,7 +1,6 @@
 @import "tailwindcss";
 @import "@pi-desktop/ui/styles/pi-desktop-shell.css";
-@import "@fontsource-variable/dm-sans";
-@import "@fontsource/ibm-plex-mono";
+@import "@pi-desktop/ui/styles/fonts.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -127,15 +126,7 @@
   --duration-enter: 240ms;
   --duration-exit: 160ms;
 
-  /* Border Radius — 0px everywhere (squared off) */
-  --radius-xs: 0px;
-  --radius-sm: 0px;
-  --radius-md: 0px;
-  --radius-lg: 0px;
-  --radius-xl: 0px;
-  --radius-2xl: 0px;
-
-  /* Window Chrome — squared */
+  /* Window Chrome — squared (shared --radius-* live in @pi-desktop/ui tokens) */
   --window-radius: 0px;
   --titlebar-height: 42px;
 }
