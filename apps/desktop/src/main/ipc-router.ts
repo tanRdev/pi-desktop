@@ -335,7 +335,7 @@ export function registerIpcHandlers({
     contract: searchContracts.searchFiles,
     handler: async (request) => {
       if (!searchFiles) {
-        throw new Error("Workspace search is unavailable");
+        throw new Error("File search is unavailable");
       }
       return searchFiles(request);
     },
