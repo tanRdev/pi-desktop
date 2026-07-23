@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { gitContracts, registerContractHandler } from "@pi-desktop/contracts";
 import type { GitRepositoryStatus } from "@pi-desktop/shared";
 import { PathGuardError, resolveInsideRoot } from "../fs/path-guards";
-import type { GitWorktreeService } from "../git-worktree-service";
+import type { GitService } from "../git/git-service";
 import type { IpcRegistrar } from "../ipc-router";
 
 /**
@@ -42,7 +42,7 @@ function buildUnavailableRepositoryStatus(
 
 interface RegisterGitHandlersDependencies {
   handle: IpcRegistrar["handle"];
-  gitService: GitWorktreeService;
+  gitService: GitService;
   getAllowedRepositoryRoots: () => readonly string[];
 }
 

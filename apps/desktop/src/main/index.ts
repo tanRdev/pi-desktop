@@ -68,7 +68,7 @@ import {
 import { WorkspaceSessionCatalog } from "./catalogs/workspace-session-catalog";
 import { PiError } from "./effect/errors";
 import { installDesktopMainRuntime, runEffectVoid } from "./effect/runtime";
-import { GitWorktreeService } from "./git-worktree-service";
+import { createGitService, type GitService } from "./git/git-service";
 import { createSanitizingHandle } from "./ipc/sanitize-ipc-error";
 import { registerIpcHandlers } from "./ipc-router";
 import { LocalThreadRuntimeManager } from "./local-thread-runtime-manager";
@@ -203,7 +203,7 @@ async function bootstrapDesktop() {
   }
 
   const userDataPath = app.getPath("userData");
-  const gitService = new GitWorktreeService();
+  const gitService: GitService = createGitService();
   const repositoryCatalog = new RepositoryCatalog(userDataPath);
   const repositoryPreferencesCatalog = new RepositoryPreferencesCatalog(
     userDataPath,

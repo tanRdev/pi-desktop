@@ -11,7 +11,7 @@ import type {
   RepositoryCatalogServiceOps,
   TerminalManagerServiceOps,
 } from "../effect/services";
-import type { GitWorktreeService } from "../git-worktree-service";
+import type { GitService } from "../git/git-service";
 import {
   SessionCapabilityLive,
   type SessionCapabilityServiceOps,
@@ -30,7 +30,7 @@ export type DesktopMainServices = RepositoryCatalogServiceOps &
  */
 export function createDesktopMainLayer(input: {
   repositoryCatalog: RepositoryCatalog;
-  gitService: GitWorktreeService;
+  gitService: GitService;
   terminalManager: TerminalManager;
   sessionCapability: SessionCapabilityServiceOps;
 }): Layer.Layer<DesktopMainServices, never, never> {

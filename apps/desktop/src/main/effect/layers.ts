@@ -2,7 +2,7 @@ import { Effect, Layer } from "effect";
 import type { PersistentJsonFileOptions } from "../catalogs/persistent-json-file";
 import { PersistentJsonFile as PersistentJsonFileClass } from "../catalogs/persistent-json-file";
 import type { RepositoryCatalog as RepositoryCatalogClass } from "../catalogs/repository-catalog";
-import type { GitWorktreeService as GitWorktreeServiceClass } from "../git-worktree-service";
+import type { GitService } from "../git/git-service";
 import type {
   TerminalInstance,
   TerminalManager as TerminalManagerClass,
@@ -99,7 +99,7 @@ export const RepositoryCatalogLive = (
 // ---------------------------------------------------------------------------
 
 export const GitWorktreeServiceLive = (
-  service: GitWorktreeServiceClass,
+  service: GitService,
 ): Layer.Layer<GitWorktreeServiceServiceOps, never, never> =>
   Layer.succeed(GitWorktreeServiceTag, {
     inspect: (targetPath: string) =>
@@ -142,9 +142,7 @@ export const GitWorktreeServiceLive = (
             cause: e,
           }),
       }),
-    createWorktree: (
-      options: Parameters<GitWorktreeServiceClass["createWorktree"]>[0],
-    ) =>
+    createWorktree: (options: Parameters<GitService["createWorktree"]>[0]) =>
       Effect.try({
         try: () => service.createWorktree(options),
         catch: (e) =>
@@ -154,9 +152,7 @@ export const GitWorktreeServiceLive = (
             cause: e,
           }),
       }),
-    removeWorktree: (
-      options: Parameters<GitWorktreeServiceClass["removeWorktree"]>[0],
-    ) =>
+    removeWorktree: (options: Parameters<GitService["removeWorktree"]>[0]) =>
       Effect.try({
         try: () => service.removeWorktree(options),
         catch: (e) =>

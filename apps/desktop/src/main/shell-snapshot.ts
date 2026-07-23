@@ -9,11 +9,11 @@ import {
   type ShellSnapshot,
   type ThreadSnapshot,
 } from "@pi-desktop/shared";
+import { createGitService, type GitService } from "./git/git-service";
 import type {
   GitRepositoryInspection,
   GitWorktreeSummary,
 } from "./git-worktree-service";
-import { GitWorktreeService } from "./git-worktree-service";
 
 export interface CreateShellSnapshotOptions {
   appName: string;
@@ -34,9 +34,10 @@ export interface CreateShellSnapshotOptions {
     createdAt?: number;
   };
   catalog?: ShellCatalogSnapshot;
+  gitService?: GitService;
 }
 
-const gitService = new GitWorktreeService();
+const defaultGitService = createGitService();
 
 function resolveAgentMode(agentMode?: string): ShellAgentMode {
   if (agentMode === "mock" || agentMode === "sdk" || agentMode === "cli") {
@@ -235,6 +236,7 @@ export function createShellSnapshot({
   agentSnapshot,
   selectedThread,
   catalog,
+  gitService = defaultGitService,
 }: CreateShellSnapshotOptions): ShellSnapshot {
   const requestedPath = cwd ?? null;
   const activeCatalogWorktree = catalog ? getActiveWorktree({ catalog }) : null;

@@ -22,7 +22,7 @@ import type {
 } from "@pi-desktop/shared";
 import { type BrowserWindow, clipboard } from "electron";
 import type { ThreadCatalog } from "./catalogs/thread-catalog";
-import type { GitWorktreeService } from "./git-worktree-service";
+import type { GitService } from "./git/git-service";
 import { registerDialogHandlers } from "./ipc/register-dialog-handlers";
 import { registerFilesystemHandlers } from "./ipc/register-filesystem-handlers";
 import { registerGitHandlers } from "./ipc/register-git-handlers";
@@ -74,7 +74,7 @@ export interface RegisterIpcHandlersDependencies {
   stateHost?: StateIpcHost;
   mainWindow: BrowserWindow | null;
   terminalManager?: typeof terminalManager;
-  gitService?: GitWorktreeService;
+  gitService?: GitService;
   searchFiles?(request: SearchRequest): Promise<SearchResponse>;
   switchModel?(request: ModelSwitchRequest): Promise<void>;
   getOAuthProviders?(): Promise<OAuthProviderSnapshot[]>;

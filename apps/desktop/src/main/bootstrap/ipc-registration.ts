@@ -13,7 +13,7 @@ import type {
   ThreadCatalogEntry,
 } from "../catalogs/thread-catalog";
 import type { WorkspaceSessionCatalog } from "../catalogs/workspace-session-catalog";
-import type { GitWorktreeService } from "../git-worktree-service";
+import type { GitService } from "../git/git-service";
 import type { StateIpcHost } from "../ipc/register-state-handlers";
 import type {
   AgentIpcHost,
@@ -123,7 +123,7 @@ type CreateDesktopIpcHandlerDependenciesInput = {
   agentHost: AgentIpcHost;
   stateHost?: StateIpcHost;
   mainWindow: RegisterIpcHandlersDependencies["mainWindow"];
-  gitService: GitWorktreeService;
+  gitService: GitService;
   searchFiles: NonNullable<RegisterIpcHandlersDependencies["searchFiles"]>;
   switchModel: NonNullable<RegisterIpcHandlersDependencies["switchModel"]>;
   getOAuthProviders: NonNullable<
