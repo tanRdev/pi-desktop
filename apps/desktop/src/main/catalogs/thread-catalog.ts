@@ -1,7 +1,19 @@
 import { randomUUID } from "node:crypto";
 import path from "node:path";
-import { DocumentCatalog } from "@pi-desktop/shared";
+import {
+  DocumentCatalog,
+  type VersionedEnvelope,
+  wrapEnvelope,
+} from "@pi-desktop/shared";
 import { PersistentJsonFile } from "./persistent-json-file";
+import { recoverCorruptFile } from "./recover-corrupt-file";
+import {
+  createVersionedDocumentStore,
+  validateVersionedDocument,
+} from "./versioned-document-store";
+
+const CURRENT_VERSION = 1;
+const CATALOG_NAME = "thread-catalog";
 
 export interface ThreadCatalogEntry {
   id: string;
@@ -13,9 +25,14 @@ export interface ThreadCatalogEntry {
   updatedAt: number;
 }
 
-type ThreadCatalogState = {
-  version: 1;
+type ThreadCatalogDocumentData = {
   threads: ThreadCatalogEntry[];
+};
+
+type ThreadCatalogEnvelope = VersionedEnvelope<ThreadCatalogDocumentData>;
+
+const DEFAULT_DATA: ThreadCatalogDocumentData = {
+  threads: [],
 };
 
 type ThreadCatalogOptions = {
@@ -37,15 +54,9 @@ type LegacyThreadCatalogEntry = Omit<ThreadCatalogEntry, "runtimeId"> & {
   runtimeSessionName?: string | null;
 };
 
-type LegacyThreadCatalogState = {
-  version: 1;
-  threads?: LegacyThreadCatalogEntry[];
-};
-
-const DEFAULT_STATE: ThreadCatalogState = {
-  version: 1,
-  threads: [],
-};
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
 
 function normalizePathId(value: string): string {
   const resolved = path.resolve(value);
@@ -67,42 +78,54 @@ function sortThreads(
 
 function normalizeThreadEntry(
   thread: LegacyThreadCatalogEntry,
-): ThreadCatalogEntry {
+): ThreadCatalogEntry | null {
+  if (
+    typeof thread.id !== "string" ||
+    typeof thread.worktreeId !== "string" ||
+    typeof thread.title !== "string" ||
+    typeof thread.createdAt !== "number" ||
+    typeof thread.updatedAt !== "number"
+  ) {
+    return null;
+  }
+
+  const lastActivityAt = thread.lastActivityAt;
+  if (
+    lastActivityAt !== null &&
+    (typeof lastActivityAt !== "number" || !Number.isFinite(lastActivityAt))
+  ) {
+    return null;
+  }
+
   return {
     id: thread.id,
-    worktreeId: thread.worktreeId,
+    worktreeId: normalizePathId(thread.worktreeId),
     title: thread.title,
-    lastActivityAt: thread.lastActivityAt,
+    lastActivityAt,
     runtimeId: thread.runtimeId ?? thread.runtimeSessionName ?? null,
     createdAt: thread.createdAt,
     updatedAt: thread.updatedAt,
   };
 }
 
-function readThreadEntries(
-  document: ThreadCatalogState | LegacyThreadCatalogState,
-): ThreadCatalogEntry[] {
-  return (document.threads ?? []).map(normalizeThreadEntry);
-}
+function decodeThreadCatalogDocumentData(
+  raw: unknown,
+): ThreadCatalogDocumentData | null {
+  if (!isRecord(raw)) return null;
+  if (!Array.isArray(raw.threads)) return null;
 
-function needsThreadRuntimeMigration(
-  legacyThreads: readonly LegacyThreadCatalogEntry[],
-  threads: readonly ThreadCatalogEntry[],
-): boolean {
-  return threads.some(
-    (thread, index) =>
-      legacyThreads[index]?.runtimeId !== thread.runtimeId ||
-      legacyThreads[index]?.runtimeSessionName !== undefined,
-  );
+  const threads = raw.threads.flatMap((entry) => {
+    if (!isRecord(entry)) return [];
+    const normalized = normalizeThreadEntry(entry as LegacyThreadCatalogEntry);
+    return normalized ? [normalized] : [];
+  });
+
+  return { threads };
 }
 
 export class ThreadCatalog {
-  private readonly store: PersistentJsonFile<
-    ThreadCatalogState | LegacyThreadCatalogState
-  >;
-
   private readonly catalog: DocumentCatalog<
-    ThreadCatalogState | LegacyThreadCatalogState,
+    ThreadCatalogEnvelope,
     ThreadCatalogEntry[],
     ThreadCatalogMutation
   >;
@@ -112,47 +135,52 @@ export class ThreadCatalog {
   private readonly createId: () => string;
 
   constructor(userDataPath: string, options: ThreadCatalogOptions = {}) {
-    this.store = new PersistentJsonFile({
-      filePath: path.join(userDataPath, "catalog", "threads.json"),
-      defaultValue: DEFAULT_STATE,
+    const filePath = path.join(userDataPath, "catalog", "threads.json");
+
+    recoverCorruptFile(filePath, CATALOG_NAME, {
+      currentVersion: CURRENT_VERSION,
+      decode: decodeThreadCatalogDocumentData,
+    });
+
+    const file = new PersistentJsonFile<unknown>({
+      filePath,
+      defaultValue: wrapEnvelope(DEFAULT_DATA, CURRENT_VERSION),
+      validate: (raw): raw is unknown =>
+        validateVersionedDocument(raw, decodeThreadCatalogDocumentData),
+    });
+
+    const store = createVersionedDocumentStore(file, {
+      currentVersion: CURRENT_VERSION,
+      defaultData: DEFAULT_DATA,
+      decode: decodeThreadCatalogDocumentData,
     });
 
     this.catalog = new DocumentCatalog({
-      store: this.store,
-      select: readThreadEntries,
+      store,
+      select: (document) => document.data.threads,
       applyUpdate: (document, mutate) => ({
-        version: 1,
-        threads: mutate(readThreadEntries(document)),
+        schemaVersion: CURRENT_VERSION,
+        data: {
+          threads: mutate(document.data.threads),
+        },
       }),
     });
     this.now = options.now ?? (() => Date.now());
     this.createId = options.createId ?? (() => randomUUID());
-  }
 
-  private readThreads(): ThreadCatalogEntry[] {
-    const document = this.store.get();
-    const legacyThreads = document.threads ?? [];
-    const threads = this.catalog.get();
-
-    if (needsThreadRuntimeMigration(legacyThreads, threads)) {
-      this.store.set({
-        version: 1,
-        threads,
-      });
-    }
-
-    return threads;
+    this.catalog.update((threads) => threads);
   }
 
   listByWorktree(worktreeId: string): ThreadCatalogEntry[] {
     const normalizedWorktreeId = normalizePathId(worktreeId);
-    return this.readThreads()
+    return this.catalog
+      .get()
       .filter((thread) => thread.worktreeId === normalizedWorktreeId)
       .sort(sortThreads);
   }
 
   get(threadId: string): ThreadCatalogEntry | null {
-    return this.readThreads().find((thread) => thread.id === threadId) ?? null;
+    return this.catalog.get().find((thread) => thread.id === threadId) ?? null;
   }
 
   create(input: CreateThreadInput): ThreadCatalogEntry {
@@ -182,7 +210,7 @@ export class ThreadCatalog {
   }
 
   listAll(): ThreadCatalogEntry[] {
-    return this.readThreads().sort(sortThreads);
+    return this.catalog.get().sort(sortThreads);
   }
 
   touch(

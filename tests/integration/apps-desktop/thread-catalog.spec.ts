@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { ThreadCatalog } from "../../../apps/desktop/src/main/thread-catalog";
+import { ThreadCatalog } from "../../../apps/desktop/src/main/catalogs/thread-catalog";
 
 const tempDirs: string[] = [];
 

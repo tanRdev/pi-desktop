@@ -1,8 +1,8 @@
 import { Effect, Layer } from "effect";
+import type { PersistentJsonFileOptions } from "../catalogs/persistent-json-file";
+import { PersistentJsonFile as PersistentJsonFileClass } from "../catalogs/persistent-json-file";
+import type { RepositoryCatalog as RepositoryCatalogClass } from "../catalogs/repository-catalog";
 import type { GitWorktreeService as GitWorktreeServiceClass } from "../git-worktree-service";
-import type { PersistentJsonFileOptions } from "../persistent-json-file";
-import { PersistentJsonFile as PersistentJsonFileClass } from "../persistent-json-file";
-import type { RepositoryCatalog as RepositoryCatalogClass } from "../repository-catalog";
 import type {
   TerminalInstance,
   TerminalManager as TerminalManagerClass,

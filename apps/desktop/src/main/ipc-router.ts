@@ -21,6 +21,7 @@ import type {
   ShellSnapshot,
 } from "@pi-desktop/shared";
 import { type BrowserWindow, clipboard } from "electron";
+import type { ThreadCatalog } from "./catalogs/thread-catalog";
 import type { GitWorktreeService } from "./git-worktree-service";
 import { registerDialogHandlers } from "./ipc/register-dialog-handlers";
 import { registerFilesystemHandlers } from "./ipc/register-filesystem-handlers";
@@ -34,7 +35,6 @@ import { registerTerminalHandlers } from "./ipc/register-terminal-handlers";
 import { registerThreadHandlers } from "./ipc/register-thread-handlers";
 import type { PackagesService } from "./packages/packages-service";
 import { terminalManager } from "./terminal-manager";
-import type { ThreadCatalog } from "./thread-catalog";
 
 export interface AgentIpcHost {
   getProviders(): Promise<ProviderSnapshot[]>;

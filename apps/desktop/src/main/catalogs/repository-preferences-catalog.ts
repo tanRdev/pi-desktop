@@ -2,17 +2,28 @@ import path from "node:path";
 import {
   DocumentCatalog,
   type RepositoryPreferences,
+  type VersionedEnvelope,
+  wrapEnvelope,
 } from "@pi-desktop/shared";
 import { PersistentJsonFile } from "./persistent-json-file";
+import { recoverCorruptFile } from "./recover-corrupt-file";
 import type { RepositoryCatalogEntry } from "./repository-catalog";
+import {
+  createVersionedDocumentStore,
+  validateVersionedDocument,
+} from "./versioned-document-store";
 
-type RepositoryPreferencesDocument = {
-  version: 1;
+const CURRENT_VERSION = 1;
+const CATALOG_NAME = "repository-preferences-catalog";
+
+type RepositoryPreferencesDocumentData = {
   repositories: RepositoryPreferences[];
 };
 
-const DEFAULT_DOCUMENT: RepositoryPreferencesDocument = {
-  version: 1,
+type RepositoryPreferencesEnvelope =
+  VersionedEnvelope<RepositoryPreferencesDocumentData>;
+
+const DEFAULT_DATA: RepositoryPreferencesDocumentData = {
   repositories: [],
 };
 
@@ -20,9 +31,66 @@ type RepositoryPreferencesMutation = (
   repositories: RepositoryPreferences[],
 ) => RepositoryPreferences[];
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 function normalizePathId(value: string): string {
   const resolved = path.resolve(value);
   return resolved.replace(/[\\/]+$/, "") || resolved;
+}
+
+function decodeRepositoryPreferencesEntry(
+  raw: unknown,
+): RepositoryPreferences | null {
+  if (!isRecord(raw)) return null;
+  const repositoryId = raw.repositoryId;
+  if (typeof repositoryId !== "string" || repositoryId.length === 0) {
+    return null;
+  }
+
+  const customName = raw.customName;
+  const icon = raw.icon;
+  const accentColor = raw.accentColor;
+
+  if (
+    customName !== null &&
+    customName !== undefined &&
+    typeof customName !== "string"
+  ) {
+    return null;
+  }
+  if (icon !== null && icon !== undefined && typeof icon !== "string") {
+    return null;
+  }
+  if (
+    accentColor !== null &&
+    accentColor !== undefined &&
+    typeof accentColor !== "string"
+  ) {
+    return null;
+  }
+
+  return {
+    repositoryId: normalizePathId(repositoryId),
+    customName: customName ?? null,
+    icon: icon ?? null,
+    accentColor: accentColor ?? null,
+  };
+}
+
+function decodeRepositoryPreferencesDocumentData(
+  raw: unknown,
+): RepositoryPreferencesDocumentData | null {
+  if (!isRecord(raw)) return null;
+  if (!Array.isArray(raw.repositories)) return null;
+
+  const repositories = raw.repositories.flatMap((entry) => {
+    const decoded = decodeRepositoryPreferencesEntry(entry);
+    return decoded ? [decoded] : [];
+  });
+
+  return { repositories };
 }
 
 function normalizePreferences(
@@ -39,27 +107,44 @@ function normalizePreferences(
 
 export class RepositoryPreferencesCatalog {
   private readonly catalog: DocumentCatalog<
-    RepositoryPreferencesDocument,
+    RepositoryPreferencesEnvelope,
     RepositoryPreferences[],
     RepositoryPreferencesMutation
   >;
 
   constructor(userDataPath: string) {
-    const store = new PersistentJsonFile({
-      filePath: path.join(
-        userDataPath,
-        "catalog",
-        "repository-preferences.json",
-      ),
-      defaultValue: DEFAULT_DOCUMENT,
+    const filePath = path.join(
+      userDataPath,
+      "catalog",
+      "repository-preferences.json",
+    );
+
+    recoverCorruptFile(filePath, CATALOG_NAME, {
+      currentVersion: CURRENT_VERSION,
+      decode: decodeRepositoryPreferencesDocumentData,
+    });
+
+    const file = new PersistentJsonFile<unknown>({
+      filePath,
+      defaultValue: wrapEnvelope(DEFAULT_DATA, CURRENT_VERSION),
+      validate: (raw): raw is unknown =>
+        validateVersionedDocument(raw, decodeRepositoryPreferencesDocumentData),
+    });
+
+    const store = createVersionedDocumentStore(file, {
+      currentVersion: CURRENT_VERSION,
+      defaultData: DEFAULT_DATA,
+      decode: decodeRepositoryPreferencesDocumentData,
     });
 
     this.catalog = new DocumentCatalog({
       store,
-      select: (document) => document.repositories,
+      select: (document) => document.data.repositories,
       applyUpdate: (document, mutate) => ({
-        ...document,
-        repositories: mutate(document.repositories),
+        schemaVersion: CURRENT_VERSION,
+        data: {
+          repositories: mutate(document.data.repositories),
+        },
       }),
     });
   }

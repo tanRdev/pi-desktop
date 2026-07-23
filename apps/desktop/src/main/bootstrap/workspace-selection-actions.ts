@@ -1,6 +1,6 @@
 import path from "node:path";
-import type { RepositoryCatalog } from "../repository-catalog";
-import type { SelectionState } from "../selection-state";
+import type { RepositoryCatalog } from "../catalogs/repository-catalog";
+import type { SelectionState } from "../catalogs/selection-state";
 
 export type WorkspaceSelectionContextState<
   THost extends object | null = object | null,

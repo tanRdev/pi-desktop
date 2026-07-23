@@ -13,7 +13,7 @@ import {
   decodeVersionedEnvelope,
 } from "@pi-desktop/shared";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { AppPreferencesCatalog } from "../../../apps/desktop/src/main/app-preferences-catalog";
+import { AppPreferencesCatalog } from "../../../apps/desktop/src/main/catalogs/app-preferences-catalog";
 
 type PreferencesDocument = {
   version: 1;
@@ -202,7 +202,7 @@ describe("VersionedDocumentCatalog (envelope round-trip)", () => {
 
     // Flush any debounced write
     const { flushAllPersistentJsonFiles } = await import(
-      "../../../apps/desktop/src/main/persistent-json-file"
+      "../../../apps/desktop/src/main/catalogs/persistent-json-file"
     );
     await flushAllPersistentJsonFiles();
 
@@ -231,7 +231,7 @@ describe("VersionedDocumentCatalog (envelope round-trip)", () => {
     catalog.update({ leftSidebarWidth: 200 });
 
     const { flushAllPersistentJsonFiles } = await import(
-      "../../../apps/desktop/src/main/persistent-json-file"
+      "../../../apps/desktop/src/main/catalogs/persistent-json-file"
     );
     await flushAllPersistentJsonFiles();
 
@@ -262,7 +262,7 @@ describe("VersionedDocumentCatalog (envelope round-trip)", () => {
     expect(siblings.length).toBe(1);
 
     const wrote = warn.mock.calls.map((call) => String(call[0])).join("");
-    expect(wrote).toMatch(/corrupt preferences file quarantined/);
+    expect(wrote).toMatch(/corrupt catalog file quarantined/);
 
     warn.mockRestore();
   });

@@ -26,7 +26,6 @@ import {
 } from "./agent-host-runtime";
 import agentHostSessionServerEntryPath from "./agent-host-session-server-entry?modulePath";
 import type { AgentHostSocketTransport } from "./agent-host-socket-transport";
-import { AppPreferencesCatalog } from "./app-preferences-catalog";
 import { initAutoUpdater } from "./auto-updater";
 import { connectAgentHostWithRetry } from "./bootstrap/agent-host-connection";
 import { createAgentRuntimeHandlers } from "./bootstrap/agent-runtime-handlers";
@@ -56,6 +55,16 @@ import { createWorkspaceActivationRouter } from "./bootstrap/workspace-activatio
 import { resolveWorkspaceInspection } from "./bootstrap/workspace-inspection";
 import { createWorkspaceRemovalActions } from "./bootstrap/workspace-removal-actions";
 import { createWorkspaceSelectionActions } from "./bootstrap/workspace-selection-actions";
+import { AppPreferencesCatalog } from "./catalogs/app-preferences-catalog";
+import { flushAllPersistentJsonFiles } from "./catalogs/persistent-json-file";
+import { RepositoryCatalog } from "./catalogs/repository-catalog";
+import { RepositoryPreferencesCatalog } from "./catalogs/repository-preferences-catalog";
+import { SelectionState } from "./catalogs/selection-state";
+import {
+  ThreadCatalog,
+  type ThreadCatalogEntry,
+} from "./catalogs/thread-catalog";
+import { WorkspaceSessionCatalog } from "./catalogs/workspace-session-catalog";
 import { createContextSwitchController } from "./context-switch-controller";
 import { PiError } from "./effect/errors";
 import { runEffectVoid } from "./effect/runtime";
@@ -64,17 +73,11 @@ import { createSanitizingHandle } from "./ipc/sanitize-ipc-error";
 import { registerIpcHandlers } from "./ipc-router";
 import { LocalThreadRuntimeManager } from "./local-thread-runtime-manager";
 import { PackagesServiceImpl } from "./packages/packages-service-impl";
-import { flushAllPersistentJsonFiles } from "./persistent-json-file";
-import { RepositoryCatalog } from "./repository-catalog";
-import { RepositoryPreferencesCatalog } from "./repository-preferences-catalog";
 import { installSecurityHeaders } from "./security/csp";
-import { SelectionState } from "./selection-state";
 import { terminalManager } from "./terminal-manager";
-import { ThreadCatalog, type ThreadCatalogEntry } from "./thread-catalog";
 import { createThreadRuntimeLaunchDetails } from "./thread-runtime-launch";
 import { shouldQuitWhenAllWindowsClosed } from "./window-config";
 import { WorkspaceSearchService } from "./workspace-search-service";
-import { WorkspaceSessionCatalog } from "./workspace-session-catalog";
 
 let mainWindow: BrowserWindow | null = null;
 

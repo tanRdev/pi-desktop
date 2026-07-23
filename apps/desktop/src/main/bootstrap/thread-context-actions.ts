@@ -1,5 +1,5 @@
 import path from "node:path";
-import type { ThreadCatalogEntry } from "../thread-catalog";
+import type { ThreadCatalogEntry } from "../catalogs/thread-catalog";
 import type { ThreadRuntimeLaunchSpec } from "../thread-runtime-manager";
 import type {
   ResolvedRepositoryInspection,

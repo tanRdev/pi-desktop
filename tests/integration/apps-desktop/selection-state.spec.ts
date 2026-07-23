@@ -1,8 +1,8 @@
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
-import { SelectionState } from "../../../apps/desktop/src/main/selection-state";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { SelectionState } from "../../../apps/desktop/src/main/catalogs/selection-state";
 
 const tempDirs: string[] = [];
 
@@ -91,5 +91,31 @@ describe("SelectionState", () => {
       worktreeId: null,
       threadId: null,
     });
+  });
+
+  it("recovers to defaults when the persisted file is corrupt and quarantines the bad file", async () => {
+    const userDataPath = createUserDataPath();
+    const filePath = path.join(userDataPath, "catalog", "selection.json");
+    const fs = await import("node:fs");
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    writeFileSync(filePath, "{{{not-json", "utf8");
+
+    const warn = vi
+      .spyOn(process.stderr, "write")
+      .mockImplementation(() => true);
+
+    const selection = new SelectionState(userDataPath);
+    expect(selection.get()).toEqual({
+      repositoryId: null,
+      worktreeId: null,
+      threadId: null,
+    });
+
+    warn.mockRestore();
+
+    const siblings = readdirSync(path.dirname(filePath)).filter((entry) =>
+      entry.startsWith("selection.json.corrupt-"),
+    );
+    expect(siblings.length).toBe(1);
   });
 });

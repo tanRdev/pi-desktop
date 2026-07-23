@@ -6,7 +6,7 @@
   "apps/desktop/src/main/index.ts": 678,
   "apps/desktop/src/main/ipc-router.ts": 350,
   "apps/desktop/src/main/packages/packages-catalog-client.ts": 373,
-  "apps/desktop/src/main/persistent-json-file.ts": 311,
+  "apps/desktop/src/main/catalogs/persistent-json-file.ts": 311,
   "apps/desktop/src/main/pi-resource-discovery.ts": 303,
   "apps/desktop/src/main/terminal-manager.ts": 339,
   "apps/desktop/src/preload/api.ts": 389,

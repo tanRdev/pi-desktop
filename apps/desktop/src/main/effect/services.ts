@@ -5,9 +5,9 @@ import type {
   TerminalSession,
 } from "@pi-desktop/shared";
 import { Context, Effect } from "effect";
+import type { PersistentJsonFileOptions } from "../catalogs/persistent-json-file";
+import type { RepositoryCatalogEntry } from "../catalogs/repository-catalog";
 import type { GitRepositoryInspection } from "../git-worktree-service";
-import type { PersistentJsonFileOptions } from "../persistent-json-file";
-import type { RepositoryCatalogEntry } from "../repository-catalog";
 import type { TerminalInstance } from "../terminal-manager";
 import {
   type FileSystemError,

@@ -8,8 +8,8 @@ import {
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { AppPreferencesCatalog } from "../../../apps/desktop/src/main/app-preferences-catalog";
-import { flushAllPersistentJsonFiles } from "../../../apps/desktop/src/main/persistent-json-file";
+import { AppPreferencesCatalog } from "../../../apps/desktop/src/main/catalogs/app-preferences-catalog";
+import { flushAllPersistentJsonFiles } from "../../../apps/desktop/src/main/catalogs/persistent-json-file";
 
 const tempDirs: string[] = [];
 

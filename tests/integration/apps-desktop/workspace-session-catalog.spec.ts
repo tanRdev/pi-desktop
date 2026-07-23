@@ -8,8 +8,8 @@ import {
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { flushAllPersistentJsonFiles } from "../../../apps/desktop/src/main/persistent-json-file";
-import { WorkspaceSessionCatalog } from "../../../apps/desktop/src/main/workspace-session-catalog";
+import { flushAllPersistentJsonFiles } from "../../../apps/desktop/src/main/catalogs/persistent-json-file";
+import { WorkspaceSessionCatalog } from "../../../apps/desktop/src/main/catalogs/workspace-session-catalog";
 import { createEmptyWorkspaceSession } from "../../../packages/shared/src";
 
 const tempDirs: string[] = [];

@@ -3,8 +3,8 @@ import { describe, expect, it, vi } from "vitest";
 import type {
   RepositoryCatalog,
   RepositoryCatalogEntry,
-} from "../repository-catalog";
-import type { SelectionState } from "../selection-state";
+} from "../catalogs/repository-catalog";
+import type { SelectionState } from "../catalogs/selection-state";
 import {
   createWorkspaceSelectionActions,
   type WorkspaceSelectionContextState,

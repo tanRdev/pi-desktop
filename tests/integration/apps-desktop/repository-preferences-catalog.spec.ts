@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { RepositoryPreferencesCatalog } from "../../../apps/desktop/src/main/repository-preferences-catalog";
+import { RepositoryPreferencesCatalog } from "../../../apps/desktop/src/main/catalogs/repository-preferences-catalog";
 
 const tempDirs: string[] = [];
 

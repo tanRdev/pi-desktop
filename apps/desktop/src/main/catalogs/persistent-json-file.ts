@@ -18,7 +18,7 @@ import {
 } from "node:fs/promises";
 import path from "node:path";
 import { Data, Effect, type Scope } from "effect";
-import { runEffect } from "./effect/runtime";
+import { runEffect } from "../effect/runtime";
 
 export class PersistentJsonFileError extends Data.TaggedError(
   "PersistentJsonFileError",

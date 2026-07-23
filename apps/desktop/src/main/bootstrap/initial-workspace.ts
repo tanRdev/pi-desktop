@@ -1,5 +1,5 @@
-import type { RepositoryCatalogEntry } from "../repository-catalog";
-import type { AppSelectionState } from "../selection-state";
+import type { RepositoryCatalogEntry } from "../catalogs/repository-catalog";
+import type { AppSelectionState } from "../catalogs/selection-state";
 
 type ResolveInitialWorkspaceTargetInput = {
   selection: AppSelectionState;

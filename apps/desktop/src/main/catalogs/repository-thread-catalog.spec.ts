@@ -73,29 +73,31 @@ describe("RepositoryCatalog", () => {
     expect(catalog.get("/tmp/workspaces/alpha/")?.id).toBe(alpha.id);
 
     expect(readCatalogDocument(userDataPath, "repositories.json")).toEqual({
-      version: 1,
-      repositories: [
-        {
-          id: beta.id,
-          rootPath: beta.rootPath,
-          label: null,
-          order: 0,
-          lastSelectedWorktreeId: null,
-          addedAt: 101,
-          updatedAt: 104,
-        },
-        {
-          id: alpha.id,
-          rootPath: alpha.rootPath,
-          label: "Alpha",
-          order: 1,
-          lastSelectedWorktreeId: path.resolve(
-            "/tmp/workspaces/alpha/worktrees/main",
-          ),
-          addedAt: 100,
-          updatedAt: 104,
-        },
-      ],
+      schemaVersion: 1,
+      data: {
+        repositories: [
+          {
+            id: beta.id,
+            rootPath: beta.rootPath,
+            label: null,
+            order: 0,
+            lastSelectedWorktreeId: null,
+            addedAt: 101,
+            updatedAt: 104,
+          },
+          {
+            id: alpha.id,
+            rootPath: alpha.rootPath,
+            label: "Alpha",
+            order: 1,
+            lastSelectedWorktreeId: path.resolve(
+              "/tmp/workspaces/alpha/worktrees/main",
+            ),
+            addedAt: 100,
+            updatedAt: 104,
+          },
+        ],
+      },
     });
   });
 });
@@ -152,18 +154,20 @@ describe("ThreadCatalog", () => {
     ]);
 
     expect(readCatalogDocument(userDataPath, "threads.json")).toEqual({
-      version: 1,
-      threads: [
-        {
-          id: "thread-1",
-          worktreeId: path.resolve("/tmp/workspaces/alpha/main"),
-          title: "Renamed thread",
-          lastActivityAt: 250,
-          runtimeId: "runtime-1",
-          createdAt: 200,
-          updatedAt: 203,
-        },
-      ],
+      schemaVersion: 1,
+      data: {
+        threads: [
+          {
+            id: "thread-1",
+            worktreeId: path.resolve("/tmp/workspaces/alpha/main"),
+            title: "Renamed thread",
+            lastActivityAt: 250,
+            runtimeId: "runtime-1",
+            createdAt: 200,
+            updatedAt: 203,
+          },
+        ],
+      },
     });
 
     expect(catalog.delete("thread-1")).toBe(true);
@@ -233,27 +237,29 @@ describe("ThreadCatalog", () => {
     );
 
     expect(readCatalogDocument(userDataPath, "threads.json")).toEqual({
-      version: 1,
-      threads: [
-        {
-          id: "legacy-thread",
-          worktreeId: path.resolve("/tmp/workspaces/alpha/main"),
-          title: "Legacy thread",
-          lastActivityAt: 25,
-          runtimeId: "runtime-from-session-name",
-          createdAt: 10,
-          updatedAt: 11,
-        },
-        {
-          id: "current-thread",
-          worktreeId: path.resolve("/tmp/workspaces/alpha/main"),
-          title: "Current thread",
-          lastActivityAt: 50,
-          runtimeId: "runtime-id",
-          createdAt: 12,
-          updatedAt: 13,
-        },
-      ],
+      schemaVersion: 1,
+      data: {
+        threads: [
+          {
+            id: "legacy-thread",
+            worktreeId: path.resolve("/tmp/workspaces/alpha/main"),
+            title: "Legacy thread",
+            lastActivityAt: 25,
+            runtimeId: "runtime-from-session-name",
+            createdAt: 10,
+            updatedAt: 11,
+          },
+          {
+            id: "current-thread",
+            worktreeId: path.resolve("/tmp/workspaces/alpha/main"),
+            title: "Current thread",
+            lastActivityAt: 50,
+            runtimeId: "runtime-id",
+            createdAt: 12,
+            updatedAt: 13,
+          },
+        ],
+      },
     });
   });
 });

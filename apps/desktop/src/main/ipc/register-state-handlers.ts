@@ -6,8 +6,8 @@ import type {
   RepositoryPreferences,
   WorkspaceSession,
 } from "@pi-desktop/shared";
+import { sanitizeWorkspaceSession } from "../catalogs/workspace-session-catalog";
 import type { RegisterIpcHandlersDependencies } from "../ipc-router";
-import { sanitizeWorkspaceSession } from "../workspace-session-catalog";
 
 type RegisterStateHandlersDependencies = Pick<
   RegisterIpcHandlersDependencies,

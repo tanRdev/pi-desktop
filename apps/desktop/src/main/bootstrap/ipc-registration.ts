@@ -2,7 +2,17 @@ import {
   DEFAULT_UNTITLED_THREAD_TITLE,
   generateThreadTitleFromMessage,
 } from "../../thread-title-defaults";
-import type { AppPreferencesCatalog } from "../app-preferences-catalog";
+import type { AppPreferencesCatalog } from "../catalogs/app-preferences-catalog";
+import type {
+  RepositoryCatalog,
+  RepositoryCatalogEntry,
+} from "../catalogs/repository-catalog";
+import type { RepositoryPreferencesCatalog } from "../catalogs/repository-preferences-catalog";
+import type {
+  ThreadCatalog,
+  ThreadCatalogEntry,
+} from "../catalogs/thread-catalog";
+import type { WorkspaceSessionCatalog } from "../catalogs/workspace-session-catalog";
 import type { GitWorktreeService } from "../git-worktree-service";
 import type { StateIpcHost } from "../ipc/register-state-handlers";
 import type {
@@ -11,13 +21,6 @@ import type {
   RegisterIpcHandlersDependencies,
 } from "../ipc-router";
 import type { PackagesService } from "../packages/packages-service";
-import type {
-  RepositoryCatalog,
-  RepositoryCatalogEntry,
-} from "../repository-catalog";
-import type { RepositoryPreferencesCatalog } from "../repository-preferences-catalog";
-import type { ThreadCatalog, ThreadCatalogEntry } from "../thread-catalog";
-import type { WorkspaceSessionCatalog } from "../workspace-session-catalog";
 import { deleteThreadAndRefresh } from "./active-thread-deletion";
 import type {
   ResolvedRepositoryInspection,

@@ -24,9 +24,9 @@ function isPiDesktopWorktree(worktreePath: string): boolean {
   );
 }
 
-import type { RepositoryCatalogEntry } from "./repository-catalog";
-import type { AppSelectionState } from "./selection-state";
-import type { ThreadCatalogEntry } from "./thread-catalog";
+import type { RepositoryCatalogEntry } from "./catalogs/repository-catalog";
+import type { AppSelectionState } from "./catalogs/selection-state";
+import type { ThreadCatalogEntry } from "./catalogs/thread-catalog";
 import type { ThreadRuntimeRef } from "./thread-runtime-manager";
 
 export interface BuildShellCatalogOptions {

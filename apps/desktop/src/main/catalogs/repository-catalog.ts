@@ -1,6 +1,18 @@
 import path from "node:path";
-import { DocumentCatalog } from "@pi-desktop/shared";
+import {
+  DocumentCatalog,
+  type VersionedEnvelope,
+  wrapEnvelope,
+} from "@pi-desktop/shared";
 import { PersistentJsonFile } from "./persistent-json-file";
+import { recoverCorruptFile } from "./recover-corrupt-file";
+import {
+  createVersionedDocumentStore,
+  validateVersionedDocument,
+} from "./versioned-document-store";
+
+const CURRENT_VERSION = 1;
+const CATALOG_NAME = "repository-catalog";
 
 export interface RepositoryCatalogEntry {
   id: string;
@@ -12,9 +24,15 @@ export interface RepositoryCatalogEntry {
   updatedAt: number;
 }
 
-type RepositoryCatalogState = {
-  version: 1;
+type RepositoryCatalogDocumentData = {
   repositories: RepositoryCatalogEntry[];
+};
+
+type RepositoryCatalogEnvelope =
+  VersionedEnvelope<RepositoryCatalogDocumentData>;
+
+const DEFAULT_DATA: RepositoryCatalogDocumentData = {
+  repositories: [],
 };
 
 type RepositoryCatalogOptions = {
@@ -30,10 +48,9 @@ type UpsertRepositoryInput = {
   label?: string | null;
 };
 
-const DEFAULT_STATE: RepositoryCatalogState = {
-  version: 1,
-  repositories: [],
-};
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
 
 function normalizePathId(value: string): string {
   const resolved = path.resolve(value);
@@ -44,9 +61,62 @@ function hasLabel(input: UpsertRepositoryInput): boolean {
   return Object.hasOwn(input, "label");
 }
 
+function decodeRepositoryCatalogEntry(
+  raw: unknown,
+): RepositoryCatalogEntry | null {
+  if (!isRecord(raw)) return null;
+
+  const id = raw.id;
+  const rootPath = raw.rootPath;
+  const label = raw.label;
+  const order = raw.order;
+  const lastSelectedWorktreeId = raw.lastSelectedWorktreeId;
+  const addedAt = raw.addedAt;
+  const updatedAt = raw.updatedAt;
+
+  if (typeof id !== "string" || typeof rootPath !== "string") return null;
+  if (label !== null && typeof label !== "string") return null;
+  if (typeof order !== "number" || !Number.isFinite(order)) return null;
+  if (
+    lastSelectedWorktreeId !== null &&
+    typeof lastSelectedWorktreeId !== "string"
+  ) {
+    return null;
+  }
+  if (typeof addedAt !== "number" || !Number.isFinite(addedAt)) return null;
+  if (typeof updatedAt !== "number" || !Number.isFinite(updatedAt)) return null;
+
+  return {
+    id: normalizePathId(id),
+    rootPath: normalizePathId(rootPath),
+    label,
+    order,
+    lastSelectedWorktreeId:
+      lastSelectedWorktreeId === null
+        ? null
+        : normalizePathId(lastSelectedWorktreeId),
+    addedAt,
+    updatedAt,
+  };
+}
+
+function decodeRepositoryCatalogDocumentData(
+  raw: unknown,
+): RepositoryCatalogDocumentData | null {
+  if (!isRecord(raw)) return null;
+  if (!Array.isArray(raw.repositories)) return null;
+
+  const repositories = raw.repositories.flatMap((entry) => {
+    const decoded = decodeRepositoryCatalogEntry(entry);
+    return decoded ? [decoded] : [];
+  });
+
+  return { repositories };
+}
+
 export class RepositoryCatalog {
   private readonly catalog: DocumentCatalog<
-    RepositoryCatalogState,
+    RepositoryCatalogEnvelope,
     RepositoryCatalogEntry[],
     RepositoryCatalogMutation
   >;
@@ -54,17 +124,34 @@ export class RepositoryCatalog {
   private readonly now: () => number;
 
   constructor(userDataPath: string, options: RepositoryCatalogOptions = {}) {
-    const store = new PersistentJsonFile({
-      filePath: path.join(userDataPath, "catalog", "repositories.json"),
-      defaultValue: DEFAULT_STATE,
+    const filePath = path.join(userDataPath, "catalog", "repositories.json");
+
+    recoverCorruptFile(filePath, CATALOG_NAME, {
+      currentVersion: CURRENT_VERSION,
+      decode: decodeRepositoryCatalogDocumentData,
+    });
+
+    const file = new PersistentJsonFile<unknown>({
+      filePath,
+      defaultValue: wrapEnvelope(DEFAULT_DATA, CURRENT_VERSION),
+      validate: (raw): raw is unknown =>
+        validateVersionedDocument(raw, decodeRepositoryCatalogDocumentData),
+    });
+
+    const store = createVersionedDocumentStore(file, {
+      currentVersion: CURRENT_VERSION,
+      defaultData: DEFAULT_DATA,
+      decode: decodeRepositoryCatalogDocumentData,
     });
 
     this.catalog = new DocumentCatalog({
       store,
-      select: (document) => document.repositories,
+      select: (document) => document.data.repositories,
       applyUpdate: (document, mutate) => ({
-        ...document,
-        repositories: mutate(document.repositories),
+        schemaVersion: CURRENT_VERSION,
+        data: {
+          repositories: mutate(document.data.repositories),
+        },
       }),
     });
     this.now = options.now ?? (() => Date.now());

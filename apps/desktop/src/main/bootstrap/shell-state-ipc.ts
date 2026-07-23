@@ -5,17 +5,20 @@ import type {
   WorkspaceSession,
 } from "@pi-desktop/shared";
 import { Effect } from "effect";
+import type { RepositoryCatalogEntry } from "../catalogs/repository-catalog";
+import type {
+  AppSelectionState,
+  SelectionState,
+} from "../catalogs/selection-state";
+import type { ThreadCatalogEntry } from "../catalogs/thread-catalog";
 import { fromUnknownError } from "../effect/errors";
 import { runEffect } from "../effect/runtime";
 import type { GitRepositoryInspection } from "../git-worktree-service";
-import type { RepositoryCatalogEntry } from "../repository-catalog";
-import type { AppSelectionState, SelectionState } from "../selection-state";
 import { buildShellCatalog } from "../shell-catalog-builder";
 import {
   type CreateShellSnapshotOptions,
   createShellSnapshot as createShellSnapshotDefault,
 } from "../shell-snapshot";
-import type { ThreadCatalogEntry } from "../thread-catalog";
 import type {
   ThreadRuntimeDescriptor,
   ThreadRuntimeRef,

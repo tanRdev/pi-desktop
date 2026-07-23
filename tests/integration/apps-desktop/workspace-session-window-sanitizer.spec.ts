@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { sanitizeWorkspaceWindow } from "../../../apps/desktop/src/main/workspace-session-window-sanitizer";
+import { sanitizeWorkspaceWindow } from "../../../apps/desktop/src/main/catalogs/workspace-session-window-sanitizer";
 
 describe("sanitizeWorkspaceWindow", () => {
   it("drops legacy search windows", () => {

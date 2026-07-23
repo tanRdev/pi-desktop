@@ -1,18 +1,21 @@
-import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import {
   createEmptyWorkspaceSession,
   DocumentCatalog,
-  type DocumentCatalogStore,
-  decodeVersionedEnvelope,
   type VersionedEnvelope,
   type WorkspaceSession,
   wrapEnvelope,
 } from "@pi-desktop/shared";
 import { PersistentJsonFile } from "./persistent-json-file";
+import { recoverCorruptFile } from "./recover-corrupt-file";
+import {
+  createVersionedDocumentStore,
+  validateVersionedDocument,
+} from "./versioned-document-store";
 import { sanitizeWorkspaceWindow } from "./workspace-session-window-sanitizer";
 
 const CURRENT_VERSION = 1;
+const CATALOG_NAME = "workspace-session-catalog";
 
 type WorkspaceSessionDocumentData = {
   sessions: WorkspaceSession[];
@@ -22,11 +25,6 @@ type WorkspaceSessionEnvelope = VersionedEnvelope<WorkspaceSessionDocumentData>;
 
 const DEFAULT_DATA: WorkspaceSessionDocumentData = {
   sessions: [],
-};
-
-const DEFAULT_ENVELOPE: WorkspaceSessionEnvelope = {
-  schemaVersion: CURRENT_VERSION,
-  data: DEFAULT_DATA,
 };
 
 function normalizePathId(value: string): string {
@@ -205,100 +203,15 @@ export function decodeWorkspaceSessionDocumentData(
   return { sessions };
 }
 
-function recoverCorruptFile(filePath: string): void {
-  if (!existsSync(filePath)) return;
-
-  let rawText: string;
-  try {
-    rawText = readFileSync(filePath, "utf8");
-  } catch {
-    return;
-  }
-
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(rawText);
-  } catch {
-    quarantine(filePath, rawText, "unparseable JSON");
-    return;
-  }
-
-  const result = decodeVersionedEnvelope<WorkspaceSessionDocumentData>(parsed, {
-    currentVersion: CURRENT_VERSION,
-    decode: decodeWorkspaceSessionDocumentData,
-  });
-
-  if (!result.ok) {
-    quarantine(filePath, rawText, `envelope decode failed: ${result.reason}`);
-  }
-}
-
-function quarantine(filePath: string, rawText: string, reason: string): void {
-  const siblingPath = `${filePath}.corrupt-${Date.now()}.json`;
-  try {
-    try {
-      renameSync(filePath, siblingPath);
-    } catch {
-      writeFileSync(siblingPath, rawText, "utf8");
-    }
-  } catch {
-    // best-effort
-  }
-  process.stderr.write(
-    `[workspace-session-catalog] corrupt workspace sessions file quarantined at ${siblingPath} (${reason})\n`,
-  );
-}
-
-class WorkspaceSessionStore
-  implements DocumentCatalogStore<WorkspaceSessionEnvelope>
-{
-  constructor(private readonly file: PersistentJsonFile<unknown>) {}
-
-  get(): WorkspaceSessionEnvelope {
-    return this.normalize(this.file.get());
-  }
-
-  update(
-    updater: (document: WorkspaceSessionEnvelope) => WorkspaceSessionEnvelope,
-  ): WorkspaceSessionEnvelope {
-    const next = updater(this.get());
-    this.file.set(next);
-    return next;
-  }
-
-  set(document: WorkspaceSessionEnvelope): WorkspaceSessionEnvelope {
-    this.file.set(document);
-    return this.get();
-  }
-
-  private normalize(raw: unknown): WorkspaceSessionEnvelope {
-    const result = decodeVersionedEnvelope<WorkspaceSessionDocumentData>(raw, {
-      currentVersion: CURRENT_VERSION,
-      decode: decodeWorkspaceSessionDocumentData,
-    });
-    if (result.ok) {
-      return wrapEnvelope(result.data, CURRENT_VERSION);
-    }
-    return wrapEnvelope(DEFAULT_DATA, CURRENT_VERSION);
-  }
-}
-
-function validatePersistedWorkspaceSessions(raw: unknown): raw is unknown {
-  if (!isRecord(raw)) return false;
-
-  if (typeof raw.schemaVersion === "number") {
-    return decodeWorkspaceSessionDocumentData(raw.data) !== null;
-  }
-
-  return decodeWorkspaceSessionDocumentData(raw) !== null;
-}
-
 type WorkspaceSessionMutation = (
   sessions: WorkspaceSession[],
 ) => WorkspaceSession[];
 
 export class WorkspaceSessionCatalog {
-  private readonly store: WorkspaceSessionStore;
+  private readonly store: ReturnType<
+    typeof createVersionedDocumentStore<WorkspaceSessionDocumentData>
+  >;
+
   private readonly catalog: DocumentCatalog<
     WorkspaceSessionEnvelope,
     WorkspaceSession[],
@@ -312,15 +225,23 @@ export class WorkspaceSessionCatalog {
       "workspace-sessions.json",
     );
 
-    recoverCorruptFile(filePath);
+    recoverCorruptFile(filePath, CATALOG_NAME, {
+      currentVersion: CURRENT_VERSION,
+      decode: decodeWorkspaceSessionDocumentData,
+    });
 
     const file = new PersistentJsonFile<unknown>({
       filePath,
-      defaultValue: DEFAULT_ENVELOPE,
-      validate: validatePersistedWorkspaceSessions,
+      defaultValue: wrapEnvelope(DEFAULT_DATA, CURRENT_VERSION),
+      validate: (raw): raw is unknown =>
+        validateVersionedDocument(raw, decodeWorkspaceSessionDocumentData),
     });
 
-    this.store = new WorkspaceSessionStore(file);
+    this.store = createVersionedDocumentStore(file, {
+      currentVersion: CURRENT_VERSION,
+      defaultData: DEFAULT_DATA,
+      decode: decodeWorkspaceSessionDocumentData,
+    });
 
     this.catalog = new DocumentCatalog({
       store: this.store,
@@ -374,10 +295,9 @@ export class WorkspaceSessionCatalog {
       return sanitized ? [sanitized] : [];
     });
 
-    return this.store.set({
-      schemaVersion: CURRENT_VERSION,
-      data: { sessions: normalizedSessions },
-    }).data.sessions;
+    return this.store.update(() =>
+      wrapEnvelope({ sessions: normalizedSessions }, CURRENT_VERSION),
+    ).data.sessions;
   }
 
   remove(worktreeId: string): void {

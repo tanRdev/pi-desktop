@@ -9,7 +9,7 @@ import {
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { PersistentJsonFile } from "../../../apps/desktop/src/main/persistent-json-file";
+import { PersistentJsonFile } from "../../../apps/desktop/src/main/catalogs/persistent-json-file";
 
 const tempDirs: string[] = [];
 
