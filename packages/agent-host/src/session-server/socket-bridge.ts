@@ -9,7 +9,7 @@ import type {
 import {
   type CommandHandlerRuntime,
   createAgentHostCommandHandler,
-} from "../utility-process/command-handler.js";
+} from "../host/command-handler.js";
 
 export interface SocketAgentHostRuntime extends CommandHandlerRuntime {
   subscribe(listener: (event: PiDesktopAgentEvent) => void): () => void;
