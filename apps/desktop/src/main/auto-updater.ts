@@ -1,17 +1,20 @@
+import {
+  type ContractHandlerRegistrar,
+  registerContractHandler,
+  updatesContracts,
+} from "@pi-desktop/contracts";
+import { IPC_CHANNELS } from "@pi-desktop/shared";
 import type { BrowserWindow } from "electron";
 import { ipcMain } from "electron";
 import { autoUpdater } from "electron-updater";
 
-// TODO(A6): these channels are defined locally because packages/shared/src/ipc/channels.ts
-// is owned by agent A6. Once A6 adds an `updates` namespace to IPC_CHANNELS, replace
-// these string literals with IPC_CHANNELS.updates.*. Channel names below are the
-// canonical values agents downstream should expect.
+// Re-export for preload/tests that still import channel literals from auto-updater.
 export const UPDATE_IPC_CHANNELS = {
-  event: "updates:event",
-  getState: "updates:getState",
-  check: "updates:check",
-  download: "updates:download",
-  install: "updates:install",
+  event: IPC_CHANNELS.updates.event,
+  getState: IPC_CHANNELS.updates.getState,
+  check: IPC_CHANNELS.updates.check,
+  download: IPC_CHANNELS.updates.download,
+  install: IPC_CHANNELS.updates.install,
 } as const;
 
 // TODO(A3/A6): `autoDownloadUpdates` preference key is used here. Agent A3 (Settings Panel)
@@ -257,6 +260,44 @@ function errorMessageOf(err: unknown): string {
   return "Unknown updater error";
 }
 
+function createUpdaterContractRegistrar(): ContractHandlerRegistrar["handle"] {
+  return (channel, listener) => {
+    ipcMain.removeHandler(channel);
+    ipcMain.handle(channel, async (event, payload) => listener(event, payload));
+  };
+}
+
+function registerUpdaterContractHandlers(
+  handle: ContractHandlerRegistrar["handle"],
+  handlers: {
+    getState: () => UpdaterState;
+    check: () => Promise<UpdaterState>;
+    download: () => Promise<UpdaterState>;
+    install: () => UpdaterState;
+  },
+): void {
+  registerContractHandler({
+    handle,
+    contract: updatesContracts.getState,
+    handler: async () => handlers.getState(),
+  });
+  registerContractHandler({
+    handle,
+    contract: updatesContracts.check,
+    handler: async () => handlers.check(),
+  });
+  registerContractHandler({
+    handle,
+    contract: updatesContracts.download,
+    handler: async () => handlers.download(),
+  });
+  registerContractHandler({
+    handle,
+    contract: updatesContracts.install,
+    handler: async () => handlers.install(),
+  });
+}
+
 export function initAutoUpdater(
   options?: InitAutoUpdaterOptions,
 ): UpdaterRuntime {
@@ -279,14 +320,13 @@ export function initAutoUpdater(
       ...createInitialUpdaterState(),
       status: "idle" as const,
     };
-    const handle = (channel: string, handler: () => unknown) => {
-      ipcMain.removeHandler(channel);
-      ipcMain.handle(channel, async () => handler());
-    };
-    handle(UPDATE_IPC_CHANNELS.getState, () => devState);
-    handle(UPDATE_IPC_CHANNELS.check, () => devState);
-    handle(UPDATE_IPC_CHANNELS.download, () => devState);
-    handle(UPDATE_IPC_CHANNELS.install, () => devState);
+    const handle = createUpdaterContractRegistrar();
+    registerUpdaterContractHandlers(handle, {
+      getState: () => devState,
+      check: async () => devState,
+      download: async () => devState,
+      install: () => devState,
+    });
     return {
       getState: () => devState,
       dispose: () => {
@@ -421,26 +461,21 @@ export function initAutoUpdater(
 
   // IPC handlers (only wire if we got dependencies)
   if (options) {
-    const safeHandle = (
-      channel: string,
-      handler: () => Promise<unknown> | unknown,
-    ): void => {
-      ipcMain.removeHandler(channel);
-      ipcMain.handle(channel, async () => handler());
-    };
-
-    safeHandle(UPDATE_IPC_CHANNELS.getState, () => state);
-    safeHandle(UPDATE_IPC_CHANNELS.check, async () => {
-      await performCheck();
-      return state;
-    });
-    safeHandle(UPDATE_IPC_CHANNELS.download, async () => {
-      await performDownload();
-      return state;
-    });
-    safeHandle(UPDATE_IPC_CHANNELS.install, () => {
-      performInstall();
-      return state;
+    const handle = createUpdaterContractRegistrar();
+    registerUpdaterContractHandlers(handle, {
+      getState: () => state,
+      check: async () => {
+        await performCheck();
+        return state;
+      },
+      download: async () => {
+        await performDownload();
+        return state;
+      },
+      install: () => {
+        performInstall();
+        return state;
+      },
     });
   }
 

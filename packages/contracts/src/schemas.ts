@@ -201,7 +201,7 @@ const WorkspaceRecoveryDraftSchema = Schema.Struct({
   updatedAt: Schema.Number,
 });
 
-const WorkspaceSessionSchema = Schema.Struct({
+export const WorkspaceSessionSchema = Schema.Struct({
   worktreeId: Schema.String,
   layout: WindowLayoutStateSchema,
   sidebar: WorkspaceSidebarStateSchema,

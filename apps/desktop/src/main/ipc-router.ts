@@ -3,6 +3,7 @@ import {
   registerContractHandler,
   searchContracts,
   snapshotContracts,
+  windowContracts,
 } from "@pi-desktop/contracts";
 import {
   type AgentSnapshot,
@@ -373,10 +374,11 @@ export function registerIpcHandlers({
     },
   });
 
-  handle(
-    IPC_CHANNELS.window.getFullscreenState,
-    async () => mainWindow?.isFullScreen() ?? false,
-  );
+  registerContractHandler({
+    handle,
+    contract: windowContracts.getFullscreenState,
+    handler: async () => mainWindow?.isFullScreen() ?? false,
+  });
 
   registerContractHandler({
     handle,

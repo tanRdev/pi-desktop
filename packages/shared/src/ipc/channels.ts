@@ -98,6 +98,13 @@ export const IPC_CHANNELS = {
   clipboard: {
     writeText: "clipboard:writeText",
   },
+  updates: {
+    event: "updates:event",
+    getState: "updates:getState",
+    check: "updates:check",
+    download: "updates:download",
+    install: "updates:install",
+  },
 } as const;
 
 export type IpcChannels = typeof IPC_CHANNELS;
