@@ -1,19 +1,32 @@
+import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import {
   createEmptyWorkspaceSession,
+  DocumentCatalog,
+  type DocumentCatalogStore,
+  decodeVersionedEnvelope,
+  type VersionedEnvelope,
   type WorkspaceSession,
+  wrapEnvelope,
 } from "@pi-desktop/shared";
 import { PersistentJsonFile } from "./persistent-json-file";
 import { sanitizeWorkspaceWindow } from "./workspace-session-window-sanitizer";
 
-type WorkspaceSessionDocument = {
-  version: 1;
+const CURRENT_VERSION = 1;
+
+type WorkspaceSessionDocumentData = {
   sessions: WorkspaceSession[];
 };
 
-const DEFAULT_DOCUMENT: WorkspaceSessionDocument = {
-  version: 1,
+type WorkspaceSessionEnvelope = VersionedEnvelope<WorkspaceSessionDocumentData>;
+
+const DEFAULT_DATA: WorkspaceSessionDocumentData = {
   sessions: [],
+};
+
+const DEFAULT_ENVELOPE: WorkspaceSessionEnvelope = {
+  schemaVersion: CURRENT_VERSION,
+  data: DEFAULT_DATA,
 };
 
 function normalizePathId(value: string): string {
@@ -37,6 +50,26 @@ function getNumber(value: unknown): number | undefined {
 
 function getBoolean(value: unknown): boolean | undefined {
   return typeof value === "boolean" ? value : undefined;
+}
+
+function dropLegacySearchWindows(session: WorkspaceSession): WorkspaceSession {
+  const windows = session.layout.windows.filter(
+    (window) => window.kind !== "search",
+  );
+  const focusedWindowId =
+    session.layout.focusedWindowId &&
+    windows.some((window) => window.id === session.layout.focusedWindowId)
+      ? session.layout.focusedWindowId
+      : null;
+
+  return {
+    ...session,
+    layout: {
+      ...session.layout,
+      windows,
+      focusedWindowId,
+    },
+  };
 }
 
 export function sanitizeWorkspaceSession(
@@ -65,7 +98,7 @@ export function sanitizeWorkspaceSession(
     ? session.recoveryDrafts
     : {};
 
-  return {
+  return dropLegacySearchWindows({
     worktreeId: normalizedWorktreeId,
     layout: {
       windows: Array.isArray(layout.windows)
@@ -149,21 +182,160 @@ export function sanitizeWorkspaceSession(
         return [[key, { kind, text, updatedAt }]];
       }),
     ),
-  };
+  });
 }
 
+export function decodeWorkspaceSessionDocumentData(
+  raw: unknown,
+): WorkspaceSessionDocumentData | null {
+  if (!isRecord(raw)) {
+    return null;
+  }
+
+  const sessionsRaw = raw.sessions;
+  if (!Array.isArray(sessionsRaw)) {
+    return null;
+  }
+
+  const sessions = sessionsRaw.flatMap((session) => {
+    const sanitized = sanitizeWorkspaceSession(session);
+    return sanitized ? [sanitized] : [];
+  });
+
+  return { sessions };
+}
+
+function recoverCorruptFile(filePath: string): void {
+  if (!existsSync(filePath)) return;
+
+  let rawText: string;
+  try {
+    rawText = readFileSync(filePath, "utf8");
+  } catch {
+    return;
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(rawText);
+  } catch {
+    quarantine(filePath, rawText, "unparseable JSON");
+    return;
+  }
+
+  const result = decodeVersionedEnvelope<WorkspaceSessionDocumentData>(parsed, {
+    currentVersion: CURRENT_VERSION,
+    decode: decodeWorkspaceSessionDocumentData,
+  });
+
+  if (!result.ok) {
+    quarantine(filePath, rawText, `envelope decode failed: ${result.reason}`);
+  }
+}
+
+function quarantine(filePath: string, rawText: string, reason: string): void {
+  const siblingPath = `${filePath}.corrupt-${Date.now()}.json`;
+  try {
+    try {
+      renameSync(filePath, siblingPath);
+    } catch {
+      writeFileSync(siblingPath, rawText, "utf8");
+    }
+  } catch {
+    // best-effort
+  }
+  process.stderr.write(
+    `[workspace-session-catalog] corrupt workspace sessions file quarantined at ${siblingPath} (${reason})\n`,
+  );
+}
+
+class WorkspaceSessionStore
+  implements DocumentCatalogStore<WorkspaceSessionEnvelope>
+{
+  constructor(private readonly file: PersistentJsonFile<unknown>) {}
+
+  get(): WorkspaceSessionEnvelope {
+    return this.normalize(this.file.get());
+  }
+
+  update(
+    updater: (document: WorkspaceSessionEnvelope) => WorkspaceSessionEnvelope,
+  ): WorkspaceSessionEnvelope {
+    const next = updater(this.get());
+    this.file.set(next);
+    return next;
+  }
+
+  set(document: WorkspaceSessionEnvelope): WorkspaceSessionEnvelope {
+    this.file.set(document);
+    return this.get();
+  }
+
+  private normalize(raw: unknown): WorkspaceSessionEnvelope {
+    const result = decodeVersionedEnvelope<WorkspaceSessionDocumentData>(raw, {
+      currentVersion: CURRENT_VERSION,
+      decode: decodeWorkspaceSessionDocumentData,
+    });
+    if (result.ok) {
+      return wrapEnvelope(result.data, CURRENT_VERSION);
+    }
+    return wrapEnvelope(DEFAULT_DATA, CURRENT_VERSION);
+  }
+}
+
+function validatePersistedWorkspaceSessions(raw: unknown): raw is unknown {
+  if (!isRecord(raw)) return false;
+
+  if (typeof raw.schemaVersion === "number") {
+    return decodeWorkspaceSessionDocumentData(raw.data) !== null;
+  }
+
+  return decodeWorkspaceSessionDocumentData(raw) !== null;
+}
+
+type WorkspaceSessionMutation = (
+  sessions: WorkspaceSession[],
+) => WorkspaceSession[];
+
 export class WorkspaceSessionCatalog {
-  private readonly store: PersistentJsonFile<WorkspaceSessionDocument>;
+  private readonly store: WorkspaceSessionStore;
+  private readonly catalog: DocumentCatalog<
+    WorkspaceSessionEnvelope,
+    WorkspaceSession[],
+    WorkspaceSessionMutation
+  >;
 
   constructor(userDataPath: string) {
-    this.store = new PersistentJsonFile({
-      filePath: path.join(userDataPath, "catalog", "workspace-sessions.json"),
-      defaultValue: DEFAULT_DOCUMENT,
+    const filePath = path.join(
+      userDataPath,
+      "catalog",
+      "workspace-sessions.json",
+    );
+
+    recoverCorruptFile(filePath);
+
+    const file = new PersistentJsonFile<unknown>({
+      filePath,
+      defaultValue: DEFAULT_ENVELOPE,
+      validate: validatePersistedWorkspaceSessions,
+    });
+
+    this.store = new WorkspaceSessionStore(file);
+
+    this.catalog = new DocumentCatalog({
+      store: this.store,
+      select: (document) => document.data.sessions,
+      applyUpdate: (document, mutate) => ({
+        schemaVersion: CURRENT_VERSION,
+        data: {
+          sessions: mutate(document.data.sessions),
+        },
+      }),
     });
   }
 
   list(): WorkspaceSession[] {
-    return this.store.get().sessions;
+    return this.catalog.get();
   }
 
   get(worktreeId: string): WorkspaceSession | null {
@@ -182,22 +354,17 @@ export class WorkspaceSessionCatalog {
     }
     const normalizedWorktreeId = nextSession.worktreeId;
 
-    const nextState = this.store.update((state) => {
-      const sessions = state.sessions.filter(
+    const sessions = this.catalog.update((currentSessions) => {
+      const nextSessions = currentSessions.filter(
         (entry) => entry.worktreeId !== normalizedWorktreeId,
       );
-      sessions.push(nextSession);
-
-      return {
-        ...state,
-        sessions,
-      };
+      nextSessions.push(nextSession);
+      return nextSessions;
     });
 
     return (
-      nextState.sessions.find(
-        (entry) => entry.worktreeId === normalizedWorktreeId,
-      ) ?? nextSession
+      sessions.find((entry) => entry.worktreeId === normalizedWorktreeId) ??
+      nextSession
     );
   }
 
@@ -208,28 +375,22 @@ export class WorkspaceSessionCatalog {
     });
 
     return this.store.set({
-      version: 1,
-      sessions: normalizedSessions,
-    }).sessions;
+      schemaVersion: CURRENT_VERSION,
+      data: { sessions: normalizedSessions },
+    }).data.sessions;
   }
 
   remove(worktreeId: string): void {
     const normalizedWorktreeId = normalizePathId(worktreeId);
-    this.store.update((state) => ({
-      ...state,
-      sessions: state.sessions.filter(
-        (entry) => entry.worktreeId !== normalizedWorktreeId,
-      ),
-    }));
+    this.catalog.update((sessions) =>
+      sessions.filter((entry) => entry.worktreeId !== normalizedWorktreeId),
+    );
   }
 
   removeByWorktreeIds(worktreeIds: readonly string[]): void {
     const normalizedIds = new Set(worktreeIds.map(normalizePathId));
-    this.store.update((state) => ({
-      ...state,
-      sessions: state.sessions.filter(
-        (entry) => !normalizedIds.has(entry.worktreeId),
-      ),
-    }));
+    this.catalog.update((sessions) =>
+      sessions.filter((entry) => !normalizedIds.has(entry.worktreeId)),
+    );
   }
 }

@@ -1,6 +1,5 @@
 import type {
   LinkColor,
-  SearchResult,
   WindowState,
   WorkspaceWindow,
 } from "@pi-desktop/shared";
@@ -169,49 +168,6 @@ export function sanitizeWorkspaceWindow(
             ...base,
             kind,
             repositoryPath,
-          }
-        : null;
-    }
-    case "search": {
-      const query = getString(input.query);
-      const results = Array.isArray(input.results)
-        ? input.results.flatMap((entry) => {
-            if (!isRecord(entry)) {
-              return [];
-            }
-            const pathValue = getString(entry.path);
-            const name = getString(entry.name);
-            const score = getNumber(entry.score);
-            const type =
-              entry.type === "file" || entry.type === "directory"
-                ? entry.type
-                : undefined;
-            if (
-              !pathValue ||
-              !name ||
-              score === undefined ||
-              type === undefined
-            ) {
-              return [];
-            }
-            const sanitizedResult: SearchResult = {
-              path: pathValue,
-              name,
-              score,
-              type,
-              ...(getString(entry.extension)
-                ? { extension: getString(entry.extension) }
-                : {}),
-            };
-            return [sanitizedResult];
-          })
-        : null;
-      return query !== undefined && results !== null
-        ? {
-            ...base,
-            kind,
-            query,
-            results,
           }
         : null;
     }

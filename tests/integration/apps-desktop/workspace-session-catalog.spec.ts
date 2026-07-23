@@ -1,7 +1,14 @@
-import { mkdtempSync, rmSync } from "node:fs";
+import {
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { flushAllPersistentJsonFiles } from "../../../apps/desktop/src/main/persistent-json-file";
 import { WorkspaceSessionCatalog } from "../../../apps/desktop/src/main/workspace-session-catalog";
 import { createEmptyWorkspaceSession } from "../../../packages/shared/src";
 
@@ -13,6 +20,10 @@ function createUserDataPath(): string {
   );
   tempDirs.push(directory);
   return directory;
+}
+
+function catalogFilePath(userDataPath: string): string {
+  return path.join(userDataPath, "catalog", "workspace-sessions.json");
 }
 
 afterEach(() => {
@@ -153,5 +164,131 @@ describe("WorkspaceSessionCatalog", () => {
     };
 
     expect(catalog.get("/tmp/work/repo-one/feature")).toEqual(expectedSession);
+  });
+
+  it("loads a legacy unversioned file and rewrites it with an envelope on next save", async () => {
+    const userDataPath = createUserDataPath();
+    const filePath = catalogFilePath(userDataPath);
+    const session = createEmptyWorkspaceSession("/tmp/work/repo-one/feature");
+    session.sidebar = { activePanel: "notes", isCollapsed: false };
+
+    const fs = await import("node:fs");
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    writeFileSync(
+      filePath,
+      JSON.stringify({ version: 1, sessions: [session] }),
+      "utf8",
+    );
+
+    const catalog = new WorkspaceSessionCatalog(userDataPath);
+    expect(catalog.get("/tmp/work/repo-one/feature")).toEqual(session);
+
+    catalog.save({
+      ...session,
+      search: { query: "updated", selectedPath: null },
+    });
+    await flushAllPersistentJsonFiles();
+
+    const parsed = JSON.parse(readFileSync(filePath, "utf8"));
+    expect(parsed).toMatchObject({
+      schemaVersion: 1,
+      data: {
+        sessions: [
+          {
+            ...session,
+            search: { query: "updated", selectedPath: null },
+          },
+        ],
+      },
+    });
+  });
+
+  it("drops legacy search windows on load and repairs focusedWindowId", async () => {
+    const userDataPath = createUserDataPath();
+    const filePath = catalogFilePath(userDataPath);
+    const session = createEmptyWorkspaceSession("/tmp/work/repo-one/feature");
+    session.layout.windows = [
+      {
+        id: "search-1",
+        kind: "search",
+        title: "Search",
+        x: 24,
+        y: 36,
+        width: 640,
+        height: 480,
+        zIndex: 2,
+        isFocused: true,
+        state: "normal",
+        query: "legacy",
+        results: [],
+      },
+      {
+        id: "chat-1",
+        kind: "chat",
+        title: "Chat",
+        x: 40,
+        y: 50,
+        width: 800,
+        height: 600,
+        zIndex: 1,
+        isFocused: false,
+        state: "normal",
+        threadId: "thread-1",
+      },
+    ];
+    session.layout.focusedWindowId = "search-1";
+
+    const fs = await import("node:fs");
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    writeFileSync(
+      filePath,
+      JSON.stringify({ version: 1, sessions: [session] }),
+      "utf8",
+    );
+
+    const expectedSession = createEmptyWorkspaceSession(
+      "/tmp/work/repo-one/feature",
+    );
+    expectedSession.layout.windows = [
+      {
+        id: "chat-1",
+        kind: "chat",
+        title: "Chat",
+        x: 40,
+        y: 50,
+        width: 800,
+        height: 600,
+        zIndex: 1,
+        isFocused: false,
+        state: "normal",
+        threadId: "thread-1",
+      },
+    ];
+    expectedSession.layout.focusedWindowId = null;
+
+    const catalog = new WorkspaceSessionCatalog(userDataPath);
+    expect(catalog.get("/tmp/work/repo-one/feature")).toEqual(expectedSession);
+  });
+
+  it("recovers to defaults when the persisted file is corrupt and quarantines the bad file", async () => {
+    const userDataPath = createUserDataPath();
+    const filePath = catalogFilePath(userDataPath);
+    const fs = await import("node:fs");
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    writeFileSync(filePath, "{{{not-json", "utf8");
+
+    const warn = vi
+      .spyOn(process.stderr, "write")
+      .mockImplementation(() => true);
+
+    const catalog = new WorkspaceSessionCatalog(userDataPath);
+    expect(catalog.list()).toEqual([]);
+
+    warn.mockRestore();
+
+    const siblings = readdirSync(path.dirname(filePath)).filter((entry) =>
+      entry.startsWith("workspace-sessions.json.corrupt-"),
+    );
+    expect(siblings.length).toBe(1);
   });
 });
