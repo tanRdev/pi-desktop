@@ -400,31 +400,32 @@ describe("filesystem handlers - end-to-end security", () => {
   });
 
   it("readFile rejects missing path with stable code", async () => {
-    const { PayloadValidationError } = await loadPayloadParsers();
+    const { ContractError } = await import(
+      "../../../packages/contracts/src/contract-runtime"
+    );
     const listener = handlers.get("fs:readFile");
     if (!listener) throw new Error("handler not registered");
-    try {
-      await listener(undefined, {});
-      throw new Error("expected PayloadValidationError");
-    } catch (error) {
-      expect(error).toBeInstanceOf(PayloadValidationError);
-    }
+    await expect(listener(undefined, {})).rejects.toMatchObject({
+      code: "contract/encode-failed",
+    });
+    await expect(listener(undefined, {})).rejects.toBeInstanceOf(ContractError);
   });
 
   it("writeFile rejects oversized content", async () => {
-    const { PayloadValidationError } = await loadPayloadParsers();
+    const { ContractError } = await import(
+      "../../../packages/contracts/src/contract-runtime"
+    );
     const listener = handlers.get("fs:writeFile");
     if (!listener) throw new Error("handler not registered");
     const giant = "a".repeat(11 * 1024 * 1024);
-    try {
-      await listener(undefined, { path: "big.txt", content: giant });
-      throw new Error("expected PayloadValidationError");
-    } catch (error) {
-      expect(error).toBeInstanceOf(PayloadValidationError);
-      if (error instanceof PayloadValidationError) {
-        expect(error.code).toBe("payload/string-too-large");
-      }
-    }
+    await expect(
+      listener(undefined, { path: "big.txt", content: giant }),
+    ).rejects.toMatchObject({
+      code: "contract/encode-failed",
+    });
+    await expect(
+      listener(undefined, { path: "big.txt", content: giant }),
+    ).rejects.toBeInstanceOf(ContractError);
   });
 
   it("readFile accepts a valid path inside the root", async () => {

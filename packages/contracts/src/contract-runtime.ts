@@ -245,7 +245,10 @@ export function registerContractHandler<TRequest, TResponse>({
 }: {
   readonly handle: ContractHandlerRegistrar["handle"];
   readonly contract: IpcContract<TRequest, TResponse>;
-  readonly handler: (request: TRequest) => Promise<TResponse> | TResponse;
+  readonly handler: (
+    request: TRequest,
+    event?: unknown,
+  ) => Promise<TResponse> | TResponse;
 }): void {
   const decodeRequest = Schema.decodeUnknownSync(contract.request);
   const decodeResponse = Schema.decodeUnknownSync(contract.response);
@@ -253,7 +256,7 @@ export function registerContractHandler<TRequest, TResponse>({
     contract.request as Schema.Schema<unknown>,
   );
 
-  handle(contract.channel, async (_event, payload) => {
+  handle(contract.channel, async (event, payload) => {
     let request: TRequest;
     try {
       request = requestIsVoid
@@ -267,7 +270,7 @@ export function registerContractHandler<TRequest, TResponse>({
       );
     }
 
-    const result = await handler(request);
+    const result = await handler(request, event);
 
     try {
       return decodeResponse(result);

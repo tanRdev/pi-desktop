@@ -1296,7 +1296,7 @@ describe("registerIpcHandlers", () => {
     ).rejects.toThrow(/ownerWindowId/);
   });
 
-  it("fs.readDirectory malformed payload should resolve a typed error object instead of throwing", async () => {
+  it("fs.readDirectory malformed payload rejects at the contract seam", async () => {
     const harness = createHandlerHarness();
 
     registerIpcHandlers({
@@ -1308,13 +1308,9 @@ describe("registerIpcHandlers", () => {
 
     await expect(
       harness.handlers.get(IPC_CHANNELS.fs.readDirectory)?.(undefined, {}),
-    ).resolves.toEqual(
-      expect.objectContaining({
-        success: false,
-        error: expect.stringContaining("path"),
-        code: expect.stringMatching(/^payload\//),
-      }),
-    );
+    ).rejects.toMatchObject({
+      code: "contract/encode-failed",
+    });
   });
 
   it("fs.readDirectory outside workspace root should not call node:fs and should resolve a typed error", async () => {
@@ -1846,7 +1842,9 @@ describe("fs.writeFile size cap", () => {
         path: "notes/huge.md",
         content: oversized,
       }),
-    ).rejects.toThrow(/writeFile payload exceeds maximum size/i);
+    ).rejects.toMatchObject({
+      code: "contract/encode-failed",
+    });
 
     expect(nodeFsPromises.mkdir).not.toHaveBeenCalled();
     expect(nodeFsPromises.writeFile).not.toHaveBeenCalled();
@@ -1902,7 +1900,9 @@ describe("terminal.write size cap", () => {
         id: "sess-1",
         data: oversized,
       }),
-    ).rejects.toThrow(/terminal\.write data exceeds maximum size/i);
+    ).rejects.toMatchObject({
+      code: "contract/encode-failed",
+    });
 
     expect(tmMock.write).not.toHaveBeenCalled();
   });

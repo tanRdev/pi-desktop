@@ -98,7 +98,10 @@ describe("terminal handlers - session ID validation", () => {
     );
   });
 
-  it("terminal handlers reject non-string session IDs via getStringField", async () => {
+  it("terminal handlers reject invalid payloads at the contract seam", async () => {
+    const { ContractError } = await import(
+      "../../../packages/contracts/src/contract-runtime"
+    );
     const { registerTerminalHandlers } = await import(
       "../../../apps/desktop/src/main/ipc/register-terminal-handlers"
     );
@@ -130,20 +133,28 @@ describe("terminal handlers - session ID validation", () => {
 
     const writeHandler = handlers.get("terminal:write");
     if (!writeHandler) throw new Error("terminal:write handler not registered");
-    await expect(writeHandler({}, { id: 123, data: "hi" })).rejects.toThrow();
-    await expect(writeHandler({}, { data: "hi" })).rejects.toThrow();
+    await expect(
+      writeHandler({}, { id: 123, data: "hi" }),
+    ).rejects.toMatchObject({ code: "contract/encode-failed" });
+    await expect(writeHandler({}, { data: "hi" })).rejects.toMatchObject({
+      code: "contract/encode-failed",
+    });
 
     const resizeHandler = handlers.get("terminal:resize");
     if (!resizeHandler)
       throw new Error("terminal:resize handler not registered");
     await expect(
       resizeHandler({}, { id: true, cols: 80, rows: 24 }),
-    ).rejects.toThrow();
+    ).rejects.toMatchObject({ code: "contract/encode-failed" });
 
     const destroyHandler = handlers.get("terminal:destroy");
     if (!destroyHandler)
       throw new Error("terminal:destroy handler not registered");
-    await expect(destroyHandler({}, { id: null })).rejects.toThrow();
+    await expect(destroyHandler({}, { id: null })).rejects.toMatchObject({
+      code: "contract/encode-failed",
+    });
+
+    void ContractError;
   });
 });
 
