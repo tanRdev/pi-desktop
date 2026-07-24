@@ -3,6 +3,10 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ThemeProvider } from "@/lib/theme";
+import {
+  installMockPiDesktop,
+  uninstallMockPiDesktop,
+} from "../../../../test/mock-pi-desktop";
 import { SettingsDialog } from "./settings-dialog";
 import { DEFAULT_UI_SETTINGS, UI_SETTINGS_STORAGE_KEY } from "./use-settings";
 
@@ -35,6 +39,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  uninstallMockPiDesktop();
   window.localStorage.clear();
   vi.restoreAllMocks();
 });
@@ -114,12 +119,21 @@ describe("SettingsDialog", () => {
     }
   });
 
-  it("omits updates and keeps the danger zone section", async () => {
+  it("exposes updates auto-download and keeps the danger zone section", async () => {
     const user = userEvent.setup();
+    installMockPiDesktop({
+      state: {
+        getAppPreferences: vi.fn(async () => ({
+          autoDownloadUpdates: false,
+        })),
+        updateAppPreferences: vi.fn(async (updates) => updates),
+      },
+    });
     renderDialog();
 
-    expect(screen.queryByTestId("settings-tab-updates")).toBeNull();
-    expect(screen.queryByText(/Desktop updates/i)).toBeNull();
+    expect(screen.getByTestId("settings-tab-updates")).toBeInTheDocument();
+    await user.click(screen.getByTestId("settings-tab-updates"));
+    expect(screen.getByText(/Auto-download updates/i)).toBeInTheDocument();
 
     await user.click(screen.getByTestId("settings-tab-danger-zone"));
     expect(

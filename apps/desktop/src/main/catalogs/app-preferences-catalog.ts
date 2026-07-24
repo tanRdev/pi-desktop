@@ -49,16 +49,24 @@ function isAiPreferences(value: unknown): value is AppPreferences["ai"] {
   return providerOk && modelOk;
 }
 
+function isOptionalBooleanOrNull(
+  value: unknown,
+): value is boolean | null | undefined {
+  return value === undefined || value === null || typeof value === "boolean";
+}
+
 export function decodeAppPreferences(raw: unknown): AppPreferences | null {
   if (!isRecord(raw)) return null;
 
   const leftSidebarWidth = raw.leftSidebarWidth;
   const ai = raw.ai;
   const favoriteModels = raw.favoriteModels;
+  const autoDownloadUpdates = raw.autoDownloadUpdates;
 
   if (!isOptionalNumberOrNull(leftSidebarWidth)) return null;
   if (!isAiPreferences(ai)) return null;
   if (!isStringArrayOrNull(favoriteModels)) return null;
+  if (!isOptionalBooleanOrNull(autoDownloadUpdates)) return null;
 
   const result: AppPreferences = {};
   if (leftSidebarWidth !== undefined) {
@@ -69,6 +77,9 @@ export function decodeAppPreferences(raw: unknown): AppPreferences | null {
   }
   if (favoriteModels !== undefined) {
     result.favoriteModels = favoriteModels;
+  }
+  if (autoDownloadUpdates !== undefined) {
+    result.autoDownloadUpdates = autoDownloadUpdates;
   }
   return result;
 }
@@ -119,11 +130,16 @@ function mergeAppPreferences(
     updates.favoriteModels === undefined
       ? current.favoriteModels
       : updates.favoriteModels;
+  const autoDownloadUpdates =
+    updates.autoDownloadUpdates === undefined
+      ? current.autoDownloadUpdates
+      : updates.autoDownloadUpdates;
 
   return {
     ...(leftSidebarWidth === undefined ? {} : { leftSidebarWidth }),
     ...(nextAi === undefined ? {} : { ai: nextAi }),
     ...(favoriteModels === undefined ? {} : { favoriteModels }),
+    ...(autoDownloadUpdates === undefined ? {} : { autoDownloadUpdates }),
   };
 }
 

@@ -668,6 +668,8 @@ export async function bootstrapDesktop() {
       return mainWindow;
     },
     initAutoUpdater,
+    shouldAutoDownloadUpdates: () =>
+      appPreferencesCatalog.get().autoDownloadUpdates === true,
     terminalManager,
     flushPersistentState: flushAllPersistentJsonFiles,
     unsubscribeHost: () => {

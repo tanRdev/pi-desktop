@@ -91,16 +91,18 @@ export const AppPreferencesSchema = Schema.Struct({
   leftSidebarWidth: Schema.optional(Schema.NullOr(finiteNumberSchema())),
   ai: Schema.optional(Schema.NullOr(AiPreferencesSchema)),
   favoriteModels: Schema.optional(Schema.NullOr(mutableArray(Schema.String))),
+  autoDownloadUpdates: Schema.optional(Schema.NullOr(Schema.Boolean)),
 }) satisfies Schema.Schema<AppPreferences>;
 
 const AppPreferencesUpdatesSchema = createStrictObjectSchema<
   Partial<AppPreferences>
 >(
-  new Set(["leftSidebarWidth", "ai", "favoriteModels"]),
+  new Set(["leftSidebarWidth", "ai", "favoriteModels", "autoDownloadUpdates"]),
   {
     leftSidebarWidth: Schema.optional(Schema.NullOr(finiteNumberSchema())),
     ai: Schema.optional(Schema.NullOr(AiPreferencesSchema)),
     favoriteModels: Schema.optional(Schema.NullOr(mutableArray(Schema.String))),
+    autoDownloadUpdates: Schema.optional(Schema.NullOr(Schema.Boolean)),
   },
   { acceptMissing: true },
 );

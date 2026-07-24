@@ -19,6 +19,8 @@ export interface AppPreferences {
   leftSidebarWidth?: number | null;
   ai?: AiPreferences | null;
   favoriteModels?: string[] | null;
+  /** When true, download updates automatically once available. */
+  autoDownloadUpdates?: boolean | null;
 }
 
 export interface WorkspaceSidebarState {

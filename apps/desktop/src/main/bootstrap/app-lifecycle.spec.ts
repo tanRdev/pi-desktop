@@ -87,6 +87,40 @@ describe("registerDesktopAppLifecycle", () => {
     expect(quit).not.toHaveBeenCalled();
   });
 
+  it("reads auto-download consent from shouldAutoDownloadUpdates", () => {
+    const initAutoUpdater = vi.fn();
+
+    registerDesktopAppLifecycle({
+      app: {
+        isPackaged: true,
+        once: vi.fn(),
+        on: vi.fn(),
+        exit: vi.fn(),
+        quit: vi.fn(),
+      },
+      browserWindow: {
+        getAllWindows: vi.fn(() => []),
+      },
+      getMainWindow: () => null,
+      createTrackedMainWindow: vi.fn(async () => ({ id: "w" })),
+      initAutoUpdater,
+      shouldAutoDownloadUpdates: () => true,
+      terminalManager: {
+        destroyAllAsync: vi.fn(async () => undefined),
+      },
+      flushPersistentState: vi.fn(async () => undefined),
+      unsubscribeHost: vi.fn(),
+      closeCurrentTransport: vi.fn(),
+      shouldQuitWhenAllWindowsClosed: vi.fn(() => true),
+      env: {},
+      platform: "darwin",
+      logShutdownError: vi.fn(),
+    });
+
+    const updaterInput = initAutoUpdater.mock.calls[0]?.[0];
+    expect(updaterInput?.consent.shouldAutoDownload()).toBe(true);
+  });
+
   it("registers the stub updater in development and recreates the main window on activate", async () => {
     const activateHandlers: Array<() => Promise<void> | void> = [];
     const initAutoUpdater = vi.fn();

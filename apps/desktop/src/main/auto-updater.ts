@@ -17,10 +17,7 @@ export const UPDATE_IPC_CHANNELS = {
   install: IPC_CHANNELS.updates.install,
 } as const;
 
-// TODO(A3/A6): `autoDownloadUpdates` preference key is used here. Agent A3 (Settings Panel)
-// and A6 (shared models) should extend AppPreferences with this optional boolean. Until
-// then we consult the raw preferences map via a duck-typed accessor so this code compiles
-// without touching the shared model.
+// `autoDownloadUpdates` lives on AppPreferences and is read via consent.shouldAutoDownload().
 
 // ---------------------------------------------------------------------------
 // Pure state machine (exported for tests)

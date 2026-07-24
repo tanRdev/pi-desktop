@@ -149,11 +149,18 @@ export function mergeAppPreferences(
         ? base.favoriteModels
         : updates.favoriteModels
       : response.favoriteModels;
+  const autoDownloadUpdates =
+    response?.autoDownloadUpdates === undefined
+      ? updates.autoDownloadUpdates === undefined
+        ? base.autoDownloadUpdates
+        : updates.autoDownloadUpdates
+      : response.autoDownloadUpdates;
 
   return {
     ...(leftSidebarWidth === undefined ? {} : { leftSidebarWidth }),
     ...(ai === undefined ? {} : { ai }),
     ...(favoriteModels === undefined ? {} : { favoriteModels }),
+    ...(autoDownloadUpdates === undefined ? {} : { autoDownloadUpdates }),
   };
 }
 
@@ -194,6 +201,9 @@ export function normalizeAppPreferenceUpdates(
     ai: mergeAiPreferenceUpdates(currentNormalizedPreferences.ai, updates.ai),
     ...(updates.favoriteModels !== undefined
       ? { favoriteModels: updates.favoriteModels }
+      : {}),
+    ...(updates.autoDownloadUpdates !== undefined
+      ? { autoDownloadUpdates: updates.autoDownloadUpdates }
       : {}),
   };
 }

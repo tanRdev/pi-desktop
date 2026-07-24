@@ -1,3 +1,4 @@
+import type { PiDesktopApi } from "@pi-desktop/shared";
 import { useCallback, useEffect, useState } from "react";
 
 // Mirrors apps/desktop/src/main/auto-updater.ts without importing from main.
@@ -128,28 +129,23 @@ function asSubscribe(value: unknown): UpdatesBridge["subscribe"] {
 }
 
 function getBridge(): UpdatesBridge | null {
-  // TODO(A6): remove this duck-typed lookup once window.piDesktop.updates is
-  // formally exposed by the preload API. Until then we scan the injected API
-  // surface so this hook degrades gracefully on older builds.
   if (typeof window === "undefined") {
     return null;
   }
-  const api: unknown = window.piDesktop;
-  if (!isRecord(api) || !("updates" in api)) {
-    return null;
-  }
+  const api = window.piDesktop as PiDesktopApi & {
+    updates?: Record<string, unknown>;
+  };
   const candidate = api.updates;
-  if (!isRecord(candidate)) {
+  if (!candidate) {
     return null;
   }
-  const bridge: UpdatesBridge = {
+  return {
     getState: asGetState(candidate.getState),
     check: asActionCall(candidate.check),
     download: asActionCall(candidate.download),
     install: asInstall(candidate.install),
     subscribe: asSubscribe(candidate.subscribe),
   };
-  return bridge;
 }
 
 function initialState(): UpdaterState {

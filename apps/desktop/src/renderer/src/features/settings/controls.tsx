@@ -63,11 +63,13 @@ export function SettingsToggle({
   checked,
   onChange,
   label,
+  disabled,
 }: {
   id?: string;
   checked: boolean;
   onChange: (next: boolean) => void;
   label?: string;
+  disabled?: boolean;
 }) {
   return (
     <button
@@ -76,9 +78,11 @@ export function SettingsToggle({
       role="switch"
       aria-checked={checked}
       aria-label={label}
+      disabled={disabled}
       onClick={() => onChange(!checked)}
       className={cn(
         "relative inline-flex h-4 w-7 shrink-0 items-center border transition-colors",
+        "disabled:opacity-50",
         checked
           ? "bg-white/60 border-white/60"
           : "bg-white/[0.06] border-white/[0.08] hover:border-white/[0.14]",

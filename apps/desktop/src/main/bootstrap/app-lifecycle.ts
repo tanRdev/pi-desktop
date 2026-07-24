@@ -29,6 +29,7 @@ type RegisterDesktopAppLifecycleInput<TWindow> = {
   getMainWindow(): TWindow | null;
   createTrackedMainWindow(): Promise<TWindow>;
   initAutoUpdater(options?: AutoUpdaterOptions<TWindow>): void;
+  shouldAutoDownloadUpdates?: () => boolean;
   terminalManager: {
     destroyAllAsync(): Promise<void>;
   };
@@ -53,7 +54,7 @@ export function registerDesktopAppLifecycle<TWindow>(
         getMainWindow: input.getMainWindow,
       },
       consent: {
-        shouldAutoDownload: () => false,
+        shouldAutoDownload: () => input.shouldAutoDownloadUpdates?.() === true,
       },
     });
   } else {

@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  Download,
   Faders,
   Gear,
   PaintBrush,
@@ -18,9 +19,15 @@ import { AppearanceSection } from "./sections/appearance";
 import { DangerZoneSection } from "./sections/danger-zone";
 import { EditorSection } from "./sections/editor";
 import { TerminalSection } from "./sections/terminal";
+import { UpdatesSection } from "./sections/updates";
 import { useSettings } from "./use-settings";
 
-type SectionId = "appearance" | "editor" | "terminal" | "danger-zone";
+type SectionId =
+  | "appearance"
+  | "editor"
+  | "terminal"
+  | "updates"
+  | "danger-zone";
 
 const SECTIONS: Array<{
   id: SectionId;
@@ -30,6 +37,7 @@ const SECTIONS: Array<{
   { id: "appearance", label: "Appearance", Icon: PaintBrush },
   { id: "editor", label: "Editor", Icon: Faders },
   { id: "terminal", label: "Terminal", Icon: TerminalWindow },
+  { id: "updates", label: "Updates", Icon: Download },
   { id: "danger-zone", label: "Danger zone", Icon: ShieldLock },
 ];
 
@@ -101,6 +109,7 @@ export function SettingsDialog({
             {activeSection === "terminal" ? (
               <TerminalSection settings={settings} update={update} />
             ) : null}
+            {activeSection === "updates" ? <UpdatesSection /> : null}
             {activeSection === "danger-zone" ? (
               <DangerZoneSection onResetPreferences={reset} />
             ) : null}
