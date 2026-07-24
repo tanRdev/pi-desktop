@@ -153,7 +153,7 @@ The renderer has no direct access to Node.js APIs; all native operations go thro
 ### Data Layer
 
 **Catalogs**
-The desktop app persists repository, thread, workspace, and preference state through catalog classes in `apps/desktop/src/main/`. Historical refactor notes live in [`docs/archive/REFACTOR.md`](./docs/archive/REFACTOR.md); current direction is local agent docs (`CONTEXT.md`, `docs/adr/`).
+The desktop app persists repository, thread, workspace, and preference state through catalog classes in `apps/desktop/src/main/`.
 
 **State Flow**
 ```

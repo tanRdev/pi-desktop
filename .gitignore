@@ -17,3 +17,14 @@ test-results/
 .pidesk-agent/
 .superset/
 apps/desktop/build/
+
+# Local agent / planning artifacts (not published)
+.scratch/
+CONTEXT.md
+CONTEXT-MAP.md
+AGENTS.md
+docs/agents/
+docs/adr/
+docs/archive/
+REFACTOR.md
+
