@@ -96,8 +96,16 @@ vi.mock("@/components/ui/scroll-button", () => ({
 }));
 
 vi.mock("@/components/ui/system-message", () => ({
-  SystemMessage({ children }: React.PropsWithChildren) {
-    return <div data-testid="system-message">{children}</div>;
+  SystemMessage({
+    title,
+    children,
+  }: React.PropsWithChildren<{ title?: string }>) {
+    return (
+      <div data-testid="system-message">
+        {title ? <div>{title}</div> : null}
+        {children}
+      </div>
+    );
   },
 }));
 
@@ -159,8 +167,43 @@ describe("ChatThreadPanel", () => {
       "items-center",
       "justify-center",
     );
-    expect(emptyState).toHaveTextContent("Start a conversation with Pi.");
+    expect(emptyState).toHaveTextContent("Start a Thread with Pi");
+    expect(emptyState).toHaveTextContent(/Ask about this Repository/);
     expect(screen.queryByTestId("chat-scroll-anchor")).not.toBeInTheDocument();
+  });
+
+  it("exposes retry from the error banner using classified guidance", () => {
+    const onRetryLastUserMessage = vi.fn();
+
+    render(
+      <TooltipProvider>
+        <ChatThreadPanel
+          threadTitle="Signal"
+          messages={[
+            {
+              id: "user-1",
+              role: "user",
+              text: "hello world",
+              status: "complete",
+              timestamp: 1,
+            },
+          ]}
+          isStreaming={false}
+          lastError="OAuth login failed: Unauthorized 401"
+          onRetryLastUserMessage={onRetryLastUserMessage}
+        />
+      </TooltipProvider>,
+    );
+
+    expect(screen.getByTestId("chat-error-banner")).toHaveTextContent(
+      "Sign-in required",
+    );
+    expect(screen.getByTestId("chat-error-banner")).not.toHaveTextContent(
+      "Unauthorized 401",
+    );
+
+    screen.getByTestId("chat-error-retry").click();
+    expect(onRetryLastUserMessage).toHaveBeenCalledWith("hello world");
   });
 
   it("uses tighter transcript spacing for message rows", () => {

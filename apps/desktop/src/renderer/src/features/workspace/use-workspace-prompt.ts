@@ -77,6 +77,7 @@ export interface WorkspacePromptController {
   isPromptVisible: boolean;
   promptMode: PromptMode;
   handleSend: () => Promise<void>;
+  handleRetryLastUserMessage: (text: string) => void;
   handleCancelPrompt: () => Promise<void>;
   handleAutocompleteSelect: (
     suggestion: SlashSuggestion | MentionSuggestion,
@@ -330,6 +331,25 @@ export function useWorkspacePrompt({
     void sendPrompt();
   }, [activeThreadId, canSend, draft, openOAuthDialog, sendPrompt, setDraft]);
 
+  const handleRetryLastUserMessage = React.useCallback(
+    (text: string) => {
+      const trimmed = text.trim();
+      if (
+        !trimmed ||
+        !activeThreadId ||
+        agentStatus === "starting" ||
+        agentStatus === "streaming"
+      ) {
+        return;
+      }
+
+      setDraft(trimmed);
+      setPendingPromptThreadId(activeThreadId);
+      void sendPrompt();
+    },
+    [activeThreadId, agentStatus, sendPrompt, setDraft],
+  );
+
   const handlePromptModeChange = React.useCallback(
     (nextMode: PromptMode) => {
       setPromptMode(nextMode);
@@ -371,6 +391,7 @@ export function useWorkspacePrompt({
     isPromptVisible,
     promptMode,
     handleSend,
+    handleRetryLastUserMessage,
     handleCancelPrompt,
     handleAutocompleteSelect,
     handleAutocompleteHover,

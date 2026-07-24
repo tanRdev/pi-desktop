@@ -29,6 +29,8 @@ export interface ChatThreadTranscriptTurnProps {
   turn: ChatThreadTurn;
   onCopyMessage: (text: string) => void;
   getMessageTokens?: (messageId: string) => number | null | undefined;
+  isFailedLastUser?: boolean;
+  onRetryLastUserMessage?: (text: string) => void;
 }
 
 const FILE_MUTATION_PREFIXES = ["write", "edit", "create", "delete"];
@@ -252,6 +254,8 @@ export const ChatThreadTranscriptTurn = React.memo(
     turn,
     onCopyMessage,
     getMessageTokens,
+    isFailedLastUser,
+    onRetryLastUserMessage,
   }: ChatThreadTranscriptTurnProps) {
     const toolMessages = turn.messages.filter(
       (message) => message.role === "tool",
@@ -268,6 +272,11 @@ export const ChatThreadTranscriptTurn = React.memo(
     let runningIndex = 0;
     const renderMessage = (message: AgentMessageSnapshot) => {
       const index = runningIndex++;
+      const isUserRetryTarget =
+        Boolean(isFailedLastUser) &&
+        message.role === "user" &&
+        message.id === turn.userMessage?.id;
+
       return (
         <ChatMessageRow
           key={message.id}
@@ -275,6 +284,12 @@ export const ChatThreadTranscriptTurn = React.memo(
           index={index}
           onCopyMessage={onCopyMessage}
           userTimestamp={turn.userMessage?.timestamp}
+          isFailedLastUser={isUserRetryTarget}
+          onRetry={
+            isUserRetryTarget && turn.userMessage?.text
+              ? () => onRetryLastUserMessage?.(turn.userMessage!.text)
+              : undefined
+          }
           tokens={
             message.role === "assistant"
               ? getMessageTokens?.(message.id)

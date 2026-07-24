@@ -8,6 +8,7 @@ import { Skeleton } from "boneyard-js/react";
 import * as React from "react";
 import type { ActivityIndicatorProps } from "@/components/ui/activity-indicator";
 import { SystemMessage } from "@/components/ui/system-message";
+import { describeChatError } from "./chat/chat-error";
 import type { ChatThreadTurn } from "./chat/chat-thread-turns";
 import { ResponseDivider } from "./chat/response-divider";
 import { ChatThreadTranscriptTurn } from "./chat-thread-transcript-turn";
@@ -18,20 +19,6 @@ const CHAT_SUGGESTIONS: ReadonlyArray<string> = [
   "Add a feature",
   "Find a bug",
 ];
-
-function getLastErrorTitle(lastError: string): string {
-  const normalized = lastError.toLowerCase();
-
-  if (normalized.includes("token")) {
-    return "Token limit reached";
-  }
-
-  if (normalized.includes("model")) {
-    return "Model error";
-  }
-
-  return "Error";
-}
 
 function MessageSkeleton() {
   return (
@@ -53,6 +40,7 @@ export interface ChatThreadTranscriptProps {
   isStreaming: boolean;
   lastError: string | null;
   onCopyMessage: (text: string) => void;
+  onRetryLastUserMessage?: (text: string) => void;
   getMessageTokens?: (messageId: string) => number | null | undefined;
 }
 
@@ -92,6 +80,18 @@ export function detectRunningActivities(
   return activities;
 }
 
+function findLastUserMessageText(
+  messages: AgentMessageSnapshot[],
+): string | null {
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = messages[index];
+    if (message?.role === "user" && message.text.trim()) {
+      return message.text;
+    }
+  }
+  return null;
+}
+
 export function ChatThreadTranscript({
   messages,
   turns,
@@ -99,6 +99,7 @@ export function ChatThreadTranscript({
   isStreaming,
   lastError,
   onCopyMessage,
+  onRetryLastUserMessage,
   getMessageTokens,
 }: ChatThreadTranscriptProps) {
   const lastTurn = turns.length > 0 ? turns[turns.length - 1] : undefined;
@@ -114,6 +115,12 @@ export function ChatThreadTranscript({
       isStreaming);
   const hasConversationState =
     messages.length > 0 || isStreaming || lastError !== null;
+  const lastUserMessageText = findLastUserMessageText(messages);
+  const canRetryLastUser =
+    Boolean(onRetryLastUserMessage) &&
+    Boolean(lastError) &&
+    Boolean(lastUserMessageText);
+  const errorPresentation = lastError ? describeChatError(lastError) : null;
 
   return (
     <ChatContainerContent
@@ -139,8 +146,14 @@ export function ChatThreadTranscript({
               className="flex min-h-full w-full flex-1 items-center justify-center px-6"
             >
               <div className="flex max-w-md flex-col items-center gap-6 text-center">
-                <div className="font-mono text-[11px] uppercase tracking-[0.08em] text-white/50">
-                  Start a conversation with Pi.
+                <div className="flex flex-col gap-2">
+                  <div className="font-mono text-[11px] uppercase tracking-[0.08em] text-white/50">
+                    Start a Thread with Pi
+                  </div>
+                  <p className="text-[13px] leading-relaxed text-white/40">
+                    Ask about this Repository, or pick a suggestion below. Sign
+                    in from the prompt dock if the model needs authentication.
+                  </p>
                 </div>
                 <div className="flex flex-wrap items-center justify-center gap-1.5">
                   {CHAT_SUGGESTIONS.map((suggestion) => (
@@ -172,23 +185,53 @@ export function ChatThreadTranscript({
           ) : null}
 
           {turns.length > 0
-            ? turns.map((turn) => {
+            ? turns.map((turn, turnIndex) => {
+                const isLastTurn = turnIndex === turns.length - 1;
+                const failedLastUser =
+                  isLastTurn && canRetryLastUser && turn.userMessage !== null;
+
                 return (
                   <React.Fragment key={turn.id}>
                     <ChatThreadTranscriptTurn
                       turn={turn}
                       onCopyMessage={onCopyMessage}
                       getMessageTokens={getMessageTokens}
+                      isFailedLastUser={failedLastUser}
+                      onRetryLastUserMessage={
+                        failedLastUser ? onRetryLastUserMessage : undefined
+                      }
                     />
                   </React.Fragment>
                 );
               })
             : null}
 
-          {lastError ? (
-            <div className="mx-auto w-full max-w-3xl px-6 py-2">
-              <SystemMessage tone="error" title={getLastErrorTitle(lastError)}>
-                {lastError}
+          {lastError && errorPresentation ? (
+            <div
+              className="mx-auto w-full max-w-3xl space-y-2 px-6 py-2"
+              data-testid="chat-error-banner"
+            >
+              <SystemMessage tone="error" title={errorPresentation.title}>
+                <div className="space-y-2">
+                  <p>{errorPresentation.guidance}</p>
+                  {canRetryLastUser && lastUserMessageText ? (
+                    <button
+                      type="button"
+                      data-testid="chat-error-retry"
+                      className={cn(
+                        "inline-flex h-6 items-center gap-1 border border-white/[0.06] bg-white/[0.01] px-2",
+                        "font-mono text-[11px] uppercase tracking-wider text-white/50",
+                        "transition-colors duration-[var(--duration-fast)]",
+                        "hover:border-white/[0.12] hover:bg-white/[0.06] hover:text-white/80",
+                      )}
+                      onClick={() =>
+                        onRetryLastUserMessage?.(lastUserMessageText)
+                      }
+                    >
+                      Retry last message
+                    </button>
+                  ) : null}
+                </div>
               </SystemMessage>
             </div>
           ) : null}
