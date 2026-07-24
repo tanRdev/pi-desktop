@@ -221,6 +221,7 @@ describe("ipc-registration", () => {
       getOAuthProviders: vi.fn(),
       loginWithOAuth: vi.fn(),
       logoutOAuth: vi.fn(),
+      respondOAuthPrompt: vi.fn(),
       getDiscovery: vi.fn(),
       getSlashSuggestions: vi.fn(),
       threadCatalog: {} as never,

@@ -1018,6 +1018,43 @@ describe("registerIpcHandlers", () => {
     expect(logoutOAuth).toHaveBeenCalledWith("anthropic");
   });
 
+  it("delegates oauth prompt responses to the bridge handler", async () => {
+    const harness = createHandlerHarness();
+    const respondOAuthPrompt = vi.fn(async () => undefined);
+
+    registerIpcHandlers({
+      handle: harness.handle,
+      getShellSnapshot: vi.fn(createShellSnapshot),
+      agentHost: createAgentHost(createAgentSnapshot()),
+      mainWindow: null,
+      respondOAuthPrompt,
+    });
+
+    await harness.handlers.get(IPC_CHANNELS.agent.respondOAuthPrompt)?.(
+      undefined,
+      {
+        requestId: "req-1",
+        value: "paste-me",
+      },
+    );
+    await harness.handlers.get(IPC_CHANNELS.agent.respondOAuthPrompt)?.(
+      undefined,
+      {
+        requestId: "req-2",
+        value: null,
+      },
+    );
+
+    expect(respondOAuthPrompt).toHaveBeenNthCalledWith(1, {
+      requestId: "req-1",
+      value: "paste-me",
+    });
+    expect(respondOAuthPrompt).toHaveBeenNthCalledWith(2, {
+      requestId: "req-2",
+      value: null,
+    });
+  });
+
   it("binds package handlers when a packages service is provided", async () => {
     const harness = createHandlerHarness();
     const packagesService = {

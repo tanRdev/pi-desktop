@@ -22,6 +22,18 @@ function createProps(
     },
     setOAuthDialogOpen: vi.fn(),
     submitOAuthDialog: vi.fn(async () => undefined),
+    oauthPromptDialogState: {
+      open: false,
+      request: null,
+      inputValue: "",
+      isSubmitting: false,
+    },
+    setOAuthPromptDialogOpen: vi.fn(),
+    setOAuthPromptInputValue: vi.fn(),
+    submitOAuthPromptDialog: vi.fn(async () => undefined),
+    cancelOAuthPromptDialog: vi.fn(async () => undefined),
+    openOAuthPromptExternal: vi.fn(async () => undefined),
+    copyOAuthPromptUserCode: vi.fn(async () => undefined),
     isRemoveRepositoryOpen: false,
     setRemoveRepositoryOpen: vi.fn(),
     confirmRemoveRepositoryName: null,
@@ -89,5 +101,36 @@ describe("AppDialogs", () => {
         name: /github copilot.*not connected/i,
       }),
     ).toBeDisabled();
+  });
+
+  it("renders device-code OAuth prompt details and submit/cancel actions", () => {
+    const props = createProps({
+      oauthPromptDialogState: {
+        open: true,
+        request: {
+          requestId: "req-1",
+          providerId: "github",
+          message: "Enter the code shown in your browser.",
+          verificationUri: "https://example.com/verify",
+          userCode: "ABCD-EFGH",
+        },
+        inputValue: "pasted",
+        isSubmitting: false,
+      },
+    });
+
+    render(<AppDialogs {...props} />);
+
+    expect(screen.getByTestId("oauth-prompt-dialog")).toBeTruthy();
+    expect(screen.getByText("Complete sign-in")).toBeTruthy();
+    expect(screen.getByTestId("oauth-prompt-user-code").textContent).toBe(
+      "ABCD-EFGH",
+    );
+
+    fireEvent.click(screen.getByTestId("oauth-prompt-submit"));
+    expect(props.submitOAuthPromptDialog).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByTestId("oauth-prompt-cancel"));
+    expect(props.cancelOAuthPromptDialog).toHaveBeenCalledTimes(1);
   });
 });

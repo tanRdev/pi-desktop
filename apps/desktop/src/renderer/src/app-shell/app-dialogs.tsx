@@ -14,22 +14,29 @@ import type { AppDialogsController } from "./use-app-dialogs";
 export type AppDialogsProps = Pick<
   AppDialogsController,
   | "confirmRemoveRepositoryName"
+  | "copyOAuthPromptUserCode"
+  | "cancelOAuthPromptDialog"
   | "initGitRepoName"
   | "isCreateWorktreeOpen"
   | "isInitGitRepoOpen"
   | "isRemoveRepositoryOpen"
   | "newWorktreeBranch"
   | "oauthDialogState"
+  | "oauthPromptDialogState"
+  | "openOAuthPromptExternal"
   | "removeRepositoryError"
   | "setCreateWorktreeOpen"
   | "setInitGitRepoOpen"
   | "setNewWorktreeBranch"
   | "setOAuthDialogOpen"
+  | "setOAuthPromptDialogOpen"
+  | "setOAuthPromptInputValue"
   | "setRemoveRepositoryOpen"
   | "skipInitGitRepo"
   | "submitCreateWorktree"
   | "submitInitGitRepo"
   | "submitOAuthDialog"
+  | "submitOAuthPromptDialog"
   | "submitRemoveRepository"
   | "worktreeCreateError"
 >;
@@ -59,26 +66,37 @@ function getOAuthDialogDescription(
 }
 
 export function AppDialogs({
+  cancelOAuthPromptDialog,
   confirmRemoveRepositoryName,
+  copyOAuthPromptUserCode,
   initGitRepoName,
   isCreateWorktreeOpen,
   isInitGitRepoOpen,
   isRemoveRepositoryOpen,
   newWorktreeBranch,
   oauthDialogState,
+  oauthPromptDialogState,
+  openOAuthPromptExternal,
   removeRepositoryError,
   setCreateWorktreeOpen,
   setInitGitRepoOpen,
   setNewWorktreeBranch,
   setOAuthDialogOpen,
+  setOAuthPromptDialogOpen,
+  setOAuthPromptInputValue,
   setRemoveRepositoryOpen,
   skipInitGitRepo,
   submitCreateWorktree,
   submitInitGitRepo,
   submitOAuthDialog,
+  submitOAuthPromptDialog,
   submitRemoveRepository,
   worktreeCreateError,
 }: AppDialogsProps) {
+  const oauthPrompt = oauthPromptDialogState.request;
+  const oauthExternalUrl =
+    oauthPrompt?.verificationUri ?? oauthPrompt?.authUrl ?? null;
+
   return (
     <>
       <Dialog open={isCreateWorktreeOpen} onOpenChange={setCreateWorktreeOpen}>
@@ -263,6 +281,118 @@ export function AppDialogs({
               onClick={() => setOAuthDialogOpen(false)}
             >
               Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={oauthPromptDialogState.open}
+        onOpenChange={setOAuthPromptDialogOpen}
+      >
+        <DialogContent
+          className="sm:max-w-md"
+          data-testid="oauth-prompt-dialog"
+        >
+          <DialogHeader>
+            <DialogTitle>Complete sign-in</DialogTitle>
+            <DialogDescription>
+              {oauthPrompt
+                ? `${oauthPrompt.providerId} — ${oauthPrompt.message}`
+                : "Finish authentication in your browser, then continue here."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 bg-[var(--color-bg-secondary)] px-6 py-4">
+            {oauthExternalUrl ? (
+              <div className="flex flex-col gap-2">
+                <span className="text-[11px] text-white/50">
+                  Verification URL
+                </span>
+                <div className="flex items-center gap-2">
+                  <code className="min-w-0 flex-1 truncate font-mono text-[11px] text-white/70">
+                    {oauthExternalUrl}
+                  </code>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    data-testid="oauth-prompt-open-url"
+                    onClick={() => void openOAuthPromptExternal()}
+                  >
+                    Open
+                  </Button>
+                </div>
+              </div>
+            ) : null}
+            {oauthPrompt?.userCode ? (
+              <div className="flex flex-col gap-2">
+                <span className="text-[11px] text-white/50">User code</span>
+                <div className="flex items-center gap-2">
+                  <code
+                    data-testid="oauth-prompt-user-code"
+                    className="min-w-0 flex-1 font-mono text-[13px] tracking-wide text-white/90"
+                  >
+                    {oauthPrompt.userCode}
+                  </code>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    data-testid="oauth-prompt-copy-code"
+                    onClick={() => void copyOAuthPromptUserCode()}
+                  >
+                    Copy
+                  </Button>
+                </div>
+              </div>
+            ) : null}
+            <div className="flex flex-col gap-2">
+              <label
+                htmlFor="oauth-prompt-input"
+                className="text-[11px] text-white/50"
+              >
+                Paste code or redirected URL
+              </label>
+              <input
+                id="oauth-prompt-input"
+                data-testid="oauth-prompt-input"
+                value={oauthPromptDialogState.inputValue}
+                disabled={oauthPromptDialogState.isSubmitting}
+                onChange={(event) =>
+                  setOAuthPromptInputValue(event.target.value)
+                }
+                onKeyDown={(event) => {
+                  if (event.key !== "Enter") {
+                    return;
+                  }
+                  event.preventDefault();
+                  void submitOAuthPromptDialog();
+                }}
+                className={cn(
+                  "w-full border border-white/[0.06] bg-[var(--color-bg-primary)] px-3 py-2 text-[11px] text-white/80 outline-none",
+                  "transition-all duration-[var(--duration-fast)]",
+                  "focus:border-white/[0.12] focus:ring-1 focus:ring-white/[0.06]",
+                  "placeholder:text-white/50",
+                )}
+                placeholder="Paste here"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="ghost"
+              data-testid="oauth-prompt-cancel"
+              disabled={oauthPromptDialogState.isSubmitting}
+              onClick={() => void cancelOAuthPromptDialog()}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              data-testid="oauth-prompt-submit"
+              disabled={oauthPromptDialogState.isSubmitting}
+              onClick={() => void submitOAuthPromptDialog()}
+            >
+              Continue
             </Button>
           </DialogFooter>
         </DialogContent>

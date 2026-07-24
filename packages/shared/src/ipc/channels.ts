@@ -19,6 +19,8 @@ export const IPC_CHANNELS = {
     getOAuthProviders: "agent:getOAuthProviders",
     loginWithOAuth: "agent:loginWithOAuth",
     logoutOAuth: "agent:logoutOAuth",
+    oauthPrompt: "agent:oauthPrompt",
+    respondOAuthPrompt: "agent:respondOAuthPrompt",
     prompt: "agent:prompt",
     cancelPrompt: "agent:cancelPrompt",
     reset: "agent:reset",

@@ -2,6 +2,8 @@ import type {
   AutocompleteContext,
   AutocompleteSuggestions,
   ModelSwitchRequest,
+  OAuthPromptRequest,
+  OAuthPromptResponse,
   OAuthProviderSnapshot,
   PiDesktopAgentEvent,
   PiDiscoveryResult,
@@ -30,6 +32,15 @@ const AgentMessageRoleSchema = Schema.Literal(
 
 const SWITCH_MODEL_KEYS = new Set(["providerId", "modelId"]);
 const OAUTH_PROVIDER_ID_KEYS = new Set(["providerId"]);
+const OAUTH_PROMPT_REQUEST_KEYS = new Set([
+  "requestId",
+  "providerId",
+  "message",
+  "authUrl",
+  "verificationUri",
+  "userCode",
+]);
+const OAUTH_PROMPT_RESPONSE_KEYS = new Set(["requestId", "value"]);
 const PROMPT_KEYS = new Set(["text"]);
 const AUTOCOMPLETE_CONTEXT_KEYS = new Set([
   "text",
@@ -84,6 +95,22 @@ export const OAuthProviderSnapshotSchema = Schema.Struct({
 export const OAuthProviderSnapshotArraySchema = mutableArray(
   OAuthProviderSnapshotSchema,
 );
+
+export const OAuthPromptRequestSchema =
+  createStrictObjectSchema<OAuthPromptRequest>(OAUTH_PROMPT_REQUEST_KEYS, {
+    requestId: ipcStringSchema(),
+    providerId: ipcStringSchema(),
+    message: ipcStringSchema(),
+    authUrl: Schema.optional(ipcStringSchema()),
+    verificationUri: Schema.optional(ipcStringSchema()),
+    userCode: Schema.optional(ipcStringSchema()),
+  });
+
+export const OAuthPromptResponseSchema =
+  createStrictObjectSchema<OAuthPromptResponse>(OAUTH_PROMPT_RESPONSE_KEYS, {
+    requestId: ipcStringSchema(),
+    value: Schema.NullOr(ipcStringSchema()),
+  });
 
 const PiSkillInfoSchema = Schema.Struct({
   name: Schema.String,
@@ -267,6 +294,14 @@ export const agentContracts = {
     request: AgentAutocompleteContextSchema,
     response: AutocompleteSuggestionsSchema,
   }),
+  oauthPrompt: createIpcEventContract({
+    channel: IPC_CHANNELS.agent.oauthPrompt,
+    payload: OAuthPromptRequestSchema,
+  }),
+  respondOAuthPrompt: createVoidResponseContract(
+    IPC_CHANNELS.agent.respondOAuthPrompt,
+    OAuthPromptResponseSchema,
+  ),
   event: createIpcEventContract({
     channel: IPC_CHANNELS.agent.event,
     payload: PiDesktopAgentEventSchema,
@@ -303,5 +338,7 @@ export const agentContractList = [
   agentContracts.switchModel,
   agentContracts.getDiscovery,
   agentContracts.getSlashSuggestions,
+  agentContracts.oauthPrompt,
+  agentContracts.respondOAuthPrompt,
   agentContracts.event,
 ] as const;

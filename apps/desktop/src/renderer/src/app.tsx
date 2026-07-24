@@ -120,25 +120,32 @@ export default function App() {
               panel can be imported here without restructuring WorkspaceShell. */}
                 <WorkspaceShell {...controller.workspaceShellProps} />
                 <AppDialogs
+                  cancelOAuthPromptDialog={controller.cancelOAuthPromptDialog}
                   confirmRemoveRepositoryName={
                     controller.confirmRemoveRepositoryName
                   }
+                  copyOAuthPromptUserCode={controller.copyOAuthPromptUserCode}
                   initGitRepoName={controller.initGitRepoName}
                   isCreateWorktreeOpen={controller.isCreateWorktreeOpen}
                   isInitGitRepoOpen={controller.isInitGitRepoOpen}
                   isRemoveRepositoryOpen={controller.isRemoveRepositoryOpen}
                   newWorktreeBranch={controller.newWorktreeBranch}
                   oauthDialogState={controller.oauthDialogState}
+                  oauthPromptDialogState={controller.oauthPromptDialogState}
+                  openOAuthPromptExternal={controller.openOAuthPromptExternal}
                   removeRepositoryError={controller.removeRepositoryError}
                   setCreateWorktreeOpen={controller.setCreateWorktreeOpen}
                   setInitGitRepoOpen={controller.setInitGitRepoOpen}
                   setNewWorktreeBranch={controller.setNewWorktreeBranch}
                   setOAuthDialogOpen={controller.setOAuthDialogOpen}
+                  setOAuthPromptDialogOpen={controller.setOAuthPromptDialogOpen}
+                  setOAuthPromptInputValue={controller.setOAuthPromptInputValue}
                   setRemoveRepositoryOpen={controller.setRemoveRepositoryOpen}
                   skipInitGitRepo={controller.skipInitGitRepo}
                   submitCreateWorktree={controller.submitCreateWorktree}
                   submitInitGitRepo={controller.submitInitGitRepo}
                   submitOAuthDialog={controller.submitOAuthDialog}
+                  submitOAuthPromptDialog={controller.submitOAuthPromptDialog}
                   submitRemoveRepository={controller.submitRemoveRepository}
                   worktreeCreateError={controller.worktreeCreateError}
                 />

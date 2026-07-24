@@ -331,11 +331,27 @@ describe("createPiDesktopApi", () => {
     ]);
     await api.agent.loginWithOAuth("anthropic");
     await api.agent.logoutOAuth("anthropic");
+    await api.agent.respondOAuthPrompt({
+      requestId: "req-1",
+      value: "code",
+    });
+    await api.agent.respondOAuthPrompt({
+      requestId: "req-2",
+      value: null,
+    });
 
     expect(invokeCalls).toEqual([
       [IPC_CHANNELS.agent.getOAuthProviders, undefined],
       [IPC_CHANNELS.agent.loginWithOAuth, { providerId: "anthropic" }],
       [IPC_CHANNELS.agent.logoutOAuth, { providerId: "anthropic" }],
+      [
+        IPC_CHANNELS.agent.respondOAuthPrompt,
+        { requestId: "req-1", value: "code" },
+      ],
+      [
+        IPC_CHANNELS.agent.respondOAuthPrompt,
+        { requestId: "req-2", value: null },
+      ],
     ]);
   });
 

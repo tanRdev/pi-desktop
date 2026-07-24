@@ -186,6 +186,11 @@ describe("agentContracts", () => {
     expect(agentContracts.getSlashSuggestions.channel).toBe(
       "agent:getSlashSuggestions",
     );
+    expect(agentContracts.oauthPrompt.kind).toBe("event");
+    expect(agentContracts.oauthPrompt.channel).toBe("agent:oauthPrompt");
+    expect(agentContracts.respondOAuthPrompt.channel).toBe(
+      "agent:respondOAuthPrompt",
+    );
     expect(agentContracts.event.kind).toBe("event");
     expect(agentContracts.event.channel).toBe("agent:event");
   });

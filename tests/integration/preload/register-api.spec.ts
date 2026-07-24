@@ -96,6 +96,11 @@ describe("registerPiDesktopApi", () => {
           getOAuthProviders(): Promise<unknown>;
           loginWithOAuth(providerId: string): Promise<void>;
           logoutOAuth(providerId: string): Promise<void>;
+          onOAuthPrompt(listener: (request: unknown) => void): () => void;
+          respondOAuthPrompt(response: {
+            requestId: string;
+            value: string | null;
+          }): Promise<void>;
         };
       },
     ];
@@ -103,6 +108,7 @@ describe("registerPiDesktopApi", () => {
     await api.agent.getOAuthProviders();
     await api.agent.loginWithOAuth("anthropic");
     await api.agent.logoutOAuth("anthropic");
+    await api.agent.respondOAuthPrompt({ requestId: "req-1", value: null });
 
     expect(invoke).toHaveBeenNthCalledWith(
       1,
@@ -117,5 +123,10 @@ describe("registerPiDesktopApi", () => {
     expect(invoke).toHaveBeenNthCalledWith(3, IPC_CHANNELS.agent.logoutOAuth, {
       providerId: "anthropic",
     });
+    expect(invoke).toHaveBeenNthCalledWith(
+      4,
+      IPC_CHANNELS.agent.respondOAuthPrompt,
+      { requestId: "req-1", value: null },
+    );
   });
 });

@@ -133,6 +133,9 @@ type CreateDesktopIpcHandlerDependenciesInput = {
     RegisterIpcHandlersDependencies["loginWithOAuth"]
   >;
   logoutOAuth: NonNullable<RegisterIpcHandlersDependencies["logoutOAuth"]>;
+  respondOAuthPrompt: NonNullable<
+    RegisterIpcHandlersDependencies["respondOAuthPrompt"]
+  >;
   getDiscovery: NonNullable<RegisterIpcHandlersDependencies["getDiscovery"]>;
   getSlashSuggestions: NonNullable<
     RegisterIpcHandlersDependencies["getSlashSuggestions"]
@@ -346,6 +349,7 @@ export function createDesktopIpcHandlerDependencies(
     getOAuthProviders: input.getOAuthProviders,
     loginWithOAuth: input.loginWithOAuth,
     logoutOAuth: input.logoutOAuth,
+    respondOAuthPrompt: input.respondOAuthPrompt,
     getDiscovery: input.getDiscovery,
     getSlashSuggestions: input.getSlashSuggestions,
     threadCatalog: input.threadCatalog,

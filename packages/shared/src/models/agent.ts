@@ -43,6 +43,22 @@ export interface OAuthProviderSnapshot {
   isAuthenticated?: boolean;
 }
 
+/** Main→renderer device-code / manual OAuth input request. */
+export interface OAuthPromptRequest {
+  requestId: string;
+  providerId: string;
+  message: string;
+  authUrl?: string;
+  verificationUri?: string;
+  userCode?: string;
+}
+
+/** Renderer→main response; `value: null` means the user cancelled. */
+export interface OAuthPromptResponse {
+  requestId: string;
+  value: string | null;
+}
+
 /**
  * Settings snapshot with current selection.
  */

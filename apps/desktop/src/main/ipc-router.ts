@@ -12,6 +12,7 @@ import type {
   AutocompleteContext,
   AutocompleteSuggestions,
   ModelSwitchRequest,
+  OAuthPromptResponse,
   OAuthProviderSnapshot,
   PiDiscoveryResult,
   ProviderSnapshot,
@@ -80,6 +81,7 @@ export interface RegisterIpcHandlersDependencies {
   getOAuthProviders?(): Promise<OAuthProviderSnapshot[]>;
   loginWithOAuth?(providerId: string): Promise<void>;
   logoutOAuth?(providerId: string): Promise<void>;
+  respondOAuthPrompt?(response: OAuthPromptResponse): Promise<void> | void;
   getDiscovery?(): Promise<PiDiscoveryResult>;
   getSlashSuggestions?(
     context: AutocompleteContext,
@@ -104,6 +106,7 @@ export function registerIpcHandlers({
   getOAuthProviders,
   loginWithOAuth,
   logoutOAuth,
+  respondOAuthPrompt,
   getDiscovery,
   getSlashSuggestions,
   packagesService,
@@ -287,6 +290,18 @@ export function registerIpcHandlers({
       }
 
       await logoutOAuth(providerId);
+    },
+  });
+
+  registerContractHandler({
+    handle,
+    contract: agentContracts.respondOAuthPrompt,
+    handler: async (response) => {
+      if (!respondOAuthPrompt) {
+        throw new Error("OAuth prompt response is unavailable");
+      }
+
+      await respondOAuthPrompt(response);
     },
   });
 

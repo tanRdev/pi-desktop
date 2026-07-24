@@ -622,6 +622,9 @@ export async function bootstrapDesktop() {
       getOAuthProviders: agentRuntimeHandlers.handleGetOAuthProviders,
       loginWithOAuth: agentRuntimeHandlers.handleLoginWithOAuth,
       logoutOAuth: agentRuntimeHandlers.handleLogoutOAuth,
+      respondOAuthPrompt: (response) => {
+        oauthPromptBridge.respond(response);
+      },
       getDiscovery: agentRuntimeHandlers.handleGetDiscovery,
       getSlashSuggestions: agentRuntimeHandlers.handleGetSlashSuggestions,
       threadCatalog,

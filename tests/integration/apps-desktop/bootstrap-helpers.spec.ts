@@ -275,17 +275,17 @@ describe("bootstrap helpers (RED)", () => {
     expect(source).not.toContain("Menu.buildFromTemplate(template)");
   });
 
-  test("createOAuthPromptBridge preserves prompt formatting and keeps the prompt bridge out of index bootstrap", async () => {
+  test("createOAuthPromptBridge sends contract events and resolves responses without window.prompt", async () => {
     const { createOAuthPromptBridge } = await import(
       "../../../apps/desktop/src/main/bootstrap/oauth-prompt-bridge"
     );
 
-    const executeJavaScript = vi.fn().mockResolvedValue("  pasted code  ");
+    const send = vi.fn();
     const openExternal = vi.fn().mockResolvedValue(undefined);
     const bridge = createOAuthPromptBridge({
       getMainWindow: () => ({
         webContents: {
-          executeJavaScript,
+          send,
         },
       }),
       openExternal,
@@ -294,29 +294,55 @@ describe("bootstrap helpers (RED)", () => {
     await bridge.openExternal("https://example.com/auth");
     expect(openExternal).toHaveBeenCalledWith("https://example.com/auth");
 
-    await expect(
-      bridge.requestInput({
-        providerId: "github",
-        message: "Complete sign-in in your browser.",
-        authUrl: "https://example.com/auth",
-        verificationUri: "https://example.com/verify",
-        userCode: "ABCD-EFGH",
-      }),
-    ).resolves.toBe("pasted code");
+    const pending = bridge.requestInput({
+      providerId: "github",
+      message: "Complete sign-in in your browser.",
+      authUrl: "https://example.com/auth",
+      verificationUri: "https://example.com/verify",
+      userCode: "ABCD-EFGH",
+    });
 
-    expect(executeJavaScript).toHaveBeenCalledWith(
-      'window.prompt("Complete sign-in in your browser.\\n\\nURL: https://example.com/auth\\n\\nVerify at: https://example.com/verify\\n\\nCode: ABCD-EFGH", "")',
-      true,
+    expect(send).toHaveBeenCalledTimes(1);
+    const [channel, payload] = send.mock.calls[0] as [
+      string,
+      {
+        requestId: string;
+        providerId: string;
+        message: string;
+        authUrl?: string;
+        verificationUri?: string;
+        userCode?: string;
+      },
+    ];
+    expect(channel).toBe("agent:oauthPrompt");
+    expect(payload).toMatchObject({
+      providerId: "github",
+      message: "Complete sign-in in your browser.",
+      authUrl: "https://example.com/auth",
+      verificationUri: "https://example.com/verify",
+      userCode: "ABCD-EFGH",
+    });
+    expect(typeof payload.requestId).toBe("string");
+    expect(payload.requestId.length).toBeGreaterThan(0);
+
+    bridge.respond({
+      requestId: payload.requestId,
+      value: "  pasted code  ",
+    });
+    await expect(pending).resolves.toBe("pasted code");
+
+    const cancelled = bridge.requestInput({
+      providerId: "github",
+      message: "Retry sign-in.",
+    });
+    const cancelPayload = send.mock.calls[1]?.[1] as { requestId: string };
+    bridge.respond({
+      requestId: cancelPayload.requestId,
+      value: null,
+    });
+    await expect(cancelled).rejects.toThrowError(
+      "OAuth input cancelled for github",
     );
-
-    executeJavaScript.mockResolvedValueOnce(null);
-
-    await expect(
-      bridge.requestInput({
-        providerId: "github",
-        message: "Retry sign-in.",
-      }),
-    ).rejects.toThrowError("OAuth input cancelled for github");
 
     const source = await import("node:fs/promises").then((fs) =>
       fs.readFile(
@@ -331,7 +357,9 @@ describe("bootstrap helpers (RED)", () => {
     expect(source).toContain('from "./oauth-prompt-bridge"');
     expect(source).toContain("createOAuthPromptBridge({");
     expect(source).toContain("oauthPromptBridge,");
+    expect(source).toContain("respondOAuthPrompt:");
     expect(source).not.toContain("async function promptForOAuthInput(");
+    expect(source).not.toContain("window.prompt");
   });
 
   test("connectAgentHostWithRetry preserves socket retry bootstrap semantics and keeps the seam out of index bootstrap", async () => {

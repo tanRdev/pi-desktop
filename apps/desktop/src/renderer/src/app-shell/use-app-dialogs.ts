@@ -1,4 +1,7 @@
-import type { OAuthProviderSnapshot } from "@pi-desktop/shared";
+import type {
+  OAuthPromptRequest,
+  OAuthProviderSnapshot,
+} from "@pi-desktop/shared";
 import { getActiveRepository } from "@pi-desktop/shared";
 import * as React from "react";
 import { useStore } from "zustand";
@@ -18,6 +21,13 @@ export interface OAuthDialogState {
   isBusy: boolean;
 }
 
+export interface OAuthPromptDialogState {
+  open: boolean;
+  request: OAuthPromptRequest | null;
+  inputValue: string;
+  isSubmitting: boolean;
+}
+
 export interface ConfirmRemoveRepositoryInput {
   repositoryId: string;
   repositoryName: string;
@@ -31,6 +41,13 @@ export interface AppDialogsController {
     mode: OAuthDialogState["mode"],
     providerId: string | null,
   ) => Promise<void>;
+  oauthPromptDialogState: OAuthPromptDialogState;
+  setOAuthPromptDialogOpen: (open: boolean) => void;
+  setOAuthPromptInputValue: (value: string) => void;
+  submitOAuthPromptDialog: () => Promise<void>;
+  cancelOAuthPromptDialog: () => Promise<void>;
+  openOAuthPromptExternal: () => Promise<void>;
+  copyOAuthPromptUserCode: () => Promise<void>;
   isCreateWorktreeOpen: boolean;
   setCreateWorktreeOpen: (isOpen: boolean) => void;
   newWorktreeBranch: string;
@@ -112,6 +129,19 @@ export function useAppDialogs({
   const [oauthRequestedProviderId, setOAuthRequestedProviderId] =
     React.useState<string | null>(null);
   const [isOAuthBusy, setIsOAuthBusy] = React.useState(false);
+  const [oauthPromptRequest, setOAuthPromptRequest] =
+    React.useState<OAuthPromptRequest | null>(null);
+  const [oauthPromptInputValue, setOAuthPromptInputValue] = React.useState("");
+  const [isOAuthPromptSubmitting, setIsOAuthPromptSubmitting] =
+    React.useState(false);
+
+  React.useEffect(() => {
+    return window.piDesktop.agent.onOAuthPrompt((request) => {
+      setOAuthPromptRequest(request);
+      setOAuthPromptInputValue("");
+      setIsOAuthPromptSubmitting(false);
+    });
+  }, []);
 
   const loadOAuthProviders = React.useCallback(async () => {
     const providers = await window.piDesktop.agent.getOAuthProviders();
@@ -192,6 +222,86 @@ export function useAppDialogs({
     },
     [loadOAuthProviders, performOAuthAction],
   );
+
+  const clearOAuthPromptDialog = React.useCallback(() => {
+    setOAuthPromptRequest(null);
+    setOAuthPromptInputValue("");
+    setIsOAuthPromptSubmitting(false);
+  }, []);
+
+  const respondToOAuthPrompt = React.useCallback(
+    async (value: string | null) => {
+      if (!oauthPromptRequest) {
+        return;
+      }
+
+      setIsOAuthPromptSubmitting(true);
+      try {
+        await window.piDesktop.agent.respondOAuthPrompt({
+          requestId: oauthPromptRequest.requestId,
+          value,
+        });
+        clearOAuthPromptDialog();
+      } catch (error) {
+        setIsOAuthPromptSubmitting(false);
+        toast.error("Could not send sign-in response", {
+          description: getErrorDescription(error, "Sign-in response failed"),
+        });
+      }
+    },
+    [clearOAuthPromptDialog, oauthPromptRequest],
+  );
+
+  const setOAuthPromptDialogOpen = React.useCallback(
+    (open: boolean) => {
+      if (open || !oauthPromptRequest) {
+        return;
+      }
+
+      void respondToOAuthPrompt(null);
+    },
+    [oauthPromptRequest, respondToOAuthPrompt],
+  );
+
+  const submitOAuthPromptDialog = React.useCallback(async () => {
+    await respondToOAuthPrompt(oauthPromptInputValue);
+  }, [oauthPromptInputValue, respondToOAuthPrompt]);
+
+  const cancelOAuthPromptDialog = React.useCallback(async () => {
+    await respondToOAuthPrompt(null);
+  }, [respondToOAuthPrompt]);
+
+  const openOAuthPromptExternal = React.useCallback(async () => {
+    const url =
+      oauthPromptRequest?.verificationUri ?? oauthPromptRequest?.authUrl;
+    if (!url) {
+      return;
+    }
+
+    try {
+      await window.piDesktop.dialog.openExternal(url);
+    } catch (error) {
+      toast.error("Could not open browser", {
+        description: getErrorDescription(error, "Failed to open sign-in URL"),
+      });
+    }
+  }, [oauthPromptRequest]);
+
+  const copyOAuthPromptUserCode = React.useCallback(async () => {
+    const userCode = oauthPromptRequest?.userCode;
+    if (!userCode) {
+      return;
+    }
+
+    try {
+      await window.piDesktop.clipboard.writeText(userCode);
+      toast.success("Code copied");
+    } catch (error) {
+      toast.error("Could not copy code", {
+        description: getErrorDescription(error, "Clipboard write failed"),
+      });
+    }
+  }, [oauthPromptRequest]);
 
   const setCreateWorktreeOpen = React.useCallback(
     (isOpen: boolean) => {
@@ -355,6 +465,18 @@ export function useAppDialogs({
     setOAuthDialogOpen,
     submitOAuthDialog,
     openOAuthDialog,
+    oauthPromptDialogState: {
+      open: oauthPromptRequest !== null,
+      request: oauthPromptRequest,
+      inputValue: oauthPromptInputValue,
+      isSubmitting: isOAuthPromptSubmitting,
+    },
+    setOAuthPromptDialogOpen,
+    setOAuthPromptInputValue,
+    submitOAuthPromptDialog,
+    cancelOAuthPromptDialog,
+    openOAuthPromptExternal,
+    copyOAuthPromptUserCode,
     isCreateWorktreeOpen,
     setCreateWorktreeOpen,
     newWorktreeBranch,

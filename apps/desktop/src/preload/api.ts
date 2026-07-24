@@ -17,6 +17,7 @@ import {
 } from "@pi-desktop/contracts";
 import type {
   ModelSwitchRequest,
+  OAuthPromptResponse,
   OpenDialogOptions,
   PackageInstallRequest,
   PackageRemoveRequest,
@@ -80,6 +81,12 @@ export function createPiDesktopApi({
       },
       logoutOAuth(providerId: string) {
         return invokeContract(agentContracts.logoutOAuth, { providerId });
+      },
+      onOAuthPrompt(listener) {
+        return subscribeContract(agentContracts.oauthPrompt, listener);
+      },
+      respondOAuthPrompt(response: OAuthPromptResponse) {
+        return invokeContract(agentContracts.respondOAuthPrompt, response);
       },
       prompt(text: string) {
         return invokeContract(agentContracts.prompt, { text });
