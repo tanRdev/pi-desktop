@@ -9,6 +9,7 @@ import { shell } from "electron";
 
 export interface CreateMainWindowOptionsInput {
   preloadPath: string;
+  iconPath?: string | null;
 }
 
 export interface RendererTarget {
@@ -47,6 +48,7 @@ export function shouldDeferWindowShowUntilReady(options: {
 
 export function createMainWindowOptions({
   preloadPath,
+  iconPath,
 }: CreateMainWindowOptionsInput): BrowserWindowConstructorOptions {
   return {
     title: "Pi Desktop",
@@ -55,7 +57,8 @@ export function createMainWindowOptions({
     minWidth: 1180,
     minHeight: 720,
     show: false,
-    backgroundColor: "#0a0a0a",
+    backgroundColor: "#09090B",
+    ...(iconPath ? { icon: iconPath } : {}),
     titleBarStyle: "hiddenInset",
     trafficLightPosition: { x: 20, y: 12 },
     roundedCorners: true,

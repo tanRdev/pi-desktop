@@ -28,3 +28,7 @@ docs/adr/
 docs/archive/
 REFACTOR.md
 
+
+# Editor / agent local state
+.cursor/
+.claude/

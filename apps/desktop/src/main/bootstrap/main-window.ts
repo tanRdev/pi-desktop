@@ -1,5 +1,11 @@
 import { IPC_CHANNELS } from "@pi-desktop/shared";
-import { BrowserWindow, type BrowserWindowConstructorOptions } from "electron";
+import {
+  app,
+  BrowserWindow,
+  type BrowserWindowConstructorOptions,
+  nativeImage,
+} from "electron";
+import { resolveAppIconPath } from "../resolve-app-icon";
 import {
   createMainWindowOptions,
   hardenMainWindow,
@@ -19,6 +25,8 @@ type MainWindowDependencies = {
   shouldShowMainWindow: typeof shouldShowMainWindow;
   shouldDeferWindowShowUntilReady: typeof shouldDeferWindowShowUntilReady;
   resolveRendererTarget: typeof resolveRendererTarget;
+  resolveAppIconPath?: typeof resolveAppIconPath;
+  applyDockIcon?: (iconPath: string) => void;
 };
 
 type CreateMainWindowWithDependenciesInput = {
@@ -32,13 +40,35 @@ type FullscreenWindow = Pick<
   "on" | "removeListener" | "isFullScreen" | "webContents"
 >;
 
+function applyMacDockIcon(iconPath: string): void {
+  if (process.platform !== "darwin" || !app.dock) {
+    return;
+  }
+  const image = nativeImage.createFromPath(iconPath);
+  if (!image.isEmpty()) {
+    app.dock.setIcon(image);
+  }
+}
+
 export async function createMainWindowWithDependencies({
   env,
   mainEntryUrl,
   dependencies,
 }: CreateMainWindowWithDependenciesInput): Promise<BrowserWindow> {
+  const resolveIcon = dependencies.resolveAppIconPath ?? resolveAppIconPath;
+  const iconPath = resolveIcon(
+    app.isPackaged,
+    process.resourcesPath,
+    mainEntryUrl,
+  );
+
+  if (iconPath) {
+    (dependencies.applyDockIcon ?? applyMacDockIcon)(iconPath);
+  }
+
   const windowOptions = dependencies.createMainWindowOptions({
     preloadPath: dependencies.resolvePreloadTarget(mainEntryUrl),
+    iconPath,
   });
   const window = new dependencies.BrowserWindow(windowOptions);
   dependencies.hardenMainWindow(window);

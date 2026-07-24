@@ -22,7 +22,7 @@
 </div>
 
 > [!CAUTION]
-> **Alpha.** Expect breaking changes and rough edges. Prefer the **mock** agent runtime while exploring the UI. CLI/SDK chat, OAuth, packages, and auto-update are usable but unfinished.
+> **Alpha.** Expect breaking changes and rough edges. Without the `pi` CLI installed, chat uses the built-in **mock** agent so the shell stays usable out of the box. Install `pi` (or set `PI_CLI_PATH`) for real CLI/SDK chat.
 
 > [!TIP]
 > Grab the latest arm64 DMG from [Releases](https://github.com/tanRdev/pi-desktop/releases), open it, and drag **Pi Desktop** into Applications.
@@ -51,7 +51,7 @@ bun run build
 bun run dev
 ```
 
-That opens Pi Desktop with hot reload. Add a local git repository, create a worktree, and chat with the mock agent to smoke-test the shell.
+That opens Pi Desktop with hot reload. Add a local git repository, create a worktree, and send a chat message—the mock agent answers when `pi` isn’t installed.
 
 ## Features
 
@@ -60,7 +60,7 @@ That opens Pi Desktop with hot reload. Add a local git repository, create a work
 | Repositories | Alpha | Browse and organize local projects |
 | Worktrees | Alpha | Create / switch / remove isolated checkouts |
 | Terminal | Alpha | Integrated `node-pty` terminal |
-| Agent chat | Alpha | Mock, CLI, and Pi SDK runtimes; in-app OAuth |
+| Agent chat | Alpha | Mock by default without `pi`; CLI/SDK when available; in-app OAuth |
 | Packages | Alpha | Catalog browse / install—expect rough edges |
 | Auto-updates | Alpha | Packaged updater with Settings consent |
 | Security boundary | Solid | Main ↔ Contracts preload ↔ renderer |
@@ -77,7 +77,7 @@ pi-desktop/
     ├── shared/            # Domain models and shared utilities
     ├── agent-host/        # Mock / CLI / SDK agent runtimes
     ├── shell-model/       # Pure shell + agent-feed state
-    └── ui/                # Design tokens and shared primitives
+    └── ui/                # Geist tokens, glass shell, shared primitives
 ```
 
 - **Main** owns catalogs (versioned JSON persistence), git, terminals, windows, and the agent-host process.
