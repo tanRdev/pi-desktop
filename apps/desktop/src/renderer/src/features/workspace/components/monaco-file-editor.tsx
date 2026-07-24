@@ -5,6 +5,11 @@ import htmlWorker from "monaco-editor/esm/vs/language/html/html.worker.js?worker
 import jsonWorker from "monaco-editor/esm/vs/language/json/json.worker.js?worker";
 import tsWorker from "monaco-editor/esm/vs/language/typescript/ts.worker.js?worker";
 import * as React from "react";
+import {
+  resolveMonoFontFamily,
+  resolveSansFontFamily,
+} from "@/features/settings/apply-ui-settings";
+import { useSettings } from "@/features/settings/use-settings";
 
 let monacoInitialized = false;
 
@@ -72,11 +77,25 @@ export function MonacoFileEditor({
   onChange,
   onSave,
 }: MonacoFileEditorProps) {
+  const { settings } = useSettings();
+
   // Idempotent; only performs work on the first MonacoFileEditor mount in the
   // renderer session. Running here (not at module scope) keeps the Monaco
   // runtime, worker registration, and theme definition out of the critical
   // path for routes that never open the editor.
   React.useMemo(() => initializeMonacoOnce(), []);
+
+  const fontFamily = React.useMemo(() => {
+    const name = settings.fontFamily.trim();
+    // Code editors prefer mono; map known Geist faces accordingly.
+    if (/mono/i.test(name)) {
+      return resolveMonoFontFamily(name);
+    }
+    if (name === "Geist Variable" || name === "Geist") {
+      return resolveMonoFontFamily("Geist Mono");
+    }
+    return resolveSansFontFamily(name);
+  }, [settings.fontFamily]);
 
   return (
     <div className="h-full" data-testid="monaco-file-editor-shell">
@@ -100,11 +119,11 @@ export function MonacoFileEditor({
         }}
         options={{
           automaticLayout: true,
-          fontFamily:
-            '"Geist Mono Variable", "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace',
+          fontFamily,
           fontLigatures: false,
-          fontSize: 12,
+          fontSize: settings.fontSize,
           glyphMargin: false,
+          lineNumbers: settings.editor.lineNumbers ? "on" : "off",
           lineNumbersMinChars: 3,
           minimap: { enabled: false },
           padding: { top: 16, bottom: 16 },
@@ -113,8 +132,8 @@ export function MonacoFileEditor({
           roundedSelection: false,
           scrollBeyondLastLine: false,
           smoothScrolling: true,
-          tabSize: 2,
-          wordWrap: "on",
+          tabSize: settings.editor.tabSize,
+          wordWrap: settings.editor.wordWrap ? "on" : "off",
         }}
       />
     </div>

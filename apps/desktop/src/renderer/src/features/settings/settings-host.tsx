@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { globalShortcutRegistry } from "@/lib/keyboard";
 import { SettingsDialog } from "./settings-dialog";
+import { SettingsEffects } from "./settings-effects";
 
 type PiCommandEventDetail = {
   commandId?: string;
@@ -54,5 +55,10 @@ export function SettingsHost() {
     };
   }, [openSettings]);
 
-  return <SettingsDialog open={open} onOpenChange={handleOpenChange} />;
+  return (
+    <>
+      <SettingsEffects />
+      <SettingsDialog open={open} onOpenChange={handleOpenChange} />
+    </>
+  );
 }

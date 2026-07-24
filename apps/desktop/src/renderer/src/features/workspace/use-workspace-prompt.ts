@@ -3,6 +3,10 @@ import * as React from "react";
 import { useStore } from "zustand";
 import type { UiInteractionStore } from "@/stores/ui-interaction-store";
 import type { ThreadConversationState } from "@/stores/workspace-session-store";
+import {
+  dispatchPiCommand,
+  findBuiltInBySlash,
+} from "./components/prompt-dock/slash-commands";
 import type { WorkspaceShellProps } from "./components/workspace-shell";
 import { loadPromptAutocompleteSuggestions } from "./prompt-autocomplete-loader";
 import {
@@ -10,6 +14,7 @@ import {
   buildTerminalMention,
   getPromptAutocompleteMatch,
   parseOAuthChatCommand,
+  planPromptDispatch,
   replacePromptToken,
 } from "./prompt-routing";
 
@@ -55,7 +60,7 @@ function isPromptExecutionVisible({
 export interface UseWorkspacePromptOptions {
   draft: string;
   setDraft: (draft: string) => void;
-  sendPrompt: () => Promise<void>;
+  sendPrompt: (text?: string) => Promise<void>;
   cancelPrompt: () => Promise<void>;
   activeThreadId: string | null;
   activeThreadConversation: ThreadConversationState | undefined;
@@ -78,6 +83,7 @@ export interface WorkspacePromptController {
   promptMode: PromptMode;
   handleSend: () => Promise<void>;
   handleRetryLastUserMessage: (text: string) => void;
+  handleResubmitUserMessage: (messageId: string, nextText: string) => void;
   handleCancelPrompt: () => Promise<void>;
   handleAutocompleteSelect: (
     suggestion: SlashSuggestion | MentionSuggestion,
@@ -261,8 +267,26 @@ export function useWorkspacePrompt({
     [autocompleteMatch, clearAutocomplete, draft, setDraft],
   );
 
+  const handleCancelPrompt = React.useCallback(async () => {
+    setPendingPromptThreadId(null);
+    await cancelPrompt();
+  }, [cancelPrompt]);
+
   const handlePromptKeyDown = React.useCallback(
     (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (event.key === "Escape") {
+        if (autocompleteMatch && autocompleteSuggestions.length > 0) {
+          event.preventDefault();
+          clearAutocomplete();
+          return;
+        }
+        if (isPromptExecuting) {
+          event.preventDefault();
+          void handleCancelPrompt();
+        }
+        return;
+      }
+
       if (!autocompleteMatch || autocompleteSuggestions.length === 0) {
         return;
       }
@@ -292,12 +316,6 @@ export function useWorkspacePrompt({
           event.preventDefault();
           handleAutocompleteSelect(selectedSuggestion);
         }
-        return;
-      }
-
-      if (event.key === "Escape") {
-        event.preventDefault();
-        clearAutocomplete();
       }
     },
     [
@@ -307,11 +325,18 @@ export function useWorkspacePrompt({
       clearAutocomplete,
       handleAutocompleteHover,
       handleAutocompleteSelect,
+      handleCancelPrompt,
+      isPromptExecuting,
     ],
   );
 
   const handleSend = React.useCallback(async () => {
-    const oauthCommand = parseOAuthChatCommand(draft);
+    const trimmed = draft.trim();
+    if (!trimmed) {
+      return;
+    }
+
+    const oauthCommand = parseOAuthChatCommand(trimmed);
     if (oauthCommand) {
       setDraft("");
       if (oauthCommand.action === "providers") {
@@ -323,13 +348,55 @@ export function useWorkspacePrompt({
       return;
     }
 
+    const builtinSlash = trimmed.split(/\s+/, 1)[0] ?? "";
+    const builtin = findBuiltInBySlash(builtinSlash);
+    if (builtin && trimmed === builtin.slash) {
+      setDraft("");
+      clearAutocomplete();
+      dispatchPiCommand(builtin);
+      return;
+    }
+
     if (!canSend || !activeThreadId) {
       return;
     }
 
+    const plan = planPromptDispatch({
+      draft: trimmed,
+      canSend: true,
+      activeThreadId,
+    });
+
+    if (plan.action === "noop") {
+      return;
+    }
+
+    if (plan.action === "route") {
+      // Terminal routing: write into the terminal session and clear the dock.
+      setDraft("");
+      try {
+        window.piDesktop.terminal.write(plan.terminalId, `${plan.prompt}\n`);
+      } catch (error) {
+        console.error("Failed to route prompt to terminal:", error);
+        setDraft(trimmed);
+      }
+      return;
+    }
+
     setPendingPromptThreadId(activeThreadId);
-    void sendPrompt();
-  }, [activeThreadId, canSend, draft, openOAuthDialog, sendPrompt, setDraft]);
+    clearAutocomplete();
+    // Expand @file: mentions before sending; clear chips via custom event.
+    window.dispatchEvent(new CustomEvent("pi:prompt-sent"));
+    await sendPrompt(plan.nextDraft);
+  }, [
+    activeThreadId,
+    canSend,
+    clearAutocomplete,
+    draft,
+    openOAuthDialog,
+    sendPrompt,
+    setDraft,
+  ]);
 
   const handleRetryLastUserMessage = React.useCallback(
     (text: string) => {
@@ -343,11 +410,29 @@ export function useWorkspacePrompt({
         return;
       }
 
-      setDraft(trimmed);
       setPendingPromptThreadId(activeThreadId);
-      void sendPrompt();
+      void sendPrompt(trimmed);
     },
-    [activeThreadId, agentStatus, sendPrompt, setDraft],
+    [activeThreadId, agentStatus, sendPrompt],
+  );
+
+  const handleResubmitUserMessage = React.useCallback(
+    (messageId: string, nextText: string) => {
+      const trimmed = nextText.trim();
+      if (
+        !trimmed ||
+        !messageId ||
+        !activeThreadId ||
+        agentStatus === "starting" ||
+        agentStatus === "streaming"
+      ) {
+        return;
+      }
+
+      setPendingPromptThreadId(activeThreadId);
+      void sendPrompt(trimmed);
+    },
+    [activeThreadId, agentStatus, sendPrompt],
   );
 
   const handlePromptModeChange = React.useCallback(
@@ -362,11 +447,6 @@ export function useWorkspacePrompt({
     [draft, setDraft],
   );
 
-  const handleCancelPrompt = React.useCallback(async () => {
-    setPendingPromptThreadId(null);
-    await cancelPrompt();
-  }, [cancelPrompt]);
-
   const handleAgentGitAction = React.useCallback(
     (prompt: string) => {
       if (
@@ -376,11 +456,10 @@ export function useWorkspacePrompt({
       ) {
         return;
       }
-      setDraft(prompt);
       setPendingPromptThreadId(activeThreadId);
-      void sendPrompt();
+      void sendPrompt(prompt);
     },
-    [activeThreadId, agentStatus, sendPrompt, setDraft],
+    [activeThreadId, agentStatus, sendPrompt],
   );
 
   return {
@@ -392,6 +471,7 @@ export function useWorkspacePrompt({
     promptMode,
     handleSend,
     handleRetryLastUserMessage,
+    handleResubmitUserMessage,
     handleCancelPrompt,
     handleAutocompleteSelect,
     handleAutocompleteHover,

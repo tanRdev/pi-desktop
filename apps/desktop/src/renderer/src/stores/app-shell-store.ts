@@ -31,7 +31,7 @@ export interface AppShellStoreState {
   isSwitchingModel: boolean;
   initialize(): Promise<void>;
   reload(): Promise<void>;
-  sendPrompt(): Promise<void>;
+  sendPrompt(text?: string): Promise<void>;
   cancelPrompt(): Promise<void>;
   setDraft(draft: string): void;
   switchModel(request: ModelSwitchRequest): Promise<ModelSwitchResult>;
@@ -157,8 +157,8 @@ export function createAppShellStore(api: PiDesktopApi) {
       await shellModel.load();
       await refreshRuntimeMetadata();
     },
-    async sendPrompt() {
-      await shellModel.sendPrompt();
+    async sendPrompt(text?: string) {
+      await shellModel.sendPrompt(text);
     },
     async cancelPrompt() {
       await shellModel.cancelPrompt();

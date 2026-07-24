@@ -8,16 +8,22 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  Bell,
   Download,
   Faders,
   Gear,
+  Keyboard,
   PaintBrush,
+  Robot,
   ShieldLock,
   TerminalWindow,
 } from "@/components/ui/phosphor-icons";
+import { AgentSection } from "./sections/agent";
 import { AppearanceSection } from "./sections/appearance";
 import { DangerZoneSection } from "./sections/danger-zone";
 import { EditorSection } from "./sections/editor";
+import { NotificationsSection } from "./sections/notifications";
+import { ShortcutsSection } from "./sections/shortcuts";
 import { TerminalSection } from "./sections/terminal";
 import { UpdatesSection } from "./sections/updates";
 import { useSettings } from "./use-settings";
@@ -26,6 +32,9 @@ type SectionId =
   | "appearance"
   | "editor"
   | "terminal"
+  | "shortcuts"
+  | "agent"
+  | "notifications"
   | "updates"
   | "danger-zone";
 
@@ -37,6 +46,9 @@ const SECTIONS: Array<{
   { id: "appearance", label: "Appearance", Icon: PaintBrush },
   { id: "editor", label: "Editor", Icon: Faders },
   { id: "terminal", label: "Terminal", Icon: TerminalWindow },
+  { id: "shortcuts", label: "Shortcuts", Icon: Keyboard },
+  { id: "agent", label: "Agent", Icon: Robot },
+  { id: "notifications", label: "Notifications", Icon: Bell },
   { id: "updates", label: "Updates", Icon: Download },
   { id: "danger-zone", label: "Danger zone", Icon: ShieldLock },
 ];
@@ -83,9 +95,9 @@ export function SettingsDialog({
                   data-testid={`settings-tab-${id}`}
                   onClick={() => setActiveSection(id)}
                   className={cn(
-                    "flex items-center gap-2 px-2.5 py-1.5 text-left text-[11px] transition-colors outline-none",
+                    "flex items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-[11px] transition-colors outline-none",
                     isActive
-                      ? "bg-white/[0.06] text-white/90"
+                      ? "bg-white/[0.08] text-white/90"
                       : "text-white/50 hover:bg-white/[0.06] hover:text-white/80",
                   )}
                 >
@@ -108,6 +120,11 @@ export function SettingsDialog({
             ) : null}
             {activeSection === "terminal" ? (
               <TerminalSection settings={settings} update={update} />
+            ) : null}
+            {activeSection === "shortcuts" ? <ShortcutsSection /> : null}
+            {activeSection === "agent" ? <AgentSection /> : null}
+            {activeSection === "notifications" ? (
+              <NotificationsSection />
             ) : null}
             {activeSection === "updates" ? <UpdatesSection /> : null}
             {activeSection === "danger-zone" ? (

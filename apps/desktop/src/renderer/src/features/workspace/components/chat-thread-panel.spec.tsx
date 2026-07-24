@@ -2,7 +2,13 @@
 // @vitest-environment jsdom
 import type { AgentMessageSnapshot } from "@pi-desktop/shared";
 import { TooltipProvider } from "@pi-desktop/ui";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import type * as React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ChatThreadPanel } from "./chat-thread-panel";
@@ -204,6 +210,48 @@ describe("ChatThreadPanel", () => {
 
     screen.getByTestId("chat-error-retry").click();
     expect(onRetryLastUserMessage).toHaveBeenCalledWith("hello world");
+  });
+
+  it("exposes edit and resubmits the last user message", () => {
+    const onResubmitUserMessage = vi.fn();
+
+    render(
+      <TooltipProvider>
+        <ChatThreadPanel
+          threadTitle="Signal"
+          messages={[
+            {
+              id: "user-1",
+              role: "user",
+              text: "hello world",
+              status: "complete",
+              timestamp: 1,
+            },
+          ]}
+          isStreaming={false}
+          lastError={null}
+          onResubmitUserMessage={onResubmitUserMessage}
+        />
+      </TooltipProvider>,
+    );
+
+    fireEvent.click(screen.getByTestId("message-edit"));
+    expect(screen.getByTestId("message-inline-editor")).toBeInTheDocument();
+
+    const textarea = screen
+      .getByTestId("message-inline-editor")
+      .querySelector("textarea");
+    expect(textarea).not.toBeNull();
+    if (!textarea) {
+      throw new Error("expected inline editor textarea");
+    }
+
+    fireEvent.change(textarea, { target: { value: "edited prompt" } });
+    fireEvent.click(screen.getByTestId("message-edit-submit"));
+    expect(onResubmitUserMessage).toHaveBeenCalledWith(
+      "user-1",
+      "edited prompt",
+    );
   });
 
   it("uses tighter transcript spacing for message rows", () => {

@@ -23,9 +23,12 @@ export function useShellModel() {
     void store.getState().initialize();
   }, [store]);
 
-  const sendPrompt = useCallback(() => {
-    return store.getState().sendPrompt();
-  }, [store]);
+  const sendPrompt = useCallback(
+    (text?: string) => {
+      return store.getState().sendPrompt(text);
+    },
+    [store],
+  );
 
   const cancelPrompt = useCallback(() => {
     return store.getState().cancelPrompt();

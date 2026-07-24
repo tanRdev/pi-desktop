@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 
 /**
  * UI-local preferences — extended settings that are not yet part of the
@@ -191,20 +191,43 @@ export interface UseSettingsResult {
   reset: () => void;
 }
 
+type Listener = () => void;
+
+let currentSettings: UiSettings = readStorage();
+const listeners = new Set<Listener>();
+
+function emit(): void {
+  for (const listener of listeners) {
+    listener();
+  }
+}
+
+function getSnapshot(): UiSettings {
+  return currentSettings;
+}
+
+function subscribe(listener: Listener): () => void {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+function setSettings(next: UiSettings): void {
+  currentSettings = next;
+  writeStorage(next);
+  emit();
+}
+
 /**
- * Reads UI settings from localStorage with optimistic updates. A future
- * version can pipe these through `window.piDesktop.state.updateAppPreferences`
- * once the shared `AppPreferences` model grows matching fields.
+ * Shared UI settings store. All `useSettings()` consumers see the same
+ * snapshot so Monaco, terminal, and the settings dialog stay in sync.
  */
 export function useSettings(): UseSettingsResult {
-  const [settings, setSettings] = useState<UiSettings>(() => readStorage());
-
-  useEffect(() => {
-    writeStorage(settings);
-  }, [settings]);
+  const settings = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 
   const update = useCallback((updater: SettingsUpdater) => {
-    setSettings((prev) => updater(prev));
+    setSettings(updater(currentSettings));
   }, []);
 
   const reset = useCallback(() => {
@@ -212,4 +235,10 @@ export function useSettings(): UseSettingsResult {
   }, []);
 
   return { settings, update, reset };
+}
+
+/** Test helper — re-read storage into the module store. */
+export function __resetUiSettingsStoreForTests(): void {
+  currentSettings = readStorage();
+  emit();
 }

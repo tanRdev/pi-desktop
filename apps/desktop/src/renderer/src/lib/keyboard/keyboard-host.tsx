@@ -53,6 +53,24 @@ export function KeyboardHost({
     };
   }, [activeRegistry, disableHelpOverlay]);
 
+  React.useEffect(() => {
+    if (disableHelpOverlay === true) return;
+
+    const openHelp = () => setHelpOpen(true);
+    const closeHelp = () => setHelpOpen(false);
+    const toggleHelp = () => setHelpOpen((prev) => !prev);
+
+    window.addEventListener("pi:shortcut-help:open", openHelp);
+    window.addEventListener("pi:shortcut-help:close", closeHelp);
+    window.addEventListener("pi:shortcut-help:toggle", toggleHelp);
+
+    return () => {
+      window.removeEventListener("pi:shortcut-help:open", openHelp);
+      window.removeEventListener("pi:shortcut-help:close", closeHelp);
+      window.removeEventListener("pi:shortcut-help:toggle", toggleHelp);
+    };
+  }, [disableHelpOverlay]);
+
   if (disableHelpOverlay === true) return null;
 
   return (

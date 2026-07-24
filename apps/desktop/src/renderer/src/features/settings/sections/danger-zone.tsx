@@ -23,10 +23,10 @@ export function DangerZoneSection({
 
   const handleRevealDataFolder = () => {
     try {
-      // Reveal-data-folder IPC isn't exposed yet. Stubbed via toast so the UI
-      // communicates intent without pretending work happened.
-      toast.info("Reveal data folder", {
-        description: "This action will open the Pi Desktop data directory.",
+      // No userData / showItemInFolder IPC is exposed on window.piDesktop yet.
+      toast.info("Reveal data folder unavailable", {
+        description:
+          "No path API is exposed yet. Look under Application Support for the Pi Desktop data directory.",
       });
     } catch {
       toast.error("Could not reveal data folder");

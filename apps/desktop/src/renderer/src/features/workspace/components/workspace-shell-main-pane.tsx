@@ -54,6 +54,7 @@ export interface WorkspaceShellMainPaneProps {
   onDraftChange: (draft: string) => void;
   onSend: () => void | Promise<void>;
   onRetryLastUserMessage?: (text: string) => void;
+  onResubmitUserMessage?: (messageId: string, nextText: string) => void;
   onCancelPrompt: () => void | Promise<void>;
   onAutocompleteSelect: (
     suggestion: SlashSuggestion | MentionSuggestion,
@@ -109,6 +110,7 @@ function WorkspaceShellMainPaneImpl({
   onDraftChange,
   onSend,
   onRetryLastUserMessage,
+  onResubmitUserMessage,
   onCancelPrompt,
   onAutocompleteSelect,
   onAutocompleteHover,
@@ -171,6 +173,7 @@ function WorkspaceShellMainPaneImpl({
                   targetMessageId={targetMessageId}
                   onTargetMessageNavigated={onTargetMessageNavigated}
                   onRetryLastUserMessage={onRetryLastUserMessage}
+                  onResubmitUserMessage={onResubmitUserMessage}
                   className="h-full"
                 />
               </div>

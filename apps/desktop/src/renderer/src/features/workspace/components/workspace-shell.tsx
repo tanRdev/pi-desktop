@@ -91,6 +91,7 @@ export interface WorkspaceShellProps {
   onDraftChange: (draft: string) => void;
   onSend: () => void | Promise<void>;
   onRetryLastUserMessage?: (text: string) => void;
+  onResubmitUserMessage?: (messageId: string, nextText: string) => void;
   onCancelPrompt: () => void | Promise<void>;
   onAutocompleteSelect: (
     suggestion: SlashSuggestion | MentionSuggestion,
@@ -189,6 +190,7 @@ function WorkspaceShellImpl({
   onDraftChange,
   onSend,
   onRetryLastUserMessage,
+  onResubmitUserMessage,
   onCancelPrompt,
   onAutocompleteSelect,
   onAutocompleteHover,
@@ -361,6 +363,7 @@ function WorkspaceShellImpl({
     onDraftChange,
     onSend,
     onRetryLastUserMessage,
+    onResubmitUserMessage,
     onCancelPrompt,
     onAutocompleteSelect,
     onAutocompleteHover,

@@ -1,4 +1,5 @@
 import * as React from "react";
+import { toast } from "@/lib/toast";
 import { OPEN_MESSAGE_EVENT } from "./thread-search/thread-search-host";
 
 interface WorkspaceShellEventsOptions {
@@ -40,6 +41,30 @@ function createThread(
   void onCreateThread(activeWorktreeId);
 }
 
+async function clearThread(): Promise<void> {
+  try {
+    await window.piDesktop.agent.reset();
+    toast.success("Thread cleared");
+    window.dispatchEvent(new CustomEvent("pi:command:clear-thread"));
+  } catch (error) {
+    toast.error(
+      error instanceof Error ? error.message : "Could not clear thread",
+    );
+  }
+}
+
+function openShortcutHelp(): void {
+  window.dispatchEvent(new CustomEvent("pi:shortcut-help:open"));
+}
+
+function openModelPicker(): void {
+  window.dispatchEvent(
+    new CustomEvent("pi:command", {
+      detail: { commandId: "open-model-picker" },
+    }),
+  );
+}
+
 export function useWorkspaceShellEvents({
   activeWorktreeId,
   onCreateThread,
@@ -62,6 +87,21 @@ export function useWorkspaceShellEvents({
 
       if (commandId === "toggle-sidebar") {
         onToggleSidebar();
+        return;
+      }
+
+      if (commandId === "help") {
+        openShortcutHelp();
+        return;
+      }
+
+      if (commandId === "clear") {
+        void clearThread();
+        return;
+      }
+
+      if (commandId === "model") {
+        openModelPicker();
       }
     };
 

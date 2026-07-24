@@ -83,6 +83,16 @@ export function useAttachments(
     [draft, onDraftChange],
   );
 
+  React.useEffect(() => {
+    const handlePromptSent = () => {
+      setUploadedFiles([]);
+    };
+    window.addEventListener("pi:prompt-sent", handlePromptSent);
+    return () => {
+      window.removeEventListener("pi:prompt-sent", handlePromptSent);
+    };
+  }, []);
+
   return { uploadedFiles, imageFiles, handlePickFiles, handleRemoveFile };
 }
 

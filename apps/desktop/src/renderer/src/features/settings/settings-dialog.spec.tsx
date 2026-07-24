@@ -8,7 +8,11 @@ import {
   uninstallMockPiDesktop,
 } from "../../../../test/mock-pi-desktop";
 import { SettingsDialog } from "./settings-dialog";
-import { DEFAULT_UI_SETTINGS, UI_SETTINGS_STORAGE_KEY } from "./use-settings";
+import {
+  __resetUiSettingsStoreForTests,
+  DEFAULT_UI_SETTINGS,
+  UI_SETTINGS_STORAGE_KEY,
+} from "./use-settings";
 
 function createMediaQuery(initiallyDark: boolean) {
   const listeners = new Set<(e: MediaQueryListEvent) => void>();
@@ -25,6 +29,7 @@ function createMediaQuery(initiallyDark: boolean) {
 
 beforeEach(() => {
   window.localStorage.clear();
+  __resetUiSettingsStoreForTests();
   const mql = createMediaQuery(true);
   vi.spyOn(window, "matchMedia").mockImplementation((query: string) =>
     query === "(prefers-color-scheme: dark)"
@@ -41,6 +46,7 @@ afterEach(() => {
   cleanup();
   uninstallMockPiDesktop();
   window.localStorage.clear();
+  __resetUiSettingsStoreForTests();
   vi.restoreAllMocks();
 });
 
@@ -131,6 +137,11 @@ describe("SettingsDialog", () => {
     });
     renderDialog();
 
+    expect(screen.getByTestId("settings-tab-shortcuts")).toBeInTheDocument();
+    expect(screen.getByTestId("settings-tab-agent")).toBeInTheDocument();
+    expect(
+      screen.getByTestId("settings-tab-notifications"),
+    ).toBeInTheDocument();
     expect(screen.getByTestId("settings-tab-updates")).toBeInTheDocument();
     await user.click(screen.getByTestId("settings-tab-updates"));
     expect(screen.getByText(/Auto-download updates/i)).toBeInTheDocument();
@@ -145,6 +156,21 @@ describe("SettingsDialog", () => {
     expect(
       screen.getByRole("button", { name: /Reveal in Finder/i }),
     ).toBeInTheDocument();
+  });
+
+  it("shows notifications and agent stub sections", async () => {
+    const user = userEvent.setup();
+    renderDialog();
+
+    await user.click(screen.getByTestId("settings-tab-notifications"));
+    expect(
+      screen.getByRole("switch", { name: "Desktop notifications" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("switch", { name: "Sound" })).toBeInTheDocument();
+
+    await user.click(screen.getByTestId("settings-tab-agent"));
+    expect(screen.getByText(/Mock when/i)).toBeInTheDocument();
+    expect(screen.getByText("/model")).toBeInTheDocument();
   });
 
   it("initial defaults match the shared default snapshot", () => {

@@ -1,4 +1,10 @@
+export {
+  applyUiSettingsToDocument,
+  resolveMonoFontFamily,
+  resolveSansFontFamily,
+} from "./apply-ui-settings";
 export { SettingsDialog } from "./settings-dialog";
+export { SettingsEffects } from "./settings-effects";
 export { SettingsHost } from "./settings-host";
 export type {
   CursorStyle,

@@ -68,11 +68,9 @@ async function copyPath(): Promise<void> {
 function focusPrompt(): void {
   if (typeof document === "undefined") return;
   const el =
-    document.querySelector<HTMLElement>("[data-prompt-input]") ??
-    document.querySelector<HTMLElement>(
-      "textarea[data-testid='prompt-input']",
-    ) ??
-    document.querySelector<HTMLElement>("textarea");
+    document.querySelector<HTMLElement>("textarea[data-testid='chat-input']") ??
+    document.querySelector<HTMLElement>("[data-testid='chat-input']") ??
+    document.querySelector<HTMLElement>("[data-prompt-input]");
   if (el) {
     el.focus();
     dispatchCommandEvent("focus-prompt", { focused: true });

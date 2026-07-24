@@ -51,9 +51,9 @@ export function ToolCallRollup({
     <div className="w-full space-y-0">
       {tools.slice(0, visibleCount).map((t) => (
         <Tool
-          key={t.id}
+          key={`${t.id}-${t.status}`}
           toolPart={buildToolPart(t)}
-          defaultOpen={t.status !== "complete"}
+          defaultOpen={t.status === "streaming"}
         />
       ))}
       {hiddenCount > 0 && (

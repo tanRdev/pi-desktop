@@ -2,6 +2,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
+  __resetUiSettingsStoreForTests,
   DEFAULT_UI_SETTINGS,
   normalizeUiSettings,
   UI_SETTINGS_STORAGE_KEY,
@@ -10,10 +11,12 @@ import {
 
 beforeEach(() => {
   window.localStorage.clear();
+  __resetUiSettingsStoreForTests();
 });
 
 afterEach(() => {
   window.localStorage.clear();
+  __resetUiSettingsStoreForTests();
 });
 
 describe("useSettings", () => {
@@ -42,6 +45,7 @@ describe("useSettings", () => {
       UI_SETTINGS_STORAGE_KEY,
       JSON.stringify({ ...DEFAULT_UI_SETTINGS, theme: "dark", fontSize: 18 }),
     );
+    __resetUiSettingsStoreForTests();
 
     const { result } = renderHook(() => useSettings());
     expect(result.current.settings.theme).toBe("dark");

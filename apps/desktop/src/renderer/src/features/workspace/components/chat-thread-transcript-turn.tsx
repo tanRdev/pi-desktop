@@ -9,6 +9,7 @@ import { FileChangeSummary } from "./chat/file-change-summary";
 import { InlineMessageEditor, MessageActions } from "./chat/message-actions";
 import { MessageTimestamp } from "./chat/message-timestamp";
 import { TokenCount } from "./chat/token-count";
+import { ToolCallRollup } from "./chat/tool-call-rollup";
 
 type ChatMessageRowProps = {
   message: AgentMessageSnapshot;
@@ -31,6 +32,7 @@ export interface ChatThreadTranscriptTurnProps {
   getMessageTokens?: (messageId: string) => number | null | undefined;
   isFailedLastUser?: boolean;
   onRetryLastUserMessage?: (text: string) => void;
+  onResubmitUserMessage?: (messageId: string, nextText: string) => void;
 }
 
 const FILE_MUTATION_PREFIXES = ["write", "edit", "create", "delete"];
@@ -256,10 +258,16 @@ export const ChatThreadTranscriptTurn = React.memo(
     getMessageTokens,
     isFailedLastUser,
     onRetryLastUserMessage,
+    onResubmitUserMessage,
   }: ChatThreadTranscriptTurnProps) {
+    const [editingMessageId, setEditingMessageId] = React.useState<
+      string | null
+    >(null);
+
     const toolMessages = turn.messages.filter(
       (message) => message.role === "tool",
     );
+    const useToolRollup = toolMessages.length > 3;
     const mutationTools = toolMessages.filter(isFileMutationTool);
     const filePaths = Array.from(
       new Set(
@@ -270,12 +278,13 @@ export const ChatThreadTranscriptTurn = React.memo(
     );
 
     let runningIndex = 0;
+    let toolRollupRendered = false;
     const renderMessage = (message: AgentMessageSnapshot) => {
       const index = runningIndex++;
-      const isUserRetryTarget =
-        Boolean(isFailedLastUser) &&
-        message.role === "user" &&
-        message.id === turn.userMessage?.id;
+      const isTurnUserMessage =
+        message.role === "user" && message.id === turn.userMessage?.id;
+      const isUserRetryTarget = Boolean(isFailedLastUser) && isTurnUserMessage;
+      const canEditUser = isTurnUserMessage && Boolean(onResubmitUserMessage);
 
       return (
         <ChatMessageRow
@@ -285,6 +294,30 @@ export const ChatThreadTranscriptTurn = React.memo(
           onCopyMessage={onCopyMessage}
           userTimestamp={turn.userMessage?.timestamp}
           isFailedLastUser={isUserRetryTarget}
+          canEditUser={canEditUser}
+          isEditing={editingMessageId === message.id}
+          onStartEdit={
+            canEditUser
+              ? () => {
+                  setEditingMessageId(message.id);
+                }
+              : undefined
+          }
+          onCancelEdit={
+            canEditUser
+              ? () => {
+                  setEditingMessageId(null);
+                }
+              : undefined
+          }
+          onSubmitEdit={
+            canEditUser
+              ? (text) => {
+                  setEditingMessageId(null);
+                  onResubmitUserMessage?.(message.id, text);
+                }
+              : undefined
+          }
           onRetry={
             isUserRetryTarget && turn.userMessage?.text
               ? () => {
@@ -310,11 +343,27 @@ export const ChatThreadTranscriptTurn = React.memo(
 
         {turn.messages.map((message) => {
           if (message.role === "tool") {
+            if (useToolRollup) {
+              if (toolRollupRendered) {
+                return null;
+              }
+              toolRollupRendered = true;
+              return (
+                <div
+                  key={`tool-rollup-${turn.id}`}
+                  className="mx-auto w-full max-w-3xl px-6"
+                >
+                  <ToolCallRollup tools={toolMessages} turnId={turn.id} />
+                </div>
+              );
+            }
+
             return (
               <div key={message.id} className="mx-auto w-full max-w-3xl px-6">
                 <Tool
+                  key={`${message.id}-${message.status}`}
                   toolPart={buildToolPart(message)}
-                  defaultOpen={message.status !== "complete"}
+                  defaultOpen={message.status === "streaming"}
                 />
               </div>
             );

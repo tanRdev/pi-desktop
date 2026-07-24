@@ -2,6 +2,8 @@ import { cn } from "@pi-desktop/ui";
 import type { FitAddon as FitAddonType } from "@xterm/addon-fit";
 import type { Terminal as XTermType } from "@xterm/xterm";
 import * as React from "react";
+import { resolveMonoFontFamily } from "@/features/settings/apply-ui-settings";
+import { useSettings } from "@/features/settings/use-settings";
 
 // xterm + its fit addon + CSS are loaded on demand the first time a Terminal
 // mounts. They are heavy (the default export ships ~100kb minified) and are
@@ -183,6 +185,10 @@ export const Terminal = React.forwardRef<TerminalHandle, TerminalProps>(
     },
     ref,
   ) {
+    const { settings } = useSettings();
+    const terminalSettings = settings.terminal;
+    const terminalSettingsRef = React.useRef(terminalSettings);
+    terminalSettingsRef.current = terminalSettings;
     const containerRef = React.useRef<HTMLDivElement>(null);
     const terminalRef = React.useRef<XTermType | null>(null);
     const fitAddonRef = React.useRef<FitAddonType | null>(null);
@@ -273,13 +279,13 @@ export const Terminal = React.forwardRef<TerminalHandle, TerminalProps>(
       const initPromise = loadXtermModule().then(({ XTerm, FitAddon }) => {
         if (cancelled || !containerRef.current) return;
 
+        const initial = terminalSettingsRef.current;
         terminal = new XTerm({
           theme: buildXtermTheme(),
-          fontFamily: resolveCssVar(
-            "--app-font-mono",
-            '"Geist Mono Variable", "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace',
-          ),
-          fontSize: 13,
+          fontFamily: resolveMonoFontFamily(initial.fontFamily),
+          fontSize: initial.fontSize,
+          scrollback: initial.scrollback,
+          cursorStyle: initial.cursorStyle,
           lineHeight: 1.4,
           cursorBlink: true,
         });
@@ -426,6 +432,32 @@ export const Terminal = React.forwardRef<TerminalHandle, TerminalProps>(
       onCommandComplete,
       copyOnSelect,
       resizeDebounceMs,
+    ]);
+
+    // Push live terminal preference changes into an already-mounted xterm.
+    React.useEffect(() => {
+      const term = terminalRef.current;
+      if (!term) return;
+
+      term.options.fontFamily = resolveMonoFontFamily(
+        terminalSettings.fontFamily,
+      );
+      term.options.fontSize = terminalSettings.fontSize;
+      term.options.scrollback = terminalSettings.scrollback;
+      term.options.cursorStyle = terminalSettings.cursorStyle;
+
+      const addon = fitAddonRef.current;
+      if (addon) {
+        requestAnimationFrame(() => {
+          syncTerminalSurface(containerRef.current);
+          addon.fit();
+        });
+      }
+    }, [
+      terminalSettings.cursorStyle,
+      terminalSettings.fontFamily,
+      terminalSettings.fontSize,
+      terminalSettings.scrollback,
     ]);
 
     return (

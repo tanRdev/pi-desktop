@@ -54,6 +54,32 @@ export function ModelPicker({
 }: ModelPickerProps) {
   const [open, setOpen] = React.useState(false);
 
+  React.useEffect(() => {
+    const handleCommand = (event: Event) => {
+      if (!(event instanceof CustomEvent)) return;
+      const detail = event.detail as { commandId?: string } | undefined;
+      if (
+        detail?.commandId === "open-model-picker" ||
+        detail?.commandId === "model"
+      ) {
+        if (!disabled && !isSwitchingModel && providerSnapshots.length > 0) {
+          setOpen(true);
+          void onModelMenuOpenChange?.(true);
+        }
+      }
+    };
+
+    window.addEventListener("pi:command", handleCommand);
+    return () => {
+      window.removeEventListener("pi:command", handleCommand);
+    };
+  }, [
+    disabled,
+    isSwitchingModel,
+    onModelMenuOpenChange,
+    providerSnapshots.length,
+  ]);
+
   const favoriteSet = React.useMemo(
     () => new Set(favoriteModels),
     [favoriteModels],

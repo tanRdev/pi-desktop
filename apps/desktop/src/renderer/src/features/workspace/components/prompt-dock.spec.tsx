@@ -370,6 +370,27 @@ describe("PromptDock", () => {
     expect(onSend).toHaveBeenCalledTimes(1);
   });
 
+  it("wires the Build/Plan prompt mode control", async () => {
+    const user = userEvent.setup();
+    const onPromptModeChange = vi.fn();
+
+    renderPromptDock({
+      promptMode: "build",
+      onPromptModeChange,
+    });
+
+    expect(screen.getByTestId("chat-input")).toHaveAttribute(
+      "data-prompt-input",
+    );
+    expect(screen.getByTestId("prompt-mode-build")).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+
+    await user.click(screen.getByTestId("prompt-mode-plan"));
+    expect(onPromptModeChange).toHaveBeenCalledWith("plan");
+  });
+
   it("persists the draft per thread in localStorage", () => {
     renderPromptDock({
       draft: "work in progress",

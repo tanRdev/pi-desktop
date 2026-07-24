@@ -288,12 +288,14 @@ export function createShellModel(api: PiDesktopApi) {
       notify();
     },
 
-    async sendPrompt(): Promise<void> {
-      const prompt = state.draft.trim();
+    async sendPrompt(text?: string): Promise<void> {
+      const prompt = (text ?? state.draft).trim();
 
       if (!prompt) {
         return;
       }
+
+      const draftBeforeSend = state.draft;
 
       state = {
         ...state,
@@ -347,10 +349,13 @@ export function createShellModel(api: PiDesktopApi) {
         };
       }
 
+      const failed = promptError != null || agent.status === "error";
+
       state = {
         ...state,
         agent,
-        draft: "",
+        // Keep the user's draft on failure so they can edit and retry.
+        draft: failed ? draftBeforeSend : "",
         live: {
           ...state.live,
           snapshotLoadedAt: Date.now(),

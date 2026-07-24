@@ -233,8 +233,8 @@ describe("useWorkspacePrompt", () => {
       await result.current.handleAgentGitAction("Summarize the git diff");
     });
 
-    expect(setDraft).toHaveBeenCalledWith("Summarize the git diff");
-    expect(sendPrompt).toHaveBeenCalledTimes(1);
+    expect(setDraft).not.toHaveBeenCalled();
+    expect(sendPrompt).toHaveBeenCalledWith("Summarize the git diff");
   });
 
   it("builds mention autocomplete suggestions from open windows and file search", async () => {

@@ -41,6 +41,7 @@ export interface ChatThreadTranscriptProps {
   lastError: string | null;
   onCopyMessage: (text: string) => void;
   onRetryLastUserMessage?: (text: string) => void;
+  onResubmitUserMessage?: (messageId: string, nextText: string) => void;
   getMessageTokens?: (messageId: string) => number | null | undefined;
 }
 
@@ -100,6 +101,7 @@ export function ChatThreadTranscript({
   lastError,
   onCopyMessage,
   onRetryLastUserMessage,
+  onResubmitUserMessage,
   getMessageTokens,
 }: ChatThreadTranscriptProps) {
   const lastTurn = turns.length > 0 ? turns[turns.length - 1] : undefined;
@@ -199,6 +201,9 @@ export function ChatThreadTranscript({
                       isFailedLastUser={failedLastUser}
                       onRetryLastUserMessage={
                         failedLastUser ? onRetryLastUserMessage : undefined
+                      }
+                      onResubmitUserMessage={
+                        isLastTurn ? onResubmitUserMessage : undefined
                       }
                     />
                   </React.Fragment>

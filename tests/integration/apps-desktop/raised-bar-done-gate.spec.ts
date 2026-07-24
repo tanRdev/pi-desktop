@@ -72,9 +72,19 @@ describe("Raised architectural bar done-gate", () => {
       ),
       "utf8",
     );
-    expect(terminalTsx).toContain("--app-font-mono");
-    expect(terminalTsx).toContain("Geist Mono");
+    expect(terminalTsx).toContain("resolveMonoFontFamily");
+    expect(terminalTsx).toContain("useSettings");
     expect(terminalTsx).not.toMatch(/JetBrains|Source Code Pro|\bInter\b/i);
+
+    const applyUiSettings = fs.readFileSync(
+      path.join(
+        ROOT,
+        "apps/desktop/src/renderer/src/features/settings/apply-ui-settings.ts",
+      ),
+      "utf8",
+    );
+    expect(applyUiSettings).toContain("Geist Mono");
+    expect(applyUiSettings).not.toMatch(/JetBrains|Source Code Pro|\bInter\b/i);
 
     const terminalSettings = fs.readFileSync(
       path.join(

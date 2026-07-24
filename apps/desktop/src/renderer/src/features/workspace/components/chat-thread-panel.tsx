@@ -54,6 +54,7 @@ export function ChatThreadPanel({
   targetMessageId,
   onTargetMessageNavigated,
   onRetryLastUserMessage,
+  onResubmitUserMessage,
   getMessageTokens,
 }: ChatThreadPanelProps) {
   const [showScrollButton, setShowScrollButton] = React.useState(false);
@@ -159,6 +160,7 @@ export function ChatThreadPanel({
           lastError={lastError}
           onCopyMessage={handleCopyMessage}
           onRetryLastUserMessage={onRetryLastUserMessage}
+          onResubmitUserMessage={onResubmitUserMessage}
           getMessageTokens={getMessageTokens}
         />
       </ChatContainerRoot>

@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { globalShortcutRegistry } from "@/lib/keyboard";
 import { ThemeProvider } from "@/lib/theme";
 import { SettingsHost } from "./settings-host";
+import { __resetUiSettingsStoreForTests } from "./use-settings";
 
 function createMediaQuery(query: string, matches: boolean): MediaQueryList {
   return {
@@ -29,6 +30,7 @@ function renderHost() {
 beforeEach(() => {
   window.localStorage.clear();
   globalShortcutRegistry.clear();
+  __resetUiSettingsStoreForTests();
   vi.spyOn(window, "matchMedia").mockImplementation((query: string) =>
     createMediaQuery(query, query === "(prefers-color-scheme: dark)"),
   );
@@ -38,6 +40,7 @@ afterEach(() => {
   cleanup();
   window.localStorage.clear();
   globalShortcutRegistry.clear();
+  __resetUiSettingsStoreForTests();
   vi.restoreAllMocks();
 });
 

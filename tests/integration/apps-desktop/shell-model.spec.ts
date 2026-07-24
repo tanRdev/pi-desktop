@@ -477,7 +477,7 @@ describe("createShellModel", () => {
     model.setDraft("Summarize the current workspace");
 
     await expect(model.sendPrompt()).resolves.toBeUndefined();
-    expect(model.getState().draft).toBe("");
+    expect(model.getState().draft).toBe("Summarize the current workspace");
     expect(model.getState().agent).toMatchObject({
       sessionId: "sdk-session",
       status: "error",
@@ -580,7 +580,7 @@ describe("createShellModel", () => {
     model.setDraft("Summarize the current workspace");
 
     await expect(model.sendPrompt()).resolves.toBeUndefined();
-    expect(model.getState().draft).toBe("");
+    expect(model.getState().draft).toBe("Summarize the current workspace");
     expect(model.getState().agent).toMatchObject({
       sessionId: "sdk-session",
       status: "error",

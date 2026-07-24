@@ -83,8 +83,8 @@ export function PromptDock({
   currentModelValue,
   contextUsage = null,
   isSwitchingModel,
-  promptMode: _promptMode = "build",
-  onPromptModeChange: _onPromptModeChange,
+  promptMode = "build",
+  onPromptModeChange,
   onModelMenuOpenChange,
   onModelSelection,
   onConnectProvider,
@@ -172,6 +172,7 @@ export function PromptDock({
 
           <PromptInputTextarea
             data-testid="chat-input"
+            data-prompt-input=""
             placeholder={
               hasActiveThread
                 ? "Ask Pi to inspect, plan, fix, or ship…"
@@ -207,6 +208,33 @@ export function PromptDock({
                   <Paperclip className={ICON_SIZE_XS} />
                 </Button>
               </PromptInputAction>
+
+              <fieldset
+                aria-label="Prompt mode"
+                className="m-0 inline-flex items-center rounded-md border border-white/[0.06] bg-white/[0.02] p-0.5"
+              >
+                {(["build", "plan"] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    data-testid={`prompt-mode-${mode}`}
+                    disabled={!hasActiveThread || !onPromptModeChange}
+                    aria-pressed={promptMode === mode}
+                    onClick={() => onPromptModeChange?.(mode)}
+                    className={cn(
+                      "rounded-sm px-2 py-0.5 text-[11px] font-medium capitalize",
+                      "transition-colors duration-[var(--duration-fast)]",
+                      "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-accent-ring)]",
+                      "disabled:opacity-40",
+                      promptMode === mode
+                        ? "bg-white/[0.08] text-white/90"
+                        : "text-white/40 hover:text-white/70",
+                    )}
+                  >
+                    {mode}
+                  </button>
+                ))}
+              </fieldset>
 
               <ModelPicker
                 providerSnapshots={providerSnapshots}

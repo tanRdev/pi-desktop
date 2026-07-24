@@ -583,6 +583,15 @@ body[data-sidebar-resizing="true"] [data-testid="left-sidebar"] {
   }
 }
 
+/* Settings preference: Reduce motion */
+:root[data-reduced-motion="true"] *,
+:root[data-reduced-motion="true"] *::before,
+:root[data-reduced-motion="true"] *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+
 /* ============================================
    CODE HIGHLIGHTING
    ============================================ */

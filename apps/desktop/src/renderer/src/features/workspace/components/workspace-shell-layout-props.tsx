@@ -78,6 +78,7 @@ interface BuildWorkspaceShellLayoutPropsParams {
   onDraftChange: (draft: string) => void;
   onSend: () => void | Promise<void>;
   onRetryLastUserMessage?: (text: string) => void;
+  onResubmitUserMessage?: (messageId: string, nextText: string) => void;
   onCancelPrompt: () => void | Promise<void>;
   onAutocompleteSelect: (
     suggestion: SlashSuggestion | MentionSuggestion,
@@ -158,6 +159,7 @@ export function buildWorkspaceShellLayoutProps({
   onDraftChange,
   onSend,
   onRetryLastUserMessage,
+  onResubmitUserMessage,
   onCancelPrompt,
   onAutocompleteSelect,
   onAutocompleteHover,
@@ -240,6 +242,7 @@ export function buildWorkspaceShellLayoutProps({
     onDraftChange,
     onSend,
     onRetryLastUserMessage,
+    onResubmitUserMessage,
     onCancelPrompt,
     onAutocompleteSelect,
     onAutocompleteHover,
