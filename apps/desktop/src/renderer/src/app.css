@@ -6,7 +6,7 @@
 
 /* ============================================
    DESIGN SYSTEM - Semantic Variables
-   Squared-off, green accent (from @pi-desktop/ui), DM Sans body, glass grid
+   Soft radius, green accent (from @pi-desktop/ui), DM Sans body, glass grid
    ============================================ */
 
 :root {
@@ -22,7 +22,7 @@
   --bg-hover-2: rgba(255, 255, 255, 0.07);
   --bg-hover-3: rgba(255, 255, 255, 0.10);
 
-  /* Glass Morphism System — squared, accent-glow */
+  /* Glass Morphism System — soft edges, accent-glow */
   --glass-bg-primary: rgba(14, 15, 17, 0.95);
   --glass-bg-secondary: rgba(19, 20, 23, 0.90);
   --glass-bg-solid: rgba(14, 15, 17, 1);
@@ -30,9 +30,9 @@
   --shell-main-bg: #0E0F11;
   --shell-overlay-bg: #131417;
 
-  --glass-border-subtle: rgba(255, 255, 255, 0.03);
-  --glass-border-default: rgba(255, 255, 255, 0.06);
-  --glass-border-strong: rgba(255, 255, 255, 0.10);
+  --glass-border-subtle: rgba(255, 255, 255, 0.05);
+  --glass-border-default: rgba(255, 255, 255, 0.08);
+  --glass-border-strong: rgba(255, 255, 255, 0.12);
   --glass-border-glow: color-mix(in srgb, var(--accent) 25%, transparent);
 
   /* Dim ladder — selection-focus text dimming */
@@ -126,8 +126,8 @@
   --duration-enter: 240ms;
   --duration-exit: 160ms;
 
-  /* Window Chrome — squared (shared --radius-* live in @pi-desktop/ui tokens) */
-  --window-radius: 0px;
+  /* Window Chrome — soft radius (shared --radius-* live in @pi-desktop/ui tokens) */
+  --window-radius: var(--radius-md, 8px);
   --titlebar-height: 42px;
 }
 

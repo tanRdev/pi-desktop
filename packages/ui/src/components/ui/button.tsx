@@ -2,7 +2,7 @@ import * as React from "react";
 import { cn } from "../../lib/utils";
 
 const buttonBaseClassName =
-  "inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap transition-all duration-[var(--duration-fast)] ease-[var(--ease-standard)] outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-0 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 font-normal will-change-transform active:scale-[0.97] motion-reduce:active:scale-100 motion-reduce:transition-none";
+  "inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md transition-all duration-[var(--duration-fast)] ease-[var(--ease-standard)] outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-0 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 font-normal will-change-transform active:scale-[0.97] motion-reduce:active:scale-100 motion-reduce:transition-none";
 
 const buttonVariantClassNames = {
   default:

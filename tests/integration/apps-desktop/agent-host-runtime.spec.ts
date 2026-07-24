@@ -1,4 +1,4 @@
-import { describe, expect, test, vi } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import {
   createAgentRuntimeForEntry,
   createUnavailableAgentHost,
@@ -6,6 +6,30 @@ import {
   resolveAgentRuntimeLaunchOptions,
   resolveAgentRuntimeOptions,
 } from "../../../apps/desktop/src/main/agent-host-runtime";
+
+vi.mock(
+  "../../../apps/desktop/src/main/resolve-pi-path",
+  async (importOriginal) => {
+    const actual =
+      await importOriginal<
+        typeof import("../../../apps/desktop/src/main/resolve-pi-path")
+      >();
+    return {
+      ...actual,
+      resolvePiPath: vi.fn(() => null),
+      buildEnhancedPath: vi.fn(() => "/mock/path"),
+    };
+  },
+);
+
+import { resolvePiPath } from "../../../apps/desktop/src/main/resolve-pi-path";
+
+const resolvePiPathMock = vi.mocked(resolvePiPath);
+
+afterEach(() => {
+  resolvePiPathMock.mockReset();
+  resolvePiPathMock.mockReturnValue(null);
+});
 
 describe("resolveAgentRuntimeOptions", () => {
   test("defaults to mock mode in test environments", () => {
@@ -21,7 +45,21 @@ describe("resolveAgentRuntimeOptions", () => {
     });
   });
 
-  test("defaults to sdk mode outside tests", () => {
+  test("defaults to mock mode when Pi CLI is not installed", () => {
+    resolvePiPathMock.mockReturnValue(null);
+
+    expect(resolveAgentRuntimeOptions({}, "/tmp/pi-desktop-workspace")).toEqual(
+      {
+        mode: "mock",
+        cwd: "/tmp/pi-desktop-workspace",
+        agentDir: "/tmp/pi-desktop-workspace/.pi/agent",
+      },
+    );
+  });
+
+  test("defaults to cli mode when Pi CLI is available", () => {
+    resolvePiPathMock.mockReturnValue("/usr/local/bin/pi");
+
     expect(resolveAgentRuntimeOptions({}, "/tmp/pi-desktop-workspace")).toEqual(
       {
         mode: "cli",
@@ -63,7 +101,21 @@ describe("createAgentRuntimeForEntry", () => {
     expect(runtime.constructor.name).toBe("MockAgentRuntime");
   });
 
-  test("creates the Pi CLI runtime outside test mode", () => {
+  test("creates the mock runtime when Pi CLI is missing", () => {
+    resolvePiPathMock.mockReturnValue(null);
+
+    const runtime = createAgentRuntimeForEntry({}, "/tmp/pi-desktop-workspace");
+
+    expect(runtime).toBeTruthy();
+    if (!runtime) {
+      throw new Error("Expected a runtime instance");
+    }
+    expect(runtime.constructor.name).toBe("MockAgentRuntime");
+  });
+
+  test("creates the Pi CLI runtime when Pi is available", () => {
+    resolvePiPathMock.mockReturnValue("/usr/local/bin/pi");
+
     const runtime = createAgentRuntimeForEntry({}, "/tmp/pi-desktop-workspace");
 
     expect(runtime).toBeTruthy();
@@ -89,6 +141,8 @@ describe("createAgentRuntimeForEntry", () => {
 
 describe("resolveAgentRuntimeLaunchOptions", () => {
   test("pins packaged launches to a stable user-data workspace by default", () => {
+    resolvePiPathMock.mockReturnValue(null);
+
     expect(
       resolveAgentRuntimeLaunchOptions(
         {},
@@ -100,7 +154,7 @@ describe("resolveAgentRuntimeLaunchOptions", () => {
     ).toEqual({
       cwd: "/tmp/pi-desktop-home",
       env: expect.objectContaining({
-        PI_DESKTOP_AGENT_MODE: "cli",
+        PI_DESKTOP_AGENT_MODE: "mock",
         PI_DESKTOP_AGENT_CWD: "/tmp/pi-desktop-home",
         PI_DESKTOP_AGENT_DIR: "/tmp/pi-desktop-home/.pi/agent",
       }),
@@ -127,6 +181,7 @@ describe("resolveAgentRuntimeLaunchOptions", () => {
   });
 
   test("creates packaged workspace and agent directories before launch", () => {
+    resolvePiPathMock.mockReturnValue(null);
     const createDirectory = vi.fn<(directory: string) => void>();
 
     const launchOptions = prepareAgentRuntimeLaunchOptions(
@@ -141,7 +196,7 @@ describe("resolveAgentRuntimeLaunchOptions", () => {
     expect(launchOptions).toEqual({
       cwd: "/tmp/pi-desktop-home",
       env: expect.objectContaining({
-        PI_DESKTOP_AGENT_MODE: "cli",
+        PI_DESKTOP_AGENT_MODE: "mock",
         PI_DESKTOP_AGENT_CWD: "/tmp/pi-desktop-home",
         PI_DESKTOP_AGENT_DIR: "/tmp/pi-desktop-home/.pi/agent",
       }),

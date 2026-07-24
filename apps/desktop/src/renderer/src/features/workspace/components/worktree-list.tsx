@@ -19,7 +19,7 @@ export function WorktreeList({
   return (
     <section className="space-y-2 px-3">
       <div className="flex items-center justify-between">
-        <p className="text-[11px] font-normal uppercase tracking-wider text-white/50">
+        <p className="text-[11px] font-medium tracking-wide text-white/50">
           Worktrees
         </p>
         <Button
@@ -68,7 +68,7 @@ export function WorktreeList({
                       {worktree.label}
                     </span>
                     {worktree.isMain && (
-                      <span className="border border-white/[0.08] px-1.5 py-0.5 text-[11px] uppercase tracking-wide text-white/50">
+                      <span className="rounded-sm border border-white/[0.08] px-1.5 py-0.5 text-[11px] tracking-wide text-white/50">
                         main
                       </span>
                     )}

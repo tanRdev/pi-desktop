@@ -35,7 +35,7 @@ export function LeftSidebarTabs({
             data-testid={`sidebar-tab-${tab.id}`}
             onClick={() => onSelectTab(tab.id)}
             className={cn(
-              "flex-1 h-8 px-3 text-[11px] uppercase tracking-wider font-medium text-center",
+              "flex-1 h-8 px-3 text-[12px] font-medium tracking-wide text-center",
               "transition-colors duration-150 border-b border-transparent",
               isActive
                 ? "text-white/90 border-[var(--color-accent)]"
@@ -66,7 +66,7 @@ export function LeftSidebarAddWorkspaceButton({
             onClick={onAddWorkspace}
             className={cn(
               "flex w-full items-center justify-center gap-2 rounded-sm",
-              "px-3 py-2 text-[11px] font-medium uppercase tracking-wider",
+              "px-3 py-2 text-[12px] font-medium tracking-wide",
               "border border-white/[0.06] bg-white/[0.02] text-white/50",
               "transition-all duration-150",
               "hover:border-white/[0.12] hover:bg-white/[0.06] hover:text-white/70",

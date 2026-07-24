@@ -70,8 +70,8 @@ export function InlineModelPicker({
         disabled={disabled}
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          "inline-flex h-6 items-center gap-1 border border-white/[0.06] bg-white/[0.01] px-2",
-          "font-mono text-[11px] uppercase tracking-wider text-white/60",
+          "inline-flex h-6 items-center gap-1 rounded-sm border border-white/[0.06] bg-white/[0.01] px-2",
+          "text-[11px] font-medium tracking-wide text-white/60",
           "transition-colors duration-[var(--duration-fast)]",
           "hover:border-white/[0.12] hover:bg-white/[0.06] hover:text-white/90",
           "disabled:opacity-40 disabled:cursor-not-allowed",
@@ -92,12 +92,12 @@ export function InlineModelPicker({
           role="listbox"
           className={cn(
             "absolute right-0 top-7 z-20 min-w-[12rem] max-h-72 overflow-auto",
-            "border border-white/[0.08] bg-[var(--color-bg-primary)] p-1 shadow-lg",
+            "rounded-md border border-white/[0.08] bg-[var(--color-bg-primary)] p-1 shadow-lg",
           )}
         >
           {providerSnapshots.map((provider) => (
             <div key={provider.id} className="mb-1 last:mb-0">
-              <div className="px-2 py-1 font-mono text-[11px] uppercase tracking-wider text-white/50">
+              <div className="px-2 py-1 text-[11px] font-medium tracking-wide text-white/50">
                 {provider.name}
               </div>
               {provider.models.map((model) => {
@@ -165,7 +165,7 @@ export function ThreadHeader({
         className,
       )}
     >
-      <div className="min-w-0 truncate font-mono text-[11px] uppercase tracking-wider text-white/50">
+      <div className="min-w-0 truncate text-[12px] font-medium tracking-tight text-white/60">
         {title}
       </div>
       {modelPicker ? <InlineModelPicker {...modelPicker} /> : null}

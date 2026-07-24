@@ -146,7 +146,7 @@ export function ModelPicker({
         align="start"
         side="top"
         sideOffset={8}
-        className="w-64 border border-white/[0.06] bg-[var(--color-bg-primary)] p-2 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-md"
+        className="w-64 rounded-md border border-white/[0.06] bg-[var(--color-bg-primary)] p-2 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-md"
       >
         <div className="max-h-72 overflow-y-auto">
           <Skeleton

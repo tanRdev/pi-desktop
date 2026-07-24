@@ -21,8 +21,8 @@ export function FileChangeSummary({
         onClick={() => hasPaths && setExpanded((v) => !v)}
         disabled={!hasPaths}
         className={cn(
-          "inline-flex items-center gap-2 border border-white/[0.06] bg-white/[0.01] px-2.5 py-1",
-          "font-mono text-[11px] uppercase tracking-wider text-white/50",
+          "inline-flex items-center gap-2 rounded-sm border border-white/[0.06] bg-white/[0.01] px-2.5 py-1",
+          "text-[11px] font-medium tracking-wide text-white/50",
           "transition-colors duration-[var(--duration-fast)]",
           hasPaths &&
             "hover:bg-white/[0.06] hover:text-white/70 cursor-pointer",

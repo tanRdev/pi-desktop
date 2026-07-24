@@ -147,7 +147,7 @@ export function ChatThreadTranscript({
             >
               <div className="flex max-w-md flex-col items-center gap-6 text-center">
                 <div className="flex flex-col gap-2">
-                  <div className="font-mono text-[11px] uppercase tracking-[0.08em] text-white/50">
+                  <div className="text-[13px] font-medium tracking-tight text-white/70">
                     Start a Thread with Pi
                   </div>
                   <p className="text-[13px] leading-relaxed text-white/40">
@@ -168,7 +168,7 @@ export function ChatThreadTranscript({
                         )
                       }
                       className={cn(
-                        "inline-flex items-center rounded-none px-2.5 py-1",
+                        "inline-flex items-center rounded-md px-2.5 py-1",
                         "text-[11px] text-white/40",
                         "border border-white/[0.06] bg-white/[0.01]",
                         "transition-colors duration-[var(--duration-fast)]",
@@ -219,8 +219,8 @@ export function ChatThreadTranscript({
                       type="button"
                       data-testid="chat-error-retry"
                       className={cn(
-                        "inline-flex h-6 items-center gap-1 border border-white/[0.06] bg-white/[0.01] px-2",
-                        "font-mono text-[11px] uppercase tracking-wider text-white/50",
+                        "inline-flex h-6 items-center gap-1 rounded-sm border border-white/[0.06] bg-white/[0.01] px-2",
+                        "text-[11px] font-medium tracking-wide text-white/50",
                         "transition-colors duration-[var(--duration-fast)]",
                         "hover:border-white/[0.12] hover:bg-white/[0.06] hover:text-white/80",
                       )}

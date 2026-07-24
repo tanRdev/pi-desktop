@@ -15,8 +15,8 @@ function ActionButton({ className, children, ...props }: BaseBtnProps) {
     <button
       type="button"
       className={cn(
-        "inline-flex h-6 items-center gap-1 border border-white/[0.06] bg-white/[0.01] px-2",
-        "font-mono text-[11px] uppercase tracking-wider text-white/50",
+        "inline-flex h-6 items-center gap-1 rounded-sm border border-white/[0.06] bg-white/[0.01] px-2",
+        "text-[11px] font-medium tracking-wide text-white/50",
         "transition-colors duration-[var(--duration-fast)]",
         "hover:border-white/[0.12] hover:bg-white/[0.06] hover:text-white/80",
         "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-accent-ring)]",

@@ -18,4 +18,13 @@ describe("describeChatError", () => {
     expect(describeChatError("model foo is unavailable").kind).toBe("model");
     expect(describeChatError("boom").kind).toBe("generic");
   });
+
+  it("classifies missing Pi CLI as a runtime error, not model unavailable", () => {
+    const result = describeChatError(
+      "Could not find the 'pi' CLI.\nMake sure 'pi' is installed.",
+    );
+    expect(result.kind).toBe("runtime");
+    expect(result.title).toBe("Pi CLI not found");
+    expect(result.guidance.toLowerCase()).toMatch(/install|pi_cli_path/);
+  });
 });

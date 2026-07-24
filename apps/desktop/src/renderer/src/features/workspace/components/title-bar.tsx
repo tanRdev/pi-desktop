@@ -76,7 +76,7 @@ export function TitleBar({
         {contextSwitchPhase !== "idle" ? (
           <span
             data-testid="context-switch-status"
-            className="font-mono text-[11px] uppercase tracking-wider text-white/45"
+            className="text-[11px] font-medium tracking-wide text-white/45"
           >
             {contextSwitchPhase === "switching"
               ? "Switching…"

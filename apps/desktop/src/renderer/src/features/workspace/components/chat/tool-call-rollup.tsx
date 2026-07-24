@@ -61,7 +61,7 @@ export function ToolCallRollup({
           type="button"
           onClick={() => setExpanded(true)}
           className={cn(
-            "w-full text-left px-0 py-2 font-mono text-[11px] uppercase tracking-wider",
+            "w-full text-left px-0 py-2 text-[11px] font-medium tracking-wide",
             "text-white/50 hover:text-white/70",
             "transition-colors duration-[var(--duration-fast)]",
           )}

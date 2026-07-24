@@ -33,6 +33,7 @@ type UnavailableAgentHost = {
 
 function resolveAgentRuntimeMode(
   environment: AgentRuntimeEnvironment,
+  resolvePi: () => string | null = resolvePiPath,
 ): AgentRuntimeMode {
   if (
     environment.PI_DESKTOP_AGENT_MODE === "mock" ||
@@ -42,7 +43,13 @@ function resolveAgentRuntimeMode(
     return environment.PI_DESKTOP_AGENT_MODE;
   }
 
-  return environment.NODE_ENV === "test" ? "mock" : "cli";
+  if (environment.NODE_ENV === "test") {
+    return "mock";
+  }
+
+  // Prefer the real Pi CLI when it's on PATH; otherwise mock so chat works
+  // out of the box without requiring a separate `pi` install.
+  return resolvePi() ? "cli" : "mock";
 }
 
 export function resolveAgentRuntimeOptions(

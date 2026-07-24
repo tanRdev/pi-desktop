@@ -1,4 +1,4 @@
-export type ChatErrorKind = "auth" | "token" | "model" | "generic";
+export type ChatErrorKind = "auth" | "token" | "model" | "runtime" | "generic";
 
 export interface ChatErrorPresentation {
   kind: ChatErrorKind;
@@ -14,6 +14,22 @@ export interface ChatErrorPresentation {
  */
 export function describeChatError(lastError: string): ChatErrorPresentation {
   const normalized = lastError.toLowerCase();
+
+  if (
+    normalized.includes("pi_not_found") ||
+    normalized.includes("could not find the 'pi'") ||
+    normalized.includes('could not find the "pi"') ||
+    (normalized.includes("pi") &&
+      normalized.includes("cli") &&
+      (normalized.includes("not found") || normalized.includes("path")))
+  ) {
+    return {
+      kind: "runtime",
+      title: "Pi CLI not found",
+      guidance:
+        "Install the `pi` CLI or set PI_CLI_PATH, then restart Pi Desktop.",
+    };
+  }
 
   if (
     normalized.includes("auth") ||
@@ -49,7 +65,6 @@ export function describeChatError(lastError: string): ChatErrorPresentation {
   if (
     normalized.includes("model") ||
     normalized.includes("provider") ||
-    normalized.includes("not found") ||
     normalized.includes("unavailable")
   ) {
     return {

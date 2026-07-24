@@ -21,7 +21,7 @@ function WorkspaceShellTerminalAsideImpl({
       )}
     >
       <div className="flex h-11 shrink-0 items-center justify-between border-b border-white/[0.06] px-3">
-        <span className="text-[11px] font-medium uppercase tracking-wider text-white/40">
+        <span className="text-[11px] font-medium tracking-wide text-white/40">
           Terminal
         </span>
         <button

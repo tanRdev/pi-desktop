@@ -73,7 +73,7 @@ export function ThreadList({
         <div className="flex items-center justify-between border-b border-white/[0.04] pb-2 px-1 select-none">
           <div className="flex items-center gap-2">
             <ChatText className="size-5 text-white/50" weight="regular" />
-            <span className="text-[11px] font-normal text-white/50 uppercase tracking-[0.16em]">
+            <span className="text-[11px] font-medium tracking-wide text-white/50">
               Threads
             </span>
           </div>

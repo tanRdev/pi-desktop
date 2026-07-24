@@ -40,7 +40,7 @@ export function Todo({ items, className }: TodoProps) {
           </div>
           <span
             className={cn(
-              "text-[11px] leading-tight font-mono uppercase",
+              "text-[11px] leading-tight",
               item.completed && "line-through text-white/30",
             )}
           >
