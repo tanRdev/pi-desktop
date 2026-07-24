@@ -102,14 +102,20 @@ export function AppDialogs({
       <Dialog open={isCreateWorktreeOpen} onOpenChange={setCreateWorktreeOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Create session</DialogTitle>
+            <DialogTitle>Create Worktree</DialogTitle>
             <DialogDescription>
-              Start a new session by creating a git worktree from active
-              repository branch.
+              Create a git Worktree from the active Repository branch.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 bg-[var(--color-bg-secondary)] px-6 py-4">
+            <label
+              htmlFor="worktree-branch-input"
+              className="text-[11px] text-white/50"
+            >
+              Branch name
+            </label>
             <input
+              id="worktree-branch-input"
               data-testid="worktree-branch-input"
               value={newWorktreeBranch}
               onChange={(event) => setNewWorktreeBranch(event.target.value)}
@@ -129,15 +135,20 @@ export function AppDialogs({
                 }
               }}
               placeholder="feature/my-task"
+              aria-invalid={worktreeCreateError ? true : undefined}
               className={cn(
                 "w-full border border-white/[0.06] bg-[var(--color-bg-primary)] px-3 py-2 text-[11px] text-white/80 outline-none",
                 "transition-all duration-[var(--duration-fast)]",
                 "focus:border-white/[0.12] focus:ring-1 focus:ring-white/[0.06]",
                 "placeholder:text-white/50",
+                worktreeCreateError && "border-destructive/50",
               )}
             />
             {worktreeCreateError ? (
-              <p className="animate-pulse text-[11px] text-destructive">
+              <p
+                data-testid="worktree-create-error"
+                className="text-[11px] text-destructive"
+              >
                 {worktreeCreateError}
               </p>
             ) : null}
@@ -152,7 +163,7 @@ export function AppDialogs({
             </Button>
             <Button type="button" onClick={() => void submitCreateWorktree()}>
               {newWorktreeBranch.trim() ? (
-                "Create"
+                "Create Worktree"
               ) : (
                 <span className="flex items-center gap-2">
                   Auto-name{" "}

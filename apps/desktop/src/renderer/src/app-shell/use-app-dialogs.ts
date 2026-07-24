@@ -13,6 +13,30 @@ function getErrorDescription(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
 }
 
+/** Rejects branch names git will refuse (spaces, .., @{, trailing slash, etc.). */
+export function getWorktreeBranchValidationError(
+  branchName: string,
+): string | null {
+  const trimmed = branchName.trim();
+  if (!trimmed) {
+    return "Enter a branch name, or use Auto-name.";
+  }
+  if (trimmed.startsWith("-")) {
+    return "Branch name cannot start with a dash.";
+  }
+  if (
+    trimmed.endsWith("/") ||
+    trimmed.endsWith(".lock") ||
+    trimmed.includes("..") ||
+    trimmed.includes("//") ||
+    trimmed.includes("@{") ||
+    /[\s~^:?*[\\]/.test(trimmed)
+  ) {
+    return "Branch name has invalid characters. Use letters, numbers, /, -, or _.";
+  }
+  return null;
+}
+
 export interface OAuthDialogState {
   open: boolean;
   mode: "providers" | "login" | "logout";
@@ -306,9 +330,17 @@ export function useAppDialogs({
   const setCreateWorktreeOpen = React.useCallback(
     (isOpen: boolean) => {
       uiStore.getState().setDialogOpen("createWorktree", isOpen);
+      if (!isOpen) {
+        setWorktreeCreateError(null);
+      }
     },
     [uiStore],
   );
+
+  const handleSetNewWorktreeBranch = React.useCallback((value: string) => {
+    setNewWorktreeBranch(value);
+    setWorktreeCreateError(null);
+  }, []);
 
   const setRemoveRepositoryOpen = React.useCallback(
     (isOpen: boolean) => {
@@ -332,7 +364,16 @@ export function useAppDialogs({
   const submitCreateWorktree = React.useCallback(async () => {
     let branchName = newWorktreeBranch.trim();
     if (!branchName) {
-      branchName = `session/${createThreadTitle().toLowerCase()}`;
+      branchName = createThreadTitle()
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "-");
+    }
+
+    const validationError = getWorktreeBranchValidationError(branchName);
+    if (validationError) {
+      setWorktreeCreateError(validationError);
+      return;
     }
 
     let repositoryId = activeRepositoryId;
@@ -342,6 +383,7 @@ export function useAppDialogs({
     }
 
     if (!repositoryId) {
+      setWorktreeCreateError("Select a Repository before creating a Worktree.");
       return;
     }
 
@@ -351,10 +393,10 @@ export function useAppDialogs({
       setNewWorktreeBranch("");
       setWorktreeCreateError(null);
       await reload();
-      toast.success("Session created");
+      toast.success("Worktree created");
     } catch (error) {
       setWorktreeCreateError(
-        error instanceof Error ? error.message : "Failed to create worktree",
+        error instanceof Error ? error.message : "Failed to create Worktree",
       );
     }
   }, [
@@ -480,7 +522,7 @@ export function useAppDialogs({
     isCreateWorktreeOpen,
     setCreateWorktreeOpen,
     newWorktreeBranch,
-    setNewWorktreeBranch,
+    setNewWorktreeBranch: handleSetNewWorktreeBranch,
     worktreeCreateError,
     submitCreateWorktree,
     confirmRemoveRepository,

@@ -57,11 +57,36 @@ describe("AppDialogs", () => {
 
     render(<AppDialogs {...props} />);
 
+    expect(
+      screen.getByRole("heading", { name: "Create Worktree" }),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(/Create a git Worktree from the active Repository/i),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: "Create Worktree" }),
+    ).toBeTruthy();
+
     fireEvent.keyDown(screen.getByTestId("worktree-branch-input"), {
       key: "Enter",
     });
 
     expect(props.submitCreateWorktree).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows user-visible worktree create errors", () => {
+    render(
+      <AppDialogs
+        {...createProps({
+          isCreateWorktreeOpen: true,
+          worktreeCreateError: "Branch name has invalid characters.",
+        })}
+      />,
+    );
+
+    expect(screen.getByTestId("worktree-create-error").textContent).toBe(
+      "Branch name has invalid characters.",
+    );
   });
 
   it("shows logout-specific row actions and disables disconnected providers", () => {

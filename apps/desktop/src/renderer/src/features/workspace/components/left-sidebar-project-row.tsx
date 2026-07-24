@@ -78,14 +78,14 @@ function ProjectRowImpl({
                   void onCreateSession();
                 }}
                 disabled={isCreatingSession}
-                aria-label="New branch"
+                aria-label="Create Worktree"
                 data-testid="create-session-button"
                 className="flex size-6 items-center justify-center text-white/50 transition-colors duration-150 hover:text-white/60 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/30"
               >
                 <Plus aria-hidden="true" className="size-3.5" />
               </button>
             </TooltipTrigger>
-            <TooltipContent side="top">New branch</TooltipContent>
+            <TooltipContent side="top">Create Worktree</TooltipContent>
           </Tooltip>
         )}
       </div>

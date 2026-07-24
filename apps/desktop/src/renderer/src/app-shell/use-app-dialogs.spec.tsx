@@ -98,11 +98,43 @@ describe("useAppDialogs", () => {
       await result.current.submitCreateWorktree();
     });
 
-    expect(worktrees.create).toHaveBeenCalledWith("repo-1", "session/beacon");
+    expect(worktrees.create).toHaveBeenCalledWith("repo-1", "beacon");
     expect(reload).toHaveBeenCalledTimes(1);
     expect(result.current.isCreateWorktreeOpen).toBe(false);
     expect(result.current.newWorktreeBranch).toBe("");
     expect(result.current.worktreeCreateError).toBeNull();
+  });
+
+  it("surfaces invalid branch names without calling create", async () => {
+    const reload = vi.fn(async () => undefined);
+    const uiStore = createUiInteractionStore();
+    const api = installMockPiDesktop({
+      worktrees: {
+        create: vi.fn(async () => undefined),
+      },
+    });
+    const worktrees = requireNamespace(api.worktrees, "worktrees");
+
+    const { result } = renderHook(() =>
+      useAppDialogs({
+        activeRepositoryId: "repo-1",
+        reload,
+        uiStore,
+      }),
+    );
+
+    act(() => {
+      result.current.setCreateWorktreeOpen(true);
+      result.current.setNewWorktreeBranch("bad..branch");
+    });
+
+    await act(async () => {
+      await result.current.submitCreateWorktree();
+    });
+
+    expect(worktrees.create).not.toHaveBeenCalled();
+    expect(result.current.worktreeCreateError).toMatch(/invalid characters/i);
+    expect(result.current.isCreateWorktreeOpen).toBe(true);
   });
 
   it("tracks repository removal confirmation and clears it after submit", async () => {
