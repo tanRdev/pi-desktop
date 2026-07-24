@@ -1,10 +1,8 @@
 import type { GitFileDiff, GitRepositoryStatus } from "@pi-desktop/shared";
 import type { Effect } from "effect";
 import type { GitError } from "../effect/errors";
-import {
-  type GitRepositoryInspection,
-  GitWorktreeService,
-} from "../git-worktree-service";
+import { GitServiceImpl } from "./git-service-impl";
+import type { GitRepositoryInspection } from "./types";
 
 /**
  * Public Git capability used by IPC, shell snapshot, and Effect Layers.
@@ -57,7 +55,7 @@ export type GitService = {
 };
 
 export function createGitService(): GitService {
-  return new GitWorktreeService();
+  return new GitServiceImpl();
 }
 
-export type { GitRepositoryInspection };
+export type { GitRepositoryInspection, GitWorktreeSummary } from "./types";

@@ -1,5 +1,5 @@
 import path from "node:path";
-import type { GitRepositoryInspection } from "../git-worktree-service";
+import type { GitRepositoryInspection } from "../git/git-service";
 import type { ResolvedRepositoryInspection } from "./thread-context";
 
 export function resolveWorkspaceInspection(

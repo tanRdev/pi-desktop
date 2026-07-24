@@ -3,38 +3,35 @@ import path from "node:path";
 import type {
   GitFileDiff,
   GitRepositoryStatus,
-  ShellGitSnapshot,
   WorktreeGitSnapshot,
 } from "@pi-desktop/shared";
 import type { Effect } from "effect";
-import { GitError } from "./effect/errors";
+import { GitError } from "../effect/errors";
+import { LruMap } from "../lru-map";
 import {
   clearAllGitWorktreeCaches,
   clearGitWorktreeCachesForPath,
-} from "./git/cache-invalidation";
-import {
-  createGitAsyncEffect,
-  createGitSyncEffect,
-} from "./git/effect-wrappers";
-import { buildFileDiff } from "./git/file-diff";
+} from "./cache-invalidation";
+import { createGitAsyncEffect, createGitSyncEffect } from "./effect-wrappers";
+import { buildFileDiff } from "./file-diff";
 import {
   type RunGit,
   type RunGitAsync,
   runGitCommand,
   runGitCommandAsync,
-} from "./git/git-command-runner";
-import { runCheckedGitCommand } from "./git/git-command-status";
-import { buildRepositoryInspection } from "./git/inspection";
-import { buildInspectionCacheEntries } from "./git/inspection-outcomes";
+} from "./git-command-runner";
+import { runCheckedGitCommand } from "./git-command-status";
+import { buildRepositoryInspection } from "./inspection";
+import { buildInspectionCacheEntries } from "./inspection-outcomes";
 import {
   normalizePathId,
   resolveCommandCwd,
   resolveInsideRepository,
-} from "./git/path-utils";
+} from "./path-utils";
 import {
   loadRepositoryInspection,
   loadRepositoryInspectionAsync,
-} from "./git/repository-inspection-loader";
+} from "./repository-inspection-loader";
 import {
   detectDefaultBranch,
   detectDefaultBranchAsync,
@@ -45,10 +42,10 @@ import {
   resolveCurrentWorktreeRoot,
   resolveCurrentWorktreeRootAsync,
   resolveUpstreamBranch,
-} from "./git/repository-meta";
-import { buildRepositoryStatusFromPorcelain } from "./git/repository-status";
-import { loadRepositoryStatus } from "./git/repository-status-loader";
-import { createStatusChangingCommandRunner } from "./git/status-changing-command-runner";
+} from "./repository-meta";
+import { buildRepositoryStatusFromPorcelain } from "./repository-status";
+import { loadRepositoryStatus } from "./repository-status-loader";
+import { createStatusChangingCommandRunner } from "./status-changing-command-runner";
 import {
   buildCommitCommand,
   buildDiscardTrackedFileCommand,
@@ -59,43 +56,20 @@ import {
   buildStageFilesCommand,
   buildUnstageFileCommand,
   buildUnstageFilesCommand,
-} from "./git/status-changing-commands";
-import { type ParsedWorktree, parseWorktreeBlocks } from "./git/status-parsers";
-import { buildCreateWorktreeCommand } from "./git/worktree-creation";
+} from "./status-changing-commands";
+import { type ParsedWorktree, parseWorktreeBlocks } from "./status-parsers";
+import type { GitRepositoryInspection, GitWorktreeSummary } from "./types";
+import { buildCreateWorktreeCommand } from "./worktree-creation";
 import {
   inspectWorktreeGitSummary,
   inspectWorktreeGitSummaryAsync,
-} from "./git/worktree-git-summary";
+} from "./worktree-git-summary";
 import {
   inspectParsedWorktree,
   inspectParsedWorktreeAsync,
-} from "./git/worktree-inspection";
-import { LruMap } from "./lru-map";
+} from "./worktree-inspection";
 
-export interface GitWorktreeSummary {
-  id: string;
-  path: string;
-  isMain: boolean;
-  isCurrent: boolean;
-  isDetached: boolean;
-  isPrunable: boolean;
-  prunableReason: string | null;
-  branch: string | null;
-  commit: string | null;
-  git: WorktreeGitSnapshot;
-}
-
-export interface GitRepositoryInspection {
-  status: "repository" | "not_repo" | "unavailable";
-  rootPath?: string;
-  currentWorktreePath?: string;
-  defaultBranch?: string | null;
-  worktrees?: GitWorktreeSummary[];
-  currentGit?: ShellGitSnapshot;
-  message: string | null;
-}
-
-export class GitWorktreeService {
+export class GitServiceImpl {
   private static readonly INSPECTION_CACHE_TTL = 2000;
   private static readonly STATUS_CACHE_TTL = 2000;
   private static readonly INSPECTION_CACHE_MAX_ENTRIES = 200;
@@ -104,12 +78,12 @@ export class GitWorktreeService {
   private readonly inspectionCache = new LruMap<
     string,
     { inspection: GitRepositoryInspection; updatedAt: number }
-  >(GitWorktreeService.INSPECTION_CACHE_MAX_ENTRIES);
+  >(GitServiceImpl.INSPECTION_CACHE_MAX_ENTRIES);
 
   private readonly repositoryStatusCache = new LruMap<
     string,
     { status: GitRepositoryStatus; updatedAt: number }
-  >(GitWorktreeService.STATUS_CACHE_MAX_ENTRIES);
+  >(GitServiceImpl.STATUS_CACHE_MAX_ENTRIES);
 
   private readonly runGit: RunGit = runGitCommand;
 
@@ -129,7 +103,7 @@ export class GitWorktreeService {
     if (
       cachedInspection &&
       Date.now() - cachedInspection.updatedAt <
-        GitWorktreeService.INSPECTION_CACHE_TTL
+        GitServiceImpl.INSPECTION_CACHE_TTL
     ) {
       return cachedInspection.inspection;
     }
@@ -162,7 +136,7 @@ export class GitWorktreeService {
     if (
       cachedInspection &&
       Date.now() - cachedInspection.updatedAt <
-        GitWorktreeService.INSPECTION_CACHE_TTL
+        GitServiceImpl.INSPECTION_CACHE_TTL
     ) {
       return cachedInspection.inspection;
     }
@@ -276,7 +250,7 @@ export class GitWorktreeService {
     );
     if (
       cachedStatus &&
-      Date.now() - cachedStatus.updatedAt < GitWorktreeService.STATUS_CACHE_TTL
+      Date.now() - cachedStatus.updatedAt < GitServiceImpl.STATUS_CACHE_TTL
     ) {
       return cachedStatus.status;
     }
@@ -498,9 +472,9 @@ export class GitWorktreeService {
       targetPath,
       now: Date.now(),
       inspectionCache: this.inspectionCache,
-      inspectionTtl: GitWorktreeService.INSPECTION_CACHE_TTL,
+      inspectionTtl: GitServiceImpl.INSPECTION_CACHE_TTL,
       repositoryStatusCache: this.repositoryStatusCache,
-      statusTtl: GitWorktreeService.STATUS_CACHE_TTL,
+      statusTtl: GitServiceImpl.STATUS_CACHE_TTL,
     });
   }
 

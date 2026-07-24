@@ -1,13 +1,13 @@
 import { Layer } from "effect";
 import type { RepositoryCatalog } from "../catalogs/repository-catalog";
 import {
-  GitWorktreeServiceLive,
+  GitServiceLive,
   RepositoryCatalogLive,
   TerminalManagerLive,
 } from "../effect/layers";
 import { PiDesktopLive } from "../effect/runtime";
 import type {
-  GitWorktreeServiceServiceOps,
+  GitServiceOps,
   RepositoryCatalogServiceOps,
   TerminalManagerServiceOps,
 } from "../effect/services";
@@ -19,7 +19,7 @@ import {
 import type { TerminalManager } from "../terminal-manager";
 
 export type DesktopMainServices = RepositoryCatalogServiceOps &
-  GitWorktreeServiceServiceOps &
+  GitServiceOps &
   TerminalManagerServiceOps &
   SessionCapabilityServiceOps;
 
@@ -37,7 +37,7 @@ export function createDesktopMainLayer(input: {
   return Layer.mergeAll(
     PiDesktopLive as Layer.Layer<never, never, never>,
     RepositoryCatalogLive(input.repositoryCatalog),
-    GitWorktreeServiceLive(input.gitService),
+    GitServiceLive(input.gitService),
     TerminalManagerLive(input.terminalManager),
     SessionCapabilityLive(input.sessionCapability),
   ) as Layer.Layer<DesktopMainServices, never, never>;

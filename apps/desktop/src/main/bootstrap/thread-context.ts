@@ -1,5 +1,5 @@
 import type { ThreadCatalogEntry } from "../catalogs/thread-catalog";
-import type { GitRepositoryInspection } from "../git-worktree-service";
+import type { GitRepositoryInspection } from "../git/git-service";
 
 export type SelectedThreadContext<
   TThread extends { id: string } = ThreadCatalogEntry,

@@ -7,7 +7,7 @@ import type {
 import { Context, Effect } from "effect";
 import type { PersistentJsonFileOptions } from "../catalogs/persistent-json-file";
 import type { RepositoryCatalogEntry } from "../catalogs/repository-catalog";
-import type { GitRepositoryInspection } from "../git-worktree-service";
+import type { GitRepositoryInspection } from "../git/git-service";
 import type { TerminalInstance } from "../terminal-manager";
 import {
   type FileSystemError,
@@ -66,10 +66,10 @@ export const RepositoryCatalog =
   );
 
 // ===========================================================================
-// GitWorktreeServiceService
+// Git capability (Effect)
 // ===========================================================================
 
-export interface GitWorktreeServiceServiceOps {
+export interface GitServiceOps {
   readonly inspect: (
     targetPath: string,
   ) => Effect.Effect<GitRepositoryInspection, GitError>;
@@ -133,8 +133,8 @@ export interface GitWorktreeServiceServiceOps {
   ) => Effect.Effect<GitFileDiff, GitError>;
 }
 
-export class GitWorktreeServiceService extends Effect.Service<GitWorktreeServiceService>()(
-  "GitWorktreeServiceService",
+export class GitServiceEffect extends Effect.Service<GitServiceEffect>()(
+  "GitServiceEffect",
   {
     succeed: {
       inspect: (_targetPath: string) =>
@@ -180,14 +180,13 @@ export class GitWorktreeServiceService extends Effect.Service<GitWorktreeService
         _filePath: string,
         _staged: boolean,
       ) => Effect.fail(new GitError({ message: "not implemented" })),
-    } satisfies GitWorktreeServiceServiceOps,
+    } satisfies GitServiceOps,
   },
 ) {}
 
-export const GitWorktreeService =
-  Context.GenericTag<GitWorktreeServiceServiceOps>(
-    "@pi-desktop/GitWorktreeServiceService",
-  );
+export const GitCapability = Context.GenericTag<GitServiceOps>(
+  "@pi-desktop/GitService",
+);
 
 // ===========================================================================
 // TerminalManagerService

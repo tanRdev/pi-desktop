@@ -30,13 +30,22 @@ describe("check-file-sizes script", () => {
     expect(parsed).not.toBeNull();
   });
 
-  it("tracks apps/desktop/src/main/index.ts as a known violator", () => {
+  it("tracks bootstrap-desktop and git-service-impl as known violators", () => {
     const raw = readFileSync(baselinePath, "utf8");
     const parsed = JSON.parse(raw);
 
-    expect(parsed).toHaveProperty("apps/desktop/src/main/index.ts");
-    expect(typeof parsed["apps/desktop/src/main/index.ts"]).toBe("number");
-    expect(parsed["apps/desktop/src/main/index.ts"]).toBeGreaterThan(80);
+    expect(parsed).toHaveProperty(
+      "apps/desktop/src/main/bootstrap/bootstrap-desktop.ts",
+    );
+    expect(
+      parsed["apps/desktop/src/main/bootstrap/bootstrap-desktop.ts"],
+    ).toBeGreaterThan(300);
+    expect(parsed).toHaveProperty(
+      "apps/desktop/src/main/git/git-service-impl.ts",
+    );
+    expect(
+      parsed["apps/desktop/src/main/git/git-service-impl.ts"],
+    ).toBeGreaterThan(300);
   });
 
   it("baseline has at least one entry", () => {

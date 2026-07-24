@@ -25,7 +25,7 @@ export {
   trySync,
 } from "./errors";
 export {
-  GitWorktreeServiceLive,
+  GitServiceLive,
   PersistentJsonFileLive,
   RepositoryCatalogLive,
   TerminalManagerLive,
@@ -40,15 +40,15 @@ export {
   runEffectVoid,
 } from "./runtime";
 export type {
-  GitWorktreeServiceServiceOps,
+  GitServiceOps,
   PersistentJsonFileRef,
   PersistentJsonFileServiceOps,
   RepositoryCatalogServiceOps,
   TerminalManagerServiceOps,
 } from "./services";
 export {
-  GitWorktreeService,
-  GitWorktreeServiceService,
+  GitCapability,
+  GitServiceEffect,
   PersistentJsonFile,
   PersistentJsonFileService,
   RepositoryCatalog,

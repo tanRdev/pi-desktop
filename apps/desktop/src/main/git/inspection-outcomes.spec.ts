@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import type { GitRepositoryInspection } from "../git-worktree-service";
 import {
   buildInspectionCacheEntries,
   createNotRepositoryInspection,
   createUnavailableInspection,
 } from "./inspection-outcomes";
+import type { GitRepositoryInspection } from "./types";
 
 describe("inspection outcome helpers", () => {
   it("creates a not-repo inspection with a null message", () => {

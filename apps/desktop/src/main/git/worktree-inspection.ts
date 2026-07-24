@@ -1,11 +1,10 @@
 import type { WorktreeGitSnapshot } from "@pi-desktop/shared";
-
-import type { GitWorktreeSummary } from "../git-worktree-service";
 import {
   createMissingGitSummary,
   type ParsedWorktree,
   parseBranchName,
 } from "./status-parsers";
+import type { GitWorktreeSummary } from "./types";
 
 type WorktreeInspectionFallback = {
   branch: string | null;

@@ -2,10 +2,10 @@ import type {
   GitRepositoryStatus,
   WorktreeGitSnapshot,
 } from "@pi-desktop/shared";
-import type { GitRepositoryInspection } from "../git-worktree-service";
 import type { RunGit } from "./git-command-runner";
 import { resolveUpstreamBranch } from "./repository-meta";
 import { buildRepositoryStatusFromPorcelain } from "./repository-status";
+import type { GitRepositoryInspection } from "./types";
 
 type RepositoryInspection = {
   currentWorktreePath: string;

@@ -14,8 +14,8 @@ import {
   TerminalError,
 } from "./errors";
 import {
-  type GitWorktreeServiceServiceOps,
-  GitWorktreeService as GitWorktreeServiceTag,
+  GitCapability as GitCapabilityTag,
+  type GitServiceOps,
   type PersistentJsonFileRef,
   type PersistentJsonFileServiceOps,
   PersistentJsonFile as PersistentJsonFileTag,
@@ -95,13 +95,13 @@ export const RepositoryCatalogLive = (
   });
 
 // ---------------------------------------------------------------------------
-// GitWorktreeServiceLive
+// GitServiceLive
 // ---------------------------------------------------------------------------
 
-export const GitWorktreeServiceLive = (
+export const GitServiceLive = (
   service: GitService,
-): Layer.Layer<GitWorktreeServiceServiceOps, never, never> =>
-  Layer.succeed(GitWorktreeServiceTag, {
+): Layer.Layer<GitServiceOps, never, never> =>
+  Layer.succeed(GitCapabilityTag, {
     inspect: (targetPath: string) =>
       Effect.try({
         try: () => service.inspect(targetPath),

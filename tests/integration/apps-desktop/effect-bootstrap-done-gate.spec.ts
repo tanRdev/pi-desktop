@@ -3,7 +3,10 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 const ROOT = path.resolve(__dirname, "../../../");
-const MAIN_INDEX = path.join(ROOT, "apps/desktop/src/main/index.ts");
+const BOOTSTRAP = path.join(
+  ROOT,
+  "apps/desktop/src/main/bootstrap/bootstrap-desktop.ts",
+);
 const RUNTIME = path.join(ROOT, "apps/desktop/src/main/effect/runtime.ts");
 const LAYER = path.join(
   ROOT,
@@ -12,13 +15,13 @@ const LAYER = path.join(
 
 describe("Spine 3 Effect bootstrap done-gate", () => {
   it("main installs the composed Desktop main Layer at boot", () => {
-    const index = fs.readFileSync(MAIN_INDEX, "utf8");
-    expect(index).toContain("installDesktopMainRuntime");
-    expect(index).toContain("createDesktopMainLayer");
-    expect(index).toContain("createSessionCapability");
-    expect(index).not.toMatch(/let currentContext/);
-    expect(index).not.toMatch(/let currentHost/);
-    expect(index).not.toMatch(/let currentTransport/);
+    const bootstrap = fs.readFileSync(BOOTSTRAP, "utf8");
+    expect(bootstrap).toContain("installDesktopMainRuntime");
+    expect(bootstrap).toContain("createDesktopMainLayer");
+    expect(bootstrap).toContain("createSessionCapability");
+    expect(bootstrap).not.toMatch(/let currentContext/);
+    expect(bootstrap).not.toMatch(/let currentHost/);
+    expect(bootstrap).not.toMatch(/let currentTransport/);
   });
 
   it("runEffect provides the installed main Layer, not logger-only theater", () => {
@@ -31,7 +34,7 @@ describe("Spine 3 Effect bootstrap done-gate", () => {
   it("Desktop main Layer merges catalog, git, terminal, and session services", () => {
     const layer = fs.readFileSync(LAYER, "utf8");
     expect(layer).toContain("RepositoryCatalogLive");
-    expect(layer).toContain("GitWorktreeServiceLive");
+    expect(layer).toContain("GitServiceLive");
     expect(layer).toContain("TerminalManagerLive");
     expect(layer).toContain("SessionCapabilityLive");
   });

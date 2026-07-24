@@ -1,13 +1,10 @@
-import type {
-  GitRepositoryInspection,
-  GitWorktreeSummary,
-} from "../git-worktree-service";
 import type { GitCommandResult } from "./git-command-runner";
 import {
   createNotRepositoryInspection,
   createUnavailableInspection,
 } from "./inspection-outcomes";
 import type { ParsedWorktree } from "./status-parsers";
+import type { GitRepositoryInspection, GitWorktreeSummary } from "./types";
 
 type LoadRepositoryInspectionInput = {
   targetPath: string;

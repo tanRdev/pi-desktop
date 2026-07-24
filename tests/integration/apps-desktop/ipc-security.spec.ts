@@ -383,9 +383,6 @@ describe("filesystem handlers - end-to-end security", () => {
   });
 
   it("readFile rejects missing path with stable code", async () => {
-    const { ContractError } = await import(
-      "../../../packages/contracts/src/contract-runtime"
-    );
     const listener = handlers.get("fs:readFile");
     if (!listener) throw new Error("handler not registered");
     await expect(listener(undefined, {})).rejects.toMatchObject({
@@ -398,9 +395,6 @@ describe("filesystem handlers - end-to-end security", () => {
   });
 
   it("writeFile rejects oversized content", async () => {
-    const { ContractError } = await import(
-      "../../../packages/contracts/src/contract-runtime"
-    );
     const listener = handlers.get("fs:writeFile");
     if (!listener) throw new Error("handler not registered");
     const giant = "a".repeat(11 * 1024 * 1024);
@@ -442,14 +436,14 @@ describe("git handlers - repository path guard", () => {
     allowedRoot = realpathSync(allowedRoot);
 
     const { registerGitHandlers } = await loadGitHandlers();
-    const { GitWorktreeService } = await import(
-      "../../../apps/desktop/src/main/git-worktree-service"
+    const { createGitService } = await import(
+      "../../../apps/desktop/src/main/git/git-service"
     );
     handlers = new Map();
     // The test does not exercise real git — we only care that the guard
     // runs before the service is called. A real instance is fine because
     // none of the tests below reach the service (all fail at validation).
-    const stubService = new GitWorktreeService();
+    const stubService = createGitService();
     registerGitHandlers({
       handle: (channel, listener) => {
         handlers.set(channel, listener);
@@ -473,9 +467,6 @@ describe("git handlers - repository path guard", () => {
   });
 
   it("rejects oversized commit messages", async () => {
-    const { ContractError } = await import(
-      "../../../packages/contracts/src/contract-runtime"
-    );
     const listener = handlers.get("git:commit");
     if (!listener) throw new Error("handler not registered");
     await expect(
@@ -498,9 +489,6 @@ describe("git handlers - repository path guard", () => {
   });
 
   it("rejects empty filePaths arrays for stageFiles", async () => {
-    const { ContractError } = await import(
-      "../../../packages/contracts/src/contract-runtime"
-    );
     const listener = handlers.get("git:stageFiles");
     if (!listener) throw new Error("handler not registered");
     await expect(

@@ -1,4 +1,4 @@
-import type { GitRepositoryInspection } from "../git-worktree-service";
+import type { GitRepositoryInspection } from "./types";
 
 export type InspectionCacheEntry = {
   inspection: GitRepositoryInspection;

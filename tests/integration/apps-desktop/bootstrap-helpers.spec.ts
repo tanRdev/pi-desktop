@@ -43,12 +43,15 @@ describe("bootstrap helpers (RED)", () => {
 
     const source = await import("node:fs/promises").then((fs) =>
       fs.readFile(
-        new URL("../../../apps/desktop/src/main/index.ts", import.meta.url),
+        new URL(
+          "../../../apps/desktop/src/main/bootstrap/bootstrap-desktop.ts",
+          import.meta.url,
+        ),
         "utf8",
       ),
     );
 
-    expect(source).toContain('from "./bootstrap/main-window-lifecycle"');
+    expect(source).toContain('from "./main-window-lifecycle"');
     expect(source).toContain("await createAndTrackMainWindow({");
     expect(source).not.toContain(
       "let unsubscribeFullscreen = subscribeToFullscreenChanges(mainWindow);",
@@ -179,12 +182,15 @@ describe("bootstrap helpers (RED)", () => {
 
     const source = await import("node:fs/promises").then((fs) =>
       fs.readFile(
-        new URL("../../../apps/desktop/src/main/index.ts", import.meta.url),
+        new URL(
+          "../../../apps/desktop/src/main/bootstrap/bootstrap-desktop.ts",
+          import.meta.url,
+        ),
         "utf8",
       ),
     );
 
-    expect(source).toContain('from "./bootstrap/main-window"');
+    expect(source).toContain('from "./main-window"');
     expect(source).toContain("createWindow: createMainWindow,");
     expect(source).toContain("subscribeToFullscreenChanges,");
     expect(source).not.toContain("async function createMainWindow()");
@@ -256,12 +262,15 @@ describe("bootstrap helpers (RED)", () => {
 
     const source = await import("node:fs/promises").then((fs) =>
       fs.readFile(
-        new URL("../../../apps/desktop/src/main/index.ts", import.meta.url),
+        new URL(
+          "../../../apps/desktop/src/main/bootstrap/bootstrap-desktop.ts",
+          import.meta.url,
+        ),
         "utf8",
       ),
     );
 
-    expect(source).toContain('from "./bootstrap/application-menu"');
+    expect(source).toContain('from "./application-menu"');
     expect(source).toContain("installApplicationMenu({");
     expect(source).not.toContain("Menu.buildFromTemplate(template)");
   });
@@ -311,12 +320,15 @@ describe("bootstrap helpers (RED)", () => {
 
     const source = await import("node:fs/promises").then((fs) =>
       fs.readFile(
-        new URL("../../../apps/desktop/src/main/index.ts", import.meta.url),
+        new URL(
+          "../../../apps/desktop/src/main/bootstrap/bootstrap-desktop.ts",
+          import.meta.url,
+        ),
         "utf8",
       ),
     );
 
-    expect(source).toContain('from "./bootstrap/oauth-prompt-bridge"');
+    expect(source).toContain('from "./oauth-prompt-bridge"');
     expect(source).toContain("createOAuthPromptBridge({");
     expect(source).toContain("oauthPromptBridge,");
     expect(source).not.toContain("async function promptForOAuthInput(");
@@ -399,7 +411,10 @@ describe("bootstrap helpers (RED)", () => {
     const [source, helperSource] = await Promise.all([
       import("node:fs/promises").then((fs) =>
         fs.readFile(
-          new URL("../../../apps/desktop/src/main/index.ts", import.meta.url),
+          new URL(
+            "../../../apps/desktop/src/main/bootstrap/bootstrap-desktop.ts",
+            import.meta.url,
+          ),
           "utf8",
         ),
       ),
@@ -414,8 +429,8 @@ describe("bootstrap helpers (RED)", () => {
       ),
     ]);
 
-    expect(source).toContain('from "./bootstrap/agent-host-connection"');
-    expect(source).toContain('from "./bootstrap/thread-context-actions"');
+    expect(source).toContain('from "./agent-host-connection"');
+    expect(source).toContain('from "./thread-context-actions"');
     expect(source).not.toContain("async function connectSocketHost(");
     expect(source).not.toContain("function delay(ms: number)");
     expect(helperSource).toContain("deps.connectAgentHost(");
@@ -530,7 +545,10 @@ describe("bootstrap helpers (RED)", () => {
   test("routePromptToTerminal remains a local helper and is not wired into desktop IPC", async () => {
     const source = await import("node:fs/promises").then((fs) =>
       fs.readFile(
-        new URL("../../../apps/desktop/src/main/index.ts", import.meta.url),
+        new URL(
+          "../../../apps/desktop/src/main/bootstrap/bootstrap-desktop.ts",
+          import.meta.url,
+        ),
         "utf8",
       ),
     );
@@ -542,7 +560,10 @@ describe("bootstrap helpers (RED)", () => {
     const [source, helperSource, ipcHelperSource] = await Promise.all([
       import("node:fs/promises").then((fs) =>
         fs.readFile(
-          new URL("../../../apps/desktop/src/main/index.ts", import.meta.url),
+          new URL(
+            "../../../apps/desktop/src/main/bootstrap/bootstrap-desktop.ts",
+            import.meta.url,
+          ),
           "utf8",
         ),
       ),
@@ -566,7 +587,7 @@ describe("bootstrap helpers (RED)", () => {
       ),
     ]);
 
-    expect(source).toContain('from "./bootstrap/workspace-removal-actions"');
+    expect(source).toContain('from "./workspace-removal-actions"');
     expect(source).toContain(
       "const workspaceRemovalActions = createWorkspaceRemovalActions({",
     );
@@ -589,7 +610,10 @@ describe("bootstrap helpers (RED)", () => {
     const [source, helperSource] = await Promise.all([
       import("node:fs/promises").then((fs) =>
         fs.readFile(
-          new URL("../../../apps/desktop/src/main/index.ts", import.meta.url),
+          new URL(
+            "../../../apps/desktop/src/main/bootstrap/bootstrap-desktop.ts",
+            import.meta.url,
+          ),
           "utf8",
         ),
       ),
@@ -604,7 +628,7 @@ describe("bootstrap helpers (RED)", () => {
       ),
     ]);
 
-    expect(source).toContain('from "./bootstrap/shell-state-ipc"');
+    expect(source).toContain('from "./shell-state-ipc"');
     expect(source).toContain(
       "const shellStateIpc = createShellStateIpcDependencies({",
     );
@@ -615,7 +639,7 @@ describe("bootstrap helpers (RED)", () => {
     expect(helperSource).toContain("buildShellCatalog({");
     expect(helperSource).toContain("createShellSnapshot({");
     expect(helperSource).toContain("new Set(listAllowedWorkspacePaths(deps))");
-    expect(source).toContain('from "./bootstrap/ipc-registration"');
+    expect(source).toContain('from "./ipc-registration"');
     expect(source).toContain("registerIpcHandlers(");
     expect(source).toContain("createDesktopIpcHandlerDependencies({");
   });
@@ -624,7 +648,10 @@ describe("bootstrap helpers (RED)", () => {
     const [source, helperSource] = await Promise.all([
       import("node:fs/promises").then((fs) =>
         fs.readFile(
-          new URL("../../../apps/desktop/src/main/index.ts", import.meta.url),
+          new URL(
+            "../../../apps/desktop/src/main/bootstrap/bootstrap-desktop.ts",
+            import.meta.url,
+          ),
           "utf8",
         ),
       ),
@@ -639,7 +666,7 @@ describe("bootstrap helpers (RED)", () => {
       ),
     ]);
 
-    expect(source).toContain('from "./bootstrap/initial-workspace-activation"');
+    expect(source).toContain('from "./initial-workspace-activation"');
     expect(source).toContain("await activateInitialWorkspaceSelection({");
     expect(source).not.toContain(
       'catch: (error) => fromUnknownError(error, "activateWorkspacePath")',
@@ -663,7 +690,10 @@ describe("bootstrap helpers (RED)", () => {
     const [source, helperSource] = await Promise.all([
       import("node:fs/promises").then((fs) =>
         fs.readFile(
-          new URL("../../../apps/desktop/src/main/index.ts", import.meta.url),
+          new URL(
+            "../../../apps/desktop/src/main/bootstrap/bootstrap-desktop.ts",
+            import.meta.url,
+          ),
           "utf8",
         ),
       ),
@@ -678,7 +708,7 @@ describe("bootstrap helpers (RED)", () => {
       ),
     ]);
 
-    expect(source).toContain('from "./bootstrap/app-lifecycle"');
+    expect(source).toContain('from "./app-lifecycle"');
     expect(source).toContain("registerDesktopAppLifecycle({");
     expect(source).not.toContain("if (app.isPackaged) {");
     expect(source).not.toContain('app.once("will-quit", (event) => {');
@@ -700,7 +730,10 @@ describe("bootstrap helpers (RED)", () => {
     const [source, helperSource] = await Promise.all([
       import("node:fs/promises").then((fs) =>
         fs.readFile(
-          new URL("../../../apps/desktop/src/main/index.ts", import.meta.url),
+          new URL(
+            "../../../apps/desktop/src/main/bootstrap/bootstrap-desktop.ts",
+            import.meta.url,
+          ),
           "utf8",
         ),
       ),
@@ -715,7 +748,7 @@ describe("bootstrap helpers (RED)", () => {
       ),
     ]);
 
-    expect(source).toContain('from "./bootstrap/ipc-registration"');
+    expect(source).toContain('from "./ipc-registration"');
     expect(source).toContain("registerIpcHandlers(");
     expect(source).toContain("createDesktopIpcHandlerDependencies({");
     expect(source).not.toContain("handle: createSanitizingHandle(");
@@ -734,7 +767,10 @@ describe("bootstrap helpers (RED)", () => {
     const [source, helperSource] = await Promise.all([
       import("node:fs/promises").then((fs) =>
         fs.readFile(
-          new URL("../../../apps/desktop/src/main/index.ts", import.meta.url),
+          new URL(
+            "../../../apps/desktop/src/main/bootstrap/bootstrap-desktop.ts",
+            import.meta.url,
+          ),
           "utf8",
         ),
       ),
@@ -749,7 +785,7 @@ describe("bootstrap helpers (RED)", () => {
       ),
     ]);
 
-    expect(source).toContain('from "./bootstrap/agent-runtime-handlers"');
+    expect(source).toContain('from "./agent-runtime-handlers"');
     expect(source).toContain(
       "const agentRuntimeHandlers = createAgentRuntimeHandlers({",
     );
@@ -1163,7 +1199,10 @@ describe("bootstrap helpers (RED)", () => {
       await Promise.all([
         import("node:fs/promises").then((fs) =>
           fs.readFile(
-            new URL("../../../apps/desktop/src/main/index.ts", import.meta.url),
+            new URL(
+              "../../../apps/desktop/src/main/bootstrap/bootstrap-desktop.ts",
+              import.meta.url,
+            ),
             "utf8",
           ),
         ),
@@ -1196,10 +1235,8 @@ describe("bootstrap helpers (RED)", () => {
         ),
       ]);
 
-    expect(indexSource).toContain(
-      'from "./bootstrap/workspace-selection-actions"',
-    );
-    expect(indexSource).toContain('from "./bootstrap/ipc-registration"');
+    expect(indexSource).toContain('from "./workspace-selection-actions"');
+    expect(indexSource).toContain('from "./ipc-registration"');
     expect(indexSource).not.toContain("const nextOpenThread = threadCatalog");
 
     expect(helperSource).toContain("const nextOpenThread = deps");
@@ -1278,7 +1315,10 @@ describe("bootstrap helpers (RED)", () => {
 
     const source = await import("node:fs/promises").then((fs) =>
       fs.readFile(
-        new URL("../../../apps/desktop/src/main/index.ts", import.meta.url),
+        new URL(
+          "../../../apps/desktop/src/main/bootstrap/bootstrap-desktop.ts",
+          import.meta.url,
+        ),
         "utf8",
       ),
     );
@@ -1293,7 +1333,7 @@ describe("bootstrap helpers (RED)", () => {
       ),
     );
 
-    expect(source).toContain('from "./bootstrap/ipc-registration"');
+    expect(source).toContain('from "./ipc-registration"');
     expect(ipcHelperSource).toContain('from "./active-thread-deletion"');
     expect(ipcHelperSource).toContain(
       "await deleteThreadAndRefresh(threadId, {",
@@ -1307,7 +1347,10 @@ describe("bootstrap helpers (RED)", () => {
     const [source, helperSource, ipcHelperSource] = await Promise.all([
       import("node:fs/promises").then((fs) =>
         fs.readFile(
-          new URL("../../../apps/desktop/src/main/index.ts", import.meta.url),
+          new URL(
+            "../../../apps/desktop/src/main/bootstrap/bootstrap-desktop.ts",
+            import.meta.url,
+          ),
           "utf8",
         ),
       ),
@@ -1336,7 +1379,7 @@ describe("bootstrap helpers (RED)", () => {
     expect(helperSource).toContain(
       "if (!thread && options.createIfMissing === false)",
     );
-    expect(source).toContain('from "./bootstrap/ipc-registration"');
+    expect(source).toContain('from "./ipc-registration"');
   });
 
   test("thread/worktree actions preserve fast-path thread creation and selection through an extracted bootstrap helper seam", async () => {
@@ -1458,12 +1501,15 @@ describe("bootstrap helpers (RED)", () => {
 
     const source = await import("node:fs/promises").then((fs) =>
       fs.readFile(
-        new URL("../../../apps/desktop/src/main/index.ts", import.meta.url),
+        new URL(
+          "../../../apps/desktop/src/main/bootstrap/bootstrap-desktop.ts",
+          import.meta.url,
+        ),
         "utf8",
       ),
     );
 
-    expect(source).toContain('from "./bootstrap/thread-workspace-actions"');
+    expect(source).toContain('from "./thread-workspace-actions"');
     expect(source).toContain(
       "const threadWorkspaceActions = createThreadWorkspaceActions(",
     );
@@ -1491,7 +1537,10 @@ describe("bootstrap helpers (RED)", () => {
     const [source, helperSource] = await Promise.all([
       import("node:fs/promises").then((fs) =>
         fs.readFile(
-          new URL("../../../apps/desktop/src/main/index.ts", import.meta.url),
+          new URL(
+            "../../../apps/desktop/src/main/bootstrap/bootstrap-desktop.ts",
+            import.meta.url,
+          ),
           "utf8",
         ),
       ),
@@ -1506,7 +1555,7 @@ describe("bootstrap helpers (RED)", () => {
       ),
     ]);
 
-    expect(source).toContain('from "./bootstrap/thread-context-actions"');
+    expect(source).toContain('from "./thread-context-actions"');
     expect(source).toContain("createThreadContextActions<AgentDesktopHost");
     expect(source).toContain("const {");
     expect(source).toContain("attachToPath,");
@@ -1697,7 +1746,10 @@ describe("bootstrap helpers (RED)", () => {
     const [indexSource, helperSource] = await Promise.all([
       import("node:fs/promises").then((fs) =>
         fs.readFile(
-          new URL("../../../apps/desktop/src/main/index.ts", import.meta.url),
+          new URL(
+            "../../../apps/desktop/src/main/bootstrap/bootstrap-desktop.ts",
+            import.meta.url,
+          ),
           "utf8",
         ),
       ),
@@ -1712,9 +1764,7 @@ describe("bootstrap helpers (RED)", () => {
       ),
     ]);
 
-    expect(indexSource).toContain(
-      'from "./bootstrap/workspace-activation-router"',
-    );
+    expect(indexSource).toContain('from "./workspace-activation-router"');
     expect(indexSource).toContain(
       "const { activateWorkspacePath, switchRepositoryPath } =",
     );

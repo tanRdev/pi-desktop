@@ -10,7 +10,7 @@ import type {
 import type {
   GitRepositoryInspection,
   GitWorktreeSummary,
-} from "./git-worktree-service";
+} from "./git/git-service";
 import { reconcileWorkspaceSessions } from "./shell-catalog-builder-workspace-sessions";
 
 const PI_DESKTOP_WORKTREES_DIR = path.join(os.homedir(), ".pi-desktop");

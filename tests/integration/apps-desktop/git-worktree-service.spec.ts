@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { GitWorktreeService } from "../../../apps/desktop/src/main/git-worktree-service";
+import { createGitService } from "../../../apps/desktop/src/main/git/git-service";
 
 const tempDirs: string[] = [];
 
@@ -57,10 +57,10 @@ afterEach(() => {
   }
 });
 
-describe("GitWorktreeService diffFile", () => {
+describe("createGitService diffFile", () => {
   it("returns the previous path for staged renames", () => {
     const repositoryPath = createGitRepository();
-    const service = new GitWorktreeService();
+    const service = createGitService();
 
     renameSync(
       path.join(repositoryPath, "old-name.txt"),
@@ -80,8 +80,8 @@ describe("GitWorktreeService diffFile", () => {
 
   it("returns the same inspection snapshot from sync and async APIs", async () => {
     const repositoryPath = createGitRepository();
-    const syncService = new GitWorktreeService();
-    const asyncService = new GitWorktreeService();
+    const syncService = createGitService();
+    const asyncService = createGitService();
 
     writeFileSync(
       path.join(repositoryPath, "pending.txt"),
@@ -98,7 +98,7 @@ describe("GitWorktreeService diffFile", () => {
   it("reports the tracked upstream branch in repository status", () => {
     const repositoryPath = createGitRepository();
     const remoteRepositoryPath = createBareGitRepository();
-    const service = new GitWorktreeService();
+    const service = createGitService();
 
     execFileSync("git", ["remote", "add", "origin", remoteRepositoryPath], {
       cwd: repositoryPath,
@@ -124,7 +124,7 @@ describe("GitWorktreeService diffFile", () => {
     const [source, helperSource] = await Promise.all([
       readFile(
         new URL(
-          "../../../apps/desktop/src/main/git-worktree-service.ts",
+          "../../../apps/desktop/src/main/git/git-service-impl.ts",
           import.meta.url,
         ),
         "utf8",
@@ -138,7 +138,7 @@ describe("GitWorktreeService diffFile", () => {
       ),
     ]);
 
-    expect(source).toContain('from "./git/repository-status-loader"');
+    expect(source).toContain('from "./repository-status-loader"');
     expect(source).toContain("const status = loadRepositoryStatus({");
     expect(source).not.toContain(
       "const currentWorktree = inspection.worktrees.find(",
@@ -156,7 +156,7 @@ describe("GitWorktreeService diffFile", () => {
     const [source, helperSource] = await Promise.all([
       readFile(
         new URL(
-          "../../../apps/desktop/src/main/git-worktree-service.ts",
+          "../../../apps/desktop/src/main/git/git-service-impl.ts",
           import.meta.url,
         ),
         "utf8",
@@ -170,7 +170,7 @@ describe("GitWorktreeService diffFile", () => {
       ),
     ]);
 
-    expect(source).toContain('from "./git/repository-inspection-loader"');
+    expect(source).toContain('from "./repository-inspection-loader"');
     expect(source).toContain("const inspection = loadRepositoryInspection({");
     expect(source).toContain(
       "const inspection = await loadRepositoryInspectionAsync({",
@@ -212,7 +212,7 @@ describe("GitWorktreeService diffFile", () => {
     const [source, helperSource] = await Promise.all([
       readFile(
         new URL(
-          "../../../apps/desktop/src/main/git-worktree-service.ts",
+          "../../../apps/desktop/src/main/git/git-service-impl.ts",
           import.meta.url,
         ),
         "utf8",
@@ -226,7 +226,7 @@ describe("GitWorktreeService diffFile", () => {
       ),
     ]);
 
-    expect(source).toContain('from "./git/effect-wrappers"');
+    expect(source).toContain('from "./effect-wrappers"');
     expect(source).toContain("return createGitSyncEffect({");
     expect(source).toContain("return createGitAsyncEffect({");
     expect(source).not.toContain("return Effect.try({");
@@ -242,7 +242,7 @@ describe("GitWorktreeService diffFile", () => {
     const [source, helperSource] = await Promise.all([
       readFile(
         new URL(
-          "../../../apps/desktop/src/main/git-worktree-service.ts",
+          "../../../apps/desktop/src/main/git/git-service-impl.ts",
           import.meta.url,
         ),
         "utf8",
@@ -256,7 +256,7 @@ describe("GitWorktreeService diffFile", () => {
       ),
     ]);
 
-    expect(source).toContain('from "./git/status-changing-commands"');
+    expect(source).toContain('from "./status-changing-commands"');
     expect(source).toContain("buildStageFileCommand(filePath)");
     expect(source).toContain("buildStageFilesCommand(filePaths)");
     expect(source).toContain("buildUnstageFileCommand(filePath)");
@@ -299,7 +299,7 @@ describe("GitWorktreeService diffFile", () => {
     const [source, helperSource] = await Promise.all([
       readFile(
         new URL(
-          "../../../apps/desktop/src/main/git-worktree-service.ts",
+          "../../../apps/desktop/src/main/git/git-service-impl.ts",
           import.meta.url,
         ),
         "utf8",
@@ -313,7 +313,7 @@ describe("GitWorktreeService diffFile", () => {
       ),
     ]);
 
-    expect(source).toContain('from "./git/status-changing-command-runner"');
+    expect(source).toContain('from "./status-changing-command-runner"');
     expect(source).toContain(
       "private readonly runStatusChangingCommand = createStatusChangingCommandRunner(",
     );

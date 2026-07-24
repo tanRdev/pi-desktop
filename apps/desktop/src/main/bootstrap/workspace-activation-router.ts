@@ -1,4 +1,4 @@
-import type { GitRepositoryInspection } from "../git-worktree-service";
+import type { GitRepositoryInspection } from "../git/git-service";
 
 type WorkspaceActivationOptions = {
   createIfMissing?: boolean;

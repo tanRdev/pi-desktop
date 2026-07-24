@@ -1,7 +1,4 @@
-import type {
-  GitRepositoryInspection,
-  GitWorktreeSummary,
-} from "../git-worktree-service";
+import type { GitRepositoryInspection, GitWorktreeSummary } from "./types";
 
 export function buildRepositoryInspection(options: {
   currentWorktreeRoot: string;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { GitWorktreeSummary } from "../git-worktree-service";
 import { buildRepositoryInspection } from "./inspection";
+import type { GitWorktreeSummary } from "./types";
 
 function createWorktree(
   overrides: Partial<GitWorktreeSummary> = {},

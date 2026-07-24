@@ -1,7 +1,7 @@
 import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
 import {
-  GitWorktreeService as GitWorktreeServiceTag,
+  GitCapability as GitCapabilityTag,
   RepositoryCatalog as RepositoryCatalogTag,
   TerminalManager as TerminalManagerTag,
 } from "../effect/services";
@@ -90,7 +90,7 @@ describe("createDesktopMainLayer", () => {
 
     const program = Effect.gen(function* () {
       const catalog = yield* RepositoryCatalogTag;
-      const git = yield* GitWorktreeServiceTag;
+      const git = yield* GitCapabilityTag;
       const terminal = yield* TerminalManagerTag;
       const session = yield* SessionCapability;
       const listed = yield* catalog.list;

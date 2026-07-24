@@ -13,7 +13,7 @@ import type {
 import type { ThreadCatalogEntry } from "../catalogs/thread-catalog";
 import { fromUnknownError } from "../effect/errors";
 import { runEffect } from "../effect/runtime";
-import type { GitRepositoryInspection } from "../git-worktree-service";
+import type { GitRepositoryInspection } from "../git/git-service";
 import { buildShellCatalog } from "../shell-catalog-builder";
 import {
   type CreateShellSnapshotOptions,

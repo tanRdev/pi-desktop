@@ -108,17 +108,6 @@ export function createIpcEventContract<TPayload>(options: {
   };
 }
 
-function createNoPayloadContract<TResponse>(
-  channel: string,
-  response: Schema.Schema<TResponse>,
-): NoPayloadIpcContract<TResponse> {
-  return createIpcContract({
-    channel,
-    request: Schema.Void,
-    response,
-  });
-}
-
 export function listDeclaredContractChannels(
   contracts: ReadonlyArray<AnyContract>,
 ): string[] {

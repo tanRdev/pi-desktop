@@ -3,7 +3,8 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { createGitService } from "../../../apps/desktop/src/main/git/git-service";
 
-const GIT_DIR = path.resolve(__dirname, "../../../apps/desktop/src/main/git");
+const MAIN_DIR = path.resolve(__dirname, "../../../apps/desktop/src/main");
+const GIT_DIR = path.join(MAIN_DIR, "git");
 
 describe("Spine 4 Git Service done-gate", () => {
   it("exposes createGitService as the caller-facing factory", () => {
@@ -22,6 +23,8 @@ describe("Spine 4 Git Service done-gate", () => {
       "status-changing-commands.ts",
       "cache-invalidation.ts",
       "git-service.ts",
+      "git-service-impl.ts",
+      "types.ts",
     ];
 
     for (const fileName of required) {
@@ -29,12 +32,19 @@ describe("Spine 4 Git Service done-gate", () => {
     }
   });
 
-  it("main bootstrap constructs Git via createGitService, not new GitWorktreeService", () => {
-    const index = fs.readFileSync(
-      path.resolve(__dirname, "../../../apps/desktop/src/main/index.ts"),
+  it("god facade file is gone from main root; callers use createGitService", () => {
+    expect(fs.existsSync(path.join(MAIN_DIR, "git-worktree-service.ts"))).toBe(
+      false,
+    );
+    const bootstrap = fs.readFileSync(
+      path.join(MAIN_DIR, "bootstrap/bootstrap-desktop.ts"),
       "utf8",
     );
-    expect(index).toContain("createGitService");
-    expect(index).not.toMatch(/new GitWorktreeService\s*\(/);
+    expect(bootstrap).toContain("createGitService");
+    expect(bootstrap).not.toMatch(/new GitServiceImpl\s*\(/);
+    expect(bootstrap).not.toMatch(/git-worktree-service/);
+    const index = fs.readFileSync(path.join(MAIN_DIR, "index.ts"), "utf8");
+    expect(index).toContain("bootstrapDesktop");
+    expect(index.split("\n").length).toBeLessThan(20);
   });
 });

@@ -6,10 +6,7 @@ import type {
 import { Schema } from "effect";
 import { IPC_CHANNELS } from "../channels.js";
 
-import {
-  createIpcContract,
-  type NoPayloadIpcContract,
-} from "../contract-runtime.js";
+import { createIpcContract } from "../contract-runtime.js";
 import {
   ipcStringSchema,
   MAX_WRITE_FILE_BYTES,
@@ -84,17 +81,6 @@ function createVoidResponseContract<TRequest>(
     channel,
     request,
     response: Schema.Void,
-  });
-}
-
-function createNoPayloadContract<TResponse>(
-  channel: string,
-  response: Schema.Schema<TResponse>,
-): NoPayloadIpcContract<TResponse> {
-  return createIpcContract({
-    channel,
-    request: Schema.Void,
-    response,
   });
 }
 

@@ -9,11 +9,11 @@ import {
   type ShellSnapshot,
   type ThreadSnapshot,
 } from "@pi-desktop/shared";
-import { createGitService, type GitService } from "./git/git-service";
 import type {
   GitRepositoryInspection,
   GitWorktreeSummary,
-} from "./git-worktree-service";
+} from "./git/git-service";
+import { createGitService, type GitService } from "./git/git-service";
 
 export interface CreateShellSnapshotOptions {
   appName: string;

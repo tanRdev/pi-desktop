@@ -1545,7 +1545,7 @@ describe("git handlers repositoryPath allowlist", () => {
       getShellSnapshot: vi.fn(createShellSnapshot),
       agentHost: createAgentHost(createAgentSnapshot()),
       mainWindow: null,
-      // biome-ignore lint/suspicious/noExplicitAny: test mock of GitWorktreeService
+      // biome-ignore lint/suspicious/noExplicitAny: test mock of GitServiceImpl
       gitService: gitService as any,
       getAllowedRepositoryRoots: () => [
         "/allowed/repo",
@@ -1598,7 +1598,7 @@ describe("git handlers repositoryPath allowlist", () => {
       getShellSnapshot: vi.fn(createShellSnapshot),
       agentHost: createAgentHost(createAgentSnapshot()),
       mainWindow: null,
-      // biome-ignore lint/suspicious/noExplicitAny: test mock of GitWorktreeService
+      // biome-ignore lint/suspicious/noExplicitAny: test mock of GitServiceImpl
       gitService: gitService as any,
       getAllowedRepositoryRoots: () => [
         "/allowed/repo",
@@ -1628,7 +1628,7 @@ describe("git handlers repositoryPath allowlist", () => {
       getShellSnapshot: vi.fn(createShellSnapshot),
       agentHost: createAgentHost(createAgentSnapshot()),
       mainWindow: null,
-      // biome-ignore lint/suspicious/noExplicitAny: test mock of GitWorktreeService
+      // biome-ignore lint/suspicious/noExplicitAny: test mock of GitServiceImpl
       gitService: gitService as any,
       getAllowedRepositoryRoots: () => ["/allowed/repo"],
     });
@@ -1651,7 +1651,7 @@ describe("git handlers repositoryPath allowlist", () => {
       getShellSnapshot: vi.fn(createShellSnapshot),
       agentHost: createAgentHost(createAgentSnapshot()),
       mainWindow: null,
-      // biome-ignore lint/suspicious/noExplicitAny: test mock of GitWorktreeService
+      // biome-ignore lint/suspicious/noExplicitAny: test mock of GitServiceImpl
       gitService: gitService as any,
       getAllowedRepositoryRoots: () => ["/allowed/repo"],
     });
@@ -1680,7 +1680,7 @@ describe("git handlers repositoryPath allowlist", () => {
       getShellSnapshot: vi.fn(createShellSnapshot),
       agentHost: createAgentHost(createAgentSnapshot()),
       mainWindow: null,
-      // biome-ignore lint/suspicious/noExplicitAny: test mock of GitWorktreeService
+      // biome-ignore lint/suspicious/noExplicitAny: test mock of GitServiceImpl
       gitService: gitService as any,
       getAllowedRepositoryRoots: () => ["/allowed/repo"],
     });
@@ -1709,7 +1709,7 @@ describe("git handlers repositoryPath allowlist", () => {
       getShellSnapshot: vi.fn(createShellSnapshot),
       agentHost: createAgentHost(createAgentSnapshot()),
       mainWindow: null,
-      // biome-ignore lint/suspicious/noExplicitAny: test mock of GitWorktreeService
+      // biome-ignore lint/suspicious/noExplicitAny: test mock of GitServiceImpl
       gitService: gitService as any,
       getAllowedRepositoryRoots: () => [
         "/allowed/repo",
@@ -1741,7 +1741,7 @@ describe("git handlers repositoryPath allowlist", () => {
       getShellSnapshot: vi.fn(createShellSnapshot),
       agentHost: createAgentHost(createAgentSnapshot()),
       mainWindow: null,
-      // biome-ignore lint/suspicious/noExplicitAny: test mock of GitWorktreeService
+      // biome-ignore lint/suspicious/noExplicitAny: test mock of GitServiceImpl
       gitService: gitService as any,
       getAllowedRepositoryRoots: () => ["/allowed/repo"],
     });
