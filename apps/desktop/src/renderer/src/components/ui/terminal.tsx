@@ -275,7 +275,10 @@ export const Terminal = React.forwardRef<TerminalHandle, TerminalProps>(
 
         terminal = new XTerm({
           theme: buildXtermTheme(),
-          fontFamily: '"JetBrains Mono", "SF Mono", ui-monospace, monospace',
+          fontFamily: resolveCssVar(
+            "--app-font-mono",
+            '"IBM Plex Mono", ui-monospace, monospace',
+          ),
           fontSize: 13,
           lineHeight: 1.4,
           cursorBlink: true,

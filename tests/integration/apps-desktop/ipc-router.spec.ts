@@ -921,7 +921,7 @@ describe("registerIpcHandlers", () => {
       total: 1,
       duration: 4,
     };
-    const switchModel = vi.fn(async () => undefined);
+    const switchModel = vi.fn(async () => ({ mode: "live" as const }));
     const getDiscovery = vi.fn(async () => discovery);
     const getSlashSuggestions = vi.fn(async () => slashSuggestions);
     const searchFiles = vi.fn(async () => searchResponse);

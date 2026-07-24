@@ -35,6 +35,9 @@ vi.mock("@/features/notifications", () => ({
   NotificationHost() {
     return <div data-testid="notification-host" />;
   },
+  CatalogQuarantineHost() {
+    return <div data-testid="catalog-quarantine-host" />;
+  },
 }));
 
 vi.mock("@/lib/perf", () => ({
@@ -107,6 +110,7 @@ describe("AppHosts", () => {
     expect(screen.getByTestId("settings-host")).toBeInTheDocument();
     expect(screen.getByTestId("keyboard-host")).toBeInTheDocument();
     expect(screen.getByTestId("notification-host")).toBeInTheDocument();
+    expect(screen.getByTestId("catalog-quarantine-host")).toBeInTheDocument();
     expect(screen.getByTestId("perf-host")).toBeInTheDocument();
     expect(screen.getByTestId("app-shortcuts")).toBeInTheDocument();
     expect(screen.getByTestId("snapshot-host")).toBeInTheDocument();

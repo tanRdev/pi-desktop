@@ -33,7 +33,7 @@
   --glass-border-subtle: rgba(255, 255, 255, 0.03);
   --glass-border-default: rgba(255, 255, 255, 0.06);
   --glass-border-strong: rgba(255, 255, 255, 0.10);
-  --glass-border-glow: rgba(0, 229, 89, 0.25);
+  --glass-border-glow: color-mix(in srgb, var(--accent) 25%, transparent);
 
   /* Dim ladder — selection-focus text dimming */
   /* Ensure all text dims meet WCAG AA (4.5:1) on #0E0F11 background
@@ -75,12 +75,12 @@
   --accent-pale-red-text: #f87171;
   --accent-pale-red-bg: rgba(239, 68, 68, 0.08);
 
-  /* Accent palette — matches @pi-desktop/ui --accent (#00E559) */
-  --color-accent: #00E559;
-  --color-accent-hover: #1AFF6E;
-  --color-accent-muted: rgba(0, 229, 89, 0.15);
-  --color-accent-subtle: rgba(0, 229, 89, 0.12);
-  --color-accent-ring: rgba(0, 229, 89, 0.35);
+  /* Accent palette — single story from @pi-desktop/ui --accent (no fork) */
+  --color-accent: var(--accent);
+  --color-accent-hover: color-mix(in srgb, var(--accent) 88%, white);
+  --color-accent-muted: color-mix(in srgb, var(--accent) 15%, transparent);
+  --color-accent-subtle: color-mix(in srgb, var(--accent) 12%, transparent);
+  --color-accent-ring: color-mix(in srgb, var(--accent) 35%, transparent);
   --color-secondary-accent: #38BDF8;
   --color-tertiary-accent: #8B5CF6;
 

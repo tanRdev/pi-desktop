@@ -25,7 +25,7 @@
 </div>
 
 > [!CAUTION]
-> **Alpha software.** Expect breaking changes, incomplete features, and rough edges. Not ready for daily use. Prefer the mock agent runtime for UI exploration; treat CLI/SDK chat, packages, and updater flows as unfinished.
+> **Alpha software.** Expect breaking changes, incomplete features, and rough edges. Not ready for daily use. Auth/OAuth, package management, updater consent, and several Workspace surfaces still have alpha gaps—see [Features](#features). Prefer the mock agent runtime for UI exploration; treat CLI/SDK chat, packages, and updater flows as unfinished.
 
 > [!TIP]
 > Download the latest DMG from [GitHub Releases](https://github.com/tanRdev/pi-desktop/releases) and drag **Pi Desktop.app** into your `Applications` folder.
