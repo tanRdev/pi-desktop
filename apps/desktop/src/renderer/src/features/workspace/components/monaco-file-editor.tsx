@@ -101,7 +101,7 @@ export function MonacoFileEditor({
         options={{
           automaticLayout: true,
           fontFamily:
-            "'Source Code Pro', ui-monospace, SFMono-Regular, monospace",
+            '"IBM Plex Mono Variable", "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace',
           fontLigatures: false,
           fontSize: 12,
           glyphMargin: false,

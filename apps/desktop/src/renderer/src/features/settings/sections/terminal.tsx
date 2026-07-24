@@ -23,7 +23,7 @@ export function TerminalSection({
         <SettingsTextInput
           id="settings-terminal-font-family"
           value={settings.terminal.fontFamily}
-          placeholder="Source Code Pro"
+          placeholder="IBM Plex Mono"
           onChange={(value) =>
             update((prev) => ({
               ...prev,

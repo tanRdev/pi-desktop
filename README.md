@@ -25,7 +25,7 @@
 </div>
 
 > [!CAUTION]
-> **Alpha software.** Expect breaking changes, incomplete features, and rough edges. Not ready for daily use.
+> **Alpha software.** Expect breaking changes, incomplete features, and rough edges. Not ready for daily use. Prefer the mock agent runtime for UI exploration; treat CLI/SDK chat, packages, and updater flows as unfinished.
 
 > [!TIP]
 > Download the latest DMG from [GitHub Releases](https://github.com/tanRdev/pi-desktop/releases) and drag **Pi Desktop.app** into your `Applications` folder.
@@ -95,15 +95,16 @@ bun run build
 
 ## Features
 
-| Feature | Description |
-|---------|-------------|
-| Repository Management | Browse, clone, and organize local repositories |
-| Worktree Isolation | Create and switch between Git worktrees for parallel branches |
-| Integrated Terminal | Full terminal emulator powered by node-pty |
-| Package Management | View and manage project dependencies |
-| Agent Chat | Interactive chat interface with the Pi coding agent |
-| Sandboxed Architecture | Electron main process with secure preload bridge |
-| Native macOS App | Signed DMG distribution, runs as a proper desktop application |
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Repository Management | Alpha | Browse and organize local repositories; clone UX still thin |
+| Worktree Isolation | Alpha | Create/switch/remove Git worktrees for parallel branches |
+| Integrated Terminal | Alpha | node-pty terminal; font/settings still UI-local |
+| Package Management | Alpha | Catalog browse/install paths exist; expect rough edges |
+| Agent Chat | Alpha | Mock/CLI/SDK modes; auth and model switch still evolving |
+| Auto-updates | Alpha | Packaged updater + Settings consent; not a daily-driver guarantee |
+| Sandboxed Architecture | Stable-ish | Electron main + Contracts preload bridge |
+| Native macOS App | Alpha | Signed DMG for macOS 11+; macOS-only for now |
 
 ## Architecture
 
