@@ -12,6 +12,7 @@ import type {
   AutocompleteContext,
   AutocompleteSuggestions,
   ModelSwitchRequest,
+  ModelSwitchResult,
   OAuthPromptResponse,
   OAuthProviderSnapshot,
   PiDiscoveryResult,
@@ -77,7 +78,7 @@ export interface RegisterIpcHandlersDependencies {
   terminalManager?: typeof terminalManager;
   gitService?: GitService;
   searchFiles?(request: SearchRequest): Promise<SearchResponse>;
-  switchModel?(request: ModelSwitchRequest): Promise<void>;
+  switchModel?(request: ModelSwitchRequest): Promise<ModelSwitchResult>;
   getOAuthProviders?(): Promise<OAuthProviderSnapshot[]>;
   loginWithOAuth?(providerId: string): Promise<void>;
   logoutOAuth?(providerId: string): Promise<void>;
@@ -250,7 +251,7 @@ export function registerIpcHandlers({
         throw new Error("Model switching is unavailable");
       }
 
-      await switchModel(request);
+      return switchModel(request);
     },
   });
 

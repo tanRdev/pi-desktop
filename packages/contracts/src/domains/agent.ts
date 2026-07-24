@@ -2,6 +2,7 @@ import type {
   AutocompleteContext,
   AutocompleteSuggestions,
   ModelSwitchRequest,
+  ModelSwitchResult,
   OAuthPromptRequest,
   OAuthPromptResponse,
   OAuthProviderSnapshot,
@@ -53,6 +54,13 @@ export const AgentSwitchModelRequestSchema =
   createStrictObjectSchema<ModelSwitchRequest>(SWITCH_MODEL_KEYS, {
     providerId: ipcStringSchema(),
     modelId: ipcStringSchema(),
+  });
+
+const MODEL_SWITCH_RESULT_KEYS = new Set(["mode"]);
+
+export const ModelSwitchResultSchema =
+  createStrictObjectSchema<ModelSwitchResult>(MODEL_SWITCH_RESULT_KEYS, {
+    mode: Schema.Literal("live", "restart"),
   });
 
 export const AgentLoginWithOAuthRequestSchema = createStrictObjectSchema<{
@@ -281,10 +289,11 @@ export const agentContracts = {
   ),
   cancelPrompt: createNoPayloadVoidContract(IPC_CHANNELS.agent.cancelPrompt),
   reset: createNoPayloadVoidContract(IPC_CHANNELS.agent.reset),
-  switchModel: createVoidResponseContract(
-    IPC_CHANNELS.agent.switchModel,
-    AgentSwitchModelRequestSchema,
-  ),
+  switchModel: createIpcContract({
+    channel: IPC_CHANNELS.agent.switchModel,
+    request: AgentSwitchModelRequestSchema,
+    response: ModelSwitchResultSchema,
+  }),
   getDiscovery: createNoPayloadContract(
     IPC_CHANNELS.agent.getDiscovery,
     PiDiscoveryResultSchema,

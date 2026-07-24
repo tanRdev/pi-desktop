@@ -1,6 +1,7 @@
 import type {
   AppPreferences,
   ModelSwitchRequest,
+  ModelSwitchResult,
   PiDesktopApi,
   ProviderSnapshot,
   RepositoryDisplayMetadata,
@@ -33,7 +34,7 @@ export interface AppShellStoreState {
   sendPrompt(): Promise<void>;
   cancelPrompt(): Promise<void>;
   setDraft(draft: string): void;
-  switchModel(request: ModelSwitchRequest): Promise<void>;
+  switchModel(request: ModelSwitchRequest): Promise<ModelSwitchResult>;
   updateAppPreferences(updates: Partial<AppPreferences>): Promise<void>;
   updateRepositoryPreferences(
     repositoryId: string,
@@ -196,7 +197,7 @@ export function createAppShellStore(api: PiDesktopApi) {
         },
       });
       try {
-        await api.agent.switchModel(request);
+        const result = await api.agent.switchModel(request);
         const persistedUpdates = normalizeAppPreferenceUpdates(
           buildAiPreferenceUpdate(currentPreferences, request),
           currentPreferences,
@@ -212,6 +213,7 @@ export function createAppShellStore(api: PiDesktopApi) {
           ),
         });
         await get().reload();
+        return result;
       } catch (error) {
         set({
           appPreferences: currentPreferences,

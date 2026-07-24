@@ -1,6 +1,7 @@
 import type {
   AgentSnapshot,
   ModelSwitchRequest,
+  ModelSwitchResult,
   OAuthPromptRequest,
   OAuthPromptResponse,
   OAuthProviderSnapshot,
@@ -56,7 +57,7 @@ export interface PiDesktopApi {
     prompt(text: string): Promise<void>;
     cancelPrompt(): Promise<void>;
     reset(): Promise<void>;
-    switchModel(request: ModelSwitchRequest): Promise<void>;
+    switchModel(request: ModelSwitchRequest): Promise<ModelSwitchResult>;
     getDiscovery(): Promise<PiDiscoveryResult>;
     getSlashSuggestions(
       context: AutocompleteContext,

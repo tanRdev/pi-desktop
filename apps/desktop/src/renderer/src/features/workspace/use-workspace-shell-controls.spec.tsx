@@ -6,6 +6,7 @@ import type {
 } from "@pi-desktop/shared";
 import {
   act,
+  cleanup,
   fireEvent,
   render,
   renderHook,
@@ -106,7 +107,7 @@ function createOptions(
   overrides: Partial<UseWorkspaceShellControlsOptions> = {},
 ) {
   const reload = vi.fn(async () => undefined);
-  const switchModel = vi.fn(async () => undefined);
+  const switchModel = vi.fn(async () => ({ mode: "live" as const }));
   const updateAppPreferences = vi.fn(async () => undefined);
   const openOAuthDialog = vi.fn(async () => undefined);
 
@@ -234,9 +235,59 @@ describe("useWorkspaceShellControls", () => {
     });
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith("Failed to switch model", {
-        description: "Provider offline",
+      expect(toast.error).toHaveBeenCalledWith("Could not switch model", {
+        description:
+          "Provider offline. Try another model or reconnect the provider.",
       });
+    });
+  });
+
+  it("toasts live vs restart success paths", async () => {
+    const { toast } = await import("@/lib/toast");
+    const liveOptions = createOptions({
+      switchModel: vi.fn(async () => ({ mode: "live" as const })),
+    });
+    const { result: liveResult } = renderHook(() =>
+      useWorkspaceShellControls(liveOptions),
+    );
+
+    renderModelSelectionHarness((event) => {
+      void liveResult.current.handleModelSelection(event);
+    });
+    fireEvent.change(screen.getByTestId("model-selection"), {
+      target: { value: "anthropic::claude-sonnet-4-20250514" },
+    });
+
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith("Model switched", {
+        description: "The active agent host accepted the new model live.",
+      });
+    });
+
+    cleanup();
+    vi.clearAllMocks();
+
+    const restartOptions = createOptions({
+      switchModel: vi.fn(async () => ({ mode: "restart" as const })),
+    });
+    const { result: restartResult } = renderHook(() =>
+      useWorkspaceShellControls(restartOptions),
+    );
+
+    renderModelSelectionHarness((event) => {
+      void restartResult.current.handleModelSelection(event);
+    });
+    fireEvent.change(screen.getByTestId("model-selection"), {
+      target: { value: "anthropic::claude-sonnet-4-20250514" },
+    });
+
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith(
+        "Model applied after agent-host restart",
+        expect.objectContaining({
+          description: expect.stringMatching(/live switching/i),
+        }),
+      );
     });
   });
 

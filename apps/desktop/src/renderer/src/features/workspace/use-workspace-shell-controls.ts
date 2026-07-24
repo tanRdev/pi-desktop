@@ -24,7 +24,7 @@ export interface UseWorkspaceShellControlsOptions {
   switchModel: (selection: {
     providerId: string;
     modelId: string;
-  }) => Promise<void>;
+  }) => Promise<{ mode: "live" | "restart" }>;
   updateAppPreferences: (updates: Partial<AppPreferences>) => Promise<void>;
   openOAuthDialog: (
     mode: "providers" | "login" | "logout",
@@ -88,14 +88,29 @@ export function useWorkspaceShellControls({
         return;
       }
 
-      await switchModel(selection).then(undefined, (error) => {
-        toast.error("Failed to switch model", {
-          description: getErrorDescription(
-            error,
-            "The selected model could not be activated",
-          ),
+      try {
+        const result = await switchModel(selection);
+        if (result.mode === "restart") {
+          toast.success("Model applied after agent-host restart", {
+            description:
+              "The previous runtime did not support live switching. Your Thread is ready with the new model.",
+          });
+        } else {
+          toast.success("Model switched", {
+            description: "The active agent host accepted the new model live.",
+          });
+        }
+      } catch (error) {
+        const description = getErrorDescription(
+          error,
+          "The selected model could not be activated",
+        );
+        toast.error("Could not switch model", {
+          description: /responding|streaming|starting/i.test(description)
+            ? "Wait for Pi to finish, then try again or pick another model."
+            : `${description}. Try another model or reconnect the provider.`,
         });
-      });
+      }
     },
     [switchModel],
   );

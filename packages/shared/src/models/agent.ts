@@ -200,6 +200,17 @@ export interface ModelSwitchRequest {
 }
 
 /**
+ * How the model switch was applied.
+ * - `live`: active agent host accepted the switch without restart
+ * - `restart`: agent host restarted (runtime lacked live switch support)
+ */
+export type ModelSwitchMode = "live" | "restart";
+
+export interface ModelSwitchResult {
+  mode: ModelSwitchMode;
+}
+
+/**
  * Pi discovery result.
  */
 export interface PiDiscoveryResult {

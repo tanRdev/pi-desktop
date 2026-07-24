@@ -11,7 +11,12 @@ const getPiSlashSuggestions = vi.fn();
 const getOAuthProvidersForAgentDir = vi.fn();
 const loginWithOAuthForAgentDir = vi.fn();
 const logoutOAuthForAgentDir = vi.fn();
-const switchModelForContext = vi.fn();
+const switchModelForContext = vi.fn(
+  async (
+    _request: ModelSwitchRequest,
+    _deps: { resolveAgentDirectory(): string },
+  ) => "restart" as const,
+);
 
 vi.mock("../pi-resource-discovery", () => ({
   discoverPiResources,
@@ -98,7 +103,9 @@ describe("createAgentRuntimeHandlers", () => {
       notifySessionChanged,
     });
 
-    await handlers.handleSwitchModel(request);
+    await expect(handlers.handleSwitchModel(request)).resolves.toEqual({
+      mode: "live",
+    });
 
     expect(currentHost.switchModel).toHaveBeenCalledWith(request);
     expect(notifySessionChanged).toHaveBeenCalledTimes(1);
@@ -150,7 +157,9 @@ describe("createAgentRuntimeHandlers", () => {
       notifySessionChanged,
     });
 
-    await handlers.handleSwitchModel(request);
+    await expect(handlers.handleSwitchModel(request)).resolves.toEqual({
+      mode: "restart",
+    });
 
     expect(notifySessionChanged).not.toHaveBeenCalled();
     expect(switchModelForContext).toHaveBeenCalledWith(request, {
@@ -164,7 +173,8 @@ describe("createAgentRuntimeHandlers", () => {
     });
 
     const fallbackDeps = switchModelForContext.mock.calls[0]?.[1];
-    expect(fallbackDeps.resolveAgentDirectory()).toBe(
+    expect(fallbackDeps).toBeDefined();
+    expect(fallbackDeps?.resolveAgentDirectory()).toBe(
       "/tmp/repo/.pi/agent/runtime",
     );
   });

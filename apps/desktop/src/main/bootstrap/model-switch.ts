@@ -35,7 +35,7 @@ type SwitchModelDeps = {
 export async function switchModelForContext(
   request: ModelSwitchRequest,
   deps: SwitchModelDeps,
-): Promise<void> {
+): Promise<"live" | "restart"> {
   if (!deps.currentContext) {
     throw new Error("No active Pi context is selected");
   }
@@ -52,7 +52,7 @@ export async function switchModelForContext(
 
   try {
     await deps.currentHost.switchModel(request);
-    return;
+    return "live";
   } catch (error) {
     if (
       !(error instanceof Error) ||
@@ -64,7 +64,7 @@ export async function switchModelForContext(
   }
 
   if (currentContext.command.length === 0) {
-    return;
+    return "restart";
   }
 
   await deps.runtimeManager.restartThreadRuntime({
@@ -75,4 +75,5 @@ export async function switchModelForContext(
 
   const attached = await deps.attachContext(currentContext);
   await deps.commitAttachment(attached);
+  return "restart";
 }

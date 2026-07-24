@@ -287,7 +287,12 @@ export const ChatThreadTranscriptTurn = React.memo(
           isFailedLastUser={isUserRetryTarget}
           onRetry={
             isUserRetryTarget && turn.userMessage?.text
-              ? () => onRetryLastUserMessage?.(turn.userMessage!.text)
+              ? () => {
+                  const text = turn.userMessage?.text;
+                  if (text) {
+                    onRetryLastUserMessage?.(text);
+                  }
+                }
               : undefined
           }
           tokens={

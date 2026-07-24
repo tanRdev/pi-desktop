@@ -2,6 +2,7 @@ import type {
   AutocompleteContext,
   AutocompleteSuggestions,
   ModelSwitchRequest,
+  ModelSwitchResult,
   OAuthProviderSnapshot,
   PiDiscoveryResult,
   SearchRequest,
@@ -85,7 +86,9 @@ export function createAgentRuntimeHandlers(
     );
   }
 
-  async function handleSwitchModel(request: ModelSwitchRequest): Promise<void> {
+  async function handleSwitchModel(
+    request: ModelSwitchRequest,
+  ): Promise<ModelSwitchResult> {
     const unsupportedModelSwitch =
       "Model switching is not supported by the active Pi runtime";
 
@@ -109,7 +112,7 @@ export function createAgentRuntimeHandlers(
     );
 
     if (switchResult === "fallback") {
-      await switchModelForContext(request, {
+      const mode = await switchModelForContext(request, {
         currentContext: input.getCurrentContext(),
         currentHost: input.getCurrentHost(),
         resolveAgentDirectory,
@@ -118,7 +121,10 @@ export function createAgentRuntimeHandlers(
         attachContext: input.attachContext,
         commitAttachment: input.commitAttachment,
       });
+      return { mode };
     }
+
+    return { mode: "live" };
   }
 
   async function handleGetDiscovery(): Promise<PiDiscoveryResult> {
