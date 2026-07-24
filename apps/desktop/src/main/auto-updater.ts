@@ -257,6 +257,24 @@ function errorMessageOf(err: unknown): string {
   return "Unknown updater error";
 }
 
+/**
+ * Feed/metadata misses (missing latest-mac.yml, 404 on the update channel)
+ * are release-pipeline problems, not something the user can fix with Retry.
+ * Treat them as "no update" so startup stays quiet; still log via ERROR path
+ * only for real download/install failures.
+ */
+export function isBenignUpdaterFeedError(message: string): boolean {
+  const normalized = message.toLowerCase();
+  return (
+    normalized.includes("latest-mac.yml") ||
+    normalized.includes("latest.yml") ||
+    (normalized.includes("404") &&
+      (normalized.includes("release") ||
+        normalized.includes("httperror") ||
+        normalized.includes("cannot find")))
+  );
+}
+
 function createUpdaterContractRegistrar(): ContractHandlerRegistrar["handle"] {
   return (channel, listener) => {
     ipcMain.removeHandler(channel);
@@ -388,7 +406,12 @@ export function initAutoUpdater(
     try {
       await autoUpdater.checkForUpdates();
     } catch (err) {
-      dispatch({ type: "ERROR", message: errorMessageOf(err) });
+      const message = errorMessageOf(err);
+      if (isBenignUpdaterFeedError(message)) {
+        dispatch({ type: "CHECK_COMPLETE_NO_UPDATE" });
+        return;
+      }
+      dispatch({ type: "ERROR", message });
       scheduleRetry();
     }
   }
@@ -452,7 +475,15 @@ export function initAutoUpdater(
   });
 
   autoUpdater.on("error", (err) => {
-    dispatch({ type: "ERROR", message: errorMessageOf(err) });
+    const message = errorMessageOf(err);
+    if (isBenignUpdaterFeedError(message)) {
+      // electron-updater emits `error` for missing feed files; don't banner.
+      if (state.status === "checking") {
+        dispatch({ type: "CHECK_COMPLETE_NO_UPDATE" });
+      }
+      return;
+    }
+    dispatch({ type: "ERROR", message });
     scheduleRetry();
   });
 

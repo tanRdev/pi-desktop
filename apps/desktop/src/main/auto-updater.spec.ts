@@ -22,6 +22,7 @@ import {
   computeBackoff,
   createInitialUpdaterState,
   DEFAULT_BACKOFF,
+  isBenignUpdaterFeedError,
   type UpdateInfoSnapshot,
   type UpdaterState,
   updaterReducer,
@@ -172,5 +173,22 @@ describe("computeBackoff", () => {
     expect(computeBackoff(2, cfg)).toBe(30);
     expect(computeBackoff(3, cfg)).toBe(90);
     expect(computeBackoff(10, cfg)).toBe(1000);
+  });
+});
+
+describe("isBenignUpdaterFeedError", () => {
+  it("treats missing latest-mac.yml as benign", () => {
+    expect(
+      isBenignUpdaterFeedError(
+        "Cannot find latest-mac.yml in the latest release artifacts (https://github.com/tanRdev/pi-desktop/releases/download/v0.8.0/latest-mac.yml): HttpError: 404",
+      ),
+    ).toBe(true);
+  });
+
+  it("does not hide real download failures", () => {
+    expect(isBenignUpdaterFeedError("sha512 checksum mismatch")).toBe(false);
+    expect(isBenignUpdaterFeedError("ENOSPC: no space left on device")).toBe(
+      false,
+    );
   });
 });
