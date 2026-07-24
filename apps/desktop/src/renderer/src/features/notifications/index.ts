@@ -1,3 +1,4 @@
+export { CatalogQuarantineHost } from "./catalog-quarantine-host";
 export {
   createNotificationCenter,
   globalNotificationCenter,

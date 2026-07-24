@@ -3,19 +3,20 @@ import {
   decodeVersionedEnvelope,
   type VersionedDecodeOptions,
 } from "@pi-desktop/shared";
+import { recordCatalogQuarantine } from "./quarantine-notices";
 
 export function recoverCorruptFile<T>(
   filePath: string,
   catalogName: string,
   options: VersionedDecodeOptions<T>,
-): void {
-  if (!existsSync(filePath)) return;
+): boolean {
+  if (!existsSync(filePath)) return false;
 
   let rawText: string;
   try {
     rawText = readFileSync(filePath, "utf8");
   } catch {
-    return;
+    return false;
   }
 
   let parsed: unknown;
@@ -23,7 +24,7 @@ export function recoverCorruptFile<T>(
     parsed = JSON.parse(rawText);
   } catch {
     quarantine(filePath, rawText, catalogName, "unparseable JSON");
-    return;
+    return true;
   }
 
   const result = decodeVersionedEnvelope<T>(parsed, options);
@@ -35,7 +36,10 @@ export function recoverCorruptFile<T>(
       catalogName,
       `envelope decode failed: ${result.reason}`,
     );
+    return true;
   }
+
+  return false;
 }
 
 function quarantine(
@@ -54,6 +58,7 @@ function quarantine(
   } catch {
     // best-effort
   }
+  recordCatalogQuarantine(catalogName);
   process.stderr.write(
     `[${catalogName}] corrupt catalog file quarantined at ${siblingPath} (${reason})\n`,
   );

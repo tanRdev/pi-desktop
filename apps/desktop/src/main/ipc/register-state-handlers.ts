@@ -76,6 +76,12 @@ export function registerStateHandlers({
     handler: async ({ importData }) =>
       stateHost.importLegacyPreferences(importData),
   });
+
+  registerContractHandler({
+    handle,
+    contract: stateContracts.getCatalogQuarantineNotices,
+    handler: async () => stateHost.getCatalogQuarantineNotices(),
+  });
 }
 
 export interface StateIpcHost {
@@ -96,4 +102,5 @@ export interface StateIpcHost {
     repositoryPreferences: RepositoryPreferences[];
     appPreferences: AppPreferences;
   }>;
+  getCatalogQuarantineNotices(): Promise<Array<{ catalogLabel: string }>>;
 }

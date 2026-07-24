@@ -1,7 +1,10 @@
 import { AppShortcuts } from "@/app-shortcuts";
 import { Toaster } from "@/components/ui/sonner";
 import { CommandPaletteHost } from "@/features/command-palette";
-import { NotificationHost } from "@/features/notifications";
+import {
+  CatalogQuarantineHost,
+  NotificationHost,
+} from "@/features/notifications";
 import { SettingsHost } from "@/features/settings";
 import { type SnapshotApi, SnapshotHost } from "@/features/snapshots";
 import { ActivityPanelHost } from "@/features/workspace/components/activity-panel";
@@ -27,6 +30,7 @@ export function AppHosts({ snapshotApi, searchReplaceFiles }: AppHostsProps) {
       <SettingsHost />
       <KeyboardHost />
       <NotificationHost />
+      <CatalogQuarantineHost />
       <PerfHost />
       <AppShortcuts />
       <SnapshotHost api={snapshotApi} />

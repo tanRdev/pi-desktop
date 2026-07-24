@@ -148,6 +148,14 @@ export const ImportLegacyPreferencesResponseSchema = Schema.Struct({
   appPreferences: AppPreferencesSchema,
 });
 
+export const CatalogQuarantineNoticeSchema = Schema.Struct({
+  catalogLabel: ipcStringSchema(),
+});
+
+export const CatalogQuarantineNoticesSchema = mutableArray(
+  CatalogQuarantineNoticeSchema,
+);
+
 function createNoPayloadContract<TResponse>(
   channel: string,
   response: Schema.Schema<TResponse>,
@@ -194,6 +202,10 @@ export const stateContracts = {
     request: ImportLegacyPreferencesRequestSchema,
     response: ImportLegacyPreferencesResponseSchema,
   }),
+  getCatalogQuarantineNotices: createNoPayloadContract(
+    IPC_CHANNELS.state.getCatalogQuarantineNotices,
+    CatalogQuarantineNoticesSchema,
+  ),
 } as const;
 
 type AssignableTo<Decoded, Target> = Decoded extends Target ? true : never;
@@ -224,4 +236,5 @@ export const stateContractList = [
   stateContracts.getAppPreferences,
   stateContracts.updateAppPreferences,
   stateContracts.importLegacyPreferences,
+  stateContracts.getCatalogQuarantineNotices,
 ] as const;

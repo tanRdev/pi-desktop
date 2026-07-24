@@ -29,6 +29,7 @@ export interface StateApi {
     repositoryPreferences: RepositoryPreferences[];
     appPreferences: AppPreferences;
   }>;
+  getCatalogQuarantineNotices(): Promise<Array<{ catalogLabel: string }>>;
 }
 
 export function createStateApi({
@@ -71,6 +72,9 @@ export function createStateApi({
       return invokeContract(stateContracts.importLegacyPreferences, {
         importData,
       });
+    },
+    getCatalogQuarantineNotices() {
+      return invokeContract(stateContracts.getCatalogQuarantineNotices);
     },
   };
 }

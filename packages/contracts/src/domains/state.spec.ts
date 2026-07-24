@@ -192,5 +192,8 @@ describe("stateContracts", () => {
     expect(stateContracts.importLegacyPreferences.channel).toBe(
       "state:importLegacyPreferences",
     );
+    expect(stateContracts.getCatalogQuarantineNotices.channel).toBe(
+      "state:getCatalogQuarantineNotices",
+    );
   });
 });

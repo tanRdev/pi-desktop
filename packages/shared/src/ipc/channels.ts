@@ -101,6 +101,7 @@ export const IPC_CHANNELS = {
     getAppPreferences: "state:getAppPreferences",
     updateAppPreferences: "state:updateAppPreferences",
     importLegacyPreferences: "state:importLegacyPreferences",
+    getCatalogQuarantineNotices: "state:getCatalogQuarantineNotices",
   },
   window: {
     fullscreenChanged: "window:fullscreenChanged",

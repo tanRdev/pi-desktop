@@ -3,6 +3,7 @@ import {
   generateThreadTitleFromMessage,
 } from "../../thread-title-defaults";
 import type { AppPreferencesCatalog } from "../catalogs/app-preferences-catalog";
+import { drainCatalogQuarantineNotices } from "../catalogs/quarantine-notices";
 import type {
   RepositoryCatalog,
   RepositoryCatalogEntry,
@@ -199,6 +200,7 @@ function createStateIpcHost(
         appPreferences,
       };
     },
+    getCatalogQuarantineNotices: async () => drainCatalogQuarantineNotices(),
   };
 }
 

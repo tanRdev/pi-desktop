@@ -213,6 +213,7 @@ describe("ipc-registration", () => {
           repositoryPreferences: [],
           appPreferences: { leftSidebarWidth: 320, ai: null },
         }),
+        getCatalogQuarantineNotices: async () => [],
       },
       mainWindow: null,
       gitService: {} as never,

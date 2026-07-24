@@ -183,6 +183,7 @@ export interface PiDesktopApi {
       repositoryPreferences: RepositoryPreferences[];
       appPreferences: AppPreferences;
     }>;
+    getCatalogQuarantineNotices(): Promise<Array<{ catalogLabel: string }>>;
   };
   window: {
     getFullscreenState(): Promise<boolean>;

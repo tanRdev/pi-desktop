@@ -187,7 +187,11 @@ function catalogFilePath(userDataPath: string): string {
   return path.join(userDataPath, "catalog", "app-preferences.json");
 }
 
-afterEach(() => {
+afterEach(async () => {
+  const { resetCatalogQuarantineNoticesForTests } = await import(
+    "../../../apps/desktop/src/main/catalogs/quarantine-notices"
+  );
+  resetCatalogQuarantineNoticesForTests();
   for (const directory of tempDirs.splice(0)) {
     rmSync(directory, { recursive: true, force: true });
   }
@@ -263,6 +267,13 @@ describe("VersionedDocumentCatalog (envelope round-trip)", () => {
 
     const wrote = warn.mock.calls.map((call) => String(call[0])).join("");
     expect(wrote).toMatch(/corrupt catalog file quarantined/);
+
+    const { drainCatalogQuarantineNotices } = await import(
+      "../../../apps/desktop/src/main/catalogs/quarantine-notices"
+    );
+    expect(drainCatalogQuarantineNotices()).toEqual([
+      { catalogLabel: "App preferences" },
+    ]);
 
     warn.mockRestore();
   });
