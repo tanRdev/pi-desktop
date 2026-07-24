@@ -27,6 +27,7 @@ let lastMockFitAddon: MockFitAddon | null = null;
 class MockXTerm {
   public cols = 80;
   public rows = 24;
+  public readonly options: Record<string, unknown>;
   public readonly loadAddon = vi.fn<(addon: unknown) => void>();
   public readonly open = vi.fn<(element: HTMLElement) => void>();
   public readonly onData = vi.fn<(listener: (data: string) => void) => void>();
@@ -62,7 +63,8 @@ class MockXTerm {
     } satisfies MockBuffer,
   };
 
-  constructor() {
+  constructor(options: Record<string, unknown> = {}) {
+    this.options = options;
     lastMockTerminal = this;
   }
 
@@ -180,6 +182,17 @@ describe("Terminal", () => {
     });
 
     expect(terminalCreate).toHaveBeenCalledTimes(1);
+  });
+
+  it("uses @pi-desktop/ui mono face (no JetBrains / Source Code Pro)", async () => {
+    render(<Terminal id="font-story" cwd="/tmp/workspace" />);
+
+    await vi.dynamicImportSettled();
+    await waitFor(() => expect(lastMockTerminal).not.toBeNull());
+
+    const fontFamily = String(lastMockTerminal?.options.fontFamily ?? "");
+    expect(fontFamily).toMatch(/IBM Plex Mono|monospace/i);
+    expect(fontFamily).not.toMatch(/\bInter\b|JetBrains|Source Code Pro/i);
   });
 
   it("debounces resize observer callbacks", async () => {

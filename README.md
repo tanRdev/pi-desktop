@@ -101,7 +101,7 @@ bun run build
 | Worktree Isolation | Alpha | Create/switch/remove Git worktrees for parallel branches |
 | Integrated Terminal | Alpha | node-pty terminal; font/settings still UI-local |
 | Package Management | Alpha | Catalog browse/install paths exist; expect rough edges |
-| Agent Chat | Alpha | Mock/CLI/SDK modes; auth and model switch still evolving |
+| Agent Chat | Alpha | Mock/CLI/SDK modes; in-app OAuth/auth still alpha; model switch evolving |
 | Auto-updates | Alpha | Packaged updater + Settings consent; not a daily-driver guarantee |
 | Sandboxed Architecture | Stable-ish | Electron main + Contracts preload bridge |
 | Native macOS App | Alpha | Signed DMG for macOS 11+; macOS-only for now |

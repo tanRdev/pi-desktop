@@ -258,7 +258,7 @@ body {
 }
 
 /* ============================================
-   MICRO-INTERACTIONS — Button Press Feedback
+   BUTTON PRESS FEEDBACK
    ============================================ */
 
 button:not(:disabled):active,
