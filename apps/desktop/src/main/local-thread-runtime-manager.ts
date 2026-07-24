@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { terminateChildWithEscalation } from "./process-lifecycle";
+import { buildEnhancedPath, resolvePiPath } from "./resolve-pi-path";
 import { reconcileThreadRuntimeStates } from "./runtime-reconcile";
 import type {
   ThreadRuntimeDescriptor,
@@ -30,6 +31,17 @@ function createCommandSignature(command: string[]): string {
 
 function isChildRunning(child: ReturnType<typeof spawn>): boolean {
   return child.exitCode === null && child.signalCode === null && !child.killed;
+}
+
+function createThreadRuntimeEnv(
+  baseEnv: NodeJS.ProcessEnv = process.env,
+): NodeJS.ProcessEnv {
+  const piPath = resolvePiPath();
+  return {
+    ...baseEnv,
+    PATH: buildEnhancedPath(),
+    ...(piPath ? { PI_CLI_PATH: piPath } : {}),
+  };
 }
 
 export class LocalThreadRuntimeManager implements ThreadRuntimeManager {
@@ -76,7 +88,7 @@ export class LocalThreadRuntimeManager implements ThreadRuntimeManager {
 
     const child = spawn(program, args, {
       cwd: worktreePath,
-      env: process.env,
+      env: createThreadRuntimeEnv(),
       stdio: "ignore",
     });
 
