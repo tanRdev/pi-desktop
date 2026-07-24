@@ -343,5 +343,57 @@ describe("useWorkspaceTreeActions", () => {
     expect(clearSelectedContextSurface).toHaveBeenCalledTimes(2);
     expect(toast.success).toHaveBeenCalledWith("Path copied");
     expect(toast.success).toHaveBeenCalledWith("Opened in Finder");
+    expect(toast.success).toHaveBeenCalledWith("Worktree removed");
+  });
+
+  it("toasts when Worktree remove or switch fails instead of failing silently", async () => {
+    const clearSelectedContextSurface = vi.fn();
+    const repository = createRepository({
+      id: "repo-1",
+      worktrees: [
+        createWorktree({
+          id: "worktree-1",
+          threads: [createThread({ id: "thread-1" })],
+        }),
+      ],
+    });
+    installMockPiDesktop({
+      worktrees: {
+        remove: vi.fn(async () => {
+          throw new Error("worktree in use");
+        }),
+        select: vi.fn(async () => {
+          throw new Error("switch cancelled");
+        }),
+      },
+    });
+
+    const { result } = renderHook(() =>
+      useWorkspaceTreeActions({
+        repositories: [repository],
+        activeRepository: repository,
+        activeWorktree: repository.worktrees[0] ?? null,
+        activeWorktreeId: "worktree-1",
+        activeThreadId: "thread-1",
+        reload: vi.fn(async () => undefined),
+        clearSelectedContextSurface,
+        confirmRemoveRepository: vi.fn(),
+        requestInitGitRepo: vi.fn(),
+        setCreateWorktreeOpen: vi.fn(),
+      }),
+    );
+
+    await act(async () => {
+      await result.current.deleteWorktree("worktree-1");
+      await result.current.selectWorktree("worktree-2");
+    });
+
+    expect(clearSelectedContextSurface).not.toHaveBeenCalled();
+    expect(toast.error).toHaveBeenCalledWith("Could not remove Worktree", {
+      description: "worktree in use",
+    });
+    expect(toast.error).toHaveBeenCalledWith("Could not switch Worktree", {
+      description: "switch cancelled",
+    });
   });
 });

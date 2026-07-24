@@ -160,13 +160,22 @@ export function useWorkspaceTreeActions({
   }, []);
 
   const selectWorktree = React.useCallback(async (worktreeId: string) => {
-    await window.piDesktop.worktrees.select(worktreeId);
+    try {
+      await window.piDesktop.worktrees.select(worktreeId);
+    } catch (error) {
+      toast.error("Could not switch Worktree", {
+        description:
+          error instanceof Error
+            ? error.message
+            : "The previous Worktree stays selected. Try again.",
+      });
+    }
   }, []);
 
   const createSession = React.useCallback(async () => {
     if (!activeRepository) {
-      toast.error("No project selected", {
-        description: "Add or select a project to create a session.",
+      toast.error("No Repository selected", {
+        description: "Add or select a Repository to create a Worktree.",
       });
       return;
     }
@@ -234,8 +243,14 @@ export function useWorkspaceTreeActions({
         if (activeWorktreeId === worktreeId) {
           clearSelectedContextSurface();
         }
+        toast.success("Worktree removed");
       } catch (error) {
-        console.error("Failed to remove worktree:", error);
+        toast.error("Could not remove Worktree", {
+          description:
+            error instanceof Error
+              ? error.message
+              : "The Worktree is still available. Confirm and try again, or keep it.",
+        });
       }
     },
     [activeWorktreeId, clearSelectedContextSurface],

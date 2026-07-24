@@ -12,6 +12,11 @@ type InitialWorkspaceTarget = {
   shouldPreserveEmptySelection: boolean;
 };
 
+/**
+ * Product behavior: when global selection has no Worktree yet, restore the
+ * Repository's `lastSelectedWorktreeId` (else its root path). This is
+ * intentional recovery of the user's last Worktree, not an accidental cwd seed.
+ */
 function getRememberedWorkspacePath(
   repositories: RepositoryCatalogEntry[],
 ): string | null {
