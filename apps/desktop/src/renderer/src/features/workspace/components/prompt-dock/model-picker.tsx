@@ -179,7 +179,7 @@ export function ModelPicker({
             <div className="my-1 h-px bg-white/[0.06]" />
             {favoriteModelsList.length > 0 && (
               <>
-                <div className="px-2 py-1.5 text-[11px] font-light uppercase tracking-wider text-white/50">
+                <div className="px-2 py-1.5 text-[11px] font-medium tracking-wide text-white/50">
                   Favorites
                 </div>
                 {favoriteModelsList.map((fav) => {
@@ -229,7 +229,7 @@ export function ModelPicker({
 
               return (
                 <div key={provider.id}>
-                  <div className="flex items-center gap-2 px-2 py-1.5 text-[11px] font-light uppercase tracking-wider text-white/50">
+                  <div className="flex items-center gap-2 px-2 py-1.5 text-[11px] font-medium tracking-wide text-white/50">
                     <ProviderIcon
                       providerId={provider.id}
                       className="shrink-0"

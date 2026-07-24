@@ -320,7 +320,7 @@ function CopyButton({ code }: { code: string }) {
       onClick={handleCopy}
       aria-label={copied ? "Copied" : "Copy code"}
       className={cn(
-        "inline-flex items-center gap-1 px-2 py-1 text-[11px] uppercase tracking-wide",
+        "inline-flex items-center gap-1 rounded-sm px-2 py-1 text-[11px] font-medium tracking-wide",
         "text-white/50 hover:text-white/90",
         "bg-white/[0.06] hover:bg-white/[0.08]",
         "border border-white/[0.06]",
@@ -346,7 +346,7 @@ function LanguageLabel({ language }: { language: string }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center px-2 py-1 text-[11px] uppercase tracking-wide",
+        "inline-flex items-center rounded-sm px-2 py-1 text-[11px] font-medium tracking-wide",
         "text-white/40 bg-white/[0.02]",
         "border border-white/[0.06]",
       )}

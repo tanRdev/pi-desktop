@@ -112,7 +112,7 @@ function resolveCssVar(varName: string, fallback: string): string {
  * unset (e.g. jsdom in tests).
  */
 function buildXtermTheme() {
-  const bg = resolveCssVar("--color-bg-primary", "#0E0F11");
+  const bg = resolveCssVar("--color-bg-primary", "#09090B");
   const fg = resolveCssVar("--color-text-primary", "#d4d4d4");
   return {
     background: bg,
@@ -277,7 +277,7 @@ export const Terminal = React.forwardRef<TerminalHandle, TerminalProps>(
           theme: buildXtermTheme(),
           fontFamily: resolveCssVar(
             "--app-font-mono",
-            '"IBM Plex Mono", ui-monospace, monospace',
+            '"Geist Mono Variable", "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace',
           ),
           fontSize: 13,
           lineHeight: 1.4,

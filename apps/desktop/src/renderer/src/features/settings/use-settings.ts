@@ -32,7 +32,7 @@ export interface UiSettings {
 
 export const DEFAULT_UI_SETTINGS: UiSettings = {
   theme: "system",
-  fontFamily: "DM Sans Variable",
+  fontFamily: "Geist Variable",
   fontSize: 13,
   reducedMotion: false,
   editor: {
@@ -41,7 +41,7 @@ export const DEFAULT_UI_SETTINGS: UiSettings = {
     lineNumbers: true,
   },
   terminal: {
-    fontFamily: "IBM Plex Mono",
+    fontFamily: "Geist Mono",
     fontSize: 12,
     scrollback: 1000,
     cursorStyle: "block",

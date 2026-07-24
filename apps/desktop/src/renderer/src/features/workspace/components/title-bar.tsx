@@ -98,7 +98,7 @@ export function TitleBar({
                   type="button"
                   onClick={onToggleTerminal}
                   className={cn(
-                    "flex size-7 items-center justify-center",
+                    "flex size-7 items-center justify-center rounded-md",
                     "border border-white/[0.06] transition-colors duration-150",
                     isTerminalVisible
                       ? "bg-white/[0.06] text-white/80"

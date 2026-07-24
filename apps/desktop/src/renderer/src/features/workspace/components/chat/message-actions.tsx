@@ -179,7 +179,7 @@ export function InlineMessageEditor({
     <div
       data-testid="message-inline-editor"
       className={cn(
-        "w-full border border-white/[0.08] bg-white/[0.02] p-2",
+        "w-full rounded-md border border-white/[0.08] bg-white/[0.02] p-2",
         className,
       )}
     >

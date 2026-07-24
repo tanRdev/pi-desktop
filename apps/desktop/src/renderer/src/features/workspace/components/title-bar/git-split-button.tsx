@@ -113,7 +113,7 @@ export function GitSplitButton({
   return (
     <div
       className={cn(
-        "flex h-7 items-stretch border border-white/[0.06]",
+        "flex h-7 items-stretch rounded-md border border-white/[0.06]",
         noThread && "opacity-40",
       )}
     >
@@ -161,7 +161,7 @@ export function GitSplitButton({
           align="end"
           side="bottom"
           sideOffset={6}
-          className="w-48 border-white/[0.06] bg-[var(--color-bg-primary)] p-1 shadow-2xl"
+          className="w-48 rounded-md border-white/[0.06] bg-[var(--color-bg-primary)] p-1 shadow-2xl"
         >
           <div className="flex flex-col">
             {GIT_ACTIONS.map((action) => {

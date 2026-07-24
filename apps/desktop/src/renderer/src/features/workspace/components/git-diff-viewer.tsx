@@ -262,7 +262,7 @@ export function GitDiffViewer({ diff, onClose }: GitDiffViewerProps) {
           {diff.filePath}
         </span>
         <span
-          className="shrink-0 font-mono text-[9.5px] uppercase tracking-wide text-white/50"
+          className="shrink-0 font-mono text-[9.5px] tracking-wide text-white/50"
           title={`Language: ${language}`}
         >
           {language}

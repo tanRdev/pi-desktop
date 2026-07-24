@@ -171,7 +171,7 @@ const INITIAL_COMPONENTS: Partial<Components> = {
     return (
       <h5
         id={slug}
-        className="mt-4 mb-2 text-sm font-normal uppercase tracking-wide text-white/50"
+        className="mt-4 mb-2 text-sm font-medium tracking-wide text-white/50"
         {...props}
       >
         {children}
@@ -183,7 +183,7 @@ const INITIAL_COMPONENTS: Partial<Components> = {
     return (
       <h6
         id={slug}
-        className="mt-4 mb-2 text-xs font-normal uppercase tracking-wide text-white/50"
+        className="mt-4 mb-2 text-xs font-medium tracking-wide text-white/50"
         {...props}
       >
         {children}
@@ -352,7 +352,7 @@ const INITIAL_COMPONENTS: Partial<Components> = {
           target.style.display = "none";
         }}
         className={cn(
-          "my-6 border border-white/[0.06] max-w-full",
+          "my-6 rounded-md border border-white/[0.06] max-w-full",
           "transition-all duration-200 ease-out",
         )}
         {...props}

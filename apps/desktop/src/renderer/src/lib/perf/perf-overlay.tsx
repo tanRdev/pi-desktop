@@ -178,7 +178,7 @@ export function PerfOverlay({
       aria-label="Performance overlay"
       data-testid="perf-overlay"
       className={cn(
-        "pointer-events-auto fixed bottom-3 right-3 z-[1000] w-[320px]",
+        "pointer-events-auto fixed bottom-3 right-3 z-[1000] w-[320px] rounded-lg",
         "bg-[var(--color-bg-secondary)]/95 border border-white/[0.08]",
         "text-[11px] text-white/80 font-mono shadow-xl backdrop-blur",
       )}
@@ -186,7 +186,7 @@ export function PerfOverlay({
       <div className="flex items-center justify-between gap-2 border-b border-white/[0.06] px-3 py-2">
         <div className="flex items-center gap-2">
           <Pulse className="size-3.5 text-emerald-400" />
-          <span className="text-white/90 tracking-wide uppercase text-[11px]">
+          <span className="text-white/90 font-medium tracking-wide text-[11px]">
             Perf
           </span>
         </div>
@@ -203,19 +203,25 @@ export function PerfOverlay({
 
       <div className="grid grid-cols-3 gap-2 px-3 py-2 border-b border-white/[0.06]">
         <div className="flex flex-col">
-          <span className="text-white/40 text-[11px] uppercase">FPS</span>
+          <span className="text-white/40 text-[11px] font-medium tracking-wide">
+            FPS
+          </span>
           <span className={cn("tabular-nums", fpsTone)} data-testid="perf-fps">
             {fps}
           </span>
         </div>
         <div className="flex flex-col">
-          <span className="text-white/40 text-[11px] uppercase">Heap</span>
+          <span className="text-white/40 text-[11px] font-medium tracking-wide">
+            Heap
+          </span>
           <span className="tabular-nums text-white/80" data-testid="perf-heap">
             {memory === null ? "—" : `${memory.usedJsHeapMb.toFixed(1)}MB`}
           </span>
         </div>
         <div className="flex flex-col">
-          <span className="text-white/40 text-[11px] uppercase">Samples</span>
+          <span className="text-white/40 text-[11px] font-medium tracking-wide">
+            Samples
+          </span>
           <span
             className="tabular-nums text-white/80"
             data-testid="perf-samples"
@@ -231,7 +237,7 @@ export function PerfOverlay({
         ) : (
           <table className="w-full text-left">
             <thead>
-              <tr className="text-white/40 text-[11px] uppercase">
+              <tr className="text-white/40 text-[11px] font-medium tracking-wide">
                 <th className="font-normal pb-1">name</th>
                 <th className="font-normal pb-1 text-right">n</th>
                 <th className="font-normal pb-1 text-right">avg</th>

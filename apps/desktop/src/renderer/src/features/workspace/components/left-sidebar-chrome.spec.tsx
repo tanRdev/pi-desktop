@@ -52,9 +52,8 @@ describe("LeftSidebarAddWorkspaceButton", () => {
 
     const button = screen.getByRole("button", { name: "Add workspace" });
 
-    expect(button).toHaveClass("text-[11px]");
-    expect(button).toHaveClass("uppercase");
-    expect(button).toHaveClass("tracking-wider");
+    expect(button).toHaveClass("text-[12px]");
+    expect(button).toHaveClass("tracking-wide");
     expect(button).toHaveClass("font-medium");
 
     await user.click(button);

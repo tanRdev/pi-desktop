@@ -66,7 +66,7 @@ export function ShortcutHelpOverlay({
           ) : (
             groups.map(([groupName, items]) => (
               <section key={groupName} className="space-y-2">
-                <h3 className="text-xs uppercase tracking-wider text-white/40">
+                <h3 className="text-xs font-medium tracking-wide text-white/40">
                   {groupName}
                 </h3>
                 <ul className="space-y-1">
@@ -84,7 +84,7 @@ export function ShortcutHelpOverlay({
                           <kbd
                             key={`${entry.id}-${idx}`}
                             className={cn(
-                              "px-1.5 py-0.5 rounded",
+                              "px-1.5 py-0.5 rounded-sm",
                               "border border-white/[0.08]",
                               "bg-white/[0.06]",
                               "text-xs font-mono text-white/70",

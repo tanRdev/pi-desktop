@@ -29,7 +29,7 @@ export function LeftSidebarRepositoryMenu({
   return (
     <div
       ref={menuRef}
-      className="fixed z-[100] min-w-[160px] border border-white/[0.06] bg-[var(--color-bg-primary)] p-0 shadow-lg"
+      className="fixed z-[100] min-w-[160px] rounded-md border border-white/[0.06] bg-[var(--color-bg-primary)] p-0 shadow-lg"
       style={{ left: menu.x, top: menu.y }}
     >
       <div className="px-3 py-2 border-b border-white/[0.06]">
@@ -151,7 +151,7 @@ export function LeftSidebarItemMenu({
   return (
     <div
       ref={menuRef}
-      className="fixed z-[100] min-w-[180px] border border-white/[0.06] bg-[var(--color-bg-primary)] p-0 shadow-lg"
+      className="fixed z-[100] min-w-[180px] rounded-md border border-white/[0.06] bg-[var(--color-bg-primary)] p-0 shadow-lg"
       style={{ left: menu.x, top: menu.y }}
     >
       <div className="px-3 py-2 border-b border-white/[0.06]">

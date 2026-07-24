@@ -17,7 +17,7 @@ export function PromptSuggestion({
     <button
       type="button"
       className={cn(
-        "group inline-flex h-9 min-w-fit shrink-0 items-center gap-2.5 whitespace-nowrap border border-white/[0.06] bg-[#111111] px-3 text-left",
+        "group inline-flex h-9 min-w-fit shrink-0 items-center gap-2.5 whitespace-nowrap border border-white/[0.06] bg-[#111111] rounded-md px-3 text-left",
         "transition-[transform,border-color,background-color,color] duration-150 ease-out",
         "hover:border-white/[0.12] hover:bg-white/[0.06] hover:text-white/80 active:scale-[0.99]",
         className,
@@ -25,7 +25,7 @@ export function PromptSuggestion({
       {...props}
     >
       <div className="flex min-w-0 items-center gap-1.5 truncate">
-        <span className="truncate font-mono text-[11px] uppercase tracking-[0.08em] text-white/80">
+        <span className="truncate font-medium text-[11px] tracking-tight text-white/80">
           {title}
         </span>
         {description ? (

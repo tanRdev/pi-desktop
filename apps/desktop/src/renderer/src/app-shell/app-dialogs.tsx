@@ -137,7 +137,7 @@ export function AppDialogs({
               placeholder="feature/my-task"
               aria-invalid={worktreeCreateError ? true : undefined}
               className={cn(
-                "w-full border border-white/[0.06] bg-[var(--color-bg-primary)] px-3 py-2 text-[11px] text-white/80 outline-none",
+                "w-full rounded-md border border-white/[0.06] bg-[var(--color-bg-primary)] px-3 py-2 text-[11px] text-white/80 outline-none",
                 "transition-all duration-[var(--duration-fast)]",
                 "focus:border-white/[0.12] focus:ring-1 focus:ring-white/[0.06]",
                 "placeholder:text-white/50",
@@ -167,7 +167,7 @@ export function AppDialogs({
               ) : (
                 <span className="flex items-center gap-2">
                   Auto-name{" "}
-                  <span className="font-sans text-[11px] tracking-widest text-[var(--color-bg-secondary)]/50">
+                  <span className="font-sans text-[11px] tracking-wide text-[var(--color-bg-secondary)]/50">
                     ⌘↵
                   </span>
                 </span>
@@ -190,7 +190,7 @@ export function AppDialogs({
           <div className="flex flex-col px-6 py-2">
             {oauthDialogState.providers.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="mb-4 flex size-12 items-center justify-center border border-white/[0.04] bg-white/[0.02]">
+                <div className="mb-4 flex size-12 items-center justify-center rounded-md border border-white/[0.04] bg-white/[0.02]">
                   <Globe className="size-6 text-white/45" />
                 </div>
                 <p className="text-[11px] text-white/40">
@@ -378,7 +378,7 @@ export function AppDialogs({
                   void submitOAuthPromptDialog();
                 }}
                 className={cn(
-                  "w-full border border-white/[0.06] bg-[var(--color-bg-primary)] px-3 py-2 text-[11px] text-white/80 outline-none",
+                  "w-full rounded-md border border-white/[0.06] bg-[var(--color-bg-primary)] px-3 py-2 text-[11px] text-white/80 outline-none",
                   "transition-all duration-[var(--duration-fast)]",
                   "focus:border-white/[0.12] focus:ring-1 focus:ring-white/[0.06]",
                   "placeholder:text-white/50",

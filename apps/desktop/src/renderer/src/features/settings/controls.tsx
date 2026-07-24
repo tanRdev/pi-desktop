@@ -81,7 +81,7 @@ export function SettingsToggle({
       disabled={disabled}
       onClick={() => onChange(!checked)}
       className={cn(
-        "relative inline-flex h-4 w-7 shrink-0 items-center border transition-colors",
+        "relative inline-flex h-4 w-7 shrink-0 items-center rounded-full border transition-colors",
         "disabled:opacity-50",
         checked
           ? "bg-white/60 border-white/60"
@@ -90,7 +90,7 @@ export function SettingsToggle({
     >
       <span
         className={cn(
-          "inline-block h-2.5 w-2.5 transform transition-transform",
+          "inline-block h-2.5 w-2.5 transform rounded-full transition-transform",
           checked
             ? "translate-x-3.5 bg-[var(--color-bg-secondary)]"
             : "translate-x-0.5 bg-white/60",
@@ -117,7 +117,7 @@ export function SettingsSelect({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       className={cn(
-        "min-w-[140px] border border-white/[0.08] bg-[var(--color-bg-primary)] px-2 py-1 text-[11px] text-white/80 outline-none",
+        "min-w-[140px] rounded-md border border-white/[0.08] bg-[var(--color-bg-primary)] px-2 py-1 text-[11px] text-white/80 outline-none",
         "transition-colors hover:border-white/[0.14] focus:border-white/[0.2]",
       )}
     >
@@ -165,7 +165,7 @@ export function SettingsNumberInput({
           if (Number.isFinite(parsed)) onChange(parsed);
         }}
         className={cn(
-          "w-20 border border-white/[0.08] bg-[var(--color-bg-primary)] px-2 py-1 text-[11px] text-white/80 outline-none",
+          "w-20 rounded-md border border-white/[0.08] bg-[var(--color-bg-primary)] px-2 py-1 text-[11px] text-white/80 outline-none",
           "transition-colors hover:border-white/[0.14] focus:border-white/[0.2]",
         )}
       />
@@ -195,7 +195,7 @@ export function SettingsTextInput({
       placeholder={placeholder}
       onChange={(e) => onChange(e.target.value)}
       className={cn(
-        "w-[200px] border border-white/[0.08] bg-[var(--color-bg-primary)] px-2 py-1 text-[11px] text-white/80 outline-none",
+        "w-[200px] rounded-md border border-white/[0.08] bg-[var(--color-bg-primary)] px-2 py-1 text-[11px] text-white/80 outline-none",
         "transition-colors hover:border-white/[0.14] focus:border-white/[0.2]",
         "placeholder:text-white/50",
       )}

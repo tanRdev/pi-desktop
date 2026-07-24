@@ -191,7 +191,7 @@ describe("Terminal", () => {
     await waitFor(() => expect(lastMockTerminal).not.toBeNull());
 
     const fontFamily = String(lastMockTerminal?.options.fontFamily ?? "");
-    expect(fontFamily).toMatch(/IBM Plex Mono|monospace/i);
+    expect(fontFamily).toMatch(/Geist Mono|monospace/i);
     expect(fontFamily).not.toMatch(/\bInter\b|JetBrains|Source Code Pro/i);
   });
 

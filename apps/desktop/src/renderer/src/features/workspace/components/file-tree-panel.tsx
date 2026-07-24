@@ -197,7 +197,7 @@ export function FileTreePanel({
   return (
     <div className="flex h-full flex-col select-none">
       <div className="flex items-center justify-between px-3 py-2 border-b border-white/[0.06]">
-        <span className="text-[11px] text-white/50 font-medium tracking-wide uppercase">
+        <span className="text-[11px] text-white/50 font-medium tracking-wide">
           Files
         </span>
         <div className="flex items-center gap-0.5">
@@ -250,7 +250,7 @@ export function FileTreePanel({
             placeholder="Filter files..."
             aria-label="Filter files"
             className={cn(
-              "w-full bg-white/[0.06] border border-white/[0.04] pl-7 pr-2 py-1",
+              "w-full rounded-md bg-white/[0.06] border border-white/[0.04] pl-7 pr-2 py-1",
               "text-[11px] text-white/70 placeholder:text-white/50",
               "focus:outline-none focus:border-white/[0.12] focus:bg-white/[0.05]",
               "transition-colors duration-100",
@@ -275,7 +275,7 @@ export function FileTreePanel({
             <div className="border-b border-white/[0.06]">
               <div className="flex items-center gap-1.5 px-3 py-1">
                 <ClockCounterClockwise className="w-3 h-3 text-white/50" />
-                <span className="text-[9.5px] text-white/50 font-medium tracking-wide uppercase">
+                <span className="text-[9.5px] text-white/50 font-medium tracking-wide">
                   Recent
                 </span>
               </div>

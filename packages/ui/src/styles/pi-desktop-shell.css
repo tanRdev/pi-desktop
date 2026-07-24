@@ -1,43 +1,43 @@
 /* ============================================
    Pi Desktop Shell - shared fonts, tokens, base layer, and utilities
-   Imported by app.css for package-level typography/theme primitives plus
-   shell variables and shared utilities.
+   Linear / Cursor 2.0 glass language: cool zinc floor, soft mint accent,
+   Geist typography, soft radius on every surface utility.
    ============================================ */
 
 @import "./tokens.css";
 
 @layer base {
   :root {
-    --background: #0E0F11;
-    --foreground: #e7e7e7;
-    --surface-1: #0E0F11;
-    --surface-2: #131417;
-    --surface-3: #16171A;
-    --surface-4: #1C1D21;
-    --card: #131417;
-    --card-foreground: #e7e7e7;
-    --popover: #16171A;
-    --popover-foreground: #e7e7e7;
-    --primary: #ffffff;
-    --primary-foreground: #0E0F11;
-    --secondary: #9CA3AF;
-    --secondary-foreground: #0E0F11;
-    --muted: #16171A;
-    --muted-foreground: #6B7280;
-    --accent: #00E559;
-    --accent-foreground: #0E0F11;
-    --destructive: #ef4444;
-    --destructive-foreground: #ffffff;
-    --border: #24262B;
-    --border-subtle: #1A1B1F;
-    --border-hover: #3A3D44;
-    --input: #16171A;
-    --ring: #00E559;
-    --glass-blur: 24px;
-    --glass-bg: rgba(14, 15, 17, 0.7);
-    --glass-bg-solid: rgba(14, 15, 17, 0.95);
-    --glass-border: rgba(255, 255, 255, 0.07);
-    --glass-border-strong: rgba(255, 255, 255, 0.12);
+    --background: #09090B;
+    --foreground: #FAFAFA;
+    --surface-1: #09090B;
+    --surface-2: #111113;
+    --surface-3: #18181B;
+    --surface-4: #1F1F23;
+    --card: #111113;
+    --card-foreground: #FAFAFA;
+    --popover: #141416;
+    --popover-foreground: #FAFAFA;
+    --primary: #FAFAFA;
+    --primary-foreground: #09090B;
+    --secondary: #A1A1AA;
+    --secondary-foreground: #09090B;
+    --muted: #18181B;
+    --muted-foreground: #71717A;
+    --accent: #4ADE80;
+    --accent-foreground: #052E16;
+    --destructive: #F87171;
+    --destructive-foreground: #FFFFFF;
+    --border: #27272A;
+    --border-subtle: #1C1C1F;
+    --border-hover: #3F3F46;
+    --input: #18181B;
+    --ring: #4ADE80;
+    --glass-blur: 28px;
+    --glass-bg: rgba(9, 9, 11, 0.72);
+    --glass-bg-solid: rgba(9, 9, 11, 0.92);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-border-strong: rgba(255, 255, 255, 0.14);
     --app-font-sans: var(--font-body, sans-serif);
     --app-font-mono: var(--font-mono, monospace);
   }
@@ -56,13 +56,17 @@
     font-size: 13px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 
   body {
-    line-height: 1.6;
+    line-height: 1.55;
     font-weight: 400;
     font-family: var(--app-font-sans);
     font-size: 13px;
+    letter-spacing: -0.011em;
+    background: var(--background);
+    color: var(--foreground);
   }
 
   .text-medium {
@@ -93,6 +97,7 @@
 
 .prose code {
   background: var(--surface-3);
+  border-radius: var(--radius-xs);
   padding: 0.15em 0.4em;
   font-size: 0.9em;
   font-family: var(--app-font-mono);
@@ -101,6 +106,7 @@
 .prose pre {
   background: var(--surface-2);
   border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   padding: 14px;
   overflow-x: auto;
 }
@@ -109,6 +115,7 @@
   background: none;
   padding: 0;
   border: none;
+  border-radius: 0;
 }
 
 @layer utilities {
@@ -117,11 +124,15 @@
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
     border: 1px solid var(--glass-border-default, var(--glass-border));
+    border-radius: var(--radius-md);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
   }
 
   .glass-solid {
     background: var(--glass-bg-solid);
     border: 1px solid var(--glass-border-strong);
+    border-radius: var(--radius-md);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
   }
 
   .glass-border {
@@ -154,6 +165,7 @@
     border-radius: var(--radius-sm);
     font-size: var(--font-size-sm, 12px);
     font-weight: 500;
+    letter-spacing: -0.01em;
     transition: all var(--duration-fast) var(--ease-out);
   }
 
@@ -165,6 +177,7 @@
     background: var(--surface-2);
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   }
 
   .input-minimal {
@@ -173,11 +186,13 @@
     border-radius: var(--radius-sm);
     padding: 7px 10.5px;
     font-size: var(--font-size-sm, 12px);
-    transition: border-color var(--duration-fast) var(--ease-out);
+    transition: border-color var(--duration-fast) var(--ease-out),
+      background-color var(--duration-fast) var(--ease-out);
   }
 
   .input-minimal:focus {
     border-color: var(--border-hover);
+    background: var(--surface-3);
     outline: none;
   }
 

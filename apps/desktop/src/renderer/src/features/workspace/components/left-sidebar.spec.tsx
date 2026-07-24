@@ -214,9 +214,8 @@ describe("LeftSidebar", () => {
       name: "Add workspace",
     });
 
-    expect(addWorkspaceButton).toHaveClass("text-[11px]");
-    expect(addWorkspaceButton).toHaveClass("uppercase");
-    expect(addWorkspaceButton).toHaveClass("tracking-wider");
+    expect(addWorkspaceButton).toHaveClass("text-[12px]");
+    expect(addWorkspaceButton).toHaveClass("tracking-wide");
     expect(addWorkspaceButton).toHaveClass("font-medium");
   });
 

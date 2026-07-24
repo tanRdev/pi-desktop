@@ -59,7 +59,7 @@ export function HighlightedSnippet({
     parts.push(
       <mark
         key={`hl-${idx}-${h.start}`}
-        className="bg-[var(--color-accent-ring)]/30 text-white rounded-none px-0.5"
+        className="bg-[var(--color-accent-ring)]/30 text-white rounded-sm px-0.5"
       >
         {snippet.slice(h.start, h.end)}
       </mark>,
@@ -98,7 +98,7 @@ const ResultRow = React.forwardRef<HTMLButtonElement, ResultRowProps>(
         )}
       >
         <div className="flex items-center justify-between gap-2 text-[11px] text-white/40">
-          <span className="truncate font-mono uppercase tracking-[0.08em]">
+          <span className="truncate font-medium tracking-tight">
             {result.threadTitle}
           </span>
           <span className="shrink-0 text-white/50">{result.role}</span>
@@ -221,7 +221,7 @@ export function ThreadSearchDialog({
           />
           <kbd
             className={cn(
-              "hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5",
+              "hidden sm:inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5",
               "border border-white/[0.06] bg-white/[0.02]",
               "text-[11px] text-white/40",
             )}

@@ -159,7 +159,7 @@ export function PromptAutocomplete({
       onKeyDown={onKeyDown}
       ref={listRef}
       className={cn(
-        "z-50 max-h-[min(24rem,60vh)] w-72 overflow-y-auto border border-white/[0.06] bg-[var(--color-bg-secondary)] p-1 text-white/80 shadow-[0_8px_32px_rgba(0,0,0,0.5)]",
+        "z-50 max-h-[min(24rem,60vh)] w-72 overflow-y-auto rounded-md border border-white/[0.06] bg-[var(--color-bg-secondary)] p-1 text-white/80 shadow-[0_8px_32px_rgba(0,0,0,0.5)]",
         "origin-top",
         "animate-in fade-in-0 zoom-in-95 duration-200 ease-[var(--ease-out)]",
         "motion-reduce:animate-none motion-reduce:opacity-100",
@@ -176,7 +176,7 @@ export function PromptAutocomplete({
             return (
               <div key={group.kind}>
                 {/* Section header */}
-                <div className="px-3 pb-1 pt-2 text-[11px] font-normal uppercase tracking-[0.12em] text-white/50 select-none">
+                <div className="px-3 pb-1 pt-2 text-[11px] font-medium tracking-wide text-white/50 select-none">
                   {label}
                 </div>
 

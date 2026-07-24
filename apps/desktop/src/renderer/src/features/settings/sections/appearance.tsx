@@ -73,7 +73,7 @@ export function AppearanceSection({
           onChange={(value) =>
             update((prev) => ({ ...prev, fontFamily: value }))
           }
-          placeholder="DM Sans Variable"
+          placeholder="Geist Variable"
         />
       </SettingsRow>
       <SettingsRow

@@ -45,7 +45,7 @@ export function SystemMessage({
   return (
     <div
       className={cn(
-        "flex items-start gap-3 border px-4 py-3 select-none",
+        "flex items-start gap-3 rounded-md border px-4 py-3 select-none",
         toneClassName,
         className,
       )}
@@ -54,7 +54,7 @@ export function SystemMessage({
       <Icon className="mt-0.5 size-5 shrink-0" />
       <div className="min-w-0 space-y-1 select-none">
         {title ? (
-          <div className="text-xs font-normal uppercase text-white/50">
+          <div className="text-xs font-medium tracking-wide text-white/50">
             {title}
           </div>
         ) : null}

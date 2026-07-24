@@ -15,7 +15,7 @@ export function Loader({
   return (
     <div
       className={cn(
-        "inline-flex items-center gap-2 font-mono uppercase tracking-[0.18em] text-white/50",
+        "inline-flex items-center gap-2 font-medium tracking-wide text-white/50",
         size === "sm" ? "text-[11px]" : "text-[11px]",
         className,
       )}
@@ -25,7 +25,7 @@ export function Loader({
         {[0, 1, 2].map((index) => (
           <span
             key={index}
-            className="size-1.5 bg-current motion-safe:animate-[pulse_900ms_ease-in-out_infinite]"
+            className="size-1.5 rounded-full bg-current motion-safe:animate-[pulse_900ms_ease-in-out_infinite]"
             style={{ animationDelay: `${index * 120}ms` }}
           />
         ))}

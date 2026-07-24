@@ -27,7 +27,7 @@ export function WorktreeList({
           variant="ghost"
           size="icon"
           className={cn(
-            "size-8 border border-white/[0.06] bg-white/[0.02] text-white/50",
+            "size-8 rounded-md border border-white/[0.06] bg-white/[0.02] text-white/50",
             "transition-all duration-150 ease-out",
             "hover:bg-white/[0.06] hover:text-white/70",
             "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/10",
@@ -49,7 +49,7 @@ export function WorktreeList({
               type="button"
               onClick={() => onSelect(worktree.id)}
               className={cn(
-                "w-full border p-3 text-left",
+                "w-full rounded-md border p-3 text-left",
                 "transition-all duration-150 ease-out",
                 "hover:bg-white/[0.06]",
                 "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/10",

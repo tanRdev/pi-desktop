@@ -92,8 +92,8 @@ describe("normalizeUiSettings", () => {
   });
 
   it("defaults to @pi-desktop/ui faces (no Inter / Source Code Pro)", () => {
-    expect(DEFAULT_UI_SETTINGS.fontFamily).toBe("DM Sans Variable");
-    expect(DEFAULT_UI_SETTINGS.terminal.fontFamily).toBe("IBM Plex Mono");
+    expect(DEFAULT_UI_SETTINGS.fontFamily).toBe("Geist Variable");
+    expect(DEFAULT_UI_SETTINGS.terminal.fontFamily).toBe("Geist Mono");
     expect(DEFAULT_UI_SETTINGS.fontFamily).not.toMatch(/Inter/i);
     expect(DEFAULT_UI_SETTINGS.terminal.fontFamily).not.toMatch(
       /Source Code Pro|Inter/i,

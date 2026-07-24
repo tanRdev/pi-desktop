@@ -287,7 +287,7 @@ export function StreamingIndicator({
       {/* Responding indicator */}
       <div
         className={cn(
-          "flex items-center gap-3 border border-white/[0.06]",
+          "flex items-center gap-3 rounded-md border border-white/[0.06]",
           "bg-white/[0.02] px-4 py-3",
         )}
       >

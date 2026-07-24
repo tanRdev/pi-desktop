@@ -109,7 +109,7 @@ function ShortcutsStep() {
         <div className="w-full max-h-[200px] overflow-y-auto space-y-3">
           {groups.map(([groupName, items]) => (
             <section key={groupName} className="space-y-1">
-              <h3 className="text-[11px] uppercase tracking-wider text-white/50">
+              <h3 className="text-[11px] font-medium tracking-wide text-white/50">
                 {groupName}
               </h3>
               <ul className="space-y-0.5">
@@ -126,7 +126,7 @@ function ShortcutsStep() {
                         <kbd
                           key={`${entry.id}-${idx}`}
                           className={cn(
-                            "px-1.5 py-0.5 rounded",
+                            "px-1.5 py-0.5 rounded-sm",
                             "border border-white/[0.08]",
                             "bg-white/[0.06]",
                             "text-[11px] font-mono text-white/50",

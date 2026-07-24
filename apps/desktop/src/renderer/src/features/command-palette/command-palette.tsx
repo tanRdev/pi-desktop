@@ -201,7 +201,7 @@ export function CommandPalette({
           />
           <kbd
             className={cn(
-              "hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5",
+              "hidden sm:inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5",
               "border border-white/[0.06] bg-white/[0.02]",
               "text-[11px] text-white/40",
             )}
@@ -231,7 +231,7 @@ export function CommandPalette({
                 {section.group ? (
                   <div
                     className={cn(
-                      "px-4 py-1.5 text-[11px] uppercase tracking-widest",
+                      "px-4 py-1.5 text-[11px] font-medium tracking-wide",
                       "text-white/50",
                     )}
                   >
@@ -288,7 +288,7 @@ function HintKey({ label, text }: { label: string; text: string }) {
     <span className="flex items-center gap-1">
       <kbd
         className={cn(
-          "inline-flex items-center px-1.5 py-0.5",
+          "inline-flex items-center rounded-sm px-1.5 py-0.5",
           "border border-white/[0.06] bg-white/[0.02]",
           "text-[11px] text-white/40",
         )}
@@ -354,9 +354,9 @@ function CommandRow({ hit, selected, onMouseEnter, onClick }: CommandRowProps) {
       {command.shortcut ? (
         <kbd
           className={cn(
-            "shrink-0 px-1.5 py-0.5",
+            "shrink-0 rounded-sm px-1.5 py-0.5",
             "border border-white/[0.06] bg-white/[0.02]",
-            "text-[11px] text-white/40 tracking-widest",
+            "text-[11px] text-white/40 tracking-wide",
           )}
         >
           {command.shortcut}

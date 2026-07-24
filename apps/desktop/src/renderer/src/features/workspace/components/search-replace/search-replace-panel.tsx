@@ -44,7 +44,7 @@ function HighlightedLine({
     parts.push(
       <mark
         key={`hl-${idx}-${h.start}`}
-        className="bg-[var(--color-accent)]/30 text-white rounded-none px-0.5"
+        className="bg-[var(--color-accent)]/30 text-white rounded-sm px-0.5"
       >
         {lineText.slice(h.start, h.end)}
       </mark>,
@@ -64,7 +64,7 @@ function FileTypeBadge({ filePath }: { filePath: string }) {
   if (!ext) return null;
 
   return (
-    <span className="inline-flex items-center gap-1 rounded-none px-1 py-0 text-[11px] text-white/40 bg-white/[0.06] shrink-0">
+    <span className="inline-flex items-center gap-1 rounded-sm px-1 py-0 text-[11px] text-white/40 bg-white/[0.06] shrink-0">
       {ext.toUpperCase()}
     </span>
   );
@@ -115,7 +115,7 @@ function MatchRow({
           data-testid={`replace-one-${filePath}-${match.lineNumber}`}
           onClick={() => onReplaceOne(filePath, match.lineNumber)}
           className={cn(
-            "shrink-0 mt-0.5 p-0.5 rounded-none",
+            "shrink-0 mt-0.5 p-0.5 rounded-md",
             "text-white/50 hover:text-white/70",
             "transition-colors duration-[var(--duration-fast)]",
           )}
@@ -334,7 +334,7 @@ export function SearchReplacePanel({
             onClick={() => setIsRegex((prev) => !prev)}
             title="Use regular expression"
             className={cn(
-              "p-1 rounded-none transition-colors duration-[var(--duration-fast)]",
+              "p-1 rounded-md transition-colors duration-[var(--duration-fast)]",
               isRegex
                 ? "text-[var(--color-accent)] bg-white/[0.06]"
                 : "text-white/50 hover:text-white/60",
@@ -351,7 +351,7 @@ export function SearchReplacePanel({
             onClick={() => setIsCaseSensitive((prev) => !prev)}
             title="Match case"
             className={cn(
-              "p-1 rounded-none transition-colors duration-[var(--duration-fast)]",
+              "p-1 rounded-md transition-colors duration-[var(--duration-fast)]",
               isCaseSensitive
                 ? "text-[var(--color-accent)] bg-white/[0.06]"
                 : "text-white/50 hover:text-white/60",
@@ -368,7 +368,7 @@ export function SearchReplacePanel({
             onClick={() => setShowReplace((prev) => !prev)}
             title="Toggle replace"
             className={cn(
-              "p-1 rounded-none transition-colors duration-[var(--duration-fast)]",
+              "p-1 rounded-md transition-colors duration-[var(--duration-fast)]",
               showReplace
                 ? "text-[var(--color-accent)] bg-white/[0.06]"
                 : "text-white/50 hover:text-white/60",
@@ -385,7 +385,7 @@ export function SearchReplacePanel({
             onClick={() => setShowFileFilter((prev) => !prev)}
             title="Filter files"
             className={cn(
-              "p-1 rounded-none transition-colors duration-[var(--duration-fast)]",
+              "p-1 rounded-md transition-colors duration-[var(--duration-fast)]",
               showFileFilter
                 ? "text-[var(--color-accent)] bg-white/[0.06]"
                 : "text-white/50 hover:text-white/60",
@@ -401,7 +401,7 @@ export function SearchReplacePanel({
             onClick={() => onOpenChange(false)}
             title="Close"
             className={cn(
-              "p-1 rounded-none text-white/50 hover:text-white/60",
+              "p-1 rounded-md text-white/50 hover:text-white/60",
               "transition-colors duration-[var(--duration-fast)]",
             )}
           >
@@ -434,7 +434,7 @@ export function SearchReplacePanel({
                 disabled={totalMatches === 0}
                 title={`Replace all (${totalMatches} match${totalMatches === 1 ? "" : "es"})`}
                 className={cn(
-                  "px-2 py-0.5 text-[11px] rounded-none",
+                  "px-2 py-0.5 text-[11px] rounded-md",
                   "border border-white/[0.08] bg-white/[0.02]",
                   "text-white/60 hover:text-white/90",
                   "transition-colors duration-[var(--duration-fast)]",
@@ -498,11 +498,11 @@ export function SearchReplacePanel({
                   {results.length} file{results.length === 1 ? "" : "s"}
                 </span>
                 <span>
-                  <kbd className="px-1 border border-white/[0.06] bg-white/[0.02]">
+                  <kbd className="rounded-sm px-1 border border-white/[0.06] bg-white/[0.02]">
                     Enter
                   </kbd>{" "}
                   search{" "}
-                  <kbd className="px-1 border border-white/[0.06] bg-white/[0.02]">
+                  <kbd className="rounded-sm px-1 border border-white/[0.06] bg-white/[0.02]">
                     ⇧Enter
                   </kbd>{" "}
                   replace all

@@ -73,7 +73,7 @@ describe("Raised architectural bar done-gate", () => {
       "utf8",
     );
     expect(terminalTsx).toContain("--app-font-mono");
-    expect(terminalTsx).toContain("IBM Plex Mono");
+    expect(terminalTsx).toContain("Geist Mono");
     expect(terminalTsx).not.toMatch(/JetBrains|Source Code Pro|\bInter\b/i);
 
     const terminalSettings = fs.readFileSync(
@@ -83,7 +83,7 @@ describe("Raised architectural bar done-gate", () => {
       ),
       "utf8",
     );
-    expect(terminalSettings).toContain('placeholder="IBM Plex Mono"');
+    expect(terminalSettings).toContain('placeholder="Geist Mono"');
     expect(terminalSettings).not.toMatch(
       /Source Code Pro|\bInter\b|JetBrains/i,
     );
@@ -95,15 +95,15 @@ describe("Raised architectural bar done-gate", () => {
       ),
       "utf8",
     );
-    expect(monaco).toContain("IBM Plex Mono");
+    expect(monaco).toContain("Geist Mono");
     expect(monaco).not.toMatch(/Source Code Pro|\bInter\b|JetBrains/i);
 
     const fontsCss = fs.readFileSync(
       path.join(ROOT, "packages/ui/src/styles/fonts.css"),
       "utf8",
     );
-    expect(fontsCss).toContain("@fontsource-variable/dm-sans");
-    expect(fontsCss).toContain("@fontsource/ibm-plex-mono");
+    expect(fontsCss).toContain("@fontsource-variable/geist");
+    expect(fontsCss).toContain("@fontsource-variable/geist-mono");
     expect(fontsCss).not.toMatch(/\bInter\b|Source Code Pro|JetBrains/i);
   });
 });

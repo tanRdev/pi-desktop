@@ -36,10 +36,10 @@ describe("shared ui package foundation (chunk-2a-ui-foundation)", () => {
     const fontsPath = path.join(ROOT, "packages/ui/src/styles/fonts.css");
     const fontsContent = read(fontsPath);
     if (fontsContent === null) throw new Error(`Missing ${fontsPath}`);
-    if (!fontsContent.includes("@fontsource-variable/dm-sans"))
-      throw new Error("Expected fonts.css to import DM Sans");
-    if (!fontsContent.includes("@fontsource/ibm-plex-mono"))
-      throw new Error("Expected fonts.css to import IBM Plex Mono");
+    if (!fontsContent.includes("@fontsource-variable/geist"))
+      throw new Error("Expected fonts.css to import Geist");
+    if (!fontsContent.includes("@fontsource-variable/geist-mono"))
+      throw new Error("Expected fonts.css to import Geist Mono");
 
     const tokensPath = path.join(ROOT, "packages/ui/src/styles/tokens.css");
     const tokensContent = read(tokensPath);

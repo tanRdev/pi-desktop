@@ -11,7 +11,7 @@ export function MarkdownTable({
   return (
     <div className="my-6 overflow-x-auto">
       <table
-        className="w-full border-collapse text-sm border border-white/[0.06]"
+        className="w-full border-collapse text-sm rounded-md border border-white/[0.06]"
         {...props}
       >
         {children}
@@ -67,7 +67,7 @@ export function MarkdownTh({
 }: ComponentPropsWithoutRef<"th"> & NodeExtra) {
   return (
     <th
-      className="px-3 py-2 text-left text-xs font-normal uppercase tracking-wide text-white/40"
+      className="px-3 py-2 text-left text-xs font-medium tracking-wide text-white/40"
       {...props}
     >
       {children}

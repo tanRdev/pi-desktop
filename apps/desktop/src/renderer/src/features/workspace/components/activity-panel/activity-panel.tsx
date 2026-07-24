@@ -57,7 +57,7 @@ function LevelBadge({ level }: { level: LogLevel }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center justify-center rounded-[2px] px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider border",
+        "inline-flex items-center justify-center rounded-sm px-1.5 py-0.5 text-[11px] font-semibold capitalize tracking-wide border",
         LEVEL_COLORS[level],
         LEVEL_BG[level],
         LEVEL_BORDER[level],
@@ -116,7 +116,7 @@ function FilterBar({
             data-testid={`activity-filter-level-${level}`}
             onClick={() => onLevelFilterChange(level)}
             className={cn(
-              "text-[11px] px-1.5 py-0.5 rounded-[2px] border transition-colors uppercase tracking-wider",
+              "text-[11px] px-1.5 py-0.5 rounded-sm border transition-colors capitalize tracking-wide",
               levelFilter === level
                 ? cn(
                     LEVEL_COLORS[level === "all" ? "info" : level],
@@ -136,7 +136,7 @@ function FilterBar({
         placeholder="Filter scope..."
         value={scopeFilter}
         onChange={(e) => onScopeFilterChange(e.target.value)}
-        className="ml-auto text-[11px] bg-white/[0.06] border border-white/[0.06] rounded-[2px] px-2 py-1 text-[var(--color-text-primary)] placeholder:text-white/55 focus:outline-none focus:border-white/[0.12] w-28"
+        className="ml-auto text-[11px] bg-white/[0.06] border border-white/[0.06] rounded-md px-2 py-1 text-[var(--color-text-primary)] placeholder:text-white/55 focus:outline-none focus:border-white/[0.12] w-28"
         data-testid="activity-filter-scope"
       />
     </div>
@@ -229,7 +229,7 @@ export function ActivityPanel({
         <header className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
           <div className="flex items-center gap-2">
             <Activity className={cn(ICON_SIZE_MD, "text-white/50")} />
-            <span className="text-[11px] tracking-wide text-white/70 uppercase">
+            <span className="text-[11px] font-medium tracking-wide text-white/70">
               Activity
             </span>
             <span className="text-[11px] text-white/50">

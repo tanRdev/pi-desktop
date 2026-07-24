@@ -304,7 +304,7 @@ export function MediaPreview({ filePath, onClose }: MediaPreviewProps) {
       <div className="flex h-full flex-col">
         <div className="flex h-11 shrink-0 items-center justify-between border-b border-white/[0.04] bg-transparent px-3">
           <div className="flex items-center gap-2 overflow-hidden">
-            <span className="truncate text-[11px] font-normal uppercase tracking-wider text-white/50">
+            <span className="truncate text-[11px] font-medium tracking-wide text-white/50">
               {fileName}
             </span>
             {controls.naturalSize && (

@@ -25,7 +25,7 @@ export function Todo({ items, className }: TodoProps) {
         <div
           key={item.id}
           className={cn(
-            "flex items-start gap-2 border border-white/[0.08] px-2.5 py-2 transition-colors",
+            "flex items-start gap-2 rounded-md border border-white/[0.08] px-2.5 py-2 transition-colors",
             item.completed
               ? "bg-transparent text-white/30"
               : "bg-white/[0.02] text-white/70",

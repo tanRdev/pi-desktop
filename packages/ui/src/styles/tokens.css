@@ -14,22 +14,22 @@
   /* Spacing — 4px base */
   --spacing: 4px;
 
-  /* Border Radius — slight polish (Cursor-like, not bubble-chat) */
-  --radius-xs: 4px;
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 10px;
-  --radius-xl: 12px;
-  --radius-2xl: 14px;
-  --radius-3xl: 16px;
-  --radius-4xl: 18px;
+  /* Border Radius — Linear / Cursor glass soft corners */
+  --radius-xs: 5px;
+  --radius-sm: 7px;
+  --radius-md: 9px;
+  --radius-lg: 11px;
+  --radius-xl: 14px;
+  --radius-2xl: 16px;
+  --radius-3xl: 18px;
+  --radius-4xl: 22px;
   --radius-full: 9999px;
   --radius: var(--radius-md);
 
-  /* Fonts — DM Sans body, IBM Plex Mono */
-  --font-heading: "DM Sans Variable", "DM Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-body: "DM Sans Variable", "DM Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-mono: "IBM Plex Mono Variable", "IBM Plex Mono", monospace;
+  /* Fonts — Geist (Linear/Cursor) + Geist Mono */
+  --font-heading: "Geist Variable", "Geist", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-body: "Geist Variable", "Geist", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "Geist Mono Variable", "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
   /* Font Size Tokens — accessible */
   --font-size-xs: var(--text-xs);
@@ -66,15 +66,15 @@
     font-family: var(--font-heading);
     font-size: 2.5rem;
     line-height: 1.1;
-    letter-spacing: -0.03em;
-    font-weight: 700;
+    letter-spacing: -0.035em;
+    font-weight: 600;
   }
 
   h2 {
     font-family: var(--font-heading);
     font-size: 2rem;
     line-height: 1.15;
-    letter-spacing: -0.025em;
+    letter-spacing: -0.03em;
     font-weight: 600;
   }
 
@@ -82,32 +82,30 @@
     font-family: var(--font-heading);
     font-size: 1.5rem;
     line-height: 1.25;
-    letter-spacing: -0.015em;
-    font-weight: 600;
+    letter-spacing: -0.02em;
+    font-weight: 560;
   }
 
   h4,
   h5,
   h6 {
     font-family: var(--font-heading);
-    letter-spacing: -0.01em;
-    font-weight: 600;
+    letter-spacing: -0.015em;
+    font-weight: 550;
   }
 
   .text-secondary-body {
     font-size: var(--text-sm);
-    font-weight: 400;
-    letter-spacing: -0.025em;
-    text-transform: uppercase;
+    font-weight: 500;
+    letter-spacing: -0.01em;
   }
 }
 
 @layer utilities {
   .eyebrow {
     font-size: var(--text-xs);
-    font-weight: 400;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+    font-weight: 500;
+    letter-spacing: 0.02em;
     color: var(--color-text-tertiary);
   }
 }

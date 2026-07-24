@@ -91,7 +91,7 @@ export function ThreadList({
 
         <div className="space-y-0.5">
           {threads.length === 0 ? (
-            <div className="border border-white/[0.06] bg-white/[0.02] px-3 py-4 text-center">
+            <div className="rounded-md border border-white/[0.06] bg-white/[0.02] px-3 py-4 text-center">
               <p className="text-[11px] text-white/50">No threads yet</p>
               <p className="mt-1 text-[11px] text-white/50">
                 Create one to start chatting

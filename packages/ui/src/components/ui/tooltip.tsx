@@ -49,10 +49,10 @@ function TooltipContent({
         avoidCollisions
         {...props}
         className={cn(
-          "z-50 w-fit max-w-xs select-none",
-          "border border-white/[0.06] bg-[var(--color-bg-secondary)]",
+          "z-50 w-fit max-w-xs select-none rounded-md",
+          "border border-white/[0.08] bg-[var(--color-bg-secondary)]/95 backdrop-blur-md",
           "px-3 py-1.5 text-xs text-white/80",
-          "shadow-[0_4px_12px_rgba(0,0,0,0.4)]",
+          "shadow-[0_8px_24px_rgba(0,0,0,0.45)]",
           "origin-[var(--radix-tooltip-content-transform-origin)]",
           "animate-in fade-in-0 zoom-in-95 duration-[150ms] ease-[var(--ease-out)]",
           "data-[side=bottom]:slide-in-from-top-2",

@@ -65,7 +65,7 @@ export function LeftSidebarAddWorkspaceButton({
             type="button"
             onClick={onAddWorkspace}
             className={cn(
-              "flex w-full items-center justify-center gap-2 rounded-sm",
+              "flex w-full items-center justify-center gap-2 rounded-md",
               "px-3 py-2 text-[12px] font-medium tracking-wide",
               "border border-white/[0.06] bg-white/[0.02] text-white/50",
               "transition-all duration-150",

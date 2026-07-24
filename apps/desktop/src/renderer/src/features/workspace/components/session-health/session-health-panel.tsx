@@ -80,7 +80,7 @@ function MetricCard({
   return (
     <div
       className={cn(
-        "flex flex-col gap-1.5 px-3 py-2.5",
+        "flex flex-col gap-1.5 rounded-md px-3 py-2.5",
         "bg-[var(--color-bg-secondary)] border border-white/[0.04]",
       )}
       data-testid={testId}
@@ -89,7 +89,7 @@ function MetricCard({
         {icon ? (
           <span className={cn(ICON_SIZE_SM, "text-white/50")}>{icon}</span>
         ) : null}
-        <span className="text-[11px] text-white/40 uppercase tracking-wider">
+        <span className="text-[11px] text-white/40 font-medium tracking-wide">
           {label}
         </span>
       </div>
@@ -107,14 +107,14 @@ export function SessionHealthPanel({ snapshot }: SessionHealthPanelProps) {
     <div data-testid="session-health-panel" className="flex flex-col gap-3 p-3">
       <div className="flex items-center gap-2 px-1">
         <Heart className={cn(ICON_SIZE_MD, "text-white/50")} />
-        <span className="text-[11px] tracking-wide text-white/70 uppercase">
+        <span className="text-[11px] font-medium tracking-wide text-white/70">
           Session Health
         </span>
       </div>
 
       <div
         className={cn(
-          "inline-flex items-center gap-1.5 rounded-[2px] px-2 py-0.5 border self-start",
+          "inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 border self-start",
           conn.color,
           conn.bg,
           snapshot.connectionStatus === "connected"
@@ -127,7 +127,7 @@ export function SessionHealthPanel({ snapshot }: SessionHealthPanelProps) {
       >
         <ConnectionIcon status={snapshot.connectionStatus} />
         <span className={cn("block size-1.5 rounded-full", conn.dot)} />
-        <span className="text-[11px] font-semibold uppercase tracking-wider">
+        <span className="text-[11px] font-semibold tracking-wide">
           {conn.label}
         </span>
       </div>

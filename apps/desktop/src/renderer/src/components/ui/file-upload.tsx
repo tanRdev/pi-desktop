@@ -36,14 +36,14 @@ export function FileUpload({
           {files.map((file) => (
             <div
               key={file.id}
-              className="flex items-center gap-2 border border-white/[0.06] bg-white/[0.06] px-2 py-1"
+              className="flex items-center gap-2 border border-white/[0.06] bg-white/[0.06] rounded-md px-2 py-1"
             >
               {file.kind === "image" ? (
                 <Image className={`${ICON_SIZE_SM} text-white/70`} />
               ) : (
                 <Paperclip className={`${ICON_SIZE_SM} text-white/70`} />
               )}
-              <span className="max-w-[12rem] truncate font-mono text-[11px] uppercase tracking-[0.16em] text-white/70">
+              <span className="max-w-[12rem] truncate font-mono text-[11px] tracking-tight text-white/70">
                 {file.name}
               </span>
               <button

@@ -101,7 +101,7 @@ export function MonacoFileEditor({
         options={{
           automaticLayout: true,
           fontFamily:
-            '"IBM Plex Mono Variable", "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace',
+            '"Geist Mono Variable", "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace',
           fontLigatures: false,
           fontSize: 12,
           glyphMargin: false,

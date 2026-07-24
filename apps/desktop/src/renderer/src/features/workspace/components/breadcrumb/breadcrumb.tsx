@@ -76,7 +76,7 @@ function BreadcrumbContextMenu({
       ref={menuRef}
       role="menu"
       aria-label="Breadcrumb actions"
-      className="fixed z-50 min-w-[180px] bg-[var(--color-bg-quaternary)] border border-white/[0.08] shadow-xl shadow-black/50 rounded-none py-1"
+      className="fixed z-50 min-w-[180px] bg-[var(--color-bg-quaternary)] border border-white/[0.08] shadow-xl shadow-black/50 rounded-md py-1"
       style={{ top: y, left: x }}
     >
       <button

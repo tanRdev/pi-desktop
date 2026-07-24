@@ -120,7 +120,7 @@ export function NotificationList({
       >
         <header className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
           <div className="flex items-center gap-2">
-            <span className="text-[11px] tracking-wide text-white/70 uppercase">
+            <span className="text-[11px] font-medium tracking-wide text-white/70">
               Notifications
             </span>
             <span className="text-[11px] text-white/50">

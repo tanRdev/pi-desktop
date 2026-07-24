@@ -39,7 +39,7 @@ Write your notes here...
             type="button"
             onClick={() => setIsEditing(true)}
             className={cn(
-              "px-2 py-0.5 text-[11px] font-mono font-bold uppercase tracking-wider transition-all duration-150 ease-out",
+              "px-2 py-0.5 text-[11px] font-medium tracking-tight rounded-md transition-all duration-150 ease-out",
               isEditing
                 ? "bg-white/[0.06] text-white/80"
                 : "text-white/40 hover:bg-white/[0.06] hover:text-white/80",
@@ -51,7 +51,7 @@ Write your notes here...
             type="button"
             onClick={() => setIsEditing(false)}
             className={cn(
-              "px-2 py-0.5 text-[11px] font-mono font-bold uppercase tracking-wider transition-all duration-150 ease-out",
+              "px-2 py-0.5 text-[11px] font-medium tracking-tight rounded-md transition-all duration-150 ease-out",
               !isEditing
                 ? "bg-white/[0.06] text-white/80"
                 : "text-white/40 hover:bg-white/[0.06] hover:text-white/80",
@@ -60,7 +60,7 @@ Write your notes here...
             Preview
           </button>
         </div>
-        <span className="text-[11px] font-mono text-white/50 uppercase tracking-tight">
+        <span className="text-[11px] font-medium text-white/50 tracking-wide">
           Markdown
         </span>
       </div>
@@ -80,7 +80,7 @@ Write your notes here...
               {content ? (
                 <Markdown>{content}</Markdown>
               ) : (
-                <p className="text-white/40 uppercase text-[11px]">
+                <p className="text-white/40 font-medium tracking-wide text-[11px]">
                   No notes yet. Switch to Edit mode to add content.
                 </p>
               )}

@@ -102,7 +102,7 @@ function RenameInput({ initialValue, onSubmit, onCancel }: RenameInputProps) {
         }
       }}
       onClick={(e) => e.stopPropagation()}
-      className="bg-white/[0.06] border border-white/[0.12] px-1 py-0 text-[11px] text-white/80 outline-none w-full min-w-0"
+      className="bg-white/[0.06] border border-white/[0.12] rounded-sm px-1 py-0 text-[11px] text-white/80 outline-none w-full min-w-0"
     />
   );
 }

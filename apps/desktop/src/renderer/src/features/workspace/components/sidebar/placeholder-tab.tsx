@@ -12,7 +12,7 @@ export function PlaceholderTab({ name }: PlaceholderTabProps) {
       data-testid={`sidebar-placeholder-${name}`}
       className="flex h-full w-full items-center justify-center p-6 text-center"
     >
-      <span className="text-[11px] uppercase tracking-wider text-white/50">
+      <span className="text-[11px] font-medium tracking-wide text-white/50">
         {name}
       </span>
     </div>

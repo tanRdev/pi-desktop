@@ -225,7 +225,7 @@ export function ActivityGroup({
     <div className={cn("space-y-2", className)} {...props}>
       {title && (
         <div className="flex items-center gap-2 px-1">
-          <span className="text-[11px] font-normal uppercase tracking-wider text-white/50">
+          <span className="text-[11px] font-medium tracking-wide text-white/50">
             {title}
           </span>
           <div className="h-px flex-1 bg-white/[0.06]" />
@@ -274,7 +274,7 @@ export function StreamingIndicator({
       {/* Responding indicator */}
       <div
         className={cn(
-          "flex items-center gap-3 border border-white/[0.06]",
+          "flex items-center gap-3 rounded-md border border-white/[0.06]",
           "bg-white/[0.02] px-4 py-3",
         )}
       >

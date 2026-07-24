@@ -162,7 +162,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
             type="button"
             variant="ghost"
             className={cn(
-              "h-auto w-full justify-between rounded-none px-0 py-2 font-normal select-none",
+              "h-auto w-full justify-between rounded-md px-0 py-2 font-normal select-none",
               "transition-all duration-[var(--duration-fast)] ease-out",
               "hover:bg-white/[0.02]",
               "active:scale-[0.99]",
@@ -195,7 +195,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
                 <h4 className="mb-2 text-xs font-normal text-white/50">
                   Input
                 </h4>
-                <div className="border border-white/[0.04] bg-white/[0.02] p-2 font-mono text-sm text-white/60">
+                <div className="rounded-md border border-white/[0.04] bg-white/[0.02] p-2 font-mono text-sm text-white/60">
                   {Object.entries(input).map(([key, value]) => (
                     <div key={key} className="mb-1">
                       <span className="text-white/50">{key}:</span>{" "}
@@ -211,7 +211,7 @@ const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
                 <h4 className="mb-2 text-xs font-normal text-white/50">
                   Output
                 </h4>
-                <div className="max-h-60 overflow-auto border border-white/[0.04] bg-white/[0.02] p-2 font-mono text-sm text-white/60">
+                <div className="max-h-60 overflow-auto rounded-md border border-white/[0.04] bg-white/[0.02] p-2 font-mono text-sm text-white/60">
                   <pre className="whitespace-pre-wrap">
                     {formatValue(output)}
                   </pre>
