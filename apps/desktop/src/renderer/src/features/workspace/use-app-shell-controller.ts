@@ -76,7 +76,7 @@ export function useAppShellController(): AppShellController {
     appPreferences,
     updateAppPreferences,
   } = useShellModel();
-  const { agent, draft, shell } = state;
+  const { agent, draft, shell, contextSwitchPhase } = state;
   const { state: windowState, store: windowStore } = useWindowStore();
 
   const activeRepository = React.useMemo(
@@ -291,6 +291,7 @@ export function useAppShellController(): AppShellController {
       isSwitchingModel,
       isPromptVisible,
       isPromptExecuting,
+      contextSwitchPhase,
       threadLastViewedAt,
       activeGitRepositoryStatus,
       shellGit,
@@ -374,7 +375,7 @@ export function useAppShellController(): AppShellController {
       isSwitchingModel,
       isPromptVisible,
       isPromptExecuting,
-      activeGitRepositoryStatus,
+      contextSwitchPhase,
       threadLastViewedAt,
       shellGit,
       gitCommitMessage,
@@ -436,6 +437,7 @@ export function useAppShellController(): AppShellController {
       handleFileTreeMoveFile,
       handleAgentGitAction,
       appVersion,
+      activeGitRepositoryStatus,
     ],
   );
 

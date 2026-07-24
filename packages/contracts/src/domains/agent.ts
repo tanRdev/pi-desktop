@@ -168,6 +168,11 @@ const SessionChangedEventSchema = Schema.Struct({
   type: Schema.Literal("session_changed"),
 });
 
+const ContextSwitchEventSchema = Schema.Struct({
+  type: Schema.Literal("context_switch"),
+  phase: Schema.Literal("started", "completed", "cancelled"),
+});
+
 const AgentEndEventSchema = Schema.Struct({
   type: Schema.Literal("agent_end"),
 });
@@ -232,6 +237,7 @@ const ModelChangedEventSchema = Schema.Struct({
 
 export const PiDesktopAgentEventSchema = Schema.Union(
   SessionChangedEventSchema,
+  ContextSwitchEventSchema,
   AgentEndEventSchema,
   AgentStartEventSchema,
   TurnEndEventSchema,

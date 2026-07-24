@@ -25,6 +25,7 @@ export interface WorkspaceShellMainPaneProps {
   hasChangesToCommit: boolean;
   hasCommitsToPush: boolean;
   isPromptExecuting: boolean;
+  contextSwitchPhase?: "idle" | "switching" | "cancelled";
   isTerminalVisible: boolean;
   draft: string;
   canSend: boolean;
@@ -79,6 +80,7 @@ function WorkspaceShellMainPaneImpl({
   hasChangesToCommit,
   hasCommitsToPush,
   isPromptExecuting,
+  contextSwitchPhase = "idle",
   isTerminalVisible,
   draft,
   canSend,
@@ -128,6 +130,7 @@ function WorkspaceShellMainPaneImpl({
         hasChangesToCommit={hasChangesToCommit}
         hasCommitsToPush={hasCommitsToPush}
         isPromptExecuting={isPromptExecuting}
+        contextSwitchPhase={contextSwitchPhase}
         onToggleTerminal={onToggleTerminal}
         isTerminalVisible={isTerminalVisible}
         activeThreadId={activeThreadId}

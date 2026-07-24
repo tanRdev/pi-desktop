@@ -268,6 +268,12 @@ export async function bootstrapDesktop() {
         thread ? (threadCatalog.get(thread.id) ?? null) : null,
       ),
     notifySessionChanged,
+    onContextSwitchPhase: (phase) => {
+      mainWindow?.webContents.send(IPC_CHANNELS.agent.event, {
+        type: "context_switch",
+        phase,
+      });
+    },
   });
   session.replaceHost(session.getHost(), {
     subscribe: () => subscribeToHost(session.getHost(), null),

@@ -18,6 +18,8 @@ export interface ShellModelState {
   agent: AgentSnapshot;
   draft: string;
   live: AgentLiveFeed;
+  /** Latest-wins Context switch feedback from SessionCapability. */
+  contextSwitchPhase: "idle" | "switching" | "cancelled";
 }
 
 interface MessageEnvelopeEvent {
@@ -50,6 +52,7 @@ const INITIAL_STATE: ShellModelState = {
   },
   draft: "",
   live: createInitialAgentLiveFeed(),
+  contextSwitchPhase: "idle",
 };
 
 const MESSAGE_STATUS_PRIORITY = {
@@ -233,6 +236,20 @@ export function createShellModel(api: PiDesktopApi) {
 
     if (normalized.type === "session_changed") {
       void refreshSnapshots();
+      return;
+    }
+
+    if (normalized.type === "context_switch") {
+      state = {
+        ...state,
+        contextSwitchPhase:
+          normalized.phase === "started"
+            ? "switching"
+            : normalized.phase === "cancelled"
+              ? "cancelled"
+              : "idle",
+      };
+      notify();
       return;
     }
 

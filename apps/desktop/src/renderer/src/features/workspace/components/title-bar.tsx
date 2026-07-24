@@ -23,6 +23,7 @@ export interface TitleBarProps {
   hasChangesToCommit?: boolean;
   hasCommitsToPush?: boolean;
   isPromptExecuting?: boolean;
+  contextSwitchPhase?: "idle" | "switching" | "cancelled";
   onToggleTerminal?: () => void;
   isTerminalVisible?: boolean;
   activeThreadId?: string | null;
@@ -40,6 +41,7 @@ export function TitleBar({
   hasChangesToCommit = false,
   hasCommitsToPush = false,
   isPromptExecuting = false,
+  contextSwitchPhase = "idle",
   onToggleTerminal,
   isTerminalVisible = false,
   activeThreadId,
@@ -71,6 +73,16 @@ export function TitleBar({
         data-no-drag="true"
         className="flex items-center gap-2"
       >
+        {contextSwitchPhase !== "idle" ? (
+          <span
+            data-testid="context-switch-status"
+            className="font-mono text-[11px] uppercase tracking-wider text-white/45"
+          >
+            {contextSwitchPhase === "switching"
+              ? "Switching…"
+              : "Switch cancelled"}
+          </span>
+        ) : null}
         <TooltipProvider>
           <GitSplitButton
             onAgentGitAction={onAgentGitAction}

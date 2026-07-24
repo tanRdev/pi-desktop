@@ -66,6 +66,7 @@ export type CreateSessionCapabilityOptions<
   ): Promise<SessionAttachment<THost, TTransport, TContext>>;
   subscribeToHost(host: THost, thread: TContext["thread"] | null): () => void;
   notifySessionChanged(): void;
+  onContextSwitchPhase?(phase: "started" | "completed" | "cancelled"): void;
 };
 
 /**
@@ -170,12 +171,14 @@ export function createSessionCapability<
     unsubscribe = () => {};
     context = nextContext;
     host = createLoadingAgentHost(host, nextContext);
+    options.onContextSwitchPhase?.("started");
     options.notifySessionChanged();
 
     try {
       const attached = await options.attachContext(nextContext);
       if (switchVersion !== currentVersion) {
         attached.transport.close();
+        options.onContextSwitchPhase?.("cancelled");
         return;
       }
 
@@ -187,9 +190,11 @@ export function createSessionCapability<
         attached.host,
         attached.context.thread,
       );
+      options.onContextSwitchPhase?.("completed");
       options.notifySessionChanged();
     } catch (error) {
       if (switchVersion !== currentVersion) {
+        options.onContextSwitchPhase?.("cancelled");
         return;
       }
 
@@ -200,6 +205,7 @@ export function createSessionCapability<
         nextContext,
         error instanceof Error ? error.message : "Failed to switch session",
       );
+      options.onContextSwitchPhase?.("completed");
       options.notifySessionChanged();
     }
   }

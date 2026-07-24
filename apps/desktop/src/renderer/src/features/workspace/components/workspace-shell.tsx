@@ -41,6 +41,7 @@ export interface WorkspaceShellProps {
   isSwitchingModel: boolean;
   isPromptVisible: boolean;
   isPromptExecuting: boolean;
+  contextSwitchPhase?: "idle" | "switching" | "cancelled";
   threadLastViewedAt: Record<string, number>;
   activeGitRepositoryStatus: GitRepositoryStatus | null;
   shellGit: ShellGitSnapshot | null;
@@ -138,6 +139,7 @@ function WorkspaceShellImpl({
   isSwitchingModel,
   isPromptVisible,
   isPromptExecuting,
+  contextSwitchPhase = "idle",
   threadLastViewedAt,
   activeGitRepositoryStatus,
   shellGit,
@@ -308,6 +310,7 @@ function WorkspaceShellImpl({
     activeWorktreeId,
     activeThreadId,
     isPromptExecuting,
+    contextSwitchPhase,
     threadLastViewedAt,
     leftSidebarWidth,
     onLeftSidebarResize,

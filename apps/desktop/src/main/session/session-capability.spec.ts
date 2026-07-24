@@ -133,6 +133,7 @@ describe("createSessionCapability", () => {
       host: ReturnType<typeof createHost>;
       transport: typeof secondAttachedTransport;
     }>();
+    const onContextSwitchPhase = vi.fn();
 
     const session = createSessionCapability({
       initialHost: createHost("initial"),
@@ -142,6 +143,7 @@ describe("createSessionCapability", () => {
         .mockImplementationOnce(() => secondAttachment.promise),
       subscribeToHost: vi.fn(() => vi.fn()),
       notifySessionChanged: vi.fn(),
+      onContextSwitchPhase,
     });
 
     const firstSwitchPromise = session.switchContext(async () => firstContext);
@@ -160,6 +162,8 @@ describe("createSessionCapability", () => {
 
     expect(firstAttachedTransport.closeSpy).toHaveBeenCalledTimes(1);
     expect(session.getContext()).toEqual(secondContext);
+    expect(onContextSwitchPhase).toHaveBeenCalledWith("started");
+    expect(onContextSwitchPhase).toHaveBeenCalledWith("cancelled");
 
     const secondAttachedHost = createHost("beta-host");
     secondAttachment.resolve({
@@ -171,6 +175,7 @@ describe("createSessionCapability", () => {
 
     expect(session.getHost()).toBe(secondAttachedHost);
     expect(session.getTransport()).toBe(secondAttachedTransport);
+    expect(onContextSwitchPhase).toHaveBeenCalledWith("completed");
   });
 
   it("replaces the loading host with an error host when attachment fails", async () => {

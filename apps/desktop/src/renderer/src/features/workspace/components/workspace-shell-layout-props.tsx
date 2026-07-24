@@ -27,6 +27,7 @@ interface BuildWorkspaceShellLayoutPropsParams {
   activeWorktreeId: string | null;
   activeThreadId: string | null;
   isPromptExecuting: boolean;
+  contextSwitchPhase?: "idle" | "switching" | "cancelled";
   threadLastViewedAt: Record<string, number>;
   leftSidebarWidth: number;
   onLeftSidebarResize: (width: number) => void;
@@ -106,6 +107,7 @@ export function buildWorkspaceShellLayoutProps({
   activeWorktreeId,
   activeThreadId,
   isPromptExecuting,
+  contextSwitchPhase,
   threadLastViewedAt,
   leftSidebarWidth,
   onLeftSidebarResize,
@@ -209,6 +211,7 @@ export function buildWorkspaceShellLayoutProps({
     hasChangesToCommit,
     hasCommitsToPush,
     isPromptExecuting,
+    contextSwitchPhase,
     isTerminalVisible,
     draft,
     canSend,

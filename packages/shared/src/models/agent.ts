@@ -139,6 +139,10 @@ export type PiDesktopAgentEvent =
       type: "session_changed";
     }
   | {
+      type: "context_switch";
+      phase: "started" | "completed" | "cancelled";
+    }
+  | {
       type: "agent_end";
     }
   | {
