@@ -32,6 +32,7 @@
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
     "@types/node": "25.5.0",
+    "effect": "^3.21.0",
     "jsdom": "^29.0.2",
     "typescript": "5.9.3",
     "vitest": "4.1.0"

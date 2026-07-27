@@ -115,6 +115,7 @@ function createTerminalManagerHarness() {
 
 afterEach(() => {
   vi.restoreAllMocks();
+  vi.unstubAllEnvs();
 });
 
 describe("future terminal modules (RED)", () => {
@@ -300,6 +301,7 @@ describe("terminalManager", () => {
   });
 
   it("creates local Pi CLI sessions with a worktree agent directory", async () => {
+    vi.stubEnv("PI_CLI_PATH", process.execPath);
     const harness = createTerminalManagerHarness();
     const session = harness.manager.create("pi-terminal", {
       cols: 120,
@@ -317,7 +319,7 @@ describe("terminalManager", () => {
       status: "ready",
     });
     expect(harness.ptySpawn).toHaveBeenCalledWith(
-      expect.stringMatching(/(^|\/)pi$/),
+      process.execPath,
       ["--continue"],
       expect.objectContaining({
         cols: 120,
