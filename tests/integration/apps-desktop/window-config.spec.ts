@@ -36,7 +36,7 @@ describe("createMainWindowOptions", () => {
     expect(options.show).toBe(false);
     expect(options.minWidth).toBe(1180);
     expect(options.minHeight).toBe(720);
-    expect(options.backgroundColor).toBe("#09090B");
+    expect(options.backgroundColor).toBe("#111113");
     expect(options.paintWhenInitiallyHidden).toBe(false);
     expect(options.titleBarStyle).toBe("hiddenInset");
     expect(options.webPreferences).toMatchObject({

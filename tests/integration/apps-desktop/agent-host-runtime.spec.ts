@@ -65,6 +65,7 @@ describe("resolveAgentRuntimeOptions", () => {
         mode: "cli",
         cwd: "/tmp/pi-desktop-workspace",
         agentDir: "/tmp/pi-desktop-workspace/.pi/agent",
+        sessionId: "pi-desktop",
       },
     );
   });

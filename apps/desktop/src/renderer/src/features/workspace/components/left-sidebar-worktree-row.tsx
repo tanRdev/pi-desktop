@@ -79,7 +79,12 @@ function WorktreeRowImpl({
 
   return (
     <div data-testid="session-row">
-      <div className="flex items-center">
+      <div
+        className={cn(
+          "mx-1 flex items-center rounded-md",
+          isActive && "bg-white/[0.055] ring-1 ring-inset ring-white/[0.06]",
+        )}
+      >
         <Tooltip>
           <TooltipTrigger asChild>
             <button
@@ -109,6 +114,12 @@ function WorktreeRowImpl({
               <span className="min-w-0 flex-1 truncate font-mono">
                 {session.label}
               </span>
+
+              {isActive ? (
+                <span className="rounded bg-[var(--color-accent)]/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em] text-[var(--color-accent)]">
+                  Current
+                </span>
+              ) : null}
 
               {(ahead > 0 || behind > 0) && (
                 <span className="flex items-center gap-1 text-[11px] font-mono text-white/40">

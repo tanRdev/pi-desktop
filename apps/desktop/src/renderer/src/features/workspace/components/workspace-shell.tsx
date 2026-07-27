@@ -310,6 +310,7 @@ function WorkspaceShellImpl({
     repositories,
     activeRepositoryId,
     activeWorktreeId,
+    worktrees: activeRepository?.worktrees ?? [],
     activeThreadId,
     isPromptExecuting,
     contextSwitchPhase,

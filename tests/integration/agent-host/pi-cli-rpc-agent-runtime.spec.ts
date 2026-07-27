@@ -120,6 +120,7 @@ describe("PiCliRpcAgentRuntime", () => {
     const runtime = new PiCliRpcAgentRuntime({
       cwd: "/tmp/pi-desktop-workspace",
       agentDir: "/tmp/pi-desktop-agent",
+      sessionId: "desktop-thread",
       spawnProcess,
     });
 
@@ -127,7 +128,7 @@ describe("PiCliRpcAgentRuntime", () => {
 
     expect(spawnProcess).toHaveBeenCalledWith(
       "pi",
-      ["--mode", "rpc", "--continue"],
+      ["--mode", "rpc", "--session-id", "desktop-thread"],
       expect.objectContaining({
         cwd: "/tmp/pi-desktop-workspace",
         env: expect.objectContaining({
@@ -256,6 +257,7 @@ describe("PiCliRpcAgentRuntime", () => {
     const runtime = new PiCliRpcAgentRuntime({
       cwd: "/tmp/pi-desktop-workspace",
       agentDir: "/tmp/pi-desktop-agent",
+      sessionId: "desktop-thread",
       spawnProcess: vi.fn(() => child),
     });
     const events: PiDesktopAgentEvent[] = [];
@@ -372,6 +374,7 @@ describe("PiCliRpcAgentRuntime", () => {
     const runtime = new PiCliRpcAgentRuntime({
       cwd: "/tmp/pi-desktop-workspace",
       agentDir: "/tmp/pi-desktop-agent",
+      sessionId: "desktop-thread",
       spawnProcess: vi.fn(() => child),
     });
 
@@ -380,8 +383,6 @@ describe("PiCliRpcAgentRuntime", () => {
     await expect(runtime.getSettings()).resolves.toEqual({
       currentProviderId: "google",
       currentModelId: "gemini-2.5-flash",
-      defaultProvider: "google",
-      defaultModel: "gemini-2.5-flash",
       thinkingLevel: "high",
     });
     await expect(runtime.getProviders()).resolves.toEqual([
@@ -477,6 +478,7 @@ describe("PiCliRpcAgentRuntime", () => {
     const runtime = new PiCliRpcAgentRuntime({
       cwd: "/tmp/pi-desktop-workspace",
       agentDir: "/tmp/pi-desktop-agent",
+      sessionId: "desktop-thread",
       spawnProcess: vi.fn(() => child),
     });
 
@@ -552,6 +554,7 @@ describe("PiCliRpcAgentRuntime", () => {
     const runtime = new PiCliRpcAgentRuntime({
       cwd: "/tmp/pi-desktop-workspace",
       agentDir: "/tmp/pi-desktop-agent",
+      sessionId: "desktop-thread",
       spawnProcess: vi.fn(() => child),
     });
 
@@ -617,6 +620,7 @@ describe("PiCliRpcAgentRuntime", () => {
     const runtime = new PiCliRpcAgentRuntime({
       cwd: "/tmp/pi-desktop-workspace",
       agentDir: "/tmp/pi-desktop-agent",
+      sessionId: "desktop-thread",
       spawnProcess: vi.fn(() => child),
     });
     const listener = vi.fn<(event: PiDesktopAgentEvent) => void>();
@@ -704,6 +708,7 @@ describe("PiCliRpcAgentRuntime", () => {
     const runtime = new PiCliRpcAgentRuntime({
       cwd: "/tmp/pi-desktop-workspace",
       agentDir: "/tmp/pi-desktop-agent",
+      sessionId: "desktop-thread",
       spawnProcess: vi.fn(() => child),
     });
 
@@ -778,6 +783,7 @@ describe("PiCliRpcAgentRuntime", () => {
     const runtime = new PiCliRpcAgentRuntime({
       cwd: "/tmp/pi-desktop-workspace",
       agentDir: "/tmp/pi-desktop-agent",
+      sessionId: "desktop-thread",
       spawnProcess: vi.fn(() => child),
     });
 

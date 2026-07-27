@@ -25,6 +25,7 @@ interface BuildWorkspaceShellLayoutPropsParams {
   repositories: RepositorySnapshot[];
   activeRepositoryId: string | null;
   activeWorktreeId: string | null;
+  worktrees?: RepositorySnapshot["worktrees"];
   activeThreadId: string | null;
   isPromptExecuting: boolean;
   contextSwitchPhase?: "idle" | "switching" | "cancelled";
@@ -106,6 +107,7 @@ export function buildWorkspaceShellLayoutProps({
   repositories,
   activeRepositoryId,
   activeWorktreeId,
+  worktrees = [],
   activeThreadId,
   isPromptExecuting,
   contextSwitchPhase,
@@ -207,6 +209,7 @@ export function buildWorkspaceShellLayoutProps({
   const mainPaneProps: WorkspaceShellMainPaneProps = {
     platform,
     activeWorktreeId,
+    worktrees,
     activeThreadId,
     activeThreadTitle,
     hasActiveThread,
@@ -235,6 +238,8 @@ export function buildWorkspaceShellLayoutProps({
     targetMessageId,
     onTargetMessageNavigated,
     onToggleTerminal,
+    onSelectWorktree,
+    onCreateWorktree: onCreateSession,
     onSelectContextSurface,
     onCloseFileWindow,
     onFileContentChange,

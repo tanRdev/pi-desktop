@@ -23,7 +23,7 @@ export function ContextUsageMeter({
   contextWindow,
   percent,
 }: ContextUsageMeterProps) {
-  const clamped = Math.max(0, Math.min(100, percent));
+  const clamped = Math.round(Math.max(0, Math.min(100, percent)));
 
   const barColor =
     clamped >= 95
@@ -37,19 +37,20 @@ export function ContextUsageMeter({
 
   return (
     <div
-      className="flex items-center gap-2 select-none"
+      data-testid="prompt-context-counter"
+      className="flex items-center gap-2.5 select-none"
       role="img"
-      aria-label={`Context usage ${clamped}%`}
+      aria-label={`Context window usage ${clamped}%`}
     >
-      <div className="relative h-[2px] w-10 bg-white/[0.08]">
+      <div className="relative h-1 w-14 overflow-hidden rounded-full bg-white/[0.08]">
         <div
           className={cn(
-            "h-full transition-all duration-[var(--duration-fast)]",
+            "h-full rounded-full transition-[width] duration-[var(--duration-fast)] ease-[var(--ease-out)]",
           )}
           style={{ width: `${clamped}%`, backgroundColor: barColor }}
         />
       </div>
-      <span className="font-mono text-[11px] text-white/40 tabular-nums">
+      <span className="font-mono text-[10px] text-white/40 tabular-nums">
         {tokensLabel} / {windowLabel}
       </span>
     </div>

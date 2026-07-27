@@ -32,6 +32,7 @@ describe("createThreadRuntimeLaunchDetails", () => {
         "PI_DESKTOP_AGENT_MODE=mock",
         "PI_DESKTOP_AGENT_CWD=/tmp/worktrees/feature-alpha",
         "PI_DESKTOP_AGENT_DIR=/tmp/worktrees/feature-alpha/.pi/agent/threads/thread-alpha",
+        "PI_DESKTOP_THREAD_ID=thread-alpha",
         "NODE_ENV=test",
         "/Applications/Pi Desktop.app/Contents/MacOS/Pi Desktop",
         "/app/out/main/agent-host-session-server-entry.js",

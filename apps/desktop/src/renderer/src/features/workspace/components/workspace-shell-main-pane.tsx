@@ -4,6 +4,7 @@ import type {
   MentionSuggestion,
   ProviderSnapshot,
   SlashSuggestion,
+  WorktreeSnapshot,
 } from "@pi-desktop/shared";
 import * as React from "react";
 import type {
@@ -19,6 +20,7 @@ import { TitleBar } from "./title-bar";
 export interface WorkspaceShellMainPaneProps {
   platform: string | null;
   activeWorktreeId: string | null;
+  worktrees?: WorktreeSnapshot[];
   activeThreadId: string | null;
   activeThreadTitle: string | null;
   hasActiveThread: boolean;
@@ -47,6 +49,8 @@ export interface WorkspaceShellMainPaneProps {
   targetMessageId: string | null;
   onTargetMessageNavigated: (messageId: string) => void;
   onToggleTerminal: () => void;
+  onSelectWorktree?: (worktreeId: string) => void | Promise<void>;
+  onCreateWorktree?: () => void | Promise<void>;
   onSelectContextSurface: (surfaceKey: ContextSurfaceKey | null) => void;
   onCloseFileWindow: (windowId: string) => void;
   onFileContentChange: (windowId: string, content: string) => void;
@@ -75,6 +79,7 @@ export interface WorkspaceShellMainPaneProps {
 function WorkspaceShellMainPaneImpl({
   platform,
   activeWorktreeId,
+  worktrees = [],
   activeThreadId,
   activeThreadTitle,
   hasActiveThread,
@@ -103,6 +108,8 @@ function WorkspaceShellMainPaneImpl({
   targetMessageId,
   onTargetMessageNavigated,
   onToggleTerminal,
+  onSelectWorktree,
+  onCreateWorktree,
   onSelectContextSurface,
   onCloseFileWindow,
   onFileContentChange,
@@ -188,6 +195,14 @@ function WorkspaceShellMainPaneImpl({
                 onSend={onSend}
                 onCancelPrompt={onCancelPrompt}
                 activeThreadId={activeThreadId}
+                activeWorktreeId={activeWorktreeId}
+                worktrees={worktrees.map((worktree) => ({
+                  id: worktree.id,
+                  label: worktree.label,
+                  branch: worktree.git.branch,
+                }))}
+                onSelectWorktree={onSelectWorktree}
+                onCreateWorktree={onCreateWorktree}
                 canSend={canSend}
                 isVisible={isPromptVisible}
                 isPromptExecuting={isPromptExecuting}

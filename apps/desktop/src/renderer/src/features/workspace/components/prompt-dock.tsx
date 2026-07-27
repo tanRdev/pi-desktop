@@ -13,11 +13,15 @@ import {
 } from "@pi-desktop/ui";
 import * as React from "react";
 import { Loader } from "@/components/ui/loader";
-import { ICON_SIZE_XS, Paperclip } from "@/components/ui/phosphor-icons";
+import {
+  GitBranch,
+  ICON_SIZE_XS,
+  Paperclip,
+  Plus,
+} from "@/components/ui/phosphor-icons";
 import PromptAutocomplete from "@/components/ui/prompt-autocomplete";
 import { Attachments, useAttachments } from "./prompt-dock/attachments";
-import { CharacterCounter } from "./prompt-dock/character-counter";
-import { ContextGauge } from "./prompt-dock/context-gauge";
+import { ContextUsageMeter } from "./prompt-dock/context-usage-meter";
 import { ModelPicker } from "./prompt-dock/model-picker";
 import { usePersistDraft } from "./prompt-dock/prompt-draft";
 import { SendButton } from "./prompt-dock/send-button";
@@ -32,6 +36,10 @@ export interface PromptDockProps {
   onSend: () => void | Promise<void>;
   onCancelPrompt: () => void | Promise<void>;
   activeThreadId: string | null;
+  activeWorktreeId?: string | null;
+  worktrees?: Array<{ id: string; label: string; branch: string | null }>;
+  onSelectWorktree?: (worktreeId: string) => void | Promise<void>;
+  onCreateWorktree?: () => void | Promise<void>;
   canSend: boolean;
   isVisible: boolean;
   isPromptExecuting: boolean;
@@ -69,6 +77,10 @@ export function PromptDock({
   onSend,
   onCancelPrompt,
   activeThreadId,
+  activeWorktreeId = null,
+  worktrees = [],
+  onSelectWorktree,
+  onCreateWorktree,
   canSend,
   isVisible,
   isPromptExecuting,
@@ -103,7 +115,6 @@ export function PromptDock({
     mergedSuggestions,
     autocompleteVisible,
     handleAutocompleteSelect,
-    currentModelDisplay,
     currentContextWindow,
     currentContextTokens,
     currentContextPercentage,
@@ -195,6 +206,37 @@ export function PromptDock({
 
           <PromptInputActions className="mt-1.5 flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
+              {activeWorktreeId ? (
+                <div className="flex h-7 items-center rounded-md border border-white/[0.06] bg-white/[0.025]">
+                  <GitBranch
+                    aria-hidden="true"
+                    className="ml-2 size-3.5 text-[var(--color-accent)]"
+                  />
+                  <select
+                    aria-label="Current worktree"
+                    value={activeWorktreeId}
+                    onChange={(event) =>
+                      void onSelectWorktree?.(event.target.value)
+                    }
+                    className="h-full max-w-40 appearance-none bg-transparent px-1.5 text-[11px] font-medium text-white/70 outline-none"
+                  >
+                    {worktrees.map((worktree) => (
+                      <option key={worktree.id} value={worktree.id}>
+                        {worktree.branch ?? worktree.label}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    aria-label="Create worktree"
+                    onClick={() => void onCreateWorktree?.()}
+                    className="flex size-7 items-center justify-center border-l border-white/[0.06] text-white/35 transition-colors duration-[var(--duration-fast)] hover:bg-white/[0.05] hover:text-white/75"
+                  >
+                    <Plus aria-hidden="true" className="size-3.5" />
+                  </button>
+                </div>
+              ) : null}
+
               <PromptInputAction tooltip="Attach files">
                 <Button
                   type="button"
@@ -253,19 +295,10 @@ export function PromptDock({
               {isSwitchingModel ? <Loader label="Switching" /> : null}
 
               {currentContextWindow != null ? (
-                <CharacterCounter
+                <ContextUsageMeter
                   tokens={currentContextTokens}
                   contextWindow={currentContextWindow}
-                />
-              ) : null}
-
-              {currentContextWindow != null &&
-              currentContextPercentage !== null ? (
-                <ContextGauge
-                  tokens={currentContextTokens}
-                  contextWindow={currentContextWindow}
-                  percent={currentContextPercentage}
-                  modelDisplayName={currentModelDisplay}
+                  percent={currentContextPercentage ?? 0}
                 />
               ) : null}
 

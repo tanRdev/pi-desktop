@@ -128,7 +128,9 @@ describe("PromptDock", () => {
     expect(
       screen.getByRole("img", { name: "Context window usage 26%" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("26%")).toBeInTheDocument();
+    expect(screen.getByTestId("prompt-context-counter")).toHaveTextContent(
+      "52.4K / 200K",
+    );
   });
 
   it("forwards the chosen model through the hidden select bridge", async () => {
@@ -310,8 +312,8 @@ describe("PromptDock", () => {
       "— / 200K",
     );
     expect(
-      screen.queryByRole("img", { name: /Context window usage/i }),
-    ).not.toBeInTheDocument();
+      screen.getByRole("img", { name: "Context window usage 0%" }),
+    ).toBeInTheDocument();
   });
 
   it("merges built-in slash commands into the autocomplete when draft begins with /", () => {
