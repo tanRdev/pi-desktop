@@ -2,7 +2,10 @@
 import { act, renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { UI_SETTINGS_STORAGE_KEY } from "@/features/settings/use-settings";
+import {
+  __resetUiSettingsStoreForTests,
+  UI_SETTINGS_STORAGE_KEY,
+} from "@/features/settings/use-settings";
 import { ThemeProvider, useTheme } from "./theme-provider";
 
 function createMediaQuery(initiallyDark: boolean) {
@@ -49,6 +52,7 @@ function wrapper({ children }: { children: ReactNode }) {
 
 beforeEach(() => {
   window.localStorage.clear();
+  __resetUiSettingsStoreForTests();
   document.documentElement.classList.remove("dark");
   document.documentElement.style.colorScheme = "";
   vi.restoreAllMocks();

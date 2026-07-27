@@ -117,6 +117,8 @@ describe("bootstrap helpers (RED)", () => {
         shouldShowMainWindow,
         shouldDeferWindowShowUntilReady,
         resolveRendererTarget,
+        appIsPackaged: false,
+        resourcesPath: "/tmp/resources",
       },
     });
 
@@ -126,6 +128,7 @@ describe("bootstrap helpers (RED)", () => {
     );
     expect(createMainWindowOptions).toHaveBeenCalledWith({
       preloadPath: "/tmp/preload/index.cjs",
+      iconPath: null,
     });
     expect(BrowserWindow).toHaveBeenCalledWith({
       show: false,
