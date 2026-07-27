@@ -119,7 +119,7 @@ export class PiSdkAgentRuntime {
     agentDir,
     createAgentSession = createPiAgentSession,
     createModelRegistry = (authFilePath, modelsFilePath) =>
-      new ModelRegistry(AuthStorage.create(authFilePath), modelsFilePath),
+      ModelRegistry.create(AuthStorage.create(authFilePath), modelsFilePath),
     createSettingsManager = (nextCwd, nextAgentDir) =>
       SettingsManager.create(nextCwd, nextAgentDir),
   }: PiSdkAgentRuntimeOptions) {

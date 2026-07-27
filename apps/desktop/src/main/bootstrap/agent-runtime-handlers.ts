@@ -78,6 +78,12 @@ export function createAgentRuntimeHandlers(
     );
   }
 
+  function resolveAuthDirectory(): string {
+    return (
+      input.getCurrentContext()?.agentDirectory ?? input.defaultAgentDirectory
+    );
+  }
+
   function resolveContextCwd(): string {
     return (
       input.getCurrentContext()?.worktreePath ??
@@ -148,20 +154,37 @@ export function createAgentRuntimeHandlers(
   }
 
   async function handleGetOAuthProviders(): Promise<OAuthProviderSnapshot[]> {
-    return getOAuthProvidersForAgentDir(resolveAgentDirectory());
+    return getOAuthProvidersForAgentDir(resolveAuthDirectory());
+  }
+
+  async function restartCurrentRuntimeAfterAuthChange(): Promise<void> {
+    const currentContext = input.getCurrentContext();
+    if (!currentContext || currentContext.command.length === 0) {
+      return;
+    }
+
+    await input.runtimeManager.restartThreadRuntime({
+      threadId: currentContext.thread.id,
+      worktreePath: currentContext.worktreePath,
+      command: currentContext.command,
+    });
+    const attached = await input.attachContext(currentContext);
+    await input.commitAttachment(attached);
   }
 
   async function handleLoginWithOAuth(providerId: string): Promise<void> {
     await loginWithOAuthForAgentDir(
-      resolveAgentDirectory(),
+      resolveAuthDirectory(),
       providerId,
       input.oauthPromptBridge,
     );
+    await restartCurrentRuntimeAfterAuthChange();
     input.notifySessionChanged();
   }
 
   async function handleLogoutOAuth(providerId: string): Promise<void> {
-    await logoutOAuthForAgentDir(resolveAgentDirectory(), providerId);
+    await logoutOAuthForAgentDir(resolveAuthDirectory(), providerId);
+    await restartCurrentRuntimeAfterAuthChange();
     input.notifySessionChanged();
   }
 

@@ -48,9 +48,11 @@ function resolveAgentRuntimeMode(
     return "mock";
   }
 
-  // Prefer the real Pi CLI when it's on PATH; otherwise mock so chat works
-  // out of the box without requiring a separate `pi` install.
-  return resolvePi() ? "cli" : "mock";
+  // Prefer the user's Pi CLI so Desktop inherits its provider catalog,
+  // credentials, extensions, and tool behavior. The bundled Pi SDK is the
+  // production fallback; mock mode is reserved for tests and explicit smoke
+  // runs so a public build never presents a fake chat as a coding agent.
+  return resolvePi() ? "cli" : "sdk";
 }
 
 export function resolveAgentRuntimeOptions(

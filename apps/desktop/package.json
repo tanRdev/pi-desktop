@@ -19,11 +19,12 @@
     "typecheck": "tsc --project tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@mariozechner/pi-coding-agent": "0.57.1",
+    "@mariozechner/pi-coding-agent": "0.73.1",
     "@monaco-editor/react": "^4.7.0",
+    "@opentelemetry/api": "1.9.1",
     "@phosphor-icons/react": "^2.1.10",
-    "@pi-desktop/contracts": "workspace:*",
     "@pi-desktop/agent-host": "workspace:*",
+    "@pi-desktop/contracts": "workspace:*",
     "@pi-desktop/shared": "workspace:*",
     "@pi-desktop/shell-model": "workspace:*",
     "@pi-desktop/ui": "workspace:*",

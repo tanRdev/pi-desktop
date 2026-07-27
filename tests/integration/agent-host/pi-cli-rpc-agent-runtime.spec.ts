@@ -239,6 +239,19 @@ describe("PiCliRpcAgentRuntime", () => {
           },
         });
         currentChild.emitStdout({
+          type: "tool_execution_start",
+          toolCallId: "tool-read-1",
+          toolName: "read",
+          args: { path: "package.json" },
+        });
+        currentChild.emitStdout({
+          type: "tool_execution_end",
+          toolCallId: "tool-read-1",
+          toolName: "read",
+          result: { content: '{"name":"pi-desktop"}' },
+          isError: false,
+        });
+        currentChild.emitStdout({
           type: "message_end",
           message: {
             role: "assistant",
@@ -278,6 +291,14 @@ describe("PiCliRpcAgentRuntime", () => {
           event.text === "cli reply",
       ),
     ).toBe(true);
+    expect(
+      events.some(
+        (event) =>
+          event.type === "tool_execution_end" &&
+          event.toolName === "read" &&
+          event.isError === false,
+      ),
+    ).toBe(true);
     expect(runtime.getSnapshot()).toMatchObject({
       sessionId: "cli-session",
       status: "ready",
@@ -296,6 +317,13 @@ describe("PiCliRpcAgentRuntime", () => {
         id: "assistant-101",
         role: "assistant",
         text: "cli reply",
+        status: "complete",
+        timestamp: 101,
+      },
+      {
+        id: "tool:read:tool-read-1",
+        role: "tool",
+        text: '{\n  "content": "{\\"name\\":\\"pi-desktop\\"}"\n}',
         status: "complete",
         timestamp: 101,
       },

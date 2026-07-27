@@ -859,7 +859,7 @@ describe("bootstrap helpers (RED)", () => {
     );
     expect(helperSource).toContain("getPiSlashSuggestions({");
     expect(helperSource).toContain(
-      "getOAuthProvidersForAgentDir(resolveAgentDirectory())",
+      "getOAuthProvidersForAgentDir(resolveAuthDirectory())",
     );
     expect(helperSource).toContain("notifySessionChanged();");
   });

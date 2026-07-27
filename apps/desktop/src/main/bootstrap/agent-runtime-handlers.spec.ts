@@ -206,9 +206,14 @@ describe("createAgentRuntimeHandlers", () => {
       trigger: "/",
     };
 
+    const currentContext = createSelectedThreadContext(
+      "/tmp/repo/worktrees/feature",
+    );
+    const restartThreadRuntime = vi.fn();
+    const attachContext = vi.fn(async () => ({ host: "replacement" }));
+    const commitAttachment = vi.fn();
     const handlers = createAgentRuntimeHandlers({
-      getCurrentContext: () =>
-        createSelectedThreadContext("/tmp/repo/worktrees/feature"),
+      getCurrentContext: () => currentContext,
       getCurrentHost: () => ({
         switchModel: vi.fn(),
       }),
@@ -220,9 +225,9 @@ describe("createAgentRuntimeHandlers", () => {
       defaultAgentDirectory: "/Users/test/.pi/agent",
       getProcessCwd: () => "/fallback/cwd",
       createSettingsManager: vi.fn(),
-      runtimeManager: { restartThreadRuntime: vi.fn() },
-      attachContext: vi.fn(),
-      commitAttachment: vi.fn(),
+      runtimeManager: { restartThreadRuntime },
+      attachContext,
+      commitAttachment,
       workspaceSearchService: { search: vi.fn() },
       oauthPromptBridge: {
         openExternal: vi.fn(),
@@ -256,17 +261,27 @@ describe("createAgentRuntimeHandlers", () => {
       context,
     });
     expect(getOAuthProvidersForAgentDir).toHaveBeenCalledWith(
-      "/tmp/repo/.pi/agent/runtime",
+      "/tmp/repo/.pi/agent",
     );
     expect(loginWithOAuthForAgentDir).toHaveBeenCalledWith(
-      "/tmp/repo/.pi/agent/runtime",
+      "/tmp/repo/.pi/agent",
       "github",
       expect.any(Object),
     );
     expect(logoutOAuthForAgentDir).toHaveBeenCalledWith(
-      "/tmp/repo/.pi/agent/runtime",
+      "/tmp/repo/.pi/agent",
       "github",
     );
+    expect(restartThreadRuntime).toHaveBeenCalledTimes(2);
+    expect(restartThreadRuntime).toHaveBeenCalledWith({
+      threadId: "thread-1",
+      worktreePath: "/tmp/repo/worktrees/feature",
+      command: ["node", "server.mjs"],
+    });
+    expect(attachContext).toHaveBeenCalledTimes(2);
+    expect(attachContext).toHaveBeenCalledWith(currentContext);
+    expect(commitAttachment).toHaveBeenCalledTimes(2);
+    expect(commitAttachment).toHaveBeenCalledWith({ host: "replacement" });
     expect(notifySessionChanged).toHaveBeenCalledTimes(2);
   });
 

@@ -269,8 +269,9 @@ describe("normalizeAgentSessionEvent", () => {
   it("returns null for unsupported event types", () => {
     expect(
       normalizeAgentSessionEvent({
-        type: "auto_compaction_start",
-        reason: "threshold",
+        type: "queue_update",
+        steering: [],
+        followUp: [],
       }),
     ).toBeNull();
   });

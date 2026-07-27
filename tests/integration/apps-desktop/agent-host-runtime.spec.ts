@@ -45,12 +45,12 @@ describe("resolveAgentRuntimeOptions", () => {
     });
   });
 
-  test("defaults to mock mode when Pi CLI is not installed", () => {
+  test("defaults to the bundled Pi SDK when Pi CLI is not installed", () => {
     resolvePiPathMock.mockReturnValue(null);
 
     expect(resolveAgentRuntimeOptions({}, "/tmp/pi-desktop-workspace")).toEqual(
       {
-        mode: "mock",
+        mode: "sdk",
         cwd: "/tmp/pi-desktop-workspace",
         agentDir: "/tmp/pi-desktop-workspace/.pi/agent",
       },
@@ -102,7 +102,7 @@ describe("createAgentRuntimeForEntry", () => {
     expect(runtime.constructor.name).toBe("MockAgentRuntime");
   });
 
-  test("creates the mock runtime when Pi CLI is missing", () => {
+  test("creates the bundled Pi SDK runtime when Pi CLI is missing", () => {
     resolvePiPathMock.mockReturnValue(null);
 
     const runtime = createAgentRuntimeForEntry({}, "/tmp/pi-desktop-workspace");
@@ -111,7 +111,7 @@ describe("createAgentRuntimeForEntry", () => {
     if (!runtime) {
       throw new Error("Expected a runtime instance");
     }
-    expect(runtime.constructor.name).toBe("MockAgentRuntime");
+    expect(runtime.constructor.name).toBe("PiSdkAgentRuntime");
   });
 
   test("creates the Pi CLI runtime when Pi is available", () => {
@@ -155,7 +155,7 @@ describe("resolveAgentRuntimeLaunchOptions", () => {
     ).toEqual({
       cwd: "/tmp/pi-desktop-home",
       env: expect.objectContaining({
-        PI_DESKTOP_AGENT_MODE: "mock",
+        PI_DESKTOP_AGENT_MODE: "sdk",
         PI_DESKTOP_AGENT_CWD: "/tmp/pi-desktop-home",
         PI_DESKTOP_AGENT_DIR: "/tmp/pi-desktop-home/.pi/agent",
       }),
@@ -197,7 +197,7 @@ describe("resolveAgentRuntimeLaunchOptions", () => {
     expect(launchOptions).toEqual({
       cwd: "/tmp/pi-desktop-home",
       env: expect.objectContaining({
-        PI_DESKTOP_AGENT_MODE: "mock",
+        PI_DESKTOP_AGENT_MODE: "sdk",
         PI_DESKTOP_AGENT_CWD: "/tmp/pi-desktop-home",
         PI_DESKTOP_AGENT_DIR: "/tmp/pi-desktop-home/.pi/agent",
       }),

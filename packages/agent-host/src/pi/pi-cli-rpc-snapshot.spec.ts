@@ -99,6 +99,33 @@ describe("mapRpcSettings", () => {
 });
 
 describe("mapRpcProviders", () => {
+  it("preserves every provider family and unknown custom providers", () => {
+    const providers = mapRpcProviders([
+      { provider: "anthropic", id: "claude-sonnet" },
+      { provider: "openai", id: "gpt-coding" },
+      { provider: "openai-codex", id: "gpt-subscription" },
+      { provider: "google", id: "gemini-pro" },
+      { provider: "github-copilot", id: "copilot-model" },
+      { provider: "amazon-bedrock", id: "bedrock-model" },
+      { provider: "openrouter", id: "routed-model" },
+      { provider: "local-custom-provider", id: "custom-model" },
+    ]);
+
+    expect(providers.map((provider) => provider.id)).toEqual([
+      "anthropic",
+      "openai",
+      "openai-codex",
+      "google",
+      "github-copilot",
+      "amazon-bedrock",
+      "openrouter",
+      "local-custom-provider",
+    ]);
+    expect(providers.every((provider) => provider.models.length === 1)).toBe(
+      true,
+    );
+  });
+
   it("groups models by provider and derives public capabilities", () => {
     expect(
       mapRpcProviders([

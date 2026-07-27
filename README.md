@@ -22,7 +22,10 @@
 </div>
 
 > [!CAUTION]
-> **Alpha.** Expect breaking changes and rough edges. Without the `pi` CLI installed, chat uses the built-in **mock** agent so the shell stays usable out of the box. Install `pi` (or set `PI_CLI_PATH`) for real CLI/SDK chat.
+> **Alpha.** Expect breaking changes and rough edges. Pi Desktop prefers the
+> installed `pi` CLI so it inherits that installation's providers, models,
+> credentials, extensions, and tools. Without the CLI it uses the bundled real
+> Pi SDK; mock mode is reserved for tests and explicit smoke runs.
 
 > [!TIP]
 > Grab the latest arm64 DMG from [Releases](https://github.com/tanRdev/pi-desktop/releases), open it, and drag **Pi Desktop** into Applications.
@@ -51,7 +54,9 @@ bun run build
 bun run dev
 ```
 
-That opens Pi Desktop with hot reload. Add a local git repository, create a worktree, and send a chat message—the mock agent answers when `pi` isn’t installed.
+That opens Pi Desktop with hot reload. Add a local git repository, create a
+worktree, and send a Thread prompt. Pi runs in that worktree with its coding
+tools enabled.
 
 ## Features
 
@@ -60,7 +65,7 @@ That opens Pi Desktop with hot reload. Add a local git repository, create a work
 | Repositories | Alpha | Browse and organize local projects |
 | Worktrees | Alpha | Create / switch / remove isolated checkouts |
 | Terminal | Alpha | Integrated `node-pty` terminal |
-| Agent chat | Alpha | Mock by default without `pi`; CLI/SDK when available; in-app OAuth |
+| Coding agent | Alpha | Dynamic Pi model catalog; read/bash/edit/write tools; in-app subscription OAuth |
 | Packages | Alpha | Catalog browse / install—expect rough edges |
 | Auto-updates | Alpha | Packaged updater with Settings consent |
 | Security boundary | Solid | Main ↔ Contracts preload ↔ renderer |
@@ -84,6 +89,13 @@ pi-desktop/
 - **Preload** exposes a typed Contracts client via `contextBridge`—no Node in the renderer.
 - **Renderer** is React 19 + Zustand + Tailwind; all native work goes through IPC.
 - **Agent host** runs in an isolated session-server child; context switches cancel stale setups so only the latest thread wins.
+
+The model picker is populated from Pi rather than a Desktop allowlist, so
+configured Anthropic, OpenAI, Google, Copilot, Bedrock, OpenRouter, local, and
+custom providers pass through without provider-specific chat code. **Connect
+provider** supports Pi's subscription OAuth flows, including Claude Pro/Max,
+ChatGPT Plus/Pro (Codex), and GitHub Copilot. API-key and custom providers use
+the same credentials and configuration recognized by Pi.
 
 ## Development
 
