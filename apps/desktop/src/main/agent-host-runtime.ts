@@ -11,7 +11,8 @@ type AgentRuntimeEnvironment = Partial<
     | "NODE_ENV"
     | "PI_DESKTOP_AGENT_CWD"
     | "PI_DESKTOP_AGENT_DIR"
-    | "PI_DESKTOP_AGENT_MODE",
+    | "PI_DESKTOP_AGENT_MODE"
+    | "PI_DESKTOP_THREAD_ID",
     string
   >
 >;
@@ -70,10 +71,22 @@ export function resolveAgentRuntimeOptions(
     };
   }
 
+  if (mode === "sdk") {
+    return {
+      mode,
+      cwd: resolvedCwd,
+      agentDir: resolvedAgentDir,
+    };
+  }
+
   return {
     mode,
     cwd: resolvedCwd,
     agentDir: resolvedAgentDir,
+    // Context planning resolves the runtime before a Desktop thread exists.
+    // The spawned session server receives the real thread id from
+    // createThreadRuntimeLaunchDetails.
+    sessionId: environment.PI_DESKTOP_THREAD_ID ?? "pi-desktop",
   };
 }
 

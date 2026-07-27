@@ -4,9 +4,13 @@ const spawnMock = vi.fn();
 const resolvePiPathMock = vi.fn(() => null as string | null);
 const buildEnhancedPathMock = vi.fn(() => "/enhanced/bin:/usr/bin");
 
-vi.mock("node:child_process", () => ({
-  spawn: (...args: unknown[]) => spawnMock(...args),
-}));
+vi.mock("node:child_process", () => {
+  const spawn = (...args: unknown[]) => spawnMock(...args);
+  return {
+    default: { spawn },
+    spawn,
+  };
+});
 
 vi.mock("./resolve-pi-path", () => ({
   resolvePiPath: () => resolvePiPathMock(),
@@ -66,7 +70,7 @@ describe("LocalThreadRuntimeManager", () => {
     const manager = new LocalThreadRuntimeManager();
     await manager.ensureThreadRuntime({
       threadId: "thread-1",
-      worktreePath: "/tmp/repo",
+      worktreePath: process.cwd(),
       command: ["env", "ELECTRON_RUN_AS_NODE=1", "/bin/electron", "entry.js"],
     });
 
@@ -74,7 +78,7 @@ describe("LocalThreadRuntimeManager", () => {
       "env",
       ["ELECTRON_RUN_AS_NODE=1", "/bin/electron", "entry.js"],
       expect.objectContaining({
-        cwd: "/tmp/repo",
+        cwd: process.cwd(),
         env: expect.objectContaining({
           PATH: "/enhanced/bin:/usr/bin",
           PI_CLI_PATH: "/opt/homebrew/bin/pi",
@@ -91,7 +95,7 @@ describe("LocalThreadRuntimeManager", () => {
     const manager = new LocalThreadRuntimeManager();
     await manager.ensureThreadRuntime({
       threadId: "thread-2",
-      worktreePath: "/tmp/repo",
+      worktreePath: process.cwd(),
       command: ["env", "ELECTRON_RUN_AS_NODE=1", "/bin/electron", "entry.js"],
     });
 

@@ -25,6 +25,7 @@ type CreateAgentRuntimeOptions =
       mode: "cli";
       cwd: string;
       agentDir: string;
+      sessionId: string;
     };
 
 function assertNever(value: never): never {
@@ -47,6 +48,7 @@ export function createAgentRuntime(options: CreateAgentRuntimeOptions) {
       return new PiCliRpcAgentRuntime({
         cwd: options.cwd,
         agentDir: options.agentDir,
+        sessionId: options.sessionId,
       });
     default:
       return assertNever(options);

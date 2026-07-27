@@ -8,21 +8,21 @@
 
 @layer base {
   :root {
-    --background: #09090B;
+    --background: #111113;
     --foreground: #FAFAFA;
-    --surface-1: #09090B;
-    --surface-2: #111113;
-    --surface-3: #18181B;
-    --surface-4: #1F1F23;
-    --card: #111113;
+    --surface-1: #111113;
+    --surface-2: #18181B;
+    --surface-3: #1F1F23;
+    --surface-4: #27272A;
+    --card: #18181B;
     --card-foreground: #FAFAFA;
-    --popover: #141416;
+    --popover: #1C1C1F;
     --popover-foreground: #FAFAFA;
     --primary: #FAFAFA;
-    --primary-foreground: #09090B;
+    --primary-foreground: #111113;
     --secondary: #A1A1AA;
-    --secondary-foreground: #09090B;
-    --muted: #18181B;
+    --secondary-foreground: #111113;
+    --muted: #1F1F23;
     --muted-foreground: #71717A;
     --accent: #4ADE80;
     --accent-foreground: #052E16;
@@ -31,11 +31,11 @@
     --border: #27272A;
     --border-subtle: #1C1C1F;
     --border-hover: #3F3F46;
-    --input: #18181B;
+    --input: #1F1F23;
     --ring: #4ADE80;
     --glass-blur: 28px;
-    --glass-bg: rgba(9, 9, 11, 0.72);
-    --glass-bg-solid: rgba(9, 9, 11, 0.92);
+    --glass-bg: rgba(17, 17, 19, 0.72);
+    --glass-bg-solid: rgba(17, 17, 19, 0.92);
     --glass-border: rgba(255, 255, 255, 0.08);
     --glass-border-strong: rgba(255, 255, 255, 0.14);
     --app-font-sans: var(--font-body, sans-serif);

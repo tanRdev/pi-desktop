@@ -93,8 +93,6 @@ describe("mapRpcSettings", () => {
     ).toEqual({
       currentProviderId: "google",
       currentModelId: "model-1",
-      defaultProvider: "google",
-      defaultModel: "model-1",
       thinkingLevel: "high",
     });
   });

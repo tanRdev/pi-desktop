@@ -44,10 +44,10 @@ export function createThreadRuntimeLaunchDetails({
   const socketPath = path.join(socketDirectory, socketFileName);
   const resolvedAgentDirectory =
     agentDirectory ?? path.join(worktreePath, ".pi", "agent");
-  const runtimeAgentDirectory = createThreadAgentDirectory(
-    resolvedAgentDirectory,
-    threadId,
-  );
+  const runtimeAgentDirectory =
+    mode === "cli"
+      ? resolvedAgentDirectory
+      : createThreadAgentDirectory(resolvedAgentDirectory, threadId);
 
   return {
     threadId,
@@ -62,6 +62,7 @@ export function createThreadRuntimeLaunchDetails({
       `PI_DESKTOP_AGENT_MODE=${mode}`,
       `PI_DESKTOP_AGENT_CWD=${worktreePath}`,
       `PI_DESKTOP_AGENT_DIR=${runtimeAgentDirectory}`,
+      `PI_DESKTOP_THREAD_ID=${threadId}`,
       ...(nodeEnv ? [`NODE_ENV=${nodeEnv}`] : []),
       execPath,
       sessionServerEntryPath,

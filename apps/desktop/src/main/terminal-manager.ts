@@ -306,6 +306,10 @@ export class TerminalManager {
     return instance.ownerWebContentsId === senderKey;
   }
 
+  hasSession(id: string): boolean {
+    return this.terminals.has(id);
+  }
+
   write(id: string, data: string): void {
     const instance = this.terminals.get(id);
     if (!instance) return;

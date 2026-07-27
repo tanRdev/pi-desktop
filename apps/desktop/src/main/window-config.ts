@@ -57,7 +57,7 @@ export function createMainWindowOptions({
     minWidth: 1180,
     minHeight: 720,
     show: false,
-    backgroundColor: "#09090B",
+    backgroundColor: "#111113",
     ...(iconPath ? { icon: iconPath } : {}),
     titleBarStyle: "hiddenInset",
     trafficLightPosition: { x: 20, y: 12 },

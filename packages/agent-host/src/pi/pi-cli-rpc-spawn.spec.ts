@@ -14,11 +14,12 @@ describe("buildCliRpcSpawnRequest", () => {
       buildCliRpcSpawnRequest({
         cwd: "/tmp/pi-desktop-workspace",
         agentDir: "/tmp/pi-desktop-agent",
+        sessionId: "thread-123",
         env,
       }),
     ).toEqual({
       command: "/opt/pi/bin/pi",
-      args: ["--mode", "rpc", "--continue"],
+      args: ["--mode", "rpc", "--session-id", "thread-123"],
       options: {
         cwd: "/tmp/pi-desktop-workspace",
         env: {
@@ -42,6 +43,7 @@ describe("buildCliRpcSpawnRequest", () => {
       buildCliRpcSpawnRequest({
         cwd: "/tmp/pi-desktop-workspace",
         agentDir: "/tmp/pi-desktop-agent",
+        sessionId: "thread-123",
         env: {
           PI_CLI_PATH: "",
         },

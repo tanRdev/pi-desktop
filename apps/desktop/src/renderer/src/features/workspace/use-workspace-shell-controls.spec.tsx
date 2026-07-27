@@ -167,7 +167,7 @@ describe("useWorkspaceShellControls", () => {
     ]);
   });
 
-  it("limits visible model picker providers to current, default, and favorites", () => {
+  it("shows every model returned by the active runtime", () => {
     const { result } = renderHook(() =>
       useWorkspaceShellControls(
         createOptions({
@@ -180,14 +180,8 @@ describe("useWorkspaceShellControls", () => {
     );
 
     expect(result.current.visibleProviderSnapshots).toEqual([
-      {
-        ...extraGoogleProvider,
-        models: [googleModel],
-      },
-      {
-        ...anthropicProvider,
-        models: [anthropicModel],
-      },
+      extraGoogleProvider,
+      anthropicProvider,
     ]);
   });
 

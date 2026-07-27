@@ -11,6 +11,7 @@ type CliRpcSpawnRequest = {
 type BuildCliRpcSpawnRequestOptions = {
   cwd: string;
   agentDir: string;
+  sessionId: string;
   env: NodeJS.ProcessEnv;
 };
 
@@ -26,11 +27,12 @@ function resolvePiCommand(env: NodeJS.ProcessEnv): string {
 export function buildCliRpcSpawnRequest({
   cwd,
   agentDir,
+  sessionId,
   env,
 }: BuildCliRpcSpawnRequestOptions): CliRpcSpawnRequest {
   return {
     command: resolvePiCommand(env),
-    args: ["--mode", "rpc", "--continue"],
+    args: ["--mode", "rpc", "--session-id", sessionId],
     options: {
       cwd,
       env: {

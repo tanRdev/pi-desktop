@@ -281,8 +281,6 @@ export function mapRpcSettings(state: RpcStateLike | null): SettingsSnapshot {
   return {
     currentProviderId: state?.model?.provider,
     currentModelId: state?.model?.id,
-    defaultProvider: state?.model?.provider,
-    defaultModel: state?.model?.id,
     thinkingLevel: mapThinkingLevel(state?.thinkingLevel),
   };
 }

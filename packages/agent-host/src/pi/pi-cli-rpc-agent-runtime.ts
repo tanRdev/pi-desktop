@@ -31,6 +31,7 @@ type SpawnProcess = typeof spawn;
 type PiCliRpcAgentRuntimeOptions = {
   cwd: string;
   agentDir: string;
+  sessionId: string;
   spawnProcess?: SpawnProcess;
   env?: NodeJS.ProcessEnv;
 };
@@ -43,6 +44,8 @@ export class PiCliRpcAgentRuntime {
   private readonly cwd: string;
 
   private readonly agentDir: string;
+
+  private readonly sessionId: string;
 
   private readonly env: NodeJS.ProcessEnv;
 
@@ -66,11 +69,13 @@ export class PiCliRpcAgentRuntime {
   constructor({
     cwd,
     agentDir,
+    sessionId,
     spawnProcess = spawn,
     env = process.env,
   }: PiCliRpcAgentRuntimeOptions) {
     this.cwd = cwd;
     this.agentDir = agentDir;
+    this.sessionId = sessionId;
     this.spawnProcess = spawnProcess;
     this.env = env;
   }
@@ -169,6 +174,7 @@ export class PiCliRpcAgentRuntime {
     const spawnRequest = buildCliRpcSpawnRequest({
       cwd: this.cwd,
       agentDir: this.agentDir,
+      sessionId: this.sessionId,
       env: this.env,
     });
     const child = this.spawnProcess(

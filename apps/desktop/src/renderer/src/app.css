@@ -10,12 +10,12 @@
    ============================================ */
 
 :root {
-  /* Color System — zinc-950 floor */
-  --color-bg-primary: #09090B;
-  --color-bg-secondary: #111113;
-  --color-bg-quaternary: #1F1F23;
-  --color-bg-hover: #1C1C1F;
-  --color-bg-active: #232326;
+  /* Color System — softened zinc floor */
+  --color-bg-primary: #111113;
+  --color-bg-secondary: #18181B;
+  --color-bg-quaternary: #27272A;
+  --color-bg-hover: #232326;
+  --color-bg-active: #2B2B2F;
 
   /* Bg hover ladder — layered hover intensities */
   --bg-hover-1: rgba(255, 255, 255, 0.04);
@@ -23,12 +23,12 @@
   --bg-hover-3: rgba(255, 255, 255, 0.10);
 
   /* Glass Morphism System — Cursor 2.0 style */
-  --glass-bg-primary: rgba(9, 9, 11, 0.88);
-  --glass-bg-secondary: rgba(17, 17, 19, 0.82);
-  --glass-bg-solid: rgba(9, 9, 11, 0.96);
-  --shell-sidebar-bg: #09090B;
-  --shell-main-bg: #09090B;
-  --shell-overlay-bg: #111113;
+  --glass-bg-primary: rgba(17, 17, 19, 0.88);
+  --glass-bg-secondary: rgba(24, 24, 27, 0.82);
+  --glass-bg-solid: rgba(17, 17, 19, 0.96);
+  --shell-sidebar-bg: #111113;
+  --shell-main-bg: #111113;
+  --shell-overlay-bg: #18181B;
 
   --glass-border-subtle: rgba(255, 255, 255, 0.05);
   --glass-border-default: rgba(255, 255, 255, 0.09);
@@ -36,7 +36,7 @@
   --glass-border-glow: color-mix(in srgb, var(--accent) 28%, transparent);
 
   /* Dim ladder — selection-focus text dimming */
-  /* Ensure all text dims meet WCAG AA (4.5:1) on #09090B background */
+  /* Ensure all text dims meet WCAG AA (4.5:1) on #111113 background */
   --text-dim-1: rgba(255, 255, 255, 0.72);
   --text-dim-2: rgba(255, 255, 255, 0.56);
   --text-dim-3: rgba(255, 255, 255, 0.42);
@@ -62,11 +62,11 @@
   --color-text-secondary: #A1A1AA;
   --color-text-tertiary: #71717A;
   --color-text-quaternary: #52525B;
-  --color-text-inverse: #09090B;
+  --color-text-inverse: #111113;
 
   /* Surface aliases — ordered light → dark to match surface scale */
-  --color-surface: #09090B;
-  --color-surface-secondary: #111113;
+  --color-surface: #111113;
+  --color-surface-secondary: #18181B;
   --color-text-muted: #8B8B96;
   --shadow-hover: 0 8px 28px rgba(0, 0, 0, 0.5);
   --accent-pale-red-text: #f87171;
@@ -195,7 +195,7 @@
 
   /* Window chrome title bar */
   .glass-titlebar {
-    background: rgba(9, 9, 11, 0.88);
+    background: rgba(17, 17, 19, 0.88);
     backdrop-filter: var(--glass-blur-md);
     -webkit-backdrop-filter: var(--glass-blur-md);
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);

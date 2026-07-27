@@ -165,37 +165,11 @@ export function useWorkspaceShellControls({
 
 function filterVisibleProviderSnapshots({
   providerSnapshots,
-  settingsSnapshot,
-  favoriteModels,
-  currentModelValue,
 }: {
   providerSnapshots: ProviderSnapshot[];
   settingsSnapshot: SettingsSnapshot;
   favoriteModels: string[];
   currentModelValue: string;
 }): ProviderSnapshot[] {
-  const visibleValues = new Set<string>();
-
-  if (currentModelValue) {
-    visibleValues.add(currentModelValue);
-  }
-
-  if (settingsSnapshot.defaultProvider && settingsSnapshot.defaultModel) {
-    visibleValues.add(
-      `${settingsSnapshot.defaultProvider}::${settingsSnapshot.defaultModel}`,
-    );
-  }
-
-  for (const favorite of favoriteModels) {
-    visibleValues.add(favorite);
-  }
-
-  return providerSnapshots
-    .map((provider) => ({
-      ...provider,
-      models: provider.models.filter((model) =>
-        visibleValues.has(`${provider.id}::${model.id}`),
-      ),
-    }))
-    .filter((provider) => provider.models.length > 0);
+  return providerSnapshots;
 }

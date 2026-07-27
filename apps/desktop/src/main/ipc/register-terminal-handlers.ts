@@ -113,6 +113,12 @@ export function registerTerminalHandlers({
     handle,
     contract: terminalContracts.destroy,
     handler: async ({ id }, event) => {
+      // React StrictMode can clean up an initialization attempt before the
+      // matching backend session exists. Destroy is intentionally idempotent.
+      if (!terminalManager.hasSession(id)) {
+        return;
+      }
+
       if (!terminalManager.isOwnedBy(id, extractSenderKey(event))) {
         throw new Error(
           `terminal.destroy rejected: caller does not own terminal ${id}`,
