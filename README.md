@@ -99,10 +99,13 @@ pi-desktop/
 | `bun run lint:contracts` | IPC Contract coverage gate |
 
 ```bash
-# Packaged macOS build
-bun run --filter @pi-desktop/desktop dist:mac
+# Signed, notarized, and Gatekeeper-verified macOS release
+bun run release:mac
 # → dist/release/Pi Desktop-<version>-arm64.{dmg,zip}
 ```
+
+See [docs/releasing-macos.md](docs/releasing-macos.md) for signing credentials
+and the fail-closed GitHub release workflow.
 
 Pre-commit hooks live in `.githooks/` and are wired by `prepare` on install.
 

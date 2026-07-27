@@ -158,6 +158,62 @@ describe("SettingsDialog", () => {
     ).toBeInTheDocument();
   });
 
+  it("checks, downloads, and installs updates from Settings", async () => {
+    const user = userEvent.setup();
+    const idleState = {
+      status: "idle",
+      updateInfo: null,
+      downloadPercent: 0,
+      error: null,
+      errorCount: 0,
+      lastCheckAt: null,
+      userConsented: false,
+    };
+    const availableState = {
+      ...idleState,
+      status: "available",
+      updateInfo: { version: "0.9.3" },
+    };
+    const downloadedState = {
+      ...availableState,
+      status: "downloaded",
+      downloadPercent: 100,
+    };
+    const check = vi.fn(async () => availableState);
+    const download = vi.fn(async () => downloadedState);
+    const install = vi.fn();
+    installMockPiDesktop({
+      state: {
+        getAppPreferences: vi.fn(async () => ({
+          autoDownloadUpdates: false,
+        })),
+      },
+      updates: {
+        getState: vi.fn(async () => idleState),
+        check,
+        download,
+        install,
+        subscribe: vi.fn(() => () => {}),
+      },
+    });
+    renderDialog();
+
+    await user.click(screen.getByTestId("settings-tab-updates"));
+    await user.click(screen.getByRole("button", { name: "Check for updates" }));
+    expect(check).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getByText("Pi Desktop 0.9.3 is available"),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Download update" }));
+    expect(download).toHaveBeenCalledTimes(1);
+
+    await user.click(
+      screen.getByRole("button", { name: "Restart and install" }),
+    );
+    expect(install).toHaveBeenCalledTimes(1);
+  });
+
   it("shows notifications and agent stub sections", async () => {
     const user = userEvent.setup();
     renderDialog();

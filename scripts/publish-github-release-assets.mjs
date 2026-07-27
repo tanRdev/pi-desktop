@@ -20,9 +20,16 @@ const version = JSON.parse(
   readFileSync(path.join(repoRoot, "package.json"), "utf8"),
 ).version;
 const tag = process.argv[2] ?? `v${version}`;
+const expectedTag = `v${version}`;
+
+if (tag !== expectedTag) {
+  throw new Error(
+    `Refusing to publish ${version} artifacts to ${tag}; expected ${expectedTag}.`,
+  );
+}
 
 if (!existsSync(releaseDir)) {
-  throw new Error(`Missing ${releaseDir}. Run dist:mac first.`);
+  throw new Error(`Missing ${releaseDir}. Run release:mac first.`);
 }
 
 const latestMac = path.join(releaseDir, "latest-mac.yml");
@@ -32,14 +39,26 @@ if (!existsSync(latestMac)) {
   );
 }
 
+const verification = spawnSync(
+  "node",
+  [path.join(scriptDir, "verify-macos-release.mjs")],
+  { stdio: "inherit", cwd: repoRoot, env: process.env },
+);
+if (verification.status !== 0) {
+  throw new Error(
+    "Refusing to upload a release that did not pass macOS signing and notarization verification.",
+  );
+}
+
 /** Map "Pi Desktop-0.8.0-arm64.dmg" → "Pi-Desktop-0.8.0-arm64.dmg" */
 function hyphenateProductName(fileName) {
   return fileName.replace(/^Pi Desktop/, "Pi-Desktop");
 }
 
 const uploads = [latestMac];
+const versionPrefix = `Pi Desktop-${version}-`;
 for (const name of readdirSync(releaseDir)) {
-  if (!name.startsWith("Pi Desktop-")) continue;
+  if (!name.startsWith(versionPrefix)) continue;
   if (!/\.(dmg|zip)(\.blockmap)?$/.test(name)) continue;
   const source = path.join(releaseDir, name);
   const destName = hyphenateProductName(name);
