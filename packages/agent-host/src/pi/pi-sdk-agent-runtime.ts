@@ -6,7 +6,7 @@ import {
   createAgentSession as createPiAgentSession,
   ModelRegistry,
   SettingsManager,
-} from "@mariozechner/pi-coding-agent";
+} from "@earendil-works/pi-coding-agent";
 
 import type {
   AgentSnapshot,
@@ -119,7 +119,7 @@ export class PiSdkAgentRuntime {
     agentDir,
     createAgentSession = createPiAgentSession,
     createModelRegistry = (authFilePath, modelsFilePath) =>
-      new ModelRegistry(AuthStorage.create(authFilePath), modelsFilePath),
+      ModelRegistry.create(AuthStorage.create(authFilePath), modelsFilePath),
     createSettingsManager = (nextCwd, nextAgentDir) =>
       SettingsManager.create(nextCwd, nextAgentDir),
   }: PiSdkAgentRuntimeOptions) {

@@ -21,6 +21,6 @@
     "typecheck": "tsc --project tsconfig.json --noEmit"
   },
   "devDependencies": {
-    "electron": "41.0.1"
+    "electron": "41.2.1"
   }
 }

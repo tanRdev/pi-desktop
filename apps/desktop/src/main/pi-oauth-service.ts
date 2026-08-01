@@ -1,4 +1,4 @@
-import { AuthStorage } from "@mariozechner/pi-coding-agent";
+import { AuthStorage } from "@earendil-works/pi-coding-agent";
 import type { OAuthProviderSnapshot } from "@pi-desktop/shared";
 
 type OAuthPromptBridge = {
@@ -42,6 +42,13 @@ export async function loginWithOAuthForAgentDir(
       latestAuthInfo = { url, instructions };
       void bridge.openExternal(url);
     },
+    onDeviceCode: ({ verificationUri, userCode }) => {
+      latestAuthInfo = {
+        url: verificationUri,
+        instructions: `Enter code ${userCode} to continue authentication.`,
+      };
+      void bridge.openExternal(verificationUri);
+    },
     onPrompt: ({ message }) =>
       bridge.requestInput({
         providerId,
@@ -54,6 +61,14 @@ export async function loginWithOAuthForAgentDir(
         message:
           latestAuthInfo?.instructions ??
           "Complete login in browser, then paste requested code or redirected URL here.",
+        authUrl: latestAuthInfo?.url,
+      }),
+    onSelect: ({ message, options }) =>
+      bridge.requestInput({
+        providerId,
+        message: `${message}\n${options
+          .map((option) => `${option.id}: ${option.label}`)
+          .join("\n")}`,
         authUrl: latestAuthInfo?.url,
       }),
   });
