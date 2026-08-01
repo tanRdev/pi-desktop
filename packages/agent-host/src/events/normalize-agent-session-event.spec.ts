@@ -1,4 +1,4 @@
-import type { AgentSessionEvent } from "@mariozechner/pi-coding-agent";
+import type { AgentSessionEvent } from "@earendil-works/pi-coding-agent";
 import { describe, expect, it } from "vitest";
 
 import { normalizeAgentSessionEvent } from "./normalize-agent-session-event.js";
@@ -269,7 +269,7 @@ describe("normalizeAgentSessionEvent", () => {
   it("returns null for unsupported event types", () => {
     expect(
       normalizeAgentSessionEvent({
-        type: "auto_compaction_start",
+        type: "compaction_start",
         reason: "threshold",
       }),
     ).toBeNull();

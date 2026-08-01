@@ -417,7 +417,8 @@ export async function bootstrapDesktop() {
     defaultAgentDirectory,
     getProcessCwd: () => process.cwd(),
     createSettingsManager: async (worktreePath, agentDirectory) => {
-      const { SettingsManager } = await import("@mariozechner/pi-coding-agent");
+      // biome-ignore format: keep this callback within its LOC baseline.
+      const { SettingsManager } = await import("@earendil-works/pi-coding-agent");
       return SettingsManager.create(worktreePath, agentDirectory);
     },
     runtimeManager,
