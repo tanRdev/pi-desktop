@@ -121,7 +121,145 @@ describe("LocalThreadRuntimeManager", () => {
     expect(spawnEnv.PI_CLI_PATH).toBeUndefined();
   });
 
-  it("terminates every retained runtime concurrently and aggregates failures", async () => {
+  it("blocks replacement spawn and coalesces shutdown with an in-flight restart", async () => {
+    const child = createFakeChild();
+    spawnMock.mockReturnValue(child);
+
+    const manager = new LocalThreadRuntimeManager();
+    await manager.ensureThreadRuntime({
+      threadId: "thread-1",
+      worktreePath: process.cwd(),
+      command: ["runtime-one"],
+    });
+
+    const childTermination = createDeferred<void>();
+    terminateChildWithEscalationMock.mockReturnValue(childTermination.promise);
+    const restart = manager.restartThreadRuntime({
+      threadId: "thread-1",
+      worktreePath: process.cwd(),
+      command: ["runtime-two"],
+    });
+
+    const firstShutdown = manager.terminateAll();
+    const secondShutdown = manager.terminateAll();
+
+    expect(secondShutdown).toBe(firstShutdown);
+    expect(terminateChildWithEscalationMock).toHaveBeenCalledTimes(1);
+
+    childTermination.resolve();
+
+    await expect(restart).rejects.toThrow(/shutting down/u);
+    await Promise.all([firstShutdown, secondShutdown]);
+    expect(spawnMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("blocks an in-flight ensure before it can spawn during shutdown", async () => {
+    const manager = new LocalThreadRuntimeManager();
+    const ensure = manager.ensureThreadRuntime({
+      threadId: "thread-1",
+      worktreePath: process.cwd(),
+      command: ["runtime-one"],
+    });
+
+    await manager.terminateAll();
+
+    await expect(ensure).rejects.toThrow(/shutting down/u);
+    expect(spawnMock).not.toHaveBeenCalled();
+  });
+
+  it("coalesces overlapping termination without deleting a replacement runtime", async () => {
+    const firstChild = createFakeChild();
+    const replacementChild = createFakeChild();
+    spawnMock
+      .mockReturnValueOnce(firstChild)
+      .mockReturnValueOnce(replacementChild);
+
+    const manager = new LocalThreadRuntimeManager();
+    await manager.ensureThreadRuntime({
+      threadId: "thread-1",
+      worktreePath: process.cwd(),
+      command: ["runtime-one"],
+    });
+
+    const firstTermination = createDeferred<void>();
+    const staleTermination = createDeferred<void>();
+    terminateChildWithEscalationMock
+      .mockReturnValueOnce(firstTermination.promise)
+      .mockReturnValueOnce(staleTermination.promise);
+    const restart = manager.restartThreadRuntime({
+      threadId: "thread-1",
+      worktreePath: process.cwd(),
+      command: ["runtime-two"],
+    });
+    const overlappingTermination = manager.terminateThreadRuntime("thread-1");
+
+    expect(terminateChildWithEscalationMock).toHaveBeenCalledTimes(1);
+
+    firstTermination.resolve();
+    await restart;
+    await overlappingTermination;
+
+    await expect(
+      manager.getRuntimeState({
+        threadId: "thread-1",
+        worktreePath: process.cwd(),
+      }),
+    ).resolves.toMatchObject({ status: "ready" });
+    expect(spawnMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("drains all running runtimes once and makes later shutdown a no-op", async () => {
+    const firstChild = createFakeChild();
+    const secondChild = createFakeChild();
+    secondChild.killed = true;
+    spawnMock.mockReturnValueOnce(firstChild).mockReturnValueOnce(secondChild);
+
+    const manager = new LocalThreadRuntimeManager();
+    await manager.ensureThreadRuntime({
+      threadId: "thread-1",
+      worktreePath: process.cwd(),
+      command: ["runtime-one"],
+    });
+    await manager.ensureThreadRuntime({
+      threadId: "thread-2",
+      worktreePath: process.cwd(),
+      command: ["runtime-two"],
+    });
+
+    const firstTermination = createDeferred<void>();
+    const secondTermination = createDeferred<void>();
+    terminateChildWithEscalationMock.mockImplementation((child) => {
+      if (child === firstChild) {
+        return firstTermination.promise;
+      }
+      if (child === secondChild) {
+        return secondTermination.promise;
+      }
+      throw new Error("Unexpected child process");
+    });
+    const shutdown = manager.terminateAll();
+
+    expect(terminateChildWithEscalationMock).toHaveBeenCalledTimes(2);
+    firstTermination.resolve();
+    secondTermination.resolve();
+    await shutdown;
+    await manager.terminateAll();
+    expect(terminateChildWithEscalationMock).toHaveBeenCalledTimes(2);
+    await expect(
+      manager.getRuntimeState({
+        threadId: "thread-1",
+        worktreePath: process.cwd(),
+      }),
+    ).resolves.toMatchObject({ status: "exited" });
+    await expect(
+      manager.getRuntimeState({
+        threadId: "thread-2",
+        worktreePath: process.cwd(),
+      }),
+    ).resolves.toMatchObject({ status: "exited" });
+  });
+
+  it("retains failed runtimes for retry while draining successful runtimes", async () => {
     const firstChild = createFakeChild();
     const secondChild = createFakeChild();
     spawnMock.mockReturnValueOnce(firstChild).mockReturnValueOnce(secondChild);
@@ -192,5 +330,28 @@ describe("LocalThreadRuntimeManager", () => {
         worktreePath: process.cwd(),
       }),
     ).resolves.toMatchObject({ status: "exited" });
+
+    terminateChildWithEscalationMock.mockImplementation((child) => {
+      if (child === firstChild) {
+        return Promise.resolve();
+      }
+      throw new Error("Successfully drained runtime was retried");
+    });
+    await manager.terminateAll();
+
+    expect(terminateChildWithEscalationMock).toHaveBeenCalledTimes(3);
+    await expect(
+      manager.getRuntimeState({
+        threadId: "thread-1",
+        worktreePath: process.cwd(),
+      }),
+    ).resolves.toMatchObject({ status: "exited" });
+    await expect(
+      manager.ensureThreadRuntime({
+        threadId: "thread-3",
+        worktreePath: process.cwd(),
+        command: ["runtime-three"],
+      }),
+    ).rejects.toThrow(/shutting down/u);
   });
 });

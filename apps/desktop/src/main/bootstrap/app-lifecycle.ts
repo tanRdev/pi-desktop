@@ -13,6 +13,10 @@ type AppLike = {
     event: "will-quit",
     listener: (event: { preventDefault(): void }) => void,
   ): void;
+  on(
+    event: "will-quit",
+    listener: (event: { preventDefault(): void }) => void,
+  ): void;
   on(event: "activate", listener: () => Promise<void> | void): void;
   on(event: "window-all-closed", listener: () => void): void;
   exit(code?: number): void;
@@ -51,6 +55,8 @@ type RegisterDesktopAppLifecycleInput<TWindow> = {
 export function registerDesktopAppLifecycle<TWindow>(
   input: RegisterDesktopAppLifecycleInput<TWindow>,
 ): void {
+  let shutdownPromise: Promise<void> | null = null;
+
   if (input.app.isPackaged) {
     input.initAutoUpdater({
       mainWindow: {
@@ -64,16 +70,22 @@ export function registerDesktopAppLifecycle<TWindow>(
     input.initAutoUpdater();
   }
 
-  input.app.once("will-quit", (event) => {
-    input.unsubscribeHost();
-    input.closeCurrentTransport();
+  input.app.on("will-quit", (event) => {
     event.preventDefault();
+    if (shutdownPromise) {
+      return;
+    }
 
-    void Promise.allSettled([
-      input.runtimeManager.terminateAll(),
-      input.terminalManager.destroyAllAsync(),
-      input.flushPersistentState(),
-    ])
+    const cleanupTasks = [
+      () => input.unsubscribeHost(),
+      () => input.closeCurrentTransport(),
+      () => input.runtimeManager.terminateAll(),
+      () => input.terminalManager.destroyAllAsync(),
+      () => input.flushPersistentState(),
+    ];
+    shutdownPromise = Promise.allSettled(
+      cleanupTasks.map((cleanup) => Promise.resolve().then(cleanup)),
+    )
       .then((results) => {
         for (const result of results) {
           if (result.status === "rejected") {

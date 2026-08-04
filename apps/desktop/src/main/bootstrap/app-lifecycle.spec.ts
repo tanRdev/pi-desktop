@@ -37,12 +37,13 @@ describe("registerDesktopAppLifecycle", () => {
     registerDesktopAppLifecycle({
       app: {
         isPackaged: true,
-        once: vi.fn((event, listener) => {
-          if (event === "will-quit") {
-            willQuitHandlers.push(listener);
-          }
-        }),
+        once: vi.fn(),
         on: vi.fn((event, listener) => {
+          if (event === "will-quit") {
+            willQuitHandlers.push(
+              listener as (event: { preventDefault(): void }) => void,
+            );
+          }
           if (event === "activate") {
             activateHandlers.push(listener);
           }
@@ -127,12 +128,14 @@ describe("registerDesktopAppLifecycle", () => {
     registerDesktopAppLifecycle({
       app: {
         isPackaged: false,
-        once: vi.fn((event, listener) => {
+        once: vi.fn(),
+        on: vi.fn((event, listener) => {
           if (event === "will-quit") {
-            willQuitHandlers.push(listener);
+            willQuitHandlers.push(
+              listener as (event: { preventDefault(): void }) => void,
+            );
           }
         }),
-        on: vi.fn(),
         exit,
         quit: vi.fn(),
       },
@@ -181,6 +184,141 @@ describe("registerDesktopAppLifecycle", () => {
         (order) => order < (exit.mock.invocationCallOrder[0] ?? 0),
       ),
     ).toBe(true);
+    expect(exit).toHaveBeenCalledWith(0);
+  });
+
+  it("prevents repeated quit events while one shutdown sequence settles", async () => {
+    const willQuitHandlers: Array<(event: { preventDefault(): void }) => void> =
+      [];
+    const persistenceCleanup = createDeferred<void>();
+    const didExit = createDeferred<void>();
+    const terminateAll = vi.fn(async () => undefined);
+    const destroyAllAsync = vi.fn(async () => undefined);
+    const flushPersistentState = vi.fn(() => persistenceCleanup.promise);
+    const exit = vi.fn(() => didExit.resolve());
+
+    registerDesktopAppLifecycle({
+      app: {
+        isPackaged: false,
+        once: vi.fn(),
+        on: vi.fn((event, listener) => {
+          if (event === "will-quit") {
+            willQuitHandlers.push(
+              listener as (event: { preventDefault(): void }) => void,
+            );
+          }
+        }),
+        exit,
+        quit: vi.fn(),
+      },
+      browserWindow: {
+        getAllWindows: vi.fn(() => []),
+      },
+      getMainWindow: () => null,
+      createTrackedMainWindow: vi.fn(async () => ({ id: "window" })),
+      initAutoUpdater: vi.fn(),
+      terminalManager: { destroyAllAsync },
+      runtimeManager: { terminateAll },
+      flushPersistentState,
+      unsubscribeHost: vi.fn(),
+      closeCurrentTransport: vi.fn(),
+      shouldQuitWhenAllWindowsClosed: vi.fn(() => false),
+      env: {},
+      platform: "linux",
+      logShutdownError: vi.fn(),
+    });
+
+    const firstPreventDefault = vi.fn();
+    const secondPreventDefault = vi.fn();
+    willQuitHandlers[0]?.({ preventDefault: firstPreventDefault });
+    willQuitHandlers[0]?.({ preventDefault: secondPreventDefault });
+    await Promise.resolve();
+
+    expect(firstPreventDefault).toHaveBeenCalledTimes(1);
+    expect(secondPreventDefault).toHaveBeenCalledTimes(1);
+    expect(terminateAll).toHaveBeenCalledTimes(1);
+    expect(destroyAllAsync).toHaveBeenCalledTimes(1);
+    expect(flushPersistentState).toHaveBeenCalledTimes(1);
+    expect(exit).not.toHaveBeenCalled();
+
+    persistenceCleanup.resolve();
+    await didExit.promise;
+    expect(exit).toHaveBeenCalledTimes(1);
+  });
+
+  it("settles and reports synchronous cleanup failures without skipping later cleanup", async () => {
+    const willQuitHandlers: Array<(event: { preventDefault(): void }) => void> =
+      [];
+    const terminalCleanup = createDeferred<void>();
+    const didExit = createDeferred<void>();
+    const hostError = new Error("host unsubscribe failed synchronously");
+    const transportError = new Error("transport close failed synchronously");
+    const runtimeError = new Error("runtime cleanup failed synchronously");
+    const unsubscribeHost = vi.fn(() => {
+      throw hostError;
+    });
+    const closeCurrentTransport = vi.fn(() => {
+      throw transportError;
+    });
+    const terminateAll = vi.fn(() => {
+      throw runtimeError;
+    });
+    const destroyAllAsync = vi.fn(() => terminalCleanup.promise);
+    const flushPersistentState = vi.fn(async () => undefined);
+    const logShutdownError = vi.fn();
+    const exit = vi.fn(() => didExit.resolve());
+
+    registerDesktopAppLifecycle({
+      app: {
+        isPackaged: false,
+        once: vi.fn(),
+        on: vi.fn((event, listener) => {
+          if (event === "will-quit") {
+            willQuitHandlers.push(
+              listener as (event: { preventDefault(): void }) => void,
+            );
+          }
+        }),
+        exit,
+        quit: vi.fn(),
+      },
+      browserWindow: {
+        getAllWindows: vi.fn(() => []),
+      },
+      getMainWindow: () => null,
+      createTrackedMainWindow: vi.fn(async () => ({ id: "window" })),
+      initAutoUpdater: vi.fn(),
+      terminalManager: { destroyAllAsync },
+      runtimeManager: { terminateAll },
+      flushPersistentState,
+      unsubscribeHost,
+      closeCurrentTransport,
+      shouldQuitWhenAllWindowsClosed: vi.fn(() => false),
+      env: {},
+      platform: "linux",
+      logShutdownError,
+    });
+
+    expect(() =>
+      willQuitHandlers[0]?.({ preventDefault: vi.fn() }),
+    ).not.toThrow();
+    await Promise.resolve();
+
+    expect(unsubscribeHost).toHaveBeenCalledTimes(1);
+    expect(closeCurrentTransport).toHaveBeenCalledTimes(1);
+    expect(terminateAll).toHaveBeenCalledTimes(1);
+    expect(destroyAllAsync).toHaveBeenCalledTimes(1);
+    expect(flushPersistentState).toHaveBeenCalledTimes(1);
+    expect(exit).not.toHaveBeenCalled();
+
+    terminalCleanup.resolve();
+    await didExit.promise;
+
+    expect(logShutdownError.mock.calls).toEqual([
+      [hostError],
+      [transportError],
+      [runtimeError],
+    ]);
     expect(exit).toHaveBeenCalledWith(0);
   });
 

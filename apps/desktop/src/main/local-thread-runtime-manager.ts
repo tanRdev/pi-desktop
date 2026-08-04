@@ -15,6 +15,7 @@ type RuntimeProcessRecord = {
   child: ReturnType<typeof spawn>;
   commandSignature: string;
   descriptor: ThreadRuntimeDescriptor;
+  terminationPromise: Promise<void> | null;
 };
 
 function normalizeWorktreePath(worktreePath: string): string {
@@ -30,7 +31,7 @@ function createCommandSignature(command: string[]): string {
 }
 
 function isChildRunning(child: ReturnType<typeof spawn>): boolean {
-  return child.exitCode === null && child.signalCode === null && !child.killed;
+  return child.exitCode === null && child.signalCode === null;
 }
 
 function createThreadRuntimeEnv(
@@ -46,10 +47,19 @@ function createThreadRuntimeEnv(
 
 export class LocalThreadRuntimeManager implements ThreadRuntimeManager {
   private readonly runtimes = new Map<string, RuntimeProcessRecord>();
+  private isShuttingDown = false;
+  private terminateAllPromise: Promise<void> | null = null;
+
+  private assertRuntimeStartsAllowed(): void {
+    if (this.isShuttingDown) {
+      throw new Error("Thread runtime manager is shutting down");
+    }
+  }
 
   async ensureThreadRuntime(
     spec: ThreadRuntimeLaunchSpec,
   ): Promise<ThreadRuntimeDescriptor> {
+    this.assertRuntimeStartsAllowed();
     const worktreePath = normalizeWorktreePath(spec.worktreePath);
     const existing = this.runtimes.get(spec.threadId);
     const nextCommandSignature = createCommandSignature(spec.command);
@@ -64,6 +74,7 @@ export class LocalThreadRuntimeManager implements ThreadRuntimeManager {
       existing &&
       existing.descriptor.worktreePath === worktreePath &&
       existing.commandSignature === nextCommandSignature &&
+      existing.terminationPromise === null &&
       isChildRunning(existing.child)
     ) {
       existing.descriptor.status = "ready";
@@ -72,6 +83,7 @@ export class LocalThreadRuntimeManager implements ThreadRuntimeManager {
     }
 
     await this.terminateThreadRuntime(spec.threadId);
+    this.assertRuntimeStartsAllowed();
 
     const [program, ...args] = spec.command;
     if (!program) {
@@ -96,6 +108,7 @@ export class LocalThreadRuntimeManager implements ThreadRuntimeManager {
       child,
       commandSignature: nextCommandSignature,
       descriptor,
+      terminationPromise: null,
     };
 
     child.once("spawn", () => {
@@ -156,39 +169,94 @@ export class LocalThreadRuntimeManager implements ThreadRuntimeManager {
   async restartThreadRuntime(
     spec: ThreadRuntimeLaunchSpec,
   ): Promise<ThreadRuntimeDescriptor> {
+    this.assertRuntimeStartsAllowed();
     await this.terminateThreadRuntime(spec.threadId);
+    this.assertRuntimeStartsAllowed();
     return this.ensureThreadRuntime(spec);
   }
 
-  async terminateThreadRuntime(threadId: string): Promise<void> {
+  terminateThreadRuntime(threadId: string): Promise<void> {
     const runtime = this.runtimes.get(threadId);
     if (!runtime) {
-      return;
+      return Promise.resolve();
     }
 
-    if (isChildRunning(runtime.child)) {
-      await terminateChildWithEscalation(runtime.child);
-    }
-
-    runtime.descriptor.status = "exited";
-    this.runtimes.delete(threadId);
+    return this.terminateRuntimeRecord(threadId, runtime);
   }
 
-  async terminateAll(): Promise<void> {
-    const threadIds = Array.from(this.runtimes.keys());
-    const results = await Promise.allSettled(
-      threadIds.map((threadId) => this.terminateThreadRuntime(threadId)),
-    );
-    const errors = results.flatMap((result) =>
-      result.status === "rejected" ? [result.reason] : [],
+  private terminateRuntimeRecord(
+    threadId: string,
+    runtime: RuntimeProcessRecord,
+  ): Promise<void> {
+    if (runtime.terminationPromise) {
+      return runtime.terminationPromise;
+    }
+
+    const terminationPromise = (async () => {
+      if (isChildRunning(runtime.child)) {
+        await terminateChildWithEscalation(runtime.child);
+      }
+
+      runtime.descriptor.status = "exited";
+      if (this.runtimes.get(threadId) === runtime) {
+        this.runtimes.delete(threadId);
+      }
+    })();
+    runtime.terminationPromise = terminationPromise;
+    void terminationPromise.then(
+      () => {
+        if (runtime.terminationPromise === terminationPromise) {
+          runtime.terminationPromise = null;
+        }
+      },
+      () => {
+        if (runtime.terminationPromise === terminationPromise) {
+          runtime.terminationPromise = null;
+        }
+      },
     );
 
-    if (errors.length > 0) {
-      throw new AggregateError(
-        errors,
-        `Failed to terminate ${errors.length} thread runtime${errors.length === 1 ? "" : "s"}`,
-      );
+    return terminationPromise;
+  }
+
+  terminateAll(): Promise<void> {
+    this.isShuttingDown = true;
+    if (this.terminateAllPromise) {
+      return this.terminateAllPromise;
     }
+
+    const runtimes = Array.from(this.runtimes.entries());
+    const terminateAllPromise = Promise.allSettled(
+      runtimes.map(([threadId, runtime]) =>
+        this.terminateRuntimeRecord(threadId, runtime),
+      ),
+    ).then((results) => {
+      const errors = results.flatMap((result) =>
+        result.status === "rejected" ? [result.reason] : [],
+      );
+
+      if (errors.length > 0) {
+        throw new AggregateError(
+          errors,
+          `Failed to terminate ${errors.length} thread runtime${errors.length === 1 ? "" : "s"}`,
+        );
+      }
+    });
+    this.terminateAllPromise = terminateAllPromise;
+    void terminateAllPromise.then(
+      () => {
+        if (this.terminateAllPromise === terminateAllPromise) {
+          this.terminateAllPromise = null;
+        }
+      },
+      () => {
+        if (this.terminateAllPromise === terminateAllPromise) {
+          this.terminateAllPromise = null;
+        }
+      },
+    );
+
+    return terminateAllPromise;
   }
 
   async reconcile(threads: ThreadRuntimeRef[]) {

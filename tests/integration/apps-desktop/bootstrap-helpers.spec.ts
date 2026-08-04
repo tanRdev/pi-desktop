@@ -741,8 +741,13 @@ describe("bootstrap helpers (RED)", () => {
 
     expect(source).toContain('from "./app-lifecycle"');
     expect(source).toContain("registerDesktopAppLifecycle({");
-    expect(source).toContain(
-      "    terminalManager,\n    runtimeManager,\n    flushPersistentState: flushAllPersistentJsonFiles,",
+    const lifecycleRegistration = source.slice(
+      source.indexOf("registerDesktopAppLifecycle({"),
+    );
+    expect(lifecycleRegistration).toContain("terminalManager,");
+    expect(lifecycleRegistration).toContain("runtimeManager,");
+    expect(lifecycleRegistration).toContain(
+      "flushPersistentState: flushAllPersistentJsonFiles",
     );
     expect(source).not.toContain("if (app.isPackaged) {");
     expect(source).not.toContain('app.once("will-quit", (event) => {');
@@ -753,7 +758,9 @@ describe("bootstrap helpers (RED)", () => {
       "export function registerDesktopAppLifecycle",
     );
     expect(helperSource).toContain("initAutoUpdater({");
-    expect(helperSource).toContain("Promise.allSettled([");
+    expect(helperSource).toContain('input.app.on("will-quit"');
+    expect(helperSource).not.toContain('input.app.once("will-quit"');
+    expect(helperSource).toContain("Promise.allSettled(");
     expect(helperSource).toContain("input.runtimeManager.terminateAll(),");
     expect(helperSource).toContain(
       "input.browserWindow.getAllWindows().length === 0",
