@@ -33,6 +33,9 @@ type RegisterDesktopAppLifecycleInput<TWindow> = {
   terminalManager: {
     destroyAllAsync(): Promise<void>;
   };
+  runtimeManager: {
+    terminateAll(): Promise<void>;
+  };
   flushPersistentState(): Promise<void>;
   unsubscribeHost(): void;
   closeCurrentTransport(): void;
@@ -66,12 +69,17 @@ export function registerDesktopAppLifecycle<TWindow>(
     input.closeCurrentTransport();
     event.preventDefault();
 
-    Promise.allSettled([
+    void Promise.allSettled([
+      input.runtimeManager.terminateAll(),
       input.terminalManager.destroyAllAsync(),
       input.flushPersistentState(),
     ])
-      .catch((error) => {
-        input.logShutdownError(error);
+      .then((results) => {
+        for (const result of results) {
+          if (result.status === "rejected") {
+            input.logShutdownError(result.reason);
+          }
+        }
       })
       .finally(() => {
         input.app.exit(0);

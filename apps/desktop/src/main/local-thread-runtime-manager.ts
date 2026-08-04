@@ -174,6 +174,23 @@ export class LocalThreadRuntimeManager implements ThreadRuntimeManager {
     this.runtimes.delete(threadId);
   }
 
+  async terminateAll(): Promise<void> {
+    const threadIds = Array.from(this.runtimes.keys());
+    const results = await Promise.allSettled(
+      threadIds.map((threadId) => this.terminateThreadRuntime(threadId)),
+    );
+    const errors = results.flatMap((result) =>
+      result.status === "rejected" ? [result.reason] : [],
+    );
+
+    if (errors.length > 0) {
+      throw new AggregateError(
+        errors,
+        `Failed to terminate ${errors.length} thread runtime${errors.length === 1 ? "" : "s"}`,
+      );
+    }
+  }
+
   async reconcile(threads: ThreadRuntimeRef[]) {
     const threadStates = await Promise.all(
       threads.map((thread) => this.getRuntimeState(thread)),

@@ -30,5 +30,6 @@ export interface ThreadRuntimeManager {
     spec: ThreadRuntimeLaunchSpec,
   ): Promise<ThreadRuntimeDescriptor>;
   terminateThreadRuntime(threadId: string): Promise<void>;
+  terminateAll(): Promise<void>;
   reconcile(threads: ThreadRuntimeRef[]): Promise<ThreadRuntimeReconcileReport>;
 }

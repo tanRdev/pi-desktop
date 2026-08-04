@@ -671,6 +671,7 @@ export async function bootstrapDesktop() {
     shouldAutoDownloadUpdates: () =>
       appPreferencesCatalog.get().autoDownloadUpdates === true,
     terminalManager,
+    runtimeManager,
     flushPersistentState: flushAllPersistentJsonFiles,
     unsubscribeHost: () => {
       session.getUnsubscribe()();

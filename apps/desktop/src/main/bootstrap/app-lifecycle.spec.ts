@@ -2,6 +2,17 @@ import { describe, expect, it, vi } from "vitest";
 
 import { registerDesktopAppLifecycle } from "./app-lifecycle";
 
+function createDeferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise;
+    reject = rejectPromise;
+  });
+
+  return { promise, reject, resolve };
+}
+
 describe("registerDesktopAppLifecycle", () => {
   it("initializes the packaged updater and shuts down resources before exit", async () => {
     const willQuitHandlers: Array<(event: { preventDefault(): void }) => void> =
@@ -11,9 +22,14 @@ describe("registerDesktopAppLifecycle", () => {
     const preventDefault = vi.fn();
     const unsubscribeHost = vi.fn();
     const closeCurrentTransport = vi.fn();
-    const destroyAllAsync = vi.fn(async () => undefined);
-    const flushPersistentState = vi.fn(async () => undefined);
-    const exit = vi.fn();
+    const runtimeCleanup = createDeferred<void>();
+    const terminalCleanup = createDeferred<void>();
+    const persistenceCleanup = createDeferred<void>();
+    const didExit = createDeferred<void>();
+    const terminateAll = vi.fn(() => runtimeCleanup.promise);
+    const destroyAllAsync = vi.fn(() => terminalCleanup.promise);
+    const flushPersistentState = vi.fn(() => persistenceCleanup.promise);
+    const exit = vi.fn(() => didExit.resolve());
     const quit = vi.fn();
     const initAutoUpdater = vi.fn();
     const createTrackedMainWindow = vi.fn(async () => ({ id: "window-2" }));
@@ -45,6 +61,9 @@ describe("registerDesktopAppLifecycle", () => {
       initAutoUpdater,
       terminalManager: {
         destroyAllAsync,
+      },
+      runtimeManager: {
+        terminateAll,
       },
       flushPersistentState,
       unsubscribeHost,
@@ -78,13 +97,91 @@ describe("registerDesktopAppLifecycle", () => {
     expect(preventDefault).toHaveBeenCalledTimes(1);
     expect(unsubscribeHost).toHaveBeenCalledTimes(1);
     expect(closeCurrentTransport).toHaveBeenCalledTimes(1);
+    expect(terminateAll).toHaveBeenCalledTimes(1);
     expect(destroyAllAsync).toHaveBeenCalledTimes(1);
     expect(flushPersistentState).toHaveBeenCalledTimes(1);
+    expect(exit).not.toHaveBeenCalled();
 
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    runtimeCleanup.resolve();
+    terminalCleanup.resolve();
+    await Promise.resolve();
 
+    expect(exit).not.toHaveBeenCalled();
+
+    persistenceCleanup.resolve();
+    await didExit.promise;
     expect(exit).toHaveBeenCalledWith(0);
     expect(quit).not.toHaveBeenCalled();
+  });
+
+  it("logs every rejected shutdown cleanup before exiting", async () => {
+    const willQuitHandlers: Array<(event: { preventDefault(): void }) => void> =
+      [];
+    const runtimeCleanup = createDeferred<void>();
+    const terminalCleanup = createDeferred<void>();
+    const persistenceCleanup = createDeferred<void>();
+    const didExit = createDeferred<void>();
+    const logShutdownError = vi.fn();
+    const exit = vi.fn(() => didExit.resolve());
+
+    registerDesktopAppLifecycle({
+      app: {
+        isPackaged: false,
+        once: vi.fn((event, listener) => {
+          if (event === "will-quit") {
+            willQuitHandlers.push(listener);
+          }
+        }),
+        on: vi.fn(),
+        exit,
+        quit: vi.fn(),
+      },
+      browserWindow: {
+        getAllWindows: vi.fn(() => []),
+      },
+      getMainWindow: () => null,
+      createTrackedMainWindow: vi.fn(async () => ({ id: "window" })),
+      initAutoUpdater: vi.fn(),
+      terminalManager: {
+        destroyAllAsync: () => terminalCleanup.promise,
+      },
+      runtimeManager: {
+        terminateAll: () => runtimeCleanup.promise,
+      },
+      flushPersistentState: () => persistenceCleanup.promise,
+      unsubscribeHost: vi.fn(),
+      closeCurrentTransport: vi.fn(),
+      shouldQuitWhenAllWindowsClosed: vi.fn(() => false),
+      env: {},
+      platform: "linux",
+      logShutdownError,
+    });
+
+    willQuitHandlers[0]?.({ preventDefault: vi.fn() });
+
+    const runtimeError = new Error("runtime cleanup failed");
+    const terminalError = new Error("terminal cleanup failed");
+    const persistenceError = new Error("persistence cleanup failed");
+    runtimeCleanup.reject(runtimeError);
+    terminalCleanup.reject(terminalError);
+    await Promise.resolve();
+
+    expect(exit).not.toHaveBeenCalled();
+
+    persistenceCleanup.reject(persistenceError);
+    await didExit.promise;
+
+    expect(logShutdownError.mock.calls).toEqual([
+      [runtimeError],
+      [terminalError],
+      [persistenceError],
+    ]);
+    expect(
+      logShutdownError.mock.invocationCallOrder.every(
+        (order) => order < (exit.mock.invocationCallOrder[0] ?? 0),
+      ),
+    ).toBe(true);
+    expect(exit).toHaveBeenCalledWith(0);
   });
 
   it("reads auto-download consent from shouldAutoDownloadUpdates", () => {
@@ -107,6 +204,9 @@ describe("registerDesktopAppLifecycle", () => {
       shouldAutoDownloadUpdates: () => true,
       terminalManager: {
         destroyAllAsync: vi.fn(async () => undefined),
+      },
+      runtimeManager: {
+        terminateAll: vi.fn(async () => undefined),
       },
       flushPersistentState: vi.fn(async () => undefined),
       unsubscribeHost: vi.fn(),
@@ -146,6 +246,9 @@ describe("registerDesktopAppLifecycle", () => {
       initAutoUpdater,
       terminalManager: {
         destroyAllAsync: vi.fn(async () => undefined),
+      },
+      runtimeManager: {
+        terminateAll: vi.fn(async () => undefined),
       },
       flushPersistentState: vi.fn(async () => undefined),
       unsubscribeHost: vi.fn(),
@@ -190,6 +293,9 @@ describe("registerDesktopAppLifecycle", () => {
       initAutoUpdater: vi.fn(),
       terminalManager: {
         destroyAllAsync: vi.fn(async () => undefined),
+      },
+      runtimeManager: {
+        terminateAll: vi.fn(async () => undefined),
       },
       flushPersistentState: vi.fn(async () => undefined),
       unsubscribeHost: vi.fn(),

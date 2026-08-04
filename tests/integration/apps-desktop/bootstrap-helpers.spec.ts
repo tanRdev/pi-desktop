@@ -741,6 +741,9 @@ describe("bootstrap helpers (RED)", () => {
 
     expect(source).toContain('from "./app-lifecycle"');
     expect(source).toContain("registerDesktopAppLifecycle({");
+    expect(source).toContain(
+      "    terminalManager,\n    runtimeManager,\n    flushPersistentState: flushAllPersistentJsonFiles,",
+    );
     expect(source).not.toContain("if (app.isPackaged) {");
     expect(source).not.toContain('app.once("will-quit", (event) => {');
     expect(source).not.toContain('app.on("activate", async () => {');
@@ -751,6 +754,7 @@ describe("bootstrap helpers (RED)", () => {
     );
     expect(helperSource).toContain("initAutoUpdater({");
     expect(helperSource).toContain("Promise.allSettled([");
+    expect(helperSource).toContain("input.runtimeManager.terminateAll(),");
     expect(helperSource).toContain(
       "input.browserWindow.getAllWindows().length === 0",
     );
