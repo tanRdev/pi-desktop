@@ -7,7 +7,18 @@ import { Schema } from "effect";
 import { IPC_CHANNELS } from "../channels.js";
 import { createIpcContract } from "../contract-runtime.js";
 import { createStrictObjectSchema } from "./helpers.js";
-import { mutableArray } from "./schema-primitives.js";
+import {
+  finiteNumberSchema,
+  ipcStringSchema,
+  mutableArray,
+} from "./schema-primitives.js";
+
+export const MAX_SEARCH_QUERY_BYTES = 512;
+export const MAX_SEARCH_ROOT_PATH_BYTES = 4096;
+export const MIN_SEARCH_RESULTS = 1;
+export const MAX_SEARCH_RESULTS = 200;
+export const MAX_SEARCH_PATTERN_BYTES = 512;
+export const MAX_SEARCH_PATTERN_COUNT = 50;
 
 const SEARCH_REQUEST_KEYS = new Set([
   "query",
@@ -17,14 +28,35 @@ const SEARCH_REQUEST_KEYS = new Set([
   "excludePatterns",
 ]);
 
+const SearchPatternSchema = ipcStringSchema(MAX_SEARCH_PATTERN_BYTES);
+const SearchPatternsSchema = mutableArray(SearchPatternSchema).pipe(
+  Schema.filter((patterns) => patterns.length <= MAX_SEARCH_PATTERN_COUNT, {
+    message: () =>
+      `search patterns exceed maximum length of ${MAX_SEARCH_PATTERN_COUNT} entries`,
+  }),
+);
+
 export const SearchRequestSchema = createStrictObjectSchema<SearchRequest>(
   SEARCH_REQUEST_KEYS,
   {
-    query: Schema.String,
-    rootPath: Schema.String,
-    maxResults: Schema.optional(Schema.Number),
-    includePatterns: Schema.optional(mutableArray(Schema.String)),
-    excludePatterns: Schema.optional(mutableArray(Schema.String)),
+    query: ipcStringSchema(MAX_SEARCH_QUERY_BYTES),
+    rootPath: ipcStringSchema(MAX_SEARCH_ROOT_PATH_BYTES),
+    maxResults: Schema.optional(
+      finiteNumberSchema().pipe(
+        Schema.filter((value) => Number.isInteger(value), {
+          message: () => "maxResults must be an integer",
+        }),
+        Schema.filter(
+          (value) => value >= MIN_SEARCH_RESULTS && value <= MAX_SEARCH_RESULTS,
+          {
+            message: () =>
+              `maxResults must be between ${MIN_SEARCH_RESULTS} and ${MAX_SEARCH_RESULTS}`,
+          },
+        ),
+      ),
+    ),
+    includePatterns: Schema.optional(SearchPatternsSchema),
+    excludePatterns: Schema.optional(SearchPatternsSchema),
   },
 );
 

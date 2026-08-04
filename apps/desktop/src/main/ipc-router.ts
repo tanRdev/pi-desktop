@@ -24,6 +24,7 @@ import type {
 } from "@pi-desktop/shared";
 import { type BrowserWindow, clipboard } from "electron";
 import type { ThreadCatalog } from "./catalogs/thread-catalog";
+import { PathGuardError, resolveInsideRoot } from "./fs/path-guards";
 import type { GitService } from "./git/git-service";
 import { registerDialogHandlers } from "./ipc/register-dialog-handlers";
 import { registerFilesystemHandlers } from "./ipc/register-filesystem-handlers";
@@ -353,7 +354,20 @@ export function registerIpcHandlers({
       if (!searchFiles) {
         throw new Error("File search is unavailable");
       }
-      return searchFiles(request);
+
+      const workspaceRootPath = getWorkspaceRootPath?.() ?? null;
+      if (!workspaceRootPath) {
+        throw new PathGuardError({
+          code: "path/no-root-configured",
+          message: "File search requires an active Worktree",
+        });
+      }
+
+      const authorizedRootPath = resolveInsideRoot(
+        [workspaceRootPath],
+        request.rootPath,
+      );
+      return searchFiles({ ...request, rootPath: authorizedRootPath });
     },
   });
 

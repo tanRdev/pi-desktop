@@ -929,6 +929,7 @@ describe("registerIpcHandlers", () => {
     registerIpcHandlers({
       handle: harness.handle,
       getShellSnapshot: vi.fn(createShellSnapshot),
+      getWorkspaceRootPath: () => "/tmp/pi-desktop",
       agentHost: createAgentHost(createAgentSnapshot()),
       mainWindow: null,
       switchModel,
@@ -977,6 +978,144 @@ describe("registerIpcHandlers", () => {
       providerId: "google",
       modelId: "gemini-2.5-pro",
     });
+  });
+
+  it.each([
+    ["an absolute path", "/etc"],
+    ["path traversal", "../outside"],
+  ])("rejects file search rooted outside the active Worktree via %s", async (_case, rootPath) => {
+    const harness = createHandlerHarness();
+    const searchFiles = vi.fn(async () => ({
+      query: "app",
+      results: [],
+      total: 0,
+      duration: 0,
+    }));
+    const nodeFs = await loadMockedNodeFs();
+    nodeFs.realpathSync.mockImplementation((value) => value.toString());
+
+    registerIpcHandlers({
+      handle: harness.handle,
+      getShellSnapshot: vi.fn(createShellSnapshot),
+      getWorkspaceRootPath: () => "/tmp/pi-desktop",
+      agentHost: createAgentHost(createAgentSnapshot()),
+      mainWindow: null,
+      searchFiles,
+    });
+
+    await expect(
+      harness.handlers.get(IPC_CHANNELS.search.searchFiles)?.(undefined, {
+        query: "app",
+        rootPath,
+      }),
+    ).rejects.toMatchObject({ code: "path/outside-root" });
+    expect(searchFiles).not.toHaveBeenCalled();
+  });
+
+  it("rejects file search when there is no active Worktree", async () => {
+    const harness = createHandlerHarness();
+    const searchFiles = vi.fn(async () => ({
+      query: "app",
+      results: [],
+      total: 0,
+      duration: 0,
+    }));
+
+    registerIpcHandlers({
+      handle: harness.handle,
+      getShellSnapshot: vi.fn(createShellSnapshot),
+      getWorkspaceRootPath: () => null,
+      agentHost: createAgentHost(createAgentSnapshot()),
+      mainWindow: null,
+      searchFiles,
+    });
+
+    await expect(
+      harness.handlers.get(IPC_CHANNELS.search.searchFiles)?.(undefined, {
+        query: "app",
+        rootPath: "/tmp/pi-desktop",
+      }),
+    ).rejects.toMatchObject({
+      code: "path/no-root-configured",
+      message: "File search requires an active Worktree",
+    });
+    expect(searchFiles).not.toHaveBeenCalled();
+  });
+
+  it("rejects a file-search root that escapes through a symlink", async () => {
+    const harness = createHandlerHarness();
+    const searchFiles = vi.fn(async () => ({
+      query: "app",
+      results: [],
+      total: 0,
+      duration: 0,
+    }));
+    const nodeFs = await loadMockedNodeFs();
+    nodeFs.realpathSync.mockImplementation((value) => {
+      const normalized = value.toString();
+      return normalized === "/tmp/pi-desktop/escape-link"
+        ? "/tmp/outside-repo"
+        : normalized;
+    });
+
+    registerIpcHandlers({
+      handle: harness.handle,
+      getShellSnapshot: vi.fn(createShellSnapshot),
+      getWorkspaceRootPath: () => "/tmp/pi-desktop",
+      agentHost: createAgentHost(createAgentSnapshot()),
+      mainWindow: null,
+      searchFiles,
+    });
+
+    await expect(
+      harness.handlers.get(IPC_CHANNELS.search.searchFiles)?.(undefined, {
+        query: "app",
+        rootPath: "/tmp/pi-desktop/escape-link",
+      }),
+    ).rejects.toMatchObject({ code: "path/symlink-escape" });
+    expect(searchFiles).not.toHaveBeenCalled();
+
+    nodeFs.realpathSync.mockImplementation((value) => value.toString());
+  });
+
+  it("forwards the canonical active Worktree root to file search", async () => {
+    const harness = createHandlerHarness();
+    const searchResponse: SearchResponse = {
+      query: "app",
+      results: [],
+      total: 0,
+      duration: 0,
+    };
+    const searchFiles = vi.fn(async () => searchResponse);
+    const nodeFs = await loadMockedNodeFs();
+    nodeFs.realpathSync.mockImplementation((value) => {
+      const normalized = value.toString();
+      return normalized === "/tmp/pi-desktop-link"
+        ? "/private/tmp/pi-desktop"
+        : normalized;
+    });
+
+    registerIpcHandlers({
+      handle: harness.handle,
+      getShellSnapshot: vi.fn(createShellSnapshot),
+      getWorkspaceRootPath: () => "/tmp/pi-desktop-link",
+      agentHost: createAgentHost(createAgentSnapshot()),
+      mainWindow: null,
+      searchFiles,
+    });
+
+    await expect(
+      harness.handlers.get(IPC_CHANNELS.search.searchFiles)?.(undefined, {
+        query: "app",
+        rootPath: "/tmp/pi-desktop-link",
+      }),
+    ).resolves.toEqual(searchResponse);
+    expect(searchFiles).toHaveBeenCalledWith({
+      query: "app",
+      rootPath: "/private/tmp/pi-desktop",
+    });
+
+    nodeFs.realpathSync.mockImplementation((value) => value.toString());
   });
 
   it("delegates oauth provider listing and login handlers", async () => {
