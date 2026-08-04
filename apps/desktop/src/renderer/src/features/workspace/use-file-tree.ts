@@ -29,6 +29,12 @@ interface FileTreeRootSnapshot {
   nodes: FileTreeNode[];
 }
 
+interface InFlightDirectoryLoad {
+  generation: number;
+  workspacePath: string;
+  promise: Promise<void>;
+}
+
 const ROOT_UNAVAILABLE: FileTreeRootState = { status: "unavailable" };
 const ROOT_LOADING: FileTreeRootState = { status: "loading" };
 const ROOT_READY: FileTreeRootState = { status: "ready" };
@@ -179,10 +185,15 @@ export function useFileTree(
     }),
   );
   const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set());
+  const expandedPathsRef = useRef<Set<string>>(expandedPaths);
   const [_dirtyPaths, setDirtyPaths] = useState<Set<string>>(new Set());
   const cache = useRef<Map<string, FileTreeNode[]>>(new Map());
   const rootRequestId = useRef(0);
-  const [, forceUpdate] = useState(0);
+  const treeGeneration = useRef(0);
+  const activeWorkspacePath = useRef(workspacePath);
+  const inFlightDirectoryLoads = useRef<Map<string, InFlightDirectoryLoad>>(
+    new Map(),
+  );
 
   const [filter, setFilter] = useState("");
   const [selectedPath, setSelectedPathState] = useState<string | null>(null);
@@ -201,15 +212,46 @@ export function useFileTree(
     });
   }, []);
 
-  const loadDirectory = useCallback(
+  const readDirectoryNodes = useCallback(
     async (path: string): Promise<FileTreeNode[]> => {
       const listing = await window.piDesktop.fs.readDirectory(path);
-      const nodes = entriesToNodes(listing.entries);
-      cache.current.set(path, nodes);
-      return nodes;
+      return entriesToNodes(listing.entries);
     },
     [entriesToNodes],
   );
+
+  const advanceTreeGeneration = useCallback(() => {
+    treeGeneration.current += 1;
+    rootRequestId.current += 1;
+    inFlightDirectoryLoads.current.clear();
+    return treeGeneration.current;
+  }, []);
+
+  const isCurrentTreeGeneration = useCallback(
+    (generation: number, requestedWorkspacePath: string | null) =>
+      treeGeneration.current === generation &&
+      activeWorkspacePath.current === requestedWorkspacePath,
+    [],
+  );
+
+  const resetExpandedPaths = useCallback(() => {
+    const next = new Set<string>();
+    expandedPathsRef.current = next;
+    setExpandedPaths(next);
+  }, []);
+
+  const setPathExpanded = useCallback((path: string, isExpanded: boolean) => {
+    const current = expandedPathsRef.current;
+    if (current.has(path) === isExpanded) return;
+    const next = new Set(current);
+    if (isExpanded) {
+      next.add(path);
+    } else {
+      next.delete(path);
+    }
+    expandedPathsRef.current = next;
+    setExpandedPaths(next);
+  }, []);
 
   const loadRoot = useCallback(
     async (path: string | null) => {
@@ -231,8 +273,8 @@ export function useFileTree(
         cache.current.set("", nodes);
         setRootSnapshot({ workspacePath: path, state: ROOT_READY, nodes });
       } catch (err) {
-        console.error("[file-tree] Failed to load root directory:", err);
         if (rootRequestId.current !== requestId) return;
+        console.error("[file-tree] Failed to load root directory:", err);
         cache.current.delete("");
         setRootSnapshot({
           workspacePath: path,
@@ -245,12 +287,17 @@ export function useFileTree(
   );
 
   useEffect(() => {
+    activeWorkspacePath.current = workspacePath;
+    advanceTreeGeneration();
     cache.current.clear();
-    setExpandedPaths(new Set());
+    resetExpandedPaths();
     setSelectedPathState(null);
     setMultiSelectedPaths(new Set());
     void loadRoot(workspacePath);
-  }, [loadRoot, workspacePath]);
+    return () => {
+      advanceTreeGeneration();
+    };
+  }, [advanceTreeGeneration, loadRoot, resetExpandedPaths, workspacePath]);
 
   const isCurrentWorkspace = rootSnapshot.workspacePath === workspacePath;
   let rootState = ROOT_UNAVAILABLE;
@@ -262,9 +309,12 @@ export function useFileTree(
   const rootNodes = isCurrentWorkspace ? rootSnapshot.nodes : EMPTY_ROOT_NODES;
   const isRootLoading = rootState.status === "loading";
 
-  const rebuildNodes = useCallback(() => {
-    const root = cache.current.get("");
-    if (root) {
+  const rebuildNodes = useCallback(
+    (generation: number, requestedWorkspacePath: string) => {
+      if (!isCurrentTreeGeneration(generation, requestedWorkspacePath)) return;
+      const root = cache.current.get("");
+      if (!root) return;
+
       const rebuild = (nodes: FileTreeNode[]): FileTreeNode[] =>
         nodes.map((node) => {
           const cached = cache.current.get(node.entry.path);
@@ -273,68 +323,117 @@ export function useFileTree(
             children: cached ? rebuild(cached) : node.children,
           };
         });
-      setRootSnapshot((current) => ({
-        ...current,
-        nodes: rebuild(root),
-      }));
-    }
-  }, []);
-
-  const toggleExpand = useCallback(
-    async (path: string) => {
-      setExpandedPaths((prev) => {
-        const next = new Set(prev);
-        if (next.has(path)) {
-          next.delete(path);
-          return next;
+      const nodes = rebuild(root);
+      setRootSnapshot((current) => {
+        if (
+          !isCurrentTreeGeneration(generation, requestedWorkspacePath) ||
+          current.workspacePath !== requestedWorkspacePath
+        ) {
+          return current;
         }
-        next.add(path);
-        return next;
+        return { ...current, nodes };
       });
+    },
+    [isCurrentTreeGeneration],
+  );
 
-      if (cache.current.has(path)) {
-        rebuildNodes();
+  const loadDirectory = useCallback(
+    async (
+      path: string,
+      generation: number,
+      requestedWorkspacePath: string,
+    ) => {
+      if (!isCurrentTreeGeneration(generation, requestedWorkspacePath)) return;
+
+      const currentRequest = inFlightDirectoryLoads.current.get(path);
+      if (
+        currentRequest?.generation === generation &&
+        currentRequest.workspacePath === requestedWorkspacePath
+      ) {
+        await currentRequest.promise;
         return;
       }
 
-      forceUpdate((n) => n + 1);
-
-      try {
-        await loadDirectory(path);
-        rebuildNodes();
-      } catch (err) {
-        console.error(`[file-tree] Failed to load directory: ${path}`, err);
-        setExpandedPaths((current) => {
-          if (!current.has(path)) return current;
-          const next = new Set(current);
-          next.delete(path);
-          return next;
-        });
-        onDirectoryLoadError?.();
-      }
+      const request: InFlightDirectoryLoad = {
+        generation,
+        workspacePath: requestedWorkspacePath,
+        promise: Promise.resolve(),
+      };
+      const promise = (async () => {
+        try {
+          const nodes = await readDirectoryNodes(path);
+          if (!isCurrentTreeGeneration(generation, requestedWorkspacePath)) {
+            return;
+          }
+          cache.current.set(path, nodes);
+          rebuildNodes(generation, requestedWorkspacePath);
+        } catch (err) {
+          if (!isCurrentTreeGeneration(generation, requestedWorkspacePath)) {
+            return;
+          }
+          console.error(`[file-tree] Failed to load directory: ${path}`, err);
+          setPathExpanded(path, false);
+          onDirectoryLoadError?.();
+        } finally {
+          if (inFlightDirectoryLoads.current.get(path) === request) {
+            inFlightDirectoryLoads.current.delete(path);
+          }
+        }
+      })();
+      request.promise = promise;
+      inFlightDirectoryLoads.current.set(path, request);
+      await promise;
     },
-    [loadDirectory, onDirectoryLoadError, rebuildNodes],
+    [
+      isCurrentTreeGeneration,
+      onDirectoryLoadError,
+      readDirectoryNodes,
+      rebuildNodes,
+      setPathExpanded,
+    ],
+  );
+
+  const toggleExpand = useCallback(
+    async (path: string) => {
+      const shouldExpand = !expandedPathsRef.current.has(path);
+      setPathExpanded(path, shouldExpand);
+      if (!shouldExpand) return;
+
+      const generation = treeGeneration.current;
+      const requestedWorkspacePath = activeWorkspacePath.current;
+      if (!requestedWorkspacePath) {
+        setPathExpanded(path, false);
+        return;
+      }
+
+      if (cache.current.has(path)) {
+        rebuildNodes(generation, requestedWorkspacePath);
+        return;
+      }
+
+      await loadDirectory(path, generation, requestedWorkspacePath);
+    },
+    [loadDirectory, rebuildNodes, setPathExpanded],
   );
 
   const refreshDirectory = useCallback(
     async (path: string) => {
+      const generation = treeGeneration.current;
+      const requestedWorkspacePath = activeWorkspacePath.current;
+      if (!requestedWorkspacePath) return;
       cache.current.delete(path);
-      try {
-        await loadDirectory(path);
-        rebuildNodes();
-      } catch (err) {
-        console.error(`[file-tree] Failed to refresh directory: ${path}`, err);
-      }
+      await loadDirectory(path, generation, requestedWorkspacePath);
     },
-    [loadDirectory, rebuildNodes],
+    [loadDirectory],
   );
 
   const refreshRoot = useCallback(() => {
+    advanceTreeGeneration();
     cache.current.clear();
-    setExpandedPaths(new Set());
+    resetExpandedPaths();
     setDirtyPaths(new Set());
     void loadRoot(workspacePath);
-  }, [loadRoot, workspacePath]);
+  }, [advanceTreeGeneration, loadRoot, resetExpandedPaths, workspacePath]);
 
   useEffect(() => {
     if (!watchEvents$) return;

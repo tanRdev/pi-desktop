@@ -17,6 +17,16 @@ function entry(name: string, type: "file" | "directory" = "file"): FileEntry {
   };
 }
 
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise;
+    reject = rejectPromise;
+  });
+  return { promise, resolve, reject };
+}
+
 describe("useFileTree", () => {
   beforeEach(() => {
     vi.spyOn(console, "error").mockImplementation(() => undefined);
@@ -303,6 +313,211 @@ describe("useFileTree", () => {
       "[file-tree] Failed to load directory: /root/src",
       expect.any(Error),
     );
+  });
+
+  it("ignores a nested load that finishes after a root refresh", async () => {
+    const staleNested = deferred<{ path: string; entries: FileEntry[] }>();
+    let nestedReads = 0;
+    const readDirectory = vi.fn((path: string) => {
+      if (path === "/root") {
+        return Promise.resolve({
+          path,
+          entries: [entry("src", "directory")],
+        });
+      }
+      nestedReads += 1;
+      if (nestedReads === 1) return staleNested.promise;
+      return Promise.resolve({ path, entries: [entry("current.ts")] });
+    });
+    installMockPiDesktop({ fs: { readDirectory } });
+    const onDirectoryLoadError = vi.fn();
+
+    const { result } = renderHook(() =>
+      useFileTree("/root", { onDirectoryLoadError }),
+    );
+    await waitFor(() => expect(result.current.rootState.status).toBe("ready"));
+
+    act(() => {
+      result.current.toggleExpand("/root/src");
+    });
+    expect(result.current.expandedPaths.has("/root/src")).toBe(true);
+
+    act(() => {
+      result.current.refreshRoot();
+    });
+    await waitFor(() => {
+      expect(
+        readDirectory.mock.calls.filter(([path]) => path === "/root"),
+      ).toHaveLength(2);
+      expect(result.current.rootState.status).toBe("ready");
+    });
+    expect(result.current.expandedPaths.has("/root/src")).toBe(false);
+
+    await act(async () => {
+      staleNested.resolve({ path: "/root/src", entries: [entry("stale.ts")] });
+    });
+    expect(result.current.rootNodes[0]?.children).toBeNull();
+
+    await act(async () => {
+      await result.current.toggleExpand("/root/src");
+    });
+    expect(nestedReads).toBe(2);
+    expect(result.current.rootNodes[0]?.children?.[0]?.entry.name).toBe(
+      "current.ts",
+    );
+    expect(onDirectoryLoadError).not.toHaveBeenCalled();
+    expect(console.error).not.toHaveBeenCalled();
+  });
+
+  it("does not report a nested failure from the previous Worktree", async () => {
+    const staleNested = deferred<{ path: string; entries: FileEntry[] }>();
+    const readDirectory = vi.fn((path: string) => {
+      if (path === "/old-root") {
+        return Promise.resolve({
+          path,
+          entries: [
+            {
+              name: "old-src",
+              path: "/old-root/old-src",
+              type: "directory" as const,
+            },
+          ],
+        });
+      }
+      if (path === "/old-root/old-src") return staleNested.promise;
+      return Promise.resolve({
+        path,
+        entries: [
+          {
+            name: "new-src",
+            path: "/new-root/new-src",
+            type: "directory" as const,
+          },
+        ],
+      });
+    });
+    installMockPiDesktop({ fs: { readDirectory } });
+    const onDirectoryLoadError = vi.fn();
+
+    const { result, rerender } = renderHook(
+      ({ path }: { path: string }) =>
+        useFileTree(path, { onDirectoryLoadError }),
+      { initialProps: { path: "/old-root" } },
+    );
+    await waitFor(() => expect(result.current.rootState.status).toBe("ready"));
+    act(() => {
+      result.current.toggleExpand("/old-root/old-src");
+    });
+
+    rerender({ path: "/new-root" });
+    await waitFor(() => {
+      expect(result.current.rootNodes[0]?.entry.name).toBe("new-src");
+    });
+    await act(async () => {
+      staleNested.reject(new Error("stale failure"));
+    });
+
+    expect(result.current.rootNodes[0]?.entry.name).toBe("new-src");
+    expect(onDirectoryLoadError).not.toHaveBeenCalled();
+    expect(console.error).not.toHaveBeenCalled();
+  });
+
+  it("does not report a nested failure after unmount", async () => {
+    const nested = deferred<{ path: string; entries: FileEntry[] }>();
+    const readDirectory = vi.fn((path: string) => {
+      if (path === "/root") {
+        return Promise.resolve({
+          path,
+          entries: [entry("src", "directory")],
+        });
+      }
+      return nested.promise;
+    });
+    installMockPiDesktop({ fs: { readDirectory } });
+    const onDirectoryLoadError = vi.fn();
+
+    const { result, unmount } = renderHook(() =>
+      useFileTree("/root", { onDirectoryLoadError }),
+    );
+    await waitFor(() => expect(result.current.rootState.status).toBe("ready"));
+    act(() => {
+      result.current.toggleExpand("/root/src");
+    });
+
+    unmount();
+    await act(async () => {
+      nested.reject(new Error("late failure"));
+    });
+
+    expect(onDirectoryLoadError).not.toHaveBeenCalled();
+    expect(console.error).not.toHaveBeenCalled();
+  });
+
+  it("deduplicates a pending expansion and preserves a later collapse", async () => {
+    const nested = deferred<{ path: string; entries: FileEntry[] }>();
+    const readDirectory = vi.fn((path: string) => {
+      if (path === "/root") {
+        return Promise.resolve({
+          path,
+          entries: [entry("src", "directory")],
+        });
+      }
+      return nested.promise;
+    });
+    installMockPiDesktop({ fs: { readDirectory } });
+
+    const { result } = renderHook(() => useFileTree("/root"));
+    await waitFor(() => expect(result.current.rootState.status).toBe("ready"));
+
+    act(() => {
+      result.current.toggleExpand("/root/src");
+      result.current.toggleExpand("/root/src");
+    });
+
+    expect(
+      readDirectory.mock.calls.filter(([path]) => path === "/root/src"),
+    ).toHaveLength(1);
+    expect(result.current.expandedPaths.has("/root/src")).toBe(false);
+
+    await act(async () => {
+      nested.resolve({ path: "/root/src", entries: [entry("cached.ts")] });
+    });
+    expect(result.current.expandedPaths.has("/root/src")).toBe(false);
+  });
+
+  it("shares one failing load across rapid toggles and reports it once", async () => {
+    const nested = deferred<{ path: string; entries: FileEntry[] }>();
+    const readDirectory = vi.fn((path: string) => {
+      if (path === "/root") {
+        return Promise.resolve({
+          path,
+          entries: [entry("src", "directory")],
+        });
+      }
+      return nested.promise;
+    });
+    installMockPiDesktop({ fs: { readDirectory } });
+    const onDirectoryLoadError = vi.fn();
+
+    const { result } = renderHook(() =>
+      useFileTree("/root", { onDirectoryLoadError }),
+    );
+    await waitFor(() => expect(result.current.rootState.status).toBe("ready"));
+
+    act(() => {
+      result.current.toggleExpand("/root/src");
+      result.current.toggleExpand("/root/src");
+      result.current.toggleExpand("/root/src");
+    });
+    expect(
+      readDirectory.mock.calls.filter(([path]) => path === "/root/src"),
+    ).toHaveLength(1);
+
+    await act(async () => {
+      nested.reject(new Error("denied"));
+    });
+    expect(result.current.expandedPaths.has("/root/src")).toBe(false);
+    expect(onDirectoryLoadError).toHaveBeenCalledTimes(1);
   });
 
   describe("filter + flatRows", () => {
