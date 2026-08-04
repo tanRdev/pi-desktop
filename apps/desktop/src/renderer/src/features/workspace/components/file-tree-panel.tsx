@@ -75,8 +75,13 @@ export function FileTreePanel({
   onMoveFile,
   repositoryStatus,
 }: FileTreePanelProps) {
+  const handleDirectoryLoadError = useCallback(() => {
+    toast.error("Couldn’t load folder");
+  }, []);
+
   const {
     rootNodes,
+    rootState,
     isRootLoading,
     expandedPaths,
     toggleExpand,
@@ -88,7 +93,9 @@ export function FileTreePanel({
     toggleMultiSelect,
     handleKeyDown: handleTreeKeyDown,
     flatRows,
-  } = useFileTree(workspacePath);
+  } = useFileTree(workspacePath, {
+    onDirectoryLoadError: handleDirectoryLoadError,
+  });
 
   const recentFiles = useRecentFiles();
   const recentFileItems = useMemo(
@@ -262,6 +269,7 @@ export function FileTreePanel({
       <div
         role="tree"
         aria-label="File tree"
+        aria-busy={isRootLoading}
         tabIndex={0}
         onKeyDown={handleContainerKeyDown}
         className="flex-1 overflow-y-auto focus:outline-none focus-visible:ring-1 focus-visible:ring-white/10"
@@ -271,7 +279,27 @@ export function FileTreePanel({
           loading={isRootLoading}
           fixture={<FileTreeSkeleton />}
         >
-          {hasRecentFiles && (
+          {rootState.status === "unavailable" ? (
+            <div className="px-3 py-6 text-center text-[11px] text-white/50">
+              Select a Worktree to browse files
+            </div>
+          ) : null}
+          {rootState.status === "error" ? (
+            <div
+              role="alert"
+              className="flex flex-col items-center gap-2 px-3 py-6 text-center text-[11px] text-white/50"
+            >
+              <span>Couldn’t load files</span>
+              <button
+                type="button"
+                onClick={refreshRoot}
+                className="text-white/70 hover:text-white transition-colors duration-100"
+              >
+                Retry
+              </button>
+            </div>
+          ) : null}
+          {rootState.status === "ready" && hasRecentFiles ? (
             <div className="border-b border-white/[0.06]">
               <div className="flex items-center gap-1.5 px-3 py-1">
                 <ClockCounterClockwise className="w-3 h-3 text-white/50" />
@@ -310,12 +338,15 @@ export function FileTreePanel({
                 );
               })}
             </div>
-          )}
-          {rootNodes.length === 0 ? (
+          ) : null}
+          {rootState.status === "ready" && rootNodes.length === 0 ? (
             <div className="px-3 py-6 text-center text-[11px] text-white/50">
               No files
             </div>
-          ) : filter.length > 0 ? (
+          ) : null}
+          {rootState.status === "ready" &&
+          rootNodes.length > 0 &&
+          filter.length > 0 ? (
             <div className="py-1">
               {flatRows.map((row) => (
                 <FileTreeItem
@@ -348,7 +379,10 @@ export function FileTreePanel({
                 </div>
               )}
             </div>
-          ) : (
+          ) : null}
+          {rootState.status === "ready" &&
+          rootNodes.length > 0 &&
+          filter.length === 0 ? (
             <div className="py-1">
               {rootNodes.map((node) => (
                 <FileTreeItem
@@ -376,7 +410,7 @@ export function FileTreePanel({
                 />
               ))}
             </div>
-          )}
+          ) : null}
         </Skeleton>
       </div>
       {contextMenu && (

@@ -17,8 +17,27 @@ export interface FlatFileTreeRow {
   hasChildren: boolean;
 }
 
+export type FileTreeRootState =
+  | { status: "unavailable" }
+  | { status: "loading" }
+  | { status: "ready" }
+  | { status: "error" };
+
+interface FileTreeRootSnapshot {
+  workspacePath: string | null;
+  state: FileTreeRootState;
+  nodes: FileTreeNode[];
+}
+
+const ROOT_UNAVAILABLE: FileTreeRootState = { status: "unavailable" };
+const ROOT_LOADING: FileTreeRootState = { status: "loading" };
+const ROOT_READY: FileTreeRootState = { status: "ready" };
+const ROOT_ERROR: FileTreeRootState = { status: "error" };
+const EMPTY_ROOT_NODES: FileTreeNode[] = [];
+
 interface UseFileTreeReturn {
   rootNodes: FileTreeNode[];
+  rootState: FileTreeRootState;
   isRootLoading: boolean;
   expandedPaths: Set<string>;
   toggleExpand: (path: string) => void;
@@ -144,18 +163,25 @@ function flattenTree(
 
 export interface UseFileTreeOptions {
   watchEvents$?: FileWatcherStream;
+  onDirectoryLoadError?: () => void;
 }
 
 export function useFileTree(
   workspacePath: string | null,
   options: UseFileTreeOptions = {},
 ): UseFileTreeReturn {
-  const { watchEvents$ } = options;
-  const [rootNodes, setRootNodes] = useState<FileTreeNode[]>([]);
-  const [isRootLoading, setIsRootLoading] = useState(false);
+  const { watchEvents$, onDirectoryLoadError } = options;
+  const [rootSnapshot, setRootSnapshot] = useState<FileTreeRootSnapshot>(
+    () => ({
+      workspacePath,
+      state: workspacePath ? ROOT_LOADING : ROOT_UNAVAILABLE,
+      nodes: EMPTY_ROOT_NODES,
+    }),
+  );
   const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set());
   const [_dirtyPaths, setDirtyPaths] = useState<Set<string>>(new Set());
   const cache = useRef<Map<string, FileTreeNode[]>>(new Map());
+  const rootRequestId = useRef(0);
   const [, forceUpdate] = useState(0);
 
   const [filter, setFilter] = useState("");
@@ -185,30 +211,56 @@ export function useFileTree(
     [entriesToNodes],
   );
 
-  const loadRoot = useCallback(async () => {
-    if (!workspacePath) return;
-    setIsRootLoading(true);
-    try {
-      const listing = await window.piDesktop.fs.readDirectory(workspacePath);
-      const nodes = entriesToNodes(listing.entries);
-      cache.current.set("", nodes);
-      setRootNodes(nodes);
-    } catch (err) {
-      console.error("[file-tree] Failed to load root directory:", err);
-      setRootNodes([]);
-    } finally {
-      setIsRootLoading(false);
-    }
-  }, [workspacePath, entriesToNodes]);
+  const loadRoot = useCallback(
+    async (path: string | null) => {
+      const requestId = rootRequestId.current + 1;
+      rootRequestId.current = requestId;
+
+      setRootSnapshot((current) => ({
+        workspacePath: path,
+        state: path ? ROOT_LOADING : ROOT_UNAVAILABLE,
+        nodes:
+          current.workspacePath === path ? current.nodes : EMPTY_ROOT_NODES,
+      }));
+      if (!path) return;
+
+      try {
+        const listing = await window.piDesktop.fs.readDirectory(path);
+        if (rootRequestId.current !== requestId) return;
+        const nodes = entriesToNodes(listing.entries);
+        cache.current.set("", nodes);
+        setRootSnapshot({ workspacePath: path, state: ROOT_READY, nodes });
+      } catch (err) {
+        console.error("[file-tree] Failed to load root directory:", err);
+        if (rootRequestId.current !== requestId) return;
+        cache.current.delete("");
+        setRootSnapshot({
+          workspacePath: path,
+          state: ROOT_ERROR,
+          nodes: EMPTY_ROOT_NODES,
+        });
+      }
+    },
+    [entriesToNodes],
+  );
 
   useEffect(() => {
     cache.current.clear();
     setExpandedPaths(new Set());
-    setRootNodes([]);
     setSelectedPathState(null);
     setMultiSelectedPaths(new Set());
-    loadRoot();
-  }, [loadRoot]);
+    void loadRoot(workspacePath);
+  }, [loadRoot, workspacePath]);
+
+  const isCurrentWorkspace = rootSnapshot.workspacePath === workspacePath;
+  let rootState = ROOT_UNAVAILABLE;
+  if (isCurrentWorkspace) {
+    rootState = rootSnapshot.state;
+  } else if (workspacePath) {
+    rootState = ROOT_LOADING;
+  }
+  const rootNodes = isCurrentWorkspace ? rootSnapshot.nodes : EMPTY_ROOT_NODES;
+  const isRootLoading = rootState.status === "loading";
 
   const rebuildNodes = useCallback(() => {
     const root = cache.current.get("");
@@ -221,7 +273,10 @@ export function useFileTree(
             children: cached ? rebuild(cached) : node.children,
           };
         });
-      setRootNodes(rebuild(root));
+      setRootSnapshot((current) => ({
+        ...current,
+        nodes: rebuild(root),
+      }));
     }
   }, []);
 
@@ -249,9 +304,16 @@ export function useFileTree(
         rebuildNodes();
       } catch (err) {
         console.error(`[file-tree] Failed to load directory: ${path}`, err);
+        setExpandedPaths((current) => {
+          if (!current.has(path)) return current;
+          const next = new Set(current);
+          next.delete(path);
+          return next;
+        });
+        onDirectoryLoadError?.();
       }
     },
-    [loadDirectory, rebuildNodes],
+    [loadDirectory, onDirectoryLoadError, rebuildNodes],
   );
 
   const refreshDirectory = useCallback(
@@ -271,8 +333,8 @@ export function useFileTree(
     cache.current.clear();
     setExpandedPaths(new Set());
     setDirtyPaths(new Set());
-    loadRoot();
-  }, [loadRoot]);
+    void loadRoot(workspacePath);
+  }, [loadRoot, workspacePath]);
 
   useEffect(() => {
     if (!watchEvents$) return;
@@ -424,6 +486,7 @@ export function useFileTree(
 
   return {
     rootNodes,
+    rootState,
     isRootLoading,
     expandedPaths,
     toggleExpand,

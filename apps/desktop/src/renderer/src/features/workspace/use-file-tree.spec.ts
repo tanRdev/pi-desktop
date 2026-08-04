@@ -41,6 +41,7 @@ describe("useFileTree", () => {
     await waitFor(() => {
       expect(result.current.rootNodes).toHaveLength(2);
     });
+    expect(result.current.rootState.status).toBe("ready");
     expect(result.current.isRootLoading).toBe(false);
     expect(readDirectory).toHaveBeenCalledWith("/root");
   });
@@ -51,20 +52,96 @@ describe("useFileTree", () => {
 
     const { result } = renderHook(() => useFileTree(null));
 
+    expect(result.current.rootState.status).toBe("unavailable");
     expect(result.current.rootNodes).toEqual([]);
     expect(readDirectory).not.toHaveBeenCalled();
   });
 
-  it("falls back to empty rootNodes when root load fails", async () => {
+  it("exposes an error state when the root load fails", async () => {
     const readDirectory = vi.fn(() => Promise.reject(new Error("nope")));
     installMockPiDesktop({ fs: { readDirectory } });
 
     const { result } = renderHook(() => useFileTree("/root"));
 
     await waitFor(() => {
-      expect(result.current.isRootLoading).toBe(false);
+      expect(result.current.rootState.status).toBe("error");
     });
     expect(result.current.rootNodes).toEqual([]);
+    expect(console.error).toHaveBeenCalledWith(
+      "[file-tree] Failed to load root directory:",
+      expect.any(Error),
+    );
+  });
+
+  it("clears a root error after a successful retry with an empty listing", async () => {
+    let resolveRetry!: (value: { path: string; entries: [] }) => void;
+    const retry = new Promise<{ path: string; entries: [] }>((resolve) => {
+      resolveRetry = resolve;
+    });
+    const readDirectory = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("temporary failure"))
+      .mockReturnValueOnce(retry);
+    installMockPiDesktop({ fs: { readDirectory } });
+
+    const { result } = renderHook(() => useFileTree("/root"));
+    await waitFor(() => {
+      expect(result.current.rootState.status).toBe("error");
+    });
+
+    act(() => {
+      result.current.refreshRoot();
+    });
+    expect(result.current.rootState.status).toBe("loading");
+
+    await act(async () => {
+      resolveRetry({ path: "/root", entries: [] });
+    });
+    expect(result.current.rootState.status).toBe("ready");
+    expect(result.current.rootNodes).toEqual([]);
+    expect(readDirectory).toHaveBeenCalledTimes(2);
+  });
+
+  it("ignores a late root response from the previous Worktree", async () => {
+    let resolveOldRoot!: (value: {
+      path: string;
+      entries: FileEntry[];
+    }) => void;
+    const oldRoot = new Promise<{ path: string; entries: FileEntry[] }>(
+      (resolve) => {
+        resolveOldRoot = resolve;
+      },
+    );
+    const readDirectory = vi.fn((path: string) => {
+      if (path === "/old-root") return oldRoot;
+      return Promise.resolve({
+        path,
+        entries: [
+          { name: "new.ts", path: "/new-root/new.ts", type: "file" as const },
+        ],
+      });
+    });
+    installMockPiDesktop({ fs: { readDirectory } });
+
+    const { result, rerender } = renderHook(
+      ({ path }: { path: string | null }) => useFileTree(path),
+      { initialProps: { path: "/old-root" } },
+    );
+
+    rerender({ path: "/new-root" });
+    await waitFor(() => {
+      expect(result.current.rootState.status).toBe("ready");
+      expect(result.current.rootNodes[0]?.entry.name).toBe("new.ts");
+    });
+
+    await act(async () => {
+      resolveOldRoot({
+        path: "/old-root",
+        entries: [{ name: "old.ts", path: "/old-root/old.ts", type: "file" }],
+      });
+    });
+    expect(result.current.rootState.status).toBe("ready");
+    expect(result.current.rootNodes[0]?.entry.name).toBe("new.ts");
   });
 
   it("toggleExpand loads a directory and adds it to expandedPaths", async () => {
@@ -197,7 +274,7 @@ describe("useFileTree", () => {
     expect(result.current.expandedPaths.size).toBe(0);
   });
 
-  it("logs and swallows errors when expanding a directory fails", async () => {
+  it("collapses and reports a directory when expansion fails", async () => {
     const readDirectory = vi.fn((path: string) => {
       if (path === "/root") {
         return Promise.resolve({
@@ -208,16 +285,24 @@ describe("useFileTree", () => {
       return Promise.reject(new Error("denied"));
     });
     installMockPiDesktop({ fs: { readDirectory } });
+    const onDirectoryLoadError = vi.fn();
 
-    const { result } = renderHook(() => useFileTree("/root"));
+    const { result } = renderHook(() =>
+      useFileTree("/root", { onDirectoryLoadError }),
+    );
     await waitFor(() => expect(result.current.rootNodes).toHaveLength(1));
 
     await act(async () => {
       await result.current.toggleExpand("/root/src");
     });
 
-    expect(result.current.expandedPaths.has("/root/src")).toBe(true);
+    expect(result.current.expandedPaths.has("/root/src")).toBe(false);
     expect(result.current.rootNodes[0]?.children).toBeNull();
+    expect(onDirectoryLoadError).toHaveBeenCalledTimes(1);
+    expect(console.error).toHaveBeenCalledWith(
+      "[file-tree] Failed to load directory: /root/src",
+      expect.any(Error),
+    );
   });
 
   describe("filter + flatRows", () => {
