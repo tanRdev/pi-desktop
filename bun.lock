@@ -23,7 +23,7 @@
     },
     "apps/desktop": {
       "name": "@pi-desktop/desktop",
-      "version": "0.9.3",
+      "version": "0.9.4",
       "dependencies": {
         "@mariozechner/pi-coding-agent": "0.73.1",
         "@monaco-editor/react": "^4.7.0",
