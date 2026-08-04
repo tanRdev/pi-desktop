@@ -47,6 +47,7 @@ function createThreadRuntimeEnv(
 
 export class LocalThreadRuntimeManager implements ThreadRuntimeManager {
   private readonly runtimes = new Map<string, RuntimeProcessRecord>();
+  private readonly threadOperationTails = new Map<string, Promise<void>>();
   private isShuttingDown = false;
   private terminateAllPromise: Promise<void> | null = null;
 
@@ -57,6 +58,14 @@ export class LocalThreadRuntimeManager implements ThreadRuntimeManager {
   }
 
   async ensureThreadRuntime(
+    spec: ThreadRuntimeLaunchSpec,
+  ): Promise<ThreadRuntimeDescriptor> {
+    return this.enqueueThreadOperation(spec.threadId, () =>
+      this.ensureThreadRuntimeCore(spec),
+    );
+  }
+
+  private async ensureThreadRuntimeCore(
     spec: ThreadRuntimeLaunchSpec,
   ): Promise<ThreadRuntimeDescriptor> {
     this.assertRuntimeStartsAllowed();
@@ -82,7 +91,7 @@ export class LocalThreadRuntimeManager implements ThreadRuntimeManager {
       return { ...existing.descriptor };
     }
 
-    await this.terminateThreadRuntime(spec.threadId);
+    await this.terminateThreadRuntimeCore(spec.threadId);
     this.assertRuntimeStartsAllowed();
 
     const [program, ...args] = spec.command;
@@ -169,19 +178,54 @@ export class LocalThreadRuntimeManager implements ThreadRuntimeManager {
   async restartThreadRuntime(
     spec: ThreadRuntimeLaunchSpec,
   ): Promise<ThreadRuntimeDescriptor> {
+    return this.enqueueThreadOperation(spec.threadId, () =>
+      this.restartThreadRuntimeCore(spec),
+    );
+  }
+
+  private async restartThreadRuntimeCore(
+    spec: ThreadRuntimeLaunchSpec,
+  ): Promise<ThreadRuntimeDescriptor> {
     this.assertRuntimeStartsAllowed();
-    await this.terminateThreadRuntime(spec.threadId);
+    await this.terminateThreadRuntimeCore(spec.threadId);
     this.assertRuntimeStartsAllowed();
-    return this.ensureThreadRuntime(spec);
+    return this.ensureThreadRuntimeCore(spec);
   }
 
   terminateThreadRuntime(threadId: string): Promise<void> {
+    return this.enqueueThreadOperation(threadId, () =>
+      this.terminateThreadRuntimeCore(threadId),
+    );
+  }
+
+  private terminateThreadRuntimeCore(threadId: string): Promise<void> {
     const runtime = this.runtimes.get(threadId);
     if (!runtime) {
       return Promise.resolve();
     }
 
     return this.terminateRuntimeRecord(threadId, runtime);
+  }
+
+  private enqueueThreadOperation<T>(
+    threadId: string,
+    operation: () => Promise<T>,
+  ): Promise<T> {
+    const previousTail =
+      this.threadOperationTails.get(threadId) ?? Promise.resolve();
+    const result = previousTail.then(operation);
+    const nextTail = result.then(
+      () => undefined,
+      () => undefined,
+    );
+    this.threadOperationTails.set(threadId, nextTail);
+    void nextTail.then(() => {
+      if (this.threadOperationTails.get(threadId) === nextTail) {
+        this.threadOperationTails.delete(threadId);
+      }
+    });
+
+    return result;
   }
 
   private terminateRuntimeRecord(
