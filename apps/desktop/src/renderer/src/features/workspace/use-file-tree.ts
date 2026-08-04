@@ -1,5 +1,12 @@
 import type { FileEntry } from "@pi-desktop/shared/models/fs";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { FileChangeEvent, FileWatcherStream } from "@/lib/file-watcher";
 
 export interface FileTreeNode {
@@ -286,18 +293,21 @@ export function useFileTree(
     [entriesToNodes],
   );
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     activeWorkspacePath.current = workspacePath;
     advanceTreeGeneration();
+    return () => {
+      advanceTreeGeneration();
+    };
+  }, [advanceTreeGeneration, workspacePath]);
+
+  useEffect(() => {
     cache.current.clear();
     resetExpandedPaths();
     setSelectedPathState(null);
     setMultiSelectedPaths(new Set());
     void loadRoot(workspacePath);
-    return () => {
-      advanceTreeGeneration();
-    };
-  }, [advanceTreeGeneration, loadRoot, resetExpandedPaths, workspacePath]);
+  }, [loadRoot, resetExpandedPaths, workspacePath]);
 
   const isCurrentWorkspace = rootSnapshot.workspacePath === workspacePath;
   let rootState = ROOT_UNAVAILABLE;

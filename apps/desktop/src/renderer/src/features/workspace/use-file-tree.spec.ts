@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import type { FileEntry } from "@pi-desktop/shared/models/fs";
 import { act, renderHook, waitFor } from "@testing-library/react";
+import { useEffect, useLayoutEffect } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -422,6 +423,64 @@ describe("useFileTree", () => {
     expect(console.error).not.toHaveBeenCalled();
   });
 
+  it("invalidates old nested work during the new Worktree layout phase", async () => {
+    const staleNested = deferred<{ path: string; entries: FileEntry[] }>();
+    const readDirectory = vi.fn((path: string) => {
+      if (path === "/old-root") {
+        return Promise.resolve({
+          path,
+          entries: [
+            {
+              name: "src",
+              path: "/old-root/src",
+              type: "directory" as const,
+            },
+          ],
+        });
+      }
+      if (path === "/old-root/src") return staleNested.promise;
+      return Promise.resolve({
+        path,
+        entries: [
+          { name: "new.ts", path: "/new-root/new.ts", type: "file" as const },
+        ],
+      });
+    });
+    installMockPiDesktop({ fs: { readDirectory } });
+    const onDirectoryLoadError = vi.fn();
+    const onNewWorkspacePassiveEffect = vi.fn();
+
+    const { result, rerender } = renderHook(
+      ({ path }: { path: string }) => {
+        const tree = useFileTree(path, { onDirectoryLoadError });
+        useLayoutEffect(() => {
+          if (path !== "/new-root") return;
+          expect(onNewWorkspacePassiveEffect).not.toHaveBeenCalled();
+          staleNested.reject(new Error("rejected during layout"));
+        }, [path]);
+        useEffect(() => {
+          if (path === "/new-root") onNewWorkspacePassiveEffect();
+        }, [path]);
+        return tree;
+      },
+      { initialProps: { path: "/old-root" } },
+    );
+    await waitFor(() => expect(result.current.rootState.status).toBe("ready"));
+    act(() => {
+      result.current.toggleExpand("/old-root/src");
+    });
+
+    rerender({ path: "/new-root" });
+    await waitFor(() => {
+      expect(result.current.rootNodes[0]?.entry.name).toBe("new.ts");
+    });
+
+    expect(onNewWorkspacePassiveEffect).toHaveBeenCalledTimes(1);
+    expect(onDirectoryLoadError).not.toHaveBeenCalled();
+    expect(console.error).not.toHaveBeenCalled();
+    expect(result.current.expandedPaths).toEqual(new Set());
+  });
+
   it("does not report a nested failure after unmount", async () => {
     const nested = deferred<{ path: string; entries: FileEntry[] }>();
     const readDirectory = vi.fn((path: string) => {
@@ -483,6 +542,45 @@ describe("useFileTree", () => {
       nested.resolve({ path: "/root/src", entries: [entry("cached.ts")] });
     });
     expect(result.current.expandedPaths.has("/root/src")).toBe(false);
+  });
+
+  it("reuses a pending load when a folder is collapsed and re-expanded", async () => {
+    const nested = deferred<{ path: string; entries: FileEntry[] }>();
+    const readDirectory = vi.fn((path: string) => {
+      if (path === "/root") {
+        return Promise.resolve({
+          path,
+          entries: [entry("src", "directory")],
+        });
+      }
+      return nested.promise;
+    });
+    installMockPiDesktop({ fs: { readDirectory } });
+    const onDirectoryLoadError = vi.fn();
+
+    const { result } = renderHook(() =>
+      useFileTree("/root", { onDirectoryLoadError }),
+    );
+    await waitFor(() => expect(result.current.rootState.status).toBe("ready"));
+
+    act(() => {
+      result.current.toggleExpand("/root/src");
+      result.current.toggleExpand("/root/src");
+      result.current.toggleExpand("/root/src");
+    });
+    expect(result.current.expandedPaths.has("/root/src")).toBe(true);
+    expect(
+      readDirectory.mock.calls.filter(([path]) => path === "/root/src"),
+    ).toHaveLength(1);
+
+    await act(async () => {
+      nested.resolve({ path: "/root/src", entries: [entry("child.ts")] });
+    });
+    expect(result.current.expandedPaths.has("/root/src")).toBe(true);
+    expect(result.current.rootNodes[0]?.children?.[0]?.entry.name).toBe(
+      "child.ts",
+    );
+    expect(onDirectoryLoadError).not.toHaveBeenCalled();
   });
 
   it("shares one failing load across rapid toggles and reports it once", async () => {
