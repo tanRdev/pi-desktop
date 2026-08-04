@@ -11,8 +11,9 @@ import { Data } from "effect";
  *
  * Rules:
  *  - Both paths are resolved to absolute form (removing `..` segments).
- *  - On darwin we compare case-insensitively because HFS+ and APFS (default)
- *    are case-preserving but case-insensitive.
+ *  - Lexical checks for missing paths follow platform case conventions.
+ *  - Canonical paths returned by `realpath` are compared case-sensitively so
+ *    case-sensitive volumes cannot authorize a distinct case-only sibling.
  *  - Trailing separators are normalized so `/foo/` and `/foo` are equivalent.
  *  - We also attempt a `realpath` pass so a symlinked child that resolves
  *    outside the parent is rejected, while a symlinked parent still matches.
@@ -72,10 +73,24 @@ function isLexicallyWithin(
   );
 }
 
+function isCanonicallyWithin(parent: string, child: string): boolean {
+  const normalizedParent = stripTrailingSeparator(path.resolve(parent));
+  const normalizedChild = stripTrailingSeparator(path.resolve(child));
+  if (normalizedParent === normalizedChild) {
+    return true;
+  }
+
+  const parentPrefix = normalizedParent.endsWith(path.sep)
+    ? normalizedParent
+    : `${normalizedParent}${path.sep}`;
+  return normalizedChild.startsWith(parentPrefix);
+}
+
 export interface IsPathWithinOptions {
   /**
-   * Platform to use for case sensitivity. Defaults to the current runtime
-   * platform. Exposed for tests.
+   * Platform to use for lexical comparison when a path cannot be
+   * canonicalized. Defaults to the current runtime platform. Exposed for
+   * tests.
    */
   platform?: NodeJS.Platform;
 }
@@ -103,7 +118,7 @@ export function isPathWithin(
 
   if (canonicalChildRaw !== null) {
     const canonicalParentBase = canonicalParentRaw ?? path.resolve(parent);
-    return isLexicallyWithin(canonicalParentBase, canonicalChildRaw, platform);
+    return isCanonicallyWithin(canonicalParentBase, canonicalChildRaw);
   }
 
   return lexicalInside;

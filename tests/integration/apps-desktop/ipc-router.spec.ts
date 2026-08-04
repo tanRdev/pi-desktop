@@ -1,5 +1,5 @@
 import type { Dirent, PathLike } from "node:fs";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 // Mock `node:fs` early so modules imported below that may use it will get the mocked
 // version. Tests will assert the spy was *not* called for out-of-workspace requests.
@@ -41,6 +41,13 @@ vi.mock("node:fs/promises", () => {
     );
   });
   return { mkdir, writeFile };
+});
+
+afterEach(async () => {
+  const nodeFs = await import("node:fs");
+  vi.mocked(nodeFs.realpathSync).mockImplementation((value) =>
+    value.toString(),
+  );
 });
 
 it("fs.readFile rejects out-of-workspace absolute paths before touching node:fs.readFileSync/statSync", async () => {
@@ -1074,8 +1081,40 @@ describe("registerIpcHandlers", () => {
       }),
     ).rejects.toMatchObject({ code: "path/symlink-escape" });
     expect(searchFiles).not.toHaveBeenCalled();
+  });
 
-    nodeFs.realpathSync.mockImplementation((value) => value.toString());
+  it("rejects a case-only canonical sibling outside the active Worktree", async () => {
+    const harness = createHandlerHarness();
+    const searchFiles = vi.fn(async () => ({
+      query: "app",
+      results: [],
+      total: 0,
+      duration: 0,
+    }));
+    const nodeFs = await loadMockedNodeFs();
+    nodeFs.realpathSync.mockImplementation((value) => {
+      const normalized = value.toString();
+      return normalized === "/tmp/pi-desktop/case-link"
+        ? "/tmp/Pi-desktop"
+        : normalized;
+    });
+
+    registerIpcHandlers({
+      handle: harness.handle,
+      getShellSnapshot: vi.fn(createShellSnapshot),
+      getWorkspaceRootPath: () => "/tmp/pi-desktop",
+      agentHost: createAgentHost(createAgentSnapshot()),
+      mainWindow: null,
+      searchFiles,
+    });
+
+    await expect(
+      harness.handlers.get(IPC_CHANNELS.search.searchFiles)?.(undefined, {
+        query: "app",
+        rootPath: "/tmp/pi-desktop/case-link",
+      }),
+    ).rejects.toMatchObject({ code: "path/symlink-escape" });
+    expect(searchFiles).not.toHaveBeenCalled();
   });
 
   it("forwards the canonical active Worktree root to file search", async () => {
@@ -1114,8 +1153,68 @@ describe("registerIpcHandlers", () => {
       query: "app",
       rootPath: "/private/tmp/pi-desktop",
     });
+  });
 
-    nodeFs.realpathSync.mockImplementation((value) => value.toString());
+  it("re-reads the active Worktree root for every file-search request", async () => {
+    const harness = createHandlerHarness();
+    const searchResponse: SearchResponse = {
+      query: "app",
+      results: [],
+      total: 0,
+      duration: 0,
+    };
+    const searchFiles = vi.fn(async () => searchResponse);
+    let activeRoot = "/tmp/worktree-one";
+    const getWorkspaceRootPath = vi.fn(() => activeRoot);
+    const nodeFs = await loadMockedNodeFs();
+    nodeFs.realpathSync.mockImplementation((value) => {
+      const normalized = value.toString();
+      return normalized === "/tmp/worktree-two-link"
+        ? "/private/tmp/worktree-two"
+        : normalized;
+    });
+
+    registerIpcHandlers({
+      handle: harness.handle,
+      getShellSnapshot: vi.fn(createShellSnapshot),
+      getWorkspaceRootPath,
+      agentHost: createAgentHost(createAgentSnapshot()),
+      mainWindow: null,
+      searchFiles,
+    });
+
+    const invokeSearch = harness.handlers.get(IPC_CHANNELS.search.searchFiles);
+    await expect(
+      invokeSearch?.(undefined, {
+        query: "app",
+        rootPath: "/tmp/worktree-one",
+      }),
+    ).resolves.toEqual(searchResponse);
+
+    activeRoot = "/tmp/worktree-two-link";
+    await expect(
+      invokeSearch?.(undefined, {
+        query: "app",
+        rootPath: "/tmp/worktree-one",
+      }),
+    ).rejects.toMatchObject({ code: "path/outside-root" });
+    expect(searchFiles).toHaveBeenCalledTimes(1);
+
+    await expect(
+      invokeSearch?.(undefined, {
+        query: "app",
+        rootPath: "/tmp/worktree-two-link",
+      }),
+    ).resolves.toEqual(searchResponse);
+    expect(getWorkspaceRootPath).toHaveBeenCalledTimes(3);
+    expect(searchFiles).toHaveBeenNthCalledWith(1, {
+      query: "app",
+      rootPath: "/tmp/worktree-one",
+    });
+    expect(searchFiles).toHaveBeenNthCalledWith(2, {
+      query: "app",
+      rootPath: "/private/tmp/worktree-two",
+    });
   });
 
   it("delegates oauth provider listing and login handlers", async () => {
