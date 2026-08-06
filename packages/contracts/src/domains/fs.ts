@@ -6,7 +6,10 @@ import type {
 import { Schema } from "effect";
 import { IPC_CHANNELS } from "../channels.js";
 
-import { createIpcContract } from "../contract-runtime.js";
+import {
+  createIpcContract,
+  createIpcEventContract,
+} from "../contract-runtime.js";
 import {
   ipcStringSchema,
   MAX_WRITE_FILE_BYTES,
@@ -38,6 +41,33 @@ export const FsRenameFileRequestSchema = Schema.Struct({
 export const FsMoveFileRequestSchema = Schema.Struct({
   sourcePath: ipcStringSchema(),
   destinationPath: ipcStringSchema(),
+});
+
+export const FsWatchRequestSchema = Schema.Struct({
+  path: ipcStringSchema(),
+});
+
+export const FsUnwatchRequestSchema = Schema.Struct({
+  path: ipcStringSchema(),
+});
+
+const FileChangeEventTypeSchema = Schema.Literal(
+  "create",
+  "modify",
+  "delete",
+  "rename",
+);
+
+/**
+ * Payload pushed from the main process on `fs:event`. `watchPath` echoes the
+ * path the renderer subscribed with so multiple watchers can be told apart;
+ * the remaining fields match the shared `FileChangeEvent` shape.
+ */
+export const FsWatchEventPayloadSchema = Schema.Struct({
+  watchPath: Schema.String,
+  type: FileChangeEventTypeSchema,
+  path: Schema.String,
+  timestamp: Schema.Number,
 });
 
 const FileEntrySchema = Schema.Struct({
@@ -111,6 +141,18 @@ export const fsContracts = {
     IPC_CHANNELS.fs.moveFile,
     FsMoveFileRequestSchema,
   ),
+  watch: createVoidResponseContract(
+    IPC_CHANNELS.fs.watch,
+    FsWatchRequestSchema,
+  ),
+  unwatch: createVoidResponseContract(
+    IPC_CHANNELS.fs.unwatch,
+    FsUnwatchRequestSchema,
+  ),
+  event: createIpcEventContract({
+    channel: IPC_CHANNELS.fs.event,
+    payload: FsWatchEventPayloadSchema,
+  }),
 } as const;
 
 type AssignableTo<Decoded, Target> = Decoded extends Target ? true : never;
@@ -135,4 +177,7 @@ export const fsContractList = [
   fsContracts.deleteFile,
   fsContracts.renameFile,
   fsContracts.moveFile,
+  fsContracts.watch,
+  fsContracts.unwatch,
+  fsContracts.event,
 ] as const;

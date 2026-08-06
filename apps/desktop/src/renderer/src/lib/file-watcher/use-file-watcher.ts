@@ -11,6 +11,8 @@ export interface UseFileWatcherResult {
   events: ReadonlyArray<FileChangeEvent>;
   lastEvent: FileChangeEvent | null;
   isWatching: boolean;
+  /** The underlying stream, so consumers (e.g. the file tree) can subscribe. */
+  stream: FileWatcherStream | null;
 }
 
 export function useFileWatcher(
@@ -19,6 +21,7 @@ export function useFileWatcher(
   const [events, setEvents] = useState<ReadonlyArray<FileChangeEvent>>([]);
   const [lastEvent, setLastEvent] = useState<FileChangeEvent | null>(null);
   const [isWatching, setIsWatching] = useState(false);
+  const [stream, setStream] = useState<FileWatcherStream | null>(null);
 
   const ringRef = useRef<FileChangeEvent[]>([]);
   const streamRef = useRef<FileWatcherStream | null>(null);
@@ -35,6 +38,7 @@ export function useFileWatcher(
   useEffect(() => {
     if (!workspacePath) {
       streamRef.current = null;
+      setStream(null);
       setIsWatching(false);
       ringRef.current = [];
       setEvents([]);
@@ -46,15 +50,17 @@ export function useFileWatcher(
     setEvents([]);
     setLastEvent(null);
 
-    const stream = watch(workspacePath);
-    streamRef.current = stream;
-    setIsWatching(stream.isActive());
+    const nextStream = watch(workspacePath);
+    streamRef.current = nextStream;
+    setStream(nextStream);
+    setIsWatching(nextStream.isActive());
 
-    const unsubscribe = stream.subscribe(appendEvent);
+    const unsubscribe = nextStream.subscribe(appendEvent);
 
     return () => {
       unsubscribe();
       streamRef.current = null;
+      setStream(null);
       setIsWatching(false);
     };
   }, [workspacePath, appendEvent]);
@@ -63,5 +69,6 @@ export function useFileWatcher(
     events,
     lastEvent,
     isWatching,
+    stream,
   };
 }

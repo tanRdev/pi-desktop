@@ -29,6 +29,7 @@ import type {
   TerminalCreateOptions,
 } from "@pi-desktop/shared";
 
+import { createFsWatch } from "./fs-watch-api";
 import { createStateApi } from "./state-api";
 import {
   createUpdatesApi,
@@ -189,6 +190,7 @@ export function createPiDesktopApi({
           destinationPath,
         });
       },
+      watch: createFsWatch({ invoke, on }),
     },
     git: {
       getRepositoryStatus(

@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/phosphor-icons";
 import { useRecentFiles } from "@/features/workspace/recent-items";
 import { useFileTree } from "@/features/workspace/use-file-tree";
+import { useFileWatcher } from "@/lib/file-watcher";
 import { toast } from "@/lib/toast";
 import { FileTreeContextMenu } from "./file-tree-context-menu";
 import { FileTreeItem } from "./file-tree-item";
@@ -79,6 +80,8 @@ export function FileTreePanel({
     toast.error("Couldn’t load folder");
   }, []);
 
+  const { stream: watchEvents$ } = useFileWatcher(workspacePath);
+
   const {
     rootNodes,
     rootState,
@@ -95,6 +98,7 @@ export function FileTreePanel({
     flatRows,
   } = useFileTree(workspacePath, {
     onDirectoryLoadError: handleDirectoryLoadError,
+    watchEvents$: watchEvents$ ?? undefined,
   });
 
   const recentFiles = useRecentFiles();

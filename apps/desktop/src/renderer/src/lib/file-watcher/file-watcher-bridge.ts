@@ -112,7 +112,5 @@ export function createFileWatcherBridge(
 }
 
 export function isNativeWatchAvailable(): boolean {
-  // TODO: add `watch` to shared fs type once the IPC channel is implemented
-  const desc = Object.getOwnPropertyDescriptor(window.piDesktop.fs, "watch");
-  return typeof desc?.value === "function";
+  return typeof window.piDesktop.fs.watch === "function";
 }

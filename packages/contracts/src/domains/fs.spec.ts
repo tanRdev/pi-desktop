@@ -92,5 +92,8 @@ describe("fsContracts", () => {
     expect(fsContracts.deleteFile.channel).toBe("fs:deleteFile");
     expect(fsContracts.renameFile.channel).toBe("fs:renameFile");
     expect(fsContracts.moveFile.channel).toBe("fs:moveFile");
+    expect(fsContracts.watch.channel).toBe("fs:watch");
+    expect(fsContracts.unwatch.channel).toBe("fs:unwatch");
+    expect(fsContracts.event.channel).toBe("fs:event");
   });
 });

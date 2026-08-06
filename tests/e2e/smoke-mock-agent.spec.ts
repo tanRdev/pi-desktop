@@ -13,10 +13,12 @@ const MAIN_ENTRY = path.join(DESKTOP, "out/main/index.js");
 
 test.describe("Pi Desktop raised-bar smoke (mock agent)", () => {
   test.beforeAll(() => {
-    test.skip(
-      !fs.existsSync(MAIN_ENTRY),
-      `Build desktop first: missing ${MAIN_ENTRY}`,
-    );
+    if (!fs.existsSync(MAIN_ENTRY)) {
+      throw new Error(
+        `Desktop build output is missing: ${MAIN_ENTRY}\n` +
+          "Run `bun run --filter @pi-desktop/desktop build` before `bun run test:e2e`.",
+      );
+    }
   });
 
   test("launch app → add Repository → create Worktree → prompt on mock runtime", async () => {

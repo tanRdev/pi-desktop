@@ -1,4 +1,4 @@
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import path from "node:path";
 
@@ -145,8 +145,10 @@ export class PiNotFoundError extends Error {
 function resolveViaShell(): string | null {
   try {
     const shell = process.env.SHELL ?? "/bin/zsh";
-    // -ilc: interactive login shell so .zshrc / .bash_profile are sourced
-    const result = execSync(`${shell} -ilc "which pi"`, {
+    // -ilc: interactive login shell so .zshrc / .bash_profile are sourced.
+    // execFileSync with an argv array avoids shell-string interpolation of
+    // the SHELL environment variable (injection risk).
+    const result = execFileSync(shell, ["-ilc", "which pi"], {
       timeout: 5_000,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],

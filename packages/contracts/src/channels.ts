@@ -52,6 +52,9 @@ export const IPC_CHANNELS = {
     deleteFile: "fs:deleteFile",
     renameFile: "fs:renameFile",
     moveFile: "fs:moveFile",
+    watch: "fs:watch",
+    unwatch: "fs:unwatch",
+    event: "fs:event",
   },
   git: {
     getRepositoryStatus: "git:getRepositoryStatus",

@@ -11,7 +11,7 @@ import type {
   SettingsSnapshot,
 } from "./agent.js";
 import type { OpenDialogOptions } from "./dialog.js";
-import type { DirectoryListing, FileContent } from "./fs.js";
+import type { DirectoryListing, FileChangeEvent, FileContent } from "./fs.js";
 import type { GitFileDiff, GitRepositoryStatus } from "./git.js";
 import type {
   InstalledPackageSnapshot,
@@ -92,6 +92,12 @@ export interface PiDesktopApi {
     deleteFile(path: string): Promise<void>;
     renameFile(oldPath: string, newPath: string): Promise<void>;
     moveFile(sourcePath: string, destinationPath: string): Promise<void>;
+    /**
+     * Watch a directory tree for changes. Returns an unsubscribe function.
+     * Events fire on a best-effort basis (native OS watcher, debounced by the
+     * caller if needed).
+     */
+    watch(path: string, onEvent: (event: FileChangeEvent) => void): () => void;
   };
   git: {
     getRepositoryStatus(

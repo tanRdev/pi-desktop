@@ -10,6 +10,14 @@ export interface DirectoryListing {
   entries: FileEntry[];
 }
 
+export type FileChangeEventType = "create" | "modify" | "delete" | "rename";
+
+export interface FileChangeEvent {
+  type: FileChangeEventType;
+  path: string;
+  timestamp: number;
+}
+
 export interface FileContent {
   path: string;
   content: string;

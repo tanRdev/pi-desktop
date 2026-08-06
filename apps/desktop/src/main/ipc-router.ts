@@ -28,6 +28,7 @@ import { PathGuardError, resolveInsideRoot } from "./fs/path-guards";
 import type { GitService } from "./git/git-service";
 import { registerDialogHandlers } from "./ipc/register-dialog-handlers";
 import { registerFilesystemHandlers } from "./ipc/register-filesystem-handlers";
+import { registerFsWatchHandlers } from "./ipc/register-fs-watch-handlers";
 import { registerGitHandlers } from "./ipc/register-git-handlers";
 import { registerRepositoryHandlers } from "./ipc/register-repository-handlers";
 import {
@@ -127,6 +128,10 @@ export function registerIpcHandlers({
   registerThreadHandlers({ handle, agentHost });
   registerDialogHandlers({ handle });
   registerFilesystemHandlers({
+    handle,
+    getWorkspaceRootPath: () => getWorkspaceRootPath?.() ?? null,
+  });
+  registerFsWatchHandlers({
     handle,
     getWorkspaceRootPath: () => getWorkspaceRootPath?.() ?? null,
   });

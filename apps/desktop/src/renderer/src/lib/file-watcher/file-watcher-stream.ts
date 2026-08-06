@@ -1,10 +1,9 @@
-export type FileChangeEventType = "create" | "modify" | "delete" | "rename";
+import type {
+  FileChangeEvent,
+  FileChangeEventType,
+} from "@pi-desktop/shared/models/fs";
 
-export interface FileChangeEvent {
-  type: FileChangeEventType;
-  path: string;
-  timestamp: number;
-}
+export type { FileChangeEvent, FileChangeEventType };
 
 export type FileChangeSubscriber = (event: FileChangeEvent) => void;
 
@@ -30,12 +29,12 @@ function invokeNativeWatch(
   workspacePath: string,
   onEvent: (event: FileChangeEvent) => void,
 ): (() => void) | null {
-  // TODO: replace with window.piDesktop.fs.watch once the IPC channel is implemented
-  const desc = Object.getOwnPropertyDescriptor(window.piDesktop.fs, "watch");
-  if (typeof desc?.value !== "function") {
+  // Runtime guard: tests may install partial window.piDesktop mocks.
+  const watchFn = window.piDesktop.fs.watch;
+  if (typeof watchFn !== "function") {
     return null;
   }
-  const result = desc.value(workspacePath, onEvent);
+  const result = watchFn(workspacePath, onEvent);
   return typeof result === "function" ? result : null;
 }
 
