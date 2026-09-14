@@ -32,6 +32,9 @@
 
 **macOS (recommended)** — download `Pi Desktop-<version>-arm64.dmg` from [GitHub Releases](https://github.com/tanRdev/pi-desktop/releases).
 
+> [!NOTE]
+> Current GitHub Release builds are not Developer ID signed. If Gatekeeper blocks first launch, open the app from Finder with **Open**.
+
 **From source**
 
 ```bash
