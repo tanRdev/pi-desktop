@@ -1,13 +1,10 @@
 name: Release macOS
 
 on:
-  push:
-    tags:
-      - "v*"
   workflow_dispatch:
     inputs:
       tag:
-        description: Existing version tag to release (for example, v0.9.2)
+        description: Existing version tag to release (for example, v0.9.5)
         required: true
         type: string
 

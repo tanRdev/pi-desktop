@@ -111,14 +111,18 @@ export function inspectDirectory(rootDir) {
 
 function loadAsarModule(fromDir) {
   const require = createRequire(import.meta.url);
-  const resolved = require.resolve("@electron/asar", {
-    paths: [
-      fromDir,
-      path.join(fromDir, "apps", "desktop"),
-      path.join(fromDir, "node_modules", "electron-builder"),
-    ],
-  });
-  return require(resolved);
+  try {
+    return require("@electron/asar");
+  } catch {
+    const resolved = require.resolve("@electron/asar", {
+      paths: [
+        fromDir,
+        path.join(fromDir, "apps", "desktop"),
+        path.join(fromDir, "node_modules", "electron-builder"),
+      ],
+    });
+    return require(resolved);
+  }
 }
 
 export function inspectAsar(asarPath, resolveFrom = process.cwd()) {
@@ -133,7 +137,13 @@ export function inspectAsar(asarPath, resolveFrom = process.cwd()) {
     if (!JS_FILE_PATTERN.test(relativePath)) {
       continue;
     }
-    files[relativePath] = asar.extractFile(asarPath, listedPath);
+    // Native modules live beside the asar, not inside it.
+    if (relativePath.startsWith("node_modules/")) {
+      continue;
+    }
+    try {
+      files[relativePath] = asar.extractFile(asarPath, listedPath);
+    } catch {}
   }
   return inspectJavaScriptGraph(files);
 }
