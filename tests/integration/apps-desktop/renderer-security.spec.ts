@@ -693,7 +693,7 @@ describe("sanitizeIpcError: PII redaction", () => {
 
   it("redacts absolute POSIX paths", async () => {
     const { sanitizeIpcError } = await loadSanitizer();
-    const input = new Error("ENOENT: open '/Users/tan/.superset/secret.env'");
+    const input = new Error("ENOENT: open '/Users/tan/.config/secret.env'");
     const result = sanitizeIpcError(input, { log: () => undefined });
     expect(result.message).not.toMatch(/\/Users\/tan/);
     expect(result.message).toContain("<path>");
@@ -775,7 +775,7 @@ describe("scrubErrorMessage: direct unit test", () => {
   it("redacts secrets before paths (order matters)", async () => {
     const { scrubErrorMessage } = await loadSanitizer();
     const message =
-      "key sk-ABCDEF1234567890FAIL at /Users/tan/.superset/secret";
+      "key sk-ABCDEF1234567890FAIL at /Users/tan/.config/secret";
     const result = scrubErrorMessage(message);
     expect(result).not.toContain("sk-ABCDEF1234567890FAIL");
     expect(result).not.toMatch(/\/Users\/tan/);

@@ -8,27 +8,10 @@ playwright-report/
 test-results/
 .DS_Store
 *.log
-.pi/
 .todos/
-.agents/
-.factory/
-.opencode/
 .openlogs/
-.pidesk-agent/
-.superset/
 apps/desktop/build/
 
-# Local agent / planning artifacts (not published)
+# Local planning artifacts (not published)
 .scratch/
-CONTEXT.md
-CONTEXT-MAP.md
-AGENTS.md
-docs/agents/
-docs/adr/
 docs/archive/
-REFACTOR.md
-
-
-# Editor / agent local state
-.cursor/
-.claude/

@@ -20,7 +20,7 @@ describe("sanitizeIpcError", () => {
   it("replaces absolute POSIX paths in the message with <path>", async () => {
     const { sanitizeIpcError } = await loadModule();
     const input = new Error(
-      "ENOENT: no such file or directory, open '/Users/tan/.superset/secret.env'",
+      "ENOENT: no such file or directory, open '/Users/tan/.config/secret.env'",
     );
 
     const sanitized = sanitizeIpcError(input, { log: () => undefined });

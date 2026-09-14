@@ -12,7 +12,7 @@
  *      Phosphor icon we have picked for that role. This lets callers use the
  *      semantic name and lets us swap the underlying Phosphor icon in one place.
  *
- * Per house rules (AGENTS.md, REFACTOR.md §7.4) Phosphor remains the single icon
+ * By convention, Phosphor remains the single icon
  * surface in this codebase. Do not add `lucide-react`, `react-icons`, or inline
  * SVG alternatives; add a new alias here instead.
  */
