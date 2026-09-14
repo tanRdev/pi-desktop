@@ -30,10 +30,13 @@
 
 ## Install
 
-**macOS (recommended)** — download `Pi Desktop-<version>-arm64.dmg` from [GitHub Releases](https://github.com/tanRdev/pi-desktop/releases).
+**macOS (recommended)** — download `Pi Desktop-<version>-arm64.dmg` from [GitHub Releases](https://github.com/tanRdev/pi-desktop/releases). Drag **Pi Desktop** into Applications, then clear Gatekeeper quarantine:
 
-> [!NOTE]
-> Current GitHub Release builds are not Developer ID signed. If Gatekeeper blocks first launch, open the app from Finder with **Open**.
+```bash
+xattr -dr com.apple.quarantine "/Applications/Pi Desktop.app"
+```
+
+Release builds are unsigned (no paid Apple Developer ID). That command is what makes the download launch.
 
 **From source**
 
