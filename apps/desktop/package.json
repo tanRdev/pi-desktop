@@ -19,7 +19,7 @@
     "typecheck": "tsc --project tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@mariozechner/pi-coding-agent": "0.57.1",
+    "@earendil-works/pi-coding-agent": "0.79.0",
     "@monaco-editor/react": "^4.7.0",
     "@phosphor-icons/react": "^2.1.10",
     "@pi-desktop/contracts": "workspace:*",
@@ -52,7 +52,7 @@
     "react-virtuoso": "^4.18.5",
     "remark-breaks": "^4.0.0",
     "remark-gfm": "^4.0.1",
-    "sharp": "^0.33.5",
+    "sharp": "^0.35.3",
     "shiki": "^2.3.2",
     "sonner": "^2.0.7",
     "tailwind-merge": "^2.6.0",
@@ -64,11 +64,11 @@
     "@tailwindcss/vite": "^4.0.0",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
-    "@vitejs/plugin-react": "^6.0.1",
+    "@vitejs/plugin-react": "^5.2.0",
     "electron": "^41.2.1",
-    "electron-builder": "26.8.1",
+    "electron-builder": "26.15.3",
     "electron-vite": "5.0.0",
     "tailwindcss": "^4.0.0",
-    "vite": "8.0.0"
+    "vite": "7.3.6"
   }
 }

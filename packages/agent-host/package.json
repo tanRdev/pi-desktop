@@ -10,7 +10,7 @@
     "typecheck": "tsc --project tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@mariozechner/pi-coding-agent": "0.57.1",
+    "@earendil-works/pi-coding-agent": "0.79.0",
     "@pi-desktop/shared": "workspace:*",
     "effect": "^3.21.0"
   }

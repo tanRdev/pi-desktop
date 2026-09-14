@@ -1,0 +1,13 @@
+diff --git a/package.json b/package.json
+index 1af214042bb338911b73e67c882c36fefef7b6bf..d8de03257dd69af37334c4c5ab3c0de808769a61 100644
+--- a/package.json
++++ b/package.json
+@@ -92,7 +92,7 @@
+     "vite": "^7.1.10"
+   },
+   "dependencies": {
+-    "@babel/core": "^7.28.4",
++    "@babel/core": "^8.0.1",
+     "@babel/plugin-transform-arrow-functions": "^7.27.1",
+     "cac": "^6.7.14",
+     "esbuild": "^0.25.11",
