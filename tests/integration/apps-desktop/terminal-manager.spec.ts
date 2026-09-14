@@ -1,6 +1,9 @@
 import { EventEmitter } from "node:events";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import type { BrowserWindow } from "electron";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, onTestFinished, vi } from "vitest";
 import {
   TerminalManager,
   type TerminalManagerDependencies,
@@ -300,6 +303,22 @@ describe("terminalManager", () => {
   });
 
   it("creates local Pi CLI sessions with a worktree agent directory", async () => {
+    // Point PI_CLI_PATH at a stub so the test does not depend on a real `pi`
+    // install on the machine running it (CI runners do not have one).
+    const stubDir = mkdtempSync(path.join(tmpdir(), "pi-desktop-stub-"));
+    const stubPi = path.join(stubDir, "pi");
+    writeFileSync(stubPi, "#!/bin/sh\nexit 0\n", { mode: 0o755 });
+    const previousPiCliPath = process.env.PI_CLI_PATH;
+    process.env.PI_CLI_PATH = stubPi;
+    onTestFinished(() => {
+      if (previousPiCliPath === undefined) {
+        delete process.env.PI_CLI_PATH;
+      } else {
+        process.env.PI_CLI_PATH = previousPiCliPath;
+      }
+      rmSync(stubDir, { recursive: true, force: true });
+    });
+
     const harness = createTerminalManagerHarness();
     const session = harness.manager.create("pi-terminal", {
       cols: 120,
