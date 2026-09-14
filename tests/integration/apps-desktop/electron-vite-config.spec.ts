@@ -20,4 +20,17 @@ describe("electron-vite config", () => {
     ).toBe("cjs");
     expect(config.renderer?.build?.outDir).toBe("out/renderer");
   });
+
+  it("refuses empty shared main-process chunks", () => {
+    const output = config.main?.build?.rollupOptions?.output;
+    const outputOptions = Array.isArray(output) ? output[0] : output;
+    const plugins = config.main?.build?.rollupOptions?.plugins ?? [];
+
+    expect(outputOptions?.experimentalMinChunkSize).toBe(
+      Number.POSITIVE_INFINITY,
+    );
+    expect(
+      plugins.some((plugin) => plugin?.name === "reject-empty-main-chunks"),
+    ).toBe(true);
+  });
 });

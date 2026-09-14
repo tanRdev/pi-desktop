@@ -15,6 +15,7 @@ files:
 asarUnpack:
   - node_modules/node-pty/**/*.node
   - node_modules/node-pty/**/spawn-helper
+afterPack: ../../scripts/electron-builder-after-pack.cjs
 mac:
   icon: ../../build/icon.icns
   category: public.app-category.developer-tools

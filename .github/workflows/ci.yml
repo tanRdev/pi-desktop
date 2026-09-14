@@ -53,3 +53,9 @@ jobs:
 
       - name: Unit and integration tests
         run: bun run test
+
+      - name: Build desktop
+        run: bun run --filter @pi-desktop/desktop build
+
+      - name: Inspect packaged JavaScript graph
+        run: bun ./scripts/inspect-packaged-js.mjs apps/desktop/out

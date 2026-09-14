@@ -2,6 +2,7 @@ import { fileURLToPath } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "electron-vite";
+import type { Plugin } from "vite";
 
 const mainEntry = fileURLToPath(
   new URL("./src/main/index.ts", import.meta.url),
@@ -9,6 +10,25 @@ const mainEntry = fileURLToPath(
 const agentHostSessionServerEntry = fileURLToPath(
   new URL("./src/main/agent-host-session-server-entry.ts", import.meta.url),
 );
+
+function rejectEmptyMainChunks(): Plugin {
+  return {
+    name: "reject-empty-main-chunks",
+    generateBundle(_options, bundle) {
+      const empty = Object.values(bundle).filter(
+        (item) => item.type === "chunk" && item.code.trim().length === 0,
+      );
+      if (empty.length === 0) {
+        return;
+      }
+      const names = empty.map((item) => item.fileName).join(", ");
+      throw new Error(
+        `Main process build emitted empty JS chunk(s): ${names}. Shared empty chunks crash Electron on launch (missing named exports).`,
+      );
+    },
+  };
+}
+
 const workspaceAliases = {
   "@pi-desktop/contracts": fileURLToPath(
     new URL("../../packages/contracts/src", import.meta.url),
@@ -36,6 +56,14 @@ export default defineConfig({
           agentHostSessionServer: agentHostSessionServerEntry,
         },
         treeshake: false,
+        plugins: [rejectEmptyMainChunks()],
+        output: {
+          // Fold shared modules into each entry instead of emitting a
+          // cross-entry chunk. Vite 8/Rolldown has shipped empty shared
+          // chunks that remain imported (rolldown#6677); that is the
+          // v0.9.3 launch crash.
+          experimentalMinChunkSize: Number.POSITIVE_INFINITY,
+        },
       },
     },
   },

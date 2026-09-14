@@ -8,6 +8,10 @@ import {
 } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  assertJavaScriptGraph,
+  inspectDirectory,
+} from "./inspect-packaged-js.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, "..");
@@ -54,6 +58,11 @@ if (!existsSync(nodePtyDir)) {
 console.log(`📦 Staging desktop release v${version}...`);
 rmSync(stageDir, { force: true, recursive: true });
 mkdirSync(path.join(stageDir, "node_modules"), { recursive: true });
+
+assertJavaScriptGraph(
+  inspectDirectory(outDir),
+  `Desktop build output at ${outDir}`,
+);
 
 // Copy build output and native dependencies
 cpSync(outDir, path.join(stageDir, "out"), { recursive: true });

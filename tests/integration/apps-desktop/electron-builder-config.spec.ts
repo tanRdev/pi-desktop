@@ -16,5 +16,8 @@ describe("electron-builder config", () => {
     expect(config).toMatch(/\n\s*-\s*node_modules\/node-pty\/\*\*\/\*/);
     expect(config).not.toMatch(/apps\/desktop\/out\/\*\*/);
     expect(config).not.toMatch(/packages\/agent-host\/dist\/\*\*/);
+    expect(config).toMatch(
+      /afterPack:\s+\.\.\/\.\.\/scripts\/electron-builder-after-pack\.cjs/,
+    );
   });
 });
