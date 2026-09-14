@@ -4,9 +4,12 @@ const spawnMock = vi.fn();
 const resolvePiPathMock = vi.fn(() => null as string | null);
 const buildEnhancedPathMock = vi.fn(() => "/enhanced/bin:/usr/bin");
 
-vi.mock("node:child_process", () => ({
-  spawn: (...args: unknown[]) => spawnMock(...args),
-}));
+vi.mock("node:child_process", () => {
+  const mocked = {
+    spawn: (...args: unknown[]) => spawnMock(...args),
+  };
+  return { ...mocked, default: mocked };
+});
 
 vi.mock("./resolve-pi-path", () => ({
   resolvePiPath: () => resolvePiPathMock(),
@@ -23,10 +26,11 @@ vi.mock("./runtime-reconcile", () => ({
 
 vi.mock("node:fs", async (importOriginal) => {
   const actual = await importOriginal<typeof import("node:fs")>();
-  return {
+  const mocked = {
     ...actual,
     existsSync: vi.fn(() => true),
   };
+  return { ...mocked, default: mocked };
 });
 
 import { LocalThreadRuntimeManager } from "./local-thread-runtime-manager";

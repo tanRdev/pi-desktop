@@ -148,7 +148,7 @@ describe("Tooltip", () => {
     render(<TooltipDemo content="Styled" />);
     await openTooltip();
     const content = document.querySelector("[data-slot='tooltip-content']");
-    expect(content?.className).toContain("border-white/[0.06]");
+    expect(content?.className).toContain("border-white/[0.08]");
     expect(content?.className).toContain("bg-[var(--color-bg-secondary)]");
     expect(content?.className).toContain("max-w-xs");
   });

@@ -15,6 +15,7 @@
         "@testing-library/react": "^16.3.2",
         "@testing-library/user-event": "^14.6.1",
         "@types/node": "25.5.0",
+        "effect": "^3.21.0",
         "jsdom": "^29.0.2",
         "typescript": "5.9.3",
         "vitest": "4.1.0",
@@ -22,7 +23,7 @@
     },
     "apps/desktop": {
       "name": "@pi-desktop/desktop",
-      "version": "0.8.0",
+      "version": "0.9.1",
       "dependencies": {
         "@mariozechner/pi-coding-agent": "0.57.1",
         "@monaco-editor/react": "^4.7.0",

@@ -27,6 +27,7 @@ type MainWindowDependencies = {
   resolveRendererTarget: typeof resolveRendererTarget;
   resolveAppIconPath?: typeof resolveAppIconPath;
   applyDockIcon?: (iconPath: string) => void;
+  isPackaged?: boolean;
 };
 
 type CreateMainWindowWithDependenciesInput = {
@@ -57,7 +58,7 @@ export async function createMainWindowWithDependencies({
 }: CreateMainWindowWithDependenciesInput): Promise<BrowserWindow> {
   const resolveIcon = dependencies.resolveAppIconPath ?? resolveAppIconPath;
   const iconPath = resolveIcon(
-    app.isPackaged,
+    dependencies.isPackaged ?? app?.isPackaged ?? false,
     process.resourcesPath,
     mainEntryUrl,
   );

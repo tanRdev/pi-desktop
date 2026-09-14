@@ -774,8 +774,7 @@ describe("sanitizeIpcError: PII redaction", () => {
 describe("scrubErrorMessage: direct unit test", () => {
   it("redacts secrets before paths (order matters)", async () => {
     const { scrubErrorMessage } = await loadSanitizer();
-    const message =
-      "key sk-ABCDEF1234567890FAIL at /Users/tan/.config/secret";
+    const message = "key sk-ABCDEF1234567890FAIL at /Users/tan/.config/secret";
     const result = scrubErrorMessage(message);
     expect(result).not.toContain("sk-ABCDEF1234567890FAIL");
     expect(result).not.toMatch(/\/Users\/tan/);

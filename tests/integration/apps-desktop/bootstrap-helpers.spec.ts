@@ -103,6 +103,7 @@ describe("bootstrap helpers (RED)", () => {
       value: "http://127.0.0.1:5173",
     };
     const resolveRendererTarget = vi.fn(() => rendererTarget);
+    const resolveAppIconPath = vi.fn(() => null);
 
     const result = await createMainWindowWithDependencies({
       env: {
@@ -117,6 +118,8 @@ describe("bootstrap helpers (RED)", () => {
         shouldShowMainWindow,
         shouldDeferWindowShowUntilReady,
         resolveRendererTarget,
+        resolveAppIconPath,
+        isPackaged: false,
       },
     });
 
@@ -124,8 +127,14 @@ describe("bootstrap helpers (RED)", () => {
     expect(resolvePreloadTarget).toHaveBeenCalledWith(
       "file:///tmp/out/main/index.js",
     );
+    expect(resolveAppIconPath).toHaveBeenCalledWith(
+      false,
+      process.resourcesPath,
+      "file:///tmp/out/main/index.js",
+    );
     expect(createMainWindowOptions).toHaveBeenCalledWith({
       preloadPath: "/tmp/preload/index.cjs",
+      iconPath: null,
     });
     expect(BrowserWindow).toHaveBeenCalledWith({
       show: false,
