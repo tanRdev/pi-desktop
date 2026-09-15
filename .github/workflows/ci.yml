@@ -61,3 +61,11 @@ jobs:
 
       - name: Inspect packaged JavaScript graph
         run: bun ./scripts/inspect-packaged-js.mjs apps/desktop/out
+
+      - name: Reject shared main-process chunks
+        run: |
+          if compgen -G "apps/desktop/out/main/chunks/*.js" > /dev/null; then
+            echo "Shared main-process chunks were emitted:" >&2
+            ls -la apps/desktop/out/main/chunks >&2
+            exit 1
+          fi

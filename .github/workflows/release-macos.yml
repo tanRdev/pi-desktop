@@ -33,9 +33,10 @@ jobs:
           bun run typecheck
           bun run test
 
-      - name: Build, sign, notarize, and verify
+      - name: Build, inspect, and optionally sign
         run: bun run release:mac
         env:
+          NODE_OPTIONS: --max-old-space-size=8192
           CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -60,4 +61,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
-        run: gh release edit "${RELEASE_TAG}" --draft=false --latest
+        run: bun ./scripts/publish-verified-release.mjs "${RELEASE_TAG}"
