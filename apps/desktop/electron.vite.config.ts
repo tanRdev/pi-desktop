@@ -58,11 +58,10 @@ export default defineConfig({
         treeshake: false,
         plugins: [rejectEmptyMainChunks()],
         output: {
-          // Fold shared modules into each entry instead of emitting a
-          // cross-entry chunk. Vite 8/Rolldown has shipped empty shared
-          // chunks that remain imported (rolldown#6677); that is the
-          // v0.9.3 launch crash.
-          experimentalMinChunkSize: Number.POSITIVE_INFINITY,
+          // Fold empty/tiny shared chunks into their importers. A 0-byte
+          // shared chunk is the v0.9.3 launch crash (rolldown#6677). Infinity
+          // OOMs electron-vite on GitHub-hosted runners.
+          experimentalMinChunkSize: 512,
         },
       },
     },

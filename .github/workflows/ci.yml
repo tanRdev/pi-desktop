@@ -56,6 +56,8 @@ jobs:
 
       - name: Build desktop
         run: bun run --filter @pi-desktop/desktop build
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
 
       - name: Inspect packaged JavaScript graph
         run: bun ./scripts/inspect-packaged-js.mjs apps/desktop/out

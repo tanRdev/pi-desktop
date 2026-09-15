@@ -26,9 +26,7 @@ describe("electron-vite config", () => {
     const outputOptions = Array.isArray(output) ? output[0] : output;
     const plugins = config.main?.build?.rollupOptions?.plugins ?? [];
 
-    expect(outputOptions?.experimentalMinChunkSize).toBe(
-      Number.POSITIVE_INFINITY,
-    );
+    expect(outputOptions?.experimentalMinChunkSize).toBe(512);
     expect(
       plugins.some((plugin) => plugin?.name === "reject-empty-main-chunks"),
     ).toBe(true);
