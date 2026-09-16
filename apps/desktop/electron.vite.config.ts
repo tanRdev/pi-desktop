@@ -7,16 +7,20 @@ import type { Plugin } from "vite";
 const mainEntry = fileURLToPath(
   new URL("./src/main/index.ts", import.meta.url),
 );
-const agentHostSessionServerEntry = fileURLToPath(
-  new URL("./src/main/agent-host-session-server-entry.ts", import.meta.url),
-);
 
 function rejectEmptyMainChunks(): Plugin {
   return {
     name: "reject-empty-main-chunks",
     generateBundle(_options, bundle) {
       const empty = Object.values(bundle).filter(
-        (item) => item.type === "chunk" && item.code.trim().length === 0,
+        (item) =>
+          (item.type === "chunk" && item.code.trim().length === 0) ||
+          (item.type === "asset" &&
+            typeof item.fileName === "string" &&
+            /\.(?:[cm]?js)$/.test(item.fileName) &&
+            (typeof item.source === "string"
+              ? item.source.trim().length === 0
+              : Buffer.from(item.source).toString("utf8").trim().length === 0)),
       );
       if (empty.length === 0) {
         return;
@@ -53,15 +57,14 @@ export default defineConfig({
         external: ["electron", "node-pty"],
         input: {
           index: mainEntry,
-          agentHostSessionServer: agentHostSessionServerEntry,
         },
         treeshake: false,
         plugins: [rejectEmptyMainChunks()],
         output: {
-          // Fold empty/tiny shared chunks into their importers. A 0-byte
-          // shared chunk is the v0.9.3 launch crash (rolldown#6677). Infinity
-          // OOMs electron-vite on GitHub-hosted runners.
-          experimentalMinChunkSize: 512,
+          // Single main entry. The agent session server is bundled separately
+          // via `?modulePath`. Two Rollup inputs here created the shared
+          // empty chunk that crashed v0.9.3.
+          inlineDynamicImports: true,
         },
       },
     },
