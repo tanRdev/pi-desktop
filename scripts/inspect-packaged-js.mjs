@@ -9,6 +9,10 @@ const RELATIVE_SPECIFIER_PATTERN =
   /(?:import|export)\s+["'](\.[^"']+)["']|(?:import|export)(?:\s+type)?(?:\s*\{[^}]*\}|\s+\*\s+as\s+[\w$]+|\s+\*|[\s\w*,]+)\s*from\s*["'](\.[^"']+)["']|import\s*\(\s*["'](\.[^"']+)["']\s*\)/g;
 const NAMED_FROM_PATTERN =
   /(?:import|export)\s*\{([^}]*)\}\s*from\s*["'](\.[^"']+)["']/g;
+const LOCAL_EXPORT_BRACE_PATTERN = /\bexport\s*\{([^}]*)\}(\s*from\b)?/g;
+const STAR_REEXPORT_PATTERN = /\bexport\s*\*\s*from\s*["'](\.[^"']+)["']/g;
+const NAMED_REEXPORT_PATTERN =
+  /\bexport\s*\{([^}]*)\}\s*from\s*["'](\.[^"']+)["']/g;
 
 function toPosixPath(filePath) {
   return filePath.split(path.sep).join("/");
@@ -16,6 +20,18 @@ function toPosixPath(filePath) {
 
 export function asarEntryPath(listedPath) {
   return toPosixPath(listedPath).replace(/^\/+/, "");
+}
+
+export function isNodeModulesPath(relativePath) {
+  return toPosixPath(relativePath).split("/").includes("node_modules");
+}
+
+export function isMainProcessJs(relativePath) {
+  return /(^|\/)main\//.test(toPosixPath(relativePath));
+}
+
+function shouldInspectJsPath(relativePath) {
+  return JS_FILE_PATTERN.test(relativePath) && !isNodeModulesPath(relativePath);
 }
 
 function walkJsFiles(rootDir, currentRelativeDir = "") {
@@ -26,6 +42,9 @@ function walkJsFiles(rootDir, currentRelativeDir = "") {
 
   const files = [];
   for (const entry of readdirSync(absoluteDir, { withFileTypes: true })) {
+    if (entry.name === "node_modules") {
+      continue;
+    }
     const relativePath = toPosixPath(path.join(currentRelativeDir, entry.name));
     if (entry.isDirectory()) {
       files.push(...walkJsFiles(rootDir, relativePath));
@@ -103,7 +122,10 @@ export function moduleExportsName(source, name) {
   ) {
     return true;
   }
-  for (const match of source.matchAll(/\bexport\s*\{([^}]*)\}/g)) {
+  for (const match of source.matchAll(LOCAL_EXPORT_BRACE_PATTERN)) {
+    if (match[2]) {
+      continue;
+    }
     if (
       parseSpecifierBindings(match[1] ?? "").some(
         (binding) => binding.exported === name,
@@ -113,7 +135,7 @@ export function moduleExportsName(source, name) {
     }
   }
   return Boolean(
-    new RegExp(`\\bexport\\s+\\*\\s+as\\s+${escaped}\\s+from\\b`).test(source),
+    new RegExp(`\\bexport\\s*\\*\\s*as\\s+${escaped}\\s+from\\b`).test(source),
   );
 }
 
@@ -135,12 +157,24 @@ export function moduleHasExport(
   if (moduleExportsName(source, name)) {
     return true;
   }
-  for (const match of source.matchAll(
-    /\bexport\s+\*\s+from\s*["'](\.[^"']+)["']/g,
-  )) {
+  for (const match of source.matchAll(STAR_REEXPORT_PATTERN)) {
     const target = resolveRelativeImport(relativePath, match[1]);
     if (target && moduleHasExport(files, target, name, visiting)) {
       return true;
+    }
+  }
+  for (const match of source.matchAll(NAMED_REEXPORT_PATTERN)) {
+    const target = resolveRelativeImport(relativePath, match[2]);
+    if (!target) {
+      continue;
+    }
+    for (const binding of parseSpecifierBindings(match[1] ?? "")) {
+      if (
+        binding.exported === name &&
+        moduleHasExport(files, target, binding.local, visiting)
+      ) {
+        return true;
+      }
     }
   }
   return false;
@@ -160,11 +194,16 @@ function resolveRelativeImport(fromRelativePath, specifier) {
  * Inspect a JavaScript module graph for empty files, dangling relative ESM
  * imports, and named imports that the target module does not export.
  * `files` is a map of posix-relative path → file bytes.
+ * Named-export checks are limited to main-process files; renderer/preload
+ * bundles and `node_modules` are skipped to avoid CJS/minifier false positives.
  */
 export function inspectJavaScriptGraph(files) {
   const problems = [];
 
   for (const [relativePath, bytes] of Object.entries(files)) {
+    if (isNodeModulesPath(relativePath)) {
+      continue;
+    }
     if (isEmptyBytes(bytes)) {
       problems.push({
         kind: "empty",
@@ -185,7 +224,7 @@ export function inspectJavaScriptGraph(files) {
         });
         continue;
       }
-      if (!(target in files)) {
+      if (!(target in files) || isNodeModulesPath(target)) {
         problems.push({
           kind: "missing-import",
           file: relativePath,
@@ -202,9 +241,18 @@ export function inspectJavaScriptGraph(files) {
       }
     }
 
+    if (!isMainProcessJs(relativePath)) {
+      continue;
+    }
+
     for (const { specifier, names } of extractNamedImports(source)) {
       const target = resolveRelativeImport(relativePath, specifier);
-      if (!target || !(target in files) || isEmptyBytes(files[target])) {
+      if (
+        !target ||
+        !(target in files) ||
+        isNodeModulesPath(target) ||
+        isEmptyBytes(files[target])
+      ) {
         continue;
       }
       for (const name of names) {
@@ -259,7 +307,7 @@ export function inspectAsar(asarPath, resolveFrom = process.cwd()) {
   const extractErrors = [];
   for (const listedPath of listed) {
     const relativePath = asarEntryPath(listedPath);
-    if (!JS_FILE_PATTERN.test(relativePath)) {
+    if (!shouldInspectJsPath(relativePath)) {
       continue;
     }
     try {

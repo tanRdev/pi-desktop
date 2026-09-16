@@ -32,6 +32,10 @@ export function isDeveloperIdSignature(signature) {
   );
 }
 
+export function isUsableDeveloperIdSignature(codesignStatus, signature) {
+  return codesignStatus === 0 && isDeveloperIdSignature(signature);
+}
+
 function parsePrereleaseIdentifiers(prerelease) {
   return prerelease.split(".").map((part) => {
     const value = Number.parseInt(part, 10);
@@ -110,10 +114,18 @@ export function compareReleaseTags(left, right) {
   return comparePrerelease(leftVersion.prerelease, rightVersion.prerelease);
 }
 
+function isStableReleaseTag(tag) {
+  const parsed = parseReleaseTag(tag);
+  return Boolean(parsed && !parsed.prerelease);
+}
+
 export function shouldMarkReleaseLatest(tag, publishedTags) {
-  return publishedTags.every(
-    (publishedTag) => compareReleaseTags(tag, publishedTag) >= 0,
-  );
+  if (!isStableReleaseTag(tag)) {
+    return false;
+  }
+  return publishedTags
+    .filter((publishedTag) => isStableReleaseTag(publishedTag))
+    .every((publishedTag) => compareReleaseTags(tag, publishedTag) >= 0);
 }
 
 export function githubReleaseEditArgs(tag, publishedTags) {

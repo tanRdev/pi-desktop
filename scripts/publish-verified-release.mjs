@@ -3,7 +3,13 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { githubReleaseEditArgs } from "./release-helpers.mjs";
 
-const RELEASE_LIST_LIMIT = "1000";
+export const GITHUB_PUBLISHED_RELEASE_TAGS_ARGS = [
+  "api",
+  "--paginate",
+  "repos/{owner}/{repo}/releases?per_page=100",
+  "--jq",
+  ".[] | select(.draft == false) | .tag_name",
+];
 
 function run(command, args) {
   const result = spawnSync(command, args, { encoding: "utf8" });
@@ -17,19 +23,17 @@ function run(command, args) {
   return result.stdout ?? "";
 }
 
+export function parsePublishedReleaseTagLines(stdout) {
+  return String(stdout)
+    .split(/\r?\n/)
+    .map((line) => line.trim().replace(/^"|"$/g, ""))
+    .filter(Boolean);
+}
+
 export function listPublishedReleaseTags() {
-  const listed = JSON.parse(
-    run("gh", [
-      "release",
-      "list",
-      "--exclude-drafts",
-      "--limit",
-      RELEASE_LIST_LIMIT,
-      "--json",
-      "tagName",
-    ]) || "[]",
+  return parsePublishedReleaseTagLines(
+    run("gh", GITHUB_PUBLISHED_RELEASE_TAGS_ARGS),
   );
-  return listed.map((release) => release.tagName);
 }
 
 export function publishVerifiedRelease(tag) {

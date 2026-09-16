@@ -15,6 +15,7 @@
     "build": "electron-vite build",
     "dev": "electron-vite dev",
     "dist:mac": "bun run build && bun ../../scripts/stage-desktop-release.mjs && electron-builder --projectDir . --config ../../electron-builder.yml --mac dmg zip --arm64",
+    "pack:mac:dir": "CSC_IDENTITY_AUTO_DISCOVERY=false bun ../../scripts/stage-desktop-release.mjs && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --projectDir . --config ../../electron-builder.yml --mac dir --arm64",
     "postinstall": "electron-rebuild -f -w node-pty",
     "typecheck": "tsc --project tsconfig.json --noEmit"
   },

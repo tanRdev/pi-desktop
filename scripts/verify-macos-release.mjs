@@ -4,7 +4,7 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { assertJavaScriptGraph, inspectAsar } from "./inspect-packaged-js.mjs";
-import { isDeveloperIdSignature } from "./release-helpers.mjs";
+import { isUsableDeveloperIdSignature } from "./release-helpers.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, "..");
@@ -50,8 +50,12 @@ function verifyRelease() {
   const asarPath = path.join(appPath, "Contents", "Resources", "app.asar");
   assertJavaScriptGraph(inspectAsar(asarPath, repoRoot), asarPath);
 
-  const signature = run("codesign", ["-dv", "--verbose=4", appPath]);
-  if (!isDeveloperIdSignature(signature)) {
+  const display = spawnSync("codesign", ["-dv", "--verbose=4", appPath], {
+    cwd: repoRoot,
+    encoding: "utf8",
+  });
+  const signature = `${display.stdout ?? ""}${display.stderr ?? ""}`.trim();
+  if (!isUsableDeveloperIdSignature(display.status ?? 1, signature)) {
     console.log(
       `✅ Verified unsigned Pi Desktop ${version} artifacts and JavaScript graph.`,
     );
