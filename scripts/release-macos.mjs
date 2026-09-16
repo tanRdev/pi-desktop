@@ -2,6 +2,10 @@
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  hasNotarizationCredentials,
+  withBuildHeap,
+} from "./release-helpers.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, "..");
@@ -11,7 +15,7 @@ function fail(message) {
   process.exit(1);
 }
 
-function hasKeychainDeveloperId() {
+export function hasKeychainDeveloperId() {
   const result = spawnSync(
     "security",
     ["find-identity", "-v", "-p", "codesigning"],
@@ -22,42 +26,40 @@ function hasKeychainDeveloperId() {
   );
 }
 
-const hasSigningMaterial =
-  Boolean(process.env.CSC_LINK) || hasKeychainDeveloperId();
-if (!hasSigningMaterial) {
-  fail(
-    "Missing Developer ID Application signing identity. Set CSC_LINK and CSC_KEY_PASSWORD or install the certificate in the login keychain.",
+export function hasSigningMaterial(env = process.env) {
+  return Boolean(env.CSC_LINK) || hasKeychainDeveloperId();
+}
+
+function runRelease() {
+  const signing = hasSigningMaterial();
+  if (signing && !hasNotarizationCredentials()) {
+    fail(
+      "Missing Apple notarization credentials. Configure APPLE_ID credentials, Notary API credentials, or APPLE_KEYCHAIN_PROFILE.",
+    );
+  }
+  if (!signing) {
+    console.log(
+      "No Developer ID signing identity; building an unsigned macOS release.",
+    );
+  }
+
+  const build = spawnSync(
+    "bun",
+    ["run", "--filter", "@pi-desktop/desktop", "dist:mac"],
+    { cwd: repoRoot, stdio: "inherit", env: withBuildHeap(process.env) },
   );
-}
+  if (build.status !== 0) {
+    process.exit(build.status ?? 1);
+  }
 
-const hasAppleIdCredentials =
-  Boolean(process.env.APPLE_ID) &&
-  Boolean(process.env.APPLE_APP_SPECIFIC_PASSWORD) &&
-  Boolean(process.env.APPLE_TEAM_ID);
-const hasApiKeyCredentials =
-  Boolean(process.env.APPLE_API_KEY) &&
-  Boolean(process.env.APPLE_API_KEY_ID) &&
-  Boolean(process.env.APPLE_API_ISSUER);
-const hasKeychainProfile = Boolean(process.env.APPLE_KEYCHAIN_PROFILE);
-
-if (!hasAppleIdCredentials && !hasApiKeyCredentials && !hasKeychainProfile) {
-  fail(
-    "Missing Apple notarization credentials. Configure APPLE_ID credentials, Notary API credentials, or APPLE_KEYCHAIN_PROFILE.",
+  const verify = spawnSync(
+    "node",
+    [path.join(scriptDir, "verify-macos-release.mjs")],
+    { cwd: repoRoot, stdio: "inherit", env: withBuildHeap(process.env) },
   );
+  process.exit(verify.status ?? 1);
 }
 
-const build = spawnSync(
-  "bun",
-  ["run", "--filter", "@pi-desktop/desktop", "dist:mac"],
-  { cwd: repoRoot, stdio: "inherit", env: process.env },
-);
-if (build.status !== 0) {
-  process.exit(build.status ?? 1);
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  runRelease();
 }
-
-const verify = spawnSync(
-  "node",
-  [path.join(scriptDir, "verify-macos-release.mjs")],
-  { cwd: repoRoot, stdio: "inherit", env: process.env },
-);
-process.exit(verify.status ?? 1);
