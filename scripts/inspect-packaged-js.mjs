@@ -1,5 +1,6 @@
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readdirSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -48,17 +49,29 @@ function extractRelativeSpecifiers(source) {
   return specifiers;
 }
 
-function parseImportedNames(clause) {
+function parseSpecifierBindings(clause) {
   return clause
     .split(",")
     .map((part) => part.trim())
     .filter((part) => part.length > 0 && part !== "type")
     .map((part) => {
       const normalized = part.replace(/^type\s+/, "").trim();
-      const [exportedName] = normalized.split(/\s+as\s+/);
-      return exportedName?.trim();
+      if (!normalized || normalized === "...") {
+        return null;
+      }
+      const pieces = normalized.split(/\s+as\s+/);
+      const local = pieces[0]?.trim();
+      const exported = (pieces[1] ?? pieces[0])?.trim();
+      if (!local || !exported) {
+        return null;
+      }
+      return { local, exported };
     })
-    .filter((name) => Boolean(name) && name !== "...");
+    .filter(Boolean);
+}
+
+function parseImportedNames(clause) {
+  return parseSpecifierBindings(clause).map((binding) => binding.local);
 }
 
 function extractNamedImports(source) {
@@ -81,19 +94,56 @@ export function moduleExportsName(source, name) {
   if (name === "default") {
     return /\bexport\s+default\b/.test(source);
   }
-  if (/\bexport\s+\*\s+from\b/.test(source)) {
-    return true;
-  }
   const escaped = escapeRegExp(name);
-  return (
+  if (
     new RegExp(
       `\\bexport\\s+(?:async\\s+)?(?:function\\*?|class)\\s+${escaped}\\b`,
     ).test(source) ||
-    new RegExp(`\\bexport\\s+(?:const|let|var)\\s+${escaped}\\b`).test(
-      source,
-    ) ||
-    new RegExp(`\\bexport\\s*\\{[^}]*\\b${escaped}\\b`).test(source)
+    new RegExp(`\\bexport\\s+(?:const|let|var)\\s+${escaped}\\b`).test(source)
+  ) {
+    return true;
+  }
+  for (const match of source.matchAll(/\bexport\s*\{([^}]*)\}/g)) {
+    if (
+      parseSpecifierBindings(match[1] ?? "").some(
+        (binding) => binding.exported === name,
+      )
+    ) {
+      return true;
+    }
+  }
+  return Boolean(
+    new RegExp(`\\bexport\\s+\\*\\s+as\\s+${escaped}\\s+from\\b`).test(source),
   );
+}
+
+export function moduleHasExport(
+  files,
+  relativePath,
+  name,
+  visiting = new Set(),
+) {
+  if (visiting.has(relativePath)) {
+    return false;
+  }
+  visiting.add(relativePath);
+  const bytes = files[relativePath];
+  if (!bytes || isEmptyBytes(bytes)) {
+    return false;
+  }
+  const source = bytes.toString("utf8");
+  if (moduleExportsName(source, name)) {
+    return true;
+  }
+  for (const match of source.matchAll(
+    /\bexport\s+\*\s+from\s*["'](\.[^"']+)["']/g,
+  )) {
+    const target = resolveRelativeImport(relativePath, match[1]);
+    if (target && moduleHasExport(files, target, name, visiting)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 function isEmptyBytes(bytes) {
@@ -157,9 +207,8 @@ export function inspectJavaScriptGraph(files) {
       if (!target || !(target in files) || isEmptyBytes(files[target])) {
         continue;
       }
-      const targetSource = files[target].toString("utf8");
       for (const name of names) {
-        if (!moduleExportsName(targetSource, name)) {
+        if (!moduleHasExport(files, target, name)) {
           problems.push({
             kind: "missing-export",
             file: relativePath,
@@ -249,10 +298,35 @@ export function assertJavaScriptGraph(problems, label) {
   );
 }
 
+export async function packDirectoryAndInspect(
+  rootDir,
+  resolveFrom = process.cwd(),
+) {
+  const asar = loadAsarModule(resolveFrom);
+  const tempDir = mkdtempSync(path.join(tmpdir(), "pi-pack-asar-"));
+  const asarPath = path.join(tempDir, "app.asar");
+  await asar.createPackage(path.resolve(rootDir), asarPath);
+  const problems = inspectAsar(asarPath, resolveFrom);
+  assertJavaScriptGraph(problems, asarPath);
+  console.log(
+    `JavaScript graph OK: ${asarPath} (packed from ${path.resolve(rootDir)})`,
+  );
+  return problems;
+}
+
 function runCli(argv) {
   const target = argv[0];
+  if (target === "--pack-dir") {
+    const directory = argv[1];
+    if (!directory) {
+      throw new Error("Usage: inspect-packaged-js.mjs --pack-dir <directory>");
+    }
+    return packDirectoryAndInspect(directory);
+  }
   if (!target) {
-    throw new Error("Usage: inspect-packaged-js.mjs <directory-or-asar>");
+    throw new Error(
+      "Usage: inspect-packaged-js.mjs <directory-or-asar> | --pack-dir <directory>",
+    );
   }
   const resolved = path.resolve(target);
   const problems = resolved.endsWith(".asar")
@@ -260,13 +334,14 @@ function runCli(argv) {
     : inspectDirectory(resolved);
   assertJavaScriptGraph(problems, resolved);
   console.log(`JavaScript graph OK: ${resolved}`);
+  return problems;
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  try {
-    runCli(process.argv.slice(2));
-  } catch (error) {
-    console.error(error instanceof Error ? error.message : error);
-    process.exitCode = 1;
-  }
+  Promise.resolve()
+    .then(() => runCli(process.argv.slice(2)))
+    .catch((error) => {
+      console.error(error instanceof Error ? error.message : error);
+      process.exitCode = 1;
+    });
 }

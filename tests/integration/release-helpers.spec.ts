@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   compareReleaseTags,
+  githubReleaseEditArgs,
   isDeveloperIdSignature,
   shouldMarkReleaseLatest,
   withBuildHeap,
@@ -30,5 +31,27 @@ describe("release helpers", () => {
     expect(compareReleaseTags("v0.9.5", "v0.9.3")).toBeGreaterThan(0);
     expect(shouldMarkReleaseLatest("v0.9.5", ["v0.9.3", "v0.9.5"])).toBe(true);
     expect(shouldMarkReleaseLatest("v0.9.3", ["v0.9.5"])).toBe(false);
+  });
+
+  it("ranks a release above a matching prerelease", () => {
+    expect(compareReleaseTags("v1.0.0", "v1.0.0-beta.1")).toBeGreaterThan(0);
+    expect(shouldMarkReleaseLatest("v1.0.0-beta.1", ["v1.0.0"])).toBe(false);
+  });
+
+  it("explicitly sets --latest=false so draft publish cannot steal latest", () => {
+    expect(githubReleaseEditArgs("v0.9.5", ["v0.9.3"])).toEqual([
+      "release",
+      "edit",
+      "v0.9.5",
+      "--draft=false",
+      "--latest=true",
+    ]);
+    expect(githubReleaseEditArgs("v0.9.3", ["v0.9.5"])).toEqual([
+      "release",
+      "edit",
+      "v0.9.3",
+      "--draft=false",
+      "--latest=false",
+    ]);
   });
 });

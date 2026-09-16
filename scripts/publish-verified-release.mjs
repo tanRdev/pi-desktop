@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { shouldMarkReleaseLatest } from "./release-helpers.mjs";
+import { githubReleaseEditArgs } from "./release-helpers.mjs";
+
+const RELEASE_LIST_LIMIT = "1000";
 
 function run(command, args) {
   const result = spawnSync(command, args, { encoding: "utf8" });
@@ -15,27 +17,27 @@ function run(command, args) {
   return result.stdout ?? "";
 }
 
-function publishVerifiedRelease(tag) {
-  if (!tag) {
-    throw new Error("Usage: publish-verified-release.mjs <tag>");
-  }
-
+export function listPublishedReleaseTags() {
   const listed = JSON.parse(
     run("gh", [
       "release",
       "list",
       "--exclude-drafts",
       "--limit",
-      "50",
+      RELEASE_LIST_LIMIT,
       "--json",
       "tagName",
     ]) || "[]",
   );
-  const publishedTags = listed.map((release) => release.tagName);
-  const args = ["release", "edit", tag, "--draft=false"];
-  if (shouldMarkReleaseLatest(tag, publishedTags)) {
-    args.push("--latest");
+  return listed.map((release) => release.tagName);
+}
+
+export function publishVerifiedRelease(tag) {
+  if (!tag) {
+    throw new Error("Usage: publish-verified-release.mjs <tag>");
   }
+
+  const args = githubReleaseEditArgs(tag, listPublishedReleaseTags());
   const result = spawnSync("gh", args, { stdio: "inherit" });
   if (result.status !== 0) {
     process.exit(result.status ?? 1);

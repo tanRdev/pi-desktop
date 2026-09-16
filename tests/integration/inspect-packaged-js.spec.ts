@@ -10,6 +10,7 @@ import {
   inspectDirectory,
   inspectJavaScriptGraph,
   moduleExportsName,
+  packDirectoryAndInspect,
 } from "../../scripts/inspect-packaged-js.mjs";
 
 const require = createRequire(import.meta.url);
@@ -88,6 +89,27 @@ describe("inspectJavaScriptGraph", () => {
       }),
     ]);
   });
+
+  it("follows export * from instead of treating star re-exports as universal", () => {
+    const missing = inspectJavaScriptGraph({
+      "index.js": Buffer.from('import { ot } from "./barrel.js";\n'),
+      "barrel.js": Buffer.from('export * from "./lib.js";\n'),
+      "lib.js": Buffer.from("export const other = 1;\n"),
+    });
+    expect(missing).toEqual([
+      expect.objectContaining({
+        kind: "missing-export",
+        file: "index.js",
+      }),
+    ]);
+
+    const present = inspectJavaScriptGraph({
+      "index.js": Buffer.from('import { ot } from "./barrel.js";\n'),
+      "barrel.js": Buffer.from('export * from "./lib.js";\n'),
+      "lib.js": Buffer.from("export const ot = 1;\n"),
+    });
+    expect(present).toEqual([]);
+  });
 });
 
 describe("moduleExportsName", () => {
@@ -95,6 +117,15 @@ describe("moduleExportsName", () => {
     expect(moduleExportsName("export { foo as ot };\n", "ot")).toBe(true);
     expect(moduleExportsName("export{ot};\n", "ot")).toBe(true);
     expect(moduleExportsName("export const other = 1;\n", "ot")).toBe(false);
+  });
+
+  it("does not treat the local name of `export { ot as n }` as exported", () => {
+    expect(moduleExportsName("export { ot as n };\n", "ot")).toBe(false);
+    expect(moduleExportsName("export { ot as n };\n", "n")).toBe(true);
+  });
+
+  it("does not treat export * from as exporting every name", () => {
+    expect(moduleExportsName('export * from "./lib.js";\n', "ot")).toBe(false);
   });
 });
 
@@ -168,5 +199,20 @@ describe("inspectAsar", () => {
 
     const problems = inspectAsar(asarPath, process.cwd());
     expect(problems).toEqual([]);
+  });
+
+  it("packs a directory to asar and inspects the archive", async () => {
+    const rootDir = createFixtureRoot();
+    mkdirSync(path.join(rootDir, "out/main"), { recursive: true });
+    writeFileSync(
+      path.join(rootDir, "out/main/index.js"),
+      'import { ot } from "./lib.js";\nexport { ot };\n',
+    );
+    writeFileSync(
+      path.join(rootDir, "out/main/lib.js"),
+      "export const ot = 1;\n",
+    );
+
+    await expect(packDirectoryAndInspect(rootDir)).resolves.toEqual([]);
   });
 });
