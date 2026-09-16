@@ -53,7 +53,7 @@ describe("assertMainProcessLayout", () => {
     );
   });
 
-  it("rejects shared chunks", () => {
+  it("rejects the shared chunks directory even when it is empty", () => {
     const mainOutDir = createFixtureRoot();
     mkdirSync(path.join(mainOutDir, "chunks"));
     writeFileSync(
@@ -64,11 +64,6 @@ describe("assertMainProcessLayout", () => {
       path.join(mainOutDir, "agent-host-session-server-entry-abc123.js"),
       "export const start = 1;\n",
     );
-    writeFileSync(
-      path.join(mainOutDir, "chunks", "lib-WNnjYEnG.js"),
-      "export const ot = 1;\n",
-    );
-
     expect(() => assertMainProcessLayout(mainOutDir)).toThrow(
       /Shared main-process chunks/,
     );

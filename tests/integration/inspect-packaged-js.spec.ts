@@ -12,7 +12,6 @@ import {
   isMainProcessJs,
   moduleExportsName,
   moduleHasExport,
-  packDirectoryAndInspect,
 } from "../../scripts/inspect-packaged-js.mjs";
 
 const require = createRequire(import.meta.url);
@@ -265,6 +264,17 @@ describe("moduleHasExport", () => {
     expect(moduleHasExport(files, "out/main/barrel.js", "ot")).toBe(true);
     expect(moduleHasExport(files, "out/main/barrel.js", "source")).toBe(false);
   });
+
+  it("checks an aliased re-export after a star re-export visits the same file", () => {
+    const files = {
+      "out/main/barrel.js": Buffer.from(
+        'export * from "./lib.js";\nexport { source as ot } from "./lib.js";\n',
+      ),
+      "out/main/lib.js": Buffer.from("export const source = 1;\n"),
+    };
+
+    expect(moduleHasExport(files, "out/main/barrel.js", "ot")).toBe(true);
+  });
 });
 
 describe("inspectDirectory", () => {
@@ -367,20 +377,5 @@ describe("inspectAsar", () => {
     await asar.createPackage(appDir, asarPath);
 
     expect(inspectAsar(asarPath, process.cwd())).toEqual([]);
-  });
-
-  it("packs a directory to asar and inspects the archive", async () => {
-    const rootDir = createFixtureRoot();
-    mkdirSync(path.join(rootDir, "out/main"), { recursive: true });
-    writeFileSync(
-      path.join(rootDir, "out/main/index.js"),
-      'import { ot } from "./lib.js";\nexport { ot };\n',
-    );
-    writeFileSync(
-      path.join(rootDir, "out/main/lib.js"),
-      "export const ot = 1;\n",
-    );
-
-    await expect(packDirectoryAndInspect(rootDir)).resolves.toEqual([]);
   });
 });

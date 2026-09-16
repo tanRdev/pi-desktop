@@ -1,6 +1,5 @@
-import { existsSync, mkdtempSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -145,39 +144,44 @@ export function moduleHasExport(
   name,
   visiting = new Set(),
 ) {
-  if (visiting.has(relativePath)) {
+  const visitKey = `${relativePath}\0${name}`;
+  if (visiting.has(visitKey)) {
     return false;
   }
-  visiting.add(relativePath);
-  const bytes = files[relativePath];
-  if (!bytes || isEmptyBytes(bytes)) {
-    return false;
-  }
-  const source = bytes.toString("utf8");
-  if (moduleExportsName(source, name)) {
-    return true;
-  }
-  for (const match of source.matchAll(STAR_REEXPORT_PATTERN)) {
-    const target = resolveRelativeImport(relativePath, match[1]);
-    if (target && moduleHasExport(files, target, name, visiting)) {
+  visiting.add(visitKey);
+  try {
+    const bytes = files[relativePath];
+    if (!bytes || isEmptyBytes(bytes)) {
+      return false;
+    }
+    const source = bytes.toString("utf8");
+    if (moduleExportsName(source, name)) {
       return true;
     }
-  }
-  for (const match of source.matchAll(NAMED_REEXPORT_PATTERN)) {
-    const target = resolveRelativeImport(relativePath, match[2]);
-    if (!target) {
-      continue;
-    }
-    for (const binding of parseSpecifierBindings(match[1] ?? "")) {
-      if (
-        binding.exported === name &&
-        moduleHasExport(files, target, binding.local, visiting)
-      ) {
+    for (const match of source.matchAll(STAR_REEXPORT_PATTERN)) {
+      const target = resolveRelativeImport(relativePath, match[1]);
+      if (target && moduleHasExport(files, target, name, visiting)) {
         return true;
       }
     }
+    for (const match of source.matchAll(NAMED_REEXPORT_PATTERN)) {
+      const target = resolveRelativeImport(relativePath, match[2]);
+      if (!target) {
+        continue;
+      }
+      for (const binding of parseSpecifierBindings(match[1] ?? "")) {
+        if (
+          binding.exported === name &&
+          moduleHasExport(files, target, binding.local, visiting)
+        ) {
+          return true;
+        }
+      }
+    }
+    return false;
+  } finally {
+    visiting.delete(visitKey);
   }
-  return false;
 }
 
 function isEmptyBytes(bytes) {
@@ -346,35 +350,10 @@ export function assertJavaScriptGraph(problems, label) {
   );
 }
 
-export async function packDirectoryAndInspect(
-  rootDir,
-  resolveFrom = process.cwd(),
-) {
-  const asar = loadAsarModule(resolveFrom);
-  const tempDir = mkdtempSync(path.join(tmpdir(), "pi-pack-asar-"));
-  const asarPath = path.join(tempDir, "app.asar");
-  await asar.createPackage(path.resolve(rootDir), asarPath);
-  const problems = inspectAsar(asarPath, resolveFrom);
-  assertJavaScriptGraph(problems, asarPath);
-  console.log(
-    `JavaScript graph OK: ${asarPath} (packed from ${path.resolve(rootDir)})`,
-  );
-  return problems;
-}
-
 function runCli(argv) {
   const target = argv[0];
-  if (target === "--pack-dir") {
-    const directory = argv[1];
-    if (!directory) {
-      throw new Error("Usage: inspect-packaged-js.mjs --pack-dir <directory>");
-    }
-    return packDirectoryAndInspect(directory);
-  }
   if (!target) {
-    throw new Error(
-      "Usage: inspect-packaged-js.mjs <directory-or-asar> | --pack-dir <directory>",
-    );
+    throw new Error("Usage: inspect-packaged-js.mjs <directory-or-asar>");
   }
   const resolved = path.resolve(target);
   const problems = resolved.endsWith(".asar")

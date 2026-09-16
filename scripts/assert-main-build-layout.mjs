@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -16,15 +16,10 @@ export function assertMainProcessLayout(mainOutDir) {
   }
 
   const chunksDir = path.join(mainOutDir, "chunks");
-  if (existsSync(chunksDir) && statSync(chunksDir).isDirectory()) {
-    const sharedChunks = readdirSync(chunksDir).filter((name) =>
-      /\.(?:[cm]?js)$/.test(name),
+  if (existsSync(chunksDir)) {
+    throw new Error(
+      `Shared main-process chunks directory exists: ${chunksDir}`,
     );
-    if (sharedChunks.length > 0) {
-      throw new Error(
-        `Shared main-process chunks were emitted: ${sharedChunks.join(", ")}`,
-      );
-    }
   }
 
   const sessionFiles = readdirSync(mainOutDir).filter((name) =>
