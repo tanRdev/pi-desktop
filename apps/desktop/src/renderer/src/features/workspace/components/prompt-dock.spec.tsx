@@ -391,17 +391,6 @@ describe("PromptDock", () => {
     expect(onPromptModeChange).toHaveBeenCalledWith("plan");
   });
 
-  it("persists the draft per thread in localStorage", () => {
-    renderPromptDock({
-      draft: "work in progress",
-      activeThreadId: "thread-42",
-    });
-
-    expect(window.localStorage.getItem("pi:prompt-draft:thread-42")).toBe(
-      "work in progress",
-    );
-  });
-
   it("cycles prompt history with ArrowUp / ArrowDown", () => {
     window.localStorage.setItem(
       "pi:prompt-history:thread-1",

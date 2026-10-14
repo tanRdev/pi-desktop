@@ -229,7 +229,7 @@ export class GitServiceImpl {
 
     this.runCheckedGit(
       repositoryRoot,
-      ["worktree", "remove", "--force", worktreePath],
+      ["worktree", "remove", worktreePath],
       "remove worktree",
     );
     this.runGit(repositoryRoot, ["worktree", "prune"]);

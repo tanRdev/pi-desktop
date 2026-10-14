@@ -1,5 +1,11 @@
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdtempSync,
+  renameSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { readFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -340,5 +346,29 @@ describe("createGitService diffFile", () => {
     expect(helperSource).toContain(
       "getRepositoryStatus: input.getRepositoryStatus",
     );
+  });
+});
+
+describe("worktree removal preserves files", () => {
+  it("refuses dirty and untracked work instead of forcing removal", async () => {
+    const repositoryPath = createGitRepository();
+    const worktreePath = `${repositoryPath}-feature`;
+    tempDirs.push(worktreePath);
+    execFileSync("git", ["worktree", "add", "-b", "feature", worktreePath], {
+      cwd: repositoryPath,
+    });
+    writeFileSync(path.join(worktreePath, "old-name.txt"), "unsaved edit\n");
+    writeFileSync(path.join(worktreePath, "untracked.txt"), "new work\n");
+    const service = createGitService();
+    expect(() =>
+      service.removeWorktree({ worktreePath, repositoryRoot: repositoryPath }),
+    ).toThrow();
+    expect(existsSync(worktreePath)).toBe(true);
+    expect(
+      await readFile(path.join(worktreePath, "old-name.txt"), "utf8"),
+    ).toBe("unsaved edit\n");
+    expect(
+      await readFile(path.join(worktreePath, "untracked.txt"), "utf8"),
+    ).toBe("new work\n");
   });
 });

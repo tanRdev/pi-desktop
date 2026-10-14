@@ -105,15 +105,23 @@ describe("worktree-creation", () => {
     ]);
   });
 
-  it("creates a new branch without a start ref when no base branch resolves", () => {
-    const runGit: RunGit = () => createResult({ status: 1 });
-
-    expect(
-      buildCreateWorktreeCommand(runGit, {
+  it("rejects a missing explicitly requested base", () => {
+    expect(() =>
+      buildCreateWorktreeCommand(() => createResult({ status: 1 }), {
         repositoryRoot: "/repo/main",
         branchName: "feature/new",
         worktreePath: "/repo/worktrees/feature-new",
-        baseBranch: "main",
+        baseBranch: "missing",
+      }),
+    ).toThrow("Requested base branch does not exist: missing");
+  });
+
+  it("uses HEAD only when no base was requested", () => {
+    expect(
+      buildCreateWorktreeCommand(() => createResult({ status: 1 }), {
+        repositoryRoot: "/repo/main",
+        branchName: "feature/new",
+        worktreePath: "/repo/worktrees/feature-new",
       }),
     ).toEqual([
       "worktree",
