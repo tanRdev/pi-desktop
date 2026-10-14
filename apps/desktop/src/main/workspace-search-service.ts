@@ -11,15 +11,16 @@ import { Duration, Effect } from "effect";
 const DEFAULT_TIMEOUT_MS = 10_000;
 
 function globToRegExp(pattern: string): RegExp {
-  const esc = pattern.replace(/[.+^${}()|\\]/g, "\\$&");
-  const withGlob = esc
-    .replace(/\\\\\*\\\\\*/g, "__DOUBLE_STAR__")
-    .replace(/\\\*\*/g, "__DOUBLE_STAR__")
-    .replace(/\*\*/g, ".*")
-    .replace(/\*/g, "[^/]*")
-    .replace(/__DOUBLE_STAR__/g, ".*");
-
-  return new RegExp(`^(?:${withGlob})$`);
+  const expression = pattern
+    .split(/(\*\*\/|\*\*|\*)/)
+    .map((part) => {
+      if (part === "**/") return "(?:.*/)?";
+      if (part === "**") return ".*";
+      if (part === "*") return "[^/]*";
+      return part.replace(/[.+^${}()|[\]\\]/g, "\\$&");
+    })
+    .join("");
+  return new RegExp(`^(?:${expression})$`);
 }
 
 function matchesAnyPattern(relativePath: string, patterns?: string[]): boolean {
@@ -208,6 +209,7 @@ export class WorkspaceSearchService {
     const results: SearchMatch[] = [];
     const root = path.resolve(request.rootPath);
     const max = request.maxResults ?? Infinity;
+    const query = request.query.trim().toLowerCase();
 
     async function walker(dir: string) {
       if (results.length >= max) return;
@@ -226,12 +228,24 @@ export class WorkspaceSearchService {
         const full = path.join(dir, ent.name);
         const rel = path.relative(root, full).replace(/\\\\/g, "/");
 
-        // simple dotfile/node_modules ignore
-        if (rel.split("/").includes("node_modules")) continue;
+        // Ignore dependency and Git metadata trees before descending.
+        if (ent.name === "node_modules" || ent.name === ".git") continue;
+        if (
+          request.excludePatterns?.some((pattern) => {
+            const matcher = globToRegExp(pattern);
+            return (
+              matcher.test(rel) ||
+              (ent.isDirectory() && matcher.test(`${rel}/`))
+            );
+          })
+        )
+          continue;
+        const matchesQuery = rel.toLowerCase().includes(query);
 
         if (ent.isDirectory()) {
           // check include/exclude before descending
           if (
+            matchesQuery &&
             matchesAnyPattern(`${rel}/`, request.includePatterns) &&
             !request.excludePatterns?.some((p) =>
               globToRegExp(p).test(`${rel}/`),
@@ -242,7 +256,8 @@ export class WorkspaceSearchService {
           }
           await walker(full);
         } else if (ent.isFile()) {
-          if (!matchesAnyPattern(rel, request.includePatterns)) continue;
+          if (!matchesQuery || !matchesAnyPattern(rel, request.includePatterns))
+            continue;
           if (request.excludePatterns?.some((p) => globToRegExp(p).test(rel)))
             continue;
           results.push(toSearchMatch(root, rel, 0));

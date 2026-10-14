@@ -353,7 +353,7 @@ describe("createShellModel", () => {
     model.dispose();
   });
 
-  test("sends trimmed prompts and clears the draft after sending", async () => {
+  test("preserves prompt whitespace and clears the draft after sending", async () => {
     const prompt = vi.fn(async () => {});
     const api = {
       shell: {
@@ -372,7 +372,7 @@ describe("createShellModel", () => {
     model.setDraft("  Summarize the workspace  ");
     await model.sendPrompt();
 
-    expect(prompt).toHaveBeenCalledWith("Summarize the workspace");
+    expect(prompt).toHaveBeenCalledWith("  Summarize the workspace  ");
     expect(model.getState().draft).toBe("");
   });
 
@@ -871,5 +871,58 @@ describe("createShellModel", () => {
       status: "complete",
       timestamp: 1,
     });
+  });
+});
+
+describe("prompt completion draft ownership", () => {
+  test.each([
+    false,
+    true,
+  ])("preserves newer typing when submission fails=%s", async (failed) => {
+    const pending = Promise.withResolvers<void>();
+    const api = {
+      shell: { getSnapshot: vi.fn(async () => createShellSnapshotFixture()) },
+      agent: {
+        getSnapshot: vi.fn(async () => createAgentSnapshotFixture()),
+        prompt: vi.fn(() => pending.promise),
+        subscribe: vi.fn(() => () => {}),
+      },
+    } as unknown as ShellModelApi;
+    const model = createShellModel(api);
+    model.setDraft("submitted A");
+    const sending = model.sendPrompt();
+    model.setDraft("new B");
+    if (failed) pending.reject(new Error("delivery failed"));
+    else pending.resolve();
+    await sending;
+    expect(model.getState().draft).toBe("new B");
+  });
+
+  test("ignores a completion after switching context", async () => {
+    const pending = Promise.withResolvers<void>();
+    let receive: (event: PiDesktopAgentEvent) => void = () => {};
+    const api = {
+      shell: { getSnapshot: vi.fn(async () => createShellSnapshotFixture()) },
+      agent: {
+        getSnapshot: vi.fn(async () => createAgentSnapshotFixture()),
+        prompt: vi.fn(() => pending.promise),
+        subscribe: vi.fn((listener) => {
+          receive = listener;
+          return () => {};
+        }),
+      },
+    } as unknown as ShellModelApi;
+    const model = createShellModel(api);
+    await model.load();
+    model.setDraft("submitted A");
+    const sending = model.sendPrompt();
+    receive({ type: "context_switch", phase: "started" });
+    model.setDraft("thread B draft");
+    const snapshotCalls = vi.mocked(api.agent.getSnapshot).mock.calls.length;
+    pending.resolve();
+    await sending;
+    expect(model.getState().draft).toBe("thread B draft");
+    expect(api.agent.getSnapshot).toHaveBeenCalledTimes(snapshotCalls);
+    model.dispose();
   });
 });
