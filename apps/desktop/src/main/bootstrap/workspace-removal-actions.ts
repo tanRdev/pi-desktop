@@ -22,10 +22,6 @@ type CreateWorkspaceRemovalActionsDependencies = {
   listThreadsByWorktree: (worktreeId: string) => ThreadEntry[];
   deleteThread: (threadId: string) => void;
   removeWorkspaceSession: (worktreeId: string) => void;
-  runBestEffortRemoveWorktree: (input: {
-    worktreePath: string;
-    repositoryRoot: string;
-  }) => void;
   removeRepository: (repositoryId: string) => void;
   removeRepositoryPreferences: (repositoryId: string) => void;
   getSelectedRepositoryId: () => string | null;
@@ -61,7 +57,6 @@ export function createWorkspaceRemovalActions(
     listThreadsByWorktree,
     deleteThread,
     removeWorkspaceSession,
-    runBestEffortRemoveWorktree,
     removeRepository,
     removeRepositoryPreferences,
     getSelectedRepositoryId,
@@ -96,10 +91,6 @@ export function createWorkspaceRemovalActions(
       }
 
       removeWorkspaceSession(worktree.path);
-      runBestEffortRemoveWorktree({
-        worktreePath: worktree.path,
-        repositoryRoot: repository.rootPath,
-      });
     }
 
     const mainThreads = listThreadsByWorktree(repository.rootPath);
@@ -146,15 +137,16 @@ export function createWorkspaceRemovalActions(
     }
 
     const isActiveWorktree = getSelectedWorktreeId() === normalizedWorktreeId;
-    const threadsInWorktree = listThreadsByWorktree(normalizedWorktreeId);
-    for (const thread of threadsInWorktree) {
-      deleteThread(thread.id);
-    }
-
     removeWorktreeFromGit({
       worktreePath: normalizedWorktreeId,
       repositoryRoot: repository.rootPath,
     });
+
+    const threadsInWorktree = listThreadsByWorktree(normalizedWorktreeId);
+    for (const thread of threadsInWorktree) {
+      deleteThread(thread.id);
+    }
+    removeWorkspaceSession(normalizedWorktreeId);
 
     if (isActiveWorktree) {
       const remainingWorktrees = inspectRemainingWorktrees(repository.rootPath);

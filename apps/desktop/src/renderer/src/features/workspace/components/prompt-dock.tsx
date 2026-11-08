@@ -19,7 +19,6 @@ import { Attachments, useAttachments } from "./prompt-dock/attachments";
 import { CharacterCounter } from "./prompt-dock/character-counter";
 import { ContextGauge } from "./prompt-dock/context-gauge";
 import { ModelPicker } from "./prompt-dock/model-picker";
-import { usePersistDraft } from "./prompt-dock/prompt-draft";
 import { SendButton } from "./prompt-dock/send-button";
 import { usePromptDockDisplay } from "./prompt-dock/use-prompt-dock-display";
 import { usePromptDockInput } from "./prompt-dock/use-prompt-dock-input";
@@ -95,9 +94,7 @@ export function PromptDock({
   const hasActiveThread = activeThreadId !== null;
 
   const { uploadedFiles, imageFiles, handlePickFiles, handleRemoveFile } =
-    useAttachments(draft, onDraftChange);
-
-  usePersistDraft(activeThreadId, draft);
+    useAttachments(draft, onDraftChange, activeThreadId);
 
   const {
     mergedSuggestions,

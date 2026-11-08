@@ -52,14 +52,37 @@ export function clearDraft(threadId: string | null): void {
   writeDraft(threadId, "");
 }
 
-/**
- * Persist the current draft whenever it changes for the active thread.
- *
- * Note: reading the stored draft on thread change is intentionally left to
- * the caller so they can decide whether to override an in-memory draft.
- */
-export function usePersistDraft(threadId: string | null, draft: string): void {
+/** Restore the selected thread before persisting its next draft. */
+export function usePersistDraft(
+  threadId: string | null,
+  draft: string,
+  onDraftChange: (draft: string) => void,
+): void {
+  const restored = React.useRef<{
+    threadId: string | null;
+    value: string;
+  } | null>(null);
+  const selectedThread = React.useRef<string | null | undefined>(undefined);
+
+  React.useLayoutEffect(() => {
+    if (selectedThread.current === threadId) return;
+    const initialSelection = selectedThread.current === undefined;
+    selectedThread.current = threadId;
+    const savedDraft = readDraft(threadId);
+    const value = initialSelection && !savedDraft ? draft : savedDraft;
+    restored.current = { threadId, value };
+    if (draft !== value) onDraftChange(value);
+  }, [threadId, draft, onDraftChange]);
+
   React.useEffect(() => {
+    if (restored.current) {
+      if (
+        restored.current.threadId !== threadId ||
+        restored.current.value !== draft
+      )
+        return;
+      restored.current = null;
+    }
     writeDraft(threadId, draft);
   }, [threadId, draft]);
 }

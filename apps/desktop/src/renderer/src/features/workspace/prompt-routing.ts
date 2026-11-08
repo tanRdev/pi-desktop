@@ -32,7 +32,7 @@ export type OAuthChatCommand =
 const AUTOCOMPLETE_PATTERN = /(^|\s)([@/])([^\s]*)$/;
 const TERMINAL_MENTION_PATTERN = /@terminal:([^\s]+)/g;
 // capture optional trailing whitespace so expansion normalizes spacing
-const FILE_MENTION_PATTERN = /@file:([^\s]+)(\s*)/g;
+const FILE_MENTION_PATTERN = /@file:([^\s]+)/g;
 
 export function getPromptAutocompleteMatch(
   text: string,
@@ -98,17 +98,24 @@ export function extractTerminalRoute(text: string): {
   };
 }
 
-export function expandFileMentions(text: string): string {
-  const replaced = text.replace(
-    FILE_MENTION_PATTERN,
-    (_match: string, encodedPath?: string, trailing?: string) =>
-      decodeMentionValue(encodedPath ?? "") + (trailing ? " " : ""),
-  );
+export function getFileMentionPaths(text: string): string[] {
+  return [
+    ...new Set(
+      [...text.matchAll(FILE_MENTION_PATTERN)].flatMap((match) => {
+        try {
+          return [decodeMentionValue(match[1] ?? "")];
+        } catch {
+          return [];
+        }
+      }),
+    ),
+  ];
+}
 
-  // Collapse any runs of whitespace into a single space and trim edges. This
-  // ensures predictable spacing when mentions are adjacent to template
-  // spaces or when multiple mentions are present.
-  return replaced.replace(/\s+/g, " ").trim();
+export function expandFileMentions(text: string): string {
+  return text.replace(FILE_MENTION_PATTERN, (_match, encodedPath: string) =>
+    decodeMentionValue(encodedPath),
+  );
 }
 
 export type PlanPromptDispatchArgs = {

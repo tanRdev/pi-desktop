@@ -64,5 +64,7 @@ function resolveCreateWorktreeStartRef(
     return `origin/${options.baseBranch}`;
   }
 
-  return undefined;
+  throw new Error(
+    `Requested base branch does not exist: ${options.baseBranch}`,
+  );
 }

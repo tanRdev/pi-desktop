@@ -13,6 +13,8 @@ import {
   createInitialAgentLiveFeed,
 } from "./agent-feed";
 
+import { mergeAgentSnapshots } from "./agent-snapshot-merge";
+
 export interface ShellModelState {
   shell: ShellSnapshot;
   agent: AgentSnapshot;
@@ -55,12 +57,6 @@ const INITIAL_STATE: ShellModelState = {
   contextSwitchPhase: "idle",
 };
 
-const MESSAGE_STATUS_PRIORITY = {
-  error: 3,
-  complete: 2,
-  streaming: 1,
-} satisfies Record<AgentMessageSnapshot["status"], number>;
-
 function getErrorMessage(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
 }
@@ -94,109 +90,13 @@ function normalizeEvent(
   return event;
 }
 
-function pickPreferredMessage(
-  current: AgentMessageSnapshot,
-  incoming: AgentMessageSnapshot,
-): AgentMessageSnapshot {
-  if (incoming.timestamp > current.timestamp) {
-    return incoming;
-  }
-
-  if (incoming.timestamp < current.timestamp) {
-    return current;
-  }
-
-  const currentPriority = MESSAGE_STATUS_PRIORITY[current.status];
-  const incomingPriority = MESSAGE_STATUS_PRIORITY[incoming.status];
-
-  if (incomingPriority > currentPriority) {
-    return incoming;
-  }
-
-  if (incomingPriority < currentPriority) {
-    return current;
-  }
-
-  return incoming.text.length >= current.text.length ? incoming : current;
-}
-
-function determineAgentStatus(
-  current: AgentSnapshot,
-  incoming: AgentSnapshot,
-  preserveLiveState: boolean,
-  hasStreamingMessages: boolean,
-): AgentSnapshot["status"] {
-  if (incoming.status === "error") {
-    return incoming.status;
-  }
-
-  if (hasStreamingMessages) {
-    return "streaming";
-  }
-
-  if (preserveLiveState) {
-    if (current.status === "starting") {
-      return incoming.status;
-    }
-    return current.status;
-  }
-
-  return incoming.status;
-}
-
-function mergeAgentSnapshots(
-  current: AgentSnapshot,
-  incoming: AgentSnapshot,
-  preserveLiveState: boolean,
-  promptError: unknown,
-): AgentSnapshot {
-  const messagesById = new Map<string, AgentMessageSnapshot>();
-
-  for (const message of current.messages) {
-    messagesById.set(message.id, message);
-  }
-
-  for (const message of incoming.messages) {
-    const existing = messagesById.get(message.id);
-    messagesById.set(
-      message.id,
-      existing ? pickPreferredMessage(existing, message) : message,
-    );
-  }
-
-  const messages = [...messagesById.values()].sort(
-    (left, right) => left.timestamp - right.timestamp,
-  );
-  const hasStreamingMessages = messages.some(
-    (message) => message.status === "streaming",
-  );
-  const status = determineAgentStatus(
-    current,
-    incoming,
-    preserveLiveState,
-    hasStreamingMessages,
-  );
-
-  return {
-    sessionId: incoming.sessionId || current.sessionId,
-    status,
-    messages,
-    lastError:
-      incoming.lastError ??
-      (promptError instanceof Error
-        ? promptError.message
-        : status === "error"
-          ? current.lastError
-          : null),
-    contextUsage: incoming.contextUsage ?? current.contextUsage,
-  };
-}
-
 export function createShellModel(api: PiDesktopApi) {
   let state: ShellModelState = INITIAL_STATE;
   let unsubscribe: (() => void) | undefined;
   const listeners = new Set<(state: ShellModelState) => void>();
   let refreshVersion = 0;
+  let draftRevision = 0;
+  let contextRevision = 0;
 
   function notify(): void {
     for (const listener of listeners) {
@@ -216,10 +116,19 @@ export function createShellModel(api: PiDesktopApi) {
       return;
     }
 
+    const contextChanged =
+      shell.catalog.selection.threadId !==
+      state.shell.catalog.selection.threadId;
+    if (contextChanged) {
+      contextRevision += 1;
+      draftRevision += 1;
+    }
+
     state = {
       ...state,
       shell,
       agent,
+      draft: contextChanged ? "" : state.draft,
       live: {
         ...createAgentLiveFeedFromSnapshot(agent),
         snapshotLoadedAt: Date.now(),
@@ -240,6 +149,7 @@ export function createShellModel(api: PiDesktopApi) {
     }
 
     if (normalized.type === "context_switch") {
+      if (normalized.phase === "started") contextRevision += 1;
       state = {
         ...state,
         contextSwitchPhase:
@@ -284,18 +194,21 @@ export function createShellModel(api: PiDesktopApi) {
     },
 
     setDraft(draft: string): void {
+      draftRevision += 1;
       state = { ...state, draft };
       notify();
     },
 
     async sendPrompt(text?: string): Promise<void> {
-      const prompt = (text ?? state.draft).trim();
+      const prompt = text ?? state.draft;
 
-      if (!prompt) {
+      if (!prompt.trim()) {
         return;
       }
 
       const draftBeforeSend = state.draft;
+      const submittedDraftRevision = draftRevision;
+      const submittedContextRevision = contextRevision;
 
       state = {
         ...state,
@@ -317,12 +230,15 @@ export function createShellModel(api: PiDesktopApi) {
         // Refreshing the snapshot below gives us the authoritative runtime state.
       }
 
+      if (contextRevision !== submittedContextRevision) return;
+
       void promptError;
 
       let agent = state.agent;
 
       try {
         const refreshedSnapshot = await api.agent.getSnapshot();
+        if (contextRevision !== submittedContextRevision) return;
         const currentState = state;
 
         agent = mergeAgentSnapshots(
@@ -349,13 +265,21 @@ export function createShellModel(api: PiDesktopApi) {
         };
       }
 
+      if (contextRevision !== submittedContextRevision) return;
       const failed = promptError != null || agent.status === "error";
+
+      const nextDraft =
+        draftRevision === submittedDraftRevision
+          ? failed
+            ? draftBeforeSend
+            : ""
+          : state.draft;
 
       state = {
         ...state,
         agent,
         // Keep the user's draft on failure so they can edit and retry.
-        draft: failed ? draftBeforeSend : "",
+        draft: nextDraft,
         live: {
           ...state.live,
           snapshotLoadedAt: Date.now(),

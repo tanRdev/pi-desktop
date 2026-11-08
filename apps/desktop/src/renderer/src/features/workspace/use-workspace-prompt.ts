@@ -3,6 +3,7 @@ import * as React from "react";
 import { useStore } from "zustand";
 import type { UiInteractionStore } from "@/stores/ui-interaction-store";
 import type { ThreadConversationState } from "@/stores/workspace-session-store";
+import { usePersistDraft } from "./components/prompt-dock/prompt-draft";
 import {
   dispatchPiCommand,
   findBuiltInBySlash,
@@ -107,6 +108,7 @@ export function useWorkspacePrompt({
   uiStore,
   openOAuthDialog,
 }: UseWorkspacePromptOptions): WorkspacePromptController {
+  usePersistDraft(activeThreadId, draft, setDraft);
   const autocompleteSuggestions = useStore(
     uiStore,
     (storeState) =>
@@ -362,7 +364,7 @@ export function useWorkspacePrompt({
     }
 
     const plan = planPromptDispatch({
-      draft: trimmed,
+      draft,
       canSend: true,
       activeThreadId,
     });
@@ -385,8 +387,7 @@ export function useWorkspacePrompt({
 
     setPendingPromptThreadId(activeThreadId);
     clearAutocomplete();
-    // Expand @file: mentions before sending; clear chips via custom event.
-    window.dispatchEvent(new CustomEvent("pi:prompt-sent"));
+    // Expand @file: mentions before sending; chips follow the retained draft.
     await sendPrompt(plan.nextDraft);
   }, [
     activeThreadId,
@@ -440,9 +441,7 @@ export function useWorkspacePrompt({
       setPromptMode(nextMode);
       const normalizedDraft = stripPromptModePrefix(draft).trimStart();
       const prefix = PROMPT_MODE_TO_PREFIX[nextMode];
-      setDraft(
-        `${prefix}${normalizedDraft}`.trimEnd() + (normalizedDraft ? "" : ""),
-      );
+      setDraft(`${prefix}${normalizedDraft}`.trimEnd());
     },
     [draft, setDraft],
   );

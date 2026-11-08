@@ -1,7 +1,11 @@
 import * as React from "react";
 import { FileUpload, type UploadedFile } from "@/components/ui/file-upload";
 import { Image } from "@/components/ui/image";
-import { buildFileMention } from "@/features/workspace/prompt-routing";
+import {
+  buildFileMention,
+  decodeMentionValue,
+  getFileMentionPaths,
+} from "@/features/workspace/prompt-routing";
 
 function isImagePath(filePath: string): boolean {
   return /\.(png|jpe?g|gif|webp|svg)$/i.test(filePath);
@@ -17,81 +21,72 @@ export interface AttachmentsState {
 export function useAttachments(
   draft: string,
   onDraftChange: (draft: string) => void,
+  threadId: string | null = null,
 ): AttachmentsState {
-  const [uploadedFiles, setUploadedFiles] = React.useState<UploadedFile[]>([]);
+  const context = React.useRef<{
+    threadId: string | null;
+    draft: string;
+  } | null>(null);
+  React.useLayoutEffect(() => {
+    context.current = { threadId, draft };
+    return () => {
+      context.current = null;
+    };
+  }, [threadId, draft]);
 
+  const uploadedFiles = React.useMemo<UploadedFile[]>(
+    () =>
+      getFileMentionPaths(draft).map((filePath) => ({
+        id: filePath,
+        name: filePath.split(/[/\\]/).pop() ?? filePath,
+        path: filePath,
+        kind: isImagePath(filePath) ? "image" : "file",
+      })),
+    [draft],
+  );
   const imageFiles = React.useMemo(
     () => uploadedFiles.filter((file) => file.kind === "image"),
     [uploadedFiles],
   );
 
   const handlePickFiles = React.useCallback(async () => {
+    const requestedThread = threadId;
     const selectedPaths = await window.piDesktop.dialog.showOpenDialog({
       properties: ["openFile", "multiSelections"],
       title: "Attach files to prompt",
     });
-
-    if (!selectedPaths || selectedPaths.length === 0) {
+    if (!selectedPaths?.length || context.current?.threadId !== requestedThread)
       return;
-    }
 
-    setUploadedFiles((currentFiles) => {
-      const nextFiles = [...currentFiles];
-      for (const filePath of selectedPaths) {
-        if (nextFiles.some((file) => file.path === filePath)) {
-          continue;
-        }
-        nextFiles.push({
-          id: `${Date.now()}-${filePath}`,
-          name: filePath.split(/[/\\]/).pop() ?? filePath,
-          path: filePath,
-          kind: isImagePath(filePath) ? "image" : "file",
-        });
-      }
-      return nextFiles;
-    });
-
-    const nextMentions = selectedPaths
-      .map((filePath) => buildFileMention(filePath))
-      .filter((mention) => !draft.includes(mention))
+    const currentDraft = context.current.draft;
+    const existingPaths = new Set(getFileMentionPaths(currentDraft));
+    const nextMentions = [...new Set(selectedPaths)]
+      .filter((filePath) => !existingPaths.has(filePath))
+      .map(buildFileMention)
       .join("");
-
-    if (nextMentions.length > 0) {
+    if (nextMentions) {
       onDraftChange(
-        `${draft}${draft.endsWith(" ") || draft.length === 0 ? "" : " "}${nextMentions}`,
+        `${currentDraft}${/\s$/.test(currentDraft) || !currentDraft ? "" : " "}${nextMentions}`,
       );
     }
-  }, [draft, onDraftChange]);
+  }, [threadId, onDraftChange]);
 
   const handleRemoveFile = React.useCallback(
     (fileId: string) => {
-      setUploadedFiles((currentFiles) => {
-        const removedFile = currentFiles.find((file) => file.id === fileId);
-        if (removedFile) {
-          const nextDraft = draft
-            .split(buildFileMention(removedFile.path))
-            .join("")
-            .replace(/\s{2,}/g, " ")
-            .trimStart();
-          if (nextDraft !== draft) {
-            onDraftChange(nextDraft);
+      const nextDraft = draft.replace(
+        /@file:([^\s]+)/g,
+        (mention, encodedPath: string) => {
+          try {
+            return decodeMentionValue(encodedPath) === fileId ? "" : mention;
+          } catch {
+            return mention;
           }
-        }
-        return currentFiles.filter((file) => file.id !== fileId);
-      });
+        },
+      );
+      if (nextDraft !== draft) onDraftChange(nextDraft);
     },
     [draft, onDraftChange],
   );
-
-  React.useEffect(() => {
-    const handlePromptSent = () => {
-      setUploadedFiles([]);
-    };
-    window.addEventListener("pi:prompt-sent", handlePromptSent);
-    return () => {
-      window.removeEventListener("pi:prompt-sent", handlePromptSent);
-    };
-  }, []);
 
   return { uploadedFiles, imageFiles, handlePickFiles, handleRemoveFile };
 }

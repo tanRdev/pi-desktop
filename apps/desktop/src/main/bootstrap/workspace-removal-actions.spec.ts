@@ -28,12 +28,7 @@ describe("createWorkspaceRemovalActions", () => {
     });
     const deleteThread = vi.fn();
     const removeWorkspaceSession = vi.fn();
-    const removeWorktree = vi.fn();
-    const runBestEffortRemoveWorktree = vi.fn(
-      (input: { worktreePath: string; repositoryRoot: string }) => {
-        removeWorktree(input);
-      },
-    );
+    const removeWorktreeFromGit = vi.fn();
     const removeRepository = vi.fn();
     const removeRepositoryPreferences = vi.fn();
     const clearSelection = vi.fn();
@@ -51,7 +46,6 @@ describe("createWorkspaceRemovalActions", () => {
       listThreadsByWorktree: listByWorktree,
       deleteThread,
       removeWorkspaceSession,
-      runBestEffortRemoveWorktree,
       removeRepository,
       removeRepositoryPreferences,
       getSelectedRepositoryId: () => "repo-1",
@@ -63,7 +57,7 @@ describe("createWorkspaceRemovalActions", () => {
       resolveDefaultThreadContext: vi.fn(),
       switchContextInBackground: vi.fn(),
       getSelectedWorktreeId: () => null,
-      removeWorktreeFromGit: vi.fn(),
+      removeWorktreeFromGit,
     });
 
     await actions.removeRepository("repo-1");
@@ -81,10 +75,7 @@ describe("createWorkspaceRemovalActions", () => {
       ["/repos/alpha/worktrees/feature"],
       ["/repos/alpha"],
     ]);
-    expect(runBestEffortRemoveWorktree).toHaveBeenCalledWith({
-      worktreePath: "/repos/alpha/worktrees/feature",
-      repositoryRoot: "/repos/alpha",
-    });
+    expect(removeWorktreeFromGit).not.toHaveBeenCalled();
     expect(removeRepository).toHaveBeenCalledWith("repo-1");
     expect(removeRepositoryPreferences).toHaveBeenCalledWith("repo-1");
     expect(activateWorkspacePath).toHaveBeenCalledWith(
@@ -122,7 +113,6 @@ describe("createWorkspaceRemovalActions", () => {
       listThreadsByWorktree: () => [{ id: "thread-1" }, { id: "thread-2" }],
       deleteThread,
       removeWorkspaceSession: vi.fn(),
-      runBestEffortRemoveWorktree: vi.fn(),
       removeRepository: vi.fn(),
       removeRepositoryPreferences: vi.fn(),
       getSelectedRepositoryId: () => null,
@@ -154,5 +144,14 @@ describe("createWorkspaceRemovalActions", () => {
     );
     expect(switchContextInBackground).toHaveBeenCalledWith(threadContext);
     expect(notifySessionChanged).not.toHaveBeenCalled();
+
+    deleteThread.mockClear();
+    removeWorktreeFromGit.mockImplementationOnce(() => {
+      throw new Error("dirty worktree");
+    });
+    await expect(
+      actions.removeWorktree("/repos/alpha/worktrees/feature"),
+    ).rejects.toThrow("dirty worktree");
+    expect(deleteThread).not.toHaveBeenCalled();
   });
 });

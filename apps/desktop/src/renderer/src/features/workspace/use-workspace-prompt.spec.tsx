@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import type { MentionSuggestion, SlashSuggestion } from "@pi-desktop/shared";
 import { act, renderHook, waitFor } from "@testing-library/react";
+import { useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createUiInteractionStore } from "@/stores/ui-interaction-store";
 import type { ThreadConversationState } from "@/stores/workspace-session-store";
@@ -53,6 +54,7 @@ const contextWindows = [
 describe("useWorkspacePrompt", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
   });
 
   afterEach(() => {
@@ -288,5 +290,37 @@ describe("useWorkspacePrompt", () => {
       rootPath: "/tmp/repo",
       maxResults: 8,
     });
+  });
+});
+
+describe("workspace-owned draft persistence", () => {
+  it("persists completion when the prompt UI is not mounted and sends indented text unchanged", async () => {
+    installMockPiDesktop();
+    const sent = vi.fn(async () => undefined);
+    const uiStore = createUiInteractionStore();
+    const { result } = renderHook(() => {
+      const [draft, setDraft] = useState("    run()\n\n");
+      const controller = useWorkspacePrompt({
+        draft,
+        setDraft,
+        sendPrompt: sent,
+        cancelPrompt: async () => {},
+        activeThreadId: "hidden-dock",
+        activeThreadConversation: createConversation(),
+        agentStatus: "idle",
+        activeWorktreePath: "/tmp/repo",
+        contextWindows: [],
+        uiStore,
+        openOAuthDialog: async () => {},
+      });
+      return { controller, setDraft };
+    });
+    await act(async () => {
+      await result.current.controller.handleSend();
+    });
+    expect(sent).toHaveBeenCalledWith("    run()\n\n");
+    act(() => result.current.setDraft(""));
+    expect(localStorage.getItem("pi:prompt-draft:hidden-dock")).toBeNull();
+    uninstallMockPiDesktop();
   });
 });

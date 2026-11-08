@@ -8,7 +8,6 @@ import type {
   SettingsSnapshot,
 } from "@pi-desktop/shared";
 import { IPC_CHANNELS } from "@pi-desktop/shared";
-import { Effect } from "effect";
 import {
   app,
   BrowserWindow,
@@ -37,7 +36,6 @@ import {
   type ThreadCatalogEntry,
 } from "../catalogs/thread-catalog";
 import { WorkspaceSessionCatalog } from "../catalogs/workspace-session-catalog";
-import { PiError } from "../effect/errors";
 import { installDesktopMainRuntime, runEffectVoid } from "../effect/runtime";
 import { createGitService, type GitService } from "../git/git-service";
 import { createSanitizingHandle } from "../ipc/sanitize-ipc-error";
@@ -521,19 +519,6 @@ export async function bootstrapDesktop() {
     },
     removeWorkspaceSession: (worktreeId) => {
       workspaceSessionCatalog.remove(worktreeId);
-    },
-    runBestEffortRemoveWorktree: ({ worktreePath, repositoryRoot }) => {
-      runEffectVoid(
-        Effect.try({
-          try: () =>
-            gitService.removeWorktree({
-              worktreePath,
-              repositoryRoot,
-            }),
-          catch: () =>
-            PiError.of("EGIT_FAILED", "Best-effort worktree removal failed"),
-        }).pipe(Effect.catchAll(() => Effect.void)),
-      );
     },
     removeRepository: (repositoryId) => {
       repositoryCatalog.remove(repositoryId);
