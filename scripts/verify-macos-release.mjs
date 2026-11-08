@@ -4,6 +4,7 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { assertJavaScriptGraph, inspectAsar } from "./inspect-packaged-js.mjs";
+import { isUsableDeveloperIdSignature } from "./release-helpers.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, "..");
@@ -39,38 +40,52 @@ function run(command, args, options = {}) {
   return output;
 }
 
-for (const target of [appPath, dmgPath]) {
-  if (!existsSync(target)) {
-    throw new Error(`Missing release artifact: ${target}`);
+function verifyRelease() {
+  for (const target of [appPath, dmgPath]) {
+    if (!existsSync(target)) {
+      throw new Error(`Missing release artifact: ${target}`);
+    }
   }
-}
 
-const asarPath = path.join(appPath, "Contents", "Resources", "app.asar");
-assertJavaScriptGraph(inspectAsar(asarPath, repoRoot), asarPath);
+  const asarPath = path.join(appPath, "Contents", "Resources", "app.asar");
+  assertJavaScriptGraph(inspectAsar(asarPath, repoRoot), asarPath);
 
-run("codesign", ["--verify", "--deep", "--strict", "--verbose=2", appPath]);
-const signature = run("codesign", ["-dv", "--verbose=4", appPath]);
-if (
-  signature.includes("Signature=adhoc") ||
-  signature.includes("TeamIdentifier=not set") ||
-  !signature.includes("Authority=Developer ID Application")
-) {
-  throw new Error(
-    "Release app is not signed with a Developer ID Application certificate.",
+  const display = spawnSync("codesign", ["-dv", "--verbose=4", appPath], {
+    cwd: repoRoot,
+    encoding: "utf8",
+  });
+  const signature = `${display.stdout ?? ""}${display.stderr ?? ""}`.trim();
+  if (!isUsableDeveloperIdSignature(display.status ?? 1, signature)) {
+    console.log(
+      `✅ Verified unsigned Pi Desktop ${version} artifacts and JavaScript graph.`,
+    );
+    return;
+  }
+
+  run("codesign", ["--verify", "--deep", "--strict", "--verbose=2", appPath]);
+  run("xcrun", ["stapler", "validate", appPath]);
+  run("xcrun", ["stapler", "validate", dmgPath]);
+  run("spctl", ["--assess", "--type", "execute", "--verbose=4", appPath]);
+  run("spctl", [
+    "--assess",
+    "--type",
+    "open",
+    "--context",
+    "context:primary-signature",
+    "--verbose=4",
+    dmgPath,
+  ]);
+
+  console.log(
+    `✅ Verified signed and notarized Pi Desktop ${version} release.`,
   );
 }
 
-run("xcrun", ["stapler", "validate", appPath]);
-run("xcrun", ["stapler", "validate", dmgPath]);
-run("spctl", ["--assess", "--type", "execute", "--verbose=4", appPath]);
-run("spctl", [
-  "--assess",
-  "--type",
-  "open",
-  "--context",
-  "context:primary-signature",
-  "--verbose=4",
-  dmgPath,
-]);
-
-console.log(`✅ Verified signed and notarized Pi Desktop ${version} release.`);
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  try {
+    verifyRelease();
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : error);
+    process.exitCode = 1;
+  }
+}

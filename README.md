@@ -36,7 +36,7 @@
 xattr -dr com.apple.quarantine "/Applications/Pi Desktop.app"
 ```
 
-Release builds are unsigned (no paid Apple Developer ID). That command is what makes the download launch.
+Release builds are unsigned unless Developer ID credentials are present in the release workflow. Unsigned downloads need that `xattr` command to launch.
 
 **From source**
 
