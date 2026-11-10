@@ -417,6 +417,9 @@ export function useWorkspacePrompt({
     [activeThreadId, agentStatus, sendPrompt],
   );
 
+  // "Edit and send again": the edited text is sent as a new prompt.
+  // The original message is not edited or removed, and later messages
+  // are not truncated — the conversation keeps its full history.
   const handleResubmitUserMessage = React.useCallback(
     (messageId: string, nextText: string) => {
       const trimmed = nextText.trim();

@@ -106,7 +106,8 @@ export function MessageActions({
         <ActionButton
           onClick={onStartEdit}
           data-testid="message-edit"
-          aria-label="Edit message"
+          aria-label="Edit and send again"
+          title="Edit and send again — sends the edited text as a new message"
         >
           <PencilSimple className="size-3" />
           <span>Edit</span>
@@ -137,6 +138,10 @@ export interface InlineMessageEditorProps {
 /**
  * Inline editor for a user message. Submits with Cmd/Ctrl+Enter, cancels
  * on Escape. Stays DOM-local so it plays nicely with virtualization.
+ *
+ * Semantics ("Edit and send again"): submitting sends the edited text
+ * as a brand-new prompt. It does not rewrite history — the original
+ * message and everything after it stay in the conversation.
  */
 export function InlineMessageEditor({
   initialText,
@@ -194,6 +199,10 @@ export function InlineMessageEditor({
           "placeholder:text-white/50 focus:outline-none",
         )}
       />
+      <p className="mt-1.5 text-[11px] leading-4 text-white/40">
+        Edit and send again sends the edited text as a new message. The original
+        message stays in the conversation.
+      </p>
       <div className="mt-1.5 flex items-center justify-end gap-1.5">
         <ActionButton onClick={onCancel} data-testid="message-edit-cancel">
           <X className="size-3" />
@@ -205,7 +214,7 @@ export function InlineMessageEditor({
           disabled={value.trim().length === 0}
         >
           <Check className="size-3" />
-          <span>Resubmit</span>
+          <span>Edit and send again</span>
         </ActionButton>
       </div>
     </div>

@@ -237,6 +237,14 @@ describe("ChatThreadPanel", () => {
 
     fireEvent.click(screen.getByTestId("message-edit"));
     expect(screen.getByTestId("message-inline-editor")).toBeInTheDocument();
+    // "Edit and send again" semantics are spelled out in the editor:
+    // the edited text goes as a new message, the original stays.
+    expect(
+      screen.getByText(/sends the edited text as a new message/),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Edit and send again" }),
+    ).toBeInTheDocument();
 
     const textarea = screen
       .getByTestId("message-inline-editor")
