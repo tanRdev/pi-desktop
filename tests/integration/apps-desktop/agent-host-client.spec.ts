@@ -156,14 +156,51 @@ describe("createAgentHostClient", () => {
     try {
       const child = new FakeUtilityProcess();
       const client = createAgentHostClient(child, { requestTimeoutMs: 25 });
-      const promptPromise = client.prompt("Explain the active repository");
-      const timeoutAssertion = expect(promptPromise).rejects.toThrow(
-        "Agent host request prompt timed out after 25ms",
+      const snapshotPromise = client.getSnapshot();
+      const timeoutAssertion = expect(snapshotPromise).rejects.toThrow(
+        "Agent host request getSnapshot timed out after 25ms",
       );
 
       await vi.advanceTimersByTimeAsync(25);
 
       await timeoutAssertion;
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("does not time out prompts: acceptance is separated from turn completion", async () => {
+    vi.useFakeTimers();
+
+    try {
+      const child = new FakeUtilityProcess();
+      const client = createAgentHostClient(child, { requestTimeoutMs: 25 });
+
+      let settled = false;
+      const promptPromise = client.prompt("Explain the active repository").then(
+        () => {
+          settled = true;
+        },
+        () => {
+          settled = true;
+        },
+      );
+
+      // A long turn runs far past the generic request timeout; the prompt
+      // call must stay pending until the host acks acceptance (issue #9).
+      await vi.advanceTimersByTimeAsync(60_000);
+      expect(settled).toBe(false);
+
+      child.emitMessage({
+        type: "response",
+        response: {
+          requestId: "1",
+          kind: "ack",
+        },
+      });
+
+      await promptPromise;
+      expect(settled).toBe(true);
     } finally {
       vi.useRealTimers();
     }
