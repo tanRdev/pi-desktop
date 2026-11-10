@@ -1,4 +1,8 @@
-import type { ProviderSnapshot, SettingsSnapshot } from "@pi-desktop/shared";
+import type {
+  PromptImageAttachment,
+  ProviderSnapshot,
+  SettingsSnapshot,
+} from "@pi-desktop/shared";
 import { useCallback, useEffect, useSyncExternalStore } from "react";
 import {
   type AppShellStoreState,
@@ -24,8 +28,8 @@ export function useShellModel() {
   }, [store]);
 
   const sendPrompt = useCallback(
-    (text?: string) => {
-      return store.getState().sendPrompt(text);
+    (text?: string, images?: PromptImageAttachment[]) => {
+      return store.getState().sendPrompt(text, images);
     },
     [store],
   );
@@ -33,6 +37,55 @@ export function useShellModel() {
   const cancelPrompt = useCallback(() => {
     return store.getState().cancelPrompt();
   }, [store]);
+
+  const enqueueFollowUp = useCallback(
+    (text: string, images?: PromptImageAttachment[]) => {
+      return shellModel.enqueueFollowUp(text, images);
+    },
+    [shellModel],
+  );
+
+  const steerPrompt = useCallback(
+    (text: string, images?: PromptImageAttachment[]) => {
+      return shellModel.steerPrompt(text, images);
+    },
+    [shellModel],
+  );
+
+  const editFollowUp = useCallback(
+    (threadId: string, itemId: string, text: string) => {
+      shellModel.editFollowUp(threadId, itemId, text);
+    },
+    [shellModel],
+  );
+
+  const deleteFollowUp = useCallback(
+    (threadId: string, itemId: string) => {
+      shellModel.deleteFollowUp(threadId, itemId);
+    },
+    [shellModel],
+  );
+
+  const moveFollowUp = useCallback(
+    (threadId: string, itemId: string, offset: -1 | 1) => {
+      shellModel.moveFollowUp(threadId, itemId, offset);
+    },
+    [shellModel],
+  );
+
+  const setFollowUpPaused = useCallback(
+    (threadId: string, paused: boolean) => {
+      shellModel.setFollowUpPaused(threadId, paused);
+    },
+    [shellModel],
+  );
+
+  const retryFollowUp = useCallback(
+    (threadId: string, itemId: string) => {
+      shellModel.retryFollowUp(threadId, itemId);
+    },
+    [shellModel],
+  );
 
   const setDraft = useCallback(
     (draft: string) => {
@@ -92,6 +145,13 @@ export function useShellModel() {
     updateRepositoryPreferences: snapshot.updateRepositoryPreferences,
     sendPrompt,
     cancelPrompt,
+    enqueueFollowUp,
+    steerPrompt,
+    editFollowUp,
+    deleteFollowUp,
+    moveFollowUp,
+    setFollowUpPaused,
+    retryFollowUp,
     setDraft,
     reset,
     reload,

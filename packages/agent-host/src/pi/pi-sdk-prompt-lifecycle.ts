@@ -1,3 +1,5 @@
+import type { PromptImageAttachment } from "@pi-desktop/shared";
+
 type PromptLifecycleSession = {
   sessionId: string;
   prompt: (text: string, options?: object) => Promise<void>;
@@ -12,7 +14,7 @@ type PiSdkPromptLifecycleOptions = {
 };
 
 type PiSdkPromptLifecycle = {
-  prompt: (text: string) => Promise<void>;
+  prompt: (text: string, images?: PromptImageAttachment[]) => Promise<void>;
   cancel: () => Promise<void>;
 };
 
@@ -25,7 +27,10 @@ export const createPiSdkPromptLifecycle = ({
   let promptAbortController: AbortController | null = null;
 
   return {
-    async prompt(text: string): Promise<void> {
+    async prompt(
+      text: string,
+      images?: PromptImageAttachment[],
+    ): Promise<void> {
       const session = getSession();
 
       if (!session) {
@@ -40,7 +45,11 @@ export const createPiSdkPromptLifecycle = ({
       promptAbortController = abortController;
 
       try {
-        await session.prompt(text, { signal: abortController.signal });
+        await session.prompt(text, {
+          signal: abortController.signal,
+          // PromptImageAttachment is structurally Pi's ImageContent.
+          ...(images && images.length > 0 ? { images } : {}),
+        });
         refreshReadyState();
       } catch (error) {
         if (abortController.signal.aborted) {

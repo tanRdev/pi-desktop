@@ -5,6 +5,7 @@ import type {
   AgentSnapshot,
   ModelSwitchRequest,
   PiDesktopAgentEvent,
+  PromptImageAttachment,
   ProviderSnapshot,
   SettingsSnapshot,
 } from "@pi-desktop/shared";
@@ -39,7 +40,8 @@ export interface AgentHostClient {
   getSettings(): Promise<SettingsSnapshot>;
   getSnapshot(): Promise<AgentSnapshot>;
   switchModel(request: ModelSwitchRequest): Promise<void>;
-  prompt(text: string): Promise<void>;
+  prompt(text: string, images?: PromptImageAttachment[]): Promise<void>;
+  steer(text: string, images?: PromptImageAttachment[]): Promise<void>;
   cancelPrompt(): Promise<void>;
   reset(): Promise<void>;
   subscribe(listener: AgentEventListener): () => void;
@@ -149,8 +151,19 @@ export function createAgentHostClient(
 
       return response.settings;
     },
-    async prompt(text) {
-      await send({ type: "prompt", text });
+    async prompt(text, images) {
+      await send({
+        type: "prompt",
+        text,
+        ...(images && images.length > 0 ? { images } : {}),
+      });
+    },
+    async steer(text, images) {
+      await send({
+        type: "steer",
+        text,
+        ...(images && images.length > 0 ? { images } : {}),
+      });
     },
     async switchModel(request) {
       await send({ type: "switchModel", request });

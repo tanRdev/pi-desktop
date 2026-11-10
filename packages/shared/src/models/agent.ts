@@ -196,6 +196,28 @@ export type PiDesktopAgentEvent =
     };
 
 /**
+ * Typed image attachment carried through the prompt/steer runtime contracts.
+ * Mirrors Pi's `ImageContent` shape (`{ type: "image", data, mimeType }`):
+ * `data` is the base64-encoded image bytes and `mimeType` its MIME type, so
+ * runtimes receive the bytes themselves rather than a renderer-local path.
+ */
+export type PromptImageMimeType =
+  | "image/gif"
+  | "image/jpeg"
+  | "image/png"
+  | "image/webp";
+
+export interface PromptImageAttachment {
+  type: "image";
+  /** Image MIME type (allowlisted at the IPC contract boundary). */
+  mimeType: PromptImageMimeType;
+  /** Base64-encoded image bytes. */
+  data: string;
+  /** Optional display name; never used to locate the image bytes. */
+  name?: string;
+}
+
+/**
  * Model switch request.
  */
 export interface ModelSwitchRequest {

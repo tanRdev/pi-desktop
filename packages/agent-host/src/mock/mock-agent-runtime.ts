@@ -3,11 +3,19 @@ import type {
   AgentSnapshot,
   ModelSwitchRequest,
   PiDesktopAgentEvent,
+  PromptImageAttachment,
   ProviderSnapshot,
   SettingsSnapshot,
 } from "@pi-desktop/shared";
 
 type AgentListener = (event: PiDesktopAgentEvent) => void;
+
+function describeImages(images?: PromptImageAttachment[]): string {
+  if (!images || images.length === 0) {
+    return "";
+  }
+  return ` [images: ${images.map((image) => image.mimeType).join(", ")}]`;
+}
 
 const SESSION_ID = "mock-session";
 
@@ -125,7 +133,7 @@ export class MockAgentRuntime {
     };
   }
 
-  async prompt(text: string): Promise<void> {
+  async prompt(text: string, images?: PromptImageAttachment[]): Promise<void> {
     if (this.snapshot.status === "starting") {
       await this.bootstrap();
     }
@@ -134,13 +142,13 @@ export class MockAgentRuntime {
     const userMessage: AgentMessageSnapshot = {
       id: `user-${timestamp}`,
       role: "user",
-      text,
+      text: `${text}${describeImages(images)}`,
       status: "complete",
       timestamp,
     };
 
     const assistantTimestamp = timestamp + 1;
-    const assistantText = `Pi Desktop mock assistant received: ${text}`;
+    const assistantText = `Pi Desktop mock assistant received: ${text}${describeImages(images)}`;
     const assistantMessage: AgentMessageSnapshot = {
       id: `assistant-${assistantTimestamp}`,
       role: "assistant",
@@ -275,6 +283,44 @@ export class MockAgentRuntime {
     if (this.currentPromptAbort === abortController) {
       this.currentPromptAbort = null;
     }
+  }
+
+  /**
+   * Mock steer: records the steered message without aborting the
+   * in-flight prompt (mirrors the real runtimes' no-cancel semantics).
+   */
+  async steer(text: string, images?: PromptImageAttachment[]): Promise<void> {
+    if (this.snapshot.status === "starting") {
+      await this.bootstrap();
+    }
+
+    const timestamp = Date.now();
+    const userMessage: AgentMessageSnapshot = {
+      id: `user-steer-${timestamp}`,
+      role: "user",
+      text: `${text}${describeImages(images)}`,
+      status: "complete",
+      timestamp,
+    };
+
+    this.snapshot = {
+      ...this.snapshot,
+      messages: [...this.snapshot.messages, userMessage],
+    };
+    this.emit({
+      type: "message_start",
+      messageId: userMessage.id,
+      role: userMessage.role,
+      text: userMessage.text,
+      timestamp,
+    });
+    this.emit({
+      type: "message_end",
+      messageId: userMessage.id,
+      role: userMessage.role,
+      text: userMessage.text,
+      timestamp,
+    });
   }
 
   async cancelPrompt(): Promise<void> {

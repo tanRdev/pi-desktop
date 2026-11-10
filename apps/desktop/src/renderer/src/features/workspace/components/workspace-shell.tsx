@@ -14,6 +14,7 @@ import type {
 import { FileTreePanel } from "./file-tree-panel";
 import { GitPanel } from "./git-panel";
 import { SIDEBAR_WIDTH } from "./left-sidebar";
+import type { FollowUpDockProps } from "./prompt-dock";
 import { buildWorkspaceShellDerivedState } from "./workspace-shell-derived-state";
 import { useWorkspaceShellEvents } from "./workspace-shell-events";
 import { useWorkspaceShellFullscreen } from "./workspace-shell-fullscreen";
@@ -118,6 +119,8 @@ export interface WorkspaceShellProps {
   favoriteModels?: string[];
   onToggleFavorite?: (modelValue: string) => void;
   onAgentGitAction?: (prompt: string) => void;
+  /** Per-thread follow-up queue wiring (issue #10). */
+  followUpProps?: FollowUpDockProps;
 }
 
 function WorkspaceShellImpl({
@@ -207,6 +210,7 @@ function WorkspaceShellImpl({
   onFileTreeRenameFile,
   onFileTreeMoveFile,
   onAgentGitAction,
+  followUpProps,
 }: WorkspaceShellProps) {
   useWorkspaceShellFullscreen();
   const { targetMessageId, setTargetMessageId, handleTargetMessageNavigated } =
@@ -375,6 +379,7 @@ function WorkspaceShellImpl({
     favoriteModels,
     onToggleFavorite,
     onAgentGitAction,
+    followUpProps,
     workspacePath,
     onTerminalCommandComplete,
     activeGitRepositoryStatus,

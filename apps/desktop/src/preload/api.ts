@@ -25,6 +25,7 @@ import type {
   PackageUpdateRequest,
   PiDesktopAgentEvent,
   PiDesktopApi,
+  PromptImageAttachment,
   SearchRequest,
   TerminalCreateOptions,
 } from "@pi-desktop/shared";
@@ -88,8 +89,17 @@ export function createPiDesktopApi({
       respondOAuthPrompt(response: OAuthPromptResponse) {
         return invokeContract(agentContracts.respondOAuthPrompt, response);
       },
-      prompt(text: string) {
-        return invokeContract(agentContracts.prompt, { text });
+      prompt(text: string, images?: PromptImageAttachment[]) {
+        return invokeContract(agentContracts.prompt, {
+          text,
+          ...(images && images.length > 0 ? { images } : {}),
+        });
+      },
+      steer(text: string, images?: PromptImageAttachment[]) {
+        return invokeContract(agentContracts.steer, {
+          text,
+          ...(images && images.length > 0 ? { images } : {}),
+        });
       },
       cancelPrompt() {
         return invokeContract(agentContracts.cancelPrompt);

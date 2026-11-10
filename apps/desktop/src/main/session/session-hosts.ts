@@ -1,4 +1,4 @@
-import type { AgentSnapshot } from "@pi-desktop/shared";
+import type { AgentSnapshot, PromptImageAttachment } from "@pi-desktop/shared";
 
 type SwitchContext = {
   repositoryId: string;
@@ -10,11 +10,28 @@ type AgentHostLike = {
   getProviders(): Promise<unknown>;
   getSettings(): Promise<unknown>;
   getSnapshot(): Promise<AgentSnapshot>;
-  prompt(text: string): Promise<void>;
+  prompt(text: string, images?: PromptImageAttachment[]): Promise<void>;
+  steer?(text: string, images?: PromptImageAttachment[]): Promise<void>;
   cancelPrompt(): Promise<void>;
   reset(): Promise<void>;
   subscribe(listener: (event: unknown) => void): () => void;
 };
+
+/** Block steer on loading/failed hosts when the base host supports it. */
+function blockedSteer<THost extends AgentHostLike>(
+  baseHost: THost,
+  message: string,
+): Pick<THost, "steer"> {
+  return (
+    typeof baseHost.steer === "function"
+      ? {
+          steer: async () => {
+            throw new Error(message);
+          },
+        }
+      : {}
+  ) as Pick<THost, "steer">;
+}
 
 function createSessionSnapshot(
   context: SwitchContext,
@@ -47,6 +64,7 @@ export function createLoadingAgentHost<THost extends AgentHostLike>(
     async prompt() {
       throw new Error("Selected project is still loading");
     },
+    ...blockedSteer(baseHost, "Selected project is still loading"),
     async cancelPrompt() {
       return Promise.resolve();
     },
@@ -75,6 +93,7 @@ export function createFailedAgentHost<THost extends AgentHostLike>(
     async prompt() {
       throw new Error(message);
     },
+    ...blockedSteer(baseHost, message),
     async cancelPrompt() {
       return Promise.resolve();
     },

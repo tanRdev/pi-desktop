@@ -13,7 +13,11 @@ import type {
 import { DEFAULT_UNTITLED_THREAD_TITLE } from "../../../../../thread-title-defaults";
 import { CenterFileViewer } from "./center-file-viewer";
 import { ChatThreadPanel } from "./chat-thread-panel";
-import { PromptDock, type PromptMode } from "./prompt-dock";
+import {
+  type FollowUpDockProps,
+  PromptDock,
+  type PromptMode,
+} from "./prompt-dock";
 import { TitleBar } from "./title-bar";
 
 export interface WorkspaceShellMainPaneProps {
@@ -70,6 +74,7 @@ export interface WorkspaceShellMainPaneProps {
   favoriteModels?: string[];
   onToggleFavorite?: (modelValue: string) => void;
   onAgentGitAction?: (prompt: string) => void;
+  followUpProps?: FollowUpDockProps;
 }
 
 function WorkspaceShellMainPaneImpl({
@@ -122,6 +127,7 @@ function WorkspaceShellMainPaneImpl({
   favoriteModels,
   onToggleFavorite,
   onAgentGitAction,
+  followUpProps,
 }: WorkspaceShellMainPaneProps) {
   return (
     <>
@@ -209,6 +215,7 @@ function WorkspaceShellMainPaneImpl({
                 onConnectProvider={onConnectProvider}
                 favoriteModels={favoriteModels}
                 onToggleFavorite={onToggleFavorite}
+                {...followUpProps}
               />
             ) : null}
           </div>

@@ -109,7 +109,9 @@ describe("usePromptDockInput", () => {
     });
   });
 
-  it("cancels instead of sending when a prompt is already executing", () => {
+  it("submits instead of cancelling when a prompt is already executing", () => {
+    // Issue #10: Stop is separate from Submit — submitting while a run
+    // is active queues a follow-up, it never cancels the run.
     const onSend = vi.fn();
     const onCancelPrompt = vi.fn();
 
@@ -126,11 +128,32 @@ describe("usePromptDockInput", () => {
 
     result.current.handleSubmit();
 
+    expect(onSend).toHaveBeenCalledTimes(1);
+    expect(onCancelPrompt).not.toHaveBeenCalled();
+    expect(window.localStorage.getItem("pi:prompt-history:thread-1")).toBe(
+      JSON.stringify(["ship it"]),
+    );
+  });
+
+  it("handleStop cancels the active run without sending", () => {
+    const onSend = vi.fn();
+    const onCancelPrompt = vi.fn();
+
+    const { result } = renderHook(() =>
+      usePromptDockInput(
+        createOptions({
+          draft: "ship it",
+          isPromptExecuting: true,
+          onSend,
+          onCancelPrompt,
+        }),
+      ),
+    );
+
+    result.current.handleStop();
+
     expect(onCancelPrompt).toHaveBeenCalledTimes(1);
     expect(onSend).not.toHaveBeenCalled();
-    expect(
-      window.localStorage.getItem("pi:prompt-history:thread-1"),
-    ).toBeNull();
   });
 
   it("submits on Cmd+Enter and cycles prompt history with arrow keys", () => {

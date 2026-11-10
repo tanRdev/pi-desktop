@@ -3,6 +3,7 @@ import type {
   AgentSnapshot,
   ModelSwitchRequest,
   PiDesktopAgentEvent,
+  PromptImageAttachment,
   ProviderSnapshot,
   SettingsSnapshot,
 } from "@pi-desktop/shared";
@@ -139,14 +140,27 @@ export class PiCliRpcAgentRuntime {
     };
   }
 
-  async prompt(text: string): Promise<void> {
+  async prompt(text: string, images?: PromptImageAttachment[]): Promise<void> {
     await this.bootstrap();
     this.snapshot = {
       ...this.snapshot,
       status: "starting",
       lastError: null,
     };
-    await this.sendCommand({ type: "prompt", message: text });
+    await this.sendCommand({
+      type: "prompt",
+      message: text,
+      ...(images && images.length > 0 ? { images } : {}),
+    });
+  }
+
+  async steer(text: string, images?: PromptImageAttachment[]): Promise<void> {
+    await this.bootstrap();
+    await this.sendCommand({
+      type: "steer",
+      message: text,
+      ...(images && images.length > 0 ? { images } : {}),
+    });
   }
 
   async switchModel(request: ModelSwitchRequest): Promise<void> {

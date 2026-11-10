@@ -2,6 +2,7 @@ import type {
   AgentHostRequest,
   AgentSnapshot,
   ModelSwitchRequest,
+  PromptImageAttachment,
   ProviderSnapshot,
   SettingsSnapshot,
 } from "@pi-desktop/shared";
@@ -30,7 +31,12 @@ function makeRuntime(
     getSettings: vi.fn(async (): Promise<SettingsSnapshot> => ({})),
     getSnapshot: vi.fn((): AgentSnapshot => baseSnapshot()),
     switchModel: vi.fn(async (_request: ModelSwitchRequest) => {}),
-    prompt: vi.fn(async (_text: string) => {}),
+    prompt: vi.fn(
+      async (_text: string, _images?: PromptImageAttachment[]) => {},
+    ),
+    steer: vi.fn(
+      async (_text: string, _images?: PromptImageAttachment[]) => {},
+    ),
     cancelPrompt: vi.fn(async () => {}),
     reset: vi.fn(async () => {}),
     ...overrides,
@@ -109,10 +115,53 @@ describe("createAgentHostCommandHandler", () => {
       text: "hello",
     });
 
-    expect(runtime.prompt).toHaveBeenCalledWith("hello");
+    expect(runtime.prompt).toHaveBeenCalledWith("hello", undefined);
     expect(envelope).toEqual({
       type: "response",
       response: { requestId: "r5", kind: "ack" },
+    });
+  });
+
+  it("prompt forwards typed image attachments to the runtime", async () => {
+    const runtime = makeRuntime();
+    const handle = createAgentHostCommandHandler(runtime);
+    const images: PromptImageAttachment[] = [
+      { type: "image", mimeType: "image/png", data: "aGVsbG8=" },
+    ];
+
+    const envelope = await handle({
+      requestId: "r5b",
+      type: "prompt",
+      text: "describe this",
+      images,
+    });
+
+    expect(runtime.prompt).toHaveBeenCalledWith("describe this", images);
+    expect(envelope).toEqual({
+      type: "response",
+      response: { requestId: "r5b", kind: "ack" },
+    });
+  });
+
+  it("steer forwards text and images and returns ack", async () => {
+    const runtime = makeRuntime();
+    const handle = createAgentHostCommandHandler(runtime);
+    const images: PromptImageAttachment[] = [
+      { type: "image", mimeType: "image/jpeg", data: "/9j/abc" },
+    ];
+
+    const envelope = await handle({
+      requestId: "r5c",
+      type: "steer",
+      text: "focus on the parser",
+      images,
+    });
+
+    expect(runtime.steer).toHaveBeenCalledWith("focus on the parser", images);
+    expect(runtime.prompt).not.toHaveBeenCalled();
+    expect(envelope).toEqual({
+      type: "response",
+      response: { requestId: "r5c", kind: "ack" },
     });
   });
 

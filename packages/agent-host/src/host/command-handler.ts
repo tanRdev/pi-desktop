@@ -3,6 +3,7 @@ import type {
   AgentHostRequest,
   AgentSnapshot,
   ModelSwitchRequest,
+  PromptImageAttachment,
   ProviderSnapshot,
   SettingsSnapshot,
 } from "@pi-desktop/shared";
@@ -13,7 +14,8 @@ export interface CommandHandlerRuntime {
   getSettings(): Promise<SettingsSnapshot>;
   getSnapshot(): AgentSnapshot;
   switchModel(request: ModelSwitchRequest): Promise<void>;
-  prompt(text: string): Promise<void>;
+  prompt(text: string, images?: PromptImageAttachment[]): Promise<void>;
+  steer(text: string, images?: PromptImageAttachment[]): Promise<void>;
   cancelPrompt(): Promise<void>;
   // Reset the runtime to a fresh session. Implementations should clear
   // any message history and produce a new session id where applicable.
@@ -63,7 +65,16 @@ export function createAgentHostCommandHandler(runtime: CommandHandlerRuntime) {
             },
           };
         case "prompt":
-          await runtime.prompt(request.text);
+          await runtime.prompt(request.text, request.images);
+          return {
+            type: "response",
+            response: {
+              requestId: request.requestId,
+              kind: "ack",
+            },
+          };
+        case "steer":
+          await runtime.steer(request.text, request.images);
           return {
             type: "response",
             response: {

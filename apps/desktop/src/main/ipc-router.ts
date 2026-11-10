@@ -16,6 +16,7 @@ import type {
   OAuthPromptResponse,
   OAuthProviderSnapshot,
   PiDiscoveryResult,
+  PromptImageAttachment,
   ProviderSnapshot,
   SearchRequest,
   SearchResponse,
@@ -42,7 +43,8 @@ export interface AgentIpcHost {
   getProviders(): Promise<ProviderSnapshot[]>;
   getSettings(): Promise<SettingsSnapshot>;
   getSnapshot(): Promise<AgentSnapshot>;
-  prompt(text: string): Promise<void>;
+  prompt(text: string, images?: PromptImageAttachment[]): Promise<void>;
+  steer(text: string, images?: PromptImageAttachment[]): Promise<void>;
   cancelPrompt(): Promise<void>;
   reset(): Promise<void>;
   addRepository(path: string): Promise<void>;
@@ -325,8 +327,24 @@ export function registerIpcHandlers({
   registerContractHandler({
     handle,
     contract: agentContracts.prompt,
-    handler: async ({ text }) => {
-      await agentHost.prompt(text);
+    handler: async ({ text, images }) => {
+      if (images && images.length > 0) {
+        await agentHost.prompt(text, images);
+      } else {
+        await agentHost.prompt(text);
+      }
+    },
+  });
+
+  registerContractHandler({
+    handle,
+    contract: agentContracts.steer,
+    handler: async ({ text, images }) => {
+      if (images && images.length > 0) {
+        await agentHost.steer(text, images);
+      } else {
+        await agentHost.steer(text);
+      }
     },
   });
 

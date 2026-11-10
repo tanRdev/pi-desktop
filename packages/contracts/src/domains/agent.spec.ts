@@ -6,9 +6,11 @@ import {
   AgentLoginWithOAuthRequestSchema,
   AgentLogoutOAuthRequestSchema,
   AgentPromptRequestSchema,
+  AgentSteerRequestSchema,
   AgentSwitchModelRequestSchema,
   agentContracts,
   PiDesktopAgentEventSchema,
+  PromptImageAttachmentSchema,
 } from "./agent.js";
 
 describe("agent request schemas", () => {
@@ -62,6 +64,59 @@ describe("agent request schemas", () => {
     ).toThrow();
     expect(() =>
       Schema.decodeUnknownSync(AgentPromptRequestSchema)({}),
+    ).toThrow();
+  });
+
+  it("accepts prompt payloads with typed image attachments", () => {
+    const images = [
+      { type: "image", mimeType: "image/png", data: "aGVsbG8=" },
+      {
+        type: "image",
+        mimeType: "image/jpeg",
+        data: "/9j/abc",
+        name: "photo.jpg",
+      },
+    ];
+    expect(
+      Schema.decodeUnknownSync(AgentPromptRequestSchema)({
+        text: "describe these",
+        images,
+      }),
+    ).toEqual({ text: "describe these", images });
+    expect(
+      Schema.decodeUnknownSync(AgentSteerRequestSchema)({
+        text: "look here",
+        images,
+      }),
+    ).toEqual({ text: "look here", images });
+  });
+
+  it("rejects image attachments with unsupported MIME types or empty data", () => {
+    expect(() =>
+      Schema.decodeUnknownSync(PromptImageAttachmentSchema)({
+        type: "image",
+        mimeType: "image/bmp",
+        data: "AA==",
+      }),
+    ).toThrow();
+    expect(() =>
+      Schema.decodeUnknownSync(PromptImageAttachmentSchema)({
+        type: "image",
+        mimeType: "image/png",
+        data: "",
+      }),
+    ).toThrow();
+    expect(() =>
+      Schema.decodeUnknownSync(AgentPromptRequestSchema)({
+        text: "hi",
+        images: [{ type: "image", mimeType: "image/tiff", data: "AA==" }],
+      }),
+    ).toThrow();
+    expect(() =>
+      Schema.decodeUnknownSync(AgentPromptRequestSchema)({
+        text: "hi",
+        images: "not-an-array",
+      }),
     ).toThrow();
   });
 
@@ -179,6 +234,7 @@ describe("agentContracts", () => {
     expect(agentContracts.loginWithOAuth.channel).toBe("agent:loginWithOAuth");
     expect(agentContracts.logoutOAuth.channel).toBe("agent:logoutOAuth");
     expect(agentContracts.prompt.channel).toBe("agent:prompt");
+    expect(agentContracts.steer.channel).toBe("agent:steer");
     expect(agentContracts.cancelPrompt.channel).toBe("agent:cancelPrompt");
     expect(agentContracts.reset.channel).toBe("agent:reset");
     expect(agentContracts.switchModel.channel).toBe("agent:switchModel");

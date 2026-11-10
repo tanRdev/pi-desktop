@@ -299,6 +299,10 @@ export function createShellSnapshot({
       supportsTools: true,
       supportsActivity: true,
       supportsParallelSessions: false,
+      // All bundled runtimes (mock, SDK, CLI) accept typed image
+      // attachments and steer without cancelling the current run.
+      supportsSteer: resolveAgentMode(agentMode) !== "unknown",
+      supportsImageAttachments: resolveAgentMode(agentMode) !== "unknown",
     },
     git,
   };
