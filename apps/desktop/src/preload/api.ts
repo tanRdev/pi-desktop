@@ -4,7 +4,6 @@ import {
   createContractInvoker,
   createContractSubscriber,
   dialogContracts,
-  fsContracts,
   gitContracts,
   packagesContracts,
   repositoryContracts,
@@ -29,6 +28,7 @@ import type {
   TerminalCreateOptions,
 } from "@pi-desktop/shared";
 
+import { createFsApi } from "./fs-api";
 import { createStateApi } from "./state-api";
 import {
   createUpdatesApi,
@@ -165,31 +165,7 @@ export function createPiDesktopApi({
         return invokeContract(dialogContracts.openExternal, { url });
       },
     },
-    fs: {
-      readDirectory(path: string) {
-        return invokeContract(fsContracts.readDirectory, { path }) as Promise<
-          import("@pi-desktop/shared").DirectoryListing
-        >;
-      },
-      readFile(path: string) {
-        return invokeContract(fsContracts.readFile, { path });
-      },
-      writeFile(path: string, content: string) {
-        return invokeContract(fsContracts.writeFile, { path, content });
-      },
-      deleteFile(path: string) {
-        return invokeContract(fsContracts.deleteFile, { path });
-      },
-      renameFile(oldPath: string, newPath: string) {
-        return invokeContract(fsContracts.renameFile, { oldPath, newPath });
-      },
-      moveFile(sourcePath: string, destinationPath: string) {
-        return invokeContract(fsContracts.moveFile, {
-          sourcePath,
-          destinationPath,
-        });
-      },
-    },
+    fs: createFsApi({ invokeContract, subscribeContract }),
     git: {
       getRepositoryStatus(
         repositoryPath: string,

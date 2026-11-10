@@ -1,5 +1,10 @@
 import { fsContracts, registerContractHandler } from "@pi-desktop/contracts";
 import { PathGuardError, resolveInsideRoot } from "../fs/path-guards";
+import {
+  createWorkspaceFileWatcherService,
+  type WorkspaceFileWatcherService,
+} from "../fs/workspace-file-watcher";
+import { registerFilesystemWatchHandlers } from "./register-filesystem-watch-handlers";
 
 /**
  * Maximum size, in bytes, of a single read or write operation. Reads above
@@ -89,6 +94,8 @@ interface RegisterFilesystemHandlersDependencies {
     listener: (event?: unknown, payload?: unknown) => unknown,
   ) => void;
   getWorkspaceRootPath(): string | null;
+  /** Injectable for tests; defaults to a real recursive fs watcher. */
+  fileWatcher?: WorkspaceFileWatcherService;
 }
 
 function isVisibleFilesystemEntry(entry: {
@@ -112,6 +119,7 @@ function requireRoots(getWorkspaceRootPath: () => string | null): string[] {
 export function registerFilesystemHandlers({
   handle,
   getWorkspaceRootPath,
+  fileWatcher = createWorkspaceFileWatcherService(),
 }: RegisterFilesystemHandlersDependencies): void {
   registerContractHandler({
     handle,
@@ -279,6 +287,12 @@ export function registerFilesystemHandlers({
       const { rename } = await import("node:fs/promises");
       await rename(resolvedOldPath, resolvedNewPath);
     },
+  });
+
+  registerFilesystemWatchHandlers({
+    handle,
+    getWorkspaceRootPath,
+    fileWatcher,
   });
 
   registerContractHandler({

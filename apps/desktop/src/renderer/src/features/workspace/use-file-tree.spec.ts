@@ -3,11 +3,38 @@ import type { FileEntry } from "@pi-desktop/shared/models/fs";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import type {
+  FileChangeEvent,
+  FileChangeSubscriber,
+  FileWatcherStream,
+} from "@/lib/file-watcher";
 import {
   installMockPiDesktop,
   uninstallMockPiDesktop,
 } from "../../../../test/mock-pi-desktop";
 import { useFileTree } from "./use-file-tree";
+
+function createFakeWatchStream(): {
+  stream: FileWatcherStream;
+  emit: (event: FileChangeEvent) => void;
+} {
+  let subscriber: FileChangeSubscriber | null = null;
+  return {
+    stream: {
+      subscribe: (next: FileChangeSubscriber) => {
+        subscriber = next;
+        return () => {
+          subscriber = null;
+        };
+      },
+      getActivePath: () => "/root",
+      isActive: () => true,
+    },
+    emit: (event: FileChangeEvent) => {
+      subscriber?.(event);
+    },
+  };
+}
 
 function entry(name: string, type: "file" | "directory" = "file"): FileEntry {
   return {
@@ -477,6 +504,62 @@ describe("useFileTree", () => {
       });
       expect(handled).toBe(false);
       expect(result.current.selectedPath).toBeNull();
+    });
+  });
+
+  describe("watch events", () => {
+    it("refreshes the root when a nested file is created externally", async () => {
+      let rootEntries = [entry("src", "directory")];
+      const readDirectory = vi.fn((path: string) =>
+        Promise.resolve({ path, entries: rootEntries }),
+      );
+      installMockPiDesktop({ fs: { readDirectory } });
+      const fakeWatch = createFakeWatchStream();
+
+      const { result } = renderHook(() =>
+        useFileTree("/root", { watchEvents$: fakeWatch.stream }),
+      );
+      await waitFor(() => expect(result.current.rootNodes).toHaveLength(1));
+      const rootCallsBefore = readDirectory.mock.calls.filter(
+        ([path]) => path === "/root",
+      ).length;
+
+      rootEntries = [entry("src", "directory"), entry("new-file.ts")];
+      act(() => {
+        fakeWatch.emit({
+          type: "create",
+          path: "/root/src/deep/new-file.ts",
+          timestamp: 1,
+        });
+      });
+
+      await waitFor(() => expect(result.current.rootNodes).toHaveLength(2));
+      expect(
+        readDirectory.mock.calls.filter(([path]) => path === "/root").length,
+      ).toBeGreaterThan(rootCallsBefore);
+    });
+
+    it("marks modified files dirty without reloading the root", async () => {
+      const readDirectory = vi.fn((path: string) =>
+        Promise.resolve({ path, entries: [entry("a.ts")] }),
+      );
+      installMockPiDesktop({ fs: { readDirectory } });
+      const fakeWatch = createFakeWatchStream();
+
+      const { result } = renderHook(() =>
+        useFileTree("/root", { watchEvents$: fakeWatch.stream }),
+      );
+      await waitFor(() => expect(result.current.rootNodes).toHaveLength(1));
+
+      act(() => {
+        fakeWatch.emit({
+          type: "modify",
+          path: "/root/a.ts",
+          timestamp: 1,
+        });
+      });
+
+      expect(result.current.dirtyPaths.has("/root/a.ts")).toBe(true);
     });
   });
 });

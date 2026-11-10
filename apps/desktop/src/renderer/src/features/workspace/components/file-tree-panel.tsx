@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/phosphor-icons";
 import { useRecentFiles } from "@/features/workspace/recent-items";
 import { useFileTree } from "@/features/workspace/use-file-tree";
+import { watch } from "@/lib/file-watcher";
 import { toast } from "@/lib/toast";
 import { FileTreeContextMenu } from "./file-tree-context-menu";
 import { FileTreeItem } from "./file-tree-item";
@@ -75,6 +76,16 @@ export function FileTreePanel({
   onMoveFile,
   repositoryStatus,
 }: FileTreePanelProps) {
+  // Stream of external filesystem changes for this workspace, backed by the
+  // typed `fs:watch`/`fs:changed` IPC contracts. `useFileTree` subscribes to
+  // it and refreshes the tree when entries are created/deleted/renamed at
+  // any depth; the stream tears the native watch down when its last
+  // subscriber (the tree) unsubscribes.
+  const watchEvents$ = useMemo(
+    () => (workspacePath ? watch(workspacePath) : undefined),
+    [workspacePath],
+  );
+
   const {
     rootNodes,
     isRootLoading,
@@ -88,7 +99,7 @@ export function FileTreePanel({
     toggleMultiSelect,
     handleKeyDown: handleTreeKeyDown,
     flatRows,
-  } = useFileTree(workspacePath);
+  } = useFileTree(workspacePath, { watchEvents$ });
 
   const recentFiles = useRecentFiles();
   const recentFileItems = useMemo(

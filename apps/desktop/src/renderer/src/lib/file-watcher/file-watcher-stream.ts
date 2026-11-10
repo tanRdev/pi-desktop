@@ -30,12 +30,14 @@ function invokeNativeWatch(
   workspacePath: string,
   onEvent: (event: FileChangeEvent) => void,
 ): (() => void) | null {
-  // TODO: replace with window.piDesktop.fs.watch once the IPC channel is implemented
-  const desc = Object.getOwnPropertyDescriptor(window.piDesktop.fs, "watch");
-  if (typeof desc?.value !== "function") {
+  // `window.piDesktop.fs.watch` is backed by the typed `fs:watch` /
+  // `fs:changed` IPC contracts; the main process watches the workspace
+  // recursively and pushes change events back to this window.
+  const watchFn = window.piDesktop?.fs?.watch;
+  if (typeof watchFn !== "function") {
     return null;
   }
-  const result = desc.value(workspacePath, onEvent);
+  const result = watchFn(workspacePath, onEvent);
   return typeof result === "function" ? result : null;
 }
 
