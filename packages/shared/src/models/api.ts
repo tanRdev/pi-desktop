@@ -11,7 +11,7 @@ import type {
   SettingsSnapshot,
 } from "./agent.js";
 import type { OpenDialogOptions } from "./dialog.js";
-import type { DirectoryListing, FileContent } from "./fs.js";
+import type { DirectoryListing, FileChangeEvent, FileContent } from "./fs.js";
 import type { GitFileDiff, GitRepositoryStatus } from "./git.js";
 import type {
   InstalledPackageSnapshot,
@@ -92,6 +92,12 @@ export interface PiDesktopApi {
     deleteFile(path: string): Promise<void>;
     renameFile(oldPath: string, newPath: string): Promise<void>;
     moveFile(sourcePath: string, destinationPath: string): Promise<void>;
+    /**
+     * Watch a workspace directory (recursively) for external changes.
+     * The listener receives `fs:changed` contract events for entries at or
+     * below `path`. Returns an unsubscribe function that stops the watch.
+     */
+    watch(path: string, listener: (event: FileChangeEvent) => void): () => void;
   };
   git: {
     getRepositoryStatus(

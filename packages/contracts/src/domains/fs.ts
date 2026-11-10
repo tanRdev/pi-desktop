@@ -1,12 +1,16 @@
 import type {
   DirectoryListing,
+  FileChangeEvent,
   FileContent,
   FileEntry,
 } from "@pi-desktop/shared";
 import { Schema } from "effect";
 import { IPC_CHANNELS } from "../channels.js";
 
-import { createIpcContract } from "../contract-runtime.js";
+import {
+  createIpcContract,
+  createIpcEventContract,
+} from "../contract-runtime.js";
 import {
   ipcStringSchema,
   MAX_WRITE_FILE_BYTES,
@@ -39,6 +43,20 @@ export const FsMoveFileRequestSchema = Schema.Struct({
   sourcePath: ipcStringSchema(),
   destinationPath: ipcStringSchema(),
 });
+
+export const FsWatchRequestSchema = Schema.Struct({
+  path: ipcStringSchema(),
+});
+
+export const FsUnwatchRequestSchema = Schema.Struct({
+  path: ipcStringSchema(),
+});
+
+export const FileChangeEventSchema = Schema.Struct({
+  type: Schema.Literal("create", "modify", "delete", "rename"),
+  path: Schema.String,
+  timestamp: Schema.Number,
+}) satisfies Schema.Schema<FileChangeEvent>;
 
 const FileEntrySchema = Schema.Struct({
   name: Schema.String,
@@ -111,6 +129,18 @@ export const fsContracts = {
     IPC_CHANNELS.fs.moveFile,
     FsMoveFileRequestSchema,
   ),
+  watch: createVoidResponseContract(
+    IPC_CHANNELS.fs.watch,
+    FsWatchRequestSchema,
+  ),
+  unwatch: createVoidResponseContract(
+    IPC_CHANNELS.fs.unwatch,
+    FsUnwatchRequestSchema,
+  ),
+  changed: createIpcEventContract({
+    channel: IPC_CHANNELS.fs.changed,
+    payload: FileChangeEventSchema,
+  }),
 } as const;
 
 type AssignableTo<Decoded, Target> = Decoded extends Target ? true : never;
@@ -123,10 +153,15 @@ type _FileContentAssignable = AssignableTo<
   Schema.Schema.Type<typeof FileContentSchema>,
   FileContent
 >;
+type _FileChangeEventAssignable = AssignableTo<
+  Schema.Schema.Type<typeof FileChangeEventSchema>,
+  FileChangeEvent
+>;
 
 export type FsSchemasAssignable =
   | _DirectoryListingAssignable
-  | _FileContentAssignable;
+  | _FileContentAssignable
+  | _FileChangeEventAssignable;
 
 export const fsContractList = [
   fsContracts.readDirectory,
@@ -135,4 +170,7 @@ export const fsContractList = [
   fsContracts.deleteFile,
   fsContracts.renameFile,
   fsContracts.moveFile,
+  fsContracts.watch,
+  fsContracts.unwatch,
+  fsContracts.changed,
 ] as const;
