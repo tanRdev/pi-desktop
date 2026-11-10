@@ -3,6 +3,14 @@ import type { Effect } from "effect";
 import type { GitError } from "../effect/errors";
 import { GitServiceImpl } from "./git-service-impl";
 import type { GitRepositoryInspection } from "./types";
+import type { WorktreeSetupStageReporter } from "./worktree-setup";
+
+export type {
+  WorktreeSetupStageEvent,
+  WorktreeSetupStageId,
+  WorktreeSetupStageReporter,
+  WorktreeSetupStageStatus,
+} from "./worktree-setup";
 
 /**
  * Public Git capability used by IPC, shell snapshot, and Effect Layers.
@@ -19,6 +27,7 @@ export type GitService = {
     branchName: string;
     worktreePath: string;
     baseBranch?: string;
+    onStage?: WorktreeSetupStageReporter;
   }): string;
   removeWorktree(options: {
     worktreePath: string;

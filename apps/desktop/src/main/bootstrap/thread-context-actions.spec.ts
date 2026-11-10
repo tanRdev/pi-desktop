@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
+import type {
+  WorktreeSetupStageEvent,
+  WorktreeSetupStageReporter,
+} from "../git/git-service";
 import { createThreadContextActions } from "./thread-context-actions";
 
 function createThread(id: string, worktreeId: string) {
@@ -331,6 +335,7 @@ describe("createThreadContextActions", () => {
       branchName: "feature/branch",
       worktreePath: "/Users/test/.pi-desktop/repo/feature-branch",
       baseBranch: "main",
+      onStage: expect.any(Function),
     });
     expect(buildThreadContext).toHaveBeenCalledWith(
       "repo-1",
@@ -339,6 +344,115 @@ describe("createThreadContextActions", () => {
       }),
       thread,
     );
+  });
+
+  it("keeps the checkout when opening it fails and retries against the same path", async () => {
+    const worktreePath = "/Users/test/.pi-desktop/repo/feature-branch";
+    const thread = createThread("thread-1", worktreePath);
+    const stages: WorktreeSetupStageEvent[] = [];
+    const onStage: WorktreeSetupStageReporter = (event) => stages.push(event);
+    // The git layer is idempotent: a second call for an existing
+    // checkout returns the same path instead of duplicating it.
+    const createdPaths = new Set<string>();
+    const createWorktree = vi.fn(
+      (input: {
+        repositoryRoot: string;
+        branchName: string;
+        worktreePath: string;
+        baseBranch?: string;
+        onStage?: WorktreeSetupStageReporter;
+      }) => {
+        input.onStage?.({ stage: "ready", status: "completed" });
+        createdPaths.add(input.worktreePath);
+        return input.worktreePath;
+      },
+    );
+    let inspectCreatedAttempts = 0;
+    const buildThreadContext = vi.fn(() => ({
+      repositoryId: "repo-1",
+      worktreePath,
+      thread,
+      socketPath: "/tmp/pi-desktop/thread.sock",
+      runtimeId: "runtime-1",
+      command: ["node", "/tmp/session-server.mjs"],
+      agentMode: "mock" as const,
+      agentDirectory: "/tmp/repo/.pi/agent",
+      runtimeAgentDirectory: "/tmp/repo/.pi/agent/threads/thread-1",
+    }));
+
+    const actions = createThreadContextActions({
+      inspectWorktreeOrThrow: vi.fn((targetPath: string) => {
+        if (targetPath === worktreePath) {
+          inspectCreatedAttempts += 1;
+          if (inspectCreatedAttempts === 1) {
+            throw new Error("checkout not inspectable yet");
+          }
+        }
+        return {
+          rootPath: "/tmp/repo",
+          currentWorktreePath:
+            targetPath === worktreePath ? worktreePath : "/tmp/repo",
+          worktrees: [],
+          defaultBranch: "main",
+        };
+      }),
+      upsertRepository: vi.fn(() => ({ id: "repo-1", rootPath: "/tmp/repo" })),
+      getRepository: vi.fn(() => ({ id: "repo-1", rootPath: "/tmp/repo" })),
+      setLastSelectedWorktree: vi.fn(),
+      replaceSelection: vi.fn(),
+      listThreadsByWorktree: vi.fn(() => [thread]),
+      createThread: vi.fn(),
+      getDefaultThreadTitle: () => "Pi",
+      buildThreadContext,
+      environment: { NODE_ENV: "test" },
+      runtimeSocketDirectory: "/tmp/pi-desktop/sockets",
+      execPath: "/usr/local/bin/node",
+      sessionServerEntryPath: "/tmp/session-server.mjs",
+      ensureDirectory: vi.fn(),
+      resolveRuntimeOptions: vi.fn(() => ({
+        mode: "mock" as const,
+        cwd: "/tmp/repo",
+        agentDir: "/tmp/repo/.pi/agent",
+      })),
+      createLaunchDetails: vi.fn(() => ({
+        socketPath: "/tmp/pi-desktop/thread.sock",
+        runtimeId: "runtime-1",
+        command: ["node", "/tmp/session-server.mjs"],
+      })),
+      getHomePath: () => "/Users/test",
+      isRepository: vi.fn(() => true),
+      createWorktree,
+      ensureThreadRuntime: vi.fn(),
+      restartThreadRuntime: vi.fn(),
+      connectAgentHost: vi.fn(),
+    });
+
+    await expect(
+      actions.createWorktreeContext("repo-1", "feature/branch", onStage),
+    ).rejects.toThrow("checkout not inspectable yet");
+
+    expect(stages).toContainEqual({ stage: "ready", status: "completed" });
+    expect(stages).toContainEqual({
+      stage: "open-worktree",
+      status: "failed",
+      message: "checkout not inspectable yet",
+    });
+    // The failed attempt kept the checkout: it is still the one and
+    // only created path, and the retry targets it again.
+    expect([...createdPaths]).toEqual([worktreePath]);
+
+    await expect(
+      actions.createWorktreeContext("repo-1", "feature/branch", onStage),
+    ).resolves.toEqual(expect.objectContaining({ worktreePath }));
+
+    expect(createWorktree).toHaveBeenCalledTimes(2);
+    expect(createWorktree.mock.calls[0]?.[0].worktreePath).toBe(worktreePath);
+    expect(createWorktree.mock.calls[1]?.[0].worktreePath).toBe(worktreePath);
+    expect([...createdPaths]).toEqual([worktreePath]);
+    expect(stages).toContainEqual({
+      stage: "open-worktree",
+      status: "completed",
+    });
   });
 
   it("allows the bootstrap wrapper to preserve its shared default agent directory", () => {

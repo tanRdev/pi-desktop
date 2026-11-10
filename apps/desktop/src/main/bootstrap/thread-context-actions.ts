@@ -1,5 +1,9 @@
 import path from "node:path";
 import type { ThreadCatalogEntry } from "../catalogs/thread-catalog";
+import type {
+  WorktreeSetupStageEvent,
+  WorktreeSetupStageReporter,
+} from "../git/git-service";
 import type { ThreadRuntimeLaunchSpec } from "../thread-runtime-manager";
 import type {
   ResolvedRepositoryInspection,
@@ -84,6 +88,7 @@ type CreateThreadContextActionsDependencies<
     branchName: string;
     worktreePath: string;
     baseBranch?: string;
+    onStage?: WorktreeSetupStageReporter;
   }): string;
   ensureThreadRuntime(spec: ThreadRuntimeLaunchSpec): Promise<unknown>;
   restartThreadRuntime(spec: ThreadRuntimeLaunchSpec): Promise<unknown>;
@@ -149,7 +154,15 @@ export function createThreadContextActions<
   async function createWorktreeContext(
     repositoryId: string,
     branchName: string,
+    onStage?: WorktreeSetupStageReporter,
   ): Promise<SelectedThreadContext<TThread> | null> {
+    const reportStage = (event: WorktreeSetupStageEvent) => {
+      try {
+        onStage?.(event);
+      } catch {
+        // A broken progress reporter must never fail setup itself.
+      }
+    };
     const repository = deps.getRepository(repositoryId);
     if (!repository) {
       throw new Error(`Unknown repository: ${repositoryId}`);
@@ -173,14 +186,36 @@ export function createThreadContextActions<
       path.basename(repository.rootPath),
       trimmedBranchName.replace(/[\\/]+/g, "-"),
     );
+    // If opening the new checkout fails below, the checkout is kept:
+    // nothing here removes it, and a retry reuses the same path (the
+    // git layer returns the existing worktree instead of duplicating
+    // it), so setup can be retried safely (issue #12).
     const createdWorktreePath = deps.createWorktree({
       repositoryRoot: repository.rootPath,
       branchName: trimmedBranchName,
       worktreePath,
       baseBranch: inspection.defaultBranch ?? undefined,
+      onStage: reportStage,
     });
 
-    return resolveDefaultThreadContext(createdWorktreePath);
+    reportStage({ stage: "open-worktree", status: "started" });
+    try {
+      const context = await resolveDefaultThreadContext(createdWorktreePath);
+      if (!context) {
+        throw new Error(
+          "Failed to create a default thread for the new worktree",
+        );
+      }
+      reportStage({ stage: "open-worktree", status: "completed" });
+      return context;
+    } catch (error) {
+      reportStage({
+        stage: "open-worktree",
+        status: "failed",
+        message: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
+    }
   }
 
   function buildFastThreadContext(options: {
