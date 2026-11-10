@@ -11,6 +11,7 @@ import {
   useAppDialogs,
 } from "@/app-shell/use-app-dialogs";
 import type { WorkspaceShellProps } from "@/features/workspace/components/workspace-shell";
+import { useGitPaletteActions } from "@/features/workspace/git-palette-bridge";
 import {
   useWorkspaceGit,
   type WorkspaceGitController,
@@ -166,6 +167,11 @@ export function useAppShellController(): AppShellController {
     handleFileTreeRenameFile,
     handleFileTreeMoveFile,
   } = workspaceWindows;
+  // Command-palette Git actions (`pi:git:*` events) run against the live
+  // workspace Git controller.
+  useGitPaletteActions(workspaceGit, {
+    onShowGitSurface: workspaceWindows.handleShowGitSurface,
+  });
   const workspaceTreeActions = useWorkspaceTreeActions({
     repositories,
     activeRepository,

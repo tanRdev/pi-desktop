@@ -38,6 +38,8 @@ export interface WorkspaceWindowsController {
   handleCloseFileWindow: (windowId: string) => void;
   handleToggleTerminal: () => void;
   handleOpenGit: () => void;
+  /** Open/focus the Git surface without toggling it shut when already open. */
+  handleShowGitSurface: () => void;
   handleFileContentChange: (windowId: string, newContent: string) => void;
   handleFileSave: (windowId: string, filePath: string) => Promise<void>;
   handleFileTreeFileSelect: (filePath: string) => Promise<void>;
@@ -187,6 +189,15 @@ export function useWorkspaceWindows({
     windows,
   ]);
 
+  const handleShowGitSurface = React.useCallback(() => {
+    const gitSurfaceSelected = contextWindows.some(
+      (window) => window.kind === "git" && window.id === selectedContextSurface,
+    );
+    if (!gitSurfaceSelected) {
+      handleOpenGit();
+    }
+  }, [contextWindows, selectedContextSurface, handleOpenGit]);
+
   const handleFileContentChange = React.useCallback(
     (windowId: string, newContent: string) => {
       updateFileDraftForWorktree({
@@ -283,6 +294,7 @@ export function useWorkspaceWindows({
     handleCloseFileWindow,
     handleToggleTerminal,
     handleOpenGit,
+    handleShowGitSurface,
     handleFileContentChange,
     handleFileSave,
     handleFileTreeFileSelect,

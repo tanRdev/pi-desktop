@@ -193,6 +193,58 @@ describe("FileTreePanel", () => {
     });
   });
 
+  it("refreshes the tree when a nested file is created externally", async () => {
+    type Entry = { name: string; path: string; type: "file" | "directory" };
+    type WatchCallback = (event: {
+      type: string;
+      path: string;
+      timestamp: number;
+    }) => void;
+    let entries: Entry[] = [
+      { name: "src", path: "/root/src", type: "directory" },
+    ];
+    const watchRef: { callback: WatchCallback | null } = { callback: null };
+    installMockPiDesktop({
+      fs: {
+        readDirectory: vi.fn((path: string) =>
+          Promise.resolve({ path, entries }),
+        ),
+        watch: vi.fn((_path: string, callback: WatchCallback) => {
+          watchRef.callback = callback;
+          return () => {
+            watchRef.callback = null;
+          };
+        }),
+      },
+    });
+
+    renderWithProviders(
+      <FileTreePanel workspacePath="/root" onFileSelect={() => {}} />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("src")).toBeInTheDocument();
+    });
+    expect(watchRef.callback).not.toBeNull();
+
+    entries = [
+      { name: "src", path: "/root/src", type: "directory" },
+      { name: "external.ts", path: "/root/external.ts", type: "file" },
+    ];
+    watchRef.callback?.({
+      type: "create",
+      path: "/root/src/deep/external.ts",
+      timestamp: Date.now(),
+    });
+
+    await waitFor(
+      () => {
+        expect(screen.getByText("external.ts")).toBeInTheDocument();
+      },
+      { timeout: 3000 },
+    );
+  });
+
   it("exposes a tree role with aria-label", async () => {
     installMockPiDesktop({
       fs: {

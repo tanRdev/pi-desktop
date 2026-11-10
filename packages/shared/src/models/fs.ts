@@ -10,6 +10,19 @@ export interface DirectoryListing {
   entries: FileEntry[];
 }
 
+export type FileChangeEventType = "create" | "modify" | "delete" | "rename";
+
+/**
+ * A single filesystem change observed by the main-process workspace watcher
+ * and pushed to the renderer over the `fs:changed` event contract. `path` is
+ * the absolute path of the changed entry (nested paths included).
+ */
+export interface FileChangeEvent {
+  type: FileChangeEventType;
+  path: string;
+  timestamp: number;
+}
+
 export interface FileContent {
   path: string;
   content: string;

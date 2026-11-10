@@ -2,11 +2,13 @@ import { Schema } from "effect";
 import { describe, expect, it } from "vitest";
 
 import {
+  FileChangeEventSchema,
   FsDeleteFileRequestSchema,
   FsMoveFileRequestSchema,
   FsReadDirectoryRequestSchema,
   FsReadFileRequestSchema,
   FsRenameFileRequestSchema,
+  FsWatchRequestSchema,
   FsWriteFileRequestSchema,
   fsContracts,
 } from "./fs.js";
@@ -92,5 +94,43 @@ describe("fsContracts", () => {
     expect(fsContracts.deleteFile.channel).toBe("fs:deleteFile");
     expect(fsContracts.renameFile.channel).toBe("fs:renameFile");
     expect(fsContracts.moveFile.channel).toBe("fs:moveFile");
+    expect(fsContracts.watch.channel).toBe("fs:watch");
+    expect(fsContracts.unwatch.channel).toBe("fs:unwatch");
+  });
+
+  it("declares the fs:changed event contract", () => {
+    expect(fsContracts.changed.kind).toBe("event");
+    expect(fsContracts.changed.channel).toBe("fs:changed");
+  });
+});
+
+describe("fs watch schemas", () => {
+  it("accepts valid watch payloads and rejects non-string paths", () => {
+    expect(
+      Schema.decodeUnknownSync(FsWatchRequestSchema)({ path: "/repo" }),
+    ).toEqual({ path: "/repo" });
+    expect(() =>
+      Schema.decodeUnknownSync(FsWatchRequestSchema)({ path: 42 }),
+    ).toThrow();
+  });
+
+  it("accepts valid file change events", () => {
+    expect(
+      Schema.decodeUnknownSync(FileChangeEventSchema)({
+        type: "create",
+        path: "/repo/src/new.ts",
+        timestamp: 123,
+      }),
+    ).toEqual({ type: "create", path: "/repo/src/new.ts", timestamp: 123 });
+  });
+
+  it("rejects file change events with unknown types", () => {
+    expect(() =>
+      Schema.decodeUnknownSync(FileChangeEventSchema)({
+        type: "explode",
+        path: "/repo/src/new.ts",
+        timestamp: 123,
+      }),
+    ).toThrow();
   });
 });
