@@ -84,4 +84,85 @@ describe("PiSdkAgentRuntime", () => {
     expect(refresh).toHaveBeenCalledOnce();
     expect(getAvailable).toHaveBeenCalledOnce();
   });
+
+  it("shares one in-flight bootstrap across concurrent calls and stays starting until it succeeds", async () => {
+    let resolveSession!: (value: { session: unknown }) => void;
+    const sessionCreated = new Promise<{ session: unknown }>((resolve) => {
+      resolveSession = resolve;
+    });
+    const session = {
+      sessionId: "session-shared",
+      messages: [],
+      subscribe: vi.fn(() => () => undefined),
+    };
+    const createAgentSession = vi.fn(() => sessionCreated);
+
+    const runtime = new PiSdkAgentRuntime({
+      cwd: "/repo",
+      // @ts-expect-error - test double for the SDK session factory
+      createAgentSession,
+      createModelRegistry: () => ({
+        refresh: vi.fn(),
+        getAvailable: vi.fn(() => []),
+      }),
+      createSettingsManager: () => ({
+        getGlobalSettings: () => ({}),
+        getProjectSettings: () => ({}),
+        setDefaultProvider: () => undefined,
+        setDefaultModel: () => undefined,
+      }),
+    });
+
+    const first = runtime.bootstrap();
+    const second = runtime.bootstrap();
+
+    expect(createAgentSession).toHaveBeenCalledOnce();
+    expect(runtime.getSnapshot().status).toBe("starting");
+
+    resolveSession({ session });
+    await expect(first).resolves.toBeUndefined();
+    await expect(second).resolves.toBeUndefined();
+
+    expect(createAgentSession).toHaveBeenCalledOnce();
+    expect(runtime.getSnapshot().status).toBe("ready");
+    expect(runtime.getSnapshot().sessionId).toBe("session-shared");
+
+    // A later bootstrap is a no-op once the session exists.
+    await runtime.bootstrap();
+    expect(createAgentSession).toHaveBeenCalledOnce();
+  });
+
+  it("propagates bootstrap failure to all waiters and allows a retry", async () => {
+    const session = {
+      sessionId: "session-retry",
+      messages: [],
+      subscribe: vi.fn(() => () => undefined),
+    };
+    const createAgentSession = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("session create failed"))
+      .mockResolvedValue({ session });
+
+    const runtime = new PiSdkAgentRuntime({
+      cwd: "/repo",
+      createAgentSession,
+      createModelRegistry: () => ({
+        refresh: vi.fn(),
+        getAvailable: vi.fn(() => []),
+      }),
+      createSettingsManager: () => ({
+        getGlobalSettings: () => ({}),
+        getProjectSettings: () => ({}),
+        setDefaultProvider: () => undefined,
+        setDefaultModel: () => undefined,
+      }),
+    });
+
+    await expect(runtime.bootstrap()).rejects.toThrow("session create failed");
+    expect(runtime.getSnapshot().status).toBe("error");
+
+    await expect(runtime.bootstrap()).resolves.toBeUndefined();
+    expect(runtime.getSnapshot().status).toBe("ready");
+    expect(createAgentSession).toHaveBeenCalledTimes(2);
+  });
 });
