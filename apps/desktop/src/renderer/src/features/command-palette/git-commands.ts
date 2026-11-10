@@ -2,9 +2,10 @@ import type { Command } from "./command-registry";
 import { registerCommand } from "./command-registry";
 
 /**
- * Git commands. These dispatch `pi:git:*` events on `window` so the git
- * surface (sidebar, status panel, commit composer) can react. The palette
- * itself stays decoupled from git state.
+ * Git commands. These dispatch `pi:git:*` events on `window` so the palette
+ * itself stays decoupled from git state. The receiving end is
+ * `git-palette-bridge.ts` (mounted by the app-shell controller), which maps
+ * each event to the live workspace Git controller.
  */
 
 const GROUP = "Git";
