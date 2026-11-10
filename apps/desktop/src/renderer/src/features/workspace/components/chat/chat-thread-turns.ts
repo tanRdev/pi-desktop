@@ -58,3 +58,41 @@ export function buildChatTurns(
 
   return turns;
 }
+
+function isSameTurn(left: ChatThreadTurn, right: ChatThreadTurn): boolean {
+  return (
+    left.id === right.id &&
+    left.userMessage === right.userMessage &&
+    left.lastAssistantTimestamp === right.lastAssistantTimestamp &&
+    left.isStreaming === right.isStreaming &&
+    left.messages.length === right.messages.length &&
+    left.messages.every((message, index) => message === right.messages[index])
+  );
+}
+
+export interface ChatTurnsBuilder {
+  build: (messages: AgentMessageSnapshot[]) => ChatThreadTurn[];
+}
+
+/**
+ * Incremental turn builder (issue #11): turns whose source messages are
+ * unchanged keep their object identity across rebuilds — e.g. while the
+ * last turn streams, every completed turn stays referentially stable, so
+ * memoized turn rows skip re-rendering and virtualization anchors keyed
+ * by turn id remain meaningful. Hold one builder per mounted thread.
+ */
+export function createChatTurnsBuilder(): ChatTurnsBuilder {
+  let previous: ChatThreadTurn[] = [];
+
+  return {
+    build(messages) {
+      const next = buildChatTurns(messages);
+      const reconciled = next.map((turn, index) => {
+        const prior = previous[index];
+        return prior && isSameTurn(prior, turn) ? prior : turn;
+      });
+      previous = reconciled;
+      return reconciled;
+    },
+  };
+}

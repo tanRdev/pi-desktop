@@ -4,7 +4,7 @@ import * as React from "react";
 import { StreamingIndicator } from "@/components/ui/activity-indicator";
 import { ScrollButton } from "@/components/ui/scroll-button";
 import { toast } from "@/lib/toast";
-import { buildChatTurns } from "./chat/chat-thread-turns";
+import { createChatTurnsBuilder } from "./chat/chat-thread-turns";
 import type { InlineModelPickerProps } from "./chat/thread-header";
 import {
   ChatThreadTranscript,
@@ -13,6 +13,8 @@ import {
 
 export interface ChatThreadPanelProps {
   threadTitle: string;
+  /** Stable thread identity, used to preserve scroll position per thread. */
+  threadId?: string | null;
   messages: AgentMessageSnapshot[];
   isStreaming: boolean;
   isLoading?: boolean;
@@ -46,6 +48,7 @@ export interface ChatThreadPanelProps {
 
 export function ChatThreadPanel({
   threadTitle: _threadTitle,
+  threadId,
   messages,
   isStreaming,
   isLoading,
@@ -106,7 +109,13 @@ export function ChatThreadPanel({
     [messages],
   );
 
-  const turns = React.useMemo(() => buildChatTurns(messages), [messages]);
+  // One builder per mounted panel: unchanged turns keep their identity
+  // across streaming updates (issue #11).
+  const turnsBuilderRef = React.useRef(createChatTurnsBuilder());
+  const turns = React.useMemo(
+    () => turnsBuilderRef.current.build(messages),
+    [messages],
+  );
 
   React.useEffect(() => {
     if (!targetMessageId) {
@@ -158,6 +167,8 @@ export function ChatThreadPanel({
           isLoading={isLoading}
           isStreaming={isStreaming}
           lastError={lastError}
+          targetMessageId={targetMessageId}
+          threadId={threadId}
           onCopyMessage={handleCopyMessage}
           onRetryLastUserMessage={onRetryLastUserMessage}
           onResubmitUserMessage={onResubmitUserMessage}

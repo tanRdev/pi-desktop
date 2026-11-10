@@ -159,24 +159,19 @@ function WorkspaceShellMainPaneImpl({
                 onFileSave={onFileSave}
               />
             ) : hasActiveThread ? (
-              <div
+              <ChatThreadPanel
                 key={activeThreadId ?? "thread"}
+                threadId={activeThreadId}
+                threadTitle={activeThreadTitle ?? DEFAULT_UNTITLED_THREAD_TITLE}
+                messages={threadMessages}
+                isStreaming={isPromptExecuting}
+                lastError={threadLastError}
+                targetMessageId={targetMessageId}
+                onTargetMessageNavigated={onTargetMessageNavigated}
+                onRetryLastUserMessage={onRetryLastUserMessage}
+                onResubmitUserMessage={onResubmitUserMessage}
                 className="tab-content-enter h-full"
-              >
-                <ChatThreadPanel
-                  threadTitle={
-                    activeThreadTitle ?? DEFAULT_UNTITLED_THREAD_TITLE
-                  }
-                  messages={threadMessages}
-                  isStreaming={isPromptExecuting}
-                  lastError={threadLastError}
-                  targetMessageId={targetMessageId}
-                  onTargetMessageNavigated={onTargetMessageNavigated}
-                  onRetryLastUserMessage={onRetryLastUserMessage}
-                  onResubmitUserMessage={onResubmitUserMessage}
-                  className="h-full"
-                />
-              </div>
+              />
             ) : null}
           </div>
 
