@@ -52,6 +52,7 @@ describe("createPiSdkPromptLifecycle", () => {
     expect(session.prompt).toHaveBeenCalledOnce();
     expect(session.prompt).toHaveBeenCalledWith("hello", {
       signal: expect.any(AbortSignal),
+      preflightResult: expect.any(Function),
     });
     expect(capturedSignal).toBeInstanceOf(AbortSignal);
     expect(refreshReadyState).toHaveBeenCalledOnce();
@@ -100,6 +101,118 @@ describe("createPiSdkPromptLifecycle", () => {
     expect(session.waitForIdle).toHaveBeenCalledOnce();
     expect(refreshReadyState).toHaveBeenCalledTimes(2);
     expect(setErrorState).not.toHaveBeenCalled();
+  });
+
+  it("resolves on preflight acceptance while the turn is still running", async () => {
+    const setStreamingState = vi.fn();
+    const refreshReadyState = vi.fn();
+    const setErrorState = vi.fn();
+    const turnGate = createDeferred<void>();
+    let reportPreflight: ((success: boolean) => void) | undefined;
+
+    const session = {
+      sessionId: "session-1",
+      prompt: vi.fn((_text: string, options?: object) => {
+        const preflight = options
+          ? Reflect.get(options, "preflightResult")
+          : undefined;
+        reportPreflight =
+          typeof preflight === "function"
+            ? (success: boolean) => preflight(success)
+            : undefined;
+        return turnGate.promise;
+      }),
+    };
+
+    const lifecycle = createPiSdkPromptLifecycle({
+      getSession: () => session,
+      setStreamingState,
+      refreshReadyState,
+      setErrorState,
+    });
+
+    const promptPromise = lifecycle.prompt("hello");
+    reportPreflight?.(true);
+
+    // Acceptance resolves the call even though the turn has not finished.
+    await expect(promptPromise).resolves.toBeUndefined();
+    expect(refreshReadyState).not.toHaveBeenCalled();
+    expect(setErrorState).not.toHaveBeenCalled();
+
+    turnGate.resolve(undefined);
+    await vi.waitFor(() => {
+      expect(refreshReadyState).toHaveBeenCalledOnce();
+    });
+    expect(setErrorState).not.toHaveBeenCalled();
+  });
+
+  it("records failures after acceptance as error state instead of rejecting the accepted call", async () => {
+    const setStreamingState = vi.fn();
+    const refreshReadyState = vi.fn();
+    const setErrorState = vi.fn();
+    const turnGate = createDeferred<void>();
+    const failure = new Error("turn exploded");
+
+    const session = {
+      sessionId: "session-7",
+      prompt: vi.fn((_text: string, options?: object) => {
+        const preflight = options
+          ? Reflect.get(options, "preflightResult")
+          : undefined;
+        if (typeof preflight === "function") {
+          preflight(true);
+        }
+        return turnGate.promise;
+      }),
+    };
+
+    const lifecycle = createPiSdkPromptLifecycle({
+      getSession: () => session,
+      setStreamingState,
+      refreshReadyState,
+      setErrorState,
+    });
+
+    await expect(lifecycle.prompt("hello")).resolves.toBeUndefined();
+
+    turnGate.reject(failure);
+    await vi.waitFor(() => {
+      expect(setErrorState).toHaveBeenCalledWith(failure, "session-7");
+    });
+    expect(refreshReadyState).not.toHaveBeenCalled();
+  });
+
+  it("rejects when the prompt fails before preflight acceptance", async () => {
+    const setStreamingState = vi.fn();
+    const refreshReadyState = vi.fn();
+    const setErrorState = vi.fn();
+    const failure = new Error("no model selected");
+
+    const session = {
+      sessionId: "session-9",
+      prompt: vi.fn(async (_text: string, options?: object) => {
+        const preflight = options
+          ? Reflect.get(options, "preflightResult")
+          : undefined;
+        if (typeof preflight === "function") {
+          preflight(false);
+        }
+        throw failure;
+      }),
+    };
+
+    const lifecycle = createPiSdkPromptLifecycle({
+      getSession: () => session,
+      setStreamingState,
+      refreshReadyState,
+      setErrorState,
+    });
+
+    await expect(lifecycle.prompt("hello")).rejects.toThrow(
+      "no model selected",
+    );
+    expect(setErrorState).toHaveBeenCalledWith(failure, "session-9");
+    expect(refreshReadyState).not.toHaveBeenCalled();
   });
 
   it("records prompt failures with the current session id and rethrows the error", async () => {

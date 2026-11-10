@@ -65,6 +65,8 @@ export class PiSdkAgentRuntime {
 
   private session: AgentSession | null = null;
 
+  private bootstrapPromise: Promise<void> | null = null;
+
   private unsubscribeSession: (() => void) | null = null;
 
   private modelRegistry: ModelRegistryLike | null = null;
@@ -143,16 +145,31 @@ export class PiSdkAgentRuntime {
       return;
     }
 
-    try {
-      const bootstrapped = await this.createSessionWiring();
+    // Share one in-flight bootstrap: concurrent calls (for example a
+    // connect retry while session creation is still running) must not
+    // create duplicate sessions. The snapshot stays "starting" until the
+    // shared bootstrap actually succeeds; on failure every waiter gets
+    // the error and a later call may retry.
+    if (!this.bootstrapPromise) {
+      this.bootstrapPromise = (async () => {
+        try {
+          const bootstrapped = await this.createSessionWiring();
 
-      this.session = bootstrapped.session;
-      this.unsubscribeSession?.();
-      this.unsubscribeSession = bootstrapped.unsubscribe;
-      this.snapshot = bootstrapped.snapshot;
-    } catch (error) {
-      this.setErrorState(error, "");
-      throw error;
+          this.session = bootstrapped.session;
+          this.unsubscribeSession?.();
+          this.unsubscribeSession = bootstrapped.unsubscribe;
+          this.snapshot = bootstrapped.snapshot;
+        } catch (error) {
+          this.setErrorState(error, "");
+          throw error;
+        }
+      })();
+    }
+
+    try {
+      await this.bootstrapPromise;
+    } finally {
+      this.bootstrapPromise = null;
     }
   }
 
