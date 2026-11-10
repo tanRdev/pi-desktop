@@ -38,6 +38,12 @@ function createProcessStartError(piCommand: string, error: Error): Error {
   );
 }
 
+// Only a bounded tail of the child's stderr is retained as diagnostics:
+// enough to explain a crash, never enough to grow with a noisy process.
+// Consuming stderr also keeps the pipe drained so the child cannot block
+// on a full stderr buffer.
+export const MAX_STDERR_TAIL_CHARS = 8_192;
+
 export function attachCliRpcProcessLifecycle({
   childProcess,
   piCommand,
@@ -57,12 +63,23 @@ export function attachCliRpcProcessLifecycle({
     }
   });
 
+  let stderrTail = "";
+  childProcess.stderr?.on("data", (chunk: string | Buffer) => {
+    stderrTail = (stderrTail + chunk.toString()).slice(-MAX_STDERR_TAIL_CHARS);
+  });
+
   childProcess.on("error", (error) => {
     handleProcessFailure(createProcessStartError(piCommand, error));
   });
 
   childProcess.on("close", (code, signal) => {
-    handleProcessFailure(createExitError(code, signal));
+    const exitError = createExitError(code, signal);
+    const diagnostics = stderrTail.trim();
+    handleProcessFailure(
+      diagnostics
+        ? new Error(`${exitError.message}: ${diagnostics}`)
+        : exitError,
+    );
   });
 }
 

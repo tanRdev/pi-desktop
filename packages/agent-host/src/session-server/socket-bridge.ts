@@ -25,8 +25,120 @@ export interface AgentHostSocketServer {
   close(): Promise<void>;
 }
 
+// Inbound frames are bounded and validated before they reach the command
+// handler: a peer that never sends a newline must not grow host memory
+// without limit, and malformed payloads get an explicit error response
+// instead of being cast to AgentHostRequest and crashing a runtime method.
+export const MAX_SOCKET_FRAME_CHARS = 16 * 1024 * 1024;
+
+const AGENT_HOST_REQUEST_TYPES = new Set([
+  "bootstrap",
+  "reset",
+  "getSnapshot",
+  "getProviders",
+  "getSettings",
+  "prompt",
+  "cancelPrompt",
+  "switchModel",
+]);
+
+type ParsedSocketRequest =
+  | { ok: true; request: AgentHostRequest }
+  | { ok: false; requestId: string; message: string };
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+export function parseAgentHostSocketRequest(
+  message: string,
+): ParsedSocketRequest {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(message) as unknown;
+  } catch {
+    return {
+      ok: false,
+      requestId: "unknown",
+      message: "Malformed agent host request: invalid JSON",
+    };
+  }
+
+  if (!isRecord(parsed)) {
+    return {
+      ok: false,
+      requestId: "unknown",
+      message: "Malformed agent host request: expected an object",
+    };
+  }
+
+  const requestId =
+    typeof parsed.requestId === "string" && parsed.requestId.length > 0
+      ? parsed.requestId
+      : "unknown";
+
+  if (requestId === "unknown") {
+    return {
+      ok: false,
+      requestId,
+      message: "Malformed agent host request: missing requestId",
+    };
+  }
+
+  if (
+    typeof parsed.type !== "string" ||
+    !AGENT_HOST_REQUEST_TYPES.has(parsed.type)
+  ) {
+    return {
+      ok: false,
+      requestId,
+      message: `Malformed agent host request: unknown type ${String(parsed.type)}`,
+    };
+  }
+
+  if (parsed.type === "prompt" && typeof parsed.text !== "string") {
+    return {
+      ok: false,
+      requestId,
+      message: "Malformed agent host request: prompt text must be a string",
+    };
+  }
+
+  if (parsed.type === "switchModel") {
+    const request = parsed.request;
+    if (
+      !isRecord(request) ||
+      typeof request.providerId !== "string" ||
+      typeof request.modelId !== "string"
+    ) {
+      return {
+        ok: false,
+        requestId,
+        message:
+          "Malformed agent host request: switchModel requires providerId and modelId strings",
+      };
+    }
+  }
+
+  return { ok: true, request: parsed as AgentHostRequest };
+}
+
 function writeEnvelope(socket: net.Socket, envelope: AgentHostEnvelope): void {
+  if (socket.destroyed) {
+    return;
+  }
   socket.write(`${JSON.stringify(envelope)}\n`);
+}
+
+function writeError(
+  socket: net.Socket,
+  requestId: string,
+  message: string,
+): void {
+  writeEnvelope(socket, {
+    type: "response",
+    response: { requestId, kind: "error", message },
+  });
 }
 
 export async function startAgentHostSocketServer({
@@ -43,41 +155,76 @@ export async function startAgentHostSocketServer({
   const server = net.createServer((socket) => {
     sockets.add(socket);
     socket.setEncoding("utf8");
-    let buffer = "";
+    // Partial frames accumulate as chunks (joined only once a newline
+    // arrives) so a large frame costs linear, not quadratic, copying.
+    let bufferedChunks: string[] = [];
+    let bufferedLength = 0;
 
     socket.on("data", (chunk) => {
-      buffer += chunk;
+      const text = typeof chunk === "string" ? chunk : chunk.toString();
+      bufferedChunks.push(text);
+      bufferedLength += text.length;
+
+      if (bufferedLength > MAX_SOCKET_FRAME_CHARS) {
+        // No complete frame can be recovered from an over-limit buffer;
+        // report it and drop the connection so memory stays bounded.
+        bufferedChunks = [];
+        bufferedLength = 0;
+        const envelope: AgentHostEnvelope = {
+          type: "response",
+          response: {
+            requestId: "unknown",
+            kind: "error",
+            message:
+              "Agent host socket frame exceeded the maximum allowed size",
+          },
+        };
+        socket.write(`${JSON.stringify(envelope)}\n`, () => {
+          socket.destroy();
+        });
+        return;
+      }
+
+      if (!text.includes("\n")) {
+        return;
+      }
+
+      const buffer = bufferedChunks.join("");
+      bufferedChunks = [];
+      bufferedLength = 0;
       const messages = buffer.split("\n");
-      buffer = messages.pop() ?? "";
+      const remainder = messages.pop() ?? "";
+      if (remainder) {
+        bufferedChunks = [remainder];
+        bufferedLength = remainder.length;
+      }
 
       for (const message of messages) {
         if (!message.trim()) {
           continue;
         }
 
-        let request: AgentHostRequest | null = null;
-        try {
-          request = JSON.parse(message) as AgentHostRequest;
-        } catch {
+        const parsed = parseAgentHostSocketRequest(message);
+
+        if (!parsed.ok) {
+          writeError(socket, parsed.requestId, parsed.message);
           continue;
         }
+
+        const request = parsed.request;
 
         void handleCommand(request)
           .then((envelope) => {
             writeEnvelope(socket, envelope);
           })
           .catch((error) => {
-            writeEnvelope(socket, {
-              type: "response",
-              response: {
-                requestId: request?.requestId ?? "unknown",
-                kind: "error",
-                message:
-                  error instanceof Error
-                    ? error.message
-                    : "Unknown agent host error",
-              },
-            });
+            writeError(
+              socket,
+              request.requestId,
+              error instanceof Error
+                ? error.message
+                : "Unknown agent host error",
+            );
           });
       }
     });

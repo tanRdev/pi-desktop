@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   consumeJsonLines,
+  MAX_RPC_LINE_CHARS,
   safeJsonParse,
   serializeRpcCommand,
 } from "./pi-cli-rpc-framing.js";
@@ -19,6 +20,26 @@ describe("consumeJsonLines", () => {
       lines: ['{"b":2}', '{"c":3}'],
       remainder: "left",
     });
+  });
+
+  it("drops an unterminated remainder that exceeds the line bound instead of buffering it forever", () => {
+    const oversized = "x".repeat(MAX_RPC_LINE_CHARS + 1);
+    const framed = consumeJsonLines("", oversized);
+
+    expect(framed.lines).toEqual([]);
+    expect(framed.remainder).toBe("");
+
+    // Framing resynchronizes at the next newline after the dropped payload.
+    const next = consumeJsonLines(framed.remainder, '{"ok":true}\n');
+    expect(next.lines).toEqual(['{"ok":true}']);
+  });
+
+  it("drops a single completed line that exceeds the line bound", () => {
+    const oversized = "x".repeat(MAX_RPC_LINE_CHARS + 1);
+    const framed = consumeJsonLines("", `${oversized}\n{"ok":true}\n`);
+
+    expect(framed.lines).toEqual(['{"ok":true}']);
+    expect(framed.remainder).toBe("");
   });
 });
 

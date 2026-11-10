@@ -1,7 +1,10 @@
 import { EventEmitter } from "node:events";
 import { PassThrough, Writable } from "node:stream";
 import { describe, expect, it, vi } from "vitest";
-import { attachCliRpcProcessLifecycle } from "./pi-cli-rpc-process-lifecycle.js";
+import {
+  attachCliRpcProcessLifecycle,
+  MAX_STDERR_TAIL_CHARS,
+} from "./pi-cli-rpc-process-lifecycle.js";
 import { createExitError } from "./pi-cli-rpc-protocol.js";
 
 class TestChildProcess extends EventEmitter {
@@ -55,6 +58,33 @@ describe("attachCliRpcProcessLifecycle", () => {
     expect(handleProcessFailure).toHaveBeenNthCalledWith(
       2,
       createExitError(9, null),
+    );
+  });
+
+  it("appends a bounded stderr tail to the exit error as diagnostics", async () => {
+    const child = new TestChildProcess();
+    const handleLine = vi.fn();
+    const handleProcessFailure = vi.fn();
+
+    attachCliRpcProcessLifecycle({
+      childProcess: child,
+      piCommand: "pi",
+      handleLine,
+      handleProcessFailure,
+    });
+
+    const noise = "n".repeat(MAX_STDERR_TAIL_CHARS * 2);
+    child.stderr.write(`${noise}fatal: model registry corrupted\n`);
+    child.emit("close", 1, null);
+
+    expect(handleProcessFailure).toHaveBeenCalledOnce();
+    const error = handleProcessFailure.mock.calls[0]?.[0] as Error;
+    expect(error.message).toContain("Pi CLI RPC process exited (1)");
+    expect(error.message).toContain("fatal: model registry corrupted");
+    // The retained diagnostics never exceed the tail bound (plus the
+    // exit message prefix).
+    expect(error.message.length).toBeLessThanOrEqual(
+      MAX_STDERR_TAIL_CHARS + 64,
     );
   });
 });
