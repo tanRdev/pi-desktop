@@ -76,6 +76,90 @@ describe("inspectJavaScriptGraph", () => {
     ]);
   });
 
+  it("reports a missing target for a minified side-effect import", () => {
+    const problems = inspectJavaScriptGraph({
+      "out/main/index.js": Buffer.from('import"./missing.js";\n'),
+    });
+
+    expect(problems).toEqual([
+      expect.objectContaining({
+        kind: "missing-import",
+        file: "out/main/index.js",
+      }),
+    ]);
+  });
+
+  it("reports an empty chunk imported by a minified side-effect import", () => {
+    const problems = inspectJavaScriptGraph({
+      "out/main/index.js": Buffer.from('import"./chunks/lib.js";\n'),
+      "out/main/chunks/lib.js": Buffer.from(""),
+    });
+
+    expect(problems).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "empty",
+          file: "out/main/chunks/lib.js",
+        }),
+        expect.objectContaining({
+          kind: "empty-import",
+          file: "out/main/index.js",
+        }),
+      ]),
+    );
+  });
+
+  it("reports a missing target for combined default and named imports", () => {
+    for (const source of [
+      'import def, { ot } from "./missing.js";\n',
+      'import def,{ot}from"./missing.js";\n',
+      'import def, * as ns from "./missing.js";\n',
+    ]) {
+      const problems = inspectJavaScriptGraph({
+        "out/main/index.js": Buffer.from(source),
+      });
+
+      expect(problems).toEqual([
+        expect.objectContaining({
+          kind: "missing-import",
+          file: "out/main/index.js",
+        }),
+      ]);
+    }
+  });
+
+  it("accepts a combined default and named import the target satisfies", () => {
+    const problems = inspectJavaScriptGraph({
+      "out/main/index.js": Buffer.from(
+        'import def, { ot } from "./chunks/lib.js";\n',
+      ),
+      "out/main/chunks/lib.js": Buffer.from(
+        "export const ot = 1;\nexport default 2;\n",
+      ),
+    });
+
+    expect(problems).toEqual([]);
+  });
+
+  it("reports a named import missing from a combined default and named import", () => {
+    const problems = inspectJavaScriptGraph({
+      "out/main/index.js": Buffer.from(
+        'import def, { ot } from "./chunks/lib.js";\n',
+      ),
+      "out/main/chunks/lib.js": Buffer.from(
+        "export const other = 1;\nexport default 2;\n",
+      ),
+    });
+
+    expect(problems).toEqual([
+      expect.objectContaining({
+        kind: "missing-export",
+        file: "out/main/index.js",
+        detail: "imports ot from ./chunks/lib.js but that export is missing",
+      }),
+    ]);
+  });
+
   it("reports a multiline named import whose target does not export that name", () => {
     const problems = inspectJavaScriptGraph({
       "out/main/index.js": Buffer.from(
@@ -360,6 +444,56 @@ describe("inspectAsar", () => {
 
     const problems = inspectAsar(asarPath, process.cwd());
     expect(problems).toEqual([]);
+  });
+
+  it("reports a missing file imported by a minified side-effect import", async () => {
+    const asar = require("@electron/asar");
+    const rootDir = createFixtureRoot();
+    const appDir = path.join(rootDir, "app");
+    const asarPath = path.join(rootDir, "app.asar");
+    mkdirSync(path.join(appDir, "out/main"), { recursive: true });
+    writeFileSync(
+      path.join(appDir, "out/main/index.js"),
+      'import"./chunks/lib-WNnjYEnG.js";\n',
+    );
+
+    await asar.createPackage(appDir, asarPath);
+
+    expect(inspectAsar(asarPath, process.cwd())).toEqual([
+      expect.objectContaining({
+        kind: "missing-import",
+        file: "out/main/index.js",
+      }),
+    ]);
+  });
+
+  it("reports an empty chunk imported by a combined default and named import", async () => {
+    const asar = require("@electron/asar");
+    const rootDir = createFixtureRoot();
+    const appDir = path.join(rootDir, "app");
+    const asarPath = path.join(rootDir, "app.asar");
+    mkdirSync(path.join(appDir, "out/main/chunks"), { recursive: true });
+    writeFileSync(
+      path.join(appDir, "out/main/index.js"),
+      'import def, { ot } from "./chunks/lib-WNnjYEnG.js";\n',
+    );
+    writeFileSync(path.join(appDir, "out/main/chunks/lib-WNnjYEnG.js"), "");
+
+    await asar.createPackage(appDir, asarPath);
+
+    const problems = inspectAsar(asarPath, process.cwd());
+    expect(problems).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "empty",
+          file: "out/main/chunks/lib-WNnjYEnG.js",
+        }),
+        expect.objectContaining({
+          kind: "empty-import",
+          file: "out/main/index.js",
+        }),
+      ]),
+    );
   });
 
   it("skips node_modules entries in the asar", async () => {

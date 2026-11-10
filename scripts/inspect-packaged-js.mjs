@@ -5,9 +5,9 @@ import { fileURLToPath } from "node:url";
 
 const JS_FILE_PATTERN = /\.(?:[cm]?js)$/;
 const RELATIVE_SPECIFIER_PATTERN =
-  /(?:import|export)\s+["'](\.[^"']+)["']|(?:import|export)(?:\s+type)?(?:\s*\{[^}]*\}|\s+\*\s+as\s+[\w$]+|\s+\*|[\s\w*,]+)\s*from\s*["'](\.[^"']+)["']|import\s*\(\s*["'](\.[^"']+)["']\s*\)/g;
+  /(?:import|export)\s*["'](\.[^"']+)["']|(?:import|export)(?:\s+type)?(?:\s*\{[^}]*\}|\s*\*\s+as\s+[\w$]+|\s*\*|\s*[\w$]+\s*,\s*\{[^}]*\}|\s*[\w$]+\s*,\s*\*\s+as\s+[\w$]+|[\s\w*,]+)\s*from\s*["'](\.[^"']+)["']|import\s*\(\s*["'](\.[^"']+)["']\s*\)/g;
 const NAMED_FROM_PATTERN =
-  /(?:import|export)\s*\{([^}]*)\}\s*from\s*["'](\.[^"']+)["']/g;
+  /(?:import|export)\s*(?:[\w$]+\s*,\s*)?\{([^}]*)\}\s*from\s*["'](\.[^"']+)["']/g;
 const LOCAL_EXPORT_BRACE_PATTERN = /\bexport\s*\{([^}]*)\}(\s*from\b)?/g;
 const STAR_REEXPORT_PATTERN = /\bexport\s*\*\s*from\s*["'](\.[^"']+)["']/g;
 const NAMED_REEXPORT_PATTERN =
