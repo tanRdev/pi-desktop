@@ -6,6 +6,7 @@ import { SystemMessage } from "@/components/ui/system-message";
 import { Tool, type ToolPart } from "@/components/ui/tool";
 import type { ChatThreadTurn } from "./chat/chat-thread-turns";
 import { FileChangeSummary } from "./chat/file-change-summary";
+import { summarizeFileChanges } from "./chat/file-changes";
 import { InlineMessageEditor, MessageActions } from "./chat/message-actions";
 import { MessageTimestamp } from "./chat/message-timestamp";
 import { TokenCount } from "./chat/token-count";
@@ -35,29 +36,7 @@ export interface ChatThreadTranscriptTurnProps {
   onResubmitUserMessage?: (messageId: string, nextText: string) => void;
 }
 
-const FILE_MUTATION_PREFIXES = ["write", "edit", "create", "delete"];
-
 type ToolState = "input-streaming" | "output-available" | "output-error";
-
-function isFileMutationTool(toolMsg: AgentMessageSnapshot): boolean {
-  const match = /^tool:([^:]+):/.exec(toolMsg.id);
-  const name = (match?.[1] ?? "").toLowerCase();
-  if (!name) return false;
-  if (FILE_MUTATION_PREFIXES.some((prefix) => name.startsWith(prefix))) {
-    return true;
-  }
-  return name.includes("file");
-}
-
-function extractFilePath(toolMsg: AgentMessageSnapshot): string | null {
-  const rest = toolMsg.id.split(":").slice(2).join(":");
-  if (!rest) return null;
-
-  const pathMatch = rest.match(/([\w./\-@]+\.[a-zA-Z0-9]+)/);
-  if (pathMatch?.[1]) return pathMatch[1];
-
-  return null;
-}
 
 function getToolState(message: AgentMessageSnapshot): ToolState {
   switch (message.status) {
@@ -268,14 +247,9 @@ export const ChatThreadTranscriptTurn = React.memo(
       (message) => message.role === "tool",
     );
     const useToolRollup = toolMessages.length > 3;
-    const mutationTools = toolMessages.filter(isFileMutationTool);
-    const filePaths = Array.from(
-      new Set(
-        mutationTools
-          .map(extractFilePath)
-          .filter((path): path is string => path !== null),
-      ),
-    );
+    // Unique successful file changes only: failed writes never count
+    // and repeated writes to one file are reported once (issue #12).
+    const fileChangeSummary = summarizeFileChanges(toolMessages);
 
     let runningIndex = 0;
     let toolRollupRendered = false;
@@ -372,13 +346,10 @@ export const ChatThreadTranscriptTurn = React.memo(
           return renderMessage(message);
         })}
 
-        {mutationTools.length > 0 &&
+        {fileChangeSummary.count > 0 &&
         !turn.isStreaming &&
         turn.lastAssistantTimestamp !== null ? (
-          <FileChangeSummary
-            filePaths={filePaths}
-            count={mutationTools.length}
-          />
+          <FileChangeSummary filePaths={fileChangeSummary.filePaths} />
         ) : null}
       </>
     );

@@ -1,6 +1,6 @@
 import type { GitDiffLine } from "@pi-desktop/shared";
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import { GitDiffViewer, pairRemoveAddLines } from "./git-diff-viewer";
 
 function makeLine(
@@ -145,5 +145,71 @@ describe("GitDiffViewer line coloring", () => {
     );
     const lineNumSpans = container.querySelectorAll(".text-white\\/50");
     expect(lineNumSpans.length).toBeGreaterThan(0);
+  });
+});
+
+describe("GitDiffViewer line selection", () => {
+  function findLineRow(container: HTMLElement, text: string): HTMLElement {
+    const rows = container.querySelectorAll<HTMLElement>("[data-selected]");
+    for (const row of rows) {
+      if (row.textContent?.includes(text)) return row;
+    }
+    throw new Error(`no selectable diff row containing ${text}`);
+  }
+
+  it("does not make lines selectable without an ask handler", () => {
+    render(<GitDiffViewer diff={baseDiff} onClose={() => {}} />);
+    expect(
+      screen.queryByRole("button", { name: /Ask about selection/ }),
+    ).not.toBeInTheDocument();
+    expect(document.querySelectorAll("[data-selected]").length).toBe(0);
+  });
+
+  it("sends a question with old/new coordinates for selected lines", () => {
+    const onAskAboutSelection = vi.fn();
+    const { container } = render(
+      <GitDiffViewer
+        diff={baseDiff}
+        onClose={() => {}}
+        onAskAboutSelection={onAskAboutSelection}
+      />,
+    );
+
+    fireEvent.click(findLineRow(container, "old code here"));
+    fireEvent.click(findLineRow(container, "new code here"));
+
+    expect(screen.getByText("2 lines selected")).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Ask about selection" }),
+    );
+
+    expect(onAskAboutSelection).toHaveBeenCalledTimes(1);
+    const question = onAskAboutSelection.mock.calls[0]?.[0] as string;
+    expect(question).toContain("test.ts");
+    expect(question).toContain("old line 2 / new line — (old side)");
+    expect(question).toContain("- old code here");
+    expect(question).toContain("old line — / new line 2 (new side)");
+    expect(question).toContain("+ new code here");
+
+    // Selection clears after asking.
+    expect(screen.queryByText("2 lines selected")).not.toBeInTheDocument();
+  });
+
+  it("toggles a line off when clicked twice", () => {
+    const { container } = render(
+      <GitDiffViewer
+        diff={baseDiff}
+        onClose={() => {}}
+        onAskAboutSelection={vi.fn()}
+      />,
+    );
+
+    const addedLine = findLineRow(container, "new code here");
+    fireEvent.click(addedLine);
+    expect(screen.getByText("1 line selected")).toBeInTheDocument();
+
+    fireEvent.click(addedLine);
+    expect(screen.queryByText("1 line selected")).not.toBeInTheDocument();
   });
 });

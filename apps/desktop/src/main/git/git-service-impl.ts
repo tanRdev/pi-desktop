@@ -59,7 +59,6 @@ import {
 } from "./status-changing-commands";
 import { type ParsedWorktree, parseWorktreeBlocks } from "./status-parsers";
 import type { GitRepositoryInspection, GitWorktreeSummary } from "./types";
-import { buildCreateWorktreeCommand } from "./worktree-creation";
 import {
   inspectWorktreeGitSummary,
   inspectWorktreeGitSummaryAsync,
@@ -68,6 +67,10 @@ import {
   inspectParsedWorktree,
   inspectParsedWorktreeAsync,
 } from "./worktree-inspection";
+import {
+  runCreateWorktreeWithStages,
+  type WorktreeSetupStageReporter,
+} from "./worktree-setup";
 
 export class GitServiceImpl {
   private static readonly INSPECTION_CACHE_TTL = 2000;
@@ -184,34 +187,20 @@ export class GitServiceImpl {
     branchName: string;
     worktreePath: string;
     baseBranch?: string;
+    onStage?: WorktreeSetupStageReporter;
   }): string {
-    const repositoryRoot = normalizePathId(options.repositoryRoot);
-    const worktreePath = path.resolve(options.worktreePath);
-    const branchName = options.branchName.trim();
-
-    if (!branchName) {
-      throw new Error("Worktree branch name must not be empty");
-    }
-
-    fs.mkdirSync(path.dirname(worktreePath), { recursive: true });
-
-    const args = buildCreateWorktreeCommand(this.runGit, {
-      repositoryRoot,
-      branchName,
-      worktreePath,
-      baseBranch: options.baseBranch,
-    });
-
-    const result = this.runGit(repositoryRoot, args);
-    if (result.error || result.status !== 0) {
-      throw new Error(
-        result.error?.message ||
-          result.stderr.trim() ||
-          `Failed to create worktree for branch ${branchName}`,
-      );
-    }
-
-    return normalizePathId(worktreePath);
+    // Staged setup lives in worktree-setup.ts: it reports real
+    // creation stages, keeps the checkout on failure, and reuses an
+    // already-registered worktree for the branch on retry (#12).
+    return runCreateWorktreeWithStages(
+      {
+        runGit: this.runGit,
+        ensureParentDirectory: (worktreePath) =>
+          fs.mkdirSync(path.dirname(worktreePath), { recursive: true }),
+        normalizePath: normalizePathId,
+      },
+      { ...options, worktreePath: path.resolve(options.worktreePath) },
+    );
   }
 
   removeWorktree(options: {

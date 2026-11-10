@@ -7,7 +7,10 @@ import type {
 import { Context, Effect } from "effect";
 import type { PersistentJsonFileOptions } from "../catalogs/persistent-json-file";
 import type { RepositoryCatalogEntry } from "../catalogs/repository-catalog";
-import type { GitRepositoryInspection } from "../git/git-service";
+import type {
+  GitRepositoryInspection,
+  WorktreeSetupStageReporter,
+} from "../git/git-service";
 import type { TerminalInstance } from "../terminal-manager";
 import {
   type FileSystemError,
@@ -85,6 +88,7 @@ export interface GitServiceOps {
     branchName: string;
     worktreePath: string;
     baseBranch?: string;
+    onStage?: WorktreeSetupStageReporter;
   }) => Effect.Effect<string, GitError>;
   readonly removeWorktree: (options: {
     worktreePath: string;
@@ -150,6 +154,7 @@ export class GitServiceEffect extends Effect.Service<GitServiceEffect>()(
         branchName: string;
         worktreePath: string;
         baseBranch?: string;
+        onStage?: WorktreeSetupStageReporter;
       }) => Effect.fail(new GitError({ message: "not implemented" })),
       removeWorktree: (_options: {
         worktreePath: string;

@@ -3,16 +3,19 @@ import { cn } from "@pi-desktop/ui";
 import * as React from "react";
 
 export interface FileChangeSummaryProps {
+  /** Unique paths of files changed by successful tool calls. */
   filePaths: string[];
-  count: number;
 }
 
-export function FileChangeSummary({
-  filePaths,
-  count,
-}: FileChangeSummaryProps) {
+export function FileChangeSummary({ filePaths }: FileChangeSummaryProps) {
   const [expanded, setExpanded] = React.useState(false);
-  const hasPaths = filePaths.length > 0;
+  // Report unique files only: duplicate paths never inflate the count.
+  const uniquePaths = React.useMemo(
+    () => Array.from(new Set(filePaths)),
+    [filePaths],
+  );
+  const count = uniquePaths.length;
+  const hasPaths = uniquePaths.length > 0;
 
   return (
     <div className="mx-auto w-full max-w-3xl px-6 pt-2">
@@ -36,9 +39,9 @@ export function FileChangeSummary({
       </button>
       {expanded && hasPaths && (
         <ul className="mt-1.5 flex flex-col gap-0.5">
-          {filePaths.map((path, i) => (
+          {uniquePaths.map((path) => (
             <li
-              key={`${path}-${i}`}
+              key={path}
               className="font-mono text-[11px] text-white/50 truncate"
             >
               {path}
