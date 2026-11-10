@@ -66,8 +66,10 @@ export class LocalThreadRuntimeManager implements ThreadRuntimeManager {
       existing.commandSignature === nextCommandSignature &&
       isChildRunning(existing.child)
     ) {
-      existing.descriptor.status = "ready";
-      existing.descriptor.lastError = null;
+      // Report the recorded status as-is: a runtime stays "starting"
+      // until its process actually spawns (and, downstream, until the
+      // agent host bootstrap succeeds) instead of being marked ready
+      // just because a child process object exists.
       return { ...existing.descriptor };
     }
 
@@ -122,7 +124,9 @@ export class LocalThreadRuntimeManager implements ThreadRuntimeManager {
 
     this.runtimes.set(spec.threadId, record);
 
-    descriptor.status = "ready";
+    // The descriptor stays "starting" until the child emits "spawn";
+    // returning "ready" here would claim a runtime that may never start
+    // (spawn error) or whose agent host has not bootstrapped yet.
     return { ...descriptor };
   }
 
@@ -142,14 +146,12 @@ export class LocalThreadRuntimeManager implements ThreadRuntimeManager {
       };
     }
 
+    // The recorded status is authoritative: "starting" until spawn,
+    // "ready" only after it, "error"/"exited" once those events land.
+    // A merely-running child is not necessarily a ready runtime.
     return {
       ...runtime.descriptor,
       worktreePath,
-      status: isChildRunning(runtime.child)
-        ? runtime.descriptor.status === "error"
-          ? "error"
-          : "ready"
-        : runtime.descriptor.status,
     };
   }
 

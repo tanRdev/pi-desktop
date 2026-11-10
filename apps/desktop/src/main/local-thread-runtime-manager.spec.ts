@@ -87,6 +87,70 @@ describe("LocalThreadRuntimeManager", () => {
     );
   });
 
+  it("keeps the runtime starting until the child process spawns", async () => {
+    const child = createFakeChild();
+    spawnMock.mockReturnValue(child);
+
+    const manager = new LocalThreadRuntimeManager();
+    const descriptor = await manager.ensureThreadRuntime({
+      threadId: "thread-starting",
+      worktreePath: "/tmp/repo",
+      command: ["/bin/electron", "entry.js"],
+    });
+
+    expect(descriptor.status).toBe("starting");
+    expect(descriptor.lastError).toBeNull();
+
+    // Still starting while the child exists but has not spawned yet.
+    const beforeSpawn = await manager.getRuntimeState({
+      threadId: "thread-starting",
+      worktreePath: "/tmp/repo",
+    });
+    expect(beforeSpawn.status).toBe("starting");
+
+    child.emit("spawn");
+
+    const afterSpawn = await manager.getRuntimeState({
+      threadId: "thread-starting",
+      worktreePath: "/tmp/repo",
+    });
+    expect(afterSpawn.status).toBe("ready");
+    expect(afterSpawn.lastError).toBeNull();
+
+    // Re-ensuring the same runtime reports the spawned state.
+    const again = await manager.ensureThreadRuntime({
+      threadId: "thread-starting",
+      worktreePath: "/tmp/repo",
+      command: ["/bin/electron", "entry.js"],
+    });
+    expect(again.status).toBe("ready");
+    expect(spawnMock).toHaveBeenCalledOnce();
+  });
+
+  it("reports an error instead of ready when spawning fails", async () => {
+    const child = createFakeChild();
+    spawnMock.mockReturnValue(child);
+
+    const manager = new LocalThreadRuntimeManager();
+    const descriptor = await manager.ensureThreadRuntime({
+      threadId: "thread-enoent",
+      worktreePath: "/tmp/repo",
+      command: ["missing-program", "entry.js"],
+    });
+    expect(descriptor.status).toBe("starting");
+
+    const enoent = new Error("spawn missing-program ENOENT");
+    Object.assign(enoent, { code: "ENOENT" });
+    child.emit("error", enoent);
+
+    const state = await manager.getRuntimeState({
+      threadId: "thread-enoent",
+      worktreePath: "/tmp/repo",
+    });
+    expect(state.status).toBe("error");
+    expect(state.lastError).toContain("missing-program");
+  });
+
   it("omits PI_CLI_PATH when Pi is not installed", async () => {
     resolvePiPathMock.mockReturnValue(null);
     const child = createFakeChild();
