@@ -21,6 +21,7 @@ import {
   NO_GIT_CAPABILITIES,
   nextFocusIndex,
 } from "./git-panel-model";
+import { GitPanelSkeleton } from "./git-panel-skeleton";
 
 export {
   buildGitPanelViewModel,
@@ -60,6 +61,12 @@ export interface GitPanelProps {
   onUnstageAllFiles: (filePaths: string[]) => void | Promise<void>;
   onDiscardFile: (filePath: string) => void | Promise<void>;
   onViewDiff?: (filePath: string, staged: boolean) => void;
+  /**
+   * Ask the agent about diff lines selected in the diff viewer. The
+   * question text carries the selected lines' old/new coordinates.
+   * When omitted, diff lines are not selectable.
+   */
+  onAskAboutDiffSelection?: (question: string) => void;
   /** Per-file revert. Called only when `capabilities.revertFile` is true. */
   onRevertFile?: (filePath: string) => void | Promise<void>;
   /** Amend toggle change. Called only when `capabilities.amend` is true. */
@@ -68,25 +75,6 @@ export interface GitPanelProps {
   amend?: boolean;
   /** Branch switch. Called only when `capabilities.switchBranch` is true. */
   onSwitchBranch?: (branchName: string) => void | Promise<void>;
-}
-
-function GitPanelSkeleton() {
-  return (
-    <div className="space-y-6">
-      <section className="space-y-3">
-        <div className="h-8 w-full bg-white/5" />
-        <div className="flex gap-2">
-          <div className="h-7 w-16 bg-white/5" />
-          <div className="h-7 w-7 bg-white/5" />
-        </div>
-      </section>
-      <div className="space-y-2">
-        <div className="h-4 w-20 bg-white/5" />
-        <div className="h-8 w-full bg-white/5" />
-        <div className="h-8 w-full bg-white/5" />
-      </div>
-    </div>
-  );
 }
 
 export function GitPanel({
@@ -116,6 +104,7 @@ export function GitPanel({
   onUnstageAllFiles,
   onDiscardFile,
   onViewDiff,
+  onAskAboutDiffSelection,
   onRevertFile,
   onAmendChange,
   onSwitchBranch,
@@ -273,7 +262,11 @@ export function GitPanel({
         />
 
         {selectedDiff ? (
-          <GitDiffViewer diff={selectedDiff} onClose={handleCloseDiff} />
+          <GitDiffViewer
+            diff={selectedDiff}
+            onClose={handleCloseDiff}
+            onAskAboutSelection={onAskAboutDiffSelection}
+          />
         ) : diffLoading ? (
           <div className="flex h-full items-center justify-center text-[11px] text-white/50">
             Loading diff...

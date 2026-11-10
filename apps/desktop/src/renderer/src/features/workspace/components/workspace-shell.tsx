@@ -240,7 +240,6 @@ function WorkspaceShellImpl({
   }, [leftSidebarWidth]);
 
   const {
-    projectName,
     activeWorktree,
     hasActiveThread,
     hasChangesToCommit,
@@ -270,7 +269,6 @@ function WorkspaceShellImpl({
 
   const gitPanel = (
     <GitPanel
-      projectName={projectName}
       repositoryPath={
         activeWorktree?.path ?? activeRepository?.rootPath ?? null
       }
@@ -290,6 +288,7 @@ function WorkspaceShellImpl({
       onUnstageFile={onUnstageGitFile}
       onUnstageAllFiles={onUnstageAllGitFiles}
       onDiscardFile={onDiscardGitFile}
+      onAskAboutDiffSelection={onAgentGitAction}
     />
   );
 

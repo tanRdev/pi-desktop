@@ -2,11 +2,27 @@ import type { GitDiffHunk, GitDiffLine, GitFileDiff } from "@pi-desktop/shared";
 import { cn } from "@pi-desktop/ui";
 import * as React from "react";
 import { Check, Copy, X } from "@/components/ui/phosphor-icons";
-import { computeCharDiff } from "./compute-char-diff";
+import { DiffLine } from "./git-diff-line";
+import {
+  type DiffLineCoordinate,
+  formatDiffSelectionQuestion,
+  isDiffLineSelected,
+  pairRemoveAddLines,
+  serializeDiffForClipboard,
+  toggleDiffLineSelection,
+} from "./git-diff-selection";
+
+export { pairRemoveAddLines, serializeDiffForClipboard };
 
 interface GitDiffViewerProps {
   diff: GitFileDiff;
   onClose: () => void;
+  /**
+   * When provided, diff lines become selectable and the user can send
+   * a question about the selected lines (with old/new coordinates) to
+   * the agent. When omitted, the viewer is read-only.
+   */
+  onAskAboutSelection?: (question: string) => void;
 }
 
 /**
@@ -50,133 +66,6 @@ export function detectLanguageHint(filePath: string): string {
   return LANGUAGE_BY_EXTENSION[ext] ?? ext;
 }
 
-function IntraLineSpan({
-  text,
-  highlightStart,
-  highlight,
-  highlightClass,
-  defaultClass,
-}: {
-  text: string;
-  highlightStart: number;
-  highlight: string;
-  highlightClass: string;
-  defaultClass: string;
-}) {
-  if (!highlight) return <span className={defaultClass}>{text}</span>;
-  return (
-    <>
-      {highlightStart > 0 && (
-        <span className={defaultClass}>{text.slice(0, highlightStart)}</span>
-      )}
-      <span className={highlightClass}>{highlight}</span>
-      {highlightStart + highlight.length < text.length && (
-        <span className={defaultClass}>
-          {text.slice(highlightStart + highlight.length)}
-        </span>
-      )}
-    </>
-  );
-}
-
-function DiffLine({
-  line,
-  pairedLine,
-}: {
-  line: GitDiffLine;
-  pairedLine: GitDiffLine | null;
-}) {
-  if (line.type === "hunk_header") {
-    return (
-      <div className="flex font-mono text-[11px] leading-[18px] text-blue-400 select-none">
-        <span className="w-9 shrink-0 select-none text-right text-white/50 pr-2 border-r border-white/[0.06]" />
-        <span className="w-9 shrink-0 select-none text-right text-white/50 pr-2 border-r border-white/[0.06]" />
-        <span className="w-4 shrink-0 select-none text-center" />
-        <span className="truncate pl-1 text-blue-400">{line.content}</span>
-      </div>
-    );
-  }
-
-  const isAdd = line.type === "add";
-  const isRemove = line.type === "remove";
-  const bgClass = isAdd ? "bg-emerald-500/10" : isRemove ? "bg-red-500/10" : "";
-  const textClass = isAdd
-    ? "text-emerald-400"
-    : isRemove
-      ? "text-red-400"
-      : "text-white/50";
-  const prefix = isAdd ? "+" : isRemove ? "-" : " ";
-  const lineNumber = isRemove
-    ? line.oldLineNumber
-    : isAdd
-      ? line.newLineNumber
-      : line.newLineNumber;
-  const emptyLineNum = isRemove ? "" : isAdd ? "" : line.oldLineNumber;
-
-  const charDiff =
-    pairedLine && (isAdd || isRemove)
-      ? computeCharDiff(
-          isRemove ? line.content : pairedLine.content,
-          isAdd ? line.content : pairedLine.content,
-        )
-      : null;
-  const middle = isRemove ? charDiff?.oldMiddle : charDiff?.newMiddle;
-  const middleStart = charDiff ? charDiff.prefix.length : 0;
-
-  return (
-    <div className={cn("flex font-mono text-[11px] leading-[18px]", bgClass)}>
-      <span className="w-9 shrink-0 select-none text-right text-white/50 pr-2 border-r border-white/[0.06]">
-        {isRemove ? lineNumber : emptyLineNum}
-      </span>
-      <span className="w-9 shrink-0 select-none text-right text-white/50 pr-2 border-r border-white/[0.06]">
-        {isAdd ? lineNumber : emptyLineNum}
-      </span>
-      <span className={cn("w-4 shrink-0 select-none text-center", textClass)}>
-        {prefix}
-      </span>
-      <span className="truncate pl-1">
-        {charDiff && middle ? (
-          <IntraLineSpan
-            text={line.content}
-            highlightStart={middleStart}
-            highlight={middle}
-            highlightClass={isRemove ? "bg-red-500/25" : "bg-emerald-500/25"}
-            defaultClass={textClass}
-          />
-        ) : (
-          <span className={textClass}>{line.content}</span>
-        )}
-      </span>
-    </div>
-  );
-}
-
-export function pairRemoveAddLines(
-  lines: GitDiffLine[],
-): Map<number, GitDiffLine | null> {
-  const paired = new Map<number, GitDiffLine | null>();
-  let lastRemoveIndex: number | null = null;
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    if (!line) continue;
-    if (line.type === "remove") {
-      lastRemoveIndex = i;
-    } else if (line.type === "add" && lastRemoveIndex !== null) {
-      const removeLine = lines[lastRemoveIndex];
-      if (removeLine) {
-        paired.set(lastRemoveIndex, line);
-        paired.set(i, removeLine);
-      }
-      lastRemoveIndex = null;
-    } else if (line.type === "context" || line.type === "hunk_header") {
-      lastRemoveIndex = null;
-    }
-  }
-
-  return paired;
-}
-
 function HunkHeader({ hunk }: { hunk: GitDiffHunk }) {
   return (
     <div className="flex items-center gap-2 px-2 py-1 bg-[var(--color-accent)]/[0.04] text-[11px] text-blue-400 font-mono select-none border-y border-white/[0.06]">
@@ -187,34 +76,44 @@ function HunkHeader({ hunk }: { hunk: GitDiffHunk }) {
   );
 }
 
-/**
- * Re-serialize a diff to a unified-ish text form suitable for clipboard copy.
- * Not a strict git-format emitter; preserves +/- prefix and context space.
- */
-export function serializeDiffForClipboard(diff: GitFileDiff): string {
-  const header = `--- a/${diff.oldFilePath ?? diff.filePath}\n+++ b/${diff.filePath}`;
-  const body = diff.hunks
-    .map((hunk) => {
-      const hunkHeader = `@@ -${hunk.oldStart},${hunk.oldCount} +${hunk.newStart},${hunk.newCount} @@`;
-      const lines = hunk.lines
-        .map((line) => {
-          const prefix =
-            line.type === "add" ? "+" : line.type === "remove" ? "-" : " ";
-          return `${prefix}${line.content}`;
-        })
-        .join("\n");
-      return `${hunkHeader}\n${lines}`;
-    })
-    .join("\n");
-  return `${header}\n${body}`;
-}
-
-export function GitDiffViewer({ diff, onClose }: GitDiffViewerProps) {
+export function GitDiffViewer({
+  diff,
+  onClose,
+  onAskAboutSelection,
+}: GitDiffViewerProps) {
   const language = React.useMemo(
     () => detectLanguageHint(diff.filePath),
     [diff.filePath],
   );
   const [copied, setCopied] = React.useState(false);
+  // Selection is keyed by file so it never leaks across diffs.
+  const [selection, setSelection] = React.useState<{
+    filePath: string;
+    lines: DiffLineCoordinate[];
+  }>({ filePath: diff.filePath, lines: [] });
+  const selectedLines =
+    selection.filePath === diff.filePath ? selection.lines : [];
+  const selectable = Boolean(onAskAboutSelection);
+
+  const handleToggleLine = React.useCallback(
+    (line: GitDiffLine) => {
+      setSelection((current) => {
+        const currentLines =
+          current.filePath === diff.filePath ? current.lines : [];
+        return {
+          filePath: diff.filePath,
+          lines: toggleDiffLineSelection(currentLines, line),
+        };
+      });
+    },
+    [diff.filePath],
+  );
+
+  const handleAskAboutSelection = React.useCallback(() => {
+    if (!onAskAboutSelection || selectedLines.length === 0) return;
+    onAskAboutSelection(formatDiffSelectionQuestion(diff, selectedLines));
+    setSelection({ filePath: diff.filePath, lines: [] });
+  }, [diff, onAskAboutSelection, selectedLines]);
 
   const handleCopyDiff = React.useCallback(() => {
     const text = serializeDiffForClipboard(diff);
@@ -319,6 +218,9 @@ export function GitDiffViewer({ diff, onClose }: GitDiffViewerProps) {
                         key={j}
                         line={line}
                         pairedLine={paired.get(j) ?? null}
+                        selectable={selectable}
+                        selected={isDiffLineSelected(selectedLines, line)}
+                        onToggleSelect={handleToggleLine}
                       />
                     ))}
                   </div>
@@ -328,6 +230,30 @@ export function GitDiffViewer({ diff, onClose }: GitDiffViewerProps) {
           </div>
         )}
       </div>
+
+      {selectable && selectedLines.length > 0 ? (
+        <div className="flex items-center gap-2 border-t border-white/[0.06] px-3 py-2 shrink-0">
+          <span className="text-[11px] text-white/50">
+            {selectedLines.length}{" "}
+            {selectedLines.length === 1 ? "line" : "lines"} selected
+          </span>
+          <span className="flex-1" />
+          <button
+            type="button"
+            onClick={() => setSelection({ filePath: diff.filePath, lines: [] })}
+            className="text-[11px] text-white/50 transition-colors hover:text-white/80"
+          >
+            Clear selection
+          </button>
+          <button
+            type="button"
+            onClick={handleAskAboutSelection}
+            className="rounded-sm border border-white/[0.12] bg-white/[0.06] px-2 py-1 text-[11px] font-medium text-white/80 transition-colors hover:bg-white/[0.1]"
+          >
+            Ask about selection
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }
