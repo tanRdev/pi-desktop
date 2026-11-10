@@ -285,6 +285,86 @@ describe("ChatThreadPanel", () => {
     expect(scrollAnchor).toBeInTheDocument();
   });
 
+  it("virtualizes a 2000-turn history to a bounded number of mounted turns", () => {
+    const messages: AgentMessageSnapshot[] = [];
+    for (let index = 0; index < 2000; index += 1) {
+      messages.push({
+        id: `user-${index}`,
+        role: "user",
+        text: `Question ${index}`,
+        status: "complete",
+        timestamp: index * 2,
+      });
+      messages.push({
+        id: `assistant-${index}`,
+        role: "assistant",
+        text: `Answer ${index}`,
+        status: "complete",
+        timestamp: index * 2 + 1,
+      });
+    }
+
+    const { container } = render(
+      <TooltipProvider>
+        <ChatThreadPanel
+          threadTitle="Signal"
+          messages={messages}
+          isStreaming={false}
+          lastError={null}
+        />
+      </TooltipProvider>,
+    );
+
+    const mountedTurns = container.querySelectorAll("[data-turn-id]");
+    expect(mountedTurns.length).toBeGreaterThan(0);
+    expect(mountedTurns.length).toBeLessThanOrEqual(30);
+    expect(
+      container.querySelector('[data-message-id="assistant-1999"]'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('[data-message-id="assistant-0"]'),
+    ).toBeNull();
+  });
+
+  it("reveals a targeted message inside an unmounted turn (search reveal)", async () => {
+    const messages: AgentMessageSnapshot[] = [];
+    for (let index = 0; index < 2000; index += 1) {
+      messages.push({
+        id: `user-${index}`,
+        role: "user",
+        text: `Question ${index}`,
+        status: "complete",
+        timestamp: index * 2,
+      });
+      messages.push({
+        id: `assistant-${index}`,
+        role: "assistant",
+        text: `Answer ${index}`,
+        status: "complete",
+        timestamp: index * 2 + 1,
+      });
+    }
+    const onTargetMessageNavigated = vi.fn();
+
+    render(
+      <TooltipProvider>
+        <ChatThreadPanel
+          threadTitle="Signal"
+          messages={messages}
+          isStreaming={false}
+          lastError={null}
+          targetMessageId="assistant-123"
+          onTargetMessageNavigated={onTargetMessageNavigated}
+        />
+      </TooltipProvider>,
+    );
+
+    await waitFor(() => {
+      expect(onTargetMessageNavigated).toHaveBeenCalledWith("assistant-123");
+    });
+    expect(HTMLElement.prototype.scrollIntoView).toHaveBeenCalled();
+  });
+
   it("scrolls to a targeted message when message navigation is requested", async () => {
     const onTargetMessageNavigated = vi.fn();
 

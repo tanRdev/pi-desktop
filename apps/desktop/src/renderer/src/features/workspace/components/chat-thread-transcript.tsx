@@ -5,13 +5,13 @@ import {
   cn,
 } from "@pi-desktop/ui";
 import { Skeleton } from "boneyard-js/react";
-import * as React from "react";
 import type { ActivityIndicatorProps } from "@/components/ui/activity-indicator";
 import { SystemMessage } from "@/components/ui/system-message";
 import { describeChatError } from "./chat/chat-error";
 import type { ChatThreadTurn } from "./chat/chat-thread-turns";
 import { ResponseDivider } from "./chat/response-divider";
-import { ChatThreadTranscriptTurn } from "./chat-thread-transcript-turn";
+import { ChatThreadTurnSlot } from "./chat-thread-turn-slot";
+import { ChatThreadVirtualTurnList } from "./chat-thread-virtual-turn-list";
 
 const CHAT_SUGGESTIONS: ReadonlyArray<string> = [
   "Explain this repo",
@@ -43,6 +43,8 @@ export interface ChatThreadTranscriptProps {
   onRetryLastUserMessage?: (text: string) => void;
   onResubmitUserMessage?: (messageId: string, nextText: string) => void;
   getMessageTokens?: (messageId: string) => number | null | undefined;
+  targetMessageId?: string | null;
+  threadId?: string | null;
 }
 
 export function detectRunningActivities(
@@ -103,6 +105,8 @@ export function ChatThreadTranscript({
   onRetryLastUserMessage,
   onResubmitUserMessage,
   getMessageTokens,
+  targetMessageId,
+  threadId,
 }: ChatThreadTranscriptProps) {
   const lastTurn = turns.length > 0 ? turns[turns.length - 1] : undefined;
   const lastTurnDividerWorking =
@@ -186,30 +190,25 @@ export function ChatThreadTranscript({
             </div>
           ) : null}
 
-          {turns.length > 0
-            ? turns.map((turn, turnIndex) => {
-                const isLastTurn = turnIndex === turns.length - 1;
-                const failedLastUser =
-                  isLastTurn && canRetryLastUser && turn.userMessage !== null;
-
-                return (
-                  <React.Fragment key={turn.id}>
-                    <ChatThreadTranscriptTurn
-                      turn={turn}
-                      onCopyMessage={onCopyMessage}
-                      getMessageTokens={getMessageTokens}
-                      isFailedLastUser={failedLastUser}
-                      onRetryLastUserMessage={
-                        failedLastUser ? onRetryLastUserMessage : undefined
-                      }
-                      onResubmitUserMessage={
-                        isLastTurn ? onResubmitUserMessage : undefined
-                      }
-                    />
-                  </React.Fragment>
-                );
-              })
-            : null}
+          {turns.length > 0 ? (
+            <ChatThreadVirtualTurnList
+              turns={turns}
+              isStreaming={isStreaming}
+              targetMessageId={targetMessageId}
+              scrollStoreKey={threadId}
+              renderTurn={(turn, turnIndex) => (
+                <ChatThreadTurnSlot
+                  turn={turn}
+                  isLastTurn={turnIndex === turns.length - 1}
+                  canRetryLastUser={canRetryLastUser}
+                  onCopyMessage={onCopyMessage}
+                  onRetryLastUserMessage={onRetryLastUserMessage}
+                  onResubmitUserMessage={onResubmitUserMessage}
+                  getMessageTokens={getMessageTokens}
+                />
+              )}
+            />
+          ) : null}
 
           {lastError && errorPresentation ? (
             <div
