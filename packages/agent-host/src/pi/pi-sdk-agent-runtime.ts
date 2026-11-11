@@ -12,6 +12,7 @@ import type {
   AgentSnapshot,
   ModelSwitchRequest,
   PiDesktopAgentEvent,
+  PromptImageAttachment,
   ProviderSnapshot,
   SettingsSnapshot,
 } from "@pi-desktop/shared";
@@ -216,10 +217,33 @@ export class PiSdkAgentRuntime {
     return cloneSdkSnapshot(this.snapshot, this.session);
   }
 
-  async prompt(text: string): Promise<void> {
+  async prompt(text: string, images?: PromptImageAttachment[]): Promise<void> {
     await this.bootstrap();
 
-    await this.promptLifecycle.prompt(text);
+    await this.promptLifecycle.prompt(text, images);
+  }
+
+  async steer(text: string, images?: PromptImageAttachment[]): Promise<void> {
+    await this.bootstrap();
+
+    const session = this.session;
+    if (!session) {
+      throw new Error(
+        "Pi Desktop Pi SDK runtime failed to initialize a session",
+      );
+    }
+
+    const steer = Reflect.get(session, "steer");
+    if (typeof steer !== "function") {
+      throw new Error("Steer is not supported by the active Pi runtime");
+    }
+
+    // AgentSession.steer(text, images?) — images are Pi ImageContent,
+    // structurally identical to PromptImageAttachment.
+    await Reflect.apply(steer, session, [
+      text,
+      images && images.length > 0 ? images : undefined,
+    ]);
   }
 
   async cancelPrompt(): Promise<void> {

@@ -38,6 +38,7 @@ const AGENT_HOST_REQUEST_TYPES = new Set([
   "getProviders",
   "getSettings",
   "prompt",
+  "steer",
   "cancelPrompt",
   "switchModel",
 ]);
@@ -96,11 +97,14 @@ export function parseAgentHostSocketRequest(
     };
   }
 
-  if (parsed.type === "prompt" && typeof parsed.text !== "string") {
+  if (
+    (parsed.type === "prompt" || parsed.type === "steer") &&
+    typeof parsed.text !== "string"
+  ) {
     return {
       ok: false,
       requestId,
-      message: "Malformed agent host request: prompt text must be a string",
+      message: `Malformed agent host request: ${parsed.type} text must be a string`,
     };
   }
 

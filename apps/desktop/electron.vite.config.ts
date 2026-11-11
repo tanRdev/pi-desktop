@@ -51,10 +51,15 @@ export default defineConfig({
       alias: workspaceAliases,
     },
     build: {
-      externalizeDeps: true,
+      externalizeDeps: false,
       outDir: "out/main",
       rollupOptions: {
-        external: ["electron", "node-pty"],
+        external: [
+          "electron",
+          "node-pty",
+          "@earendil-works/pi-coding-agent",
+          "sharp",
+        ],
         input: {
           index: mainEntry,
         },
@@ -81,6 +86,10 @@ export default defineConfig({
         input: "src/preload/index.ts",
         output: {
           format: "cjs",
+          // Electron's sandbox wrapper declares timer globals. Keep bundled
+          // Effect helpers in their own scope to avoid lexical collisions.
+          banner: "(() => {",
+          footer: "})();",
           inlineDynamicImports: true,
         },
       },

@@ -293,6 +293,153 @@ describe("useWorkspacePrompt", () => {
   });
 });
 
+describe("follow-up queue (issue #10)", () => {
+  function renderPrompt(
+    overrides: Partial<Parameters<typeof useWorkspacePrompt>[0]> = {},
+  ) {
+    const uiStore = createUiInteractionStore();
+    installMockPiDesktop({
+      agent: {
+        getSlashSuggestions: vi.fn(async () => ({ suggestions: [] })),
+      },
+      search: {
+        searchFiles: vi.fn(async () => ({ results: [] })),
+      },
+    });
+    return renderHook(() =>
+      useWorkspacePrompt({
+        draft: "queued thought",
+        setDraft: vi.fn(),
+        sendPrompt: vi.fn(async () => undefined),
+        cancelPrompt: vi.fn(async () => undefined),
+        activeThreadId: "thread-1",
+        activeThreadConversation: createConversation({
+          status: "streaming",
+        }),
+        agentStatus: "streaming",
+        activeWorktreePath: "/tmp/repo",
+        contextWindows: [],
+        uiStore,
+        openOAuthDialog: vi.fn(async () => undefined),
+        enqueueFollowUp: vi.fn(() => "fu-1"),
+        steerPrompt: vi.fn(async () => undefined),
+        supportsSteer: true,
+        editFollowUp: vi.fn(),
+        deleteFollowUp: vi.fn(),
+        moveFollowUp: vi.fn(),
+        setFollowUpPaused: vi.fn(),
+        retryFollowUp: vi.fn(),
+        followUpQueue: {
+          threadId: "thread-1",
+          paused: false,
+          items: [
+            {
+              id: "fu-0",
+              threadId: "thread-1",
+              text: "earlier",
+              images: [],
+              status: "queued",
+              createdAt: 1,
+              updatedAt: 1,
+              attempts: 0,
+              lastError: null,
+            },
+          ],
+        },
+        ...overrides,
+      }),
+    );
+  }
+
+  it("queues the draft as a follow-up while a run is active instead of sending or cancelling", async () => {
+    const enqueueFollowUp = vi.fn(() => "fu-1");
+    const sendPrompt = vi.fn(async () => undefined);
+    const setDraft = vi.fn();
+
+    const { result } = renderPrompt({
+      enqueueFollowUp,
+      sendPrompt,
+      setDraft,
+    });
+
+    await act(async () => {
+      await result.current.handleSend();
+    });
+
+    expect(enqueueFollowUp).toHaveBeenCalledWith("queued thought");
+    expect(sendPrompt).not.toHaveBeenCalled();
+    expect(setDraft).toHaveBeenCalledWith("");
+    expect(result.current.canSend).toBe(true);
+    expect(result.current.isPromptExecuting).toBe(true);
+  });
+
+  it("steers the current draft when the runtime supports it", async () => {
+    const steerPrompt = vi.fn(async () => undefined);
+    const setDraft = vi.fn();
+    const { result } = renderPrompt({ steerPrompt, setDraft });
+
+    await act(async () => {
+      await result.current.handleSteer();
+    });
+
+    expect(steerPrompt).toHaveBeenCalledWith("queued thought");
+    expect(setDraft).toHaveBeenCalledWith("");
+  });
+
+  it("does not steer when the runtime does not support it", async () => {
+    const steerPrompt = vi.fn(async () => undefined);
+    const { result } = renderPrompt({ steerPrompt, supportsSteer: false });
+
+    await act(async () => {
+      await result.current.handleSteer();
+    });
+
+    expect(steerPrompt).not.toHaveBeenCalled();
+  });
+
+  it("binds queue operations to the active thread", () => {
+    const editFollowUp = vi.fn();
+    const deleteFollowUp = vi.fn();
+    const moveFollowUp = vi.fn();
+    const setFollowUpPaused = vi.fn();
+    const retryFollowUp = vi.fn();
+    const { result } = renderPrompt({
+      editFollowUp,
+      deleteFollowUp,
+      moveFollowUp,
+      setFollowUpPaused,
+      retryFollowUp,
+    });
+
+    act(() => {
+      result.current.handleEditFollowUp("fu-0", "edited");
+      result.current.handleDeleteFollowUp("fu-0");
+      result.current.handleMoveFollowUp("fu-0", -1);
+      result.current.handleToggleFollowUpPaused();
+      result.current.handleRetryFollowUp("fu-0");
+    });
+
+    expect(editFollowUp).toHaveBeenCalledWith("thread-1", "fu-0", "edited");
+    expect(deleteFollowUp).toHaveBeenCalledWith("thread-1", "fu-0");
+    expect(moveFollowUp).toHaveBeenCalledWith("thread-1", "fu-0", -1);
+    expect(setFollowUpPaused).toHaveBeenCalledWith("thread-1", true);
+    expect(retryFollowUp).toHaveBeenCalledWith("thread-1", "fu-0");
+  });
+
+  it("steers a queued item by removing it from the queue and steering its text", async () => {
+    const steerPrompt = vi.fn(async () => undefined);
+    const deleteFollowUp = vi.fn();
+    const { result } = renderPrompt({ steerPrompt, deleteFollowUp });
+
+    await act(async () => {
+      await result.current.handleSteerFollowUp("fu-0");
+    });
+
+    expect(deleteFollowUp).toHaveBeenCalledWith("thread-1", "fu-0");
+    expect(steerPrompt).toHaveBeenCalledWith("earlier");
+  });
+});
+
 describe("workspace-owned draft persistence", () => {
   it("persists completion when the prompt UI is not mounted and sends indented text unchanged", async () => {
     installMockPiDesktop();

@@ -3,6 +3,7 @@ import type {
   ModelSwitchRequest,
   ModelSwitchResult,
   PiDesktopApi,
+  PromptImageAttachment,
   ProviderSnapshot,
   RepositoryDisplayMetadata,
   SettingsSnapshot,
@@ -21,6 +22,7 @@ import {
   normalizeAppPreferences,
   normalizeAppPreferenceUpdates,
 } from "./app-shell-store-preferences";
+import { createLocalFollowUpQueueStorage } from "./follow-up-queue-storage";
 
 export interface AppShellStoreState {
   shellModel: ReturnType<typeof createShellModel>;
@@ -31,7 +33,7 @@ export interface AppShellStoreState {
   isSwitchingModel: boolean;
   initialize(): Promise<void>;
   reload(): Promise<void>;
-  sendPrompt(text?: string): Promise<void>;
+  sendPrompt(text?: string, images?: PromptImageAttachment[]): Promise<void>;
   cancelPrompt(): Promise<void>;
   setDraft(draft: string): void;
   switchModel(request: ModelSwitchRequest): Promise<ModelSwitchResult>;
@@ -53,7 +55,9 @@ export type AppShellStore = ReturnType<typeof createAppShellStore>;
 let appShellStoreInstance: AppShellStore | null = null;
 
 export function createAppShellStore(api: PiDesktopApi) {
-  const shellModel = createShellModel(api);
+  const shellModel = createShellModel(api, {
+    followUpStorage: createLocalFollowUpQueueStorage(),
+  });
   let initializePromise: Promise<void> | null = null;
   let runtimeRefreshVersion = 0;
   let lastRuntimeContextKey = createRuntimeContextKey(shellModel.getState());
@@ -157,8 +161,8 @@ export function createAppShellStore(api: PiDesktopApi) {
       await shellModel.load();
       await refreshRuntimeMetadata();
     },
-    async sendPrompt(text?: string) {
-      await shellModel.sendPrompt(text);
+    async sendPrompt(text?: string, images?: PromptImageAttachment[]) {
+      await shellModel.sendPrompt(text, images);
     },
     async cancelPrompt() {
       await shellModel.cancelPrompt();

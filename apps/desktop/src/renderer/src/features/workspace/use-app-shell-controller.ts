@@ -68,6 +68,13 @@ export function useAppShellController(): AppShellController {
     reload,
     sendPrompt,
     cancelPrompt,
+    enqueueFollowUp,
+    steerPrompt,
+    editFollowUp,
+    deleteFollowUp,
+    moveFollowUp,
+    setFollowUpPaused,
+    retryFollowUp,
     setDraft,
     state,
     providerSnapshots,
@@ -214,6 +221,10 @@ export function useAppShellController(): AppShellController {
     uiInteractionStore,
     (storeState) => storeState.threadLastViewedAt,
   );
+  const followUpQueue = activeThreadId
+    ? state.followUpQueues[activeThreadId]
+    : undefined;
+  const supportsSteer = shell.capabilities?.supportsSteer ?? false;
   const workspacePrompt = useWorkspacePrompt({
     draft,
     setDraft,
@@ -226,6 +237,15 @@ export function useAppShellController(): AppShellController {
     contextWindows,
     uiStore: uiInteractionStore,
     openOAuthDialog,
+    enqueueFollowUp,
+    steerPrompt,
+    followUpQueue,
+    supportsSteer,
+    editFollowUp,
+    deleteFollowUp,
+    moveFollowUp,
+    setFollowUpPaused,
+    retryFollowUp,
   });
   const {
     autocompleteSuggestions,
@@ -356,6 +376,7 @@ export function useAppShellController(): AppShellController {
       onConnectProvider: handleConnectProvider,
       favoriteModels,
       onToggleFavorite: handleToggleFavorite,
+      followUpProps: workspacePrompt.followUpProps,
       workspacePath: activeWorktreePath,
       onFileTreeFileSelect: handleFileTreeFileSelect,
       onFileTreeDeleteFile: handleFileTreeDeleteFile,
@@ -427,6 +448,7 @@ export function useAppShellController(): AppShellController {
       handleFileSave,
       setDraft,
       handleSend,
+      workspacePrompt.followUpProps,
       handleRetryLastUserMessage,
       handleResubmitUserMessage,
       handleCancelPrompt,

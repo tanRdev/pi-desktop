@@ -2,8 +2,11 @@ import {
   cpSync,
   existsSync,
   mkdirSync,
+  readdirSync,
   readFileSync,
+  realpathSync,
   rmSync,
+  symlinkSync,
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
@@ -42,8 +45,75 @@ if (rootPackageJson.version !== desktopPackageJson.version) {
 const version = desktopPackageJson.version;
 const main = desktopPackageJson.main || "out/main/index.js";
 
-// Get node-pty version from actual dependencies
-const nodePtyVersion = desktopPackageJson.dependencies?.["node-pty"] || "1.1.0";
+// Keep external runtime packages and their installed dependency trees.
+const runtimeDependencyNames = [
+  "node-pty",
+  "@earendil-works/pi-coding-agent",
+  "electron-updater",
+  "sharp",
+];
+const runtimeDependencies = Object.fromEntries(
+  runtimeDependencyNames.map((name) => [
+    name,
+    desktopPackageJson.dependencies[name],
+  ]),
+);
+
+// Preserve each dependency's own resolution context (including optional native
+// packages). All links target copied packages inside the release directory.
+const copiedPackages = new Map();
+function findPackage(name, fromDir) {
+  for (let current = fromDir; ; current = path.dirname(current)) {
+    const candidate = path.join(current, "node_modules", name);
+    if (existsSync(path.join(candidate, "package.json")))
+      return realpathSync(candidate);
+    if (path.dirname(current) === current) return null;
+  }
+}
+function copyPackage(name, fromDir, destinationModules, optional = false) {
+  const source = findPackage(name, fromDir);
+  if (!source) {
+    if (optional) return;
+    throw new Error(
+      `Missing runtime dependency ${name} required by ${fromDir}`,
+    );
+  }
+  const destination = path.join(destinationModules, name);
+  mkdirSync(path.dirname(destination), { recursive: true });
+  const existing = copiedPackages.get(source);
+  if (existing) {
+    symlinkSync(
+      path.relative(path.dirname(destination), existing),
+      destination,
+      "dir",
+    );
+    return;
+  }
+  copiedPackages.set(source, destination);
+  mkdirSync(destination, { recursive: true });
+  for (const entry of readdirSync(source)) {
+    if (entry !== "node_modules")
+      cpSync(path.join(source, entry), path.join(destination, entry), {
+        recursive: true,
+        dereference: true,
+      });
+  }
+  const manifest = JSON.parse(
+    readFileSync(path.join(source, "package.json"), "utf8"),
+  );
+  const dependencies = {
+    ...manifest.dependencies,
+    ...manifest.optionalDependencies,
+  };
+  for (const dependency of Object.keys(dependencies)) {
+    copyPackage(
+      dependency,
+      source,
+      path.join(destination, "node_modules"),
+      dependency in (manifest.optionalDependencies ?? {}),
+    );
+  }
+}
 
 // Validate required directories exist
 if (!existsSync(outDir)) {
@@ -66,18 +136,17 @@ assertJavaScriptGraph(
 
 // Copy build output and native dependencies
 cpSync(outDir, path.join(stageDir, "out"), { recursive: true });
-cpSync(nodePtyDir, path.join(stageDir, "node_modules", "node-pty"), {
-  recursive: true,
-});
+for (const name of runtimeDependencyNames) {
+  copyPackage(name, desktopDir, path.join(stageDir, "node_modules"));
+}
 
 // Create release package.json with values from source
 const releasePackageJson = {
   name: "@pi-desktop/desktop-release",
+  type: "module",
   version,
   main,
-  dependencies: {
-    "node-pty": nodePtyVersion,
-  },
+  dependencies: runtimeDependencies,
 };
 
 writeFileSync(

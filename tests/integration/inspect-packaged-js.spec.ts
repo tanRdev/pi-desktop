@@ -41,6 +41,21 @@ describe("inspectJavaScriptGraph", () => {
     expect(problems).toEqual([]);
   });
 
+  it("ignores import-like text in worker diagnostics, comments, and templates", () => {
+    expect(
+      inspectJavaScriptGraph({
+        "out/renderer/worker.js": Buffer.from(
+          [
+            `const diagnostic = "Cannot find import '. Did you mean '";`,
+            `// import './missing-comment.js';`,
+            'const example = `import("./missing-template.js")`;',
+            `const pattern = /import './missing-regex.js'/;`,
+          ].join("\n"),
+        ),
+      }),
+    ).toEqual([]);
+  });
+
   it("reports the v0.9.3 failure mode: an imported shared chunk that is empty", () => {
     const problems = inspectJavaScriptGraph({
       "out/main/index.js": Buffer.from(

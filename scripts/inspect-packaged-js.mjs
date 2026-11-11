@@ -2,10 +2,9 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import ts from "typescript";
 
 const JS_FILE_PATTERN = /\.(?:[cm]?js)$/;
-const RELATIVE_SPECIFIER_PATTERN =
-  /(?:import|export)\s*["'](\.[^"']+)["']|(?:import|export)(?:\s+type)?(?:\s*\{[^}]*\}|\s*\*\s+as\s+[\w$]+|\s*\*|\s*[\w$]+\s*,\s*\{[^}]*\}|\s*[\w$]+\s*,\s*\*\s+as\s+[\w$]+|[\s\w*,]+)\s*from\s*["'](\.[^"']+)["']|import\s*\(\s*["'](\.[^"']+)["']\s*\)/g;
 const NAMED_FROM_PATTERN =
   /(?:import|export)\s*(?:[\w$]+\s*,\s*)?\{([^}]*)\}\s*from\s*["'](\.[^"']+)["']/g;
 const LOCAL_EXPORT_BRACE_PATTERN = /\bexport\s*\{([^}]*)\}(\s*from\b)?/g;
@@ -57,13 +56,34 @@ function walkJsFiles(rootDir, currentRelativeDir = "") {
 }
 
 function extractRelativeSpecifiers(source) {
+  // Parse syntax so import-like text in diagnostics, comments, templates,
+  // and regular expressions cannot masquerade as dependencies.
+  const ast = ts.createSourceFile(
+    "bundle.js",
+    source,
+    ts.ScriptTarget.Latest,
+    false,
+    ts.ScriptKind.JS,
+  );
   const specifiers = [];
-  for (const match of source.matchAll(RELATIVE_SPECIFIER_PATTERN)) {
-    const specifier = match[1] ?? match[2] ?? match[3];
-    if (specifier) {
-      specifiers.push(specifier);
+  function visit(node) {
+    const specifier =
+      ts.isImportDeclaration(node) || ts.isExportDeclaration(node)
+        ? node.moduleSpecifier
+        : ts.isCallExpression(node) &&
+            node.expression.kind === ts.SyntaxKind.ImportKeyword
+          ? node.arguments[0]
+          : undefined;
+    if (
+      specifier &&
+      ts.isStringLiteralLike(specifier) &&
+      specifier.text.startsWith(".")
+    ) {
+      specifiers.push(specifier.text);
     }
+    ts.forEachChild(node, visit);
   }
+  visit(ast);
   return specifiers;
 }
 

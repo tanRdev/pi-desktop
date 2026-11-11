@@ -1,8 +1,14 @@
-import type { MentionSuggestion, SlashSuggestion } from "@pi-desktop/shared";
+import type {
+  FollowUpQueueState,
+  MentionSuggestion,
+  PromptImageAttachment,
+  SlashSuggestion,
+} from "@pi-desktop/shared";
 import * as React from "react";
 import { useStore } from "zustand";
 import type { UiInteractionStore } from "@/stores/ui-interaction-store";
 import type { ThreadConversationState } from "@/stores/workspace-session-store";
+import type { FollowUpDockProps } from "./components/prompt-dock";
 import { usePersistDraft } from "./components/prompt-dock/prompt-draft";
 import {
   dispatchPiCommand,
@@ -10,6 +16,7 @@ import {
 } from "./components/prompt-dock/slash-commands";
 import type { WorkspaceShellProps } from "./components/workspace-shell";
 import { loadPromptAutocompleteSuggestions } from "./prompt-autocomplete-loader";
+import { loadPromptImageAttachments } from "./prompt-image-attachments";
 import {
   buildFileMention,
   buildTerminalMention,
@@ -18,6 +25,10 @@ import {
   planPromptDispatch,
   replacePromptToken,
 } from "./prompt-routing";
+import {
+  useWorkspaceFollowUps,
+  type WorkspaceFollowUpWiring,
+} from "./use-workspace-follow-ups";
 
 const EMPTY_AUTOCOMPLETE_SUGGESTIONS: (SlashSuggestion | MentionSuggestion)[] =
   [];
@@ -58,10 +69,13 @@ function isPromptExecutionVisible({
   );
 }
 
-export interface UseWorkspacePromptOptions {
+export interface UseWorkspacePromptOptions extends WorkspaceFollowUpWiring {
   draft: string;
   setDraft: (draft: string) => void;
-  sendPrompt: (text?: string) => Promise<void>;
+  sendPrompt: (
+    text?: string,
+    images?: PromptImageAttachment[],
+  ) => Promise<void>;
   cancelPrompt: () => Promise<void>;
   activeThreadId: string | null;
   activeThreadConversation: ThreadConversationState | undefined;
@@ -82,7 +96,17 @@ export interface WorkspacePromptController {
   isPromptExecuting: boolean;
   isPromptVisible: boolean;
   promptMode: PromptMode;
+  followUpQueue: FollowUpQueueState | undefined;
+  supportsSteer: boolean;
   handleSend: () => Promise<void>;
+  handleSteer: () => Promise<void>;
+  handleSteerFollowUp: (itemId: string) => Promise<void>;
+  handleEditFollowUp: (itemId: string, text: string) => void;
+  handleDeleteFollowUp: (itemId: string) => void;
+  handleMoveFollowUp: (itemId: string, offset: -1 | 1) => void;
+  handleToggleFollowUpPaused: () => void;
+  handleRetryFollowUp: (itemId: string) => void;
+  followUpProps: FollowUpDockProps;
   handleRetryLastUserMessage: (text: string) => void;
   handleResubmitUserMessage: (messageId: string, nextText: string) => void;
   handleCancelPrompt: () => Promise<void>;
@@ -107,6 +131,15 @@ export function useWorkspacePrompt({
   contextWindows,
   uiStore,
   openOAuthDialog,
+  enqueueFollowUp,
+  steerPrompt,
+  followUpQueue,
+  supportsSteer = false,
+  editFollowUp,
+  deleteFollowUp,
+  moveFollowUp,
+  setFollowUpPaused,
+  retryFollowUp,
 }: UseWorkspacePromptOptions): WorkspacePromptController {
   usePersistDraft(activeThreadId, draft, setDraft);
   const autocompleteSuggestions = useStore(
@@ -167,11 +200,9 @@ export function useWorkspacePrompt({
     pendingPromptThreadId,
   ]);
 
-  const canSend =
-    draft.trim().length > 0 &&
-    activeThreadId !== null &&
-    agentStatus !== "starting" &&
-    agentStatus !== "streaming";
+  // Submit stays available while a run is active: the prompt is queued
+  // as a follow-up instead of being blocked (or conflated with Stop).
+  const canSend = draft.trim().length > 0 && activeThreadId !== null;
   const isPromptExecuting = isPromptExecutionVisible({
     activeThreadId,
     pendingPromptThreadId,
@@ -359,7 +390,7 @@ export function useWorkspacePrompt({
       return;
     }
 
-    if (!canSend || !activeThreadId) {
+    if (!activeThreadId) {
       return;
     }
 
@@ -385,19 +416,74 @@ export function useWorkspacePrompt({
       return;
     }
 
+    // Carry typed image attachments (bytes + MIME type) for image file
+    // mentions in the draft; other mentions stay as expanded paths.
+    const images = await loadPromptImageAttachments(draft);
+
+    if (isPromptExecuting && enqueueFollowUp) {
+      // A run is active: queue as a follow-up instead of cancelling or
+      // blocking. The queue dispatches it when the run finishes.
+      const queuedId =
+        images.length > 0
+          ? enqueueFollowUp(plan.nextDraft, images)
+          : enqueueFollowUp(plan.nextDraft);
+      if (queuedId !== null) {
+        setDraft("");
+        clearAutocomplete();
+      }
+      return;
+    }
+
+    if (isPromptExecuting) {
+      // No queue wired (isolated contexts): preserve the old behavior of
+      // not interrupting the active run.
+      return;
+    }
+
     setPendingPromptThreadId(activeThreadId);
     clearAutocomplete();
     // Expand @file: mentions before sending; chips follow the retained draft.
-    await sendPrompt(plan.nextDraft);
+    if (images.length > 0) {
+      await sendPrompt(plan.nextDraft, images);
+    } else {
+      await sendPrompt(plan.nextDraft);
+    }
   }, [
     activeThreadId,
-    canSend,
     clearAutocomplete,
     draft,
+    enqueueFollowUp,
+    isPromptExecuting,
     openOAuthDialog,
     sendPrompt,
     setDraft,
   ]);
+
+  const followUps = useWorkspaceFollowUps({
+    activeThreadId,
+    draft,
+    isPromptExecuting,
+    setDraft,
+    clearAutocomplete,
+    steerPrompt,
+    followUpQueue,
+    supportsSteer,
+    editFollowUp,
+    deleteFollowUp,
+    moveFollowUp,
+    setFollowUpPaused,
+    retryFollowUp,
+  });
+  const {
+    handleSteer,
+    handleSteerFollowUp,
+    handleEditFollowUp,
+    handleDeleteFollowUp,
+    handleMoveFollowUp,
+    handleToggleFollowUpPaused,
+    handleRetryFollowUp,
+    followUpProps,
+  } = followUps;
 
   const handleRetryLastUserMessage = React.useCallback(
     (text: string) => {
@@ -471,7 +557,17 @@ export function useWorkspacePrompt({
     isPromptExecuting,
     isPromptVisible,
     promptMode,
+    followUpQueue,
+    supportsSteer,
     handleSend,
+    handleSteer,
+    handleSteerFollowUp,
+    handleEditFollowUp,
+    handleDeleteFollowUp,
+    handleMoveFollowUp,
+    handleToggleFollowUpPaused,
+    handleRetryFollowUp,
+    followUpProps,
     handleRetryLastUserMessage,
     handleResubmitUserMessage,
     handleCancelPrompt,

@@ -1,8 +1,10 @@
 import type {
   AgentMessageSnapshot,
   AgentSnapshot,
+  FollowUpQueueState,
   PiDesktopAgentEvent,
   PiDesktopApi,
+  PromptImageAttachment,
   ShellSnapshot,
 } from "@pi-desktop/shared";
 import {
@@ -14,6 +16,9 @@ import {
 } from "./agent-feed";
 
 import { mergeAgentSnapshots } from "./agent-snapshot-merge";
+import { createEmptyFollowUpQueue } from "./follow-up-queue";
+import type { FollowUpQueueStorage } from "./follow-up-queue-persistence";
+import { createFollowUpController } from "./shell-model-follow-ups";
 
 export interface ShellModelState {
   shell: ShellSnapshot;
@@ -22,6 +27,17 @@ export interface ShellModelState {
   live: AgentLiveFeed;
   /** Latest-wins Context switch feedback from SessionCapability. */
   contextSwitchPhase: "idle" | "switching" | "cancelled";
+  /** Per-thread follow-up queues, keyed by thread id (issue #10). */
+  followUpQueues: Record<string, FollowUpQueueState>;
+}
+
+export interface ShellModelOptions {
+  /** Persistence adapter for follow-up queues (renderer: localStorage). */
+  followUpStorage?: FollowUpQueueStorage;
+  /** Id generator for new follow-up items (injectable for tests). */
+  createFollowUpId?: () => string;
+  /** Clock for follow-up timestamps (injectable for tests). */
+  now?: () => number;
 }
 
 interface MessageEnvelopeEvent {
@@ -55,6 +71,7 @@ const INITIAL_STATE: ShellModelState = {
   draft: "",
   live: createInitialAgentLiveFeed(),
   contextSwitchPhase: "idle",
+  followUpQueues: {},
 };
 
 function getErrorMessage(error: unknown, fallback: string): string {
@@ -90,8 +107,20 @@ function normalizeEvent(
   return event;
 }
 
-export function createShellModel(api: PiDesktopApi) {
-  let state: ShellModelState = INITIAL_STATE;
+export function createShellModel(
+  api: PiDesktopApi,
+  options: ShellModelOptions = {},
+) {
+  const now = options.now ?? (() => Date.now());
+  let followUpIdCounter = 0;
+  const createFollowUpId =
+    options.createFollowUpId ??
+    (() => {
+      followUpIdCounter += 1;
+      return `follow-up-${now()}-${followUpIdCounter}`;
+    });
+
+  let state: ShellModelState = { ...INITIAL_STATE };
   let unsubscribe: (() => void) | undefined;
   const listeners = new Set<(state: ShellModelState) => void>();
   let refreshVersion = 0;
@@ -103,6 +132,70 @@ export function createShellModel(api: PiDesktopApi) {
       listener(state);
     }
   }
+
+  function applyAgentError(message: string): void {
+    state = {
+      ...state,
+      agent: { ...state.agent, status: "error", lastError: message },
+    };
+    notify();
+  }
+
+  function getFollowUpQueue(threadId: string): FollowUpQueueState {
+    return state.followUpQueues[threadId] ?? createEmptyFollowUpQueue(threadId);
+  }
+
+  function updateFollowUpQueue(queue: FollowUpQueueState): void {
+    state = {
+      ...state,
+      followUpQueues: { ...state.followUpQueues, [queue.threadId]: queue },
+    };
+    try {
+      options.followUpStorage?.write(state.followUpQueues);
+    } catch {
+      // Persistence is best-effort; the in-memory queue stays authoritative.
+    }
+    notify();
+  }
+
+  async function refreshAgentAfterDispatch(
+    contextRevisionAtDispatch: number,
+  ): Promise<void> {
+    if (contextRevision !== contextRevisionAtDispatch) {
+      return;
+    }
+    const refreshedSnapshot = await api.agent.getSnapshot();
+    if (contextRevision !== contextRevisionAtDispatch) {
+      return;
+    }
+    state = {
+      ...state,
+      agent: mergeAgentSnapshots(
+        state.agent,
+        refreshedSnapshot,
+        state.live.lastEventSequence > 0,
+        null,
+      ),
+      live: { ...state.live, snapshotLoadedAt: Date.now() },
+    };
+    notify();
+  }
+
+  const followUps = createFollowUpController({
+    api,
+    storage: options.followUpStorage,
+    createFollowUpId,
+    now,
+    getActiveThreadId: () => state.shell.catalog.selection.threadId,
+    getAgentStatus: () => state.agent.status,
+    getContextRevision: () => contextRevision,
+    getQueue: getFollowUpQueue,
+    updateQueue: updateFollowUpQueue,
+    refreshAgentAfterDispatch,
+    setAgentError: applyAgentError,
+  });
+
+  state = { ...state, followUpQueues: followUps.initialQueues };
 
   async function refreshSnapshots(): Promise<void> {
     const nextVersion = refreshVersion + 1;
@@ -136,6 +229,9 @@ export function createShellModel(api: PiDesktopApi) {
     };
 
     notify();
+
+    // Resume any persisted follow-ups for the now-active idle thread.
+    void followUps.dispatchFollowUps();
   }
 
   function handleAgentEvent(
@@ -172,6 +268,12 @@ export function createShellModel(api: PiDesktopApi) {
       live: applyLiveAgentEvent(state.live, normalized, receivedAt),
     };
     notify();
+
+    if (normalized.type === "agent_end") {
+      // The current run finished without being cancelled by the queue:
+      // dispatch the next follow-up, if any.
+      void followUps.dispatchFollowUps();
+    }
   }
 
   return {
@@ -199,7 +301,10 @@ export function createShellModel(api: PiDesktopApi) {
       notify();
     },
 
-    async sendPrompt(text?: string): Promise<void> {
+    async sendPrompt(
+      text?: string,
+      images?: PromptImageAttachment[],
+    ): Promise<void> {
       const prompt = text ?? state.draft;
 
       if (!prompt.trim()) {
@@ -224,7 +329,11 @@ export function createShellModel(api: PiDesktopApi) {
       let promptError: unknown = null;
 
       try {
-        await api.agent.prompt(prompt);
+        if (images && images.length > 0) {
+          await api.agent.prompt(prompt, [...images]);
+        } else {
+          await api.agent.prompt(prompt);
+        }
       } catch (error) {
         promptError = error;
         // Refreshing the snapshot below gives us the authoritative runtime state.
@@ -286,7 +395,22 @@ export function createShellModel(api: PiDesktopApi) {
         },
       };
       notify();
+
+      if (!failed) {
+        void followUps.dispatchFollowUps();
+      }
     },
+
+    // Follow-up queue + steer surface (issue #10), implemented by the
+    // follow-up controller in shell-model-follow-ups.ts.
+    enqueueFollowUp: followUps.enqueueFollowUp,
+    editFollowUp: followUps.editFollowUp,
+    deleteFollowUp: followUps.deleteFollowUp,
+    moveFollowUp: followUps.moveFollowUp,
+    setFollowUpPaused: followUps.setFollowUpPaused,
+    retryFollowUp: followUps.retryFollowUp,
+    dispatchFollowUps: followUps.dispatchFollowUps,
+    steerPrompt: followUps.steerPrompt,
 
     async cancelPrompt(): Promise<void> {
       let cancelError: unknown = null;
@@ -335,15 +459,7 @@ export function createShellModel(api: PiDesktopApi) {
     },
 
     setAgentError(message: string): void {
-      state = {
-        ...state,
-        agent: {
-          ...state.agent,
-          status: "error",
-          lastError: message,
-        },
-      };
-      notify();
+      applyAgentError(message);
     },
 
     dispose(): void {

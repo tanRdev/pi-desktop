@@ -8,6 +8,7 @@ import type {
   OAuthProviderSnapshot,
   PiDesktopAgentEvent,
   PiDiscoveryResult,
+  PromptImageAttachment,
 } from "@pi-desktop/shared";
 import { Schema } from "effect";
 import { IPC_CHANNELS } from "../channels.js";
@@ -42,7 +43,8 @@ const OAUTH_PROMPT_REQUEST_KEYS = new Set([
   "userCode",
 ]);
 const OAUTH_PROMPT_RESPONSE_KEYS = new Set(["requestId", "value"]);
-const PROMPT_KEYS = new Set(["text"]);
+const PROMPT_KEYS = new Set(["text", "images"]);
+const PROMPT_IMAGE_KEYS = new Set(["type", "mimeType", "data", "name"]);
 const AUTOCOMPLETE_CONTEXT_KEYS = new Set([
   "text",
   "cursorPosition",
@@ -75,15 +77,50 @@ export const AgentLogoutOAuthRequestSchema = createStrictObjectSchema<{
   providerId: ipcStringSchema(),
 });
 
-export const AgentPromptRequestSchema = createStrictObjectSchema<{
+/**
+ * Typed image attachment: base64 bytes + allowlisted MIME type, mirroring
+ * Pi's `ImageContent`. Bounded by the generic IPC string cap per field.
+ */
+export const PromptImageAttachmentSchema =
+  createStrictObjectSchema<PromptImageAttachment>(PROMPT_IMAGE_KEYS, {
+    type: Schema.Literal("image"),
+    mimeType: Schema.Literal(
+      "image/gif",
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+    ),
+    data: ipcStringSchema().pipe(
+      Schema.filter((value) => value.length > 0, {
+        message: () => "image data must not be empty",
+      }),
+    ),
+    name: Schema.optional(ipcStringSchema()),
+  });
+
+const promptTextSchema = ipcStringSchema().pipe(
+  Schema.filter((value) => value.length > 0, {
+    message: () => "text must not be empty",
+  }),
+);
+
+// Prompt and steer share one request shape: text plus optional typed
+// image attachments (steer additionally requires a running session).
+type PromptLikeRequest = {
   readonly text: string;
-}>(PROMPT_KEYS, {
-  text: ipcStringSchema().pipe(
-    Schema.filter((value) => value.length > 0, {
-      message: () => "text must not be empty",
-    }),
-  ),
-});
+  readonly images?: PromptImageAttachment[];
+};
+
+const promptLikeRequestSchema = createStrictObjectSchema<PromptLikeRequest>(
+  PROMPT_KEYS,
+  {
+    text: promptTextSchema,
+    images: Schema.optional(mutableArray(PromptImageAttachmentSchema)),
+  },
+);
+
+export const AgentPromptRequestSchema = promptLikeRequestSchema;
+export const AgentSteerRequestSchema = promptLikeRequestSchema;
 
 export const AgentAutocompleteContextSchema =
   createStrictObjectSchema<AutocompleteContext>(AUTOCOMPLETE_CONTEXT_KEYS, {
@@ -293,6 +330,10 @@ export const agentContracts = {
     IPC_CHANNELS.agent.prompt,
     AgentPromptRequestSchema,
   ),
+  steer: createVoidResponseContract(
+    IPC_CHANNELS.agent.steer,
+    AgentSteerRequestSchema,
+  ),
   cancelPrompt: createNoPayloadVoidContract(IPC_CHANNELS.agent.cancelPrompt),
   reset: createNoPayloadVoidContract(IPC_CHANNELS.agent.reset),
   switchModel: createIpcContract({
@@ -337,17 +378,23 @@ type _AutocompleteSuggestionsAssignable = AssignableTo<
   Schema.Schema.Type<typeof AutocompleteSuggestionsSchema>,
   AutocompleteSuggestions
 >;
+type _PromptImageAttachmentAssignable = AssignableTo<
+  Schema.Schema.Type<typeof PromptImageAttachmentSchema>,
+  PromptImageAttachment
+>;
 
 export type AgentContractSchemasAssignable =
   | _AgentEventAssignable
   | _AutocompleteContextAssignable
-  | _AutocompleteSuggestionsAssignable;
+  | _AutocompleteSuggestionsAssignable
+  | _PromptImageAttachmentAssignable;
 
 export const agentContractList = [
   agentContracts.getOAuthProviders,
   agentContracts.loginWithOAuth,
   agentContracts.logoutOAuth,
   agentContracts.prompt,
+  agentContracts.steer,
   agentContracts.cancelPrompt,
   agentContracts.reset,
   agentContracts.switchModel,

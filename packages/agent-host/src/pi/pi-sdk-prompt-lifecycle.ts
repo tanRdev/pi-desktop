@@ -1,3 +1,5 @@
+import type { PromptImageAttachment } from "@pi-desktop/shared";
+
 type PromptLifecycleSession = {
   sessionId: string;
   prompt: (text: string, options?: object) => Promise<void>;
@@ -12,7 +14,7 @@ type PiSdkPromptLifecycleOptions = {
 };
 
 type PiSdkPromptLifecycle = {
-  prompt: (text: string) => Promise<void>;
+  prompt: (text: string, images?: PromptImageAttachment[]) => Promise<void>;
   cancel: () => Promise<void>;
 };
 
@@ -34,7 +36,10 @@ export const createPiSdkPromptLifecycle = ({
     // recorded via setErrorState instead of rejecting a call that was
     // already acknowledged. Callers must therefore never retry a prompt
     // whose acceptance is uncertain — it may already be running.
-    async prompt(text: string): Promise<void> {
+    async prompt(
+      text: string,
+      images?: PromptImageAttachment[],
+    ): Promise<void> {
       const session = getSession();
 
       if (!session) {
@@ -60,6 +65,7 @@ export const createPiSdkPromptLifecycle = ({
         try {
           await session.prompt(text, {
             signal: abortController.signal,
+            ...(images && images.length > 0 ? { images } : {}),
             preflightResult: (success: boolean) => {
               if (success && !accepted) {
                 accepted = true;

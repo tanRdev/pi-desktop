@@ -263,6 +263,8 @@ const ShellCapabilitiesSnapshotSchema = Schema.Struct({
   supportsTools: Schema.Boolean,
   supportsActivity: Schema.Boolean,
   supportsParallelSessions: Schema.Boolean,
+  supportsSteer: Schema.optional(Schema.Boolean),
+  supportsImageAttachments: Schema.optional(Schema.Boolean),
 });
 
 const ShellGitSnapshotSchema = Schema.Struct({

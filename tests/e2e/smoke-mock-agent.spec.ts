@@ -9,7 +9,9 @@ const ROOT = path.resolve(
   "../..",
 );
 const DESKTOP = path.join(ROOT, "apps/desktop");
-const MAIN_ENTRY = path.join(DESKTOP, "out/main/index.js");
+const MAIN_ENTRY =
+  process.env.PI_DESKTOP_E2E_MAIN_ENTRY ??
+  path.join(DESKTOP, "out/main/index.js");
 
 test.describe("Pi Desktop raised-bar smoke (mock agent)", () => {
   test.beforeAll(() => {
@@ -109,7 +111,7 @@ test.describe("Pi Desktop raised-bar smoke (mock agent)", () => {
           await new Promise((resolve) => setTimeout(resolve, 200));
         }
 
-        if (status === "starting" || status === "streaming") {
+        if (status !== "ready" && status !== "idle") {
           throw new Error(`Agent host still ${status} after wait`);
         }
 
@@ -124,9 +126,7 @@ test.describe("Pi Desktop raised-bar smoke (mock agent)", () => {
 
       expect(result.repositoryId).toBeTruthy();
       expect(result.worktreeId).toBeTruthy();
-      expect(["ready", "streaming", "idle", "starting", "error"]).toContain(
-        result.status,
-      );
+      expect(["ready", "streaming", "idle"]).toContain(result.status);
     } finally {
       await app.close();
       fs.rmSync(userDataDir, { recursive: true, force: true });

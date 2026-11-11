@@ -4,6 +4,7 @@ import type {
   AgentSnapshot,
   ModelSwitchRequest,
   PiDesktopAgentEvent,
+  PromptImageAttachment,
   ProviderSnapshot,
   SettingsSnapshot,
 } from "@pi-desktop/shared";
@@ -89,7 +90,8 @@ type AgentDesktopHost = {
   getSettings(): Promise<SettingsSnapshot>;
   getSnapshot(): Promise<AgentSnapshot>;
   switchModel(request: ModelSwitchRequest): Promise<void>;
-  prompt(text: string): Promise<void>;
+  prompt(text: string, images?: PromptImageAttachment[]): Promise<void>;
+  steer(text: string, images?: PromptImageAttachment[]): Promise<void>;
   cancelPrompt(): Promise<void>;
   reset(): Promise<void>;
   subscribe(listener: (event: PiDesktopAgentEvent) => void): () => void;
@@ -146,6 +148,9 @@ function createBootstrapErrorHost(message: string): AgentDesktopHost {
     },
     async prompt(text: string) {
       await unavailableHost.prompt(text);
+    },
+    async steer(text: string) {
+      await unavailableHost.steer(text);
     },
     async cancelPrompt() {
       await unavailableHost.cancelPrompt();

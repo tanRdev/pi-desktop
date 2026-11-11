@@ -28,6 +28,7 @@ type EnsureDirectory = (directory: string) => void;
 type UnavailableAgentHost = {
   getSnapshot(): Promise<AgentSnapshot>;
   prompt(text: string): Promise<void>;
+  steer(text: string): Promise<void>;
   cancelPrompt(): Promise<void>;
 };
 
@@ -140,6 +141,9 @@ export function createUnavailableAgentHost(
       };
     },
     async prompt() {
+      throw new Error(message);
+    },
+    async steer() {
       throw new Error(message);
     },
     async cancelPrompt() {

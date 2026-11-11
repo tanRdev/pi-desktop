@@ -103,7 +103,7 @@ describe("createPiSdkPromptLifecycle", () => {
     expect(setErrorState).not.toHaveBeenCalled();
   });
 
-  it("resolves on preflight acceptance while the turn is still running", async () => {
+  it("forwards images and resolves on preflight acceptance while the turn is still running", async () => {
     const setStreamingState = vi.fn();
     const refreshReadyState = vi.fn();
     const setErrorState = vi.fn();
@@ -131,7 +131,19 @@ describe("createPiSdkPromptLifecycle", () => {
       setErrorState,
     });
 
-    const promptPromise = lifecycle.prompt("hello");
+    const images = [
+      {
+        type: "image" as const,
+        mimeType: "image/png" as const,
+        data: "aGVsbG8=",
+      },
+    ];
+    const promptPromise = lifecycle.prompt("hello", images);
+    expect(session.prompt).toHaveBeenCalledWith("hello", {
+      signal: expect.any(AbortSignal),
+      preflightResult: expect.any(Function),
+      images,
+    });
     reportPreflight?.(true);
 
     // Acceptance resolves the call even though the turn has not finished.

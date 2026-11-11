@@ -14,6 +14,7 @@ import type {
   ContextWindow,
 } from "@/features/workspace/workspace-pane-state";
 import type { LeftSidebarProps } from "./left-sidebar";
+import type { FollowUpDockProps } from "./prompt-dock";
 import type { StatusBarProps } from "./status-bar";
 import type { WorkspaceShellLayoutProps } from "./workspace-shell-layout";
 import type { WorkspaceShellMainPaneProps } from "./workspace-shell-main-pane";
@@ -94,6 +95,7 @@ interface BuildWorkspaceShellLayoutPropsParams {
   favoriteModels?: string[];
   onToggleFavorite?: (modelValue: string) => void;
   onAgentGitAction?: (prompt: string) => void;
+  followUpProps?: FollowUpDockProps;
   workspacePath: string | null;
   onTerminalCommandComplete: () => void;
   activeGitRepositoryStatus: GitRepositoryStatus | null;
@@ -171,6 +173,7 @@ export function buildWorkspaceShellLayoutProps({
   favoriteModels,
   onToggleFavorite,
   onAgentGitAction,
+  followUpProps,
   workspacePath,
   onTerminalCommandComplete,
   activeGitRepositoryStatus,
@@ -254,6 +257,7 @@ export function buildWorkspaceShellLayoutProps({
     favoriteModels,
     onToggleFavorite,
     onAgentGitAction,
+    followUpProps,
   };
 
   const terminalAsideProps: WorkspaceShellTerminalAsideProps | null =

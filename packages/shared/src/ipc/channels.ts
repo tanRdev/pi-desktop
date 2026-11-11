@@ -22,6 +22,7 @@ export const IPC_CHANNELS = {
     oauthPrompt: "agent:oauthPrompt",
     respondOAuthPrompt: "agent:respondOAuthPrompt",
     prompt: "agent:prompt",
+    steer: "agent:steer",
     cancelPrompt: "agent:cancelPrompt",
     reset: "agent:reset",
     switchModel: "agent:switchModel",

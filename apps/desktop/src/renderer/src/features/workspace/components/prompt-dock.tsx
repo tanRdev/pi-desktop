@@ -1,4 +1,5 @@
 import type {
+  FollowUpQueueState,
   MentionSuggestion,
   ProviderSnapshot,
   SlashSuggestion,
@@ -18,6 +19,7 @@ import PromptAutocomplete from "@/components/ui/prompt-autocomplete";
 import { Attachments, useAttachments } from "./prompt-dock/attachments";
 import { CharacterCounter } from "./prompt-dock/character-counter";
 import { ContextGauge } from "./prompt-dock/context-gauge";
+import { FollowUpQueue } from "./prompt-dock/follow-up-queue";
 import { ModelPicker } from "./prompt-dock/model-picker";
 import { SendButton } from "./prompt-dock/send-button";
 import { usePromptDockDisplay } from "./prompt-dock/use-prompt-dock-display";
@@ -25,7 +27,23 @@ import { usePromptDockInput } from "./prompt-dock/use-prompt-dock-input";
 
 export type PromptMode = "build" | "plan";
 
-export interface PromptDockProps {
+/**
+ * Follow-up queue + steer props for the prompt dock (issue #10). Kept as
+ * one bundle so the workspace shell layers forward a single prop.
+ */
+export interface FollowUpDockProps {
+  followUpQueue?: FollowUpQueueState;
+  supportsSteer?: boolean;
+  onSteer?: () => void | Promise<void>;
+  onEditFollowUp?: (itemId: string, text: string) => void;
+  onDeleteFollowUp?: (itemId: string) => void;
+  onMoveFollowUp?: (itemId: string, offset: -1 | 1) => void;
+  onToggleFollowUpPaused?: () => void;
+  onRetryFollowUp?: (itemId: string) => void;
+  onSteerFollowUp?: (itemId: string) => void | Promise<void>;
+}
+
+export interface PromptDockProps extends FollowUpDockProps {
   draft: string;
   onDraftChange: (draft: string) => void;
   onSend: () => void | Promise<void>;
@@ -89,6 +107,15 @@ export function PromptDock({
   onConnectProvider,
   favoriteModels = [],
   onToggleFavorite,
+  followUpQueue,
+  supportsSteer = false,
+  onSteer,
+  onEditFollowUp,
+  onDeleteFollowUp,
+  onMoveFollowUp,
+  onToggleFollowUpPaused,
+  onRetryFollowUp,
+  onSteerFollowUp,
 }: PromptDockProps) {
   const [isFocused, setIsFocused] = React.useState(false);
   const hasActiveThread = activeThreadId !== null;
@@ -115,7 +142,7 @@ export function PromptDock({
     contextUsage,
   });
 
-  const { handleImagePaste, handleSubmit, handlePromptKeyDown } =
+  const { handleImagePaste, handleSubmit, handleStop, handlePromptKeyDown } =
     usePromptDockInput({
       activeThreadId,
       draft,
@@ -159,6 +186,17 @@ export function PromptDock({
           onSubmit={handleSubmit}
           className={cn("px-6 pb-3 pt-3")}
         >
+          <FollowUpQueue
+            queue={followUpQueue}
+            supportsSteer={supportsSteer}
+            onEdit={(itemId, text) => onEditFollowUp?.(itemId, text)}
+            onDelete={(itemId) => onDeleteFollowUp?.(itemId)}
+            onMove={(itemId, offset) => onMoveFollowUp?.(itemId, offset)}
+            onTogglePaused={() => onToggleFollowUpPaused?.()}
+            onRetry={(itemId) => onRetryFollowUp?.(itemId)}
+            onSteerItem={(itemId) => void onSteerFollowUp?.(itemId)}
+          />
+
           <Attachments
             uploadedFiles={uploadedFiles}
             imageFiles={imageFiles}
@@ -271,6 +309,9 @@ export function PromptDock({
                 canSend={canSend}
                 draft={draft}
                 onSubmit={handleSubmit}
+                onStop={handleStop}
+                supportsSteer={supportsSteer}
+                onSteer={onSteer ? () => void onSteer() : undefined}
               />
             </div>
           </PromptInputActions>

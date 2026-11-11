@@ -7,6 +7,7 @@ import type {
   OAuthProviderSnapshot,
   PiDesktopAgentEvent,
   PiDiscoveryResult,
+  PromptImageAttachment,
   ProviderSnapshot,
   SettingsSnapshot,
 } from "./agent.js";
@@ -54,7 +55,12 @@ export interface PiDesktopApi {
     logoutOAuth(providerId: string): Promise<void>;
     onOAuthPrompt(listener: (request: OAuthPromptRequest) => void): () => void;
     respondOAuthPrompt(response: OAuthPromptResponse): Promise<void>;
-    prompt(text: string): Promise<void>;
+    prompt(text: string, images?: PromptImageAttachment[]): Promise<void>;
+    /**
+     * Steer the active run without cancelling it. Only call when the
+     * shell capabilities report `supportsSteer`.
+     */
+    steer(text: string, images?: PromptImageAttachment[]): Promise<void>;
     cancelPrompt(): Promise<void>;
     reset(): Promise<void>;
     switchModel(request: ModelSwitchRequest): Promise<ModelSwitchResult>;

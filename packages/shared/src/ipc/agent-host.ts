@@ -1,6 +1,7 @@
 import type {
   AgentSnapshot,
   ModelSwitchRequest,
+  PromptImageAttachment,
   ProviderSnapshot,
   SettingsSnapshot,
 } from "../models/agent.js";
@@ -29,7 +30,14 @@ export type AgentHostRequest =
   | {
       requestId: string;
       text: string;
+      images?: PromptImageAttachment[];
       type: "prompt";
+    }
+  | {
+      requestId: string;
+      text: string;
+      images?: PromptImageAttachment[];
+      type: "steer";
     }
   | {
       requestId: string;

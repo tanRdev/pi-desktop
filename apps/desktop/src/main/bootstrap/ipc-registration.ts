@@ -33,6 +33,7 @@ type AgentDesktopHost = {
   getSettings: AgentIpcHost["getSettings"];
   getSnapshot: AgentIpcHost["getSnapshot"];
   prompt: AgentIpcHost["prompt"];
+  steer: AgentIpcHost["steer"];
   cancelPrompt: AgentIpcHost["cancelPrompt"];
   reset: AgentIpcHost["reset"];
 };
@@ -223,7 +224,7 @@ export function createAgentIpcHost(
     getProviders: () => input.getCurrentHost().getProviders(),
     getSettings: () => input.getCurrentHost().getSettings(),
     getSnapshot: () => input.getCurrentHost().getSnapshot(),
-    prompt: async (text) => {
+    prompt: async (text, images) => {
       const currentThread = input.getCurrentContext()?.thread;
       if (currentThread) {
         const threadEntry = input.threadCatalog.get(currentThread.id);
@@ -234,7 +235,18 @@ export function createAgentIpcHost(
         }
       }
 
-      await input.getCurrentHost().prompt(text);
+      if (images && images.length > 0) {
+        await input.getCurrentHost().prompt(text, images);
+      } else {
+        await input.getCurrentHost().prompt(text);
+      }
+    },
+    steer: async (text, images) => {
+      if (images && images.length > 0) {
+        await input.getCurrentHost().steer(text, images);
+      } else {
+        await input.getCurrentHost().steer(text);
+      }
     },
     cancelPrompt: () => input.getCurrentHost().cancelPrompt(),
     reset: () => input.getCurrentHost().reset(),

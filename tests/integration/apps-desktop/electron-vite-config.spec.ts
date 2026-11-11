@@ -3,8 +3,9 @@ import { describe, expect, it } from "vitest";
 import config from "../../../apps/desktop/electron.vite.config";
 
 describe("electron-vite config", () => {
-  it("keeps Electron external while making preload sandbox-compatible", () => {
-    expect(config.main?.build?.externalizeDeps).toBe(true);
+  it("bundles runtime dependencies while keeping Electron and node-pty external", () => {
+    expect(config.main?.build?.externalizeDeps).toBe(false);
+    expect(config.main?.build?.rollupOptions?.external).toContain("node-pty");
     expect(config.preload?.build?.externalizeDeps).toBe(false);
     expect(config.main?.build?.rollupOptions?.external).toContain("electron");
     expect(config.preload?.build?.rollupOptions?.external).toContain(
@@ -18,6 +19,11 @@ describe("electron-vite config", () => {
         ? preloadOutput[0]?.format
         : preloadOutput?.format,
     ).toBe("cjs");
+    const preloadOptions = Array.isArray(preloadOutput)
+      ? preloadOutput[0]
+      : preloadOutput;
+    expect(preloadOptions?.banner).toBe("(() => {");
+    expect(preloadOptions?.footer).toBe("})();");
     expect(config.renderer?.build?.outDir).toBe("out/renderer");
   });
 

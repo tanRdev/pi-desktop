@@ -149,6 +149,47 @@ describe("MockAgentRuntime", () => {
     expect(snapshot.messages[1]?.text).toContain("hello there");
   });
 
+  it("prompt carries typed image attachments into the transcript", async () => {
+    await runtime.bootstrap();
+
+    await runtime.prompt("describe this", [
+      { type: "image", mimeType: "image/png", data: "aGVsbG8=" },
+    ]);
+
+    const snapshot = runtime.getSnapshot();
+    expect(snapshot.messages[0]?.text).toBe(
+      "describe this [images: image/png]",
+    );
+    expect(snapshot.messages[1]?.text).toContain("[images: image/png]");
+  });
+
+  it("steer records the message without cancelling the active prompt", async () => {
+    await runtime.bootstrap();
+
+    const promptPromise = runtime.prompt("long task");
+    await runtime.steer("focus on tests", [
+      { type: "image", mimeType: "image/jpeg", data: "/9j/abc" },
+    ]);
+    await promptPromise;
+
+    const snapshot = runtime.getSnapshot();
+    expect(snapshot.status).toBe("ready");
+    expect(
+      snapshot.messages.some(
+        (message) =>
+          message.role === "user" &&
+          message.text === "focus on tests [images: image/jpeg]",
+      ),
+    ).toBe(true);
+    // The original prompt still completed normally.
+    expect(
+      snapshot.messages.some(
+        (message) =>
+          message.role === "assistant" && message.text.includes("long task"),
+      ),
+    ).toBe(true);
+  });
+
   it("prompt bootstraps automatically when called from 'starting' state", async () => {
     const events: PiDesktopAgentEvent[] = [];
     runtime.subscribe((event) => events.push(event));

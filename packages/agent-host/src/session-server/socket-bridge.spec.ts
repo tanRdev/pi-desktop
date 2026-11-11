@@ -27,6 +27,7 @@ function makeRuntime(
     })),
     switchModel: vi.fn(async () => {}),
     prompt: vi.fn(async () => {}),
+    steer: vi.fn(async () => {}),
     cancelPrompt: vi.fn(async () => {}),
     reset: vi.fn(async () => {}),
     subscribe: vi.fn(() => () => {}),
@@ -77,14 +78,17 @@ describe("parseAgentHostSocketRequest", () => {
     }
   });
 
-  it("rejects prompt requests whose text is not a string", () => {
+  it.each([
+    "prompt",
+    "steer",
+  ])("rejects %s requests whose text is not a string", (type) => {
     const parsed = parseAgentHostSocketRequest(
-      JSON.stringify({ requestId: "r3", type: "prompt", text: 42 }),
+      JSON.stringify({ requestId: "r3", type, text: 42 }),
     );
 
     expect(parsed.ok).toBe(false);
     if (!parsed.ok) {
-      expect(parsed.message).toContain("prompt text must be a string");
+      expect(parsed.message).toContain(`${type} text must be a string`);
     }
   });
 
@@ -196,6 +200,21 @@ describe("startAgentHostSocketServer", () => {
     });
     expect(runtime.prompt).not.toHaveBeenCalled();
     expect(runtime.bootstrap).toHaveBeenCalledOnce();
+  });
+
+  it("delivers steer requests with image attachments through the socket", async () => {
+    const runtime = makeRuntime();
+    const { received, waitForLines } = await connectAndCollect(runtime);
+    const images = [{ type: "image", mimeType: "image/png", data: "aGVsbG8=" }];
+    client?.write(
+      `${JSON.stringify({ requestId: "steer-1", type: "steer", text: "focus here", images })}\n`,
+    );
+    await waitForLines(1);
+    expect(runtime.steer).toHaveBeenCalledWith("focus here", images);
+    expect(JSON.parse(received[0] ?? "{}")).toEqual({
+      type: "response",
+      response: { requestId: "steer-1", kind: "ack" },
+    });
   });
 
   // Moving a >16MiB frame through the socket is CPU-bound under test

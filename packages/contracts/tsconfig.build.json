@@ -10,6 +10,8 @@
     "paths": {
       "@pi-desktop/shared": ["../shared/dist/index.d.ts"],
       "@pi-desktop/shared/*": ["../shared/dist/*"]
-    }
-  }
+    },
+    "rootDir": "src"
+  },
+  "exclude": ["src/**/*.spec.ts", "src/**/*.test.ts"]
 }

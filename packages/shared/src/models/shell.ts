@@ -43,6 +43,18 @@ export interface ShellCapabilitiesSnapshot {
   supportsTools: boolean;
   supportsActivity: boolean;
   supportsParallelSessions: boolean;
+  /**
+   * Whether the active runtime accepts steering messages mid-run
+   * (Pi SDK / CLI runtimes steer natively; the mock runtime records
+   * steered messages without cancelling the current run). Optional so
+   * older snapshots stay valid — absent means "not supported".
+   */
+  supportsSteer?: boolean;
+  /**
+   * Whether the active runtime accepts typed image attachments on
+   * prompt/steer calls. Absent means "not supported".
+   */
+  supportsImageAttachments?: boolean;
 }
 
 export interface ShellSnapshot {

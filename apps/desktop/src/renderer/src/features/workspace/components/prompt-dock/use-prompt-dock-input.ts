@@ -15,14 +15,16 @@ export interface UsePromptDockInputOptions {
 
 export interface PromptDockInputController {
   handleImagePaste: (file: File) => void;
+  /** Submit always sends (or queues a follow-up while executing). */
   handleSubmit: () => void;
+  /** Stop is separate from Submit: it only cancels the active run. */
+  handleStop: () => void;
   handlePromptKeyDown: React.KeyboardEventHandler<HTMLTextAreaElement>;
 }
 
 export function usePromptDockInput({
   activeThreadId,
   draft,
-  isPromptExecuting,
   autocompleteVisible,
   onDraftChange,
   onSend,
@@ -37,12 +39,18 @@ export function usePromptDockInput({
   }, []);
 
   const handleSubmit = React.useCallback(() => {
-    if (!isPromptExecuting && draft.trim().length > 0) {
+    if (draft.trim().length > 0) {
       history.push(draft);
     }
 
-    void (isPromptExecuting ? onCancelPrompt() : onSend());
-  }, [draft, history, isPromptExecuting, onCancelPrompt, onSend]);
+    // Submit never cancels: while a run is active the workspace layer
+    // queues the draft as a follow-up (issue #10). Stop is separate.
+    void onSend();
+  }, [draft, history, onSend]);
+
+  const handleStop = React.useCallback(() => {
+    void onCancelPrompt();
+  }, [onCancelPrompt]);
 
   const handlePromptKeyDown = React.useCallback(
     (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -112,6 +120,7 @@ export function usePromptDockInput({
   return {
     handleImagePaste,
     handleSubmit,
+    handleStop,
     handlePromptKeyDown,
   };
 }
